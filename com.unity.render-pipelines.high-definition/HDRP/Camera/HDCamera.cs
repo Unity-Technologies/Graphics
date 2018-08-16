@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -16,7 +15,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 projMatrix;
         public Matrix4x4 nonJitteredProjMatrix;
         public Vector4   worldSpaceCameraPos;
-        public float     detViewMatrix;
         public Vector4   screenSize;
         public Frustum   frustum;
         public Vector4[] frustumPlaneEquations;
@@ -240,7 +238,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
-            detViewMatrix = viewMatrix.determinant;
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -288,19 +285,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ActualHeight = camera.pixelHeight;
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
-#if !UNITY_SWITCH
             if (m_frameSettings.enableStereo)
             {
-                screenWidth = XRSettings.eyeTextureWidth;
-                screenHeight = XRSettings.eyeTextureHeight;
+                screenWidth = XRGraphicsConfig.eyeTextureWidth;
+                screenHeight = XRGraphicsConfig.eyeTextureHeight;
 
-                var xrDesc = XRSettings.eyeTextureDesc;
+                var xrDesc = XRGraphicsConfig.eyeTextureDesc;
                 m_ActualWidth = xrDesc.width;
                 m_ActualHeight = xrDesc.height;
 
                 ConfigureStereoMatrices();
             }
-#endif
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
@@ -382,9 +377,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // What constants in UnityPerPass need updating for stereo considerations?
             // _ViewProjMatrix - It is used directly for generating tesselation factors. This should be the same
             //                   across both eyes for consistency, and to keep shadow-generation eye-independent
-            // _DetViewMatrix -  Used for isFrontFace determination, should be the same for both eyes. There is the scenario
-            //                   where there might be multi-eye sets that are divergent enough where this assumption is not valid,
-            //                   but that's a future problem
             // _InvProjParam -   Intention was for generating linear depths, but not currently used.  Will need to be stereo-ized if
             //                   actually needed.
             // _FrustumPlanes -  Also used for generating tesselation factors.  Should be fine to use the combined stereo VP
@@ -411,8 +403,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             viewMatrix = stereoCombinedViewMatrix;
             var stereoCombinedProjMatrix = cullingParams.cullStereoProj;
             projMatrix = GL.GetGPUProjectionMatrix(stereoCombinedProjMatrix, true);
-
-            detViewMatrix = viewMatrix.determinant;
 
             frustum = Frustum.Create(viewProjMatrix, true, true);
 
@@ -547,7 +537,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
-            cmd.SetGlobalFloat(HDShaderIDs._DetViewMatrix,             detViewMatrix);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
             cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       doubleBufferedViewportScale);
             cmd.SetGlobalVector(HDShaderIDs._ZBufferParams,             zBufferParams);

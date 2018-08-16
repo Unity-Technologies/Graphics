@@ -6,7 +6,7 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    internal class VFXFlowEdge : Edge, IControlledElement<VFXFlowEdgeController>
+    internal class VFXFlowEdge : VFXEdge, IControlledElement<VFXFlowEdgeController>
     {
         public VFXFlowEdge()
         {

@@ -516,8 +516,8 @@ namespace UnityEditor.VFX
                 foreach (var parent in m_Parents)
                 {
                     foldable &= parent.Is(Flags.Foldable);
-                    m_Flags |= (parent.m_Flags & (Flags.PerElement | Flags.InvalidOnCPU));
-                    if (parent.Is(Flags.PerElement | Flags.InvalidOnGPU))
+                    m_Flags |= (parent.m_Flags & (Flags.NotCompilableOnCPU));
+                    if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))
                         m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
                 }
                 if (foldable)

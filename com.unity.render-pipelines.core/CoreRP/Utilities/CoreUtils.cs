@@ -19,6 +19,9 @@ namespace UnityEngine.Experimental.Rendering
 
     public static class CoreUtils
     {
+        // Keep a reference to default values for Reset purpose
+        static public AdditionalShadowData s_DefaultAdditionalShadowData { get { return ComponentSingleton<AdditionalShadowData>.instance; } }
+
         // Data useful for various cubemap processes.
         // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
         static public readonly Vector3[] lookAtList =
@@ -491,7 +494,14 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void DisplayUnsupportedAPIMessage()
         {
-            string msg = "Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur";
+            // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
+#if UNITY_EDITOR
+            string currentPlatform = UnityEditor.EditorUserBuildSettings.activeBuildTarget.ToString();
+#else
+            string currentPlatform = SystemInfo.operatingSystem;
+#endif
+
+            string msg = "Platform " + currentPlatform + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur";
             DisplayUnsupportedMessage(msg);
         }
 

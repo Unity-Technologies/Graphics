@@ -1,82 +1,113 @@
+// Upgrade NOTE: replaced 'defined at' with 'defined (at)'
+
 
 #ifdef DEBUG_DISPLAY
 #include "HDRP/Debug/DebugDisplay.hlsl"
 #endif
+#ifndef SHADERPASS
+#error SHADERPASS must be defined (at) this point
+#endif
+
+#if (SHADERPASS != SHADERPASS_FORWARD)
 #include "HDRP/Material/Material.hlsl"
-//#include "HDRP/Material/BuiltIn/BuiltInData.cs.hlsl"
-//#include "HDRP/Material/Lit/Lit.hlsl"
+#else
+#include "HDRP/Lighting/Lighting.hlsl"
+#endif
 
-float3 VFXSampleLightProbes(float3 normalWS)
+#include "HDRP/Material/BuiltinUtilities.hlsl"
+
+float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
 {
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = unity_SHAr;
-    SHCoefficients[1] = unity_SHAg;
-    SHCoefficients[2] = unity_SHAb;
-    SHCoefficients[3] = unity_SHBr;
-    SHCoefficients[4] = unity_SHBg;
-    SHCoefficients[5] = unity_SHBb;
-    SHCoefficients[6] = unity_SHC;
-
-    return SampleSH9(SHCoefficients, normalWS);
+	float3 posRWS = (float3)0;
+	#ifdef VFX_VARYING_POSRWS
+    posRWS = i.VFX_VARYING_POSRWS;
+	#endif
+	return posRWS;
 }
 
-BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceData, const VFXUVData uvData)
+BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs posInputs, const SurfaceData surfaceData, const BSDFData bsdfData, const PreLightData preLightData, const VFXUVData uvData, float opacity = 1.0f)
 {
     BuiltinData builtinData = (BuiltinData)0;
-    builtinData.opacity = 1.0f;
-    builtinData.bakeDiffuseLighting = VFXSampleLightProbes(surfaceData.normalWS);
+
+    InitBuiltinData(opacity, surfaceData.normalWS, -surfaceData.normalWS, posInputs.positionWS, (float2)0, (float2)0, builtinData); // We dont care about uvs are we dont sample lightmaps
 
     #if HDRP_USE_EMISSIVE
     builtinData.emissiveColor = float3(1,1,1);
     #if HDRP_USE_EMISSIVE_MAP
-    builtinData.emissiveColor *= SampleTexture(VFX_SAMPLER(emissiveMap),uvData).rgb * i.materialProperties.w;
+	float emissiveScale = 1.0f;
+	#ifdef VFX_VARYING_EMISSIVESCALE
+	emissiveScale = i.VFX_VARYING_EMISSIVESCALE;
+	#endif
+    builtinData.emissiveColor *= SampleTexture(VFX_SAMPLER(emissiveMap),uvData).rgb * emissiveScale;
     #endif
-    #if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
-    builtinData.emissiveColor *= i.emissiveColor;
+    #if defined(VFX_VARYING_EMISSIVE) && (HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
+    builtinData.emissiveColor *= i.VFX_VARYING_EMISSIVE;
     #endif
     #endif
+    builtinData.emissiveColor *= opacity;
 
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(i.VFX_VARYING_POSCS.xy, surfaceData);
-
-    PreLightData preLightData = (PreLightData)0;
-    preLightData.diffuseFGD = 1.0f;
-
-    builtinData.bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
+	PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInputs.positionWS),posInputs,surfaceData, builtinData);
 
     return builtinData;
 }
 
-SurfaceData VFXGetSurfaceData(VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfile)
+SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfile, out float opacity)
 {
     SurfaceData surfaceData = (SurfaceData)0;
 
     float4 color = float4(1,1,1,1);
     #if HDRP_USE_BASE_COLOR
-    color *= VFXGetFragmentColor(i);
+    color *= VFXGetParticleColor(i);
     #elif HDRP_USE_ADDITIONAL_BASE_COLOR
-    color *= i.color;
+	#if defined(VFX_VARYING_COLOR)
+    color.xyz *= i.VFX_VARYING_COLOR;
+	#endif
+	#if defined(VFX_VARYING_ALPHA)
+    color.a *= i.VFX_VARYING_ALPHA;
+	#endif
     #endif
     #if HDRP_USE_BASE_COLOR_MAP
-    color *= SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
+	float4 colorMap = SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
+	#if HDRP_USE_BASE_COLOR_MAP_COLOR
+	color.xyz *= colorMap.xyz;
+	#endif
+	#if HDRP_USE_BASE_COLOR_MAP_ALPHA
+    color.a *= colorMap.a;
+	#endif
     #endif
+	color.a *= VFXGetSoftParticleFade(i);
     VFXClipFragmentColor(color.a,i);
     surfaceData.baseColor = color.rgb;
 
+    #if IS_OPAQUE_PARTICLE
+    opacity = 1.0f;
+    #else
+	opacity = color.a;
+    #endif
+
     #if HDRP_MATERIAL_TYPE_STANDARD
-    surfaceData.materialFeatures = 1;
-    surfaceData.metallic = i.materialProperties.y;
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+	#ifdef VFX_VARYING_METALLIC
+    surfaceData.metallic = i.VFX_VARYING_METALLIC;
+	#endif
     #elif HDRP_MATERIAL_TYPE_SPECULAR
-    surfaceData.materialFeatures = 2;
-    surfaceData.specularColor = i.specularColor;
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
+	#ifdef VFX_VARYING_SPECULAR
+    surfaceData.specularColor = i.VFX_VARYING_SPECULAR;
+	#endif
     #elif HDRP_MATERIAL_TYPE_TRANSLUCENT
-    surfaceData.materialFeatures = 8;
-    surfaceData.thickness = i.materialProperties.y;
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+	#ifdef VFX_VARYING_THICKNESS
+    surfaceData.thickness = i.VFX_VARYING_THICKNESS * opacity;
+	#endif
     surfaceData.diffusionProfile = diffusionProfile;
     surfaceData.subsurfaceMask = 1.0f;
     #endif
 
     surfaceData.normalWS = normalWS;
-    surfaceData.perceptualSmoothness = i.materialProperties.x;
+	#ifdef VFX_VARYING_SMOOTHNESS
+    surfaceData.perceptualSmoothness = i.VFX_VARYING_SMOOTHNESS;
+	#endif
     surfaceData.specularOcclusion = 1.0f;
     surfaceData.ambientOcclusion = 1.0f;
 

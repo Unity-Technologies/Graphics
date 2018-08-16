@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         static string s_RenderPipelineResourcesPath
         {
-            get { return HDEditorUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/HDRenderPipelineResources.asset"; }
+            get { return HDUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/HDRenderPipelineResources.asset"; }
         }
 
         class DoCreateNewAssetHDRenderPipeline : ProjectWindowCallback.EndNameEditAction
@@ -47,80 +47,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var newAsset = CreateInstance<RenderPipelineResources>();
                 newAsset.name = Path.GetFileName(pathName);
 
-                // Load default renderPipelineResources / Material / Shader
-                string HDRenderPipelinePath = HDEditorUtils.GetHDRenderPipelinePath();
-                string CorePath = HDEditorUtils.GetCorePath();
-
-                newAsset.defaultDiffuseMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMaterial.mat");
-                newAsset.defaultMirrorMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMirrorMaterial.mat");
-
-                newAsset.defaultDecalMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDDecalMaterial.mat");
-                newAsset.defaultShader = Load<Shader>(HDRenderPipelinePath + "Material/Lit/Lit.shader");
-
-                newAsset.debugFontTexture = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/DebugFont.tga");
-                newAsset.debugDisplayLatlongShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugDisplayLatlong.Shader");
-                newAsset.debugViewMaterialGBufferShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugViewMaterialGBuffer.Shader");
-                newAsset.debugViewTilesShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugViewTiles.Shader");
-                newAsset.debugFullScreenShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugFullScreen.Shader");
-                newAsset.debugColorPickerShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugColorPicker.Shader");
-
-                newAsset.deferredShader = Load<Shader>(HDRenderPipelinePath + "Lighting/Deferred.Shader");
-                newAsset.colorPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/ColorPyramid.compute");
-                newAsset.depthPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/DepthPyramid.compute");
-                newAsset.copyChannelCS = Load<ComputeShader>(CorePath + "CoreResources/GPUCopy.compute");
-                newAsset.texturePaddingCS = Load<ComputeShader>(CorePath + "CoreResources/TexturePadding.compute");
-                newAsset.applyDistortionCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/ApplyDistorsion.compute");
-
-                newAsset.clearDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/cleardispatchindirect.compute");
-                newAsset.buildDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/builddispatchindirect.compute");
-                newAsset.buildScreenAABBShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/scrbound.compute");
-                newAsset.buildPerTileLightListShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/lightlistbuild.compute");
-                newAsset.buildPerBigTileLightListShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/lightlistbuild-bigtile.compute");
-                newAsset.buildPerVoxelLightListShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/lightlistbuild-clustered.compute");
-                newAsset.buildMaterialFlagsShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/materialflags.compute");
-                newAsset.deferredComputeShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/Deferred.compute");
-
-                newAsset.screenSpaceShadowComputeShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/ScreenSpaceShadow.compute");
-                newAsset.volumeVoxelizationCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Volumetrics/VolumeVoxelization.compute");
-                newAsset.volumetricLightingCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Volumetrics/VolumetricLighting.compute");
-
-                newAsset.subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.compute");
-                newAsset.subsurfaceScattering = Load<Shader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.shader");
-                newAsset.combineLighting = Load<Shader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/CombineLighting.shader");
-
-                // General
-                newAsset.cameraMotionVectors = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/CameraMotionVectors.shader");
-                newAsset.copyStencilBuffer = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/CopyStencilBuffer.shader");
-                newAsset.copyDepthBuffer = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/CopyDepthBuffer.shader");
-                newAsset.blit = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/Blit.shader");
-
-                // Sky
-                newAsset.blitCubemap = Load<Shader>(HDRenderPipelinePath + "Sky/BlitCubemap.shader");
-                newAsset.buildProbabilityTables = Load<ComputeShader>(HDRenderPipelinePath + "Material/GGXConvolution/BuildProbabilityTables.compute");
-                newAsset.computeGgxIblSampleData = Load<ComputeShader>(HDRenderPipelinePath + "Material/GGXConvolution/ComputeGgxIblSampleData.compute");
-                newAsset.GGXConvolve = Load<Shader>(HDRenderPipelinePath + "Material/GGXConvolution/GGXConvolve.shader");
-                newAsset.opaqueAtmosphericScattering = Load<Shader>(HDRenderPipelinePath + "Lighting/AtmosphericScattering/OpaqueAtmosphericScattering.shader");
-                newAsset.hdriSky = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/HDRISky.shader");
-                newAsset.integrateHdriSky = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/IntegrateHDRISky.shader");
-                newAsset.proceduralSky = Load<Shader>(HDRenderPipelinePath + "Sky/ProceduralSky/ProceduralSky.shader");
-                newAsset.gradientSky = Load<Shader>(HDRenderPipelinePath + "Sky/GradientSky/GradientSky.shader");
-                // Skybox/Cubemap is a builtin shader, must use Sahder.Find to access it. It is fine because we are in the editor
-                newAsset.skyboxCubemap = Shader.Find("Skybox/Cubemap");
-
-                // Material
-                newAsset.preIntegratedFGD_GGXDisneyDiffuse = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader");
-                newAsset.preIntegratedFGD_CharlieClothLambert = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD/PreIntegratedFGD_CharlieClothLambert.shader");
-
-                // Utilities / Core
-                newAsset.encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute");
-                newAsset.cubeToPanoShader = Load<Shader>(CorePath + "CoreResources/CubeToPano.shader");
-                newAsset.blitCubeTextureFace = Load<Shader>(CorePath + "CoreResources/BlitCubeTextureFace.shader");
-
-                // Shadow
-                newAsset.shadowClearShader = Load<Shader>(CorePath + "Shadow/ShadowClear.shader");
-                newAsset.shadowBlurMoments = Load<ComputeShader>(CorePath + "Shadow/ShadowBlurMoments.compute");
-                newAsset.debugShadowMapShader = Load<Shader>(CorePath + "Shadow/DebugDisplayShadowMap.shader");
-
+                newAsset.Init();
+                
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
             }

@@ -48,38 +48,69 @@ namespace UnityEditor.VFX
             }
         }
 
-        [PreferenceItem("Visual Effects")]
-        public static void PreferencesGUI()
-        {
-            LoadIfNeeded();
-            m_DisplayExperimentalOperator = EditorGUILayout.Toggle("Experimental Operators/Blocks", m_DisplayExperimentalOperator);
-            m_DisplayExtraDebugInfo = EditorGUILayout.Toggle("Show Additional DebugInfo", m_DisplayExtraDebugInfo);
 
-            bool oldForceEditionCompilation = m_ForceEditionCompilation;
-            m_ForceEditionCompilation = EditorGUILayout.Toggle("Force Compilation in Edition Mode", m_ForceEditionCompilation);
-            if (m_ForceEditionCompilation != oldForceEditionCompilation)
+        class VFXSettingsProvider : SettingsProvider
+        {
+            public VFXSettingsProvider():base("Visual Effects",SettingsScopes.User)
             {
-                // TODO Factorize that somewhere
-                var vfxAssets = new HashSet<VisualEffectAsset>();
-                var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
-                foreach (var guid in vfxAssetsGuid)
+                hasSearchInterestHandler = HasSearchInterestHandler;
+            }
+
+
+            bool HasSearchInterestHandler(string searchContext)
+            {
+                return true;
+            }
+
+            public override void OnGUI(string searchContext)
+            {
+                using (new SettingsWindow.GUIScope())
                 {
-                    string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                    var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-                    if (vfxAsset != null)
-                        vfxAssets.Add(vfxAsset);
+                    LoadIfNeeded();
+                    m_DisplayExperimentalOperator = EditorGUILayout.Toggle("Experimental Operators/Blocks", m_DisplayExperimentalOperator);
+                    m_DisplayExtraDebugInfo = EditorGUILayout.Toggle("Show Additional DebugInfo", m_DisplayExtraDebugInfo);
+
+                    bool oldForceEditionCompilation = m_ForceEditionCompilation;
+                    m_ForceEditionCompilation = EditorGUILayout.Toggle("Force Compilation in Edition Mode", m_ForceEditionCompilation);
+                    if (m_ForceEditionCompilation != oldForceEditionCompilation)
+                    {
+                        // TODO Factorize that somewhere
+                        var vfxAssets = new HashSet<VisualEffectAsset>();
+                        var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
+                        foreach (var guid in vfxAssetsGuid)
+                        {
+                            string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
+                            if (vfxAsset != null)
+                                vfxAssets.Add(vfxAsset);
+                        }
+
+                        foreach (var vfxAsset in vfxAssets)
+                            vfxAsset.GetResource().GetOrCreateGraph().SetCompilationMode(m_ForceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
+                    }
+
+                    if (GUI.changed)
+                    {
+                        EditorPrefs.SetBool(experimentalOperatorKey, m_DisplayExperimentalOperator);
+                        EditorPrefs.SetBool(extraDebugInfoKey, m_DisplayExtraDebugInfo);
+                        EditorPrefs.SetBool(forceEditionCompilationKey, m_ForceEditionCompilation);
+                    }
                 }
 
-                foreach (var vfxAsset in vfxAssets)
-                    vfxAsset.GetResource().GetOrCreateGraph().SetCompilationMode(m_ForceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
+                base.OnGUI(searchContext);
             }
+        }
 
-            if (GUI.changed)
-            {
-                EditorPrefs.SetBool(experimentalOperatorKey, m_DisplayExperimentalOperator);
-                EditorPrefs.SetBool(extraDebugInfoKey, m_DisplayExtraDebugInfo);
-                EditorPrefs.SetBool(forceEditionCompilationKey, m_ForceEditionCompilation);
-            }
+        [SettingsProvider]
+        public static SettingsProvider PreferenceSettingsProvider()
+        {
+            return new VFXSettingsProvider();
+        }
+
+
+        public static void PreferencesGUI()
+        {
+           
         }
     }
 }

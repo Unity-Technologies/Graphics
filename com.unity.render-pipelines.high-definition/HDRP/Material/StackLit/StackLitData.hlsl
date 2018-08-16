@@ -2,6 +2,7 @@
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
+#include "HDRP/Material/BuiltinUtilities.hlsl"
 #include "HDRP/Material/MaterialUtilities.hlsl"
 
 //-----------------------------------------------------------------------------

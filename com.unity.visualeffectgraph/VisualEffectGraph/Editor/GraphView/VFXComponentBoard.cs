@@ -534,7 +534,7 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var added in eventNames.Except(m_Events.Keys).ToArray())
                 {
-                    var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXComponentBoard-event.uxml");
+                    var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXComponentBoard-event");
 
                     tpl.CloneTree(m_EventsContainer, new Dictionary<string, VisualElement>());
 

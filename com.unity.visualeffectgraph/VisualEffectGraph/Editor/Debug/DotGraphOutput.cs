@@ -60,14 +60,14 @@ namespace UnityEditor.VFX
 
                     name += string.Format("{0}", allOwnersStr);
 
-                    if (exp.Is(VFXExpression.Flags.PerElement))
+                    if (exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
                         dotNode.attributes[DotAttribute.Color] = DotColor.Orange;
                     else if (exp.Is(VFXExpression.Flags.Constant))
                         dotNode.attributes[DotAttribute.Color] = DotColor.SteelBlue;
                     else
                         dotNode.attributes[DotAttribute.Color] = DotColor.Cyan;
                 }
-                else if (exp.Is(VFXExpression.Flags.PerElement))
+                else if (exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
                     dotNode.attributes[DotAttribute.Color] = DotColor.Yellow;
                 else if (exp.Is(VFXExpression.Flags.Constant))
                     dotNode.attributes[DotAttribute.Color] = DotColor.SlateGray;

@@ -1,4 +1,3 @@
-// Forward pass
 Pass
 {		
 	Tags { "LightMode"="GBuffer" }
@@ -15,7 +14,6 @@ Pass
 	#pragma target 4.5
 	
 	#define UNITY_MATERIAL_LIT
-	#define SHADERPASS SHADERPASS_GBUFFER
 		
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}		
 		
@@ -30,6 +28,8 @@ Pass
 		float4 sphereInfo : TEXCOORD3;
 	};
 	
+${VFXHDRPLitVaryingsMacros}	
+	
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_UV uv
@@ -42,20 +42,16 @@ ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 	
 	${VFXInclude("Shaders/ParticleSpheres/Pass.template")}	
+	#define SHADERPASS SHADERPASS_GBUFFER
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}
 					
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer), out float oDepth : SV_DepthLessEqual)
 	{
 		float3 normalWS;
-		VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS, i);
-				
-		SurfaceData surfaceData;
-		BuiltinData builtinData;
-		VFXUVData dummy;
-		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,dummy);
-		
-		ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.pos, outGBuffer);
+		VFXUVData uvData = (VFXUVData)0;
+		VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS, i);		
+		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
 	}
 	ENDHLSL
 }

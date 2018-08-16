@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
                 if (!HasAny(VFXExpressionContextOption.Reduction | VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding))
                     return false;
 
-                if (exp.Is(Flags.InvalidOnCPU) || exp.Is(Flags.PerElement))
+                if (exp.IsAny(Flags.NotCompilableOnCPU))
                     return false;
 
                 if (!exp.Is(Flags.Value) && reducedParents.Length == 0) // not a value

@@ -1,4 +1,3 @@
-// Shadow pass
 Pass
 {		
 	Tags { "LightMode"=${VFXPassShadow} }
@@ -44,14 +43,10 @@ ${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 	float frag(ps_input i) : SV_TARGET
 	{
 		float alpha = VFXGetFragmentColor(i).a;
-#if HDRP_USE_BASE_COLOR_MAP
+#if HDRP_USE_BASE_COLOR_MAP_ALPHA
 		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;	
 #endif
 		VFXClipFragmentColor(alpha,i);
-
-#ifndef USE_ALPHA_TEST
-		clip(alpha - 1e-5);
-#endif
 
 		return 0;
 	}

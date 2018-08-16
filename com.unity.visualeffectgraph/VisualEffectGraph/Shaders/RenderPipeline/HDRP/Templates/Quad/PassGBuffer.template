@@ -1,4 +1,3 @@
-// Forward pass
 Pass
 {		
 	Tags { "LightMode"="GBuffer" }
@@ -15,7 +14,6 @@ Pass
 	#pragma target 4.5
 	
 	#define UNITY_MATERIAL_LIT
-	#define SHADERPASS SHADERPASS_GBUFFER
 		
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}		
 		
@@ -41,13 +39,15 @@ Pass
 		#endif
 		
 		nointerpolation float3 normal : TEXCOORD4;
-		#if HDRP_USE_NORMAL_MAP || USE_NORMAL_BENDING
+		#if USE_NORMAL_MAP || USE_NORMAL_BENDING
 		nointerpolation float3 tangent : TEXCOORD5;
 		#endif
 		#if USE_NORMAL_BENDING
 		float2 bentFactors : TEXCOORD6;
 		#endif
 	};
+	
+${VFXHDRPLitVaryingsMacros}		
 	
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
@@ -56,21 +56,20 @@ Pass
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_UV uv
+#define VFX_VARYING_NORMAL normal
+#if USE_NORMAL_MAP || USE_NORMAL_BENDING
+#define VFX_VARYING_TANGENT tangent
+#endif
+#if USE_NORMAL_BENDING
+#define VFX_VARYING_BENTFACTORS bentFactors
+#endif
 
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
-
-o.normal = TransformDirectionVFXToWorld(-axisZ);
-#if HDRP_USE_NORMAL_MAP || USE_NORMAL_BENDING
-o.tangent = TransformDirectionVFXToWorld(axisX);
-#endif
-#if USE_NORMAL_BENDING
-${VFXLoadParameter:{bentNormalFactor}}
-o.bentFactors = vOffsets * bentNormalFactor;
-#endif
 ${VFXEnd}
 	
 	${VFXInclude("Shaders/ParticleQuads/Pass.template")}
+	#define SHADERPASS SHADERPASS_GBUFFER
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}
 					
 	#pragma fragment frag
@@ -80,39 +79,8 @@ ${VFXEnd}
 	#endif
 	)
 	{
-		#if USE_DOUBLE_SIDED
-		const float faceMul = frontFace ? 1.0f : -1.0f;
-		#else
-		const float faceMul = 1.0f;
-		#endif
-			
-		float3 normalWS = i.normal * faceMul;
-		const VFXUVData uvData = GetUVData(i);
-		
-		#if HDRP_USE_NORMAL_MAP || USE_NORMAL_BENDING
-		float3 tangentWS = i.tangent;
-		float3 bitangentWS = cross(i.tangent,i.normal);
-		
-		#if USE_NORMAL_BENDING	
-		float3 bentFactors = float3(i.bentFactors.xy,sqrt(1.0f - i.bentFactors.x * i.bentFactors.x * i.bentFactors.y * i.bentFactors.y));
-		normalWS = tangentWS * bentFactors.x + bitangentWS * bentFactors.y + normalWS * bentFactors.z;
-		tangentWS = normalize(cross(normalWS,bitangentWS));
-		bitangentWS = cross(tangentWS,normalWS);
-		tangentWS *= faceMul;
-		#endif
-		
-		#if HDRP_USE_NORMAL_MAP
-		float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
-		float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
-		normalWS = normalize(lerp(normalWS,mul(n,tbn),i.materialProperties.z));
-		#endif
-		#endif
-		
-		SurfaceData surfaceData;
-		BuiltinData builtinData;
-		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData);
-		
-		ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.pos, outGBuffer);
+		${VFXComputeNormalWS}		
+		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
 	}
 	ENDHLSL
 }

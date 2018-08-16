@@ -20,6 +20,18 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	const float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+	
+	#ifdef VFX_VARYING_NORMAL
+	float normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;
+	o.VFX_VARYING_NORMAL = normalFlip * TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz));
+	#endif
+	#ifdef VFX_VARYING_TANGENT
+	o.VFX_VARYING_TANGENT = TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz));
+	#endif
+	#ifdef VFX_VARYING_BENTFACTORS
+	${VFXLoadParameter:{bentNormalFactor}}
+	o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor;
+	#endif
 
 	${VFXVertexCommonProcess}
 	

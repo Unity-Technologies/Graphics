@@ -64,14 +64,14 @@ namespace UnityEditor.VFX.UIElements
                 text = VFXControlConstants.indeterminateText
             };
 
-            m_HDRLabel.style.textAlignment = TextAnchor.MiddleCenter;
+            m_HDRLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             m_HDRLabel.style.positionType = PositionType.Absolute;
             m_HDRLabel.style.positionTop = 0;
             m_HDRLabel.style.positionBottom = 0;
             m_HDRLabel.style.positionLeft = 0;
             m_HDRLabel.style.positionRight = 0;
 
-            m_IndeterminateLabel.style.textAlignment = TextAnchor.MiddleLeft;
+            m_IndeterminateLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
             m_IndeterminateLabel.style.positionType = PositionType.Absolute;
             m_IndeterminateLabel.style.positionTop = 0;
             m_IndeterminateLabel.style.positionBottom = 0;

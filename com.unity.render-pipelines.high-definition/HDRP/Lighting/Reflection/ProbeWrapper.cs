@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (add.influenceVolume == null)
                 {
                     add.Awake(); // We need to init the 'default' data if it isn't
-                }                
+                }
                 Vector3 distance = Vector3.one * probe.blendDistance;
                 add.influenceVolume.boxBlendDistancePositive = distance;
                 add.influenceVolume.boxBlendDistanceNegative = distance;
@@ -106,7 +106,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public override Texture texture { get { return probe.texture; } }
+        public override Texture texture
+        {
+            get
+            {
+                if(additional.mode == ReflectionProbeMode.Realtime)
+                {
+                    return additional.realtimeTexture;
+                }
+                else
+                {
+                    return probe.texture;
+                }
+            }
+        }
+
         public override ReflectionProbeMode mode { get { return probe.probe.mode; } }
         public override EnvShapeType influenceShapeType { get { return ConvertShape(additional.influenceVolume.shape); } }
         public override float weight { get { return additional.weight; } }
@@ -150,23 +164,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     : influenceExtents;
             }
         }
-
-        public override bool infiniteProjection
-        {
-            get
-            {
-                return additional.proxyVolume != null
-                    ? additional.proxyVolume.proxyVolume.shape == ProxyShape.Infinite
-                    : probe.boxProjection == 0;
-            }
-        }
+        public override bool infiniteProjection { get { return additional.infiniteProjection; } }
 
         public override Matrix4x4 proxyToWorld
         {
             get
             {
                 return additional.proxyVolume != null
-                    ? additional.proxyVolume.transform.localToWorldMatrix
+                    ? Matrix4x4.TRS(additional.proxyVolume.transform.position, additional.proxyVolume.transform.rotation, Vector3.one)
                     : influenceToWorld;
             }
         }

@@ -25,6 +25,15 @@ namespace UnityEditor.VFX
             BaseColorAndEmissive = BaseColor | Emissive,
         }
 
+        [Flags]
+        public enum BaseColorMapMode
+        {
+            None = 0,
+            Color = 1 << 0,
+            Alpha = 1 << 1,
+            ColorAndAlpha = Color | Alpha
+        }
+
         private readonly string[] kMaterialTypeToName = new string[] {
             "StandardProperties",
             "SpecularColorProperties",
@@ -34,11 +43,17 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting")]
         protected MaterialType materialType = MaterialType.Standard;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool onlyAmbientLighting = false;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Range(1, 15)]
         protected uint diffusionProfile = 1;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected bool useBaseColorMap = false;
+        protected bool multiplyThicknessWithAlpha = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected BaseColorMapMode useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useMaskMap = false;
@@ -130,7 +145,7 @@ namespace UnityEditor.VFX
 
                 if (allowTextures)
                 {
-                    if (useBaseColorMap)
+                    if (useBaseColorMap != BaseColorMapMode.None)
                         properties = properties.Concat(PropertiesFromType("BaseColorMapProperties"));
                 }
 
@@ -181,7 +196,7 @@ namespace UnityEditor.VFX
 
             if (allowTextures)
             {
-                if (useBaseColorMap)
+                if (useBaseColorMap != BaseColorMapMode.None)
                     yield return slotExpressions.First(o => o.name == "baseColorMap");
                 if (useMaskMap)
                     yield return slotExpressions.First(o => o.name == "maskMap");
@@ -223,6 +238,8 @@ namespace UnityEditor.VFX
 
                     case MaterialType.Translucent:
                         yield return "HDRP_MATERIAL_TYPE_TRANSLUCENT";
+                        if (multiplyThicknessWithAlpha)
+                            yield return "HDRP_MULTIPLY_THICKNESS_WITH_ALPHA";
                         break;
 
                     default: break;
@@ -230,12 +247,16 @@ namespace UnityEditor.VFX
 
                 if (allowTextures)
                 {
-                    if (useBaseColorMap)
+                    if (useBaseColorMap != BaseColorMapMode.None)
                         yield return "HDRP_USE_BASE_COLOR_MAP";
+                    if ((useBaseColorMap & BaseColorMapMode.Color) != 0)
+                        yield return "HDRP_USE_BASE_COLOR_MAP_COLOR";
+                    if ((useBaseColorMap & BaseColorMapMode.Alpha) != 0)
+                        yield return "HDRP_USE_BASE_COLOR_MAP_ALPHA";
                     if (useMaskMap)
                         yield return "HDRP_USE_MASK_MAP";
                     if (useNormalMap)
-                        yield return "HDRP_USE_NORMAL_MAP";
+                        yield return "USE_NORMAL_MAP";
                     if (useEmissiveMap)
                         yield return "HDRP_USE_EMISSIVE_MAP";
                 }
@@ -252,6 +273,9 @@ namespace UnityEditor.VFX
 
                 if (doubleSided)
                     yield return "USE_DOUBLE_SIDED";
+
+                if (onlyAmbientLighting && !isBlendModeOpaque)
+                    yield return "USE_ONLY_AMBIENT_LIGHTING";
             }
         }
 
@@ -263,7 +287,10 @@ namespace UnityEditor.VFX
                     yield return setting;
 
                 if (materialType != MaterialType.Translucent)
+                {
                     yield return "diffusionProfile";
+                    yield return "multiplyThicknessWithAlpha";
+                }
 
                 if (!allowTextures)
                 {
@@ -276,6 +303,50 @@ namespace UnityEditor.VFX
 
                 if ((colorMode & ColorMode.Emissive) != 0)
                     yield return "useEmissive";
+
+                if (isBlendModeOpaque)
+                    yield return "onlyAmbientLighting";
+            }
+        }
+
+        // HDRP always premultiplies in shader
+        protected override void WriteBlendMode(VFXShaderWriter writer)
+        {
+            if (blendMode == BlendMode.Additive)
+                writer.WriteLine("Blend One One");
+            else if (blendMode == BlendMode.Alpha)
+                writer.WriteLine("Blend One OneMinusSrcAlpha");
+            else if (blendMode == BlendMode.AlphaPremultiplied)
+                writer.WriteLine("Blend One OneMinusSrcAlpha");
+        }
+
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
+        {
+            get
+            {
+                foreach (var kvp in base.additionalReplacements)
+                    yield return kvp;
+
+                // HDRP Forward specific defines
+                var forwardDefines = new VFXShaderWriter();
+                forwardDefines.WriteLine("#define _ENABLE_FOG_ON_TRANSPARENT");
+                forwardDefines.WriteLine("#define _DISABLE_DECALS");
+                switch (blendMode)
+                {
+                    case BlendMode.Alpha:
+                        forwardDefines.WriteLine("#define _BLENDMODE_ALPHA");
+                        break;
+                    case BlendMode.Additive:
+                        forwardDefines.WriteLine("#define _BLENDMODE_ADD");
+                        break;
+                    case BlendMode.AlphaPremultiplied:
+                        forwardDefines.WriteLine("#define _BLENDMODE_PRE_MULTIPLY");
+                        break;
+                }
+                if (!isBlendModeOpaque)
+                    forwardDefines.WriteLine("#define _SURFACE_TYPE_TRANSPARENT");
+
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);    
             }
         }
     }
