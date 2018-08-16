@@ -544,6 +544,9 @@ namespace UnityEditor.VFX
         public VFXExpression y { get { return new VFXExpressionExtractComponent(this, 1); }  }
         public VFXExpression z { get { return new VFXExpressionExtractComponent(this, 2); }  }
         public VFXExpression w { get { return new VFXExpressionExtractComponent(this, 3); }  }
+        public VFXExpression xxx { get { return new VFXExpressionCombine(x, x, x); } }
+        public VFXExpression yyy { get { return new VFXExpressionCombine(y, y, y); } }
+        public VFXExpression zzz { get { return new VFXExpressionCombine(z, z, z); } }
 
         private Flags m_Flags = Flags.None;
         private VFXExpression[] m_Parents;
