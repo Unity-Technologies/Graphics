@@ -1682,7 +1682,7 @@ float3 SolveCubic(float4 Coefficient)
 // 'sinSqSigma' is the sine^2 of the real of the opening angle of the sphere as seen from the shaded point.
 // 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
 // N.b.: this function accounts for horizon clipping.
-float3 DiffuseSphereLightIrradiance_TEMP(real sinSqSigma, real cosOmega, PositionInputs posInput)
+float3 DiffuseSphereLightIrradiance_Approx(real sinSqSigma, real cosOmega)
 {
 #if 0//def APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
 
@@ -1697,7 +1697,7 @@ float3 DiffuseSphereLightIrradiance_TEMP(real sinSqSigma, real cosOmega, Positio
 //    real    y = sinSqSigma;
 //    return saturate( x * y * (-0.5178437754110042 + x * 0.5185893120011095 + y * (0.7595178089653328 - 0.39446879437315896 * x)) );
 
-#elif 0
+#elif 1
     // Re-fitting, slightly different values
     real    x = cosOmega;
     real    y = sinSqSigma;
@@ -1709,15 +1709,19 @@ float3 DiffuseSphereLightIrradiance_TEMP(real sinSqSigma, real cosOmega, Positio
 
     const float e = 0.9199900928436545;
     float   fit0 = y * (x + e) * (0.5 + (x - e) * (0.5233563050176789 + y * (-0.905795873194072 + y * (1.6168821730086278 - y * 1.197654337001554))));  // Nice fit
-    float   fit1 = y * (x + y) / (1 + y);   // Tight linear fit
 
+//    return saturate( fit0 );
+
+//    float   fit1 = y * (x + y) / (1 + y);   // Tight linear fit
 //    return saturate( lerp( fit0, fit1, smoothstep( 0.999, 1, y ) ) );
 
-    float   fade = smoothstep( -sinSqSigma, sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );
+    // Each of these fade routines is equally interesting
+//    float   fade = smoothstep( -sinSqSigma, sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );       // This one fade for a long time
+//    float   fade = smoothstep( -sinSqSigma, sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );       // This one fade for a shorter time <== Prefer this if using smoothstep
+//    float   fade = smoothstep( -2*sinSqSigma, -sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );    // This one could leak through the horizon
+    float   fade = step( -sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );                           // This one is abrupt but does the job... And less expensive than a smoothstep.
     return saturate( fade * fit0 );
-
-
-#elif 0
+#else
     // Original fitting
     real x = sinSqSigma;
     real y = cosOmega;
@@ -1733,7 +1737,10 @@ float3 DiffuseSphereLightIrradiance_TEMP(real sinSqSigma, real cosOmega, Positio
     // m = NonlinearModelFit[t, x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3)), {a, b, c, d, e}, {x, y}]
     const float e = 0.9245867471551246;
     return saturate(x * (e + y) * (0.5 + (-e + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
-#else
+#endif
+}
+
+float3 DiffuseSphereLightIrradiance_Full(real sinSqSigma, real cosOmega) {
     #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
         real sinSqOmega = saturate(1 - cosOmega * cosOmega);
         real cosSqSigma = saturate(1 - sinSqSigma);
@@ -1803,9 +1810,7 @@ float3 DiffuseSphereLightIrradiance_TEMP(real sinSqSigma, real cosOmega, Positio
             return saturate(INV_PI * (a * sinSqSigma + b));
         }
     #endif
-#endif
 }
-
 
 
 // Minv is the M^-1 matrix for the LTC
@@ -1953,7 +1958,10 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY,
         float   cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
     #endif
 
-    return DiffuseSphereLightIrradiance_TEMP( sqSinSigma, cosOmega, posInput );
+    if ( posInput.positionNDC.x < 0.5 )
+        return DiffuseSphereLightIrradiance_Full( sqSinSigma, cosOmega );
+    else
+        return DiffuseSphereLightIrradiance_Approx( sqSinSigma, cosOmega );
 }
 
 
@@ -2036,7 +2044,7 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
 
 lighting.diffuse = 0;
-lighting.specular = 10 * LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
+lighting.specular = 40 * LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
 
 
 
