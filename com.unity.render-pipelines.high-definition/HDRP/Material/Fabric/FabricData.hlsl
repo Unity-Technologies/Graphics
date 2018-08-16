@@ -189,7 +189,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     InitBuiltinData(alpha, surfaceData.normalWS, -input.worldToTangent[2], input.positionRWS, input.texCoord1, input.texCoord2, builtinData);
     
     // Support the emissive color and map
-    builtinData.emissiveColor = _EmissiveColor * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
+    builtinData.emissiveColor = _EmissiveColor.rgb * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #ifdef _EMISSIVE_COLOR_MAP
     // Generate the primart uv coordinates
     float2 uvEmissive = _UVMappingMaskEmissive.x * input.texCoord0 +
