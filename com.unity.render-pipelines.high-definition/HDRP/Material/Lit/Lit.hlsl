@@ -1689,7 +1689,7 @@ float3 DiffuseSphereLightIrradiance_Approx(real sinSqSigma, real cosOmega)
     // My super simple linear approximation...
     real    x = cosOmega;
     real    y = sinSqSigma;
-    real    y2 = y - 0.2;
+    real    y2 = y - 0.0;
     return saturate( y * (x + y2) / (1 + y2) );
 //return saturate( 0.5 * x );
 
@@ -1915,8 +1915,6 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY,
 
     float   formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
 
-
-
 //formFactor *= 8;
 //formFactor = TWO_PI;
 //    if ( formFactor > PI )
@@ -1929,50 +1927,29 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY,
 //    return formFactor * scale;
 
     // Use table fitting
-    #if 0
-        // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines"
-        // Then we need to find a sphere providing the same irradiance, then compute its solid angle to retrieve the apex half-angle we need
+    #if 1
+        // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines" pp. 25
+        // Then we need to find a sphere providing the same solid angle value as this projected irradiance, then retrieve the apex half-angle we need
         //
-        // Following https://www.iquilezles.org/www/articles/sphereao/sphereao.htm, the formulation of projected irradiance given by a sphere is:
-        //  E_proj = 2PI * (1 - cos(omega) * sin²(sigma))
+        // The solid angle of such sphere is given by Omega/2PI = E_proj/PI = 1-cos(sigma) where sigma is the half apex angle
         // We have thus:
-        //  sin²(sigma) = (1 - E_proj/2PI) / cos(omega)
+        //  cos(sigma) = 1 - E_proj/PI
+        //  sin²(sigma) = 1 - cos(sigma)² = 1 - (1 - E_proj/PI)²
         //
-        float   cosOmega   = clamp( avgDir.z , -1, 1 );
-        float   sqSinSigma = min( (1 - formFactor * INV_PI) / max( 1e-3, cosOmega ), 0.999 );
-//return formFactor * INV_TWO_PI;
+        float   sqSinSigma = min( 1 - Sq( 1 - formFactor * INV_PI ), 0.999 );
+//return formFactor * INV_PI;
 //return sqSinSigma;
-    #elif 1
-        // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines"
-        // Then we need to find a sphere providing the same irradiance, then compute its solid angle to retrieve the apex half-angle we need
-        //
-        // The solid angle of such sphere is given by Omega=2PI(1-cos(sigma)) where sigma is the half apex angle
-        // We have thus:
-        //  cos(sigma) = 1 - Omega/2PI
-        //  sin²(sigma) = 1 - cos(sigma)² = 1 - (1 - Omega/2PI)²
-        //
-        float   sqSinSigma = min( 1 - Sq( 1 - formFactor * INV_TWO_PI ), 0.999 );
-
-// Trouver la formule d'irradiance fournie par une sphère, c'est sans doute pas pareil que son angle solide!
-
-//return formFactor * INV_TWO_PI;
-//return sqSinSigma;
-        float   cosOmega   = clamp( avgDir.z , -1, 1 );
-    #elif 1
-//        float   sqSinSigma = min( formFactor, 0.999 );
-        float   sqSinSigma = min( formFactor * INV_TWO_PI, 0.999 );
         float   cosOmega   = clamp( avgDir.z , -1, 1 );
     #else
-        // Clamp invalid values to avoid visual artifacts.
-        float3  F = formFactor * avgDir;
-        float   f2         = saturate(dot(F, F));
-        float   sqSinSigma = min(sqrt(f2), 0.999);
-        float   cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
+        // Directly use the form factor
+        float   sqSinSigma = min( formFactor * INV_PI, 0.999 );
+        float   cosOmega   = clamp( avgDir.z , -1, 1 );
     #endif
 
-    if ( posInput.positionNDC.x < 0.5 )
-        return DiffuseSphereLightIrradiance_Full( sqSinSigma, cosOmega );
-    else
+// Enable comparison with ref code
+//    if ( posInput.positionNDC.x < 0.5 )
+//        return DiffuseSphereLightIrradiance_Full( sqSinSigma, cosOmega );
+//    else
         return DiffuseSphereLightIrradiance_Approx( sqSinSigma, cosOmega );
 }
 
@@ -2055,8 +2032,8 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
 
 
-lighting.diffuse = 0;
-lighting.specular = 1 * LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
+//lighting.diffuse = 0;
+//lighting.specular = 40 * LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
 
 
 
