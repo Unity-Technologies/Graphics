@@ -1678,12 +1678,146 @@ float3 SolveCubic(float4 Coefficient)
     return Root;
 }
 
-float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 center, float3 axisX, float3 axisY, PreLightData preLightData )
+
+// 'sinSqSigma' is the sine^2 of the real of the opening angle of the sphere as seen from the shaded point.
+// 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
+// N.b.: this function accounts for horizon clipping.
+float3 DiffuseSphereLightIrradiance_TEMP(real sinSqSigma, real cosOmega, PositionInputs posInput)
+{
+#if 0//def APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
+
+    // My super simple linear approximation...
+    real    x = cosOmega;
+    real    y = sinSqSigma;
+    real    y2 = y - 0.2;
+    return saturate( y * (x + y2) / (1 + y2) );
+//return saturate( 0.5 * x );
+
+//    real    x = 1 + cosOmega;
+//    real    y = sinSqSigma;
+//    return saturate( x * y * (-0.5178437754110042 + x * 0.5185893120011095 + y * (0.7595178089653328 - 0.39446879437315896 * x)) );
+
+#elif 0
+    // Re-fitting, slightly different values
+    real    x = cosOmega;
+    real    y = sinSqSigma;
+
+//return sinSqSigma;
+//return asin(sqrt(sinSqSigma)) * 0.5 / PI;
+//if ( x < -0.5 )
+//    return float3( 1, 0, 0 );
+
+    const float e = 0.9199900928436545;
+    float   fit0 = y * (x + e) * (0.5 + (x - e) * (0.5233563050176789 + y * (-0.905795873194072 + y * (1.6168821730086278 - y * 1.197654337001554))));  // Nice fit
+    float   fit1 = y * (x + y) / (1 + y);   // Tight linear fit
+
+//    return saturate( lerp( fit0, fit1, smoothstep( 0.999, 1, y ) ) );
+
+    float   fade = smoothstep( -sinSqSigma, sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );
+    return saturate( fade * fit0 );
+
+
+#elif 0
+    // Original fitting
+    real x = sinSqSigma;
+    real y = cosOmega;
+
+//if (acos(omega) < HALF_PI - asin(sqrt(sigma)))
+//    return 0.0;
+//if (cosOmega*cosOmega > sinSqSigma)                                // (y^2)>x
+//    return saturate(sinSqSigma * cosOmega);                 // Clip[x*y,{0,1}]
+
+    // Use a numerical fit found in Mathematica. Mean absolute error: 0.00476944.
+    // You can use the following Mathematica code to reproduce our results:
+    // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
+    // m = NonlinearModelFit[t, x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3)), {a, b, c, d, e}, {x, y}]
+    const float e = 0.9245867471551246;
+    return saturate(x * (e + y) * (0.5 + (-e + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
+#else
+    #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
+        real sinSqOmega = saturate(1 - cosOmega * cosOmega);
+        real cosSqSigma = saturate(1 - sinSqSigma);
+        real sinSqGamma = saturate(cosSqSigma / sinSqOmega);
+        real cosSqGamma = saturate(1 - sinSqGamma);
+
+        real sinSigma = sqrt(sinSqSigma);
+        real sinGamma = sqrt(sinSqGamma);
+        real cosGamma = sqrt(cosSqGamma);
+
+        real sigma = asin(sinSigma);
+        real omega = acos(cosOmega);
+        real gamma = asin(sinGamma);
+
+        if (omega >= HALF_PI + sigma)
+        {
+            // Full horizon occlusion (case #4).
+            return 0;
+        }
+
+        real e = sinSqSigma * cosOmega;
+
+        UNITY_BRANCH
+        if (omega < HALF_PI - sigma)
+        {
+            // No horizon occlusion (case #1).
+            return e;
+        }
+        else
+        {
+            real g = (-2 * sqrt(sinSqOmega * cosSqSigma) + sinGamma) * cosGamma + (HALF_PI - gamma);
+            real h = cosOmega * (cosGamma * sqrt(saturate(sinSqSigma - cosSqGamma)) + sinSqSigma * asin(saturate(cosGamma / sinSigma)));
+
+            if (omega < HALF_PI)
+            {
+                // Partial horizon occlusion (case #2).
+                return saturate(e + INV_PI * (g - h));
+            }
+            else
+            {
+                // Partial horizon occlusion (case #3).
+                return saturate(INV_PI * (g + h));
+            }
+        }
+    #else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015, optimized).
+        real cosSqOmega = cosOmega * cosOmega;                     // y^2
+
+        UNITY_BRANCH
+        if (cosSqOmega > sinSqSigma)                                // (y^2)>x
+        {
+            return saturate(sinSqSigma * cosOmega);                 // Clip[x*y,{0,1}]
+        }
+        else
+        {
+            real cotSqSigma = rcp(sinSqSigma) - 1;                 // 1/x-1
+            real tanSqSigma = rcp(cotSqSigma);                     // x/(1-x)
+            real sinSqOmega = 1 - cosSqOmega;                      // 1-y^2
+
+            real w = sinSqOmega * tanSqSigma;                      // (1-y^2)*(x/(1-x))
+            real x = -cosOmega * rsqrt(w);                         // -y*Sqrt[(1/x-1)/(1-y^2)]
+            real y = sqrt(sinSqOmega * tanSqSigma - cosSqOmega);   // Sqrt[(1-y^2)*(x/(1-x))-y^2]
+            real z = y * cotSqSigma;                               // Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
+
+            real a = cosOmega * acos(x) - z;                       // y*ArcCos[-y*Sqrt[(1/x-1)/(1-y^2)]]-Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
+            real b = atan(y);                                      // ArcTan[Sqrt[(1-y^2)*(x/(1-x))-y^2]]
+
+            return saturate(INV_PI * (a * sinSqSigma + b));
+        }
+    #endif
+#endif
+}
+
+
+
+// Minv is the M^-1 matrix for the LTC
+// center, the local position of the disk (i.e. *RELATIVE* to our world position)
+// axisX, the world-space scaled X axis of the ellipse
+// axisY, the world-space scaled Y axis of the ellipse
+float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY, PreLightData preLightData, PositionInputs posInput )
 {
     float3x3    R = mul( transpose(preLightData.orthoBasisViewNormal), Minv );
 
-    // init ellipse
-    float3  C  = mul( center - P, R );  // Relative center
+    // Initalize ellipse in original clamped-cosine space
+    float3  C  = mul( center, R );
     float3  V1 = mul( axisX, R );
     float3  V2 = mul( axisY, R );
 
@@ -1776,6 +1910,12 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
 
     float   formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
 
+
+
+//formFactor *= 8;
+//formFactor = TWO_PI;
+
+
 //    // use tabulated horizon-clipped sphere
 //    float2 uv = float2(avgDir.z*0.5 + 0.5, formFactor);
 //    uv = uv*LUT_SCALE + LUT_BIAS;
@@ -1784,17 +1924,36 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
 
     // Use table fitting
     #if 1
-        float   sinSqSigma = min( formFactor, 0.999 );
+        // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines"
+        // Then we need to find a sphere providing the same irradiance, then compute its solid angle to retrieve the apex half-angle we need
+        // The solid angle of such sphere is given by Omega=2PI(1-cos(sigma)) where sigma is the half apex angle
+        // We have thus:
+        //  cos(sigma) = 1 - Omega/2PI
+        //  sin²(sigma) = 1 - cos(sigma)² = 1 - (1 - Omega/2PI)²
+        //
+        float   sqSinSigma = min( 1 - Sq( 1 - formFactor * INV_TWO_PI ), 0.999 );
+
+// Trouver la formule d'irradiance fournie par une sphère, c'est sans doute pas pareil que son angle solide!
+
+//return formFactor * INV_TWO_PI;
+//return sqSinSigma;
+        float   cosOmega   = clamp( avgDir.z , -1, 1 );
+    #elif 1
+
+// Clearly shows the problem when sqSinSigma = 1!
+
+//        float   sqSinSigma = min( formFactor, 0.999 );
+        float   sqSinSigma = min( formFactor * INV_TWO_PI, 0.999 );
         float   cosOmega   = clamp( avgDir.z , -1, 1 );
     #else
         // Clamp invalid values to avoid visual artifacts.
         float3  F = formFactor * avgDir;
         float   f2         = saturate(dot(F, F));
-        float   sinSqSigma = min(sqrt(f2), 0.999);
+        float   sqSinSigma = min(sqrt(f2), 0.999);
         float   cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
     #endif
 
-    return DiffuseSphereLightIrradiance( sinSqSigma, cosOmega );
+    return DiffuseSphereLightIrradiance_TEMP( sqSinSigma, cosOmega, posInput );
 }
 
 
@@ -1850,14 +2009,12 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     lightData.specularScale *= intensity;
 
 
-    float3  N = bsdfData.normalWS;
-    float3  P = positionWS;
-    float3  center = lightData.positionRWS;
+    float3  center = lightData.positionRWS - positionWS;    // Relative position
     float3  axisX = halfWidth * lightData.right;
     float3  axisY = halfHeight * lightData.up;
 
     float ltcValue;
-    ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData );
+    ltcValue  = LTC_Evaluate( preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData, posInput );
     ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     // See comment for specular magnitude, it apply to diffuse as well
@@ -1865,7 +2022,7 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
     // Evaluate the specular part
     // Polygon irradiance in the transformed configuration.
-    ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData );
+    ltcValue  = LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
     ltcValue *= lightData.specularScale;
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
@@ -1876,12 +2033,19 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     lighting.diffuse *= lightData.color;
     lighting.specular *= lightData.color;
 
+
+
+lighting.diffuse = 0;
+lighting.specular = 10 * LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
+
+
+
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
         // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = LTC_Evaluate( N, V, P, k_identity3x3, center, axisX, axisY, preLightData );
+        lighting.diffuse = LTC_Evaluate( k_identity3x3, center, axisX, axisY, preLightData, posInput );
         lighting.diffuse *= PI * lightData.diffuseScale;
     }
 #endif
@@ -1915,20 +2079,26 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
 
     // Then we recompute the disk's center and radius to match the solid angle covered by the sphere
     float   R = 0.5 * lightData.size.x; // Sphere radius
-    if ( D - R < 1e-3 ) {
-        return lighting;    // Inside the sphere
+    if ( D - R > 1e-3 ) {
+        #if 1
+            float   sinTheta = R / D;   
+            lightData.positionRWS = posInput.positionWS + light;                // New position for the disk: 1 unit from our target position
+            lightData.size = 2.0 * sinTheta * rsqrt( 1.0 - sinTheta*sinTheta ); // New disk size when standing at distance 1 => simply tan(theta)
+        #else
+//          R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
+
+            float   D2R2 = D*D - R*R;
+            float   d = D2R2 / D;               // Distance to disk center
+            float   r = sqrt( D2R2 ) * R / D;   // Disk radius
+
+            lightData.positionRWS = posInput.positionWS + d * light;    // New position for the disk
+            lightData.size = 2.0 * r;                                   // New radius for the disk
+        #endif
+
+        lighting = EvaluateBSDF_Disk( lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData );
     }
 
-//            R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
-
-    float   D2R2 = D*D - R*R;
-    float   d = D2R2 / D;               // Distance to disk center
-    float   r = sqrt( D2R2 ) * R / D;   // Disk radius
-
-    lightData.positionRWS = posInput.positionWS + d * light;    // New position for the disk
-    lightData.size = 2.0 * r;                                   // New radius for the disk
-
-    return EvaluateBSDF_Disk( lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData );
+    return lighting;
 }
 
 
