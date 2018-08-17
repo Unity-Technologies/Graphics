@@ -118,7 +118,7 @@ namespace UnityEditor.VFX
                         VFXProperty prop = GetInputSlot(i).property;
 
                         // As there's not shader generation here, we need expressions that can be evaluated on CPU
-                        if (exp.IsAny(VFXExpression.Flags.InvalidOnCPU | VFXExpression.Flags.PerElement))
+                        if (exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
                             throw new InvalidOperationException(string.Format("Expression for slot {0} must be evaluable on CPU: {1}", prop.name, exp));
 
                         // needs to convert to srgb as color are linear in vfx graph

@@ -448,9 +448,12 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 }
 
 ///////////////
-// 3D Noise  //
+// Noise  //
 ///////////////
 
+#include "VFXNoise.cginc"
+
+// TODO - delete this?
 float Mod289(float x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 float4 Mod289(float4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 float4 Perm(float4 x) { return Mod289(((x * 34.0) + 1.0) * x); }
