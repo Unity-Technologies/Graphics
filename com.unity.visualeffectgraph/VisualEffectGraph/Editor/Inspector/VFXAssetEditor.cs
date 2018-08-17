@@ -21,7 +21,14 @@ public class VisualEffectAssetEditor : Editor
     public static bool OnOpenVFX(int instanceID, int line)
     {
         var obj = EditorUtility.InstanceIDToObject(instanceID);
-        if (obj is VisualEffectAsset)
+        if( obj is VFXGraph || obj is VFXModel || obj is VFXUI) 
+        {
+            // for visual effect graph editor ScriptableObject select them when double clicking on them.
+            //Since .vfx importer is a copyasset, the default is to open it with an external editor.
+            Selection.activeInstanceID = instanceID;
+            return true;
+        }
+        else if (obj is VisualEffectAsset)
         {
             VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
             return true;
