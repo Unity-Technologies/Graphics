@@ -240,7 +240,7 @@ namespace UnityEditor.VFX.UIElements
 
         public override bool HasFocus()
         {
-            return (m_Field as IntegerField).HasFocus();
+            return (m_Field as LongField).HasFocus();
         }
 
         protected override float ValueToFloat(long value)
