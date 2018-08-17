@@ -258,7 +258,7 @@ namespace UnityEditor.VFX
 
             if (obj.GetType().IsPrimitive)
             {
-                return string.Format(CultureInfo.InvariantCulture, "{0}", obj.ToString());
+                return string.Format(CultureInfo.InvariantCulture, "{0}", obj);
             }
             else if (obj is UnityEngine.Object) //type is a unity object
             {
