@@ -1,16 +1,15 @@
 #define NOTIFICATION_VALIDATION
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine;
 using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.UIElements;
-
-using Object = UnityEngine.Object;
-using System.Collections.ObjectModel;
-using System.Reflection;
+using UnityEngine;
 using UnityEngine.Profiling;
+
+using UnityObject = UnityEngine.Object;
 using Branch = UnityEditor.VFX.Operator.Branch;
 
 namespace UnityEditor.VFX.UI
@@ -39,6 +38,28 @@ namespace UnityEditor.VFX.UI
             Default,
             GroupNode,
             Count
+        }
+
+        string m_Name;
+
+        public string name
+        {
+            get { return m_Name; }
+        }
+
+        string ComputeName()
+        {
+            if (model == null)
+                return "";
+            string assetPath = AssetDatabase.GetAssetPath(model);
+            if (!string.IsNullOrEmpty(assetPath))
+            {
+                return Path.GetFileNameWithoutExtension(assetPath);
+            }
+            else
+            {
+                return model.name;
+            }
         }
 
         static HashSet<ScriptableObject>[] NewPrioritizedHashSet()
@@ -173,11 +194,30 @@ namespace UnityEditor.VFX.UI
 
             m_InNotify = false;
 
+            string newName = ComputeName();
+            if( newName != m_Name)
+            {
+                m_Name = newName;
+
+                if( model != null)
+                {
+                    model.name = m_Name;
+                }
+                if( graph != null)
+                {
+                    (graph as UnityObject).name = m_Name;
+                }
+
+                NotifyChange(Change.assetName);
+            }
+
             if (m_DataEdgesMightHaveChangedAsked)
             {
                 m_DataEdgesMightHaveChangedAsked = false;
                 DataEdgesMightHaveChanged();
             }
+
+            
         }
 
         public VFXGraph graph { get {return model.graph as VFXGraph; }}
@@ -455,6 +495,8 @@ namespace UnityEditor.VFX.UI
 
             public const int groupNode = 3;
 
+            public const int assetName = 4;
+
             public const int destroy = 666;
         }
 
@@ -617,7 +659,7 @@ namespace UnityEditor.VFX.UI
                 RemoveFromGroupNodes(element as VFXNodeController);
 
 
-                Object.DestroyImmediate(context, true);
+                UnityObject.DestroyImmediate(context, true);
             }
             else if (element is VFXBlockController)
             {
@@ -625,7 +667,7 @@ namespace UnityEditor.VFX.UI
                 block.NodeGoingToBeRemoved();
                 block.contextController.RemoveBlock(block.block);
 
-                Object.DestroyImmediate(block.block, true);
+                UnityObject.DestroyImmediate(block.block, true);
             }
             else if (element is VFXParameterNodeController)
             {
@@ -670,7 +712,7 @@ namespace UnityEditor.VFX.UI
 
                 graph.RemoveChild(container as VFXModel);
 
-                Object.DestroyImmediate(container as VFXModel, true);
+                UnityObject.DestroyImmediate(container as VFXModel, true);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
@@ -719,7 +761,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override void ModelChanged(Object obj)
+        protected override void ModelChanged(UnityObject obj)
         {
             if (model == null)
             {

@@ -556,6 +556,9 @@ namespace UnityEditor.VFX.UI
 
         void ControllerChanged(int change)
         {
+            if (change == VFXViewController.Change.assetName)
+                return;
+
             m_InControllerChanged = true;
 
             if (change == VFXViewController.Change.groupNode)

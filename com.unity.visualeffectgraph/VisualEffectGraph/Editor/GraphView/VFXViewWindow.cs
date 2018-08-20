@@ -10,6 +10,7 @@ using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityObject = UnityEngine.Object;
+using System.IO;
 
 namespace  UnityEditor.VFX.UI
 {
@@ -220,11 +221,14 @@ namespace  UnityEditor.VFX.UI
                     var graph = controller.graph;
                     if (graph != null)
                     {
-                        filename = controller.model.name;
+                        filename = controller.name;
+                        
                         if (!graph.saved)
                         {
                             filename += "*";
                         }
+
+
                         graph.RecompileIfNeeded(!autoCompile);
                         controller.RecompileExpressionGraphIfNeeded();
                     }

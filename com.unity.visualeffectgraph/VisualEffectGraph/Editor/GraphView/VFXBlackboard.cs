@@ -136,6 +136,7 @@ namespace  UnityEditor.VFX.UI
                 }
                 return;
             }
+
             int insertIndex = 0;
 
             if (m_ExposedProperty == null)
@@ -482,6 +483,8 @@ namespace  UnityEditor.VFX.UI
 
             style.positionType = PositionType.Absolute;
 
+            subTitle = "Parameters";
+
             resizer.RemoveFromHierarchy();
         }
 
@@ -740,6 +743,13 @@ namespace  UnityEditor.VFX.UI
         {
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {
+
+                if (e.controller == controller && e.change == VFXViewController.Change.assetName)
+                {
+                    title = controller.name;
+                    return;
+                }
+
                 var orderedCategories = controller.graph.UIInfos.categories;
                 var newCategories = new List<VFXBlackboardCategory>();
 
