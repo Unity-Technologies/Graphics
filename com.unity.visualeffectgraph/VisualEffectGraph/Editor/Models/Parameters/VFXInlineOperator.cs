@@ -43,6 +43,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override string libraryName
+        {
+            get
+            {
+                return "Inline: " + name;
+            }
+        }
+
         public override string name
         {
             get

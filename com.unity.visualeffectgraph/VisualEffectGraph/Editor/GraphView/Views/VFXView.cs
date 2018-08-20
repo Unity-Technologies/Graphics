@@ -119,16 +119,6 @@ namespace UnityEditor.VFX.UI
                     };
                 }).OrderBy(o => o.category + o.name);
 
-            var descriptorParameter = VFXLibrary.GetParameters().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = ComputeCategory("Parameter", o),
-                        name = o.name
-                    };
-                }).OrderBy(o => o.category + o.name);
-
             IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();
 
             if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXContext)))
@@ -138,10 +128,6 @@ namespace UnityEditor.VFX.UI
             if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXOperator)))
             {
                 descs = descs.Concat(descriptorsOperator);
-            }
-            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXParameter)))
-            {
-                descs = descs.Concat(descriptorParameter);
             }
             if (m_AcceptedTypes == null)
             {
