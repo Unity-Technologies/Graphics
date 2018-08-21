@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Stencil test during decals normal buffer update is now properly applied
+- Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.
 
 ## [3.3.0-preview]
 
