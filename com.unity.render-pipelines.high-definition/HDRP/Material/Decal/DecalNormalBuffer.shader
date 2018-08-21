@@ -16,9 +16,9 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
         #include "../../ShaderVariables.hlsl"
         #include "Decal.hlsl"
         #include "../NormalBuffer.hlsl"
-        
+
         RW_TEXTURE2D(float4, _NormalBuffer);
-                
+
         struct Attributes
         {
             uint vertexID : SV_VertexID;
@@ -40,6 +40,8 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
             return output;
         }
 
+        // Force the stencil test before the UAV write.
+        [earlydepthstencil]
         float4 FragNearest(Varyings input) : SV_Target
         {
             FETCH_DBUFFER(DBuffer, _DBufferTexture, input.texcoord * _ScreenSize.xy);
@@ -73,7 +75,7 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
                 ReadMask[_DecalNormalBufferStencilReadMask]
                 Ref[_DecalNormalBufferStencilRef]
                 Comp Equal
-                Pass Zero   // doesn't really matter, but clear to 0 for debugging 
+                Pass Zero   // doesn't really matter, but clear to 0 for debugging
             }
 
             HLSLPROGRAM
