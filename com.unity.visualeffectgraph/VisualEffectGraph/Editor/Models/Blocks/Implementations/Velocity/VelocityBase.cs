@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.Block
 
         protected string directionFormatBlendSource
         {
-            get { return "direction = normalize(lerp(direction, {0}, DirectionBlend));"; }
+            get { return "direction = VFXSafeNormalize(lerp(direction, {0}, DirectionBlend));"; }
         }
 
         protected string speedComputeString
