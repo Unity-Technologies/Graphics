@@ -987,7 +987,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, stencilMask);
                             m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, stencilRef);
-                        
+
                             HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
                             cmd.SetRandomWriteTarget(1, m_NormalBufferManager.GetNormalBuffer(0));
                             cmd.DrawProcedural(Matrix4x4.identity, m_DecalNormalBufferMaterial, 0, MeshTopology.Triangles, 3, 1);
@@ -1077,6 +1077,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             {
                                 HDUtils.SetRenderTarget(cmd, hdCamera, m_ScreenSpaceShadowsBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                             }
+
+                            // In some cases when loading a project for the first time in the editor, the internal resource is destroyed.
+                            // When used as render target, the C++ code will re-create the resource automatically. Since here it's used directly as an UAV, we need to check manually/
+                            if (!m_ScreenSpaceShadowsBuffer.rt.IsCreated())
+                                m_ScreenSpaceShadowsBuffer.rt.Create();
 
                             m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, GetDepthTexture(), cmd);
                             PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ScreenSpaceShadows);
