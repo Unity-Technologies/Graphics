@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [RequireComponent(typeof(ReflectionProbe))]
-    public class HDAdditionalReflectionData : HDProbe, ISerializationCallbackReceiver
+    public class HDAdditionalReflectionData : HDProbe
     {
         enum Version
         {
@@ -70,33 +70,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.weight = weight;
         }
 
-        public void OnBeforeSerialize()
+        bool CheckMigrationRequirement()
         {
+            //exit as quicker as possible
+            if (m_Version == (int)Version.Current)
+                return false;
+
+            //it is mandatory to call them in order
+            //they can be grouped (without 'else' or not
+            if (m_Version < (int)Version.HDProbeChild)
+            {
+                needMigrateToHDProbeChild = true;
+            }
+            if (m_Version < (int)Version.UseInfluenceVolume)
+            {
+                needMigrateToUseInfluenceVolume = true;
+            }
+            if (m_Version < (int)Version.MergeEditors)
+            {
+                needMigrateToMergeEditors = true;
+            }
+            //mandatory 'else' to only update version if other migrations done
+            else if (m_Version < (int)Version.Current)
+            {
+                m_Version = (int)Version.Current;
+                return false;
+            }
+            return true;
         }
 
-        public void OnAfterDeserialize()
+        void ApplyMigration()
         {
-            if (m_Version != (int)Version.Current)
+            //it is mandatory to call them in order
+            if (needMigrateToHDProbeChild)
+                MigrateToHDProbeChild();
+            if (needMigrateToUseInfluenceVolume)
+                MigrateToUseInfluenceVolume();
+            if (needMigrateToMergeEditors)
+                MigrateToMergeEditors();
+        }
+
+        void Migrate()
+        {
+            //Must not be called at deserialisation time if require other component
+            while (CheckMigrationRequirement())
             {
-                // Add here data migration code that use other component
-                // Note impossible to access other component at deserialization time
-                if (m_Version < (int)Version.HDProbeChild)
-                {
-                    needMigrateToHDProbeChild = true;
-                }
-                if (m_Version < (int)Version.UseInfluenceVolume)
-                {
-                    needMigrateToUseInfluenceVolume = true;
-                }
-                if (m_Version < (int)Version.MergeEditors)
-                {
-                    needMigrateToMergeEditors = true;
-                }
-                else if(m_Version < (int)Version.Current)
-                {
-                    // Add here data migration code that do not use other component
-                    m_Version = (int)Version.Current;
-                }
+                ApplyMigration();
             }
         }
 
@@ -106,19 +125,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             //launch migration at creation too as m_Version could not have an
             //existance in older version
-            OnAfterDeserialize();
-            OnEnable();   
+            Migrate();
         }
 
         void OnEnable()
         {
-            if (needMigrateToHDProbeChild)
-                MigrateToHDProbeChild();
-            if (needMigrateToUseInfluenceVolume)
-                MigrateToUseInfluenceVolume();
-            if (needMigrateToMergeEditors)
-                MigrateToMergeEditors();
-            
             ReflectionSystem.RegisterProbe(this);
         }
 
@@ -141,7 +152,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             refreshMode = reflectionProbe.refreshMode;
             m_Version = (int)Version.HDProbeChild;
             needMigrateToHDProbeChild = false;
-            OnAfterDeserialize();   //continue migrating if needed
         }
 
         void MigrateToUseInfluenceVolume()
@@ -159,7 +169,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #pragma warning restore CS0618 // Type or member is obsolete
             m_Version = (int)Version.UseInfluenceVolume;
             needMigrateToUseInfluenceVolume = false;
-            OnAfterDeserialize();   //continue migrating if needed
 
             //Note: former editor parameters will be recreated as if non existent.
             //User will lose parameters corresponding to non used mode between simplified and advanced
@@ -171,7 +180,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             reflectionProbe.boxProjection = false;
             m_Version = (int)Version.MergeEditors;
             needMigrateToMergeEditors = false;
-            OnAfterDeserialize();   //continue migrating if needed
         }
 
         public override ReflectionProbeMode mode
