@@ -84,20 +84,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     needMigrateToHDProbeChild = true;
                 }
-                else if (m_Version < (int)Version.UseInfluenceVolume)
+                if (m_Version < (int)Version.UseInfluenceVolume)
                 {
                     needMigrateToUseInfluenceVolume = true;
                 }
-                else if (m_Version < (int)Version.MergeEditors)
+                if (m_Version < (int)Version.MergeEditors)
                 {
                     needMigrateToMergeEditors = true;
                 }
-                else
+                else if(m_Version < (int)Version.Current)
                 {
                     // Add here data migration code that do not use other component
                     m_Version = (int)Version.Current;
                 }
             }
+        }
+
+        internal override void Awake()
+        {
+            base.Awake();
+
+            //launch migration at creation too as m_Version could not have an
+            //existance in older version
+            OnAfterDeserialize();
+            OnEnable();   
         }
 
         void OnEnable()
