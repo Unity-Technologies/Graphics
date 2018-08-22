@@ -51,6 +51,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1212_Lit_Emission.unity
     guid: f465136a9ac4cb1429a4a1761d07c3c3
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1213_Lit_Anisotropy.unity
+    guid: e0ebb398c814c2645af130d8b2e6b9aa
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_SubSurfaceScattering.unity
     guid: 201c29a239df4c74ea9e1ab47082abea
   - enabled: 1
