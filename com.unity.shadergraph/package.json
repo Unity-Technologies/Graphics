@@ -1,7 +1,7 @@
 {
     "name": "com.unity.shadergraph",
     "description": "Shader Graph",
-    "version": "3.3.0-preview",
+    "version": "3.4.0-preview",
     "unity": "2018.3",
     "displayName": "Shader Graph",
     "dependencies": {
