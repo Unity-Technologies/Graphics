@@ -40,7 +40,7 @@
 struct LightInput
 {
     float4  position;
-    half4   color;
+    half3   color;
     half4   distanceAndSpotAttenuation;
     half4   spotDirection;
 };
@@ -164,8 +164,9 @@ Light GetLight(half i, float3 positionWS)
     // dynamic indexing. Ideally we need to configure light data at a cluster of
     // objects granularity level. We will only be able to do that when scriptable culling kicks in.
     // TODO: Use StructuredBuffer on PC/Console and profile access speed on mobile that support it.
-    lightInput.position = _AdditionalLightPosition[lightIndex];
-    lightInput.color = _AdditionalLightColor[lightIndex];
+    float4 positionAndSubtractiveLightMode = _AdditionalLightPosition[lightIndex];
+    lightInput.position = float4(positionAndSubtractiveLightMode.xyz, 1.);
+    lightInput.color = _AdditionalLightColor[lightIndex].rgb;
     lightInput.distanceAndSpotAttenuation = _AdditionalLightAttenuation[lightIndex];
     lightInput.spotDirection = _AdditionalLightSpotDir[lightIndex];
 
@@ -175,8 +176,8 @@ Light GetLight(half i, float3 positionWS)
     light.index = lightIndex;
     light.direction = directionAndRealtimeAttenuation.xyz;
     light.attenuation = directionAndRealtimeAttenuation.w;
-    light.subtractiveModeAttenuation = lightInput.color.w;
-    light.color = lightInput.color.rgb;
+    light.subtractiveModeAttenuation = positionAndSubtractiveLightMode.w;
+    light.color = lightInput.color;
 
     return light;
 }
