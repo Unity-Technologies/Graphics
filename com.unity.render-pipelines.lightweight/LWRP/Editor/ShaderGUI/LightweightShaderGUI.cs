@@ -71,10 +71,14 @@ public abstract class LightweightShaderGUI : ShaderGUI
         if (alphaClipProp.floatValue == 1)
             m_MaterialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
 
-        EditorGUI.BeginChangeCheck();
-        bool receiveShadows = EditorGUILayout.Toggle(Styles.receiveShadowText, receiveShadowsProp.floatValue == 1.0f);
-        if (EditorGUI.EndChangeCheck())
-            receiveShadowsProp.floatValue = receiveShadows ? 1.0f : 0.0f;
+        if (receiveShadowsProp != null)
+        {
+            EditorGUI.BeginChangeCheck();
+            bool receiveShadows =
+                EditorGUILayout.Toggle(Styles.receiveShadowText, receiveShadowsProp.floatValue == 1.0f);
+            if (EditorGUI.EndChangeCheck())
+                receiveShadowsProp.floatValue = receiveShadows ? 1.0f : 0.0f;
+        }
 
         EditorGUILayout.Space();
     }

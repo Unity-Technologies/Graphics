@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 #if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 #endif
 using UnityEngine.Rendering;
@@ -208,6 +209,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
                 context.Submit();
+#if UNITY_EDITOR
+                Handles.DrawGizmos(camera);
+#endif
             }
         }
 
