@@ -595,7 +595,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new List<VFXExpressionValueContainerDesc>();
+                m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
                 return;
             }
 
@@ -719,11 +719,11 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 10 / nbSteps);
                 var expressionSheet = new VFXExpressionSheet();
                 expressionSheet.expressions = expressionDescs.ToArray();
-                expressionSheet.values = valueDescs.ToArray();
-                expressionSheet.exposed = exposedParameterDescs.ToArray();
+                expressionSheet.values = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
+                expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
 
                 m_Graph.visualEffectResource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
-                m_ExpressionValues = valueDescs;
+                m_ExpressionValues = expressionSheet.values;
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Importing VFX", 11 / nbSteps);
                 Profiler.BeginSample("VFXEditor.CompileAsset:ImportAsset");
@@ -739,7 +739,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new List<VFXExpressionValueContainerDesc>();
+                m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
             }
             finally
             {
@@ -786,7 +786,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            m_Graph.visualEffectResource.SetValueSheet(m_ExpressionValues.ToArray());
+            m_Graph.visualEffectResource.SetValueSheet(m_ExpressionValues);
         }
 
         public VisualEffectResource visualEffectResource
@@ -806,8 +806,6 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private VFXExpressionGraph m_ExpressionGraph;
         [NonSerialized]
-        private List<VFXExpressionValueContainerDesc> m_ExpressionValues;
-        //[NonSerialized]
-        //private Dictionary<VFXContext, VFXContextCompiledData> m_ContextToCompiledData;
+        private VFXExpressionValueContainerDesc[] m_ExpressionValues;
     }
 }
