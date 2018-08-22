@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Sphere
         [SerializeField, FormerlySerializedAs("m_SphereBaseRadius")]
-        float m_SphereRadius = 1;
+        float m_SphereRadius = 3f;
         [SerializeField, FormerlySerializedAs("m_SphereInfluenceFade")]
         float m_SphereBlendDistance;
         [SerializeField, FormerlySerializedAs("m_SphereInfluenceNormalFade")]
