@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal void Awake()
+        internal virtual void Awake()
         {
             if (influenceVolume == null)
                 influenceVolume = new InfluenceVolume();
