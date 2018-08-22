@@ -77,6 +77,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightAttenuation = k_DefaultLightAttenuation;
             lightSpotDir = k_DefaultLightSpotDirection;
 
+            float subtractiveMixedLighting = 0.0f;
+
             // When no lights are visible, main light will be set to -1.
             // In this case we initialize it to default values and return
             if (lightIndex < 0)
@@ -91,12 +93,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
             {
                 Vector4 pos = lightData.localToWorld.GetColumn(3);
-                lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
+                lightPos = new Vector4(pos.x, pos.y, pos.z, 0.0f);
             }
 
             // VisibleLight.finalColor already returns color in active color space
             lightColor = lightData.finalColor;
-            lightColor.w = 0.0f;
 
             // Directional Light attenuation is initialize so distance attenuation always be 1.0
             if (lightData.lightType != LightType.Directional)
@@ -117,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
                 lightAttenuation.x = oneOverFadeRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
-                lightColor.w = 1.0f;
+                subtractiveMixedLighting = 1.0f;
             }
 
             if (lightData.lightType == LightType.Spot)
@@ -155,9 +156,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_MixedLightingSetup == MixedLightingSetup.None && lightData.light.shadows != LightShadows.None)
                 {
                     m_MixedLightingSetup = MixedLightingSetup.Subtractive;
-                    lightColor.w = 0.0f;
+                    subtractiveMixedLighting = 0.0f;
                 }
             }
+
+            // Use the w component of the light position to indicate subtractive mixed light mode.
+            // The only directional light is the main light, and the rest are punctual lights.
+            // The main light will always have w = 0 and the additional lights have w = 1.
+            lightPos.w = subtractiveMixedLighting;
         }
 
         void SetupShaderLightConstants(CommandBuffer cmd, ref LightData lightData)
@@ -197,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
             }
 
-            cmd.SetGlobalVector(LightConstantBuffer._MainLightPosition, new Vector4(lightPos.x, lightPos.y, lightPos.z, lightColor.w));
+            cmd.SetGlobalVector(LightConstantBuffer._MainLightPosition, lightPos);
             cmd.SetGlobalVector(LightConstantBuffer._MainLightColor, lightColor);
         }
 
