@@ -571,16 +571,19 @@ namespace UnityEditor.VFX
             index = VFXOperatorUtility.Modulo(index, countX * countY * countZ);
             var z = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index, countZ));
             var y = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index / countZ, countY));
-            var x = new VFXExpressionCastUintToFloat(index / (countX * countZ));
+            var x = new VFXExpressionCastUintToFloat(index / (countY * countZ));
 
-            var volumeSize = new VFXExpressionCombine(new VFXExpressionCastUintToFloat(countX), new VFXExpressionCastUintToFloat(countY), new VFXExpressionCastUintToFloat(countZ));
+            VFXExpression volumeSize = new VFXExpressionCombine(new VFXExpressionCastUintToFloat(countX), new VFXExpressionCastUintToFloat(countY), new VFXExpressionCastUintToFloat(countZ));
+            volumeSize = volumeSize - VFXOperatorUtility.OneExpression[VFXValueType.Float3];
+            var scaleAxisZero = Saturate(volumeSize); //Handle special case for one count => lead to be centered on origin (instead of -axis)
+            volumeSize = new VFXExpressionMax(volumeSize, VFXOperatorUtility.OneExpression[VFXValueType.Float3]);
             var dt = new VFXExpressionCombine(x, y, z) / volumeSize;
             dt = dt * VFXOperatorUtility.TwoExpression[VFXValueType.Float3] - VFXOperatorUtility.OneExpression[VFXValueType.Float3];
 
             var r = origin;
-            r += new VFXExpressionCombine(dt.x, dt.x, dt.x) * axisX;
-            r += new VFXExpressionCombine(dt.y, dt.y, dt.y) * axisY;
-            r += new VFXExpressionCombine(dt.z, dt.z, dt.z) * axisZ;
+            r += dt.xxx * scaleAxisZero.xxx * axisX;
+            r += dt.yyy * scaleAxisZero.yyy * axisY;
+            r += dt.zzz * scaleAxisZero.zzz * axisZ;
 
             return r;
         }

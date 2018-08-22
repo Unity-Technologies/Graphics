@@ -19,7 +19,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	${VFXLoadSize}
 	float uSize = size.x;
 	
-	float camDist = length(VFXGetViewWorldPosition() - position);
+	float camDist = length(GetViewVFXPosition() - position);
 	float scale = 1.0f - (1.0f - unity_OrthoParams.w) * uSize / camDist;
 	
 	float3 vPos = position;

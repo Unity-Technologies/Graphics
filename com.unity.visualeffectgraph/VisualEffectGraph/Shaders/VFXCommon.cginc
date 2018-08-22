@@ -16,6 +16,7 @@
 #define SAMPLE_SPLINE_TANGENT(v,u) sampleSpline(v.y,u)
 #define INVERSE(m) Inv##m
 
+#define VFX_FLT_MIN 1.175494351e-38
 #define VFX_EPSILON 1e-5
 
 struct VFXSampler2D
@@ -387,6 +388,12 @@ float4x4 GetVFXToElementMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 ang
         float4(rotAndScale[1],pos.y),
         float4(rotAndScale[2],pos.z),
         float4(0,0,0,1));
+}
+
+float3 VFXSafeNormalize(float3 v)
+{
+	float sqrLength = max(VFX_FLT_MIN,dot(v,v));
+	return v * rsqrt(sqrLength);
 }
 
 /////////////////////

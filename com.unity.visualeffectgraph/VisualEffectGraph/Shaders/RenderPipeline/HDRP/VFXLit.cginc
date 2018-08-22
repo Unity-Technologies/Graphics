@@ -77,7 +77,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #endif
 	color.a *= VFXGetSoftParticleFade(i);
     VFXClipFragmentColor(color.a,i);
-    surfaceData.baseColor = color.rgb;
+    surfaceData.baseColor = saturate(color.rgb);
 
     #if IS_OPAQUE_PARTICLE
     opacity = 1.0f;
@@ -93,7 +93,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #elif HDRP_MATERIAL_TYPE_SPECULAR
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
 	#ifdef VFX_VARYING_SPECULAR
-    surfaceData.specularColor = i.VFX_VARYING_SPECULAR;
+    surfaceData.specularColor = saturate(i.VFX_VARYING_SPECULAR);
 	#endif
     #elif HDRP_MATERIAL_TYPE_TRANSLUCENT
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_TRANSMISSION;

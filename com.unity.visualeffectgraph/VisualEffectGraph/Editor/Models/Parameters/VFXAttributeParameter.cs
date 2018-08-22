@@ -112,12 +112,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        override public string libraryName { get { return attribute; } }
+        override public string libraryName { get { return "Get Attribute: " + attribute; } }
         override public string name
         {
             get
             {
-                string result = location + " " + attribute;
+                string result = string.Format("Get Attribute: {0} ({1})",attribute, location);
 
                 var attrib = VFXAttribute.Find(this.attribute);
                 if (attrib.variadic == VFXVariadic.True)

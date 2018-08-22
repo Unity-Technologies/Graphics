@@ -71,14 +71,14 @@ namespace UnityEditor.VFX.Block
 
         public class InputPropertiesWritePosition
         {
-            [Tooltip("Offset applied to the base index used to compute position")]
-            public int OffsetPosition = 0;
+            [Tooltip("Offset applied to the initial index used to compute the position")]
+            public int OffsetIndex = 0;
         }
 
         public class InputPropertiesWriteTargetPosition
         {
-            [Tooltip("Offset applied to base the index used to compute target position")]
-            public int OffsetTargetPosition = 1;
+            [Tooltip("Offset applied to the initial index used to compute the target position")]
+            public int OffsetTargetIndex = 1;
         }
 
         public class InputPropertiesLine
@@ -206,14 +206,14 @@ namespace UnityEditor.VFX.Block
 
                 if (writePosition)
                 {
-                    var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetPosition").exp);
+                    var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetIndex").exp);
                     var positionExpr = GetPositionFromIndex(indexOffsetExpr, expressions);
                     yield return new VFXNamedExpression(positionExpr, s_computedPosition);
                 }
 
                 if (writeTargetPosition)
                 {
-                    var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetTargetPosition").exp);
+                    var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetTargetIndex").exp);
                     var positionExpr = GetPositionFromIndex(indexOffsetExpr, expressions);
                     yield return new VFXNamedExpression(positionExpr, s_computedTargetPosition);
                 }

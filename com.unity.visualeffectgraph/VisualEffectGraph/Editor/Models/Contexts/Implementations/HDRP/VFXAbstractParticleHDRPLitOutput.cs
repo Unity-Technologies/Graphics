@@ -127,7 +127,7 @@ namespace UnityEditor.VFX
 
         public class BaseColorProperties
         {
-            public Color baseColor = Color.black;
+            public Color baseColor = Color.white;
         }
 
         public class EmissiveColorProperties

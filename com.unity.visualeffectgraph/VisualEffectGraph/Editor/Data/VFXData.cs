@@ -62,7 +62,17 @@ namespace UnityEditor.VFX
                 m_Owners = new List<VFXContext>();
             else
             {
-                int nbRemoved = m_Owners.RemoveAll(o => o == null);// Remove bad references if any
+                // Remove bad references if any
+                // The code below was replaced because it caused some strange crashes for unknown reasons
+                //int nbRemoved = m_Owners.RemoveAll(o => o == null);
+                int nbRemoved = 0;
+                for (int i = 0; i < m_Owners.Count; ++i)
+                    if (m_Owners[i] == null)
+                    {
+                        m_Owners.RemoveAt(i--);
+                        ++nbRemoved;
+                    }
+
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} owners that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }

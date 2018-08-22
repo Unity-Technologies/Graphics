@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string outSource = "float3 sphereDirection = normalize(position - center);\n";
+                string outSource = "float3 sphereDirection = VFXSafeNormalize(position - center);\n";
                 outSource += speedComputeString + "\n";
                 outSource += string.Format(directionFormatBlendSource, "sphereDirection") + "\n";
                 outSource += string.Format(velocityComposeFormatString, "direction * speed");
