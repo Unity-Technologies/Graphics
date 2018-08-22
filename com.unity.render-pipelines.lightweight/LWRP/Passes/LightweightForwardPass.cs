@@ -50,10 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         protected void SetRenderTarget(CommandBuffer cmd, RenderBufferLoadAction loadOp, RenderBufferStoreAction storeOp, ClearFlag clearFlag, Color clearColor)
         {
-            if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
-            {
-                if (depthAttachmentHandle != RenderTargetHandle.CameraTarget)
-                    SetRenderTarget(
+            SetRenderTarget(
                         cmd,
                         colorAttachmentHandle.Identifier(),
                         loadOp,
@@ -64,17 +61,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         clearFlag,
                         clearColor,
                         descriptor.dimension);
-                else
-                    SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), loadOp, storeOp, clearFlag, clearColor, descriptor.dimension);
-            }
-            else
-            {
-                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, loadOp, storeOp, clearFlag, clearColor, descriptor.dimension);
-            }
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected void RenderObjectsWithError(LightweightForwardRenderer renderer, ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
+        protected void RenderObjectsWithError(ScriptableRenderer renderer, ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
         {
             Material errorMaterial = renderer.GetMaterial(MaterialHandles.Error);
             if (errorMaterial != null)

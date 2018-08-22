@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class SetupLightweightConstanstPass : ScriptableRenderPass
     {
-        public static class PerCameraBuffer
+        public static class LightConstantBuffer
         {
             public static int _MainLightPosition;
             public static int _MainLightColor;
@@ -21,8 +21,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static int _AdditionalLightSpotAttenuation;
 
             public static int _LightIndexBuffer;
-
-            public static int _ScaledScreenParams;
         }
 
         MixedLightingSetup m_MixedLightingSetup;
@@ -44,17 +42,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public SetupLightweightConstanstPass()
         {
-            PerCameraBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
-            PerCameraBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
-            PerCameraBuffer._MainLightCookie = Shader.PropertyToID("_MainLightCookie");
-            PerCameraBuffer._WorldToLight = Shader.PropertyToID("_WorldToLight");
-            PerCameraBuffer._AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
-            PerCameraBuffer._AdditionalLightPosition = Shader.PropertyToID("_AdditionalLightPosition");
-            PerCameraBuffer._AdditionalLightColor = Shader.PropertyToID("_AdditionalLightColor");
-            PerCameraBuffer._AdditionalLightDistanceAttenuation = Shader.PropertyToID("_AdditionalLightDistanceAttenuation");
-            PerCameraBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
-            PerCameraBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
-            PerCameraBuffer._LightIndexBuffer = Shader.PropertyToID("_LightIndexBuffer");
+            LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
+            LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
+            LightConstantBuffer._MainLightCookie = Shader.PropertyToID("_MainLightCookie");
+            LightConstantBuffer._WorldToLight = Shader.PropertyToID("_WorldToLight");
+            LightConstantBuffer._AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
+            LightConstantBuffer._AdditionalLightPosition = Shader.PropertyToID("_AdditionalLightPosition");
+            LightConstantBuffer._AdditionalLightColor = Shader.PropertyToID("_AdditionalLightColor");
+            LightConstantBuffer._AdditionalLightDistanceAttenuation = Shader.PropertyToID("_AdditionalLightDistanceAttenuation");
+            LightConstantBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
+            LightConstantBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
+            LightConstantBuffer._LightIndexBuffer = Shader.PropertyToID("_LightIndexBuffer");
 
             m_LightPositions = new Vector4[0];
             m_LightColors = new Vector4[0];
@@ -200,13 +198,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     Matrix4x4 lightCookieMatrix;
                     LightweightPipeline.GetLightCookieMatrix(mainLight, out lightCookieMatrix);
-                    cmd.SetGlobalTexture(PerCameraBuffer._MainLightCookie, mainLightRef.cookie);
-                    cmd.SetGlobalMatrix(PerCameraBuffer._WorldToLight, lightCookieMatrix);
+                    cmd.SetGlobalTexture(LightConstantBuffer._MainLightCookie, mainLightRef.cookie);
+                    cmd.SetGlobalMatrix(LightConstantBuffer._WorldToLight, lightCookieMatrix);
                 }
             }
 
-            cmd.SetGlobalVector(PerCameraBuffer._MainLightPosition, new Vector4(lightPos.x, lightPos.y, lightPos.z, lightDistanceAttenuation.w));
-            cmd.SetGlobalVector(PerCameraBuffer._MainLightColor, lightColor);
+            cmd.SetGlobalVector(LightConstantBuffer._MainLightPosition, new Vector4(lightPos.x, lightPos.y, lightPos.z, lightDistanceAttenuation.w));
+            cmd.SetGlobalVector(LightConstantBuffer._MainLightColor, lightColor);
         }
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref LightData lightData)
@@ -229,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     }
                 }
 
-                cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4(lightData.pixelAdditionalLightsCount,
+                cmd.SetGlobalVector(LightConstantBuffer._AdditionalLightCount, new Vector4(lightData.pixelAdditionalLightsCount,
                     lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
 
                 // if not using a compute buffer, engine will set indices in 2 vec4 constants
@@ -239,14 +237,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
             else
             {
-                cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, Vector4.zero);
+                cmd.SetGlobalVector(LightConstantBuffer._AdditionalLightCount, Vector4.zero);
             }
 
-            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightPosition, m_LightPositions);
-            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightColor, m_LightColors);
-            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightDistanceAttenuation, m_LightDistanceAttenuations);
-            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightSpotDir, m_LightSpotDirections);
-            cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightSpotAttenuation, m_LightSpotAttenuations);
+            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightPosition, m_LightPositions);
+            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightColor, m_LightColors);
+            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightDistanceAttenuation, m_LightDistanceAttenuations);
+            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightSpotDir, m_LightSpotDirections);
+            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightSpotAttenuation, m_LightSpotAttenuations);
         }
 
         void SetShaderKeywords(CommandBuffer cmd, ref CameraData cameraData, ref LightData lightData, ref ShadowData shadowData)
@@ -276,7 +274,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", cameraData.requiresSoftParticles);
         }
 
-        public override void Execute(LightweightForwardRenderer renderer, ref ScriptableRenderContext context,
+        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
             ref CullResults cullResults,
             ref RenderingData renderingData)
         {

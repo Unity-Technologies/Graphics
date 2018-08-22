@@ -97,8 +97,8 @@ void GetGGXAnisotropicModifiedNormalAndRoughness(real3 bitangentWS, real3 tangen
 {
     // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
     float3 grainDirWS = (anisotropy >= 0.0) ? bitangentWS : tangentWS;
-    // Reduce stretching for (perceptualRoughness < 0.2).
-    float stretch = abs(anisotropy) * saturate(5.0 * perceptualRoughness);
+    // Reduce stretching depends on the perceptual roughness
+    float stretch = abs(anisotropy) * saturate(1.5 * sqrt(perceptualRoughness));
     // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV)
     // However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here. Let's save performance instead.
     iblN = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch);
