@@ -1,3 +1,4 @@
+#define USE_EXIT_WORKAROUND_FOGBUGZ_1062258
 using System;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
@@ -160,10 +161,26 @@ namespace  UnityEditor.VFX.UI
             {
                 graphView.UpdateViewTransform(m_ViewPosition, m_ViewScale);
             }*/
+#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
+            EditorApplication.wantsToQuit += Quitting_Workaround;
+#endif
         }
+
+#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
+        private bool Quitting_Workaround()
+        {
+            if (graphView != null)
+                graphView.controller = null;
+            return true;
+        }
+#endif
 
         protected void OnDisable()
         {
+#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
+            EditorApplication.wantsToQuit -= Quitting_Workaround;
+#endif
+
             if (graphView != null)
             {
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
