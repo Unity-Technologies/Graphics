@@ -807,11 +807,6 @@ namespace UnityEditor.VFX.UI
 
                     addNew = true;
                 }
-
-                if (addNew && panel != null)
-                {
-                    panel.InternalValidateLayout();
-                }
             }
         }
 
