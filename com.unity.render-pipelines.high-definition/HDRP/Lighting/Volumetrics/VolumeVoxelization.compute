@@ -254,7 +254,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
                 {
                     float3 voxelCenterNDC = voxelCenterCS * 0.5 + 0.5;
 
-                    float densityMask = ComputeFadeFactor(voxelCenterNDC, _VolumeData[volumeIndex].rcpPosFade, _VolumeData[volumeIndex].rcpNegFade);
+                    overlapFraction *= ComputeFadeFactor(voxelCenterNDC, _VolumeData[volumeIndex].rcpPosFade, _VolumeData[volumeIndex].rcpNegFade);
 
                     //Sample the volumeMask
                     if (_VolumeData[volumeIndex].textureIndex != -1)
@@ -264,12 +264,12 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
                         float3 voxelGradUpUVW      = z      * voxelAxisUpBS      / obbExtents;
                         float3 voxelGradForwardUVW = halfDZ * voxelAxisForwardBS / obbExtents;
 
-                        densityMask *= SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterNDC, voxelGradRightUVW, voxelGradUpUVW, voxelGradForwardUVW);
+                        overlapFraction *= SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterNDC, voxelGradRightUVW, voxelGradUpUVW, voxelGradForwardUVW);
                     }
 
                     // There is an overlap. Sample the 3D texture, or load the constant value.
-                    voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering * densityMask;
-                    voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction * densityMask;
+                    voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering;
+                    voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction;
                 }
 
     #ifndef USE_CLUSTERED_LIGHTLIST
