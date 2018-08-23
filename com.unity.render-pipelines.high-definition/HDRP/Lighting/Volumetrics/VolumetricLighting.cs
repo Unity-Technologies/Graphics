@@ -5,24 +5,35 @@ using System.Runtime.InteropServices;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    // TODO: pack better. This data structure contains a bunch of UNORMs.
     [GenerateHLSL]
-    public struct DensityVolumeData
+    public struct DensityVolumeEngineData
     {
         public Vector3 scattering;    // [0, 1]
         public float   extinction;    // [0, 1]
         public Vector3 textureTiling;
         public int     textureIndex;
         public Vector3 textureScroll;
+        public float   pad0;
+        public Vector3 rcpPosFade;
+        public float   pad1;
+        public Vector3 rcpNegFade;
+        public float   pad2;
 
-        public static DensityVolumeData GetNeutralValues()
+        public static DensityVolumeEngineData GetNeutralValues()
         {
-            DensityVolumeData data;
+            DensityVolumeEngineData data;
 
             data.scattering    = Vector3.zero;
             data.extinction    = 0;
             data.textureIndex  = -1;
             data.textureTiling = Vector3.one;
             data.textureScroll = Vector3.zero;
+            data.rcpPosFade    = new Vector3(65536.0f, 65536.0f, 65536.0f);
+            data.rcpNegFade    = new Vector3(65536.0f, 65536.0f, 65536.0f);
+            data.pad0          = 0;
+            data.pad1          = 0;
+            data.pad2          = 0;
 
             return data;
         }
@@ -59,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct DensityVolumeList
     {
         public List<OrientedBBox>      bounds;
-        public List<DensityVolumeData> density;
+        public List<DensityVolumeEngineData> density;
     }
 
     public class VolumetricLightingSystem
@@ -111,20 +122,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public VolumetricLightingPreset preset = VolumetricLightingPreset.Off;
 
-        static ComputeShader    m_VolumeVoxelizationCS      = null;
-        static ComputeShader    m_VolumetricLightingCS      = null;
+        static ComputeShader          m_VolumeVoxelizationCS      = null;
+        static ComputeShader          m_VolumetricLightingCS      = null;
 
-        List<OrientedBBox>      m_VisibleVolumeBounds       = null;
-        List<DensityVolumeData> m_VisibleVolumeData         = null;
-        public const int        k_MaxVisibleVolumeCount     = 512;
+        List<OrientedBBox>            m_VisibleVolumeBounds       = null;
+        List<DensityVolumeEngineData> m_VisibleVolumeData         = null;
+        public const int              k_MaxVisibleVolumeCount     = 512;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
-        static ComputeBuffer    s_VisibleVolumeBoundsBuffer = null;
-        static ComputeBuffer    s_VisibleVolumeDataBuffer   = null;
+        static ComputeBuffer          s_VisibleVolumeBoundsBuffer = null;
+        static ComputeBuffer          s_VisibleVolumeDataBuffer   = null;
 
         // These two buffers do not depend on the frameID and are therefore shared by all views.
-        RTHandleSystem.RTHandle m_DensityBufferHandle;
-        RTHandleSystem.RTHandle m_LightingBufferHandle;
+        RTHandleSystem.RTHandle       m_DensityBufferHandle;
+        RTHandleSystem.RTHandle       m_LightingBufferHandle;
 
         // Is the feature globally disabled?
         bool m_supportVolumetrics = false;
@@ -194,9 +205,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(m_VolumetricLightingCS != null);
 
             m_VisibleVolumeBounds       = new List<OrientedBBox>();
-            m_VisibleVolumeData         = new List<DensityVolumeData>();
+            m_VisibleVolumeData         = new List<DensityVolumeEngineData>();
             s_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
-            s_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeData)));
+            s_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
 
             int d = ComputeVBufferSliceCount(preset);
 
