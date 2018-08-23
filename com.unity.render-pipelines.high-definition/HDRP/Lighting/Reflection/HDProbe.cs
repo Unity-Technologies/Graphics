@@ -30,6 +30,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         
         RenderTexture m_RealtimeTexture = null;
 
+        /// <summary>Light layer to use by this probe.</summary>
+        public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
+
+        // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
+        public uint GetLightLayers()
+        {
+            int value = (int)(lightLayers);
+            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+        }
+
         /// <summary>ProxyVolume currently used by this probe.</summary>
         public ReflectionProxyVolumeComponent proxyVolume { get { return m_ProxyVolume; } }
 
@@ -62,11 +72,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RefreshMode = value; }
         }
 
-        public virtual bool infiniteProjection
+        public bool infiniteProjection
         {
             get
             {
-                return proxyVolume != null && proxyVolume.proxyVolume.shape == ProxyShape.Infinite || m_InfiniteProjection;
+                return (proxyVolume != null && proxyVolume.proxyVolume.shape == ProxyShape.Infinite)
+                    || (proxyVolume == null && m_InfiniteProjection);
             }
             set
             {

@@ -32,5 +32,9 @@
 #endif
 #define VARYINGS_NEED_COLOR
 
+#ifdef _DOUBLESIDED_ON
+#define VARYINGS_NEED_CULLFACE
+#endif
+
 // This include will define the various Attributes/Varyings structure
 #include "HDRP/ShaderPass/VaryingMesh.hlsl"

@@ -52,6 +52,13 @@ namespace UnityEngine.VFX.Test
         [UseGraphicsTestCases]
         public IEnumerator Run(GraphicsTestCase testCase)
         {
+#if UNITY_EDITOR
+            while (SceneView.sceneViews.Count > 0)
+            {
+                var sceneView = SceneView.sceneViews[0] as SceneView;
+                sceneView.Close();
+            }
+#endif
             SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
 
             // Always wait one frame for scene load
