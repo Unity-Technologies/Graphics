@@ -55,6 +55,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             #pragma fragment SplatmapFragment
 
             #pragma shader_feature _NORMALMAP
+            // Sample normal in pixel shader when doing instancing
+            #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_BASEPASS 1
 
             #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
