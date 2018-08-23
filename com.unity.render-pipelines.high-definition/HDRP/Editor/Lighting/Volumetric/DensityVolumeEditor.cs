@@ -58,20 +58,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 albedo.colorValue = EditorGUILayout.ColorField(s_AlbedoLabel, albedo.colorValue, true, false, false);
                 EditorGUILayout.PropertyField(meanFreePath, s_MeanFreePathLabel);
+
                 EditorGUILayout.Space();
 
-                showTextureParams = EditorGUILayout.Foldout(showTextureParams, s_TextureSettingsTitle, true);
+                EditorGUILayout.PropertyField(positiveFade,  s_PositiveFadeLabel);
+                EditorGUILayout.PropertyField(negativeFade,  s_NegativeFadeLabel);
 
-                if (showTextureParams)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(volumeTexture, s_VolumeTextureLabel);
-                    EditorGUILayout.PropertyField(textureScroll, s_TextureScrollLabel);
-                    EditorGUILayout.PropertyField(textureTile,   s_TextureTileLabel);
-                    EditorGUILayout.PropertyField(positiveFade,  s_PositiveFadeLabel);
-                    EditorGUILayout.PropertyField(negativeFade,  s_NegativeFadeLabel);
-                    EditorGUI.indentLevel--;
-                }
+                EditorGUILayout.Space();
+
+                EditorGUILayout.PropertyField(volumeTexture, s_VolumeTextureLabel);
+                EditorGUILayout.PropertyField(textureScroll, s_TextureScrollLabel);
+                EditorGUILayout.PropertyField(textureTile,   s_TextureTileLabel);
             }
 
             if (EditorGUI.EndChangeCheck())
