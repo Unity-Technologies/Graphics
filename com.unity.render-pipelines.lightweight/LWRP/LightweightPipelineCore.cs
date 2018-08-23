@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.XR;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -52,6 +53,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool requiresSoftParticles;
         public bool requiresOpaqueTexture;
         public Downsampling opaqueTextureDownsampling;
+
+        public SortFlags defaultOpaqueSortFlags;
 
         public bool isStereoEnabled;
 
