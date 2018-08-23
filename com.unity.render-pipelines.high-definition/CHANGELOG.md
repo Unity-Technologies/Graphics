@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.4.0-preview]
 
+### Added
+ - Added controls for linear fade at the boundary of density volumes
+
 ### Fixed
 - Stencil test during decals normal buffer update is now properly applied
 - Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.
