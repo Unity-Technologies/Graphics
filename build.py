@@ -11,6 +11,7 @@ def packages_list():
         ("com.unity.render-pipelines.high-definition", os.path.join("com.unity.render-pipelines.high-definition")),
         ("com.unity.testframework.graphics", os.path.join("com.unity.testframework.graphics")),
         ("com.unity.testing.srp.core", os.path.join("com.unity.testing.srp.core")),
+        ("com.unity.visualeffectgraph", os.path.join("com.unity.visualeffectgraph")),
         ("com.unity.testing.srp.lightweight", os.path.join("com.unity.testing.srp.lightweight"))
     ]
 
