@@ -33,7 +33,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration, dynamicBatching);
+                var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
+                var drawSettings = CreateDrawRendererSettings(camera, sortFlags, rendererConfiguration, dynamicBatching);
                 context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader
