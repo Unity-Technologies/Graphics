@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             this.destination = destination;
         }
         
-        public override void Execute(LightweightForwardRenderer renderer, ref ScriptableRenderContext context,
+        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
             ref CullResults cullResults,
             ref RenderingData renderingData)
         {

@@ -1,3 +1,5 @@
+## [3.4.0]
+
 ## [3.3.0]
 
 ## [3.2.0]
@@ -128,6 +130,7 @@ With the Rotate About Axis node, you can rotate a 3D vector space around an axis
 - Texture 2D Array and Texture 3D nodes can no longer be used in the vertex shader.
 - Shader graphs using alpha clip now generate correct depth and shadow passes.
 - `Normal Create` node has been renamed to `Normal From Texture`.
+- When you close the Shader Graph after you have modified a file, the prompt about saving your changes now shows the file name as well.
 - `Blend` node now supports Overwrite mode.
 - `Simple Noise` node no longer has a loop.
 - The `Polygon` node now calculates radius based on apothem.
