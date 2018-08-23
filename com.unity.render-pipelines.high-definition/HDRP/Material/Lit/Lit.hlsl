@@ -1917,7 +1917,7 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY,
 
 //formFactor *= 8;
 //formFactor = TWO_PI;
-//    if ( formFactor > PI )
+//    if ( formFactor > 0.9*PI )
 //        return float3( 1, 0, 0 );
 
 //    // use tabulated horizon-clipped sphere
@@ -2011,6 +2011,9 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     float3  axisY = halfHeight * lightData.up;
 
     float ltcValue;
+
+preLightData.ltcTransformDiffuse = k_identity3x3;
+
     ltcValue  = LTC_Evaluate( preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData, posInput );
     ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -2035,6 +2038,8 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 //lighting.diffuse = 0;
 //lighting.specular = 40 * LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
 
+lighting.specular = 0;
+//lighting.diffuse = 40 * LTC_Evaluate( preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData, posInput );
 
 
 #ifdef DEBUG_DISPLAY
@@ -2064,9 +2069,16 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     // The sphere is only a front-facing disk so let's rebuild a local frame for that disk
     float3      light = lightData.positionRWS - posInput.positionWS;
     float       D = length(light);
-                light *= D > 1e-6 ? 1.0 / D : 1.0;
+                light *= D > 1e-3 ? 1.0 / D : 1.0;
 
     float3x3    faceLight = GetLocalFrame( -light );
+
+
+//faceLight[0] = float3( 1, 0, 0 );
+//faceLight[1] = float3( 0, 0, -1 );
+//faceLight[2] = float3( 0, 1, 0 );
+
+
     lightData.right = faceLight[0];
     lightData.up = faceLight[1];
     lightData.forward = faceLight[2];
@@ -2078,9 +2090,17 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     float   R = 0.5 * lightData.size.x; // Sphere radius
     if ( D - R > 1e-3 ) {
         #if 1
-            float   sinTheta = R / D;   
-            lightData.positionRWS = posInput.positionWS + light;                // New position for the disk: 1 unit from our target position
-            lightData.size = 2.0 * sinTheta * rsqrt( 1.0 - sinTheta*sinTheta ); // New disk size when standing at distance 1 => simply tan(theta)
+//            float   sinTheta = min( 0.99, R / D );
+            float   sinTheta = R / D;
+            float   tanTheta = sinTheta * rsqrt( max( 1e-6, 1.0 - saturate( sinTheta*sinTheta ) ) );
+//                    tanTheta = max( 0.1, tanTheta );
+                    tanTheta = min( PI, tanTheta );
+
+            lightData.positionRWS = posInput.positionWS + light;    // New position for the disk: 1 unit from our target position
+            lightData.size = 2.0 * tanTheta;                        // New disk size when standing at distance 1 => simply tan(theta)
+
+//lighting.diffuse = tanTheta;
+//return lighting;
         #else
 //          R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
 
