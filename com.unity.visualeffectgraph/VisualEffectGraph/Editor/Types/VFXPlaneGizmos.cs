@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
                 normal = Vector3.up;
             }
 
-            var normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
+            var normalQuat = Quaternion.FromToRotation(Vector3.forward, normal);
 
             float size = 10;
 
