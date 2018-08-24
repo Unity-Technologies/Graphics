@@ -158,6 +158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DebugLightingSpecularColor = Shader.PropertyToID("_DebugLightingSpecularColor");
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
         public static readonly int _DebugMipMapMode = Shader.PropertyToID("_DebugMipMapMode");
+        public static readonly int _DebugMipMapModeTerrainTexture = Shader.PropertyToID("_DebugMipMapModeTerrainTexture");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
