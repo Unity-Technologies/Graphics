@@ -704,21 +704,42 @@ namespace UnityEditor.VFX.Test
                 var currentName = commonBaseName + type.ToString();
                 vfxComponent.ResetOverride(currentName);
 
-                //If we use bindings, internal value is restored but it doesn't change serialized property (strange but intended behavior)
-                var baseValue = bindingModes ? GetValue_A(type) : GetValue_B(type);
+                {
+                    //If we use bindings, internal value is restored but it doesn't change serialized property (strange at first but intended behavior)
+                    var baseValue = bindingModes ? GetValue_A(type) : GetValue_B(type);
 
-                var currentValue = fnGet(type, vfxComponent, currentName);
-                if (type == VFXValueType.ColorGradient)
-                {
-                    Assert.IsTrue(fnCompareGradient((Gradient)baseValue, (Gradient)currentValue));
+                    var currentValue = fnGet(type, vfxComponent, currentName);
+                    if (type == VFXValueType.ColorGradient)
+                    {
+                        Assert.IsTrue(fnCompareGradient((Gradient)baseValue, (Gradient)currentValue));
+                    }
+                    else if (type == VFXValueType.Curve)
+                    {
+                        Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
+                    }
+                    else
+                    {
+                        Assert.AreEqual(baseValue, currentValue);
+                    }
                 }
-                else if (type == VFXValueType.Curve)
+
+                if (!bindingModes)
                 {
-                    Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
-                }
-                else
-                {
-                    Assert.AreEqual(baseValue, currentValue);
+                    var internalValue = fnGet_UsingBindings(type, vfxComponent, currentName);
+                    var originalAssetValue = GetValue_A(type);
+
+                    if (type == VFXValueType.ColorGradient)
+                    {
+                        Assert.IsTrue(fnCompareGradient((Gradient)originalAssetValue, (Gradient)internalValue));
+                    }
+                    else if (type == VFXValueType.Curve)
+                    {
+                        Assert.IsTrue(fnCompareCurve((AnimationCurve)originalAssetValue, (AnimationCurve)internalValue));
+                    }
+                    else
+                    {
+                        Assert.AreEqual(originalAssetValue, internalValue);
+                    }
                 }
                 yield return null;
             }
