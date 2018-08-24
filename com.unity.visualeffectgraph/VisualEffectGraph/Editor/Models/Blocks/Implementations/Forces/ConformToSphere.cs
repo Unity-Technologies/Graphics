@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.Block
 float3 dir = Sphere_center - position;
 float distToCenter = length(dir);
 float distToSurface = distToCenter - Sphere_radius;
-dir /= distToCenter;
+dir /= max(VFX_FLT_MIN,distToCenter); // safe normalize
 float spdNormal = dot(dir,velocity);
 float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));
 float tgtSpeed = sign(distToSurface) * attractionSpeed * ratio;
