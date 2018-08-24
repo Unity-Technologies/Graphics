@@ -444,10 +444,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
         {
-            DirectionalLight directionalLight = new DirectionalLight();
-            PointLight pointLight = new PointLight();
-            SpotLight spotLight = new SpotLight();
-            RectangleLight rectangleLight = new RectangleLight();
             LightDataGI lightData = new LightDataGI();
 
             for (int i = 0; i < requests.Length; i++)
@@ -455,11 +451,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Light light = requests[i];
                 switch (light.type)
                 {
-                    case LightType.Directional: LightmapperUtils.Extract(light, ref directionalLight); lightData.Init(ref directionalLight); break;
-                    case LightType.Point: LightmapperUtils.Extract(light, ref pointLight); lightData.Init(ref pointLight); break;
-                    case LightType.Spot: LightmapperUtils.Extract(light, ref spotLight); lightData.Init(ref spotLight); break;
-                    case LightType.Area: LightmapperUtils.Extract(light, ref rectangleLight); lightData.Init(ref rectangleLight); break;
-                    default: lightData.InitNoBake(light.GetInstanceID()); break;
+                    case LightType.Directional:
+                        DirectionalLight directionalLight = new DirectionalLight();
+                        LightmapperUtils.Extract(light, ref directionalLight); lightData.Init(ref directionalLight);
+                        break;
+                    case LightType.Point:
+                        PointLight pointLight = new PointLight();
+                        LightmapperUtils.Extract(light, ref pointLight); lightData.Init(ref pointLight);
+                        break;
+                    case LightType.Spot:
+                        SpotLight spotLight = new SpotLight();
+                        LightmapperUtils.Extract(light, ref spotLight); lightData.Init(ref spotLight);
+                        break;
+                    case LightType.Area:
+                        RectangleLight rectangleLight = new RectangleLight();
+                        LightmapperUtils.Extract(light, ref rectangleLight); lightData.Init(ref rectangleLight);
+                        break;
+                    default:
+                        lightData.InitNoBake(light.GetInstanceID());
+                        break;
                 }
 
                 lightData.falloff = FalloffType.InverseSquared;
