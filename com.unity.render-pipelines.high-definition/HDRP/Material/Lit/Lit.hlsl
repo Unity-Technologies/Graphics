@@ -1717,9 +1717,10 @@ float3 DiffuseSphereLightIrradiance_Approx(real sinSqSigma, real cosOmega)
 
     // Each of these fade routines is equally interesting
 //    float   fade = smoothstep( -sinSqSigma, sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );       // This one fade for a long time
-//    float   fade = smoothstep( -sinSqSigma, sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );       // This one fade for a shorter time <== Prefer this if using smoothstep
+//    float   fade = smoothstep( -sinSqSigma, 0, sign(cosOmega)*cosOmega*cosOmega );       // This one fade for a shorter time <== Prefer this if using smoothstep
 //    float   fade = smoothstep( -2*sinSqSigma, -sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );    // This one could leak through the horizon
-    float   fade = step( -sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );                           // This one is abrupt but does the job... And less expensive than a smoothstep.
+    float   fade = step( -0.05*sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );                      // This one is abrupt but does the job... And less expensive than a smoothstep.
+//    float   fade = step( -sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );                           // This one is abrupt but does the job... And less expensive than a smoothstep.
     return saturate( fade * fit0 );
 #else
     // Original fitting
@@ -2013,9 +2014,10 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     float ltcValue;
 
 preLightData.ltcTransformDiffuse = k_identity3x3;
+//preLightData.ltcTransformSpecular = k_identity3x3;
 
     ltcValue  = LTC_Evaluate( preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData, posInput );
-    ltcValue *= lightData.diffuseScale;
+//    ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     // See comment for specular magnitude, it apply to diffuse as well
     lighting.diffuse = preLightData.diffuseFGD * ltcValue;
@@ -2023,7 +2025,7 @@ preLightData.ltcTransformDiffuse = k_identity3x3;
     // Evaluate the specular part
     // Polygon irradiance in the transformed configuration.
     ltcValue  = LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
-    ltcValue *= lightData.specularScale;
+//    ltcValue *= lightData.specularScale;
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
     // This value is what we store in specularFGD, so reuse it
@@ -2066,6 +2068,18 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
+#if 0//defined(LIT_DISPLAY_REFERENCE_AREA)
+    lightData.size *= 0.5;
+    IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
+                          lighting.diffuse, lighting.specular);
+
+lighting.specular = 0;
+
+#else
+
     // The sphere is only a front-facing disk so let's rebuild a local frame for that disk
     float3      light = lightData.positionRWS - posInput.positionWS;
     float       D = length(light);
@@ -2083,8 +2097,11 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     lightData.up = faceLight[1];
     lightData.forward = faceLight[2];
 
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
+
+//    float   c = 0.70710678118654752440084436210485; // cos(PI/4)
+//    lightData.right = c * faceLight[0] + c * faceLight[1];
+//    lightData.up = -c * faceLight[0] + c * faceLight[1];
+
 
     // Then we recompute the disk's center and radius to match the solid angle covered by the sphere
     float   R = 0.5 * lightData.size.x; // Sphere radius
@@ -2092,15 +2109,42 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
         #if 1
 //            float   sinTheta = min( 0.99, R / D );
             float   sinTheta = R / D;
-            float   tanTheta = sinTheta * rsqrt( max( 1e-6, 1.0 - saturate( sinTheta*sinTheta ) ) );
+            float   tanTheta = sinTheta * rsqrt( 1.0 - saturate( sinTheta*sinTheta ) );
+//            float   tanTheta = tan( asin( sinTheta ) );
 //                    tanTheta = max( 0.1, tanTheta );
-                    tanTheta = min( PI, tanTheta );
+//                    tanTheta = min( PI, tanTheta );
 
             lightData.positionRWS = posInput.positionWS + light;    // New position for the disk: 1 unit from our target position
             lightData.size = 2.0 * tanTheta;                        // New disk size when standing at distance 1 => simply tan(theta)
 
 //lighting.diffuse = tanTheta;
+//lighting.diffuse = 0.2*D * (D < 1.0 ? float3( 1, 0, 0 ) : float3( 0, 1, 0 ));
 //return lighting;
+        #elif 1
+
+// Ground truth from https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf p. 43
+// Tilted patch to sphere equation
+float3  worldNormal = bsdfData.normalWS;
+float3  L = light;
+float   radius = R;
+float   sqrDist = D*D;
+
+float   Beta = acos( dot( worldNormal, L ) );
+float   H = sqrt( sqrDist );
+float   h = H / radius;
+float   x = sqrt( h * h - 1 );
+float   y = -x / tan( Beta );
+float   illuminance = 0;
+if ( h * cos( Beta ) > 1 )
+    illuminance = PI * cos( Beta ) / (h * h);
+else
+    illuminance = (cos( Beta ) * acos( y ) - x * sin( Beta ) * sqrt( 1 - y * y )) / (h * h) + atan( sin( Beta ) * sqrt( 1 - y * y ) / x );
+
+
+lighting.diffuse = illuminance * lightData.color / PI;;
+lighting.specular = 0;
+return lighting;
+
         #else
 //          R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
 
@@ -2114,6 +2158,7 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
 
         lighting = EvaluateBSDF_Disk( lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData );
     }
+#endif
 
     return lighting;
 }
