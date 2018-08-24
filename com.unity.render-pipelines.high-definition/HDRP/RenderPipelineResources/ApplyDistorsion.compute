@@ -5,7 +5,7 @@
 
 TEXTURE2D(_DistortionTexture);
 TEXTURE2D(_ColorPyramidTexture);
-RW_TEXTURE2D(float4, _CameraColorTexture);
+RW_TEXTURE2D(float4, _Destination);
 
 SamplerState sampler_ColorPyramidTexture;
 
@@ -58,5 +58,5 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     float mip = (_ColorPyramidScale.z - 1) * clamp(distortionBlur, 0.0, 1.0);
     float4 sampled = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, sampler_ColorPyramidTexture, distordedUV, mip);
 
-    _CameraColorTexture[dispatchThreadId] = sampled;
+    _Destination[dispatchThreadId] = sampled;
 }

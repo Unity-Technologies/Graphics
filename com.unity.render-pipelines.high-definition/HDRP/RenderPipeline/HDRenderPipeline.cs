@@ -74,6 +74,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_CopyDepth;
         GPUCopy m_GPUCopy;
         BufferPyramid m_BufferPyramid;
+        MipGenerator m_MipGenerator;
 
         IBLFilterGGX m_IBLFilterGGX = null;
 
@@ -99,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_CameraSssDiffuseLightingBuffer;
 
         RTHandleSystem.RTHandle m_CameraDepthStencilBuffer;
-        RTHandleSystem.RTHandle m_CameraDepthBufferCopy;
+        RTHandleSystem.RTHandle m_CameraDepthBufferMipChain;
         RTHandleSystem.RTHandle m_CameraStencilBufferCopy;
 
         RTHandleSystem.RTHandle m_VelocityBuffer;
@@ -208,6 +209,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
 
+            m_MipGenerator = new MipGenerator(m_Asset);
+
             var bufferPyramidProcessor = new BufferPyramidProcessor(
                     asset.renderPipelineResources.colorPyramidCS,
                     asset.renderPipelineResources.depthPyramidCS,
@@ -257,7 +260,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_MaterialList.ForEach(material => material.Build(asset));
 
-            m_IBLFilterGGX = new IBLFilterGGX(asset.renderPipelineResources, bufferPyramidProcessor);
+            m_IBLFilterGGX = new IBLFilterGGX(asset.renderPipelineResources, m_MipGenerator);
 
             m_LightLoop.Build(asset, m_ShadowSettings, m_IBLFilterGGX);
 
@@ -298,14 +301,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
             m_NormalBufferManager.InitNormalBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
 
-            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraColor");
+            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, enableMSAA: true, useMipMap: true, autoGenerateMips: false, name: "CameraColor");
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraSSSDiffuseLighting");
 
-            m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencil");
+            m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth32, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencil");
 
             if (NeedDepthBufferCopy())
             {
-                m_CameraDepthBufferCopy = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencilCopy");
+                m_CameraDepthBufferMipChain = RTHandles.Alloc(Vector2.one, colorFormat: RenderTextureFormat.RFloat, filterMode: FilterMode.Point, sRGB: false, bindTextureMS: true, enableMSAA: true, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: "CameraDepthBufferMipChain");
             }
 
             // Technically we won't need this buffer in some cases, but nothing that we can determine at init time.
@@ -344,7 +347,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
 
             RTHandles.Release(m_CameraDepthStencilBuffer);
-            RTHandles.Release(m_CameraDepthBufferCopy);
+            RTHandles.Release(m_CameraDepthBufferMipChain);
             RTHandles.Release(m_CameraStencilBufferCopy);
 
             RTHandles.Release(m_AmbientOcclusionBuffer);
@@ -599,14 +602,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 PushGlobalRTHandle(
                     cmd,
-                    hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid),
+                    m_CameraDepthBufferMipChain,
                     HDShaderIDs._DepthPyramidTexture,
                     HDShaderIDs._DepthPyramidSize,
                     HDShaderIDs._DepthPyramidScale
                 );
                 PushGlobalRTHandle(
                     cmd,
-                    hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid),
+                    m_CameraColorBuffer,
                     HDShaderIDs._ColorPyramidTexture,
                     HDShaderIDs._ColorPyramidSize,
                     HDShaderIDs._ColorPyramidScale
@@ -633,7 +636,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool NeedDepthBufferCopy()
         {
             // For now we consider all console to be able to read from a bound depth buffer.
-            return !IsConsolePlatform();
+            // We always need it for SSR since depth textures do not support MIP maps.
+            return !IsConsolePlatform()
+                || m_Asset.GetFrameSettings().enableRoughRefraction
+                || m_Asset.GetFrameSettings().enableSSR;
         }
 
         bool NeedStencilBufferCopy()
@@ -645,7 +651,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         RTHandleSystem.RTHandle GetDepthTexture()
         {
-            return NeedDepthBufferCopy() ? m_CameraDepthBufferCopy : m_CameraDepthStencilBuffer;
+            return NeedDepthBufferCopy() ? m_CameraDepthBufferMipChain : m_CameraDepthStencilBuffer;
         }
 
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)
@@ -654,9 +660,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (NeedDepthBufferCopy())
                 {
-                    using (new ProfilingSample(cmd, "Copy depth-stencil buffer", CustomSamplerId.CopyDepthStencilbuffer.GetSampler()))
+                    using (new ProfilingSample(cmd, "Copy depth buffer", CustomSamplerId.CopyDepthBuffer.GetSampler()))
                     {
-                        cmd.CopyTexture(m_CameraDepthStencilBuffer, m_CameraDepthBufferCopy);
+                        // TODO: maybe we don't actually need the top MIP level?
+                        // That way we could avoid making the copy, and build the MIP hierarchy directly.
+                        // The downside is that our SSR tracing accuracy would decrease a little bit.
+                        // But since we never render SSR at full resolution, this may be acceptable.
+                        m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, m_CameraDepthStencilBuffer, m_CameraDepthBufferMipChain, new RectInt(0, 0, m_CurrentWidth, m_CurrentHeight));
                     }
                 }
             }
@@ -968,7 +978,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
                     cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
 
-                    RenderDepthPyramid(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
+                    RenderDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
 
                     // TODO: In the future we will render object velocity at the same time as depth prepass (we need C++ modification for this)
                     // Once the C++ change is here we will first render all object without motion vector then motion vector object
@@ -1094,7 +1104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Render pre refraction objects
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
 
-                        RenderColorPyramid(hdCamera, cmd, renderContext, true);
+                        RenderColorPyramid(hdCamera, cmd, true);
 
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
@@ -1105,7 +1115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Fill depth buffer to reduce artifact for transparent object during postprocess
                         RenderTransparentDepthPostpass(m_CullResults, hdCamera, renderContext, cmd);
 
-                        RenderColorPyramid(hdCamera, cmd, renderContext, false);
+                        RenderColorPyramid(hdCamera, cmd, false);
 
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                         RenderDistortion(hdCamera, cmd, m_Asset.renderPipelineResources);
@@ -1326,16 +1336,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
-                var colorPyramidRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
-                var pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, colorPyramidRT);
+                var pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, m_CameraColorBuffer);
 
                 // Need to account for the fact that the gaussian pyramid is actually rendered inside the camera viewport in a square texture so we mutiply by the PyramidToScreen scale
                 var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, pyramidScale.x / hdCamera.screenSize.x, pyramidScale.y / hdCamera.screenSize.y);
                 uint x, y, z;
                 m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBuffer);
-                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._ColorPyramidTexture, colorPyramidRT);
-                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBuffer);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._ColorPyramidTexture, m_CameraColorBuffer);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._Destination, m_CameraColorBuffer);
                 cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._Size, size);
 
                 cmd.DispatchCompute(m_applyDistortionCS, m_applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
@@ -1738,7 +1747,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderColorPyramid(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, bool isPreRefraction)
+        void RenderColorPyramid(HDCamera hdCamera, CommandBuffer cmd, bool isPreRefraction)
         {
             if (isPreRefraction)
             {
@@ -1752,31 +1761,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
             }
 
-            // TODO: Move allocation in separate method call in start of the render loop
-            var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorPyramid)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorPyramid, m_BufferPyramid.AllocColorRT);
+            int lodCount;
 
-            using (new ProfilingSample(cmd, "Color Pyramid", CustomSamplerId.ColorPyramid.GetSampler()))
-                m_BufferPyramid.RenderColorPyramid(hdCamera, cmd, renderContext, m_CameraColorBuffer, cameraRT);
-
-            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, cameraRT);
-            PushFullScreenDebugTextureMip(hdCamera, cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight)), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            using (new ProfilingSample(cmd, "Color Gaussian MIP Chain", CustomSamplerId.ColorPyramid))
+            {
+                var size = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+                lodCount = m_MipGenerator.RenderColorGaussianPyramid(cmd, size, m_CameraColorBuffer);
+            }
+            
+            float scaleX = hdCamera.actualWidth / (float)m_CameraColorBuffer.rt.width;
+            float scaleY = hdCamera.actualHeight / (float)m_CameraColorBuffer.rt.height;
+            cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, m_CameraColorBuffer);
+            cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight));
+            cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, new Vector4(scaleX, scaleY, lodCount, 0.0f));
+            PushFullScreenDebugTextureMip(hdCamera, cmd, m_CameraColorBuffer, lodCount, new Vector4(scaleX, scaleY, 0f, 0f), isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
-        void RenderDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        void RenderDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, FullScreenDebugMode debugMode)
         {
-            if (!hdCamera.frameSettings.enableRoughRefraction)
+            if (!hdCamera.frameSettings.enableRoughRefraction && !hdCamera.frameSettings.enableSSR)
                 return;
 
-            // TODO: Move allocation in separate method call in start of the render loop
-            var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthPyramid)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthPyramid, m_BufferPyramid.AllocDepthRT);
+            int lodCount;
 
-            using (new ProfilingSample(cmd, "Depth Pyramid", CustomSamplerId.DepthPyramid.GetSampler()))
-                m_BufferPyramid.RenderDepthPyramid(hdCamera, cmd, renderContext, GetDepthTexture(), cameraRT);
+            using (new ProfilingSample(cmd, "Depth Buffer MIP Chain", CustomSamplerId.DepthPyramid))
+            {
+                var size = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+                lodCount = m_MipGenerator.RenderMinDepthPyramid(cmd, size, m_CameraDepthBufferMipChain);
+            }
 
-            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, cameraRT);
-            PushFullScreenDebugTextureMip(hdCamera, cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight)), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), debugMode);
+            float scaleX = hdCamera.actualWidth / (float)m_CameraDepthBufferMipChain.rt.width;
+            float scaleY = hdCamera.actualHeight / (float)m_CameraDepthBufferMipChain.rt.height;
+            cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_CameraDepthBufferMipChain);
+            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight));
+            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, new Vector4(scaleX, scaleY, lodCount, 0.0f));
+            PushFullScreenDebugTextureMip(hdCamera, cmd, m_CameraDepthBufferMipChain, lodCount, new Vector4(scaleX, scaleY, 0f, 0f), debugMode);
         }
 
         void RenderPostProcess(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
