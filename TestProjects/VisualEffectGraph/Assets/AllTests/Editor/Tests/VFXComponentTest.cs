@@ -241,7 +241,6 @@ namespace UnityEditor.VFX.Test
 
         #pragma warning restore 0414
         [UnityTest]
-        [Timeout(1000 * 10)]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("linkModes")] bool linkMode, [ValueSource("bindingModes")] bool bindingModes)
         {
             var commonBaseName = "abcd_";
