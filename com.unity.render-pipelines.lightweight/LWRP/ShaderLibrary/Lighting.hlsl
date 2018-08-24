@@ -120,16 +120,6 @@ half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
     return directionAndAttenuation;
 }
 
-half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
-{
-    half4 directionAndAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
-
-    // Cookies disabled for now due to amount of shader variants
-    // directionAndAttenuation.w *= CookieAttenuation(positionWS);
-
-    return directionAndAttenuation;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 //                      Light Abstraction                                    //
 ///////////////////////////////////////////////////////////////////////////////
