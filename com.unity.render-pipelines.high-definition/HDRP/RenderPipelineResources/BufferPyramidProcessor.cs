@@ -32,14 +32,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             )
         {
             m_ColorPyramidCS = colorPyramidCS;
-            m_ColorPyramidKernel = m_ColorPyramidCS.FindKernel("KMain");
+            m_ColorPyramidKernel = m_ColorPyramidCS.FindKernel("KColorGaussian");
 
             m_DepthPyramidCS = depthPyramidCS;
             m_GPUCopy = gpuCopy;
             m_DepthKernels = new int[]
             {
-                m_DepthPyramidCS.FindKernel("KDepthDownSample8"),
-                m_DepthPyramidCS.FindKernel("KDepthDownSample1")
+                //m_DepthPyramidCS.FindKernel("KDepthDownSample8"),
+                //m_DepthPyramidCS.FindKernel("KDepthDownSample1")
             };
 
             m_TexturePadding = texturePadding;
