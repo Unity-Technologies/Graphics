@@ -1459,12 +1459,14 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-/*
+//*
     float3 positionWS = posInput.positionWS;
 
-#ifdef LIT_DISPLAY_REFERENCE_AREA
+#if 0 // defined(LIT_DISPLAY_REFERENCE_AREA)
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
+
+    lighting.specular = 0;
 #else
     float3 unL = lightData.positionRWS - positionWS;
 
@@ -1575,6 +1577,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     lighting.diffuse *= lightData.color;
     lighting.specular *= lightData.color;
 
+
+
+lighting.specular = 0;
+
+
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
@@ -1586,7 +1593,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #endif
 
 #endif // LIT_DISPLAY_REFERENCE_AREA
-*/
+//*/
     return lighting;
 }
 
@@ -1719,8 +1726,8 @@ float3 DiffuseSphereLightIrradiance_Approx(real sinSqSigma, real cosOmega)
 //    float   fade = smoothstep( -sinSqSigma, sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );       // This one fade for a long time
 //    float   fade = smoothstep( -sinSqSigma, 0, sign(cosOmega)*cosOmega*cosOmega );       // This one fade for a shorter time <== Prefer this if using smoothstep
 //    float   fade = smoothstep( -2*sinSqSigma, -sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );    // This one could leak through the horizon
-    float   fade = step( -0.05*sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );                      // This one is abrupt but does the job... And less expensive than a smoothstep.
-//    float   fade = step( -sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );                           // This one is abrupt but does the job... And less expensive than a smoothstep.
+//    float   fade = step( -0.05*sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );                      // This one is abrupt but does the job... And less expensive than a smoothstep.
+    float   fade = step( -sinSqSigma, sign(cosOmega)*cosOmega*cosOmega );                           // This one is abrupt but does the job... And less expensive than a smoothstep.
     return saturate( fade * fit0 );
 #else
     // Original fitting
@@ -1943,7 +1950,8 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY,
         float   cosOmega   = clamp( avgDir.z , -1, 1 );
     #else
         // Directly use the form factor
-        float   sqSinSigma = min( formFactor * INV_PI, 0.999 );
+        float   sqSinSigma = min( formFactor, 0.999 );
+//        float   sqSinSigma = min( formFactor * INV_PI, 0.999 );
         float   cosOmega   = clamp( avgDir.z , -1, 1 );
     #endif
 
@@ -1964,9 +1972,102 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
     float3 positionWS = posInput.positionWS;
 
-#ifdef LIT_DISPLAY_REFERENCE_AREA
+#if 0 // defined(LIT_DISPLAY_REFERENCE_AREA)
+    lightData.size *= 0.5;
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
+
+lighting.specular = 0;
+
+/*#elif 1
+    // Ground truth code from http://blog.selfshadow.com/ltc/webgl/ltc_disk.html
+    float   E1 = 0.5 * lightData.size.x;
+    float   E2 = 0.5 * lightData.size.y;
+    float3  C = lightData.positionRWS - positionWS;    // Relative position
+//    float3  C = lightData.positionRWS;
+    float3  V1 = lightData.right;
+    float3  V2 = lightData.up;
+    float3  V3 = -lightData.forward;
+
+    float   diskArea = PI * E1 * E2;
+
+    float2  randNum = InitRandom( V.xy * 0.5 + 0.5 );
+
+    float   spec = 0.0;
+
+    const uint  samplesCount = 32;
+    [loop]
+    for ( uint i=0; i < samplesCount; i++ ) {
+        float2  u = frac( Hammersley2d( i, samplesCount ) + randNum );
+        float   u1 = u.x;
+        float   u2 = u.y;
+
+        // light sample
+        {
+            // random point on ellipse
+            float   rad = sqrt(u1);
+            float   phi = 2.0*PI*u2;
+            float   x = E1*rad*cos(phi);
+            float   y = E2*rad*sin(phi);
+
+            float3  p = x*V1 + y*V2 + C;
+            float3  v = normalize(p);
+
+            float   c2 = max(dot(V3, v), 0.0);
+            float   solidAngle = max( c2 / dot(p, p), 1e-7 );
+            float   pdfLight = 1.0 / solidAngle / diskArea;
+
+//            float cosTheta = max(v.z, 0.0);
+            float   cosTheta = dot( v, bsdfData.normalWS );
+            float   brdf = 1.0 / PI;
+            float   pdfBRDF = cosTheta / PI;
+
+            if ( cosTheta > 0.0 )
+                spec += brdf * cosTheta / (pdfBRDF + pdfLight);
+        }
+
+//      // BRDF sample
+//      {
+//          // generate a cosine-distributed direction
+//          float rad = sqrt(u1);
+//          float phi = 2.0*PI*u2;
+//          float x = rad*cos(phi);
+//          float y = rad*sin(phi);
+//          float3 dir = float3(x, y, sqrt(1.0 - u1));
+//
+//          Ray ray;
+//          ray.origin = vec3(0, 0, 0);
+//          ray.dir = dir;
+//
+//          Disk disk = InitDisk(C, V1, V2, E1, E2);
+//
+//          vec3 diskNormal = V3;
+//          disk.plane = vec4(diskNormal, -dot(diskNormal, disk.center));
+//
+//          float distToDisk = RayDiskIntersect(ray, disk);
+//          bool  intersect  = distToDisk != NO_HIT;
+//
+//          float cosTheta = max(dir.z, 0.0);
+//          float brdf = 1.0/PI;
+//          float pdfBRDF = cosTheta/PI;
+//
+//          float pdfLight = 0.0;
+//          if (intersect)
+//          {
+//              vec3 p = distToDisk*ray.dir;
+//              vec3 v = normalize(p);
+//              float c2 = max(dot(V3, v), 0.0);
+//              float solidAngle = max(c2/dot(p, p), 1e-7);
+//              pdfLight = 1.0/solidAngle/diskArea;
+//          }
+//
+//          if (intersect)
+//              spec += brdf*cosTheta/(pdfBRDF + pdfLight);
+//      }
+    }
+
+    lighting.diffuse = lightData.color * spec / samplesCount;
+//*/
 #else
     float3 unL = lightData.positionRWS - positionWS;
 
@@ -2013,11 +2114,11 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
     float ltcValue;
 
-preLightData.ltcTransformDiffuse = k_identity3x3;
+//preLightData.ltcTransformDiffuse = k_identity3x3;
 //preLightData.ltcTransformSpecular = k_identity3x3;
 
     ltcValue  = LTC_Evaluate( preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData, posInput );
-//    ltcValue *= lightData.diffuseScale;
+    ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     // See comment for specular magnitude, it apply to diffuse as well
     lighting.diffuse = preLightData.diffuseFGD * ltcValue;
@@ -2025,7 +2126,7 @@ preLightData.ltcTransformDiffuse = k_identity3x3;
     // Evaluate the specular part
     // Polygon irradiance in the transformed configuration.
     ltcValue  = LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
-//    ltcValue *= lightData.specularScale;
+    ltcValue *= lightData.specularScale;
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
     // This value is what we store in specularFGD, so reuse it
@@ -2038,6 +2139,7 @@ preLightData.ltcTransformDiffuse = k_identity3x3;
 
 
 //lighting.diffuse = 0;
+//lighting.diffuse *= 2.0;
 //lighting.specular = 40 * LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
 
 lighting.specular = 0;
@@ -2106,7 +2208,7 @@ lighting.specular = 0;
     // Then we recompute the disk's center and radius to match the solid angle covered by the sphere
     float   R = 0.5 * lightData.size.x; // Sphere radius
     if ( D - R > 1e-3 ) {
-        #if 1
+        #if 0
 //            float   sinTheta = min( 0.99, R / D );
             float   sinTheta = R / D;
             float   tanTheta = sinTheta * rsqrt( 1.0 - saturate( sinTheta*sinTheta ) );
@@ -2121,6 +2223,17 @@ lighting.specular = 0;
 //lighting.diffuse = 0.2*D * (D < 1.0 ? float3( 1, 0, 0 ) : float3( 0, 1, 0 ));
 //return lighting;
         #elif 1
+
+//          R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
+
+            float   D2R2 = D*D - R*R;
+            float   d = D2R2 / D;               // Distance to disk center
+            float   r = sqrt( D2R2 ) * R / D;   // Disk radius
+
+            lightData.positionRWS = posInput.positionWS + d * light;    // New position for the disk
+            lightData.size = 2.0 * r;                                   // New radius for the disk
+
+        #else
 
 // Ground truth from https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf p. 43
 // Tilted patch to sphere equation
@@ -2141,19 +2254,9 @@ else
     illuminance = (cos( Beta ) * acos( y ) - x * sin( Beta ) * sqrt( 1 - y * y )) / (h * h) + atan( sin( Beta ) * sqrt( 1 - y * y ) / x );
 
 
-lighting.diffuse = illuminance * lightData.color / PI;;
+lighting.diffuse = illuminance * lightData.color / PI;
 lighting.specular = 0;
 return lighting;
-
-        #else
-//          R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
-
-            float   D2R2 = D*D - R*R;
-            float   d = D2R2 / D;               // Distance to disk center
-            float   r = sqrt( D2R2 ) * R / D;   // Disk radius
-
-            lightData.positionRWS = posInput.positionWS + d * light;    // New position for the disk
-            lightData.size = 2.0 * r;                                   // New radius for the disk
         #endif
 
         lighting = EvaluateBSDF_Disk( lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData );

@@ -90,8 +90,9 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
                 SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
                 break;
             case GPULIGHTTYPE_DISK:
-                SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-               break;
+//                SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+                SampleEllipticalDisk(u, localToWorld, lightData.size, lightPdf, P, Ns);
+                break;
             // case GPULIGHTTYPE_LINE: handled by a separate function.
         }
 
