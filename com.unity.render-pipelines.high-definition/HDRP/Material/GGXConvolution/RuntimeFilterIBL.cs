@@ -143,10 +143,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
         }
 
-        public void FilterPlanarTexture(CommandBuffer cmd, Texture source, RenderTexture target)
+        public void FilterPlanarTexture(CommandBuffer cmd, RenderTexture source, RenderTexture target)
         {
-            cmd.Blit(source, target);
-            m_MipGenerator.RenderColorGaussianPyramid(cmd, new Vector2Int(source.width, source.height), target);
+            m_MipGenerator.RenderColorGaussianPyramid(cmd, new Vector2Int(source.width, source.height), source, target);
         }
 
         // Filters MIP map levels (other than 0) with GGX using multiple importance sampling.

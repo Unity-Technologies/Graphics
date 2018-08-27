@@ -58,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TempRenderTexture.useMipMap = true;
                 m_TempRenderTexture.autoGenerateMips = false;
                 m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarReflectionTemp", mips: true);
+                m_TempRenderTexture.enableRandomWrite = true;
                 m_TempRenderTexture.Create();
 
                 m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
@@ -66,6 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ConvolutionTargetTexture.useMipMap = true;
                 m_ConvolutionTargetTexture.autoGenerateMips = false;
                 m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarReflectionConvolution", mips: true);
+                m_ConvolutionTargetTexture.enableRandomWrite = true;
                 m_ConvolutionTargetTexture.Create();
 
                 InitializeProbeBakingStates();
