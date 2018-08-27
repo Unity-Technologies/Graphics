@@ -2,27 +2,55 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public class RenderOpaqueForwardPass : LightweightForwardPass
+    public class RenderOpaqueForwardPass : ScriptableRenderPass
     {
         const string k_RenderOpaquesTag = "Render Opaques";
-        public FilterRenderersSettings opaqueFilterSettings { get; private set; }
+        FilterRenderersSettings m_OpaqueFilterSettings;
+
+        RenderTargetHandle colorAttachmentHandle { get; set; }
+        RenderTargetHandle depthAttachmentHandle { get; set; }
+        RenderTextureDescriptor descriptor { get; set; }
+        ClearFlag clearFlag { get; set; }
+        Color clearColor { get; set; }
+
+        RendererConfiguration rendererConfiguration;
 
         public RenderOpaqueForwardPass()
         {
-            opaqueFilterSettings = new FilterRenderersSettings(true)
+            RegisterShaderPassName("LightweightForward");
+            RegisterShaderPassName("SRPDefaultUnlit");
+
+            m_OpaqueFilterSettings = new FilterRenderersSettings(true)
             {
                 renderQueueRange = RenderQueueRange.opaque,
             };
         }
 
-        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
-            ref CullResults cullResults,
-            ref RenderingData renderingData)
+        public void Setup(
+            RenderTextureDescriptor baseDescriptor,
+            RenderTargetHandle colorAttachmentHandle,
+            RenderTargetHandle depthAttachmentHandle,
+            ClearFlag clearFlag,
+            Color clearColor,
+            RendererConfiguration configuration)
+        {
+            this.colorAttachmentHandle = colorAttachmentHandle;
+            this.depthAttachmentHandle = depthAttachmentHandle;
+            this.clearColor = CoreUtils.ConvertSRGBToActiveColorSpace(clearColor);
+            this.clearFlag = clearFlag;
+            descriptor = baseDescriptor;
+            this.rendererConfiguration = configuration;
+        }
+
+        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderOpaquesTag);
             using (new ProfilingSample(cmd, k_RenderOpaquesTag))
             {
-                SetRenderTarget(cmd, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(clearColor));
+                RenderBufferLoadAction loadOp = RenderBufferLoadAction.DontCare;
+                RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;
+                SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), loadOp, storeOp,
+                    depthAttachmentHandle.Identifier(), loadOp, storeOp, clearFlag, clearColor, descriptor.dimension);
 
                 // TODO: We need a proper way to handle multiple camera/ camera stack. Issue is: multiple cameras can share a same RT
                 // (e.g, split screen games). However devs have to be dilligent with it and know when to clear/preserve color.
@@ -33,11 +61,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration, dynamicBatching);
-                context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
+                var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration, renderingData.supportsDynamicBatching);
+                context.DrawRenderers(renderingData.cullResults.visibleRenderers, ref drawSettings, m_OpaqueFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                RenderObjectsWithError(renderer, ref context, ref cullResults, camera, opaqueFilterSettings, SortFlags.None);
+                renderer.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_OpaqueFilterSettings, SortFlags.None);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

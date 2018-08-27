@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 using UnityEngine.Rendering;
@@ -80,11 +80,9 @@ public class CameraCallbackTests : MonoBehaviour
 			m_Target = target;
 		}
 
-		public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
-			ref CullResults cullResults,
-			ref RenderingData renderingData)
+		public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
 		{
-			RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRTDesc(ref renderingData.cameraData);
+			RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
 
 			var cmd = CommandBufferPool.Get("Capture Pass");
 			cmd.GetTemporaryRT(m_Target.id, opaqueDesc);
@@ -107,11 +105,10 @@ public class CameraCallbackTests : MonoBehaviour
 	{
 		CapturePass m_CopyResult = new CapturePass();
 		
-		public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context, ref CullResults cullResults,
-			ref RenderingData renderingData)
+		public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
 		{
 			m_CopyResult.Setup(RenderTargetHandle.CameraTarget, afterAll);
-			m_CopyResult.Execute(renderer, ref context, ref cullResults, ref renderingData);
+			m_CopyResult.Execute(renderer, context, ref renderingData);
 			
 			Material material = renderer.GetMaterial(MaterialHandles.Blit);
 
@@ -121,23 +118,23 @@ public class CameraCallbackTests : MonoBehaviour
 			
 			cmd.SetViewport(new Rect(0, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterDepth.Identifier());
-			LightweightPipeline.DrawFullScreen(cmd, material);
+		    ScriptableRenderer.RenderFullscreenQuad(cmd, material);
 			
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterOpaque.Identifier());
-			LightweightPipeline.DrawFullScreen(cmd, material);
+		    ScriptableRenderer.RenderFullscreenQuad(cmd, material);
 			
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f * 2.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterOpaquePost.Identifier());
-			LightweightPipeline.DrawFullScreen(cmd, material);			
+		    ScriptableRenderer.RenderFullscreenQuad(cmd, material);			
 						
 			cmd.SetViewport(new Rect(0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterSkybox.Identifier());
-			LightweightPipeline.DrawFullScreen(cmd, material);
+		    ScriptableRenderer.RenderFullscreenQuad(cmd, material);
 			
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterTransparent.Identifier());
-			LightweightPipeline.DrawFullScreen(cmd, material);
+		    ScriptableRenderer.RenderFullscreenQuad(cmd, material);
 			
 			
 			//TODO: Upsidown UV trash, ignore this for now
