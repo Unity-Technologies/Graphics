@@ -23,11 +23,16 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KColorGaussian    KERNEL_SIZE=8  MAIN_GAUSSIAN=KColorGaussian
-#pragma kernel KColorDownsample  KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample
+#pragma kernel KColorGaussian            KERNEL_SIZE=8  MAIN_GAUSSIAN=KColorGaussian
+#pragma kernel KColorDownsample          KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample
+#pragma kernel KColorDownsampleCopyMip0  KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsampleCopyMip0  COPY_MIP_0
 
 RWTexture2D<float4> _Source;
 RWTexture2D<float4> _Destination;
+
+#if COPY_MIP_0
+RWTexture2D<float4> _Mip0;
+#endif
 
 SamplerState sampler_LinearClamp;
 
@@ -147,15 +152,26 @@ void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThr
 }
 
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
-void KColorDownsample(uint2 dispatchThreadId : SV_DispatchThreadID)
+void MAIN_DOWNSAMPLE(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     uint2 offset = dispatchThreadId * 2u;
     uint2 size = uint2(_Size.xy) - 1u;
 
-    float4 p00 = _Source[clamp(offset + uint2(0u, 0u), 0u, size)];
-    float4 p10 = _Source[clamp(offset + uint2(1u, 0u), 0u, size)];
-    float4 p11 = _Source[clamp(offset + uint2(1u, 1u), 0u, size)];
-    float4 p01 = _Source[clamp(offset + uint2(0u, 1u), 0u, size)];
+    uint2 c00 = clamp(offset + uint2(0u, 0u), 0u, size);
+    uint2 c10 = clamp(offset + uint2(1u, 0u), 0u, size);
+    uint2 c11 = clamp(offset + uint2(1u, 1u), 0u, size);
+    uint2 c01 = clamp(offset + uint2(0u, 1u), 0u, size);
+    float4 p00 = _Source[c00];
+    float4 p10 = _Source[c10];
+    float4 p11 = _Source[c11];
+    float4 p01 = _Source[c01];
+
+    #if COPY_MIP_0
+    _Mip0[c00] = p00;
+    _Mip0[c10] = p10;
+    _Mip0[c11] = p11;
+    _Mip0[c01] = p01;
+    #endif
 
     _Destination[dispatchThreadId] = (p00 + p01 + p11 + p10) * 0.25;
 }
