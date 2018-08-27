@@ -73,7 +73,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_CopyStencilForNoLighting;
         Material m_CopyDepth;
         GPUCopy m_GPUCopy;
-        BufferPyramid m_BufferPyramid;
         MipGenerator m_MipGenerator;
 
         IBLFilterGGX m_IBLFilterGGX = null;
@@ -212,14 +211,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_MipGenerator = new MipGenerator(m_Asset);
 
-            var bufferPyramidProcessor = new BufferPyramidProcessor(
-                    asset.renderPipelineResources.colorPyramidCS,
-                    asset.renderPipelineResources.depthPyramidCS,
-                    m_GPUCopy,
-                    new TexturePadding(asset.renderPipelineResources.texturePaddingCS)
-                    );
-            m_BufferPyramid = new BufferPyramid(bufferPyramidProcessor);
-
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
 
             m_ReflectionProbeCullResults = new ReflectionProbeCullResults(asset.reflectionSystemParameters);
@@ -343,7 +334,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
-            m_BufferPyramid.DestroyBuffers();
+            m_MipGenerator.Release();
             
             RTHandles.Release(m_CameraColorBuffer);
             RTHandles.Release(m_CameraColorBufferMipChain);
@@ -1121,7 +1112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderColorPyramid(hdCamera, cmd, false);
 
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
-                        RenderDistortion(hdCamera, cmd, m_Asset.renderPipelineResources);
+                        RenderDistortion(hdCamera, cmd);
 
                         StopStereoRendering(renderContext, hdCamera);
 
@@ -1332,17 +1323,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDistortion(HDCamera hdCamera, CommandBuffer cmd, RenderPipelineResources resources)
+        void RenderDistortion(HDCamera hdCamera, CommandBuffer cmd)
         {
             if (!hdCamera.frameSettings.enableDistortion)
                 return;
 
             using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
-                var pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, m_CameraColorBuffer);
-
-                // Need to account for the fact that the gaussian pyramid is actually rendered inside the camera viewport in a square texture so we mutiply by the PyramidToScreen scale
-                var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, pyramidScale.x / hdCamera.screenSize.x, pyramidScale.y / hdCamera.screenSize.y);
+                var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y);
                 uint x, y, z;
                 m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBuffer);
