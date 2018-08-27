@@ -1,40 +1,8 @@
 #ifndef UNITY_AREA_LIGHTING_INCLUDED
 #define UNITY_AREA_LIGHTING_INCLUDED
 
-#define APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-#define APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
-
-// Not normalized by the factor of 1/TWO_PI.
-real3 ComputeEdgeFactor(real3 V1, real3 V2)
-{
-    real  V1oV2 = dot(V1, V2);
-    real3 V1xV2 = cross(V1, V2);
-#if 0
-    return V1xV2 * (rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2));
-#else
-    // Approximate: { y = rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2) } on [0, 1].
-    // Fit: HornerForm[MiniMaxApproximation[ArcCos[x]/Sqrt[1 - x^2], {x, {0, 1 - $MachineEpsilon}, 6, 0}][[2, 1]]].
-    // Maximum relative error: 2.6855360216340534 * 10^-6. Intensities up to 1000 are artifact-free.
-    real x = abs(V1oV2);
-    real y = 1.5707921083647782 + x * (-0.9995697178013095 + x * (0.778026455830408 + x * (-0.6173111361273548 + x * (0.4202724111150622 + x * (-0.19452783598217288 + x * 0.04232040013661036)))));
-
-    if (V1oV2 < 0)
-    {
-        // Undo range reduction.
-        y = PI * rsqrt(saturate(1 - V1oV2 * V1oV2)) - y;
-    }
-
-    return V1xV2 * y;
-#endif
-}
-
-// Not normalized by the factor of 1/TWO_PI.
-// Ref: Improving radiosity solutions through the use of analytically determined form-factors.
-real IntegrateEdge(real3 V1, real3 V2)
-{
-    // 'V1' and 'V2' are represented in a coordinate system with N = (0, 0, 1).
-    return ComputeEdgeFactor(V1, V2).z;
-}
+#define APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT  // Define this to replace rectangular area light polygon by an equivalent sphere (i.e. simpler, doesn't require as much effort for clipping)
+#define APPROXIMATE_SPHERE_LIGHT_NUMERICALLY    // Define this to use 
 
 // 'sinSqSigma' is the sine^2 of the real of the opening angle of the sphere as seen from the shaded point.
 // 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
@@ -49,7 +17,20 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
     // You can use the following Mathematica code to reproduce our results:
     // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
     // m = NonlinearModelFit[t, x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3)), {a, b, c, d, e}, {x, y}]
-    return saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
+    real    fit = saturate( x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))) );
+
+    // BMAYAUX (18/08/27) it appears that the imprecision in fitting leads to light leaking issues
+    // This apparently comes from the fact that the transition when the sphere is going below the horizon is a very sensitive area of the 2D table
+    //  and both a table precomputation or our numerical fitting fail to capture the necessary precision here so I added back a more rigid control
+    //  of the fade that should happen below the horizon...
+    //
+    // Each of these fade routines is equally interesting
+    real    sqCosOmega = cosOmega < 0.0 ? -cosOmega*cosOmega : cosOmega*cosOmega;   // Signed square value
+    real    fade = smoothstep( -sinSqSigma, 0, sqCosOmega );    // This one fade for a shorter time <== Prefer this if using smoothstep
+//    real    fade = step( -0.05*sinSqSigma, sqCosOmega );        // This one is abrupt but does the job... And less expensive than a smoothstep. Problem is, the 0.05 actually should change depending on the size of the sphere (i.e. the sinSqSigma parameter)
+
+    return fade * fit;
+
 #else
     #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
         real sinSqOmega = saturate(1 - cosOmega * cosOmega);
@@ -121,6 +102,44 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
         }
     #endif
 #endif
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// POLYGONAL AREA LIGHTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+// Not normalized by the factor of 1/TWO_PI.
+real3 ComputeEdgeFactor(real3 V1, real3 V2)
+{
+    real  V1oV2 = dot(V1, V2);
+    real3 V1xV2 = cross(V1, V2);
+#if 0
+    return V1xV2 * (rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2));
+#else
+    // Approximate: { y = rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2) } on [0, 1].
+    // Fit: HornerForm[MiniMaxApproximation[ArcCos[x]/Sqrt[1 - x^2], {x, {0, 1 - $MachineEpsilon}, 6, 0}][[2, 1]]].
+    // Maximum relative error: 2.6855360216340534 * 10^-6. Intensities up to 1000 are artifact-free.
+    real x = abs(V1oV2);
+    real y = 1.5707921083647782 + x * (-0.9995697178013095 + x * (0.778026455830408 + x * (-0.6173111361273548 + x * (0.4202724111150622 + x * (-0.19452783598217288 + x * 0.04232040013661036)))));
+
+    if (V1oV2 < 0)
+    {
+        // Undo range reduction.
+        y = PI * rsqrt(saturate(1 - V1oV2 * V1oV2)) - y;
+    }
+
+    return V1xV2 * y;
+#endif
+}
+
+// Not normalized by the factor of 1/TWO_PI.
+// Ref: Improving radiosity solutions through the use of analytically determined form-factors.
+real IntegrateEdge(real3 V1, real3 V2)
+{
+    // 'V1' and 'V2' are represented in a coordinate system with N = (0, 0, 1).
+    return ComputeEdgeFactor(V1, V2).z;
 }
 
 // Expects non-normalized vertex positions.
@@ -300,6 +319,218 @@ real PolygonIrradiance(real4x3 L)
     return isfinite(sum) ? sum : 0.0;
 #endif
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// DISK AREA LIGHTS
+// From http://blog.selfshadow.com/ltc/webgl/ltc_disk.html
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+// An extended version of the implementation from "How to solve a cubic equation, revisited" (From http://momentsingraphics.de/?p=105)
+float3 SolveCubic( float4 coefficients )
+{
+    // Normalize the polynomial
+//  coefficients.xyz /= coefficients.w; // No use in our case: w=1
+
+    // Divide middle coefficients by three
+    coefficients.yz /= 3.0;
+
+    float A = coefficients.w;
+    float B = coefficients.z;
+    float C = coefficients.y;
+    float D = coefficients.x;
+
+    // Compute the Hessian and the discriminant
+    float3 Delta = float3(
+        -coefficients.z*coefficients.z + coefficients.y,
+        -coefficients.y*coefficients.z + coefficients.x,
+        dot(float2(coefficients.z, -coefficients.y), coefficients.xy)
+    );
+
+    float Discriminant = dot(float2(4.0*Delta.x, -Delta.y), Delta.zy);
+
+    float3 RootsA, RootsD;
+
+    float2 xlc, xsc;
+
+    // Algorithm A
+    {
+        float A_a = 1.0;
+        float C_a = Delta.x;
+        float D_a = -2.0*B*Delta.x + Delta.y;
+
+        // Take the cubic root of a normalized complex number
+        float Theta = atan2( sqrt(Discriminant), -D_a ) / 3.0;
+
+        float x_1a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta );
+        float x_3a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta + (2.0/3.0)*PI );
+
+        float xl;
+        if ((x_1a + x_3a) > 2.0*B)
+            xl = x_1a;
+        else
+            xl = x_3a;
+
+        xlc = float2(xl - B, A);
+    }
+
+    // Algorithm D
+    {
+        float A_d = D;
+        float C_d = Delta.z;
+        float D_d = -D*Delta.y + 2.0*C*Delta.z;
+
+        // Take the cubic root of a normalized complex number
+        float Theta = atan2( D*sqrt(Discriminant), -D_d ) / 3.0;
+
+        float x_1d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta );
+        float x_3d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta + (2.0/3.0)*PI );
+
+        float xs;
+        if (x_1d + x_3d < 2.0*C)
+            xs = x_1d;
+        else
+            xs = x_3d;
+
+        xsc = float2(-D, xs + C);
+    }
+
+    float E =  xlc.y*xsc.y;
+    float F = -xlc.x*xsc.y - xlc.y*xsc.x;
+    float G =  xlc.x*xsc.x;
+
+    float2 xmc = float2(C*F - B*G, -B*F + C*E);
+
+    float3  roots = float3(xsc.x/xsc.y, xmc.x/xmc.y, xlc.x/xlc.y);
+
+    if (roots.x < roots.y && roots.x < roots.z)
+        roots.xyz = roots.yxz;
+    else if (roots.z < roots.x && roots.z < roots.y)
+        roots.xyz = roots.xzy;
+
+    return roots;
+}
+
+// Minv is the M^-1 matrix for the LTC
+// center, the local position of the disk (i.e. *RELATIVE* to our world position)
+// axisX, the world-space scaled X axis of the ellipse
+// axisY, the world-space scaled Y axis of the ellipse
+float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY )
+{
+    // Initalize ellipse in original clamped-cosine space
+    float3  C  = mul( center, Minv );
+    float3  V1 = mul( axisX, Minv );
+    float3  V2 = mul( axisY, Minv );
+
+    float3  V3 = cross(V2, V1);         // Normal to ellipse's plane
+    if( dot( V3, C ) < 0.0 )
+        return 0.0;
+
+    // compute eigenvectors of ellipse
+    float   a, b;
+    float   d11 = dot( V1, V1 );
+    float   d22 = dot( V2, V2 );
+    float   d12 = dot( V1, V2 );
+    float   d11d22 = d11 * d22;
+    float   d12d12 = d12 * d12;
+
+//  if ( abs(d12) > 0.0001 * sqrt(d11d22) ) // This produces artifacts due to precision issues
+    if ( d12d12 > 0.0001 * d11d22 )
+    {
+        float   tr = d11 + d22;
+        float   det = -d12d12 + d11d22;
+
+        // use sqrt matrix to solve for eigenvalues
+        det = sqrt(det);
+        float   u = 0.5 * sqrt( max( 0.0, tr - 2.0*det ) );
+        float   v = 0.5 * sqrt( max( 0.0, tr + 2.0*det ) );
+        float   e_max = Sq( u + v );
+        float   e_min = Sq( u - v );
+
+        float3  V1_, V2_;
+        if ( d11 > d22 )
+        {
+            V1_ = d12*V1 + (e_max - d11)*V2;
+            V2_ = d12*V1 + (e_min - d11)*V2;
+        }
+        else
+        {
+            V1_ = d12*V2 + (e_max - d22)*V1;
+            V2_ = d12*V2 + (e_min - d22)*V1;
+        }
+
+        a = 1.0 / e_max;
+        b = 1.0 / e_min;
+        V1 = normalize( V1_ );
+        V2 = normalize( V2_ );
+    }
+    else
+    {
+        a = 1.0 / dot(V1, V1);
+        b = 1.0 / dot(V2, V2);
+        V1 *= sqrt(a);
+        V2 *= sqrt(b);
+    }
+
+    V3 = cross( V1, V2 );
+    if ( dot( C, V3 ) <= 0.0 )
+        V3 = -V3;
+
+    float   L  = dot(V3, C);
+    float   x0 = dot(V1, C) / L;
+    float   y0 = dot(V2, C) / L;
+
+    float   E1 = rsqrt(a);
+    float   E2 = rsqrt(b);
+
+    a *= L*L;
+    b *= L*L;
+
+    float   c0 = a*b;
+    float   c1 = a*b*(1.0 + x0*x0 + y0*y0) - a - b;
+    float   c2 = 1.0 - a*(1.0 + x0*x0) - b*(1.0 + y0*y0);
+    float   c3 = 1.0;
+
+    float3  roots = SolveCubic(float4(c0, c1, c2, c3));
+    float   e1 = roots.x;
+    float   e2 = roots.y;
+    float   e3 = roots.z;
+
+    #if 1
+        float   ae2 = a - e2;
+        float   be2 = b - e2;
+        float3  avgDir = float3( a * x0 * be2, b * y0 * ae2, ae2 * be2 );   // No change except we avoid divisions...
+    #else
+        float3  avgDir = float3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
+    #endif
+
+    avgDir = normalize( mul( avgDir, float3x3( V1, V2, V3 ) ) );
+
+    float   L1 = sqrt( -e2 / e3 );
+    float   L2 = sqrt( -e2 / e1 );
+
+    float   formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
+
+    // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines" pp. 25
+    // Then we need to find a sphere providing the same solid angle value as this projected irradiance, then retrieve the apex half-angle we need
+    //
+    // The solid angle of such sphere is given by Omega/2PI = E_proj/PI = 1-cos(sigma) where sigma is the half apex angle
+    // We have thus:
+    //  cos(sigma) = 1 - E_proj/PI
+    //  sin²(sigma) = 1 - cos(sigma)² = 1 - (1 - E_proj/PI)²
+    //
+    float   sqSinSigma = min( 1 - Sq( 1 - formFactor * INV_PI ), 0.999 );
+    float   cosOmega   = clamp( avgDir.z , -1, 1 );
+
+    return DiffuseSphereLightIrradiance( sqSinSigma, cosOmega );
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// LINEAR AREA LIGHTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 real LineFpo(real tLDDL, real lrcpD, real rcpD)
 {
