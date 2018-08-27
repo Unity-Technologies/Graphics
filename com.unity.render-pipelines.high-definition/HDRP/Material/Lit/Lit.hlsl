@@ -882,7 +882,7 @@ struct PreLightData
 
     // Area lights (17 VGPRs)
     // TODO: 'orthoBasisViewNormal' is just a rotation around the normal and should thus be just 1x VGPR.
-    float3x3 orthoBasisViewNormal;   // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
+//    float3x3 orthoBasisViewNormal;   // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
     float3x3 ltcTransformDiffuse;    // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
     float3x3 ltcTransformSpecular;   // Inverse transformation for GGX                                 (4x VGPRs)
 
@@ -987,39 +987,49 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // Area light
     // UVs for sampling the LUTs
-    float theta = FastACosPos(NdotV); // For Area light - UVs for sampling the LUTs
-    float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
+//    float theta = FastACosPos(NdotV); // For Area light - UVs for sampling the LUTs
+//    float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
+    float2  uv = LTCGetSamplingUV( NdotV, bsdfData.perceptualRoughness );
 
-    // Note we load the matrix transpose (avoid to have to transpose it in shader)
-#ifdef USE_DIFFUSE_LAMBERT_BRDF
-    preLightData.ltcTransformDiffuse = k_identity3x3;
-#else
-    // Get the inverse LTC matrix for Disney Diffuse
-    preLightData.ltcTransformDiffuse      = 0.0;
-    preLightData.ltcTransformDiffuse._m22 = 1.0;
-    preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
-#endif
+    // Construct a right-handed view-dependent orthogonal basis around the normal
+    float3x3    orthoBasisViewNormal;
+    orthoBasisViewNormal[0] = normalize(V - N * preLightData.NdotV); // Do not clamp NdotV here
+    orthoBasisViewNormal[2] = N;
+    orthoBasisViewNormal[1] = cross(orthoBasisViewNormal[2], orthoBasisViewNormal[0]);
+
+    orthoBasisViewNormal = transpose( orthoBasisViewNormal );   // We need the matrix that transforms from world to local view when multiplying vertices from the left
+
+
+    #ifdef USE_DIFFUSE_LAMBERT_BRDF
+        preLightData.ltcTransformDiffuse = k_identity3x3;
+    #else
+        // Get the inverse LTC matrix for Disney Diffuse
+        // Note we load the matrix transposed (avoid to have to transpose it in shader)
+//        preLightData.ltcTransformDiffuse      = 0.0;
+//        preLightData.ltcTransformDiffuse._m22 = 1.0;
+//        preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
+        preLightData.ltcTransformDiffuse = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX ) );
+    #endif
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcTransformSpecular      = 0.0;
-    preLightData.ltcTransformSpecular._m22 = 1.0;
-    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+//    preLightData.ltcTransformSpecular      = 0.0;
+//    preLightData.ltcTransformSpecular._m22 = 1.0;
+//    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+    preLightData.ltcTransformSpecular = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_GGX_MATRIX_INDEX ) );
 
-    // Construct a right-handed view-dependent orthogonal basis around the normal
-    preLightData.orthoBasisViewNormal[0] = normalize(V - N * preLightData.NdotV); // Do not clamp NdotV here
-    preLightData.orthoBasisViewNormal[2] = N;
-    preLightData.orthoBasisViewNormal[1] = cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]);
 
     preLightData.ltcTransformCoat = 0.0;
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(CLEAR_COAT_PERCEPTUAL_ROUGHNESS, theta * INV_HALF_PI);
+//        float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(CLEAR_COAT_PERCEPTUAL_ROUGHNESS, theta * INV_HALF_PI);
+        float2  uv = LTCGetSamplingUV( NdotV, CLEAR_COAT_PERCEPTUAL_ROUGHNESS );
 
         // Get the inverse LTC matrix for GGX
         // Note we load the matrix transpose (avoid to have to transpose it in shader)
-        preLightData.ltcTransformCoat._m22 = 1.0;
-        preLightData.ltcTransformCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+//        preLightData.ltcTransformCoat._m22 = 1.0;
+//        preLightData.ltcTransformCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+        preLightData.ltcTransformCoat = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_GGX_MATRIX_INDEX ) );
     }
 
     // refraction (forward only)
@@ -1375,9 +1385,10 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     float3 P1 = lightData.positionRWS - T * (0.5 * len);
     float3 P2 = lightData.positionRWS + T * (0.5 * len);
 
-    // Rotate the endpoints into the local coordinate system.
-    P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
-    P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
+// This is ANNOYING!! => That's litterally the only place where orthoBasisViewNormal seems to be actually needed! (is it really needed? It's only to compute B after all?! Can't this be done)
+//    // Rotate the endpoints into the local coordinate system.
+//    P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
+//    P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
 
     // Compute the binormal in the local coordinate system.
     float3 B = normalize(cross(P1, P2));
@@ -1520,8 +1531,9 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
     lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
 
-    // Rotate the endpoints into the local coordinate system.
-    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
+// Not required anymore: orthoBasisViewNormal is already composed with M^-1
+//    // Rotate the endpoints into the local coordinate system.
+//    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
 
     float ltcValue;
 
@@ -2103,8 +2115,9 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 //preLightData.ltcTransformDiffuse = k_identity3x3;
 //preLightData.ltcTransformSpecular = k_identity3x3;
 
-    preLightData.ltcTransformDiffuse = mul( transpose(preLightData.orthoBasisViewNormal), preLightData.ltcTransformDiffuse );
-    preLightData.ltcTransformSpecular = mul( transpose(preLightData.orthoBasisViewNormal), preLightData.ltcTransformSpecular );
+// Not required anymore: orthoBasisViewNormal is already composed with M^-1
+//    preLightData.ltcTransformDiffuse = mul( transpose(preLightData.orthoBasisViewNormal), preLightData.ltcTransformDiffuse );
+//    preLightData.ltcTransformSpecular = mul( transpose(preLightData.orthoBasisViewNormal), preLightData.ltcTransformSpecular );
 
 
     ltcValue  = LTC_Evaluate( preLightData.ltcTransformDiffuse, center, axisX, axisY );
@@ -2268,31 +2281,360 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     return lighting;
 }
 
+real2   PolygonFormFactor( real4x3 L )
+{
+    UNITY_UNROLL
+    for (uint i = 0; i < 4; i++)
+    {
+        L[i] = normalize(L[i]);
+    }
 
+    real3 F = real3(0, 0, 0);
+
+    UNITY_UNROLL
+    for (uint edge = 0; edge < 4; edge++)
+    {
+        real3 V1 = L[edge];
+        real3 V2 = L[(edge + 1) % 4];
+
+        F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
+    }
+
+    // Clamp invalid values to avoid visual artifacts.
+    real f2         = saturate(dot(F, F));
+    real sinSqSigma = min(sqrt(f2), 0.999);
+    real cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
+
+    return float2(sinSqSigma, cosOmega);
+}
+
+real2   DiskFormFactor( real4x3 lightVerts )//float3x3 Minv, float3 center, float3 axisX, float3 axisY )
+{
+    // Initalize ellipse in original clamped-cosine space
+//    float3  C  = mul( center, Minv );
+//    float3  V1 = mul( axisX, Minv );
+//    float3  V2 = mul( axisY, Minv );
+
+    float3  C  = 0.5 * (lightVerts[0] + lightVerts[2]);
+    float3  V1 = 0.5 * (lightVerts[0] - lightVerts[3]);
+    float3  V2 = 0.5 * (lightVerts[3] - lightVerts[2]);
+
+    float3  V3 = cross(V2, V1);         // Normal to ellipse's plane
+    if( dot( V3, C ) < 0.0 )
+        return 0.0;
+
+    // compute eigenvectors of ellipse
+    float   a, b;
+    float   d11 = dot( V1, V1 );
+    float   d22 = dot( V2, V2 );
+    float   d12 = dot( V1, V2 );
+    float   d11d22 = d11 * d22;
+    float   d12d12 = d12 * d12;
+
+//  if ( abs(d12) > 0.0001 * sqrt(d11d22) ) // This produces artifacts due to precision issues
+    if ( d12d12 > 0.0001 * d11d22 )
+    {
+        float   tr = d11 + d22;
+        float   det = -d12d12 + d11d22;
+
+        // use sqrt matrix to solve for eigenvalues
+        det = sqrt(det);
+        float   u = 0.5 * sqrt( max( 0.0, tr - 2.0*det ) );
+        float   v = 0.5 * sqrt( max( 0.0, tr + 2.0*det ) );
+        float   e_max = Sq( u + v );
+        float   e_min = Sq( u - v );
+
+        float3  V1_, V2_;
+        if ( d11 > d22 )
+        {
+            V1_ = d12*V1 + (e_max - d11)*V2;
+            V2_ = d12*V1 + (e_min - d11)*V2;
+        }
+        else
+        {
+            V1_ = d12*V2 + (e_max - d22)*V1;
+            V2_ = d12*V2 + (e_min - d22)*V1;
+        }
+
+        a = 1.0 / e_max;
+        b = 1.0 / e_min;
+        V1 = normalize( V1_ );
+        V2 = normalize( V2_ );
+    }
+    else
+    {
+        a = 1.0 / dot(V1, V1);
+        b = 1.0 / dot(V2, V2);
+        V1 *= sqrt(a);
+        V2 *= sqrt(b);
+    }
+
+    V3 = cross( V1, V2 );
+    if ( dot( C, V3 ) <= 0.0 )
+        V3 = -V3;
+
+    float   L  = dot(V3, C);
+    float   x0 = dot(V1, C) / L;
+    float   y0 = dot(V2, C) / L;
+
+    float   E1 = rsqrt(a);
+    float   E2 = rsqrt(b);
+
+    a *= L*L;
+    b *= L*L;
+
+    float   c0 = a*b;
+    float   c1 = a*b*(1.0 + x0*x0 + y0*y0) - a - b;
+    float   c2 = 1.0 - a*(1.0 + x0*x0) - b*(1.0 + y0*y0);
+    float   c3 = 1.0;
+
+    float3  roots = SolveCubic(float4(c0, c1, c2, c3));
+    float   e1 = roots.x;
+    float   e2 = roots.y;
+    float   e3 = roots.z;
+
+    #if 1
+        float   ae2 = a - e2;
+        float   be2 = b - e2;
+        float3  avgDir = float3( a * x0 * be2, b * y0 * ae2, ae2 * be2 );   // No change except we avoid divisions...
+    #else
+        float3  avgDir = float3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
+    #endif
+
+    avgDir = normalize( mul( avgDir, float3x3( V1, V2, V3 ) ) );
+
+    float   L1 = sqrt( -e2 / e3 );
+    float   L2 = sqrt( -e2 / e1 );
+
+    float   formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
+
+    // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines" pp. 25
+    // Then we need to find a sphere providing the same solid angle value as this projected irradiance, then retrieve the apex half-angle we need
+    //
+    // The solid angle of such sphere is given by Omega/2PI = E_proj/PI = 1-cos(sigma) where sigma is the half apex angle
+    // We have thus:
+    //  cos(sigma) = 1 - E_proj/PI
+    //  sin²(sigma) = 1 - cos(sigma)² = 1 - (1 - E_proj/PI)²
+    //
+    float   sqSinSigma = min( 1 - Sq( 1 - formFactor * INV_PI ), 0.999 );
+    float   cosOmega   = clamp( avgDir.z , -1, 1 );
+
+    return float2( sqSinSigma, cosOmega );
+}
+
+real LTC_Evaluate( real4x3 lightVerts, bool isRectangleLight )
+{
+    float2  sphereFormFactor;
+    if ( isRectangleLight )
+        sphereFormFactor = PolygonFormFactor( lightVerts );
+    else
+        sphereFormFactor = DiskFormFactor( lightVerts );
+
+    return DiffuseSphereLightIrradiance( sphereFormFactor.x, sphereFormFactor.y );
+}
 
 DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 V, PositionInputs posInput,
     PreLightData preLightData, LightData lightData,
     BSDFData bsdfData, BuiltinData builtinData)
 {
-//    DirectLighting lighting;
-//    ZERO_INITIALIZE(DirectLighting, lighting);
-//
-//lighting.diffuse = lighting.specular = 100 * float3( 1, 0, 1 );
-//return lighting;
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
 
-    switch ( lightData.lightType )
+//    switch ( lightData.lightType )
+//    {
+//        case GPULIGHTTYPE_LINE:
+//            return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+//        case GPULIGHTTYPE_SPHERE:
+//            return EvaluateBSDF_Sphere(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+//        case GPULIGHTTYPE_DISK:
+//            return EvaluateBSDF_Disk(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+////        case GPULIGHTTYPE_RECTANGLE:
+//        default:
+//            return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+//    }
+
+    // Linear lights are an exception
+    if ( lightData.lightType == GPULIGHTTYPE_LINE )
+        return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+
+#if defined(LIT_DISPLAY_REFERENCE_AREA)
+    IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
+                          lighting.diffuse, lighting.specular);
+
+#else
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Sphere pre-processing
+    float   intensity = 1.0;
+    if ( lightData.lightType == GPULIGHTTYPE_SPHERE )
     {
-        case GPULIGHTTYPE_LINE:
-            return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-        case GPULIGHTTYPE_SPHERE:
-            return EvaluateBSDF_Sphere(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-        case GPULIGHTTYPE_DISK:
-            return EvaluateBSDF_Disk(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-//        case GPULIGHTTYPE_RECTANGLE:
-        default:
-            return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        // The sphere is only a front-facing disk so let's rebuild a local frame for that disk
+//        lightData.lightType = GPULIGHTTYPE_DISK;    // Fake a disk... This is needed if using the reference lighting
+
+        float3      light = lightData.positionRWS - posInput.positionWS;
+        float       D = length(light);
+                    light *= D > 1e-3 ? 1.0 / D : 1.0;
+
+        float3x3    faceLight = GetLocalFrame( -light );
+        lightData.right = faceLight[0];
+        lightData.up = faceLight[1];
+        lightData.forward = faceLight[2];
+
+        // Then we recompute the disk's radius and intensity to match the solid angle covered by the sphere
+        float   R = 0.5 * lightData.size.x; // Sphere radius
+        if ( D - R > 1e-3 ) {
+            float   sinTheta = R / D;
+            float   tanTheta = sinTheta * rsqrt( 1.0 - saturate( sinTheta*sinTheta ) );
+
+            float   oldRadius = 0.5 * lightData.size.x;
+            float   newRadius = D * tanTheta;           // New disk size when standing at distance D
+
+            float   oldArea = oldRadius * oldRadius;
+            float   newArea = newRadius * newRadius;
+
+            intensity *= newArea / oldArea;             // Scale intensity back to compensate for disk growth
+
+            lightData.size = 2.0 * newRadius;
+        } else {
+            intensity = 0.0;
+        }
     }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Compute the intensity attenuation with distance
+    float3  unL = lightData.positionRWS - posInput.positionWS;
+
+    if (dot(lightData.forward, unL) >= 0.0001)
+        return lighting;    // The light is back-facing.
+
+    // Rotate the light direction into the light space.
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
+    unL = mul(unL, transpose(lightToWorld));
+
+    // TODO: This could be precomputed.
+    float halfWidth  = lightData.size.x * 0.5;
+    float halfHeight = lightData.size.y * 0.5;
+
+    // Define the dimensions of the attenuation volume.
+    // TODO: This could be precomputed.
+    float  radius     = rsqrt(lightData.rangeAttenuationScale); // rangeAttenuationScale is inverse Square Radius
+    float3 invHalfDim = rcp(float3(radius + halfWidth,
+                                   radius + halfHeight,
+                                   radius));
+
+    // Compute the light attenuation.
+    #ifdef ELLIPSOIDAL_ATTENUATION
+        // The attenuation volume is an axis-aligned ellipsoid s.t.
+        // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
+        intensity *= EllipsoidalDistanceAttenuation(unL, invHalfDim);
+    #else
+        // The attenuation volume is an axis-aligned box s.t.
+        // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
+        intensity *= BoxDistanceAttenuation(unL, invHalfDim);
+    #endif
+
+    // Terminate if the shaded point is too far away.
+    if ( intensity <= 0.0 )
+        return lighting;
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Generic code for rectangle/disk
+
+    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+    lightData.positionRWS -= posInput.positionWS;
+
+    float4x3 lightVerts;
+
+    // TODO: some of this could be precomputed.
+    lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+    lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+    lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+
+// Not required anymore: orthoBasisViewNormal is already composed with M^-1
+//    // Rotate the endpoints into the local coordinate system.
+//    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
+
+    float   ltcValue;
+
+    // Evaluate the diffuse part
+    // Polygon irradiance in the transformed configuration.
+//    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
+    ltcValue = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformDiffuse), lightData.lightType == GPULIGHTTYPE_RECTANGLE );
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    // See comment for specular magnitude, it apply to diffuse as well
+    lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+
+    UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    {
+        // Flip the view vector and the normal. The bitangent stays the same.
+        float3x3 flipMatrix = float3x3(-1,  0,  0,
+                                        0,  1,  0,
+                                        0,  0, -1);
+
+        // Use the Lambertian approximation for performance reasons.
+        // The matrix multiplication should not generate any extra ALU on GCN.
+//        float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
+        float3x3 ltcTransform = flipMatrix;
+
+        // Polygon irradiance in the transformed configuration.
+        // TODO: double evaluation is very inefficient! This is a temporary solution.
+//        ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
+        ltcValue = LTC_Evaluate( mul(lightVerts, ltcTransform), lightData.lightType == GPULIGHTTYPE_RECTANGLE );
+        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+        lighting.diffuse += bsdfData.transmittance * ltcValue;
+    }
+
+    // Evaluate the specular part
+    // Polygon irradiance in the transformed configuration.
+//    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
+    ltcValue = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformSpecular), lightData.lightType == GPULIGHTTYPE_RECTANGLE );
+    // We need to multiply by the magnitude of the integral of the BRDF
+    // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+    // This value is what we store in specularFGD, so reuse it
+    lighting.specular += preLightData.specularFGD * ltcValue;
+
+    // Evaluate the coat part
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    {
+//        ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
+        ltcValue = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformCoat), lightData.lightType == GPULIGHTTYPE_RECTANGLE );
+        // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
+        lighting.diffuse *= (1.0 - preLightData.coatIblF);
+        lighting.specular *= (1.0 - preLightData.coatIblF);
+        lighting.specular += preLightData.coatIblF * ltcValue;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Finalize
+
+    // Save ALU by applying 'lightData.color' only once.
+    lighting.diffuse *= lightData.color * lightData.diffuseScale * intensity;
+    lighting.specular *= lightData.color * lightData.specularScale * intensity;
+
+
+//lighting.specular = 0;
+
+
+    #ifdef DEBUG_DISPLAY
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+        {
+            // Only lighting, not BSDF
+            // Apply area light on lambert then multiply by PI to cancel Lambert
+            lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+            lighting.diffuse *= PI * lightData.diffuseScale;
+        }
+    #endif
+
+#endif // LIT_DISPLAY_REFERENCE_AREA
+
+    return lighting;
 }
 
 //-----------------------------------------------------------------------------

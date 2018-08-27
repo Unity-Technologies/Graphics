@@ -328,7 +328,7 @@ real PolygonIrradiance(real4x3 L)
 //
 
 // An extended version of the implementation from "How to solve a cubic equation, revisited" (From http://momentsingraphics.de/?p=105)
-float3 SolveCubic( float4 coefficients )
+real3 SolveCubic( real4 coefficients )
 {
     // Normalize the polynomial
 //  coefficients.xyz /= coefficients.w; // No use in our case: w=1
@@ -336,73 +336,73 @@ float3 SolveCubic( float4 coefficients )
     // Divide middle coefficients by three
     coefficients.yz /= 3.0;
 
-    float A = coefficients.w;
-    float B = coefficients.z;
-    float C = coefficients.y;
-    float D = coefficients.x;
+    real  A = coefficients.w;
+    real  B = coefficients.z;
+    real  C = coefficients.y;
+    real  D = coefficients.x;
 
     // Compute the Hessian and the discriminant
-    float3 Delta = float3(
+    real3 Delta = real3(
         -coefficients.z*coefficients.z + coefficients.y,
         -coefficients.y*coefficients.z + coefficients.x,
-        dot(float2(coefficients.z, -coefficients.y), coefficients.xy)
+        dot(real2(coefficients.z, -coefficients.y), coefficients.xy)
     );
 
-    float Discriminant = dot(float2(4.0*Delta.x, -Delta.y), Delta.zy);
+    real  Discriminant = dot(real2(4.0*Delta.x, -Delta.y), Delta.zy);
 
-    float3 RootsA, RootsD;
+    real3 RootsA, RootsD;
 
-    float2 xlc, xsc;
+    real2 xlc, xsc;
 
     // Algorithm A
     {
-        float A_a = 1.0;
-        float C_a = Delta.x;
-        float D_a = -2.0*B*Delta.x + Delta.y;
+        real  A_a = 1.0;
+        real  C_a = Delta.x;
+        real  D_a = -2.0*B*Delta.x + Delta.y;
 
         // Take the cubic root of a normalized complex number
-        float Theta = atan2( sqrt(Discriminant), -D_a ) / 3.0;
+        real  Theta = atan2( sqrt(Discriminant), -D_a ) / 3.0;
 
-        float x_1a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta );
-        float x_3a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta + (2.0/3.0)*PI );
+        real  x_1a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta );
+        real  x_3a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta + (2.0/3.0)*PI );
 
-        float xl;
+        real  xl;
         if ((x_1a + x_3a) > 2.0*B)
             xl = x_1a;
         else
             xl = x_3a;
 
-        xlc = float2(xl - B, A);
+        xlc = real2(xl - B, A);
     }
 
     // Algorithm D
     {
-        float A_d = D;
-        float C_d = Delta.z;
-        float D_d = -D*Delta.y + 2.0*C*Delta.z;
+        real  A_d = D;
+        real  C_d = Delta.z;
+        real  D_d = -D*Delta.y + 2.0*C*Delta.z;
 
         // Take the cubic root of a normalized complex number
-        float Theta = atan2( D*sqrt(Discriminant), -D_d ) / 3.0;
+        real  Theta = atan2( D*sqrt(Discriminant), -D_d ) / 3.0;
 
-        float x_1d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta );
-        float x_3d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta + (2.0/3.0)*PI );
+        real  x_1d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta );
+        real  x_3d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta + (2.0/3.0)*PI );
 
-        float xs;
+        real  xs;
         if (x_1d + x_3d < 2.0*C)
             xs = x_1d;
         else
             xs = x_3d;
 
-        xsc = float2(-D, xs + C);
+        xsc = real2(-D, xs + C);
     }
 
-    float E =  xlc.y*xsc.y;
-    float F = -xlc.x*xsc.y - xlc.y*xsc.x;
-    float G =  xlc.x*xsc.x;
+    real  E =  xlc.y*xsc.y;
+    real  F = -xlc.x*xsc.y - xlc.y*xsc.x;
+    real  G =  xlc.x*xsc.x;
 
-    float2 xmc = float2(C*F - B*G, -B*F + C*E);
+    real2 xmc = real2(C*F - B*G, -B*F + C*E);
 
-    float3  roots = float3(xsc.x/xsc.y, xmc.x/xmc.y, xlc.x/xlc.y);
+    real3  roots = real3(xsc.x/xsc.y, xmc.x/xmc.y, xlc.x/xlc.y);
 
     if (roots.x < roots.y && roots.x < roots.z)
         roots.xyz = roots.yxz;
@@ -416,39 +416,39 @@ float3 SolveCubic( float4 coefficients )
 // center, the local position of the disk (i.e. *RELATIVE* to our world position)
 // axisX, the world-space scaled X axis of the ellipse
 // axisY, the world-space scaled Y axis of the ellipse
-float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY )
+real   LTC_Evaluate( real3x3 Minv, real3 center, real3 axisX, real3 axisY )
 {
-    // Initalize ellipse in original clamped-cosine space
-    float3  C  = mul( center, Minv );
-    float3  V1 = mul( axisX, Minv );
-    float3  V2 = mul( axisY, Minv );
+    // Initialize ellipse in original clamped-cosine space
+    real3  C  = mul( center, Minv );
+    real3  V1 = mul( axisX, Minv );
+    real3  V2 = mul( axisY, Minv );
 
-    float3  V3 = cross(V2, V1);         // Normal to ellipse's plane
+    real3  V3 = cross(V2, V1);         // Normal to ellipse's plane
     if( dot( V3, C ) < 0.0 )
         return 0.0;
 
     // compute eigenvectors of ellipse
-    float   a, b;
-    float   d11 = dot( V1, V1 );
-    float   d22 = dot( V2, V2 );
-    float   d12 = dot( V1, V2 );
-    float   d11d22 = d11 * d22;
-    float   d12d12 = d12 * d12;
+    real    a, b;
+    real    d11 = dot( V1, V1 );
+    real    d22 = dot( V2, V2 );
+    real    d12 = dot( V1, V2 );
+    real    d11d22 = d11 * d22;
+    real    d12d12 = d12 * d12;
 
 //  if ( abs(d12) > 0.0001 * sqrt(d11d22) ) // This produces artifacts due to precision issues
     if ( d12d12 > 0.0001 * d11d22 )
     {
-        float   tr = d11 + d22;
-        float   det = -d12d12 + d11d22;
+        real    tr = d11 + d22;
+        real    det = -d12d12 + d11d22;
 
         // use sqrt matrix to solve for eigenvalues
         det = sqrt(det);
-        float   u = 0.5 * sqrt( max( 0.0, tr - 2.0*det ) );
-        float   v = 0.5 * sqrt( max( 0.0, tr + 2.0*det ) );
-        float   e_max = Sq( u + v );
-        float   e_min = Sq( u - v );
+        real    u = 0.5 * sqrt( max( 0.0, tr - 2.0*det ) );
+        real    v = 0.5 * sqrt( max( 0.0, tr + 2.0*det ) );
+        real    e_max = Sq( u + v );
+        real    e_min = Sq( u - v );
 
-        float3  V1_, V2_;
+        real3  V1_, V2_;
         if ( d11 > d22 )
         {
             V1_ = d12*V1 + (e_max - d11)*V2;
@@ -477,40 +477,40 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY 
     if ( dot( C, V3 ) <= 0.0 )
         V3 = -V3;
 
-    float   L  = dot(V3, C);
-    float   x0 = dot(V1, C) / L;
-    float   y0 = dot(V2, C) / L;
+    real    L  = dot(V3, C);
+    real    x0 = dot(V1, C) / L;
+    real    y0 = dot(V2, C) / L;
 
-    float   E1 = rsqrt(a);
-    float   E2 = rsqrt(b);
+    real    E1 = rsqrt(a);
+    real    E2 = rsqrt(b);
 
     a *= L*L;
     b *= L*L;
 
-    float   c0 = a*b;
-    float   c1 = a*b*(1.0 + x0*x0 + y0*y0) - a - b;
-    float   c2 = 1.0 - a*(1.0 + x0*x0) - b*(1.0 + y0*y0);
-    float   c3 = 1.0;
+    real    c0 = a*b;
+    real    c1 = a*b*(1.0 + x0*x0 + y0*y0) - a - b;
+    real    c2 = 1.0 - a*(1.0 + x0*x0) - b*(1.0 + y0*y0);
+    real    c3 = 1.0;
 
-    float3  roots = SolveCubic(float4(c0, c1, c2, c3));
-    float   e1 = roots.x;
-    float   e2 = roots.y;
-    float   e3 = roots.z;
+    real3  roots = SolveCubic(real4(c0, c1, c2, c3));
+    real    e1 = roots.x;
+    real    e2 = roots.y;
+    real    e3 = roots.z;
 
     #if 1
-        float   ae2 = a - e2;
-        float   be2 = b - e2;
-        float3  avgDir = float3( a * x0 * be2, b * y0 * ae2, ae2 * be2 );   // No change except we avoid divisions...
+        real    ae2 = a - e2;
+        real    be2 = b - e2;
+        real3  avgDir = real3( a * x0 * be2, b * y0 * ae2, ae2 * be2 );   // No change except we avoid divisions...
     #else
-        float3  avgDir = float3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
+        real3  avgDir = real3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
     #endif
 
-    avgDir = normalize( mul( avgDir, float3x3( V1, V2, V3 ) ) );
+    avgDir = normalize( mul( avgDir, real3x3( V1, V2, V3 ) ) );
 
-    float   L1 = sqrt( -e2 / e3 );
-    float   L2 = sqrt( -e2 / e1 );
+    real    L1 = sqrt( -e2 / e3 );
+    real    L2 = sqrt( -e2 / e1 );
 
-    float   formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
+    real    formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
 
     // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines" pp. 25
     // Then we need to find a sphere providing the same solid angle value as this projected irradiance, then retrieve the apex half-angle we need
@@ -520,8 +520,8 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY 
     //  cos(sigma) = 1 - E_proj/PI
     //  sin²(sigma) = 1 - cos(sigma)² = 1 - (1 - E_proj/PI)²
     //
-    float   sqSinSigma = min( 1 - Sq( 1 - formFactor * INV_PI ), 0.999 );
-    float   cosOmega   = clamp( avgDir.z , -1, 1 );
+    real    sqSinSigma = min( 1 - Sq( 1 - formFactor * INV_PI ), 0.999 );
+    real    cosOmega   = clamp( avgDir.z , -1, 1 );
 
     return DiffuseSphereLightIrradiance( sqSinSigma, cosOmega );
 }
