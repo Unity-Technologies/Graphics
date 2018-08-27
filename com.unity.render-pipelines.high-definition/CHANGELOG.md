@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.4.0-preview]
+
+### Fixed
+- Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.
+
 ## [3.3.0-preview]
 
 ### Added
@@ -19,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove workaround for metal and vulkan in normal buffer encoding/decoding
 - Fixed an issue with color picker not working in forward
 - Fixed an issue where reseting HDLight do not reset all of its parameters
+- Fixed shader compile warning in DebugLightVolumes.shader
 
 ### Changed
 - Changed default reflection probe to be 256x256x6 and array size to be 64

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -24,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public struct RenderingData
     {
+        public CullResults cullResults;
         public CameraData cameraData;
         public LightData lightData;
         public ShadowData shadowData;
@@ -73,17 +73,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int localShadowAtlasHeight;
         public bool supportsSoftShadows;
         public int bufferBitCount;
-
-        public LightShadows renderedDirectionalShadowQuality;
-        public LightShadows renderedLocalShadowQuality;
-    }
-
-    public class CameraComparer : IComparer<Camera>
-    {
-        public int Compare(Camera lhs, Camera rhs)
-        {
-            return (int)(lhs.depth - rhs.depth);
-        }
     }
 
     public static class LightweightKeywordStrings
@@ -99,49 +88,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
+        public static readonly string SoftParticles = "SOFTPARTICLES_ON";
     }
 
-    public partial class LightweightPipeline
+    public sealed partial class LightweightPipeline
     {
-        static Mesh s_FullscreenMesh = null;
-        public static Mesh fullscreenMesh
-        {
-            get
-            {
-                if (s_FullscreenMesh != null)
-                    return s_FullscreenMesh;
-
-                float topV = 1.0f;
-                float bottomV = 0.0f;
-
-                Mesh mesh = new Mesh { name = "Fullscreen Quad" };
-                mesh.SetVertices(new List<Vector3>
-                {
-                    new Vector3(-1.0f, -1.0f, 0.0f),
-                    new Vector3(-1.0f,  1.0f, 0.0f),
-                    new Vector3(1.0f, -1.0f, 0.0f),
-                    new Vector3(1.0f,  1.0f, 0.0f)
-                });
-
-                mesh.SetUVs(0, new List<Vector2>
-                {
-                    new Vector2(0.0f, bottomV),
-                    new Vector2(0.0f, topV),
-                    new Vector2(1.0f, bottomV),
-                    new Vector2(1.0f, topV)
-                });
-
-                mesh.SetIndices(new[] { 0, 1, 2, 2, 1, 3 }, MeshTopology.Triangles, 0, false);
-                mesh.UploadMeshData(true);
-                return mesh;
-            }
-        }
-
         static PipelineCapabilities s_PipelineCapabilities;
 
         public static PipelineCapabilities GetPipelineCapabilities()
         {
             return s_PipelineCapabilities;
+        }
+
+        public void SortCameras(Camera[] cameras)
+        {
+            Array.Sort(cameras, (lhs, rhs) => (int)(lhs.depth - rhs.depth));
         }
 
         static void SetPipelineCapabilities(LightweightPipelineAsset pipelineAsset)
@@ -184,12 +145,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (pipelineAsset.keepSoftShadowVariants)
                     s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
             }
-    }
-
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
-            MaterialPropertyBlock properties = null, int shaderPassId = 0)
-        {
-            commandBuffer.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
         }
 
         public static void GetLightCookieMatrix(VisibleLight light, out Matrix4x4 cookieMatrix)
@@ -232,20 +187,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Remaining light types don't support cookies
         }
 
-        public static void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
-        {
-            // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
-            //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
-            //    cmd.CopyTexture(source, dest);
-            //else
-            cmd.Blit(source, dest, material);
-        }
-
-        public static bool IsSupportedShadowType(LightType lightType)
-        {
-            return lightType == LightType.Directional || lightType == LightType.Spot;
-        }
-
         public static bool IsSupportedCookieType(LightType lightType)
         {
             return lightType == LightType.Directional || lightType == LightType.Spot;
@@ -255,23 +196,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             return XRGraphicsConfig.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
-        }
-
-        public static void RenderPostProcess(CommandBuffer cmd, PostProcessRenderContext context, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
-        {
-            Camera camera = cameraData.camera;
-            context.Reset();
-            context.camera = camera;
-            context.source = source;
-            context.sourceFormat = colorFormat;
-            context.destination = dest;
-            context.command = cmd;
-            context.flip = !IsStereoEnabled(camera) && camera.targetTexture == null;
-
-            if (opaqueOnly)
-                cameraData.postProcessLayer.RenderOpaqueOnly(context);
-            else
-                cameraData.postProcessLayer.Render(context);
         }
     }
 }

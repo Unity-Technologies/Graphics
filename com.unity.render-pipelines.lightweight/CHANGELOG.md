@@ -4,6 +4,21 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.4.0-preview]
+### Added
+- When you have enabled Gizmos, they now appear correctly in the Game view.
+- Added requiresDepthPrepass field to RenderingData struct to tell if the runtime platform requires a depth prepass to generate a camera depth texture.
+- The _RenderingData_ struct now holds a reference to _CullResults_.
+### Changed
+- The _RenderingData_ struct is now read-only.
+- _ScriptableRenderer_ always perform a Clear before calling _IRendererSetup::Setup_.
+- _ScriptableRenderPass::Execute_ no longer takes _CullResults_ as input. Instead, use _RenderingData_ as input, since that references _CullResults_.
+- _IRendererSetup::Setup_ no longer takes _ScriptableRenderContext_ and _CullResults_ as input.
+### Fixed
+- The Unlit shader now samples Global Illumination correctly.
+- The Inspector window for the Unlit shader now displays correctly.
+- Reduced GC pressure by removing several per-frame memory allocations.
+
 ## [3.3.0-preview]
 ### Added
 - Add callbacks to LWRP that can be attached to a camera (IBeforeCameraRender, IAfterDepthPrePass, IAfterOpaquePass, IAfterOpaquePostProcess, IAfterSkyboxPass, IAfterTransparentPass, IAfterRender)
