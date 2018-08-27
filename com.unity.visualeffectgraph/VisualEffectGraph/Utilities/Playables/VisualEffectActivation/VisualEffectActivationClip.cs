@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 [Serializable]
 public class VisualEffectActivationClip : PlayableAsset, ITimelineClipAsset
 {
-    public VisualEffectActivationBehaviour Events = new VisualEffectActivationBehaviour();
+    public VisualEffectActivationBehaviour activationBehavior = new VisualEffectActivationBehaviour();
 
     public ClipCaps clipCaps
     {
@@ -16,7 +16,7 @@ public class VisualEffectActivationClip : PlayableAsset, ITimelineClipAsset
 
     public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
     {
-        var playable = ScriptPlayable<VisualEffectActivationBehaviour>.Create(graph, Events);
+        var playable = ScriptPlayable<VisualEffectActivationBehaviour>.Create(graph, activationBehavior);
         VisualEffectActivationBehaviour clone = playable.GetBehaviour();
         return playable;
     }

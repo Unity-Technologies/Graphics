@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.VFX.Utility
         [SerializeField]
         private string m_Name;
         private int m_Id;
+        private bool m_Init;
 
         public static implicit operator ExposedParameter(string name)
         {
@@ -25,8 +26,8 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public static implicit operator int(ExposedParameter parameter)
         {
-            if (parameter.m_Id == -1)
-                parameter.m_Id = GetID(parameter.m_Name);
+            if (!parameter.m_Init)
+                parameter.m_Id = Shader.PropertyToID(parameter.m_Name);
             return parameter.m_Id;
         }
 
@@ -38,12 +39,8 @@ namespace UnityEngine.Experimental.VFX.Utility
         private ExposedParameter(string name)
         {
             m_Name = name;
-            m_Id = -1;
-        }
-
-        static int GetID(string name)
-        {
-            return Shader.PropertyToID(name);
+            m_Id = 0; //Cannot be -1 because ExposedParameter is a structure, otherwise, instancing from SerializedProperty will be problematic
+            m_Init = false;
         }
 
         public override string ToString()
