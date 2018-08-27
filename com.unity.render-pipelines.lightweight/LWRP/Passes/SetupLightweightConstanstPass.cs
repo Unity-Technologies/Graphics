@@ -23,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static int _LightIndexBuffer;
         }
 
+        const string k_SetupLightConstants = "Setup Light Constants";
         MixedLightingSetup m_MixedLightingSetup;
 
         Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
@@ -36,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         Vector4[] m_LightDistanceAttenuations;
         Vector4[] m_LightSpotDirections;
         Vector4[] m_LightSpotAttenuations;
-        
+
         private int maxVisibleLocalLights { get; set; }
         private ComputeBuffer perObjectLightIndices { get; set; }
 
@@ -65,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             this.maxVisibleLocalLights = maxVisibleLocalLights;
             this.perObjectLightIndices = perObjectLightIndices;
-            
+
             if (m_LightColors.Length != maxVisibleLocalLights)
             {
                 m_LightPositions = new Vector4[maxVisibleLocalLights];
@@ -233,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // if not using a compute buffer, engine will set indices in 2 vec4 constants
                 // unity_4LightIndices0 and unity_4LightIndices1
                 if (perObjectLightIndices != null)
-                    cmd.SetGlobalBuffer("_LightIndexBuffer", perObjectLightIndices);
+                    cmd.SetGlobalBuffer(LightConstantBuffer._LightIndexBuffer, perObjectLightIndices);
             }
             else
             {
@@ -258,27 +259,42 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // TODO: We have to discuss cookie approach on LWRP.
             // CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.MainLightCookieText, mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
 
-            LightShadows directionalShadowQuality = shadowData.renderedDirectionalShadowQuality;
-            LightShadows localShadowQuality = shadowData.renderedLocalShadowQuality;
+            List<VisibleLight> visibleLights = lightData.visibleLights;
+
+            // If shadows were resolved in screen space we don't sample shadowmap in lit shader. In that case we just set softDirectionalShadows to false.
+            bool softDirectionalShadows = shadowData.renderDirectionalShadows && !shadowData.requiresScreenSpaceShadowResolve &&
+                shadowData.supportsSoftShadows && lightData.mainLightIndex != -1 &&
+                visibleLights[lightData.mainLightIndex].light.shadows == LightShadows.Soft;
+
+            bool softLocalShadows = false;
+            if (shadowData.renderLocalShadows && shadowData.supportsSoftShadows)
+            {
+                List<int> visibleLocalLightIndices = lightData.visibleLocalLightIndices;
+                for (int i = 0; i < visibleLocalLightIndices.Count; ++i)
+                {
+                    if (visibleLights[visibleLocalLightIndices[i]].light.shadows == LightShadows.Soft)
+                    {
+                        softLocalShadows = true;
+                        break;
+                    }
+                }
+            }
 
             // Currently shadow filtering keyword is shared between local and directional shadows.
-            bool hasSoftShadows = (directionalShadowQuality == LightShadows.Soft || localShadowQuality == LightShadows.Soft) &&
-                                  shadowData.supportsSoftShadows;
+            bool hasSoftShadows = softDirectionalShadows || softLocalShadows;
 
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.DirectionalShadows, directionalShadowQuality != LightShadows.None);
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.LocalShadows, localShadowQuality != LightShadows.None);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.DirectionalShadows, shadowData.renderDirectionalShadows);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.LocalShadows, shadowData.renderLocalShadows);
             CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.SoftShadows, hasSoftShadows);
             CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.CascadeShadows, shadowData.directionalLightCascadeCount > 1);
 
             // TODO: Remove this. legacy particles support will be removed from Unity in 2018.3. This should be a shader_feature instead with prop exposed in the Standard particles shader.
-            CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", cameraData.requiresSoftParticles);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.SoftParticles, cameraData.requiresSoftParticles);
         }
 
-        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
-            ref CullResults cullResults,
-            ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("SetupShaderConstants");
+            CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
             SetupShaderLightConstants(cmd, ref renderingData.lightData);
             SetShaderKeywords(cmd, ref renderingData.cameraData, ref renderingData.lightData, ref renderingData.shadowData);
             context.ExecuteCommandBuffer(cmd);

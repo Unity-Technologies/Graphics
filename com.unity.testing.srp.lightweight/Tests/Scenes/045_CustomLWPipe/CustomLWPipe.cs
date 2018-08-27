@@ -28,15 +28,12 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
         m_Initialized = true;
     }
 
-    public void Setup(ScriptableRenderer renderer, ref ScriptableRenderContext context,
-        ref CullResults cullResults, ref RenderingData renderingData)
+    public void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         Init();
 
-        renderer.Clear();
-
-        renderer.SetupPerObjectLightIndices(ref cullResults, ref renderingData.lightData);
-        RenderTextureDescriptor baseDescriptor = ScriptableRenderer.CreateRTDesc(ref renderingData.cameraData);
+        renderer.SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
+        RenderTextureDescriptor baseDescriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;
         shadowDescriptor.dimension = TextureDimension.Tex2D;
 
@@ -50,13 +47,12 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
         renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
 
         Camera camera = renderingData.cameraData.camera;
-        bool dynamicBatching = renderingData.supportsDynamicBatching;
         RendererConfiguration rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.totalAdditionalLightsCount);
 
         m_SetupLightweightConstants.Setup(renderer.maxVisibleLocalLights, renderer.perObjectLightIndices);
         renderer.EnqueuePass(m_SetupLightweightConstants);
 
-        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, rendererConfiguration, dynamicBatching);
+        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, rendererConfiguration);
         renderer.EnqueuePass(m_RenderOpaqueForwardPass);
     }
 }
