@@ -50,13 +50,13 @@ namespace UnityEditor.ShaderGraph
             result.Append("(\"");
             result.Append(displayName);
             result.Append("\", Color) = (");
-            result.Append(value.r);
+            result.Append(NodeUtils.FloatToShaderValue(value.r));
             result.Append(",");
-            result.Append(value.g);
+            result.Append(NodeUtils.FloatToShaderValue(value.g));
             result.Append(",");
-            result.Append(value.b);
+            result.Append(NodeUtils.FloatToShaderValue(value.b));
             result.Append(",");
-            result.Append(value.a);
+            result.Append(NodeUtils.FloatToShaderValue(value.a));
             result.Append(")");
             return result.ToString();
         }
