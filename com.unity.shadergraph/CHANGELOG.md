@@ -55,3 +55,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now copy, paste, and duplicate sub-graph nodes with vector type input ports.
 - The Lightweight PBR subshader now normalizes normal, tangent, and view direction correctly.
 - Shader graphs using alpha clip now generate correct depth and shadow passes.
+- `Normal Create` node has been renamed to `Normal From Texture`.
+- The preview of nodes now updates correctly.
