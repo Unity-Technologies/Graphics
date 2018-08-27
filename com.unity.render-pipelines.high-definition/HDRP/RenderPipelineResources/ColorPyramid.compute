@@ -27,12 +27,15 @@
 #pragma kernel KColorDownsample          KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample
 #pragma kernel KColorDownsampleCopyMip0  KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsampleCopyMip0  COPY_MIP_0
 
-RWTexture2D<float4> _Source;
-RWTexture2D<float4> _Destination;
 
 #if COPY_MIP_0
+Texture2D<float4> _Source;
 RWTexture2D<float4> _Mip0;
+#else
+RWTexture2D<float4> _Source;
 #endif
+
+RWTexture2D<float4> _Destination;
 
 SamplerState sampler_LinearClamp;
 

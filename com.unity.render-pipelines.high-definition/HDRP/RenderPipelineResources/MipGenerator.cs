@@ -69,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // We can't do it in place as the color pyramid has to be read while writing to the color
         // buffer in some cases (e.g. refraction, distortion)
         // Returns the number of mips
-        public int RenderColorGaussianPyramid(CommandBuffer cmd, Vector2Int size, RenderTexture source, RenderTexture destination)
+        public int RenderColorGaussianPyramid(CommandBuffer cmd, Vector2Int size, Texture source, RenderTexture destination)
         {
             // Only create the temporary target on-demand in case the game doesn't actually need it
             if (m_TempColorTarget == null)
