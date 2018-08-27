@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
  - Added controls for linear fade at the boundary of density volumes
+ - Added new API to control decals without monobehaviour object
 
 ### Fixed
 - Stencil test during decals normal buffer update is now properly applied
