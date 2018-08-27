@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When you have enabled Gizmos, they now appear correctly in the Game view.
 - Added requiresDepthPrepass field to RenderingData struct to tell if the runtime platform requires a depth prepass to generate a camera depth texture.
 - The _RenderingData_ struct now holds a reference to _CullResults_.
+- Enabled instancing on the terrain shader.
 ### Changed
 - The _RenderingData_ struct is now read-only.
 - _ScriptableRenderer_ always perform a Clear before calling _IRendererSetup::Setup_.
