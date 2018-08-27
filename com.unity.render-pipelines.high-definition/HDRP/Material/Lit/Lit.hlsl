@@ -1459,7 +1459,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-//*
+/*
     float3 positionWS = posInput.positionWS;
 
 #if 0 // defined(LIT_DISPLAY_REFERENCE_AREA)
@@ -2114,7 +2114,7 @@ lighting.specular = 0;
 
     float ltcValue;
 
-//preLightData.ltcTransformDiffuse = k_identity3x3;
+preLightData.ltcTransformDiffuse = k_identity3x3;
 //preLightData.ltcTransformSpecular = k_identity3x3;
 
     ltcValue  = LTC_Evaluate( preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData, posInput );
@@ -2182,6 +2182,8 @@ lighting.specular = 0;
 
 #else
 
+    lightData.lightType = GPULIGHTTYPE_DISK;
+
     // The sphere is only a front-facing disk so let's rebuild a local frame for that disk
     float3      light = lightData.positionRWS - posInput.positionWS;
     float       D = length(light);
@@ -2223,6 +2225,20 @@ lighting.specular = 0;
 //lighting.diffuse = 0.2*D * (D < 1.0 ? float3( 1, 0, 0 ) : float3( 0, 1, 0 ));
 //return lighting;
         #elif 1
+            float   sinTheta = R / D;
+            float   tanTheta = sinTheta * rsqrt( 1.0 - saturate( sinTheta*sinTheta ) );
+
+            float   oldRadius = 0.5 * lightData.size.x;
+            float   newRadius = D * tanTheta;               // New disk size when standing at distance 1 => simply tan(theta)
+
+            float   oldArea = oldRadius * oldRadius;
+            float   newArea = newRadius * newRadius;
+
+            lightData.diffuseScale *= newArea / oldArea;
+
+            lightData.size = 2.0 * newRadius;
+
+        #elif 0
 
 //          R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
 
