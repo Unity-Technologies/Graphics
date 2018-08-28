@@ -1046,6 +1046,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 HDUtils.SetRenderTarget(cmd, hdCamera, m_ScreenSpaceShadowsBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                             }
 
+                            // In some cases when loading a project for the first time in the editor, the internal resource is destroyed.
+                            // When used as render target, the C++ code will re-create the resource automatically. Since here it's used directly as an UAV, we need to check manually/
+                            if (!m_ScreenSpaceShadowsBuffer.rt.IsCreated())
+                                m_ScreenSpaceShadowsBuffer.rt.Create();
+
                             m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, GetDepthTexture(), cmd);
                             PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ScreenSpaceShadows);
                         }
@@ -1858,6 +1863,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugLightingSubMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingSubMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugMipMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode());
+                cmd.SetGlobalInt(HDShaderIDs._DebugMipMapModeTerrainTexture, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapModeTerrainTexture());
                 cmd.SetGlobalInt(HDShaderIDs._ColorPickerMode, (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode());
 
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);

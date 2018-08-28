@@ -8,16 +8,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
-        
+
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorAttachmentHandle)
         {
             this.colorAttachmentHandle = colorAttachmentHandle;
             this.descriptor = baseDescriptor;
         }
 
-        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
-            ref CullResults cullResults,
-            ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Material material = renderingData.cameraData.isStereoEnabled ? null : renderer.GetMaterial(MaterialHandles.Blit);
             RenderTargetIdentifier sourceRT = colorAttachmentHandle.Identifier();
@@ -39,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
-                LightweightPipeline.DrawFullScreen(cmd, material);
+                ScriptableRenderer.RenderFullscreenQuad(cmd, material);
             }
             else
             {
