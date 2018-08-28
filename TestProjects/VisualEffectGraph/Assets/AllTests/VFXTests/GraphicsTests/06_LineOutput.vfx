@@ -70,13 +70,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114453407920036590}
     m_Value:
       m_Type:
-        m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.UInt32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0
     m_Space: 2147483647
   m_Property:
     name: hash
     m_serializedType:
-      m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.UInt32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
     - m_Type: 3
       m_Min: -Infinity
@@ -114,7 +114,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -183,7 +183,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -215,7 +215,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -268,7 +268,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -350,7 +350,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -382,7 +382,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -514,7 +514,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -540,24 +540,24 @@ MonoBehaviour:
     m_Owner: {fileID: 114707914934336988}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0
     m_Space: 2147483647
   m_Property:
     name: time
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The time along the gradient to take a sample from.
-      m_Regex: 
-      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 1
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The time along the gradient to take a sample from.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -591,7 +591,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -640,13 +640,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114386013599527706}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 10000
     m_Space: 2147483647
   m_Property:
     name: o
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
@@ -707,7 +707,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -739,7 +739,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -775,6 +775,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_Tooltip: 
   m_Nodes:
   - m_Id: 0
     linkedSlots:
@@ -813,7 +814,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -933,7 +934,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -965,7 +966,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -991,13 +992,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114322036581150590}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0
     m_Space: 2147483647
   m_Property:
     name: AngleZ
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
@@ -1034,6 +1035,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_Tooltip: 
   m_Nodes:
   - m_Id: 0
     linkedSlots:
@@ -1096,7 +1098,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -1128,7 +1130,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -1179,24 +1181,24 @@ MonoBehaviour:
     m_Owner: {fileID: 114007868087487496}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0
     m_Space: 2147483647
   m_Property:
     name: time
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The time along the gradient to take a sample from.
-      m_Regex: 
-      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 1
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The time along the gradient to take a sample from.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -1230,7 +1232,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -1262,7 +1264,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -1294,12 +1296,12 @@ MonoBehaviour:
   m_Property:
     name: arc
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
-    - m_Type: 3
+    - m_Type: 4
       m_Min: -Infinity
       m_Max: Infinity
-      m_Tooltip: Controls how much of the sphere is used.
+      m_Tooltip: 
       m_Regex: 
       m_RegexMaxLength: 0
     - m_Type: 0
@@ -1308,10 +1310,10 @@ MonoBehaviour:
       m_Tooltip: 
       m_Regex: 
       m_RegexMaxLength: 0
-    - m_Type: 4
+    - m_Type: 3
       m_Min: -Infinity
       m_Max: Infinity
-      m_Tooltip: 
+      m_Tooltip: Controls how much of the sphere is used.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -1381,7 +1383,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -1407,13 +1409,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114305181611425872}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 24
     m_Space: 2147483647
   m_Property:
     name: o
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
@@ -1441,13 +1443,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114239882570484514}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0.5
     m_Space: 2147483647
   m_Property:
     name: SizeX
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -1542,13 +1544,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114015733338807876}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0.5
     m_Space: 2147483647
   m_Property:
     name: Alpha
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -1611,7 +1613,7 @@ MonoBehaviour:
   m_Property:
     name: w
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -1679,13 +1681,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114340594850124424}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
     name: TotalTime
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
@@ -1718,7 +1720,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -1750,7 +1752,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -1817,7 +1819,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -1849,7 +1851,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -1909,24 +1911,24 @@ MonoBehaviour:
     m_Owner: {fileID: 114184143179556968}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0
     m_Space: 2147483647
   m_Property:
     name: ArcSequencer
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: When using customized emission, control the position around the arc to emit particles from.
-      m_Regex: 
-      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 1
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: When using customized emission, control the position around the arc to emit particles from.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -1960,7 +1962,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -2030,13 +2032,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114453407920036590}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0
     m_Space: 2147483647
   m_Property:
     name: r
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
     - m_Type: 3
       m_Min: -Infinity
@@ -2075,7 +2077,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -2186,7 +2188,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -2212,13 +2214,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114950575233825770}
     m_Value:
       m_Type:
-        m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.UInt32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0
     m_Space: 2147483647
   m_Property:
     name: particleId
     m_serializedType:
-      m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.UInt32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
@@ -2251,7 +2253,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -2428,7 +2430,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -2524,7 +2526,7 @@ MonoBehaviour:
   m_Property:
     name: radius
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
     - m_Type: 3
       m_Min: -Infinity
@@ -2607,7 +2609,7 @@ MonoBehaviour:
   m_Property:
     name: w
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -2622,16 +2624,16 @@ VisualEffectResource:
   m_ShaderSources:
   - compute: 1
     name: Temp_compute_a_initialize_Runtime.compute
-    source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\r\n#define NB_THREADS_PER_GROUP 64\r\n#define VFX_USE_COLOR_CURRENT 1\r\n#define VFX_USE_POSITION_CURRENT 1\r\n#define VFX_USE_SEED_CURRENT 1\r\n#define VFX_USE_DIRECTION_CURRENT 1\r\n#define VFX_USE_PARTICLEID_CURRENT 1\r\n#define VFX_LOCAL_SPACE 1\r\n\r\n\nCBUFFER_START(parameters)\r\n    float uniform_b;\r\n    float uniform_c;\r\n    float uniform_d;\r\n    uint PADDING_0;\r\nCBUFFER_END\r\n\r\n\n#include \"VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc\"\r\n#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"\r\n\r\n\n\nRWByteAddressBuffer attributeBuffer;\nByteAddressBuffer sourceAttributeBuffer;\n\nCBUFFER_START(initParams)\n#if !VFX_USE_SPAWNER_FROM_GPU\n    uint nbSpawned;\t\t\t\t\t// Numbers of particle spawned\n    uint spawnIndex;\t\t\t\t// Index of the first particle spawned\n    uint dispatchWidth;\n#else\n    uint offsetInAdditionalOutput;\n\tuint nbMax;\n#endif\n\tuint systemSeed;\nCBUFFER_END\n\n#if VFX_USE_ALIVE_CURRENT\nConsumeStructuredBuffer<uint> deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer inputAdditional;\n#endif\n\nvoid SetAttribute_CA95FE17(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite Source:Slot Random:Off channels:XYZ */\r\n{\r\n    color = Color;\r\n}\r\nvoid PositionSphere_1(inout float3 position, inout uint seed, inout float3 direction, float3 ArcSphere_sphere_center, float ArcSphere_sphere_radius, float ArcSphere_arc, float ArcSequencer, float volumeFactor) /*positionMode:Surface spawnMode:Custom */\r\n{\r\n    float cosPhi = 2.0f * RAND - 1.0f;float theta = ArcSphere_arc * ArcSequencer;\r\n    float rNorm = pow(volumeFactor + (1 - volumeFactor) * RAND, 1.0f / 3.0f);\r\n    \r\n    float2 sincosTheta;\r\n    sincos(theta, sincosTheta.x, sincosTheta.y);\r\n    sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);\r\n    \r\n    direction = float3(sincosTheta, cosPhi);\r\n    position += direction * (rNorm * ArcSphere_sphere_radius) + ArcSphere_sphere_center;\r\n    \r\n}\r\n\r\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;\n#if !VFX_USE_SPAWNER_FROM_GPU\n    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n#endif\n\n#if VFX_USE_SPAWNER_FROM_GPU\n    uint maxThreadId = inputAdditional.Load((offsetInAdditionalOutput * 2 + 0) << 2);\n    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput * 2 + 1) << 2) - maxThreadId;\n#else\n    uint maxThreadId = nbSpawned;\n    uint currentSpawnIndex = spawnIndex;\n#endif\n\n#if VFX_USE_ALIVE_CURRENT\n    maxThreadId = min(maxThreadId, deadListCount.Load(0x0));\n#elif VFX_USE_SPAWNER_FROM_GPU\n    maxThreadId = min(maxThreadId, nbMax); //otherwise, nbSpawned already clamped on CPU\n#endif\n\n    if (id < maxThreadId)\n    {\n#if VFX_USE_SPAWNER_FROM_GPU\n        int sourceIndex = eventList[id];\n#endif\n        uint particleIndex = id + currentSpawnIndex;\n\t\t\n#if !VFX_USE_SPAWNER_FROM_GPU\n        int sourceIndex = 0;\r\n        /*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)\r\n        uint currentSumSpawnCount = 0u;\r\n        for (sourceIndex=0; sourceIndex<1; sourceIndex++)\r\n        {\r\n            currentSumSpawnCount += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\r\n            if (id < currentSumSpawnCount)\r\n            {\r\n                break;\r\n            }\r\n        }\r\n        */\r\n        \r\n\n#endif\n        float3 color = float3(1,1,1);\r\n        float3 position = float3(0,0,0);\r\n        uint seed = (uint)0;\r\n        float3 direction = float3(0,0,1);\r\n        uint particleId = (uint)0;\r\n        \r\n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n        \n        {\r\n            float tmp_t = FixedRand(particleId ^ asuint(uniform_c));\r\n            float tmp_v = max(tmp_t, (float)0);\r\n            float tmp_x = min(tmp_v, (float)1);\r\n            float4 tmp_y = SampleGradient(uniform_b,tmp_x);\r\n            float tmp_z = (float)particleId;\r\n            float tmp_bb = tmp_z / (float)24;\r\n            float tmp_bc = floor(tmp_bb);\r\n            float tmp_bd = tmp_bb - tmp_bc;\r\n            float tmp_be = tmp_bd * (float)24;\r\n            float tmp_bf = tmp_be / (float)24;\r\n            float tmp_bg = max(tmp_bf, (float)0);\r\n            float tmp_bh = min(tmp_bg, (float)1);\r\n            float4 tmp_bi = SampleGradient(uniform_d,tmp_bh);\r\n            float4 tmp_bj = tmp_y + tmp_bi;\r\n            float4 tmp_bl = tmp_bj / float4(2,2,2,2);\r\n            float tmp_bm = tmp_bl[0];\r\n            float tmp_bn = tmp_bl[1];\r\n            float tmp_bo = tmp_bl[2];\r\n            float3 tmp_bp = float3(tmp_bm, tmp_bn, tmp_bo);\r\n            SetAttribute_CA95FE17( /*inout */color, tmp_bp);\r\n        }\r\n        {\r\n            float tmp_w = (float)particleId;\r\n            float tmp_y = tmp_w / (float)24;\r\n            float tmp_z = floor(tmp_y);\r\n            float tmp_ba = tmp_y - tmp_z;\r\n            float tmp_bb = tmp_ba * (float)24;\r\n            float tmp_bc = tmp_bb / (float)24;\r\n            float tmp_be = max(tmp_bc, (float)0);\r\n            float tmp_bf = min(tmp_be, (float)1);\r\n            PositionSphere_1( /*inout */position,  /*inout */seed,  /*inout */direction, float3(0,0,0), (float)1, (float)6.283185, tmp_bf, (float)1);\r\n        }\r\n        \r\n\n\n#if VFX_USE_ALIVE_CURRENT\n        if (alive)\n        {\n            uint index = deadListIn.Consume();\n            attributeBuffer.Store3((index * 0x4 + 0x0) << 2,asuint(color));\r\n            attributeBuffer.Store3((index * 0x4 + 0x9D00) << 2,asuint(position));\r\n            \r\n\n        }\n#else\n        uint index = particleIndex;\n        attributeBuffer.Store3((index * 0x4 + 0x0) << 2,asuint(color));\r\n        attributeBuffer.Store3((index * 0x4 + 0x9D00) << 2,asuint(position));\r\n        \r\n\n#endif\n    }\n}\n"
+    source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP 64\n#define VFX_USE_COLOR_CURRENT 1\n#define VFX_USE_POSITION_CURRENT 1\n#define VFX_USE_SEED_CURRENT 1\n#define VFX_USE_DIRECTION_CURRENT 1\n#define VFX_USE_PARTICLEID_CURRENT 1\n#define VFX_LOCAL_SPACE 1\n\n\nCBUFFER_START(parameters)\n    float uniform_b;\n    float uniform_c;\n    float uniform_d;\n    uint PADDING_0;\nCBUFFER_END\n\n\n#include \"VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer attributeBuffer;\nByteAddressBuffer sourceAttributeBuffer;\n\nCBUFFER_START(initParams)\n#if !VFX_USE_SPAWNER_FROM_GPU\n    uint nbSpawned;\t\t\t\t\t// Numbers of particle spawned\n    uint spawnIndex;\t\t\t\t// Index of the first particle spawned\n    uint dispatchWidth;\n#else\n    uint offsetInAdditionalOutput;\n\tuint nbMax;\n#endif\n\tuint systemSeed;\nCBUFFER_END\n\n#if VFX_USE_ALIVE_CURRENT\nConsumeStructuredBuffer<uint> deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer inputAdditional;\n#endif\n\nvoid SetAttribute_FDD06EC5(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite Source:Slot Random:Off channels:XYZ */\n{\n    color = Color;\n}\nvoid PositionSphere_1(inout float3 position, inout uint seed, inout float3 direction, float3 ArcSphere_sphere_center, float ArcSphere_sphere_radius, float ArcSphere_arc, float ArcSequencer, float volumeFactor) /*positionMode:Surface spawnMode:Custom */\n{\n    float cosPhi = 2.0f * RAND - 1.0f;float theta = ArcSphere_arc * ArcSequencer;\n    float rNorm = pow(volumeFactor + (1 - volumeFactor) * RAND, 1.0f / 3.0f);\n    \n    float2 sincosTheta;\n    sincos(theta, sincosTheta.x, sincosTheta.y);\n    sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);\n    \n    direction = float3(sincosTheta, cosPhi);\n    position += direction * (rNorm * ArcSphere_sphere_radius) + ArcSphere_sphere_center;\n    \n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;\n#if !VFX_USE_SPAWNER_FROM_GPU\n    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n#endif\n\n#if VFX_USE_SPAWNER_FROM_GPU\n    uint maxThreadId = inputAdditional.Load((offsetInAdditionalOutput * 2 + 0) << 2);\n    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput * 2 + 1) << 2) - maxThreadId;\n#else\n    uint maxThreadId = nbSpawned;\n    uint currentSpawnIndex = spawnIndex;\n#endif\n\n#if VFX_USE_ALIVE_CURRENT\n    maxThreadId = min(maxThreadId, deadListCount.Load(0x0));\n#elif VFX_USE_SPAWNER_FROM_GPU\n    maxThreadId = min(maxThreadId, nbMax); //otherwise, nbSpawned already clamped on CPU\n#endif\n\n    if (id < maxThreadId)\n    {\n#if VFX_USE_SPAWNER_FROM_GPU\n        int sourceIndex = eventList[id];\n#endif\n        uint particleIndex = id + currentSpawnIndex;\n\t\t\n#if !VFX_USE_SPAWNER_FROM_GPU\n        int sourceIndex = 0;\n        /*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)\n        uint currentSumSpawnCount = 0u;\n        for (sourceIndex=0; sourceIndex<1; sourceIndex++)\n        {\n            currentSumSpawnCount += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\n            if (id < currentSumSpawnCount)\n            {\n                break;\n            }\n        }\n        */\n        \n\n#endif\n        float3 color = float3(1,1,1);\n        float3 position = float3(0,0,0);\n        uint seed = (uint)0;\n        float3 direction = float3(0,0,1);\n        uint particleId = (uint)0;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n        \n        {\n            float tmp_t = FixedRand(particleId ^ asuint(uniform_c));\n            float tmp_v = max(tmp_t, (float)0);\n            float tmp_x = min(tmp_v, (float)1);\n            float4 tmp_y = SampleGradient(uniform_b,tmp_x);\n            float tmp_z = (float)particleId;\n            float tmp_bb = tmp_z / (float)24;\n            float tmp_bc = floor(tmp_bb);\n            float tmp_bd = tmp_bb - tmp_bc;\n            float tmp_be = tmp_bd * (float)24;\n            float tmp_bf = tmp_be / (float)24;\n            float tmp_bg = max(tmp_bf, (float)0);\n            float tmp_bh = min(tmp_bg, (float)1);\n            float4 tmp_bi = SampleGradient(uniform_d,tmp_bh);\n            float4 tmp_bj = tmp_y + tmp_bi;\n            float4 tmp_bl = tmp_bj / float4(2,2,2,2);\n            float tmp_bm = tmp_bl[0];\n            float tmp_bn = tmp_bl[1];\n            float tmp_bo = tmp_bl[2];\n            float3 tmp_bp = float3(tmp_bm, tmp_bn, tmp_bo);\n            SetAttribute_FDD06EC5( /*inout */color, tmp_bp);\n        }\n        {\n            float tmp_w = (float)particleId;\n            float tmp_y = tmp_w / (float)24;\n            float tmp_z = floor(tmp_y);\n            float tmp_ba = tmp_y - tmp_z;\n            float tmp_bb = tmp_ba * (float)24;\n            float tmp_bc = tmp_bb / (float)24;\n            float tmp_be = max(tmp_bc, (float)0);\n            float tmp_bf = min(tmp_be, (float)1);\n            PositionSphere_1( /*inout */position,  /*inout */seed,  /*inout */direction, float3(0,0,0), (float)1, (float)6.283185, tmp_bf, (float)1);\n        }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if (alive)\n        {\n            uint index = deadListIn.Consume();\n            attributeBuffer.Store3((index * 0x4 + 0x0) << 2,asuint(color));\n            attributeBuffer.Store3((index * 0x4 + 0x9D00) << 2,asuint(position));\n            \n\n        }\n#else\n        uint index = particleIndex;\n        attributeBuffer.Store3((index * 0x4 + 0x0) << 2,asuint(color));\n        attributeBuffer.Store3((index * 0x4 + 0x9D00) << 2,asuint(position));\n        \n\n#endif\n    }\n}\n"
   - compute: 1
     name: Temp_compute_b_update_Runtime.compute
-    source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\r\n#define NB_THREADS_PER_GROUP 64\r\n#define VFX_HAS_INDIRECT_DRAW 1\r\n#define VFX_LOCAL_SPACE 1\r\n\r\n\n\n#include \"VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc\"\r\n#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"\r\n\r\n\n\nRWByteAddressBuffer attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nAppendStructuredBuffer<uint> deadListOut;\n#endif\n\n#if VFX_HAS_INDIRECT_DRAW\nAppendStructuredBuffer<uint> indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n    uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n\tuint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif (id < nbMax)\n\t{\n#if VFX_USE_ALIVE_CURRENT\n\t\t\n\t\tif (alive)\n\t\t{\n\t\t\t\n\t\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition = position;\n#endif\n\t\t\t\n\t\t\t\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\t\n#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\tindirectBuffer.Append(index);\n#endif\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\t\n\t\t\t\tdeadListOut.Append(index);\n\t\t\t}\n\t\t}\n#else\n\t\t\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition = position;\n#endif\n\t\t\n\t\t\n\t\t\n#if VFX_HAS_INDIRECT_DRAW\n\t\tindirectBuffer.Append(index);\n#endif\n#endif\n\t}\n}\n"
+    source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP 64\n#define VFX_HAS_INDIRECT_DRAW 1\n#define VFX_LOCAL_SPACE 1\n\n\n\n#include \"VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nAppendStructuredBuffer<uint> deadListOut;\n#endif\n\n#if VFX_HAS_INDIRECT_DRAW\nAppendStructuredBuffer<uint> indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n    uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n\tuint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif (id < nbMax)\n\t{\n#if VFX_USE_ALIVE_CURRENT\n\t\t\n\t\tif (alive)\n\t\t{\n\t\t\t\n\t\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition = position;\n#endif\n\t\t\t\n\t\t\t\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\t\n#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\tindirectBuffer.Append(index);\n#endif\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\t\n\t\t\t\tdeadListOut.Append(index);\n\t\t\t}\n\t\t}\n#else\n\t\t\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition = position;\n#endif\n\t\t\n\t\t\n\t\t\n#if VFX_HAS_INDIRECT_DRAW\n\t\tindirectBuffer.Append(index);\n#endif\n#endif\n\t}\n}\n"
   - compute: 0
     name: Temp_shader_c_line output_Runtime.shader
-    source: "Shader \"Hidden/VFX/ParticleLines\"\r\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\tBlend SrcAlpha OneMinusSrcAlpha\r\n\t\tZTest LEqual\r\n\t\tZWrite Off\r\n\t\tCull Off\r\n\t\t\r\n\t\r\n\t\t\t\r\n\t\tHLSLINCLUDE\r\n\t\t#if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\r\n\t\t#define VFX_LOCAL_SPACE 1\r\n\t\t#endif\r\n\t\t\r\n\t\t#include \"HLSLSupport.cginc\"\r\n\t\t#define NB_THREADS_PER_GROUP 64\r\n\t\t#define VFX_USE_COLOR_CURRENT 1\r\n\t\t#define VFX_USE_POSITION_CURRENT 1\r\n\t\t#define VFX_USE_ALPHA_CURRENT 1\r\n\t\t#define VFX_USE_ALIVE_CURRENT 1\r\n\t\t#define VFX_USE_PIVOT_CURRENT 1\r\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\r\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\r\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\r\n\t\t#define VFX_USE_AXISX_CURRENT 1\r\n\t\t#define VFX_USE_AXISY_CURRENT 1\r\n\t\t#define VFX_USE_AXISZ_CURRENT 1\r\n\t\t#define VFX_USE_SIZEX_CURRENT 1\r\n\t\t#define VFX_USE_TARGETPOSITION_CURRENT 1\r\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\r\n\t\t#define USE_DEAD_LIST_COUNT 1\r\n\t\t#define TARGET_FROM_ATTRIBUTES 1\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t#define VFX_LOCAL_SPACE 1\r\n\t\t\r\n\r\n\t\tCBUFFER_START(parameters)\r\n\t\t    float AngleZ_a;\r\n\t\t    uint3 PADDING_0;\r\n\t\tCBUFFER_END\r\n\t\t\r\n\r\n\t\t\r\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\r\n\t\t#define IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\r\n\t\t\r\n\t\tByteAddressBuffer attributeBuffer;\t\r\n\t\t\r\n\t\t#if VFX_HAS_INDIRECT_DRAW\r\n\t\tStructuredBuffer<uint> indirectBuffer;\t\r\n\t\t#endif\t\r\n\t\t\r\n\t\t#if USE_DEAD_LIST_COUNT\r\n\t\tByteAddressBuffer deadListCount;\r\n\t\t#endif\r\n\t\t\r\n\t\tCBUFFER_START(outputParams)\r\n\t\t\tfloat nbMax;\r\n\t\t\tfloat systemSeed;\r\n\t\tCBUFFER_END\r\n\t\t\r\n\t\tENDHLSL\r\n\t\t\r\n\r\n\t\t\r\n\t\t// Forward pass\r\n\t\tPass\r\n\t\t{\t\t\r\n\t\t\tTags { \"LightMode\"=\"ForwardOnly\" }\r\n\t\t\r\n\t\t\tHLSLPROGRAM\r\n\t\t\t#pragma target 4.5\r\n\t\t\t\r\n\t\t\tstruct ps_input\r\n\t\t\t{\r\n\t\t\t\tfloat4 pos : SV_POSITION;\r\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\r\n\t\t\t\tfloat pixelOffset : TEXCOORD0; // for AA\r\n\t\t\t\t#endif\r\n\t\t\t\t#if VFX_NEEDS_COLOR_INTERPOLATOR\r\n\t\t\t\tnointerpolation float4 color : COLOR0;\r\n\t\t\t\t#endif\r\n\t\t\t\t#if USE_SOFT_PARTICLE || USE_ALPHA_TEST\r\n\t\t\t\tnointerpolation float2 builtInInterpolants : TEXCOORD1;\r\n\t\t\t\t#endif\r\n\t\t\t\t#if USE_SOFT_PARTICLE\r\n\t\t\t\tfloat4 projPos : TEXCOORD2;\t\t\r\n\t\t\t\t#endif\r\n\t\t\t};\r\n\t\t\t\r\n\t\t\tstruct ps_output\r\n\t\t\t{\r\n\t\t\t\tfloat4 color : SV_Target0;\r\n\t\t\t};\r\n\t\t\r\n\t\t#define VFX_VARYING_PS_INPUTS ps_input\r\n\t\t#define VFX_VARYING_POSCS pos\r\n\t\t#define VFX_VARYING_POSSS projPos\r\n\t\t#define VFX_VARYING_COLOR color.rgb\r\n\t\t#define VFX_VARYING_ALPHA color.a\r\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\r\n\t\t#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\r\n\t\t#if IS_TRANSPARENT_PARTICLE\r\n\t\t#define VFX_VARYING_PIXELOFFSET pixelOffset\r\n\t\t#endif\r\n\t\t\t\r\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\r\n\t\t\t#error VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.\r\n\t\t\t#endif\r\n\t\t\t\r\n\t\t\t#include \"/VisualEffectGraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\r\n\t\t\t#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"\r\n\t\t\t\r\n\r\n\t\t\tvoid SetAttribute_C5FA0ED3(inout float angleZ, float AngleZ) /*attribute:angleZ Composition:Overwrite Source:Slot Random:Off channels:XYZ */\r\n\t\t\t{\r\n\t\t\t    angleZ = AngleZ;\r\n\t\t\t}\r\n\t\t\tvoid SetAttribute_8470CB66(inout float3 pivot, float3 Pivot) /*attribute:pivot Composition:Overwrite Source:Slot Random:Off channels:XYZ */\r\n\t\t\t{\r\n\t\t\t    pivot = Pivot;\r\n\t\t\t}\r\n\t\t\tvoid SetAttribute_FA287C3A(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite Source:Slot Random:Off channels:XYZ */\r\n\t\t\t{\r\n\t\t\t    alpha = Alpha;\r\n\t\t\t}\r\n\t\t\tvoid SetAttribute_AEC60E63(inout float sizeX, float SizeX) /*attribute:sizeX Composition:Overwrite Source:Slot Random:Off channels:XYZ */\r\n\t\t\t{\r\n\t\t\t    sizeX = SizeX;\r\n\t\t\t}\r\n\t\t\tvoid Orient_2(inout float3 axisX, inout float3 axisY, inout float3 axisZ, float3 position, float3 Position) /*mode:LookAtPosition */\r\n\t\t\t{\r\n\t\t\t    \r\n\t\t\t    axisZ = normalize(position - Position);\r\n\t\t\t    axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));\r\n\t\t\t    axisY = cross(axisZ,axisX);\r\n\t\t\t    \r\n\t\t\t}\r\n\t\t\t\r\n\r\n\t\t\t\r\n\t\t\t#pragma vertex vert\r\n\t\t\t\r\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)\r\n\t\t\t{\r\n\t\t\t\tuint index = (id >> 2) + instanceID * 2048;\r\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\r\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\r\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\r\n\t\t\t\t\t\t\t\treturn o;\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\r\n\t\t\t\t\t\t\tfloat3 color = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\r\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x9D00) << 2));\r\n\t\t\t\t\t\t\tfloat alpha = (float)1;\r\n\t\t\t\t\t\t\tbool alive = (bool)true;\r\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\r\n\t\t\t\t\t\t\tfloat angleX = (float)0;\r\n\t\t\t\t\t\t\tfloat angleY = (float)0;\r\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\r\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\r\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\r\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\r\n\t\t\t\t\t\t\tfloat sizeX = (float)0.1;\r\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\t\t#else\r\n\t\t\t\t\t\t\tif (index >= asuint(nbMax))\r\n\t\t\t\t\t\t\t\treturn o;\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\tbool alive = (bool)true;\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\t\t\tif (!alive)\r\n\t\t\t\t\t\t\t\treturn o;\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\tfloat3 color = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\r\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x9D00) << 2));\r\n\t\t\t\t\t\t\tfloat alpha = (float)1;\r\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\r\n\t\t\t\t\t\t\tfloat angleX = (float)0;\r\n\t\t\t\t\t\t\tfloat angleY = (float)0;\r\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\r\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\r\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\r\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\r\n\t\t\t\t\t\t\tfloat sizeX = (float)0.1;\r\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\r\n\t\t\t\tSetAttribute_C5FA0ED3( /*inout */angleZ, AngleZ_a);\r\n\t\t\t\t{\r\n\t\t\t\t    SetAttribute_8470CB66( /*inout */pivot, float3(1,1,0));\r\n\t\t\t\t}\r\n\t\t\t\t{\r\n\t\t\t\t    SetAttribute_FA287C3A( /*inout */alpha, (float)0.5);\r\n\t\t\t\t}\r\n\t\t\t\t{\r\n\t\t\t\t    SetAttribute_AEC60E63( /*inout */sizeX, (float)0.5);\r\n\t\t\t\t}\r\n\t\t\t\t{\r\n\t\t\t\t    Orient_2( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, float3(0,0,0));\r\n\t\t\t\t}\r\n\t\t\t\t\r\n\r\n\t\t\t\t\t\t\r\n\t\t\t\tif (!alive)\r\n\t\t\t\t\treturn o;\r\n\t\t\t\r\n\t\t\t\t#if TARGET_FROM_ATTRIBUTES\r\n\t\t\t\t\r\n\t\t\t\t\t\tfloat3 size = float3(sizeX,sizeX,sizeX);\r\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\r\n\t\t\t\t\t\tsize.y = sizeY;\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\r\n\t\t\t\t\t\tsize.z = sizeZ;\r\n\t\t\t\t\t\t#else\r\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\r\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\r\n\t\t\t\r\n\t\t\t\tposition = mul(elementToVFX,float4(0,0,0,1)).xyz;\r\n\t\t\t\t\r\n\t\t\t\tfloat3 targetOffset = (float3)0;\r\n\t\t\t\t{\r\n\t\t\t\t    \r\n\t\t\t\t    targetOffset = float3(0,0,-0.2);\r\n\t\t\t\t}\r\n\t\t\t\t\r\n\r\n\t\t\t\ttargetPosition = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\r\n\t\t\t\t#endif\r\n\t\t\t\t\t\r\n\t\t\t\tfloat4 pos0 = TransformPositionVFXToClip(position);\r\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\r\n\t\t\t\t\r\n\t\t\t\tfloat2 ndcPos0 = pos0.xy / pos0.w;\r\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\r\n\t\t\t\t\r\n\t\t\t\tfloat2 dir = ndcPos0 - ndcPos1;\r\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1] / UNITY_MATRIX_P[0][0]));\r\n\t\t\t\t\r\n\t\t\t#if IS_OPAQUE_PARTICLE\r\n\t\t\t\tconst float thicknessMul = 1.0f; // pixel perfect\r\n\t\t\t#else\r\n\t\t\t\tconst float thicknessMul = 2.0f; // for AA\r\n\t\t\t#endif\r\n\t\t\t\tfloat minThickness = thicknessMul / sqrt(dot(normal * normal,_ScreenParams.xy * _ScreenParams.xy)); // min thickness based on normal orientation and aspect ratio\r\n\t\t\t\tfloat minThickness0 = minThickness * pos0.w;\r\n\t\t\t\tfloat minThickness1 = minThickness * pos1.w;\r\n\t\t\t\t\r\n\t\t\t\tconst float thickness = 0.0f; // tmp\r\n\t\t\t\tfloat4 dPos0 = float4(normal * max(abs(minThickness0),thickness), 0.0f, 0.0f);\r\n\t\t\t\tfloat4 dPos1 = float4(normal * max(abs(minThickness1),thickness), 0.0f, 0.0f);\r\n\t\t\t\tfloat4 vPos[4] = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};\r\n\t\t\t\t\r\n\t\t\t\t#ifdef VFX_VARYING_PIXELOFFSET\r\n\t\t\t\to.VFX_VARYING_PIXELOFFSET = (id & 1) ? -1.0f : 1.0f;\r\n\t\t\t\t#endif\r\n\t\t\t\to.VFX_VARYING_POSCS = vPos[id & 3];\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\t\t#if VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\r\n\t\t\t\t\t\to.VFX_VARYING_COLOR = color;\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) \r\n\t\t\t\t\t\to.VFX_VARYING_ALPHA = alpha;\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t#if USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE = invSoftParticlesFadeDistance;\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t#if (VFX_NEEDS_POSSS || USE_SOFT_PARTICLE) && defined(VFX_VARYING_POSSS) && defined(VFX_VARYING_POSCS)\r\n\t\t\t\t\t\to.VFX_VARYING_POSSS = VFXGetPOSSS(o.VFX_VARYING_POSCS);\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t#if USE_UV_SCALE_BIAS\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\r\n\t\t\t\treturn o;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t#include \"VisualEffectGraph/Shaders/VFXCommonOutput.cginc\"\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t\t\r\n\t\t\t#pragma fragment frag\r\n\t\t\tps_output frag(ps_input i)\r\n\t\t\t{\r\n\t\t\t\tps_output o = (ps_output)0;\r\n\t\t\t\to.color = VFXGetFragmentColor(i);\r\n\t\t\t\t\r\n\t\t\t\t// Line AA\r\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\t\r\n\t\t\t\to.color.a *= 1.0f - abs(i.pixelOffset);\r\n\t\t\t\t#endif\r\n\t\t\t\t\r\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\r\n\t\t\t\treturn o;\r\n\t\t\t}\r\n\t\t\tENDHLSL\r\n\t\t}\r\n\t\t\r\n\r\n\t\t\r\n\t}\r\n}\r\n"
+    source: "Shader \"Hidden/VFX/ParticleLines\"\n{\n\tSubShader\n\t{\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend SrcAlpha OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#endif\n\t\t\n\t\t#include \"HLSLSupport.cginc\"\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_POSITION_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT 1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_PIVOT_CURRENT 1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_SIZEX_CURRENT 1\n\t\t#define VFX_USE_TARGETPOSITION_CURRENT 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define TARGET_FROM_ATTRIBUTES 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float AngleZ_a;\n\t\t    uint3 PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\tByteAddressBuffer attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint> indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat nbMax;\n\t\t\tfloat systemSeed;\n\t\tCBUFFER_END\n\t\t\n\t\tENDHLSL\n\t\t\n\n\t\t\n\t\t// Forward pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ForwardOnly\" }\n\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat pixelOffset : TEXCOORD0; // for AA\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_COLOR_INTERPOLATOR\n\t\t\t\tnointerpolation float4 color : COLOR0;\n\t\t\t\t#endif\n\t\t\t\t#if USE_SOFT_PARTICLE || USE_ALPHA_TEST\n\t\t\t\tnointerpolation float2 builtInInterpolants : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t\t#if USE_SOFT_PARTICLE\n\t\t\t\tfloat4 projPos : TEXCOORD2;\t\t\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\tstruct ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_POSSS projPos\n\t\t#define VFX_VARYING_COLOR color.rgb\n\t\t#define VFX_VARYING_ALPHA color.a\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t#define VFX_VARYING_PIXELOFFSET pixelOffset\n\t\t#endif\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"/VisualEffectGraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid SetAttribute_942FB523(inout float angleZ, float AngleZ) /*attribute:angleZ Composition:Overwrite Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    angleZ = AngleZ;\n\t\t\t}\n\t\t\tvoid SetAttribute_65DEC942(inout float3 pivot, float3 Pivot) /*attribute:pivot Composition:Overwrite Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    pivot = Pivot;\n\t\t\t}\n\t\t\tvoid SetAttribute_CEEAF35E(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    alpha = Alpha;\n\t\t\t}\n\t\t\tvoid SetAttribute_5F36EFF5(inout float sizeX, float SizeX) /*attribute:sizeX Composition:Overwrite Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    sizeX = SizeX;\n\t\t\t}\n\t\t\tvoid Orient_2(inout float3 axisX, inout float3 axisY, inout float3 axisZ, float3 position, float3 Position) /*mode:LookAtPosition */\n\t\t\t{\n\t\t\t    \n\t\t\t    axisZ = normalize(position - Position);\n\t\t\t    axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));\n\t\t\t    axisY = cross(axisZ,axisX);\n\t\t\t    \n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\t\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3 color = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x9D00) << 2));\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool alive = (bool)true;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat sizeX = (float)0.1;\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool alive = (bool)true;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 color = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x9D00) << 2));\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat sizeX = (float)0.1;\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tSetAttribute_942FB523( /*inout */angleZ, AngleZ_a);\n\t\t\t\t{\n\t\t\t\t    SetAttribute_65DEC942( /*inout */pivot, float3(1,1,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_CEEAF35E( /*inout */alpha, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_5F36EFF5( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    Orient_2( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, float3(0,0,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\n\t\t\t\t#if TARGET_FROM_ATTRIBUTES\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,0,-0.2);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4 pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2 ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2 dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1] / UNITY_MATRIX_P[0][0]));\n\t\t\t\t\n\t\t\t#if IS_OPAQUE_PARTICLE\n\t\t\t\tconst float thicknessMul = 1.0f; // pixel perfect\n\t\t\t#else\n\t\t\t\tconst float thicknessMul = 2.0f; // for AA\n\t\t\t#endif\n\t\t\t\tfloat minThickness = thicknessMul / sqrt(dot(normal * normal,_ScreenParams.xy * _ScreenParams.xy)); // min thickness based on normal orientation and aspect ratio\n\t\t\t\tfloat minThickness0 = minThickness * pos0.w;\n\t\t\t\tfloat minThickness1 = minThickness * pos1.w;\n\t\t\t\t\n\t\t\t\tconst float thickness = 0.0f; // tmp\n\t\t\t\tfloat4 dPos0 = float4(normal * max(abs(minThickness0),thickness), 0.0f, 0.0f);\n\t\t\t\tfloat4 dPos1 = float4(normal * max(abs(minThickness1),thickness), 0.0f, 0.0f);\n\t\t\t\tfloat4 vPos[4] = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_PIXELOFFSET\n\t\t\t\to.VFX_VARYING_PIXELOFFSET = (id & 1) ? -1.0f : 1.0f;\n\t\t\t\t#endif\n\t\t\t\to.VFX_VARYING_POSCS = vPos[id & 3];\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\n\t\t\t\t\t\to.VFX_VARYING_COLOR = color;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) \n\t\t\t\t\t\to.VFX_VARYING_ALPHA = alpha;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE = invSoftParticlesFadeDistance;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if (VFX_NEEDS_POSSS || USE_SOFT_PARTICLE) && defined(VFX_VARYING_POSSS) && defined(VFX_VARYING_POSCS)\n\t\t\t\t\t\to.VFX_VARYING_POSSS = VFXGetPOSSS(o.VFX_VARYING_POSCS);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_UV_SCALE_BIAS\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\t\n\t\t\t#include \"VisualEffectGraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output o = (ps_output)0;\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t\t\t\n\t\t\t\t// Line AA\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\t\n\t\t\t\to.color.a *= 1.0f - abs(i.pixelOffset);\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t\n\t}\n}\n"
   - compute: 1
     name: Temp_compute_d_camerasort_Runtime.compute
-    source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\r\n#define NB_THREADS_PER_GROUP 64\r\n#define VFX_USE_POSITION_CURRENT 1\r\n#define VFX_LOCAL_SPACE 1\r\n\r\n\nCBUFFER_START(parameters)\r\n    float4x4 localToWorld;\r\nCBUFFER_END\r\n\r\n\n#include \"VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc\"\r\n#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"\r\n\r\n\n\nCBUFFER_START(params)\n    uint nbMax;\n    uint dispatchWidth;\nCBUFFER_END\n\nCBUFFER_START(cameraParams)\n    float3 cameraPosition;\nCBUFFER_END\n\nByteAddressBuffer attributeBuffer;\nStructuredBuffer<uint> inputBuffer;\n\n#if USE_DEAD_LIST_COUNT\nByteAddressBuffer deadListCount;\n#endif\n\nstruct Kvp\n{\n\tfloat sortKey;\n\tuint index;\n};\n\nRWStructuredBuffer<Kvp> outputBuffer;\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n\tuint threshold = nbMax;\n#if USE_DEAD_LIST_COUNT\n\tthreshold -= deadListCount.Load(0);\n#endif\n\tuint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tif (id < threshold)\n\t{\n\t\tuint index = inputBuffer[id];\n\t\tfloat3 position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x9D00) << 2));\r\n\t\t\r\n\n\t\t\n#if VFX_LOCAL_SPACE\n\t\tfloat3 wPos = mul(localToWorld,float4(position,1.0f)).xyz;\n#else\n\t\tfloat3 wPos = position;\n#endif\n\t\tfloat3 camToPos = wPos - cameraPosition;\n\t\t\n\t\tKvp kvp;\n\t\tkvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera\n\t\tkvp.index = index;\n\n\t\toutputBuffer[id] = kvp;\n\t}\n}\n"
+    source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP 64\n#define VFX_USE_POSITION_CURRENT 1\n#define VFX_LOCAL_SPACE 1\n\n\nCBUFFER_START(parameters)\n    float4x4 localToWorld;\nCBUFFER_END\n\n\n#include \"VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"\n\n\n\nCBUFFER_START(params)\n    uint nbMax;\n    uint dispatchWidth;\nCBUFFER_END\n\nCBUFFER_START(cameraParams)\n    float3 cameraPosition;\nCBUFFER_END\n\nByteAddressBuffer attributeBuffer;\nStructuredBuffer<uint> inputBuffer;\n\n#if USE_DEAD_LIST_COUNT\nByteAddressBuffer deadListCount;\n#endif\n\nstruct Kvp\n{\n\tfloat sortKey;\n\tuint index;\n};\n\nRWStructuredBuffer<Kvp> outputBuffer;\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n\tuint threshold = nbMax;\n#if USE_DEAD_LIST_COUNT\n\tthreshold -= deadListCount.Load(0);\n#endif\n\tuint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tif (id < threshold)\n\t{\n\t\tuint index = inputBuffer[id];\n\t\tfloat3 position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x9D00) << 2));\n\t\t\n\n\t\t\n#if VFX_LOCAL_SPACE\n\t\tfloat3 wPos = mul(localToWorld,float4(position,1.0f)).xyz;\n#else\n\t\tfloat3 wPos = position;\n#endif\n\t\tfloat3 camToPos = wPos - cameraPosition;\n\t\t\n\t\tKvp kvp;\n\t\tkvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera\n\t\tkvp.index = index;\n\n\t\toutputBuffer[id] = kvp;\n\t}\n}\n"
   m_Infos:
     m_Expressions:
       m_Expressions:
@@ -2685,13 +2687,13 @@ VisualEffectResource:
         data[3]: 14
       - op: 45
         valueIndex: 8
-        data[0]: 5
+        data[0]: 7
         data[1]: -1
         data[2]: -1
         data[3]: 0
       - op: 45
         valueIndex: 9
-        data[0]: 7
+        data[0]: 5
         data[1]: -1
         data[2]: -1
         data[3]: 1
@@ -2718,67 +2720,67 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 3
-      - op: 9
-        valueIndex: 19
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: -1
-      - op: 1
-        valueIndex: 35
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 3
-      - op: 1
-        valueIndex: 38
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
         data[3]: 1
+      - op: 1
+        valueIndex: 17
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
       - op: 21
-        valueIndex: 39
+        valueIndex: 20
         data[0]: 12
         data[1]: 11
         data[2]: -1
         data[3]: 1
       - op: 1
-        valueIndex: 40
+        valueIndex: 21
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 2
       - op: 1
-        valueIndex: 42
+        valueIndex: 23
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 3
       - op: 1
-        valueIndex: 45
+        valueIndex: 26
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 3
       - op: 1
-        valueIndex: 48
+        valueIndex: 29
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 32
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 35
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 2
+      - op: 1
+        valueIndex: 37
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 1
-        valueIndex: 49
+      - op: 9
+        valueIndex: 38
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 3
-      - op: 1
-        valueIndex: 52
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 2
+        data[3]: -1
       m_NeedsLocalToWorld: 1
       m_NeedsWorldToLocal: 0
     m_PropertySheet:
@@ -2792,28 +2794,28 @@ VisualEffectResource:
           m_Value: 1
         - m_ExpressionIndex: 11
           m_Value: 100
-        - m_ExpressionIndex: 16
+        - m_ExpressionIndex: 13
           m_Value: 0.5
-        - m_ExpressionIndex: 21
+        - m_ExpressionIndex: 22
           m_Value: 6.2831855
       m_Vector2f:
         m_Array:
-        - m_ExpressionIndex: 18
-          m_Value: {x: 0, y: 1}
-        - m_ExpressionIndex: 23
+        - m_ExpressionIndex: 16
           m_Value: {x: 10000, y: 10000}
+        - m_ExpressionIndex: 21
+          m_Value: {x: 0, y: 1}
       m_Vector3f:
         m_Array:
-        - m_ExpressionIndex: 13
+        - m_ExpressionIndex: 14
           m_Value: {x: 1, y: 1, z: 0}
-        - m_ExpressionIndex: 15
+        - m_ExpressionIndex: 17
+          m_Value: {x: 0, y: 0, z: 0}
+        - m_ExpressionIndex: 18
           m_Value: {x: 0, y: 0, z: -0.2}
         - m_ExpressionIndex: 19
-          m_Value: {x: -0.011615276, y: 0.0030828118, z: -0.0026590824}
-        - m_ExpressionIndex: 20
           m_Value: {x: 2.2195816, y: 2.2123823, z: 2.1859431}
-        - m_ExpressionIndex: 22
-          m_Value: {x: 0, y: 0, z: 0}
+        - m_ExpressionIndex: 20
+          m_Value: {x: -0.011615276, y: 0.0030828118, z: -0.0026590824}
       m_Vector4f:
         m_Array:
         - m_ExpressionIndex: 10
@@ -2833,17 +2835,17 @@ VisualEffectResource:
         - m_ExpressionIndex: 5
           m_Value:
             serializedVersion: 2
-            key0: {r: 0.24705882, g: 0, b: 1, a: 1}
-            key1: {r: 0, g: 0.70980394, b: 1, a: 1}
-            key2: {r: 0.36078432, g: 0.68235296, b: 1, a: 0}
+            key0: {r: 0.57254905, g: 0, b: 1, a: 1}
+            key1: {r: 0.24705882, g: 0, b: 1, a: 1}
+            key2: {r: 0, g: 0.70980394, b: 1, a: 0}
             key3: {r: 1, g: 1, b: 1, a: 0}
             key4: {r: 0, g: 0, b: 0, a: 0}
             key5: {r: 0, g: 0, b: 0, a: 0}
             key6: {r: 0, g: 0, b: 0, a: 0}
             key7: {r: 0, g: 0, b: 0, a: 0}
-            ctime0: 0
-            ctime1: 24952
-            ctime2: 42913
+            ctime0: 4433
+            ctime1: 12143
+            ctime2: 36237
             ctime3: 65535
             ctime4: 0
             ctime5: 0
@@ -2863,17 +2865,17 @@ VisualEffectResource:
         - m_ExpressionIndex: 7
           m_Value:
             serializedVersion: 2
-            key0: {r: 0.57254905, g: 0, b: 1, a: 1}
-            key1: {r: 0.24705882, g: 0, b: 1, a: 1}
-            key2: {r: 0, g: 0.70980394, b: 1, a: 0}
+            key0: {r: 0.24705882, g: 0, b: 1, a: 1}
+            key1: {r: 0, g: 0.70980394, b: 1, a: 1}
+            key2: {r: 0.36078432, g: 0.68235296, b: 1, a: 0}
             key3: {r: 1, g: 1, b: 1, a: 0}
             key4: {r: 0, g: 0, b: 0, a: 0}
             key5: {r: 0, g: 0, b: 0, a: 0}
             key6: {r: 0, g: 0, b: 0, a: 0}
             key7: {r: 0, g: 0, b: 0, a: 0}
-            ctime0: 4433
-            ctime1: 12143
-            ctime2: 36237
+            ctime0: 0
+            ctime1: 24952
+            ctime2: 42913
             ctime3: 65535
             ctime4: 0
             ctime5: 0
@@ -3009,9 +3011,9 @@ VisualEffectResource:
       buffers: []
       values:
       - nameId: Count
-        index: 23
+        index: 16
       - nameId: Delay
-        index: 18
+        index: 21
       params: []
       processor: {fileID: 0}
       shaderSourceIndex: -1
@@ -3034,9 +3036,9 @@ VisualEffectResource:
       index: 5
     values:
     - nameId: bounds_center
-      index: 19
-    - nameId: bounds_size
       index: 20
+    - nameId: bounds_size
+      index: 19
     tasks:
     - type: 536870912
       buffers:
@@ -3053,9 +3055,9 @@ VisualEffectResource:
         index: 8
       params:
       - nameId: bounds_center
-        index: 19
-      - nameId: bounds_size
         index: 20
+      - nameId: bounds_size
+        index: 19
       processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
@@ -3078,7 +3080,7 @@ VisualEffectResource:
         index: 4
       values:
       - nameId: localToWorld
-        index: 14
+        index: 23
       params: []
       processor: {fileID: 0}
       shaderSourceIndex: 3
@@ -3090,7 +3092,7 @@ VisualEffectResource:
         index: 3
       values:
       - nameId: AngleZ_a
-        index: 17
+        index: 15
       params:
       - nameId: sortPriority
         index: 0
@@ -3155,16 +3157,16 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes:
-    - m_Type: 1
-      m_Min: 0
-      m_Max: Infinity
-      m_Tooltip: 
-      m_Regex: 
-      m_RegexMaxLength: 0
     - m_Type: 3
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Min/Max Count for each burst
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 1
+      m_Min: 0
+      m_Max: Infinity
+      m_Tooltip: 
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -3198,7 +3200,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3230,7 +3232,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3266,16 +3268,16 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes:
-    - m_Type: 1
-      m_Min: 0
-      m_Max: Infinity
-      m_Tooltip: 
-      m_Regex: 
-      m_RegexMaxLength: 0
     - m_Type: 3
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Min/Max Delay between each burst
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 1
+      m_Min: 0
+      m_Max: Infinity
+      m_Tooltip: 
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -3308,7 +3310,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3340,7 +3342,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3372,7 +3374,7 @@ MonoBehaviour:
       m_SerializableType: UnityEngine.Vector4, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - name: b
     type:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
 --- !u!114 &8926484042661614537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3438,7 +3440,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3470,7 +3472,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3502,7 +3504,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3534,7 +3536,7 @@ MonoBehaviour:
   m_Property:
     name: w
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3560,13 +3562,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614536}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 2
     m_Space: 2147483647
   m_Property:
     name: b
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3635,7 +3637,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -3667,7 +3669,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -3699,7 +3701,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -3731,7 +3733,7 @@ MonoBehaviour:
   m_Property:
     name: w
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -3767,7 +3769,7 @@ MonoBehaviour:
       m_SerializableType: UnityEngine.Vector4, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - name: c
     type:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
 --- !u!114 &8926484042661614550
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3833,7 +3835,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3865,7 +3867,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3897,7 +3899,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3929,7 +3931,7 @@ MonoBehaviour:
   m_Property:
     name: w
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3998,7 +4000,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -4030,7 +4032,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -4062,7 +4064,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -4094,7 +4096,7 @@ MonoBehaviour:
   m_Property:
     name: w
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -4120,13 +4122,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614549}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0
     m_Space: 2147483647
   m_Property:
     name: c
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -4195,7 +4197,7 @@ MonoBehaviour:
   m_Property:
     name: x
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -4227,7 +4229,7 @@ MonoBehaviour:
   m_Property:
     name: y
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -4259,7 +4261,7 @@ MonoBehaviour:
   m_Property:
     name: z
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -4291,7 +4293,7 @@ MonoBehaviour:
   m_Property:
     name: w
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -4320,10 +4322,10 @@ MonoBehaviour:
   m_Operands:
   - name: a
     type:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
   - name: b
     type:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
 --- !u!114 &8926484042661614567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4346,13 +4348,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614566}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 1
     m_Space: 2147483647
   m_Property:
     name: a
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
@@ -4379,13 +4381,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614566}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 100
     m_Space: 2147483647
   m_Property:
     name: b
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -4411,13 +4413,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614566}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
@@ -4444,13 +4446,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114453407920036590}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0
     m_Space: 2147483647
   m_Property:
     name: min
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
     - m_Type: 3
       m_Min: -Infinity
@@ -4482,13 +4484,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114453407920036590}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 1
     m_Space: 2147483647
   m_Property:
     name: max
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
     - m_Type: 3
       m_Min: -Infinity
@@ -4524,13 +4526,13 @@ MonoBehaviour:
   m_Operands:
   - name: a
     type:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
   - name: b
     type:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
   - name: c
     type:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
 --- !u!114 &8926484042661614573
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4553,13 +4555,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614572}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 1
     m_Space: 2147483647
   m_Property:
     name: a
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
@@ -4586,13 +4588,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614572}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 1
     m_Space: 2147483647
   m_Property:
     name: b
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
@@ -4619,13 +4621,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614572}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 1
     m_Space: 2147483647
   m_Property:
     name: c
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -4651,13 +4653,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614572}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
@@ -4686,7 +4688,7 @@ MonoBehaviour:
   m_OutputSlots:
   - {fileID: 8926484042661614580}
   m_Type:
-    m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+    m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
 --- !u!114 &8926484042661614578
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4709,13 +4711,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614577}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 1
     m_Space: 2147483647
   m_Property:
     name: a
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
     - m_Type: 3
       m_Min: -Infinity
@@ -4748,13 +4750,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614577}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 1
     m_Space: 2147483647
   m_Property:
     name: b
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes:
     - m_Type: 3
       m_Min: -Infinity
@@ -4787,13 +4789,13 @@ MonoBehaviour:
     m_Owner: {fileID: 8926484042661614577}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
