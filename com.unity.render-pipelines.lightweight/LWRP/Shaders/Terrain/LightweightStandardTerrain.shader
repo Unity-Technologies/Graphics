@@ -41,7 +41,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma target 3.0
 
             #pragma vertex SplatmapVert
-            #pragma fragment SpatmapFragment
+            #pragma fragment SplatmapFragment
 
             #define _METALLICSPECGLOSSMAP 1
             #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
@@ -61,8 +61,10 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #pragma multi_compile __ _TERRAIN_NORMAL_MAP
+            #pragma shader_feature _NORMALMAP
 
             #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
             #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
@@ -86,8 +88,11 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+
+            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
 
@@ -108,10 +113,16 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
 
-            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+
+            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
+
+        UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
     Dependency "AddPassShader" = "Hidden/LightweightPipeline/Terrain/Standard Terrain Add Pass"
     Dependency "BaseMapShader" = "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"

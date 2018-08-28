@@ -5,9 +5,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class OpaquePostProcessPass : ScriptableRenderPass
     {
+        const string k_OpaquePostProcessTag = "Render Opaque PostProcess Effects";
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
-        private PostProcessRenderContext postContext { get; set; }
 
         public void Setup(
             PostProcessRenderContext postProcessRenderContext,
@@ -15,18 +15,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTargetHandle colorAttachmentHandle)
         {
             this.colorAttachmentHandle = colorAttachmentHandle;
-            this.postContext = postProcessRenderContext;
             descriptor = baseDescriptor;
         }
 
-        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
-            ref CullResults cullResults,
-            ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("Render Opaque PostProcess Effects");
+            CommandBuffer cmd = CommandBufferPool.Get(k_OpaquePostProcessTag);
 
             RenderTargetIdentifier source = colorAttachmentHandle.Identifier();
-            LightweightPipeline.RenderPostProcess(cmd, postContext, ref renderingData.cameraData, descriptor.colorFormat, source, colorAttachmentHandle.Identifier(), true);
+            renderer.RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source, colorAttachmentHandle.Identifier(), true);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

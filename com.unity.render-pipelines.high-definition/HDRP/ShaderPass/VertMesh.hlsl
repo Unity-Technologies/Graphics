@@ -93,16 +93,17 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 #endif
 
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
+// Make it inout so that VelocityPass can get the modified input values later.
 VaryingsMeshType VertMesh(AttributesMesh input)
 {
-#if defined(HAVE_MESH_MODIFICATION)
-    input = ApplyMeshModification(input);
-#endif
-
     VaryingsMeshType output;
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+#if defined(HAVE_MESH_MODIFICATION)
+    input = ApplyMeshModification(input);
+#endif
 
     // This return the camera relative position (if enable)
     float3 positionRWS = TransformObjectToWorld(input.positionOS);
@@ -113,7 +114,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #endif
 
 #ifdef ATTRIBUTES_NEED_TANGENT
-     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
      // Do vertex modification in camera relative space (if enable)
