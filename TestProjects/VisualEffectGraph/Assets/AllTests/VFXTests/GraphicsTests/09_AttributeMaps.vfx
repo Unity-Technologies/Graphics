@@ -3485,6 +3485,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 16
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 1
@@ -3527,6 +3528,7 @@ VisualEffectResource:
         index: 17
       - nameId: bounds_size
         index: 18
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -3540,6 +3542,7 @@ VisualEffectResource:
       - nameId: VectorField_a
         index: 20
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 1
     - type: 1073741826
       buffers:
@@ -3555,6 +3558,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 2
 --- !u!114 &8926484042661614529
 MonoBehaviour:
