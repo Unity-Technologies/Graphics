@@ -20,6 +20,7 @@ namespace UnityEditor.VFX
             name = exposedName;
             this.realType = realType;
             path = null;
+            tooltip = null;
             min = Mathf.NegativeInfinity;
             max = Mathf.Infinity;
             descendantCount = 0;
@@ -28,6 +29,7 @@ namespace UnityEditor.VFX
 
         public string name;
         public string path;
+        public string tooltip;
 
         public string sheetType;
 
@@ -76,6 +78,7 @@ namespace UnityEditor.VFX
                 string rootFieldName = VisualEffectSerializationUtility.GetTypeField(parameter.type);
 
                 VFXParameterInfo paramInfo = new VFXParameterInfo(parameter.exposedName, parameter.type.Name);
+                paramInfo.tooltip = parameter.tooltip;
                 if (rootFieldName != null)
                 {
                     paramInfo.sheetType = rootFieldName;
@@ -115,6 +118,12 @@ namespace UnityEditor.VFX
                 var info = new VFXParameterInfo(field.Name, field.FieldType.Name);
 
                 info.path = path + "_" + field.Name;
+
+                var tooltip = field.GetCustomAttribute<TooltipAttribute>();
+                if( tooltip != null)
+                {
+                    info.tooltip = tooltip.tooltip;
+                }
 
                 var fieldName = VisualEffectSerializationUtility.GetTypeField(field.FieldType);
 

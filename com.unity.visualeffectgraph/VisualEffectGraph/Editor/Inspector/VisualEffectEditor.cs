@@ -86,24 +86,22 @@ namespace UnityEditor.VFX
         {
             EditorGUILayout.BeginHorizontal();
 
-            GUIContent nameContent = EditorGUIUtility.TextContent(parameter.name);
-
-            //EditorGUI.showMixedValue = overrideProperty.hasMultipleDifferentValues;
+            GUIContent nameContent = GetGUIContent(parameter.name,parameter.tooltip);
+            
             EditorGUI.BeginChangeCheck();
             bool result = EditorGUILayout.Toggle(overrideProperty.hasMultipleDifferentValues ? false : overrideProperty.boolValue, overrideProperty.hasMultipleDifferentValues ? Styles.toggleMixedStyle : Styles.toggleStyle, GUILayout.Width(overrideWidth));
             if (EditorGUI.EndChangeCheck())
             {
                 overrideProperty.boolValue = result;
             }
-            //EditorGUI.showMixedValue = false;
 
             EditorGUI.BeginChangeCheck();
             if (parameter.min != Mathf.NegativeInfinity && parameter.max != Mathf.Infinity)
             {
                 if (property.propertyType == SerializedPropertyType.Float)
-                    EditorGUILayout.Slider(property, parameter.min, parameter.max, EditorGUIUtility.TextContent(parameter.name));
+                    EditorGUILayout.Slider(property, parameter.min, parameter.max, nameContent);
                 else
-                    EditorGUILayout.IntSlider(property, (int)parameter.min, (int)parameter.max, EditorGUIUtility.TextContent(parameter.name));
+                    EditorGUILayout.IntSlider(property, (int)parameter.min, (int)parameter.max, nameContent);
             }
             else if (parameter.realType == typeof(Color).Name)
             {
@@ -211,12 +209,45 @@ namespace UnityEditor.VFX
         private VisualEffectAsset m_asset;
         private VFXGraph m_graph;
 
+        protected struct NameNTooltip
+        {
+            public string name;
+            public string tooltip;
 
-        protected virtual void EmptyLineControl(string name, int depth)
+            public override int GetHashCode()
+            {
+                if (name == null)
+                    return 0;
+
+                if (tooltip == null)
+                    return name.GetHashCode();
+
+                return name.GetHashCode() ^ (tooltip.GetHashCode() << sizeof(int) * 4);
+            }
+        }
+
+
+        static Dictionary<NameNTooltip, GUIContent> s_ContentCache = new Dictionary<NameNTooltip, GUIContent>();
+
+
+        protected GUIContent GetGUIContent(string name,string tooltip = null)
+        {
+            GUIContent result = null;
+            var nnt = new NameNTooltip { name = name, tooltip = tooltip };
+            if ( ! s_ContentCache.TryGetValue(nnt,out result) )
+            {
+                s_ContentCache[nnt] = result = new GUIContent(name,tooltip);
+            }
+
+            return result;
+        }
+
+        protected virtual void EmptyLineControl(string name, string tooltip, int depth)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Space(overrideWidth + 4); // the 4 is so that Labels are aligned with elements having an override toggle.
-            EditorGUILayout.LabelField(name);
+            EditorGUILayout.LabelField(GetGUIContent(name,tooltip));
+            GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
 
@@ -372,7 +403,7 @@ namespace UnityEditor.VFX
                                 {
                                     bool wasIgnored = ignoreUntilNextCat;
                                     ignoreUntilNextCat = false;
-                                    var nameContent = new GUIContent(parameter.name);
+                                    var nameContent = GetGUIContent(parameter.name);
 
                                     bool prevState = EditorPrefs.GetBool("VFX-category-" + parameter.name, true);
                                     bool currentState = ShowHeader(nameContent, !wasIgnored, false, true, prevState);
@@ -387,7 +418,7 @@ namespace UnityEditor.VFX
                                         GUILayout.Space(Styles.headerBottomMargin);
                                 }
                                 else if (!ignoreUntilNextCat)
-                                    EmptyLineControl(parameter.name, stack.Count);
+                                    EmptyLineControl(parameter.name,parameter.tooltip, stack.Count);
                             }
                         }
                         else if (!ignoreUntilNextCat)
