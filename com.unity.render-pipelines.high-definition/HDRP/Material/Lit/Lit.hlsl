@@ -2295,7 +2295,7 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     return lighting;
 }
 
-real2   PolygonFormFactor( real4x3 L )
+real3   PolygonFormFactor( real4x3 L )
 {
     UNITY_UNROLL
     for (uint i = 0; i < 4; i++)
@@ -2314,21 +2314,12 @@ real2   PolygonFormFactor( real4x3 L )
         F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
 
-    // Clamp invalid values to avoid visual artifacts.
-    real f2         = saturate(dot(F, F));
-    real sinSqSigma = min(sqrt(f2), 0.999);
-    real cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
-
-    return float2(sinSqSigma, cosOmega);
+    return F;
 }
 
-real2   DiskFormFactor( real4x3 lightVerts )//float3x3 Minv, float3 center, float3 axisX, float3 axisY )
+real3   DiskFormFactor( real4x3 lightVerts )
 {
     // Initalize ellipse in original clamped-cosine space
-//    float3  C  = mul( center, Minv );
-//    float3  V1 = mul( axisX, Minv );
-//    float3  V2 = mul( axisY, Minv );
-
     float3  C  = 0.5 * (lightVerts[0] + lightVerts[2]);
     float3  V1 = 0.5 * (lightVerts[0] - lightVerts[3]);
     float3  V2 = 0.5 * (lightVerts[3] - lightVerts[2]);
@@ -2422,29 +2413,23 @@ real2   DiskFormFactor( real4x3 lightVerts )//float3x3 Minv, float3 center, floa
 
     float   formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
 
-    // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines" pp. 25
-    // Then we need to find a sphere providing the same solid angle value as this projected irradiance, then retrieve the apex half-angle we need
-    //
-    // The solid angle of such sphere is given by Omega/2PI = E_proj/PI = 1-cos(sigma) where sigma is the half apex angle
-    // We have thus:
-    //  cos(sigma) = 1 - E_proj/PI
-    //  sin²(sigma) = 1 - cos(sigma)² = 1 - (1 - E_proj/PI)²
-    //
-    float   sqSinSigma = min( 1 - Sq( 1 - formFactor * INV_PI ), 0.999 );
-    float   cosOmega   = clamp( avgDir.z , -1, 1 );
-
-    return float2( sqSinSigma, cosOmega );
+    return formFactor * avgDir;
 }
 
 real LTC_Evaluate( real4x3 lightVerts, bool isRectangleLight )
 {
-    float2  sphereFormFactor;
+    real3   F;
     if ( isRectangleLight )
-        sphereFormFactor = PolygonFormFactor( lightVerts );
+        F = PolygonFormFactor( lightVerts );
     else
-        sphereFormFactor = DiskFormFactor( lightVerts );
+        F = DiskFormFactor( lightVerts );
 
-    return DiffuseSphereLightIrradiance( sphereFormFactor.x, sphereFormFactor.y );
+    // Clamp invalid values to avoid visual artifacts.
+    real    L = length( F );
+    real    cosOmega   = clamp( F.z / L, -1, 1);
+    real    sqSinSigma = min( L, 0.999 );
+
+    return DiffuseSphereLightIrradiance( sqSinSigma, cosOmega );
 }
 
 DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
@@ -2485,15 +2470,6 @@ lighting.specular = 0;
 //#else
 } else {
 
-
-// Dynamic ground truth enabling
-//if ( _EnableGroundTruth > 0.5 ) {
-//    IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
-//                          lighting.diffuse, lighting.specular);
-//    return lighting;
-//}
-
-
     ////////////////////////////////////////////////////////////////////////////
     // Sphere pre-processing
     float   intensity = 1.0;
@@ -2517,15 +2493,15 @@ lighting.specular = 0;
             float   sinTheta = R / D;
             float   tanTheta = sinTheta * rsqrt( 1.0 - saturate( sinTheta*sinTheta ) );
 
-            float   oldRadius = 0.5 * lightData.size.x;
+//            float   oldRadius = 0.5 * lightData.size.x;
+//            float   oldArea = oldRadius * oldRadius;
+
             float   newRadius = D * tanTheta;           // New disk size when standing at distance D
-
-            float   oldArea = oldRadius * oldRadius;
-            float   newArea = newRadius * newRadius;
-
-            intensity *= newArea / oldArea;             // Scale intensity back to compensate for disk growth
+//            float   newArea = newRadius * newRadius;
 
             lightData.size = 2.0 * newRadius;
+
+//            intensity *= newArea / oldArea;             // Scale intensity back to compensate for disk growth
         } else {
             intensity = 0.0;
         }
