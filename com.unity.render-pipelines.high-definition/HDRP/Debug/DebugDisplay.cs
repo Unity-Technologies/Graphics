@@ -223,6 +223,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return mipMapDebugSettings.debugMipMapMode;
         }
 
+        public DebugMipMapModeTerrainTexture GetDebugMipMapModeTerrainTexture()
+        {
+            return mipMapDebugSettings.terrainTexture;
+        }
+
         public ColorPickerDebugMode GetDebugColorPickerMode()
         {
             return colorPickerDebugSettings.colorPickerMode;
@@ -812,8 +817,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             widgetList.AddRange(new DebugUI.Widget[]
             {
                 new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => fullScreenDebugMode = (FullScreenDebugMode)value, enumNames = renderingFullScreenDebugStrings, enumValues = renderingFullScreenDebugValues },
-                new DebugUI.EnumField { displayName = "MipMaps", getter = () => (int)mipMapDebugSettings.debugMipMapMode, setter = value => SetMipMapMode((DebugMipMapMode)value), autoEnum = typeof(DebugMipMapMode) },
+                new DebugUI.EnumField { displayName = "MipMaps", getter = () => (int)mipMapDebugSettings.debugMipMapMode, setter = value => SetMipMapMode((DebugMipMapMode)value), autoEnum = typeof(DebugMipMapMode), onValueChanged = RefreshRenderingDebug },
+            });
 
+            if (mipMapDebugSettings.debugMipMapMode != DebugMipMapMode.None)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.EnumField { displayName = "Terrain Texture", getter = ()=>(int)mipMapDebugSettings.terrainTexture, setter = value => mipMapDebugSettings.terrainTexture = (DebugMipMapModeTerrainTexture)value, autoEnum = typeof(DebugMipMapModeTerrainTexture) }
+                    }
+                });
+            }
+
+            widgetList.AddRange(new []
+            {
                 new DebugUI.Container
                 {
                     displayName = "Color Picker",
