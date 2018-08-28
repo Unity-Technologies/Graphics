@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         PushGlobalParameters,
         CopySetDepthBuffer,
-        CopyDepthStencilbuffer,
+        CopyDepthBuffer,
         HTileForSSS,
         Forward,
         RenderSSAO,
