@@ -99,6 +99,9 @@ SAMPLER(sampler_LayerInfluenceMaskMap);
 
 CBUFFER_START(UnityPerMaterial)
 
+// DEBUG!
+float   _EnableGroundTruth;
+
 // shared constant between lit and layered lit
 float _AlphaCutoff;
 float _AlphaCutoffPrepass;

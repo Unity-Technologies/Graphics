@@ -2,6 +2,8 @@ Shader "HDRenderPipeline/Lit"
 {
     Properties
     {
+[ToggleUI]  _EnableGroundTruth("<DEBUG> Ground Truth Enable", Float) = 0.0
+
         // Versioning of material to help for upgrading
         [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 

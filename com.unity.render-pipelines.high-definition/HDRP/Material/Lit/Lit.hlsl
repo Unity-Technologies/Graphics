@@ -1350,10 +1350,12 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 //*
     float3 positionWS = posInput.positionWS;
 
-#ifdef LIT_DISPLAY_REFERENCE_AREA
+//#ifdef LIT_DISPLAY_REFERENCE_AREA
+if ( _EnableGroundTruth > 0.5 ) {
     IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
-#else
+//#else
+} else {
     float  len = lightData.size.x;
     float3 T   = lightData.right;
 
@@ -1385,10 +1387,16 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     float3 P1 = lightData.positionRWS - T * (0.5 * len);
     float3 P2 = lightData.positionRWS + T * (0.5 * len);
 
+float3      N = bsdfData.normalWS;
+float3x3    orthoBasisViewNormal;
+orthoBasisViewNormal[0] = normalize(V - N * preLightData.NdotV); // Do not clamp NdotV here
+orthoBasisViewNormal[2] = N;
+orthoBasisViewNormal[1] = cross(orthoBasisViewNormal[2], orthoBasisViewNormal[0]);
+
 // This is ANNOYING!! => That's litterally the only place where orthoBasisViewNormal seems to be actually needed! (is it really needed? It's only to compute B after all?! Can't this be done)
-//    // Rotate the endpoints into the local coordinate system.
-//    P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
-//    P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
+    // Rotate the endpoints into the local coordinate system.
+    P1 = mul(P1, transpose(orthoBasisViewNormal));
+    P2 = mul(P2, transpose(orthoBasisViewNormal));
 
     // Compute the binormal in the local coordinate system.
     float3 B = normalize(cross(P1, P2));
@@ -1396,7 +1404,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     float ltcValue;
 
     // Evaluate the diffuse part
-    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
+    ltcValue = LTCEvaluate(P1, P2, B, mul(orthoBasisViewNormal,preLightData.ltcTransformDiffuse));
     ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
 
@@ -1421,7 +1429,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     }
 
     // Evaluate the specular part
-    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
+    ltcValue = LTCEvaluate(P1, P2, B, mul(orthoBasisViewNormal,preLightData.ltcTransformSpecular));
     ltcValue *= lightData.specularScale;
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
@@ -1431,7 +1439,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     // Evaluate the coat part
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformCoat);
+        ltcValue = LTCEvaluate(P1, P2, B, mul(orthoBasisViewNormal,preLightData.ltcTransformCoat));
         ltcValue *= lightData.specularScale;
         // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
         lighting.diffuse *= (1.0 - preLightData.coatIblF);
@@ -1453,8 +1461,10 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     }
 #endif
 
-#endif // LIT_DISPLAY_REFERENCE_AREA
+//#endif // LIT_DISPLAY_REFERENCE_AREA
+}
 //*/
+
     return lighting;
 }
 
@@ -1969,8 +1979,7 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
     float3 positionWS = posInput.positionWS;
 
-#if 0 // defined(LIT_DISPLAY_REFERENCE_AREA)
-    lightData.size *= 0.5;
+#if defined(LIT_DISPLAY_REFERENCE_AREA)
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
 
@@ -2174,7 +2183,6 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     ZERO_INITIALIZE(DirectLighting, lighting);
 
 #if 0//defined(LIT_DISPLAY_REFERENCE_AREA)
-    lightData.size *= 0.5;
     IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
 
@@ -2447,7 +2455,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-#if 1   // OLD CODE
+#if 0   // OLD CODE
     switch ( lightData.lightType )
     {
         case GPULIGHTTYPE_LINE:
@@ -2467,11 +2475,23 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     if ( lightData.lightType == GPULIGHTTYPE_LINE )
         return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
 
-#if defined(LIT_DISPLAY_REFERENCE_AREA)
+//#if defined(LIT_DISPLAY_REFERENCE_AREA)
+if ( _EnableGroundTruth > 0.5 ) {
     IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
 
-#else
+lighting.specular = 0;
+
+//#else
+} else {
+
+
+// Dynamic ground truth enabling
+//if ( _EnableGroundTruth > 0.5 ) {
+//    IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
+//                          lighting.diffuse, lighting.specular);
+//    return lighting;
+//}
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -2559,21 +2579,22 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float4x3 lightVerts;
 
     // TODO: some of this could be precomputed.
-    lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    lightVerts[0] = lightData.positionRWS + lightData.right * halfWidth + lightData.up * halfHeight;
+    lightVerts[1] = lightData.positionRWS + lightData.right * halfWidth - lightData.up * halfHeight;
+    lightVerts[2] = lightData.positionRWS - lightData.right * halfWidth - lightData.up * halfHeight;
+    lightVerts[3] = lightData.positionRWS - lightData.right * halfWidth + lightData.up * halfHeight;
 
 // Not required anymore: orthoBasisViewNormal is already composed with M^-1
 //    // Rotate the endpoints into the local coordinate system.
 //    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
 
+    bool    isRectangleLight = lightData.lightType == GPULIGHTTYPE_RECTANGLE;
     float   ltcValue;
 
     // Evaluate the diffuse part
     // Polygon irradiance in the transformed configuration.
 //    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
-    ltcValue = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformDiffuse), lightData.lightType == GPULIGHTTYPE_RECTANGLE );
+    ltcValue = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformDiffuse), isRectangleLight );
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     // See comment for specular magnitude, it apply to diffuse as well
     lighting.diffuse = preLightData.diffuseFGD * ltcValue;
@@ -2593,7 +2614,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
         // Polygon irradiance in the transformed configuration.
         // TODO: double evaluation is very inefficient! This is a temporary solution.
 //        ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
-        ltcValue = LTC_Evaluate( mul(lightVerts, ltcTransform), lightData.lightType == GPULIGHTTYPE_RECTANGLE );
+        ltcValue = LTC_Evaluate( mul(lightVerts, ltcTransform), isRectangleLight );
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += bsdfData.transmittance * ltcValue;
@@ -2602,7 +2623,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     // Evaluate the specular part
     // Polygon irradiance in the transformed configuration.
 //    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
-    ltcValue = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformSpecular), lightData.lightType == GPULIGHTTYPE_RECTANGLE );
+    ltcValue = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformSpecular), isRectangleLight );
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
     // This value is what we store in specularFGD, so reuse it
@@ -2612,7 +2633,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
 //        ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
-        ltcValue = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformCoat), lightData.lightType == GPULIGHTTYPE_RECTANGLE );
+        ltcValue = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformCoat), isRectangleLight );
         // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
         lighting.diffuse *= (1.0 - preLightData.coatIblF);
         lighting.specular *= (1.0 - preLightData.coatIblF);
@@ -2641,7 +2662,8 @@ lighting.specular = 0;
         }
     #endif
 
-#endif // LIT_DISPLAY_REFERENCE_AREA
+//#endif // LIT_DISPLAY_REFERENCE_AREA
+}
 
     return lighting;
 

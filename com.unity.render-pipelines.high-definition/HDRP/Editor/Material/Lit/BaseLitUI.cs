@@ -179,9 +179,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty specularAAThreshold = null;
         protected const string kSpecularAAThreshold = "_SpecularAAThreshold";
 
+MaterialProperty debugGroundTruthProp;
+
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             base.FindBaseMaterialProperties(props);
+
+debugGroundTruthProp = FindProperty( "_EnableGroundTruth", props, false );
 
             doubleSidedNormalMode = FindProperty(kDoubleSidedNormalMode, props, false);
             depthOffsetEnable = FindProperty(kDepthOffsetEnable, props, false);
@@ -248,6 +252,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void BaseMaterialPropertiesGUI()
         {
+m_MaterialEditor.ShaderProperty( debugGroundTruthProp, "<DEBUG> Enable Ground Truth" );
+
+
             base.BaseMaterialPropertiesGUI();
 
             EditorGUI.indentLevel++;
