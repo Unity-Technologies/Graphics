@@ -1974,7 +1974,7 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
 
-//lighting.specular = 0;
+lighting.specular = 0;
 
 /*#elif 1   // FAILED ATTEMPT
     // Ground truth code from http://blog.selfshadow.com/ltc/webgl/ltc_disk.html
@@ -2120,7 +2120,8 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 //    preLightData.ltcTransformSpecular = mul( transpose(preLightData.orthoBasisViewNormal), preLightData.ltcTransformSpecular );
 
 
-    ltcValue  = LTC_Evaluate( preLightData.ltcTransformDiffuse, center, axisX, axisY );
+//    ltcValue  = LTC_Evaluate( preLightData.ltcTransformDiffuse, center, axisX, axisY );
+    ltcValue  = LTC_Evaluate_TEMP( preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData, posInput );
     ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     // See comment for specular magnitude, it apply to diffuse as well
@@ -2128,7 +2129,8 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
     // Evaluate the specular part
     // Polygon irradiance in the transformed configuration.
-    ltcValue  = LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY );
+//    ltcValue  = LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY );
+    ltcValue  = LTC_Evaluate_TEMP( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
     ltcValue *= lightData.specularScale;
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
@@ -2151,6 +2153,10 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 #endif
 
 #endif
+
+
+lighting.specular = 0;
+
 
     return lighting;
 }
@@ -2441,18 +2447,21 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-//    switch ( lightData.lightType )
-//    {
-//        case GPULIGHTTYPE_LINE:
-//            return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-//        case GPULIGHTTYPE_SPHERE:
-//            return EvaluateBSDF_Sphere(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-//        case GPULIGHTTYPE_DISK:
-//            return EvaluateBSDF_Disk(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-////        case GPULIGHTTYPE_RECTANGLE:
-//        default:
-//            return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-//    }
+#if 1   // OLD CODE
+    switch ( lightData.lightType )
+    {
+        case GPULIGHTTYPE_LINE:
+            return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        case GPULIGHTTYPE_SPHERE:
+            return EvaluateBSDF_Sphere(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+        case GPULIGHTTYPE_DISK:
+            return EvaluateBSDF_Disk(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+//        case GPULIGHTTYPE_RECTANGLE:
+        default:
+            return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+    }
+
+#else   // NEW CODE
 
     // Linear lights are an exception
     if ( lightData.lightType == GPULIGHTTYPE_LINE )
@@ -2619,7 +2628,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     lighting.specular *= lightData.color * lightData.specularScale * intensity;
 
 
-//lighting.specular = 0;
+lighting.specular = 0;
 
 
     #ifdef DEBUG_DISPLAY
@@ -2635,6 +2644,8 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
     return lighting;
+
+#endif  // NEW CODE
 }
 
 //-----------------------------------------------------------------------------
