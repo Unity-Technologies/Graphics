@@ -1567,6 +1567,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 7
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 3
@@ -1613,6 +1614,7 @@ VisualEffectResource:
         index: 12
       - nameId: bounds_size
         index: 11
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -1626,6 +1628,7 @@ VisualEffectResource:
       - nameId: deltaTime_a
         index: 13
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 1
     - type: 805306369
       buffers:
@@ -1641,6 +1644,7 @@ VisualEffectResource:
       - nameId: localToWorld
         index: 9
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 3
     - type: 1073741826
       buffers:
@@ -1660,6 +1664,7 @@ VisualEffectResource:
         index: 0
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 2
 --- !u!114 &8926484042661614528
 MonoBehaviour:

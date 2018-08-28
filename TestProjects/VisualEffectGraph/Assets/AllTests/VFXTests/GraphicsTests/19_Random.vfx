@@ -3315,6 +3315,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 23
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 1
@@ -3357,6 +3358,7 @@ VisualEffectResource:
         index: 24
       - nameId: bounds_size
         index: 21
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -3368,6 +3370,7 @@ VisualEffectResource:
       - nameId: deltaTime_a
         index: 25
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 1
     - type: 1073741826
       buffers:
@@ -3381,6 +3384,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 2
   - type: 2
     flags: 0
@@ -3403,6 +3407,7 @@ VisualEffectResource:
       - nameId: _Color
         index: 26
       params: []
+      processor: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
       shaderSourceIndex: -1
 --- !u!114 &8926484042661614528
 MonoBehaviour:

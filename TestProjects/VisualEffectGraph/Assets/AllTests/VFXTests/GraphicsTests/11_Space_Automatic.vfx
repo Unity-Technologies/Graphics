@@ -11122,6 +11122,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 15
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 0
     flags: 0
@@ -11138,6 +11139,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 15
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 0
     flags: 0
@@ -11154,6 +11156,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 15
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 0
     flags: 0
@@ -11170,6 +11173,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 15
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 1
@@ -11208,6 +11212,7 @@ VisualEffectResource:
         index: 2
       - nameId: bounds_size
         index: 16
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -11219,6 +11224,7 @@ VisualEffectResource:
       - nameId: deltaTime_a
         index: 20
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 1
     - type: 1073741826
       buffers:
@@ -11230,6 +11236,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 2
   - type: 1
     flags: 1
@@ -11270,6 +11277,7 @@ VisualEffectResource:
         index: 2
       - nameId: bounds_size
         index: 16
+      processor: {fileID: 0}
       shaderSourceIndex: 3
     - type: 805306368
       buffers:
@@ -11281,6 +11289,7 @@ VisualEffectResource:
       - nameId: deltaTime_a
         index: 20
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 5
     - type: 1073741826
       buffers:
@@ -11292,6 +11301,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 4
   - type: 1
     flags: 1
@@ -11330,6 +11340,7 @@ VisualEffectResource:
         index: 2
       - nameId: bounds_size
         index: 16
+      processor: {fileID: 0}
       shaderSourceIndex: 6
     - type: 805306368
       buffers:
@@ -11341,6 +11352,7 @@ VisualEffectResource:
       - nameId: deltaTime_a
         index: 20
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 8
     - type: 1073741826
       buffers:
@@ -11352,6 +11364,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 7
   - type: 1
     flags: 1
@@ -11392,6 +11405,7 @@ VisualEffectResource:
         index: 2
       - nameId: bounds_size
         index: 16
+      processor: {fileID: 0}
       shaderSourceIndex: 9
     - type: 805306368
       buffers:
@@ -11403,6 +11417,7 @@ VisualEffectResource:
       - nameId: deltaTime_a
         index: 20
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 11
     - type: 1073741826
       buffers:
@@ -11414,4 +11429,5 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 10

@@ -2383,6 +2383,7 @@ VisualEffectResource:
       - nameId: Delay
         index: 269
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 0
@@ -2413,6 +2414,7 @@ VisualEffectResource:
         index: 255
       - nameId: bounds_size
         index: 268
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -2432,6 +2434,7 @@ VisualEffectResource:
       - nameId: uniform_g
         index: 153
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 2
     - type: 1073741826
       buffers:
@@ -2447,6 +2450,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 1
   - type: 2
     flags: 0
@@ -2471,6 +2475,7 @@ VisualEffectResource:
       - nameId: _RimCoef
         index: 266
       params: []
+      processor: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
       shaderSourceIndex: -1
   - type: 2
     flags: 0
@@ -2495,6 +2500,7 @@ VisualEffectResource:
       - nameId: _RimCoef
         index: 266
       params: []
+      processor: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
       shaderSourceIndex: -1
 --- !u!114 &8926484042661614540
 MonoBehaviour:

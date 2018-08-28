@@ -972,6 +972,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 25
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 1
@@ -1010,6 +1011,7 @@ VisualEffectResource:
         index: 27
       - nameId: bounds_size
         index: 17
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -1023,6 +1025,7 @@ VisualEffectResource:
       - nameId: deltaDragCoefficient_b
         index: 8
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 1
     - type: 1073741826
       buffers:
@@ -1034,6 +1037,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 2
   - type: 1
     flags: 1
@@ -1072,6 +1076,7 @@ VisualEffectResource:
         index: 21
       - nameId: bounds_size
         index: 17
+      processor: {fileID: 0}
       shaderSourceIndex: 3
     - type: 805306368
       buffers:
@@ -1085,6 +1090,7 @@ VisualEffectResource:
       - nameId: deltaDragCoefficient_b
         index: 8
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 4
     - type: 1073741826
       buffers:
@@ -1096,6 +1102,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 5
   - type: 1
     flags: 1
@@ -1134,6 +1141,7 @@ VisualEffectResource:
         index: 22
       - nameId: bounds_size
         index: 17
+      processor: {fileID: 0}
       shaderSourceIndex: 6
     - type: 805306368
       buffers:
@@ -1147,6 +1155,7 @@ VisualEffectResource:
       - nameId: deltaDragCoefficient_b
         index: 8
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 7
     - type: 1073741826
       buffers:
@@ -1158,6 +1167,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 8
   - type: 1
     flags: 1
@@ -1196,6 +1206,7 @@ VisualEffectResource:
         index: 23
       - nameId: bounds_size
         index: 17
+      processor: {fileID: 0}
       shaderSourceIndex: 9
     - type: 805306368
       buffers:
@@ -1211,6 +1222,7 @@ VisualEffectResource:
       - nameId: DistanceField_c
         index: 13
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 10
     - type: 1073741826
       buffers:
@@ -1222,6 +1234,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 11
 --- !u!114 &8926484042661614573
 MonoBehaviour:

@@ -330,6 +330,7 @@ VisualEffectResource:
       - nameId: _MainTex
         index: 1
       params: []
+      processor: {fileID: 10750, guid: 0000000000000000f000000000000000, type: 0}
       shaderSourceIndex: -1
 --- !u!114 &8926484042661614528
 MonoBehaviour:

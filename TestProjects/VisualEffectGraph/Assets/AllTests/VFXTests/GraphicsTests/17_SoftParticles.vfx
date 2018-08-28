@@ -3995,6 +3995,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 0
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 3
@@ -4039,6 +4040,7 @@ VisualEffectResource:
         index: 21
       - nameId: bounds_size
         index: 22
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -4054,6 +4056,7 @@ VisualEffectResource:
       - nameId: gradient_c
         index: 11
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 1
     - type: 805306369
       buffers:
@@ -4069,6 +4072,7 @@ VisualEffectResource:
       - nameId: localToWorld
         index: 13
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 6
     - type: 1073741826
       buffers:
@@ -4086,6 +4090,7 @@ VisualEffectResource:
         index: 0
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 2
     - type: 1073741824
       buffers:
@@ -4099,6 +4104,7 @@ VisualEffectResource:
         index: 0
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 4
     - type: 1073741826
       buffers:
@@ -4114,6 +4120,7 @@ VisualEffectResource:
         index: 0
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 3
     - type: 1073741828
       buffers:
@@ -4133,6 +4140,7 @@ VisualEffectResource:
         index: 0
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 5
 --- !u!114 &8926484042661614529
 MonoBehaviour:

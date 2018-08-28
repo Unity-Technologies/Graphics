@@ -5494,6 +5494,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 31
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 1
@@ -5534,6 +5535,7 @@ VisualEffectResource:
         index: 30
       - nameId: bounds_size
         index: 26
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -5553,6 +5555,7 @@ VisualEffectResource:
       - nameId: deltaTime_e
         index: 13
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 1
     - type: 1073741826
       buffers:
@@ -5564,6 +5567,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 3
     - type: 1073741826
       buffers:
@@ -5575,6 +5579,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 4
     - type: 1073741826
       buffers:
@@ -5586,6 +5591,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 5
     - type: 1073741828
       buffers:
@@ -5603,6 +5609,7 @@ VisualEffectResource:
         index: 28
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 6
     - type: 1073741826
       buffers:
@@ -5616,6 +5623,7 @@ VisualEffectResource:
       params:
       - nameId: sortPriority
         index: -1
+      processor: {fileID: 0}
       shaderSourceIndex: 2
 --- !u!114 &8926484042661614528
 MonoBehaviour:

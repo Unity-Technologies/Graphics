@@ -6621,6 +6621,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 27
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 3
@@ -6665,6 +6666,7 @@ VisualEffectResource:
         index: 4
       - nameId: bounds_size
         index: 33
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -6680,6 +6682,7 @@ VisualEffectResource:
       - nameId: deltaTime_b
         index: 32
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 1
     - type: 805306369
       buffers:
@@ -6695,6 +6698,7 @@ VisualEffectResource:
       - nameId: localToWorld
         index: 14
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 6
     - type: 1073741828
       buffers:
@@ -6716,6 +6720,7 @@ VisualEffectResource:
         index: 0
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 2
     - type: 1073741828
       buffers:
@@ -6735,6 +6740,7 @@ VisualEffectResource:
         index: 0
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 3
     - type: 1073741828
       buffers:
@@ -6754,6 +6760,7 @@ VisualEffectResource:
         index: 0
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 4
     - type: 1073741828
       buffers:
@@ -6769,6 +6776,7 @@ VisualEffectResource:
         index: 21
       - nameId: sortPriority
         index: 0
+      processor: {fileID: 0}
       shaderSourceIndex: 5
   - type: 2
     flags: 0
@@ -6793,6 +6801,7 @@ VisualEffectResource:
       - nameId: _RimCoef
         index: 13
       params: []
+      processor: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
       shaderSourceIndex: -1
   - type: 2
     flags: 0
@@ -6817,6 +6826,7 @@ VisualEffectResource:
       - nameId: _RimCoef
         index: 13
       params: []
+      processor: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
       shaderSourceIndex: -1
   - type: 2
     flags: 0
@@ -6841,6 +6851,7 @@ VisualEffectResource:
       - nameId: _RimCoef
         index: 13
       params: []
+      processor: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
       shaderSourceIndex: -1
 --- !u!114 &8926484042661614528
 MonoBehaviour:

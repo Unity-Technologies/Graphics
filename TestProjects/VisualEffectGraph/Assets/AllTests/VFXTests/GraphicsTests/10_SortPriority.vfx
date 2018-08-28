@@ -5654,6 +5654,7 @@ VisualEffectResource:
       - nameId: Rate
         index: 7
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: -1
   - type: 1
     flags: 3
@@ -5698,6 +5699,7 @@ VisualEffectResource:
         index: 9
       - nameId: bounds_size
         index: 8
+      processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -5711,6 +5713,7 @@ VisualEffectResource:
       - nameId: deltaTime_a
         index: 3
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 2
     - type: 805306369
       buffers:
@@ -5726,6 +5729,7 @@ VisualEffectResource:
       - nameId: localToWorld
         index: 4
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 9
     - type: 1073741826
       buffers:
@@ -5743,6 +5747,7 @@ VisualEffectResource:
         index: 2
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 1
   - type: 1
     flags: 3
@@ -5787,6 +5792,7 @@ VisualEffectResource:
         index: 9
       - nameId: bounds_size
         index: 8
+      processor: {fileID: 0}
       shaderSourceIndex: 3
     - type: 805306368
       buffers:
@@ -5800,6 +5806,7 @@ VisualEffectResource:
       - nameId: deltaTime_a
         index: 3
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 4
     - type: 805306369
       buffers:
@@ -5815,6 +5822,7 @@ VisualEffectResource:
       - nameId: localToWorld
         index: 4
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 10
     - type: 1073741826
       buffers:
@@ -5832,6 +5840,7 @@ VisualEffectResource:
         index: 1
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 5
   - type: 1
     flags: 3
@@ -5876,6 +5885,7 @@ VisualEffectResource:
         index: 9
       - nameId: bounds_size
         index: 8
+      processor: {fileID: 0}
       shaderSourceIndex: 6
     - type: 805306368
       buffers:
@@ -5889,6 +5899,7 @@ VisualEffectResource:
       - nameId: deltaTime_a
         index: 3
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 7
     - type: 805306369
       buffers:
@@ -5904,6 +5915,7 @@ VisualEffectResource:
       - nameId: localToWorld
         index: 4
       params: []
+      processor: {fileID: 0}
       shaderSourceIndex: 11
     - type: 1073741826
       buffers:
@@ -5921,4 +5933,5 @@ VisualEffectResource:
         index: 0
       - nameId: indirectDraw
         index: 1
+      processor: {fileID: 0}
       shaderSourceIndex: 8
