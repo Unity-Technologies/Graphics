@@ -59,6 +59,23 @@ namespace UnityEditor.VFX
             }
         }
 
+        [SerializeField]
+        string m_Tooltip;
+
+        public string tooltip
+        {
+            get
+            {
+                return m_Tooltip;
+            }
+
+            set
+            {
+                m_Tooltip = value;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
+        }
+
         [System.Serializable]
         public struct NodeLinkedSlot
         {
