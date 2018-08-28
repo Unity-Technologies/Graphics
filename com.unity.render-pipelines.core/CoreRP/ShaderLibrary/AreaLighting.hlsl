@@ -142,10 +142,11 @@ real IntegrateEdge(real3 V1, real3 V2)
     return ComputeEdgeFactor(V1, V2).z;
 }
 
-// Expects non-normalized vertex positions.
-real PolygonIrradiance(real4x3 L)
+// Returns the vector form-factor (i.e. vector irradiance/2PI) of the quadrilateral
+// L contains the 4 corners of the quad
+// Returns an average direction vector scaled by the scalar form-factor
+real3   PolygonFormFactor( real4x3 L )
 {
-#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
     UNITY_UNROLL
     for (uint i = 0; i < 4; i++)
     {
@@ -163,12 +164,22 @@ real PolygonIrradiance(real4x3 L)
         F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
 
-    // Clamp invalid values to avoid visual artifacts.
-    real f2         = saturate(dot(F, F));
-    real sinSqSigma = min(sqrt(f2), 0.999);
-    real cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
+    return F;
+}
 
-    return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
+// Expects non-normalized vertex positions.
+// L contains the 4 corners of the quad
+real PolygonIrradiance(real4x3 L)
+{
+#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+    real3 F = PolygonFormFactor( L );
+
+    // Clamp invalid values to avoid visual artifacts.
+    real    f = length( F );
+    real    cosOmega   = clamp( F.z / f, -1, 1);
+    real    sqSinSigma = min( f, 0.999 );
+
+    return DiffuseSphereLightIrradiance( sqSinSigma, cosOmega );
 #else
     // 1. ClipQuadToHorizon
 
@@ -412,18 +423,17 @@ real3 SolveCubic( real4 coefficients )
     return roots;
 }
 
-// Minv is the M^-1 matrix for the LTC
-// center, the local position of the disk (i.e. *RELATIVE* to our world position)
-// axisX, the world-space scaled X axis of the ellipse
-// axisY, the world-space scaled Y axis of the ellipse
-real   LTC_Evaluate( real3x3 Minv, real3 center, real3 axisX, real3 axisY )
+// Returns the vector form-factor (i.e. vector irradiance/2PI) of the disc
+// L contains the 4 corners of the quad bounding the elliptical disc, in tangent space
+// Returns an average direction vector scaled by the scalar form-factor
+real3   DiskFormFactor( real4x3 lightVerts )
 {
-    // Initialize ellipse in original clamped-cosine space
-    real3  C  = mul( center, Minv );
-    real3  V1 = mul( axisX, Minv );
-    real3  V2 = mul( axisY, Minv );
+    // Initalize ellipse in original clamped-cosine space
+    real3   C  = 0.5 * (lightVerts[0] + lightVerts[2]);
+    real3   V1 = 0.5 * (lightVerts[0] - lightVerts[3]);
+    real3   V2 = 0.5 * (lightVerts[3] - lightVerts[2]);
 
-    real3  V3 = cross(V2, V1);         // Normal to ellipse's plane
+    real3   V3 = cross(V2, V1);         // Normal to ellipse's plane
     if( dot( V3, C ) < 0.0 )
         return 0.0;
 
@@ -448,7 +458,7 @@ real   LTC_Evaluate( real3x3 Minv, real3 center, real3 axisX, real3 axisY )
         real    e_max = Sq( u + v );
         real    e_min = Sq( u - v );
 
-        real3  V1_, V2_;
+        real3   V1_, V2_;
         if ( d11 > d22 )
         {
             V1_ = d12*V1 + (e_max - d11)*V2;
@@ -492,7 +502,7 @@ real   LTC_Evaluate( real3x3 Minv, real3 center, real3 axisX, real3 axisY )
     real    c2 = 1.0 - a*(1.0 + x0*x0) - b*(1.0 + y0*y0);
     real    c3 = 1.0;
 
-    real3  roots = SolveCubic(real4(c0, c1, c2, c3));
+    real3   roots = SolveCubic(real4(c0, c1, c2, c3));
     real    e1 = roots.x;
     real    e2 = roots.y;
     real    e3 = roots.z;
@@ -500,9 +510,9 @@ real   LTC_Evaluate( real3x3 Minv, real3 center, real3 axisX, real3 axisY )
     #if 1
         real    ae2 = a - e2;
         real    be2 = b - e2;
-        real3  avgDir = real3( a * x0 * be2, b * y0 * ae2, ae2 * be2 );   // No change except we avoid divisions...
+        real3   avgDir = real3( a * x0 * be2, b * y0 * ae2, ae2 * be2 );   // No change except we avoid divisions...
     #else
-        real3  avgDir = real3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
+        real3   avgDir = real3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
     #endif
 
     avgDir = normalize( mul( avgDir, real3x3( V1, V2, V3 ) ) );
@@ -512,16 +522,18 @@ real   LTC_Evaluate( real3x3 Minv, real3 center, real3 axisX, real3 axisY )
 
     real    formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
 
-    // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines" pp. 25
-    // Then we need to find a sphere providing the same solid angle value as this projected irradiance, then retrieve the apex half-angle we need
-    //
-    // The solid angle of such sphere is given by Omega/2PI = E_proj/PI = 1-cos(sigma) where sigma is the half apex angle
-    // We have thus:
-    //  cos(sigma) = 1 - E_proj/PI
-    //  sin²(sigma) = 1 - cos(sigma)² = 1 - (1 - E_proj/PI)²
-    //
-    real    sqSinSigma = min( 1 - Sq( 1 - formFactor * INV_PI ), 0.999 );
-    real    cosOmega   = clamp( avgDir.z , -1, 1 );
+    return formFactor * avgDir;
+}
+
+// L contains the 4 corners of the quad bounding the elliptical disc
+real   LTCEvaluate_Disk( real4x3 L )
+{
+    real3   F = DiskFormFactor( L );
+
+    // Clamp invalid values to avoid visual artifacts.
+    real    f = length( F );
+    real    cosOmega   = clamp( F.z / f, -1, 1);
+    real    sqSinSigma = min( f, 0.999 );
 
     return DiffuseSphereLightIrradiance( sqSinSigma, cosOmega );
 }
@@ -623,6 +635,27 @@ real LTCEvaluate(real3 P1, real3 P2, real3 B, real3x3 invM)
 
     // Guard against numerical precision issues.
     return max(INV_PI * width * irradiance, 0.0);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// GENERIC EVALUATE (RECTANGLE + DISK + SPHERE LIGHTS)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+real LTCEvaluate_RectDisk( real4x3 L, bool isRectangleLight )
+{
+    real3   F;
+    if ( isRectangleLight )
+        F = PolygonFormFactor( L );
+    else
+        F = DiskFormFactor( L );
+
+    // Clamp invalid values to avoid visual artifacts.
+    real    f = length( F );
+    real    cosOmega   = clamp( F.z / f, -1, 1);
+    real    sqSinSigma = min( f, 0.999 );
+
+    return DiffuseSphereLightIrradiance( sqSinSigma, cosOmega );
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
