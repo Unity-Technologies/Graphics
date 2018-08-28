@@ -536,11 +536,19 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float  ds              = ConvertJitterDistToCenterRayDist(ray, dt);
         float  centerTransmInt = TransmittanceIntegralHomogeneousMedium(extinction, ds);
 
-        bool   reprojSuccess   = reprojValue.a != 0;
-        float  blendFactor     = reprojSuccess ? historyWeight : 0;
-        float  reprojScale     = reprojSuccess ? (centerTransmInt * rcp(reprojValue.a)) : 0;
-        float3 reprojRadiance  = reprojValue.rgb;
-        float3 blendedRadiance = (1 - blendFactor) * lighting.radianceNoPhase + blendFactor * reprojScale * reprojRadiance;
+        float3 blendedRadiance = lighting.radianceNoPhase;
+
+        // Uninitialized history texture may contain NaNs.
+        // TODO: clear the texture after creating it. Clearing 3D textures is broken in Unity. :-(
+        bool reprojSuccess = (reprojValue.a != 0) && !isnan(reprojValue.a);
+
+        if (reprojSuccess)
+        {
+            float  reprojScale    = centerTransmInt * rcp(reprojValue.a);
+            float3 reprojRadiance = reprojValue.rgb * reprojScale;
+
+            blendedRadiance = lerp(lighting.radianceNoPhase, reprojRadiance, historyWeight);
+        }
 
         // Store the feedback for the voxel.
         // TODO: dynamic lights (which update their position, rotation, cookie or shadow at runtime)
