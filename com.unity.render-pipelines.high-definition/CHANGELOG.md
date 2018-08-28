@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.4.0-preview]
 
+### Fixed
+- Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.
+
 ## [3.3.0-preview]
 
 ### Added
