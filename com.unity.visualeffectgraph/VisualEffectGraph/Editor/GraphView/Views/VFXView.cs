@@ -795,17 +795,12 @@ namespace UnityEditor.VFX.UI
                     groupNodes.Remove(deletedController);
                 }
 
-
-                bool addNew = false;
-
                 foreach (var newController in controller.groupNodes.Except(groupNodes.Keys))
                 {
                     var newElement = new VFXGroupNode();
                     AddElement(newElement);
                     newElement.controller = newController;
                     groupNodes.Add(newController, newElement);
-
-                    addNew = true;
                 }
             }
         }
