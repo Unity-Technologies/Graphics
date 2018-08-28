@@ -56,7 +56,7 @@ namespace  UnityEditor.VFX.UI
                 if (m_SubProperties != null)
                     result = result.Concat(m_SubProperties);
                 if (m_TooltipProperty != null)
-                    result = result.Concat(Enumerable.Repeat(m_TooltipProperty, 1));
+                    result = result.Concat(Enumerable.Repeat<PropertyRM>(m_TooltipProperty, 1));
                 if (m_RangeProperty != null)
                     result = result.Concat(Enumerable.Repeat<PropertyRM>(m_RangeProperty, 1));
                 if (m_MinProperty != null)
