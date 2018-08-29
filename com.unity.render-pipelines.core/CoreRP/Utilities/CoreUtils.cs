@@ -7,21 +7,8 @@ namespace UnityEngine.Experimental.Rendering
 {
     using UnityObject = UnityEngine.Object;
 
-    [Flags]
-    public enum ClearFlag
-    {
-        None  = 0,
-        Color = 1,
-        Depth = 2,
-
-        All = Depth | Color
-    }
-
     public static class CoreUtils
     {
-        // Keep a reference to default values for Reset purpose
-        static public AdditionalShadowData s_DefaultAdditionalShadowData { get { return ComponentSingleton<AdditionalShadowData>.instance; } }
-
         // Data useful for various cubemap processes.
         // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
         static public readonly Vector3[] lookAtList =
@@ -438,12 +425,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (buffer != null)
                 buffer.Release();
-        }
-
-        public static unsafe void QuickSort(uint[] arr, int left, int right)
-        {
-            fixed (uint* ptr = arr)
-                CoreUnsafeUtils.QuickSort<uint>(ptr, left, right);
         }
 
         public static Mesh CreateCubeMesh(Vector3 min, Vector3 max)
