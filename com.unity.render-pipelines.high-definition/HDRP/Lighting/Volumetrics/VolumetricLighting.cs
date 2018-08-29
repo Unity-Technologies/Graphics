@@ -138,13 +138,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle       m_LightingBufferHandle;
 
         // Is the feature globally disabled?
-        bool m_supportVolumetrics = false;
+        bool m_SupportVolumetrics = false;
+
+        // The history buffer starts in the uninitialized state after being created or resized,
+        // and contains arbitrary data. Therefore, we must initialize it before use.
+        Vector3Int m_PreviousResolutionOfHistoryBuffer = Vector3Int.zero;
 
         public void Build(HDRenderPipelineAsset asset)
         {
-            m_supportVolumetrics = asset.renderPipelineSettings.supportVolumetrics;
+            m_SupportVolumetrics = asset.renderPipelineSettings.supportVolumetrics;
 
-            if (!m_supportVolumetrics)
+            if (!m_SupportVolumetrics)
                 return;
 
             preset = asset.renderPipelineSettings.increaseResolutionOfVolumetrics ? VolumetricLightingPreset.High :
@@ -266,7 +270,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Note: Here we can't test framesettings as they are not initialize yet
             // TODO: Here we allocate history even for camera that may not use volumetric
-            if (!m_supportVolumetrics)
+            if (!m_SupportVolumetrics)
                 return;
 
             // Start with the same parameters for both frames. Then update them one by one every frame.
@@ -711,8 +715,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, m_LightingBufferHandle); // Write
                 if (enableReprojection)
                 {
-                    cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting));// Read
-                    cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting)); // Write
+                    var historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
+                    var feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
+
+                    // Detect if the history buffer has been recreated or resized.
+                    Vector3Int currentResolutionOfHistoryBuffer = new Vector3Int();
+                    currentResolutionOfHistoryBuffer.x = historyRT.rt.width;
+                    currentResolutionOfHistoryBuffer.y = historyRT.rt.height;
+                    currentResolutionOfHistoryBuffer.z = historyRT.rt.volumeDepth;
+
+                    // We allow downsizing, as this does not cause a reallocation.
+                    bool validHistory = (currentResolutionOfHistoryBuffer.x <= m_PreviousResolutionOfHistoryBuffer.x &&
+                                         currentResolutionOfHistoryBuffer.y <= m_PreviousResolutionOfHistoryBuffer.y &&
+                                         currentResolutionOfHistoryBuffer.z <= m_PreviousResolutionOfHistoryBuffer.z);
+
+                    cmd.SetComputeIntParam(    m_VolumetricLightingCS,         HDShaderIDs._VBufferLightingHistoryIsValid, validHistory ? 1 : 0);
+                    cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,        historyRT);  // Read
+                    cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback,       feedbackRT); // Write
+
+                    m_PreviousResolutionOfHistoryBuffer = currentResolutionOfHistoryBuffer;
                 }
 
                 int w = (int)resolution.x;
