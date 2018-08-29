@@ -987,8 +987,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // Area light
     // UVs for sampling the LUTs
-//    float theta = FastACosPos(NdotV); // For Area light - UVs for sampling the LUTs
-//    float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
     float2  uv = LTCGetSamplingUV( NdotV, bsdfData.perceptualRoughness );
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
@@ -1005,30 +1003,21 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     #else
         // Get the inverse LTC matrix for Disney Diffuse
         // Note we load the matrix transposed (avoid to have to transpose it in shader)
-//        preLightData.ltcTransformDiffuse      = 0.0;
-//        preLightData.ltcTransformDiffuse._m22 = 1.0;
-//        preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
         preLightData.ltcTransformDiffuse = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX ) );
     #endif
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
-//    preLightData.ltcTransformSpecular      = 0.0;
-//    preLightData.ltcTransformSpecular._m22 = 1.0;
-//    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
     preLightData.ltcTransformSpecular = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_GGX_MATRIX_INDEX ) );
 
 
     preLightData.ltcTransformCoat = 0.0;
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-//        float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(CLEAR_COAT_PERCEPTUAL_ROUGHNESS, theta * INV_HALF_PI);
         float2  uv = LTCGetSamplingUV( NdotV, CLEAR_COAT_PERCEPTUAL_ROUGHNESS );
 
         // Get the inverse LTC matrix for GGX
         // Note we load the matrix transpose (avoid to have to transpose it in shader)
-//        preLightData.ltcTransformCoat._m22 = 1.0;
-//        preLightData.ltcTransformCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
         preLightData.ltcTransformCoat = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_GGX_MATRIX_INDEX ) );
     }
 
@@ -1350,12 +1339,13 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 //*
     float3 positionWS = posInput.positionWS;
 
-//#ifdef LIT_DISPLAY_REFERENCE_AREA
-if ( _EnableGroundTruth > 0.5 ) {
+#ifdef LIT_DISPLAY_REFERENCE_AREA
+//if ( _EnableGroundTruth > 0.5 ) {
     IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
-//#else
-} else {
+#else
+//} else {
+
     float  len = lightData.size.x;
     float3 T   = lightData.right;
 
@@ -1461,8 +1451,8 @@ orthoBasisViewNormal[1] = cross(orthoBasisViewNormal[2], orthoBasisViewNormal[0]
     }
 #endif
 
-//#endif // LIT_DISPLAY_REFERENCE_AREA
-}
+#endif // LIT_DISPLAY_REFERENCE_AREA
+//}
 //*/
 
     return lighting;
@@ -1480,15 +1470,15 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     if ( lightData.lightType == GPULIGHTTYPE_LINE )
         return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
 
-//#if defined(LIT_DISPLAY_REFERENCE_AREA)
-if ( _EnableGroundTruth > 0.5 ) {
+#if defined(LIT_DISPLAY_REFERENCE_AREA)
+//if ( _EnableGroundTruth > 0.5 ) {
     IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
 
 //lighting.specular = 0;
 
-//#else
-} else {
+#else
+//} else {
 
     ////////////////////////////////////////////////////////////////////////////
     // Sphere pre-processing
@@ -1646,8 +1636,8 @@ if ( _EnableGroundTruth > 0.5 ) {
         }
     #endif
 
-//#endif // LIT_DISPLAY_REFERENCE_AREA
-}
+#endif // LIT_DISPLAY_REFERENCE_AREA
+//}
 
     return lighting;
 }
