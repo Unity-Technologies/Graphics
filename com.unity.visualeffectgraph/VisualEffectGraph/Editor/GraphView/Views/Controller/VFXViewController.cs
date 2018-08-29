@@ -1174,20 +1174,23 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        public void AddVFXParameter(Vector2 pos, VFXParameterController parameterController, VFXGroupNodeController groupNode)
+        public VFXNodeController AddVFXParameter(Vector2 pos, VFXParameterController parameterController, VFXGroupNodeController groupNode)
         {
             int id = parameterController.model.AddNode(pos);
 
             LightApplyChanges();
 
+            var nodeController = GetRootNodeController(parameterController.model, id);
+
             if (groupNode != null)
             {
-                var nodeController = GetRootNodeController(parameterController.model, id);
                 if (nodeController != null)
                 {
                     groupNode.AddNode(nodeController);
                 }
             }
+
+            return nodeController;
         }
 
         public void Clear()
