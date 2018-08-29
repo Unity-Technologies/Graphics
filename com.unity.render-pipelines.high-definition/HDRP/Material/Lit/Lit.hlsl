@@ -2,6 +2,10 @@
 // Includes
 //-----------------------------------------------------------------------------
 
+
+#define DYN_GROUNDTRUTH 1
+
+
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
@@ -988,6 +992,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Area light
     // UVs for sampling the LUTs
     float2  uv = LTCGetSamplingUV( NdotV, bsdfData.perceptualRoughness );
+#if DYN_GROUNDTRUTH
+if ( _EnableGroundTruth )
+    uv = LTCGetSamplingUV_New( NdotV, bsdfData.perceptualRoughness );
+#endif
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     float3x3    orthoBasisViewNormal;
@@ -1003,11 +1011,21 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     #else
         // Get the inverse LTC matrix for Disney Diffuse
         // Note we load the matrix transposed (avoid to have to transpose it in shader)
+#if DYN_GROUNDTRUTH
+if ( _EnableGroundTruth )
+        preLightData.ltcTransformDiffuse = mul( orthoBasisViewNormal, LTCSampleMatrix_New( uv, LTC_MATRIX_INDEX_DISNEY ) );
+else
+#endif
         preLightData.ltcTransformDiffuse = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX ) );
     #endif
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
+#if DYN_GROUNDTRUTH
+if ( _EnableGroundTruth )
+    preLightData.ltcTransformSpecular = mul( orthoBasisViewNormal, LTCSampleMatrix_New( uv, LTC_MATRIX_INDEX_GGX ) );
+else
+#endif
     preLightData.ltcTransformSpecular = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_GGX_MATRIX_INDEX ) );
 
 
@@ -1015,9 +1033,18 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         float2  uv = LTCGetSamplingUV( NdotV, CLEAR_COAT_PERCEPTUAL_ROUGHNESS );
+#if DYN_GROUNDTRUTH
+if ( _EnableGroundTruth )
+    uv = LTCGetSamplingUV_New( NdotV, CLEAR_COAT_PERCEPTUAL_ROUGHNESS );
+#endif
 
         // Get the inverse LTC matrix for GGX
         // Note we load the matrix transpose (avoid to have to transpose it in shader)
+#if DYN_GROUNDTRUTH
+if ( _EnableGroundTruth )
+        preLightData.ltcTransformCoat = mul( orthoBasisViewNormal, LTCSampleMatrix_New( uv, LTC_MATRIX_INDEX_GGX ) );
+else
+#endif
         preLightData.ltcTransformCoat = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_GGX_MATRIX_INDEX ) );
     }
 
@@ -1474,9 +1501,6 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 //if ( _EnableGroundTruth > 0.5 ) {
     IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
-
-//lighting.specular = 0;
-
 #else
 //} else {
 
@@ -1621,10 +1645,6 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     // Save ALU by applying 'lightData.color' only once.
     lighting.diffuse *= lightData.color * lightData.diffuseScale * intensity;
     lighting.specular *= lightData.color * lightData.specularScale * intensity;
-
-
-//lighting.specular = 0;
-
 
     #ifdef DEBUG_DISPLAY
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)

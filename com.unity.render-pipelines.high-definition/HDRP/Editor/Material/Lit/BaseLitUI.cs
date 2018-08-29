@@ -252,7 +252,7 @@ debugGroundTruthProp = FindProperty( "_EnableGroundTruth", props, false );
 
         protected override void BaseMaterialPropertiesGUI()
         {
-//m_MaterialEditor.ShaderProperty( debugGroundTruthProp, "<DEBUG> Enable Ground Truth" );
+m_MaterialEditor.ShaderProperty( debugGroundTruthProp, "<DEBUG> Enable Ground Truth" );
 
 
             base.BaseMaterialPropertiesGUI();
