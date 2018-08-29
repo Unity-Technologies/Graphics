@@ -52,11 +52,12 @@ RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extin
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
-    float4x4 _VBufferCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
-    float4   _VBufferSampleOffset;     // Not used by this shader
-    float    _CornetteShanksConstant;  // Not used by this shader
+    float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
+    float4   _VBufferSampleOffset;              // Not used by this shader
+    float4   _VolumeMaskDimensions;             // x = 1/numTextures , y = width, z = depth = width * numTextures, w = maxLod
     uint     _NumVisibleDensityVolumes;
-    float4   _VolumeMaskDimensions;    //x = 1/numTextures , y = width, z = depth = width * numTextures, w = maxLod
+    float    _CornetteShanksConstant;           // Not used by this shader
+    uint     _VBufferLightingHistoryIsValid;    // Not used by this shader
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
