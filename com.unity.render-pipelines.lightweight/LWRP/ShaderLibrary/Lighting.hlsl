@@ -82,6 +82,12 @@ half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
     // for directional lights attenuation will be 1
     half lightAtten = 1.0h / distanceSqr;
 
+#if defined(SHADER_HINT_NICE_QUALITY)
+    // Use the smoothing factor also used in the Unity lightmapper.
+    half factor = distanceSqr * distanceAttenuation.x;
+    half smoothFactor = saturate(1.0h - factor * factor);
+    smoothFactor = smoothFactor * smoothFactor;
+#else
     // We need to smoothly fade attenuation to light range. We start fading linearly at 80% of light range
     // Therefore:
     // fadeDistance = (0.8 * 0.8 * lightRangeSq)
@@ -90,6 +96,8 @@ half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
     // distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
     // distanceSqr *        distanceAttenuation.y            +             distanceAttenuation.z
     half smoothFactor = saturate(distanceSqr * distanceAttenuation.x + distanceAttenuation.y);
+#endif
+
     return lightAtten * smoothFactor;
 }
 

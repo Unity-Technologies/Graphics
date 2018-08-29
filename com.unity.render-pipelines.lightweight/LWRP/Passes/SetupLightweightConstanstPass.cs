@@ -104,20 +104,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (lightData.lightType != LightType.Directional)
             {
                 // Light attenuation in lightweight matches the unity vanilla one.
-                // attenuation = 1.0 / 1.0 + distanceToLightSqr * quadraticAttenuation
-                // then a smooth factor is applied to linearly fade attenuation to light range
-                // the attenuation smooth factor starts having effect at 80% of light range
+                // attenuation = 1.0 / distanceToLightSqr
+                // We offer two different smoothing factors.
+                // The smoothing factors make sure that the light intensity is zero at the light range limit.
+                // The first smoothing factor is a linear fade starting at 80 % of the light range.
                 // smoothFactor = (lightRangeSqr - distanceToLightSqr) / (lightRangeSqr - fadeStartDistanceSqr)
                 // We rewrite smoothFactor to be able to pre compute the constant terms below and apply the smooth factor
                 // with one MAD instruction
                 // smoothFactor =  distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
                 //                 distanceSqr *           oneOverFadeRangeSqr             +              lightRangeSqrOverFadeRangeSqr
+
+                // The other smoothing factor matches the one used in the Unity lightmapper but is slower than the linear one.
+                // smoothFactor = (1.0 - saturate((distanceSqr * 1.0 / lightrangeSqr)^2))^2
                 float lightRangeSqr = lightData.range * lightData.range;
                 float fadeStartDistanceSqr = 0.8f * 0.8f * lightRangeSqr;
                 float fadeRangeSqr = (fadeStartDistanceSqr - lightRangeSqr);
                 float oneOverFadeRangeSqr = 1.0f / fadeRangeSqr;
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
-                lightAttenuation.x = oneOverFadeRangeSqr;
+                float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightData.range * lightData.range);
+                lightAttenuation.x = SystemInfo.deviceType == DeviceType.Handheld ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
                 subtractiveMixedLighting = 1.0f;
             }
