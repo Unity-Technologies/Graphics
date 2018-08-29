@@ -560,7 +560,8 @@ namespace UnityEditor.VFX
             // Replace defines
             SubstituteMacros(stringBuilder);
 
-            Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
+            if(VFXViewPreference.advancedLogs)
+                Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
 
             return stringBuilder;
         }
