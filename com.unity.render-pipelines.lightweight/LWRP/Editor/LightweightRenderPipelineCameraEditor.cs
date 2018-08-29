@@ -4,21 +4,18 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
     [CustomEditorForRenderPipeline(typeof(Camera), typeof(LightweightPipelineAsset))]
     [CanEditMultipleObjects]
-    public class LightweightameraEditor : CameraEditor
+    internal class LightweightRenderPipelineCameraEditor : CameraEditor
     {
-        public class Styles
+        internal class Styles
         {
-            public readonly GUIContent renderingPathLabel = new GUIContent("Rendering Path");
-            public readonly GUIContent[] renderingPathOptions = { new GUIContent("Forward") };
-            public readonly GUIContent renderingPathInfo = new GUIContent("Lightweight Pipeline only supports Forward rendering path.");
-            public readonly GUIContent fixNow = new GUIContent("Fix now");
-            public readonly GUIContent additionalCameraDataLabel = new GUIContent("Add Additional Camera Data");
-
-            public readonly string mssaDisabledWarning = "Anti Aliasing is disabled in Lightweight Pipeline settings.";
+            public readonly GUIContent renderingPathLabel = EditorGUIUtility.TrTextContent("Rendering Path", "Lightweight Render Pipeline only supports Forward rendering path.");
+            public readonly GUIContent[] renderingPathOptions = { EditorGUIUtility.TrTextContent("Forward") };
+            public readonly string hdrDisabledWarning = "HDR rendering is disabled in the Lightweight Render Pipeline asset.";
+            public readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Lightweight Render Pipeline asset.";
         };
 
         public Camera camera { get { return target as Camera; } }
@@ -108,14 +105,6 @@ namespace UnityEditor
 
             EditorGUILayout.Space();
             EditorGUILayout.Space();
-            GameObject gameObject = camera.gameObject;
-            if (gameObject.GetComponent<LightweightAdditionalCameraData>() == null)
-            {
-                if (GUILayout.Button(s_Styles.additionalCameraDataLabel))
-                {
-                    gameObject.AddComponent<LightweightAdditionalCameraData>();
-                }
-            }
             settings.ApplyModifiedProperties();
         }
 
@@ -125,15 +114,18 @@ namespace UnityEditor
             {
                 EditorGUILayout.IntPopup(s_Styles.renderingPathLabel, 0, s_Styles.renderingPathOptions, s_RenderingPathValues);
             }
-
-            EditorGUILayout.HelpBox(s_Styles.renderingPathInfo.text, MessageType.Info);
         }
 
         void DrawHDR()
         {
-            settings.DrawHDR();
-            if (settings.HDR.boolValue && !m_LightweightPipeline.supportsHDR)
-                EditorGUILayout.HelpBox("HDR rendering is disabled in Lightweight Pipeline asset.", MessageType.Warning);
+            bool disabled = settings.HDR.boolValue && !m_LightweightPipeline.supportsHDR;
+            using (new EditorGUI.DisabledScope(disabled))
+            {
+                settings.DrawHDR();
+            }
+
+            if (disabled)
+                EditorGUILayout.HelpBox(s_Styles.hdrDisabledWarning, MessageType.Info);
         }
 
         void DrawTargetTexture()
@@ -152,22 +144,20 @@ namespace UnityEditor
                         : "has MSAA disabled";
                     EditorGUILayout.HelpBox(String.Format("Camera target texture requires {0}x MSAA. Lightweight pipeline {1}.", texture.antiAliasing, pipelineMSAACaps),
                         MessageType.Warning, true);
-
-                    if (GUILayout.Button(s_Styles.fixNow))
-                        m_LightweightPipeline.msaaSampleCount = texture.antiAliasing;
                 }
             }
         }
 
         void DrawMSAA()
         {
-            EditorGUILayout.PropertyField(settings.allowMSAA);
-            if (settings.allowMSAA.boolValue && m_LightweightPipeline.msaaSampleCount <= 1)
+            bool disabled = settings.allowMSAA.boolValue && m_LightweightPipeline.msaaSampleCount <= 1;
+            using (new EditorGUI.DisabledScope(disabled))
             {
-                EditorGUILayout.HelpBox(s_Styles.mssaDisabledWarning, MessageType.Warning);
-                if (GUILayout.Button(s_Styles.fixNow))
-                    m_LightweightPipeline.msaaSampleCount = 4;
+                settings.DrawMSAA();
             }
+
+            if (disabled)
+                EditorGUILayout.HelpBox(s_Styles.mssaDisabledWarning, MessageType.Info);
         }
     }
 }
