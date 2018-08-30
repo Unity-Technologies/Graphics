@@ -36,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader copyChannelCS;
         public ComputeShader texturePaddingCS;
         public ComputeShader applyDistortionCS;
+        public ComputeShader screenSpaceReflectionsCS;
 
         // Lighting tile pass resources
         public ComputeShader clearDispatchIndirectShader;
@@ -85,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader shadowClearShader;
         public ComputeShader shadowBlurMoments;
         public Shader debugShadowMapShader;
-        
+
 #if UNITY_EDITOR
         public void UpgradeIfNeeded()
         {
@@ -129,6 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             copyChannelCS = Load<ComputeShader>(CorePath + "CoreResources/GPUCopy.compute");
             texturePaddingCS = Load<ComputeShader>(CorePath + "CoreResources/TexturePadding.compute");
             applyDistortionCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/ApplyDistorsion.compute");
+            screenSpaceReflectionsCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/ScreenSpaceReflections.compute");
 
             clearDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/cleardispatchindirect.compute");
             buildDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/builddispatchindirect.compute");

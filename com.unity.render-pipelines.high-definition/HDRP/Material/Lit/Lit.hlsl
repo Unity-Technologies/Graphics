@@ -49,6 +49,8 @@ TEXTURE2D(_LightLayersTexture);
 TEXTURE2D(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to know which gbuffer is used for shadow mask
 #endif
 
+TEXTURE2D(_SsrLightingTexture);
+
 #include "HDRP/Material/LTCAreaLight/LTCAreaLight.hlsl"
 #include "HDRP/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
