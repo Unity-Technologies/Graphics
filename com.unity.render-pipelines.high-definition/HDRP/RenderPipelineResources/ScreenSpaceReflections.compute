@@ -259,10 +259,11 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
 
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
-    float2 velocityNDC = LOAD_TEXTURE2D(_VelocityTexture, hitPositionSS).xy;
-    float  mipLevel    = 0;
-    float3 color       = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, hitPositionNDC - velocityNDC, mipLevel).rgb;
-    float  opacity     = 1;
+    float2 velocityNDC  = LOAD_TEXTURE2D(_VelocityTexture, hitPositionSS).xy;
+    float2 prevFrameNDC = (hitPositionNDC - velocityNDC) * _ScreenToTargetScale.zw;
+    float  mipLevel     = 0;
+    float3 color        = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameNDC, mipLevel).rgb;
+    float  opacity      = 1;
 
     _SsrLightingTexture[positionSS] = float4(color, opacity);
 }
