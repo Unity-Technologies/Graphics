@@ -230,7 +230,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (NeedsDeadListCount())
+                if (NeedsDeadListCount() && GetData().IsAttributeStored(VFXAttribute.Alive)) //Actually, there are still corner cases, e.g.: particles spawning immortal particles through GPU Event
                     yield return "USE_DEAD_LIST_COUNT";
             }
         }
