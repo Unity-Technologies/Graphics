@@ -248,7 +248,6 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     uint2  hitPositionSS  = uint2(hitInfo & 0xFFFF, hitInfo >> 16);
     float2 hitPositionNDC = hitPositionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
 
-
     if (hitInfo == asuint(-1))
     {
         _SsrLightingTexture[positionSS] = 0;
@@ -258,8 +257,10 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     // float  opacity = CalculateFullWeight(hitPositionNDC, _SSReflectionInvScreenWeightDistance, hitWeight, hitSuccessful);
     // float mipLevel = PlanarPerceptualRoughnessToMipmapLevel(perceptualRoughness, _ColorPyramidScale.z);
 
-    float  mipLevel    = 0;
+    // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
+    // This would require keeping the depth buffer from the previous frame.
     float2 velocityNDC = LOAD_TEXTURE2D(_VelocityTexture, hitPositionSS).xy;
+    float  mipLevel    = 0;
     float3 color       = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, hitPositionNDC - velocityNDC, mipLevel).rgb;
     float  opacity     = 1;
 
