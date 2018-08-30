@@ -197,11 +197,11 @@ namespace UnityEditor.VFX
 
         VFXParameter m_GizmoedParameter;
 
-        protected override void EmptyLineControl(string name, int depth)
+        protected override void EmptyLineControl(string name, string tooltip, int depth)
         {
             if (depth != 1  || !m_GizmoDisplayed)
             {
-                base.EmptyLineControl(name, depth);
+                base.EmptyLineControl(name, tooltip, depth);
                 return;
             }
 
@@ -209,7 +209,7 @@ namespace UnityEditor.VFX
 
             if (!VFXGizmoUtility.HasGizmo(parameter.type))
             {
-                base.EmptyLineControl(name, depth);
+                base.EmptyLineControl(name, tooltip, depth);
                 return;
             }
 
@@ -219,22 +219,14 @@ namespace UnityEditor.VFX
             }
 
             GUILayout.BeginHorizontal();
-            /*bool hasMultipleValue = true;
-            m_ParameterHasMultipleValues.TryGetValue(name, out hasMultipleValue);
-            GUI.enabled = !hasMultipleValue;
-
-            if (hasMultipleValue && m_GizmoedParameter == parameter)
-            {
-                m_GizmoedParameter = null;
-            }*/
 
             if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GetCurrentSkin().button, GUILayout.Width(overrideWidth)))
             {
                 m_GizmoedParameter = parameter;
             }
-
-            //GUI.enabled = true;
-            EditorGUILayout.LabelField(name);
+            // Make the label half the width to make the tooltip
+            EditorGUILayout.LabelField(GetGUIContent(name,tooltip));
+            GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
 

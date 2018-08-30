@@ -9,12 +9,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXGraphUndoCursor : ScriptableObject
-    {
-        [SerializeField]
-        public int index;
-    }
-
     class VFXGraphUndoStack
     {
         public VFXGraphUndoStack(VFXGraph initialState)
