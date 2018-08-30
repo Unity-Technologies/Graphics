@@ -36,6 +36,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.
 
+### Changed
+- Change real-time attenuation to inverse square.
+- Change attenuation for baked GI to inverse square, to match real-time attenuation.
+- Small optimization in light attenuation shader code.
+
 ## [3.2.0-preview]
 ### Changed
 - Receive Shadows property is now exposed in the material instead of in the renderer.
