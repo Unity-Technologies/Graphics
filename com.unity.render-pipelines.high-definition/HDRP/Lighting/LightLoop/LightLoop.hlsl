@@ -165,6 +165,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 
     // Define macro for a better understanding of the loop
+    // TODO: this is now COMPLETELY IMPOSSIBLE to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
         IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
         AccumulateIndirectLighting(lighting, aggregateLighting);
@@ -192,6 +193,24 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         //  1. Screen Space Refraction / Reflection
         //  2. Environment Reflection / Refraction
         //  3. Sky Reflection / Refraction
+
+
+        // Apply SSR.
+        {
+            IndirectLighting indirect;
+            ZERO_INITIALIZE(IndirectLighting, indirect);
+
+            float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
+
+            indirect.specularReflected = ssrLighting.rgb;
+            reflectionHierarchyWeight  = ssrLighting.a;
+
+            // TODO: only accumulate indirect lighting at the end of the shader
+            // s.t. we can apply some joint modifications (e.g. attenuation/boost) on top of it.
+            //  at the end of the shader so that
+            AccumulateIndirectLighting(indirect, aggregateLighting);
+        }
+
         EnvLightData envLightData;
         if (envLightCount > 0)
         {
@@ -200,13 +219,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         else
         {
             envLightData = InitSkyEnvLightData(0);
-        }
-
-        if (featureFlags & LIGHTFEATUREFLAGS_SSREFLECTION)
-        {
-            IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
-                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
-            AccumulateIndirectLighting(lighting, aggregateLighting);
         }
 
         if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
