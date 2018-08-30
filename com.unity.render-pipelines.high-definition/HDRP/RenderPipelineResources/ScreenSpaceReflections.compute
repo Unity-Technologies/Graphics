@@ -124,10 +124,11 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         float3 bounds;
         bounds.x = (rcpRayDir.x >= 0) ? _ScreenSize.x - halfTexel : halfTexel;
         bounds.y = (rcpRayDir.y >= 0) ? _ScreenSize.y - halfTexel : halfTexel;
-        bounds.z = (rcpRayDir.z >= 0) ? 1 : 0;
+        // Since we do not want to intersect the skybox, it is more efficient to not trace too far.
+        bounds.z = (rcpRayDir.z >= 0) ? 1 : 0.00000012;
 
         float3 dist = bounds * rcpRayDir - (rayOrigin * rcpRayDir);
-        tMax = Min3(dist.x, dist.y, dist.z) * (1 + SSR_TRACE_EPS);
+        tMax = Min3(dist.x, dist.y, dist.z);
     }
 
     // Start ray marching from the next texel to avoid self-intersections.
@@ -164,6 +165,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 
         bounds.xy = (mipCoord + rayStep) << mipLevel;
         bounds.z  = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, mipCoord, mipLevel).r;
+        rayPos.z  = bounds.z;
         // We define the depth of the base as the depth value as:
         // b = DeviceDepth((1 + thickness) * LinearDepth(d))
         // b = ((f - n) * d + n * (1 - (1 + thickness))) / ((f - n) * (1 + thickness))
@@ -194,7 +196,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         // * See below. Do NOT reorder the statements!
 
         miss      = belowMip0 && insideFloor;
-        hit       = !miss && (mipLevel == 0) && (hitFloor || insideFloor);
+        hit       = (mipLevel == 0) && (hitFloor || insideFloor);
         belowMip0 = (mipLevel == 0) && belowFloor;
 
     #ifndef SSR_TRACE_BEHIND_OBJECTS
@@ -217,6 +219,10 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 
         iterCount++;
     }
+
+    // Treat intersections with the sky as misses.
+    miss = miss || (rayPos.z == 0);
+    hit  = hit && !miss;
 
     uint2 hitPositionSS = asuint(-1);
 
