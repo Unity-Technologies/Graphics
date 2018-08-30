@@ -99,12 +99,12 @@ public class VisualEffectActivationClipEditor : Editor
             var element = property.GetArrayElementAtIndex(index);
 
             var label = element.FindPropertyRelative("attribute.m_Name").stringValue;
-            var labelSize = new Vector2(120, 30);//GUI.skin.label.CalcSize(new GUIContent(label)); //Couldbe maximized
+            var labelWidth = 110;//GUI.skin.label.CalcSize(new GUIContent(label)); //Should be maximized among all existing property, for now, angularVelocity is considered as maximum
 
-            EditorGUI.LabelField(new Rect(r.x, r.y, r.width / 2, EditorGUIUtility.singleLineHeight), label);
+            EditorGUI.LabelField(new Rect(r.x, r.y, labelWidth, EditorGUIUtility.singleLineHeight), label);
             var valueType = (VFXValueType)element.FindPropertyRelative("type").intValue;
             var valueSize = VFXExpression.TypeToSize(valueType);
-            var fieldWidth = (r.width - labelSize.x) / valueSize;
+            var fieldWidth = (r.width - labelWidth) / valueSize;
             var emptyGUIContent = new GUIContent(string.Empty);
             var valuesProperty = element.FindPropertyRelative("values");
             if (valueType == VFXValueType.Float
@@ -117,8 +117,10 @@ public class VisualEffectActivationClipEditor : Editor
                     var oldColor = new Color(   valuesProperty.GetArrayElementAtIndex(0).floatValue,
                                                 valuesProperty.GetArrayElementAtIndex(1).floatValue,
                                                 valuesProperty.GetArrayElementAtIndex(2).floatValue);
-                    var newColor = EditorGUI.ColorField(new Rect(r.x + labelSize.x, r.y, fieldWidth * 3, EditorGUIUtility.singleLineHeight), oldColor);
-                    if (oldColor != newColor)
+
+                    EditorGUI.BeginChangeCheck();
+                    var newColor = EditorGUI.ColorField(new Rect(r.x + labelWidth, r.y, fieldWidth * 3, EditorGUIUtility.singleLineHeight), oldColor);
+                    if (EditorGUI.EndChangeCheck())
                     {
                         valuesProperty.GetArrayElementAtIndex(0).floatValue = newColor.r;
                         valuesProperty.GetArrayElementAtIndex(1).floatValue = newColor.g;
@@ -129,7 +131,7 @@ public class VisualEffectActivationClipEditor : Editor
                 {
                     for (int i = 0; i < valueSize; ++i)
                     {
-                        EditorGUI.PropertyField(new Rect(r.x + labelSize.x + fieldWidth * i, r.y, fieldWidth, EditorGUIUtility.singleLineHeight), valuesProperty.GetArrayElementAtIndex(i), emptyGUIContent);
+                        EditorGUI.PropertyField(new Rect(r.x + labelWidth + fieldWidth * i, r.y, fieldWidth, EditorGUIUtility.singleLineHeight), valuesProperty.GetArrayElementAtIndex(i), emptyGUIContent);
                     }
                 }
             }
@@ -139,7 +141,8 @@ public class VisualEffectActivationClipEditor : Editor
             {
                 var oldValue = valuesProperty.GetArrayElementAtIndex(0).floatValue;
                 float newValue;
-                var currentRect = new Rect(r.x + labelSize.x, r.y, fieldWidth, EditorGUIUtility.singleLineHeight);
+                var currentRect = new Rect(r.x + labelWidth, r.y, fieldWidth, EditorGUIUtility.singleLineHeight);
+                EditorGUI.BeginChangeCheck();
                 if (valueType == VFXValueType.Boolean)
                 {
                     newValue = EditorGUI.Toggle(currentRect, emptyGUIContent, oldValue != 0.0f) ? 1.0f : 0.0f;
@@ -147,8 +150,9 @@ public class VisualEffectActivationClipEditor : Editor
                 else
                 {
                     newValue = (float)EditorGUI.LongField(currentRect, emptyGUIContent, (long)oldValue);
+                    newValue = newValue < 0.0f ? 0.0f : newValue;
                 }
-                if (oldValue != newValue)
+                if (EditorGUI.EndChangeCheck())
                 {
                     valuesProperty.GetArrayElementAtIndex(0).floatValue = newValue;
                     serializedObject.ApplyModifiedProperties();
