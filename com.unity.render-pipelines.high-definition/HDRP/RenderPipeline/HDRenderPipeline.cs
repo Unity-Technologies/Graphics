@@ -1833,6 +1833,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int kernel = m_SsrReprojectionKernel;
 
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
+                cmd.SetComputeTextureParam(cs, kernel, "_VelocityTexture",    m_VelocityBuffer);
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", m_SsrHitPointTexture);
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrLightingTexture", m_SsrLightingTexture);
 

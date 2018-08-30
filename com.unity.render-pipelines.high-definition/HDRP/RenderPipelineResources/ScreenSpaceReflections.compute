@@ -40,6 +40,7 @@ RW_TEXTURE2D(float4, _SsrDebugTexture);
     RW_TEXTURE2D(uint,   _SsrHitPointTexture);
 #else // SSR_REPROJECT
     // TEXTURE2D(        _ColorPyramidTexture);  // Declared in ShaderVariablesScreenSpaceLighting.hlsl
+       TEXTURE2D(        _VelocityTexture);
        TEXTURE2D(        _SsrHitPointTexture);
     RW_TEXTURE2D(float4, _SsrLightingTexture);
 #endif
@@ -61,7 +62,7 @@ CBUFFER_END
 [numthreads(8, 8, 1)]
 void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 {
-    float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute this? We seem to use it a lot.
+    float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
     float  deviceDepth = LOAD_TEXTURE2D(_DepthPyramidTexture, positionSS).r;
     float3 positionWS  = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP); // Jittered
     float3 V           = GetWorldSpaceNormalizeViewDir(positionWS);
@@ -245,7 +246,8 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
 {
     uint   hitInfo        = asuint(LOAD_TEXTURE2D(_SsrHitPointTexture, positionSS).r);
     uint2  hitPositionSS  = uint2(hitInfo & 0xFFFF, hitInfo >> 16);
-    float2 hitPositionNDC = hitPositionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute this? We seem to use it a lot.
+    float2 hitPositionNDC = hitPositionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
+
 
     if (hitInfo == asuint(-1))
     {
@@ -253,12 +255,11 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
         return;
     }
 
-    // float2 velocityNDC = DecodeVelocity(hitVelocityBuffer, hitVelocityNDC);
-    // float  opacity     = CalculateFullWeight(hitPositionNDC, _SSReflectionInvScreenWeightDistance, hitWeight, hitSuccessful);
-    // float mipLevel     = PlanarPerceptualRoughnessToMipmapLevel(perceptualRoughness, _ColorPyramidScale.z);
+    // float  opacity = CalculateFullWeight(hitPositionNDC, _SSReflectionInvScreenWeightDistance, hitWeight, hitSuccessful);
+    // float mipLevel = PlanarPerceptualRoughnessToMipmapLevel(perceptualRoughness, _ColorPyramidScale.z);
 
-    float2 velocityNDC = 0;
     float  mipLevel    = 0;
+    float2 velocityNDC = LOAD_TEXTURE2D(_VelocityTexture, hitPositionSS).xy;
     float3 color       = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, hitPositionNDC - velocityNDC, mipLevel).rgb;
     float  opacity     = 1;
 
