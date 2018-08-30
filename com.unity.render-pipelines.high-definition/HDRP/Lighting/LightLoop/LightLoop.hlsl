@@ -165,7 +165,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 
     // Define macro for a better understanding of the loop
-    // TODO: this is now COMPLETELY IMPOSSIBLE to understand...
+    // TODO: this code is now much harder to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
         IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
         AccumulateIndirectLighting(lighting, aggregateLighting);
@@ -194,22 +194,23 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         //  2. Environment Reflection / Refraction
         //  3. Sky Reflection / Refraction
 
-
+    #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(UNITY_MATERIAL_LIT)
         // Apply SSR.
         {
             IndirectLighting indirect;
             ZERO_INITIALIZE(IndirectLighting, indirect);
 
+            // TODO: we are going to read the entire SSR texture, even in the sky region,
+            // and for all the rough surfaces. Can we avoid doing that? How about using Hi-S?
             float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
 
-            indirect.specularReflected = ssrLighting.rgb;
+            // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
+            indirect.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
             reflectionHierarchyWeight  = ssrLighting.a;
 
-            // TODO: only accumulate indirect lighting at the end of the shader
-            // s.t. we can apply some joint modifications (e.g. attenuation/boost) on top of it.
-            //  at the end of the shader so that
             AccumulateIndirectLighting(indirect, aggregateLighting);
         }
+    #endif
 
         EnvLightData envLightData;
         if (envLightCount > 0)

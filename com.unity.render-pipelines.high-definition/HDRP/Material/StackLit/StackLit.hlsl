@@ -45,8 +45,6 @@ TEXTURE2D(_GBufferTexture0);
 #include "HDRP/Material/LTCAreaLight/LTCAreaLight.hlsl"
 #include "HDRP/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
-TEXTURE2D(_SsrLightingTexture);
-
 //-----------------------------------------------------------------------------
 // Definition
 //-----------------------------------------------------------------------------
