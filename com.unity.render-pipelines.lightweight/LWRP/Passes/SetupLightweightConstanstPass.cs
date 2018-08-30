@@ -122,7 +122,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 float oneOverFadeRangeSqr = 1.0f / fadeRangeSqr;
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
                 float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightData.range * lightData.range);
-                lightAttenuation.x = SystemInfo.deviceType == DeviceType.Handheld ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
+
+                // On mobile: Use the faster linear smoothing factor.
+                // On other devices: Use the smoothing factor that matches the GI.
+                lightAttenuation.x = Application.isMobilePlatform ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
                 subtractiveMixedLighting = 1.0f;
             }
