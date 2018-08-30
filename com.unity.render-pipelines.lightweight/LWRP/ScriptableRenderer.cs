@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Rendering;
@@ -265,7 +265,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
-            return cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+            return cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled || cameraData.msaaSamples > 1 ||
                    cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;
         }
 
