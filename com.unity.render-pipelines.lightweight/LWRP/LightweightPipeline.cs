@@ -7,6 +7,8 @@ using UnityEditor.Experimental.Rendering.LightweightPipeline;
 #endif
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEditor.Experimental.Rendering;
+using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
@@ -292,6 +294,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             cameraData.requiresDepthTexture |= cameraData.postProcessEnabled;
+
+            var commonOpaqueFlags = SortFlags.CommonOpaque;
+            var noFrontToBackOpaqueFlags = SortFlags.SortingLayer | SortFlags.RenderQueue | SortFlags.OptimizeStateChanges | SortFlags.CanvasOrder;
+            bool hasHSRGPU = SystemInfo.hasHiddenSurfaceRemovalOnGPU;
+            bool canSkipFrontToBackSorting = (camera.opaqueSortMode == OpaqueSortMode.Default && hasHSRGPU) || camera.opaqueSortMode == OpaqueSortMode.NoDistanceSort;
+
+            cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
         }
 
         static void InitializeRenderingData(PipelineSettings settings, ref CameraData cameraData, ref CullResults cullResults,
