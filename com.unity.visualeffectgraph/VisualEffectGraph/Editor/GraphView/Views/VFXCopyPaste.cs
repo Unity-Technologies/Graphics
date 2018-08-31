@@ -337,7 +337,7 @@ namespace UnityEditor.VFX.UI
                     ).ToArray();
 
 
-            VFXContext[] copiedContexts = contexts.Select(t => t.context).ToArray();
+            VFXContext[] copiedContexts = contexts.Select(t => t.model).ToArray();
             copyData.contexts = copiedContexts;
             VFXModel[] copiedSlotContainers = slotContainers.Select(t => t.model).ToArray();
             copyData.slotContainers = copiedSlotContainers;
@@ -495,7 +495,7 @@ namespace UnityEditor.VFX.UI
 
             if (selectedBlocks.Count() > 0)
             {
-                targetBlock = selectedBlocks.OrderByDescending(t => t.context.controller.context.GetIndex(t.controller.block)).First();
+                targetBlock = selectedBlocks.OrderByDescending(t => t.context.controller.model.GetIndex(t.controller.block)).First();
                 targetContext = targetBlock.context;
             }
             else if (selectedContexts.Count() == 1)
@@ -508,7 +508,7 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            VFXContext targetModelContext = targetContext.controller.context;
+            VFXContext targetModelContext = targetContext.controller.model;
 
             int targetIndex = -1;
             if (targetBlock != null)

@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("connected");
 
 
-            var type = controller.direction == Direction.Input ? controller.context.context.inputType : controller.context.context.outputType;
+            var type = controller.direction == Direction.Input ? controller.context.model.inputType : controller.context.model.outputType;
 
             switch (controller.direction)
             {
@@ -116,11 +116,11 @@ namespace UnityEditor.VFX.UI
 
             if (direction == Direction.Input)
             {
-                return VFXContext.CanLink(desc.model, controller.context.context);
+                return VFXContext.CanLink(desc.model, controller.context.model);
             }
             else
             {
-                return VFXContext.CanLink(controller.context.context, desc.model);
+                return VFXContext.CanLink(controller.context.model, desc.model);
             }
         }
 
@@ -143,11 +143,11 @@ namespace UnityEditor.VFX.UI
 
             if (direction == Direction.Input)
             {
-                controller.context.context.LinkFrom(context, 0, controller.slotIndex);
+                controller.context.model.LinkFrom(context, 0, controller.slotIndex);
             }
             else
             {
-                controller.context.context.LinkTo(context, controller.slotIndex, 0);
+                controller.context.model.LinkTo(context, controller.slotIndex, 0);
             }
         }
 

@@ -512,7 +512,7 @@ namespace UnityEditor.VFX.UI
             var contextControllers = contexts;
             foreach (var outController in contextControllers.ToArray())
             {
-                var output = outController.context;
+                var output = outController.model;
                 for (int slotIndex = 0; slotIndex < output.inputFlowSlot.Length; ++slotIndex)
                 {
                     var inputFlowSlot = output.inputFlowSlot[slotIndex];
@@ -634,7 +634,7 @@ namespace UnityEditor.VFX.UI
             if (element is VFXContextController)
             {
                 VFXContextController contextController = ((VFXContextController)element);
-                VFXContext context = contextController.context;
+                VFXContext context = contextController.model;
                 contextController.NodeGoingToBeRemoved();
 
                 // Remove connections from context
