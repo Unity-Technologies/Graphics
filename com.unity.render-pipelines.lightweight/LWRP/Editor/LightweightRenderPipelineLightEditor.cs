@@ -22,11 +22,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         {
             public readonly GUIContent SpotAngle = EditorGUIUtility.TrTextContent("Spot Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
 
-            public readonly GUIContent Cookie = EditorGUIUtility.TrTextContent("Cookie", "Specifies the Texture mask to cast shadows, create silhouettes, or patterned illumination for the light.");
-            public readonly GUIContent CookieSize = EditorGUIUtility.TrTextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.");
-
             public readonly GUIContent BakingWarning = EditorGUIUtility.TrTextContent("Light mode is currently overridden to Realtime mode. Enable Baked Global Illumination to use Mixed or Baked light modes.");
-            public readonly GUIContent CookieWarning = EditorGUIUtility.TrTextContent("Cookie textures for spot lights should be set to clamp, not repeat, to avoid artifacts.");
             public readonly GUIContent DisabledLightWarning = EditorGUIUtility.TrTextContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
 
             public readonly GUIContent ShadowsNotSupportedWarning = EditorGUIUtility.TrTextContent("Realtime shadows for point lights are not supported. Either disable shadows or set the light mode to Baked.");
@@ -52,14 +48,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public bool bakingWarningValue { get { return !UnityEditor.Lightmapping.bakedGI && lightmappingTypeIsSame && settings.isBakedOrMixed; } }
         public bool showLightBounceIntensity { get { return true; } }
-        public bool cookieWarningValue
-        {
-            get
-            {
-                return typeIsSame && lightProperty.type == LightType.Spot &&
-                    !settings.cookieProp.hasMultipleDifferentValues && settings.cookie && settings.cookie.wrapMode != TextureWrapMode.Clamp;
-            }
-        }
 
         public bool isShadowEnabled { get { return settings.shadowsType.intValue != 0; } }
 
@@ -125,17 +113,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
             ShadowsGUI();
 
-            /* Tim: Disable cookie for v1 to save on shader combinations
-            using (var group = new EditorGUILayout.FadeGroupScope(animShowRuntimeOptions.faded))
-                if (group.visible)
-                    DrawCookie();
-
-            // Cookie size also requires directional light
-            using (var group = new EditorGUILayout.FadeGroupScope(animShowRuntimeOptions.faded * animShowDirOptions.faded))
-                if (group.visible)
-                    DrawCookieSize();
-           */
-
             settings.DrawRenderMode();
             settings.DrawCullingMask();
 
@@ -176,22 +153,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         void DrawSpotAngle()
         {
             EditorGUILayout.Slider(settings.spotAngle, 1f, 179f, s_Styles.SpotAngle);
-        }
-
-        void DrawCookie()
-        {
-            EditorGUILayout.PropertyField(settings.cookieProp, s_Styles.Cookie);
-
-            if (cookieWarningValue)
-            {
-                // warn on spotlights if the cookie is set to repeat
-                EditorGUILayout.HelpBox(s_Styles.CookieWarning.text, MessageType.Warning);
-            }
-        }
-
-        void DrawCookieSize()
-        {
-            EditorGUILayout.PropertyField(settings.cookieSize, s_Styles.CookieSize);
         }
 
         void ShadowsGUI()

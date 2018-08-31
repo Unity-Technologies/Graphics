@@ -80,7 +80,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string AdditionalLights = "_ADDITIONAL_LIGHTS";
         public static readonly string VertexLights = "_VERTEX_LIGHTS";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE";
-        public static readonly string MainLightCookie = "_MAIN_LIGHT_COOKIE";
         public static readonly string DirectionalShadows = "_SHADOWS_ENABLED";
         public static readonly string LocalShadows = "_LOCAL_SHADOWS_ENABLED";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
@@ -146,52 +145,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
             }
         }
-
-        public static void GetLightCookieMatrix(VisibleLight light, out Matrix4x4 cookieMatrix)
-        {
-            cookieMatrix = Matrix4x4.Inverse(light.localToWorld);
-
-            if (light.lightType == LightType.Directional)
-            {
-                float scale = 1.0f / light.light.cookieSize;
-
-                // apply cookie scale and offset by 0.5 to convert from [-0.5, 0.5] to texture space [0, 1]
-                Vector4 row0 = cookieMatrix.GetRow(0);
-                Vector4 row1 = cookieMatrix.GetRow(1);
-                cookieMatrix.SetRow(0, new Vector4(row0.x * scale, row0.y * scale, row0.z * scale, row0.w * scale + 0.5f));
-                cookieMatrix.SetRow(1, new Vector4(row1.x * scale, row1.y * scale, row1.z * scale, row1.w * scale + 0.5f));
-            }
-            else if (light.lightType == LightType.Spot)
-            {
-                // we want out.w = 2.0 * in.z / m_CotanHalfSpotAngle
-                // c = cotHalfSpotAngle
-                // 1 0 0 0
-                // 0 1 0 0
-                // 0 0 1 0
-                // 0 0 2/c 0
-                // the "2" will be used to scale .xy for the cookie as in .xy/2 + 0.5
-                float scale = 1.0f / light.range;
-                float halfSpotAngleRad = Mathf.Deg2Rad * light.spotAngle * 0.5f;
-                float cs = Mathf.Cos(halfSpotAngleRad);
-                float ss = Mathf.Sin(halfSpotAngleRad);
-                float cotHalfSpotAngle = cs / ss;
-
-                Matrix4x4 scaleMatrix = Matrix4x4.identity;
-                scaleMatrix.m00 = scaleMatrix.m11 = scaleMatrix.m22 = scale;
-                scaleMatrix.m33 = 0.0f;
-                scaleMatrix.m32 = scale * (2.0f / cotHalfSpotAngle);
-
-                cookieMatrix = scaleMatrix * cookieMatrix;
-            }
-
-            // Remaining light types don't support cookies
-        }
-
-        public static bool IsSupportedCookieType(LightType lightType)
-        {
-            return lightType == LightType.Directional || lightType == LightType.Spot;
-        }
-
         public static bool IsStereoEnabled(Camera camera)
         {
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
