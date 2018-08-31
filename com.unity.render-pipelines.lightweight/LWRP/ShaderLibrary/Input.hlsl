@@ -43,7 +43,6 @@ CBUFFER_END
 CBUFFER_START(_LightBuffer)
 float4 _MainLightPosition;
 half4 _MainLightColor;
-float4x4 _WorldToLight;
 
 half4 _AdditionalLightCount;
 float4 _AdditionalLightPosition[MAX_VISIBLE_LIGHTS];
