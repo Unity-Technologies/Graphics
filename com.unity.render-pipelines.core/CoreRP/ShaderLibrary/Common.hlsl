@@ -437,10 +437,27 @@ real3 Orthonormalize(real3 tangent, real3 normal)
     return normalize(tangent - dot(tangent, normal) * normal);
 }
 
-// Same as smoothstep except it assume 0, 1 interval for x
+// saturate((t - a) / (b - a)).
+real Remap01(real a, real b, real t)
+{
+    return saturate(t * rcp(b - a) - a * rcp(b - a));
+}
+
+// smoothstep that assumes that 'x' lies within the [0, 1] interval.
 real Smoothstep01(real x)
 {
-    return x * x * (3.0 - (2.0 * x));
+    return x * x * (3 - (2 * x));
+}
+
+real Smootherstep01(real x)
+{
+  return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
+real Smootherstep(real a, real b, real t)
+{
+    real x = Remap01(a, b, t);
+    return Smootherstep01(x);
 }
 
 real Pow4(real x)

@@ -53,6 +53,8 @@ CBUFFER_START(UnityScreenSpaceReflections)
     float _SsrThicknessBias;
     float _SsrMaxRoughness;
     int   _SsrDepthPyramidMaxMip;
+    float _SsrRcpFade;
+    float _SsrOneMinusRcpFade;
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -249,6 +251,14 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 
 #else // SSR_REPROJECT
 
+float EdgeFade(float2 coordNDC, float rcpFade, float oneMinusRcpFade)
+{
+    float2 posT = saturate(coordNDC * rcpFade + oneMinusRcpFade);
+    float2 negT = saturate(1 - coordNDC * rcpFade);
+
+    return Smoothstep01(1 - max(posT.x, negT.x)) * Smoothstep01(1 - max(posT.y, negT.y));
+}
+
 [numthreads(8, 8, 1)]
 void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
 {
@@ -261,9 +271,6 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
         return;
     }
 
-    // float  opacity = CalculateFullWeight(hitPositionNDC, _SSReflectionInvScreenWeightDistance, hitWeight, hitSuccessful);
-    // float mipLevel = PlanarPerceptualRoughnessToMipmapLevel(perceptualRoughness, _ColorPyramidScale.z);
-
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
     float2 velocityNDC  = SAMPLE_TEXTURE2D_LOD(_VelocityTexture, s_linear_clamp_sampler, hitPositionNDC * _ScreenToTargetScale.zw, 0).xy;
@@ -275,11 +282,14 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
         return;
     }
 
+    // float  opacity = CalculateFullWeight(hitPositionNDC, _SSReflectionInvScreenWeightDistance, hitWeight, hitSuccessful);
+    // float mipLevel = PlanarPerceptualRoughnessToMipmapLevel(perceptualRoughness, _ColorPyramidScale.z);
     float  mipLevel = 0;
     float3 color    = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameNDC * _ScreenToTargetScale.zw, mipLevel).rgb;
-    float  opacity  = 1;
+    float  opacity  = EdgeFade(prevFrameNDC, _SsrRcpFade, _SsrOneMinusRcpFade);
 
-    _SsrLightingTexture[positionSS] = float4(color, opacity);
+    // Use premultiplied alpha.
+    _SsrLightingTexture[positionSS] = float4(color, 1) * opacity;
 }
 
 #endif

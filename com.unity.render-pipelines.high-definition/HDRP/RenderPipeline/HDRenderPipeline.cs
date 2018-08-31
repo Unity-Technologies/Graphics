@@ -1782,7 +1782,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderSSR(HDCamera hdCamera, CommandBuffer cmd)
         {
-
             if (!hdCamera.frameSettings.enableSSR)
                 return;
 
@@ -1816,11 +1815,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float thicknessBias  = -n / (f - n) * (thickness * thicknessScale);
                 float maxRoughness   = 0.1f;
 
+                float rcpFadeDistance = Mathf.Min(1.0f / volumeSettings.screenWeightDistance, 65536.0f);
+
                 cmd.SetComputeIntParam(  cs, "_SsrIterLimit",          volumeSettings.rayMaxIterations);
                 cmd.SetComputeFloatParam(cs, "_SsrThicknessScale",     thicknessScale);
                 cmd.SetComputeFloatParam(cs, "_SsrThicknessBias",      thicknessBias);
                 cmd.SetComputeFloatParam(cs, "_SsrMaxRoughness",       maxRoughness);
                 cmd.SetComputeIntParam(  cs, "_SsrDepthPyramidMaxMip", maxUncroppedDepthPyramidMip);
+                cmd.SetComputeFloatParam(cs, "_SsrRcpFade",            rcpFadeDistance);
+                cmd.SetComputeFloatParam(cs, "_SsrOneMinusRcpFade",    1 - rcpFadeDistance);
 
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", m_SsrHitPointTexture);
