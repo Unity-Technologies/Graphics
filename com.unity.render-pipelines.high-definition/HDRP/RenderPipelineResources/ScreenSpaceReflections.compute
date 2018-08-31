@@ -9,9 +9,10 @@
 #pragma kernel ScreenSpaceReflectionsReprojection SSR_REPROJECT
 
 // Tweak parameters.
-#define SSR_TRACE_EPS            0.00024414 // 2^-12, should be good up to 4K
+#define DEBUG
 #define SSR_TRACE_BEHIND_OBJECTS
 #define SSR_TRACE_TOWARDS_EYE
+#define SSR_TRACE_EPS            0.00024414 // 2^-12, should be good up to 4K
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -31,14 +32,15 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-// TODO: remove me, I am just a temporary debug texture. :-)
-RW_TEXTURE2D(float4, _SsrDebugTexture);
+#ifdef DEBUG
+    RW_TEXTURE2D(float4, _SsrDebugTexture);
+#endif
 
 #ifdef SSR_TRACE
     // TEXTURE2D(        _NormalBufferTexture0); // Declared in NormalBuffer.hlsl.
     // TEXTURE2D(        _DepthPyramidTexture);  // Declared in ShaderVariablesScreenSpaceLighting.hlsl
-    RW_TEXTURE2D(uint,   _SsrHitPointTexture);
-#else // SSR_REPROJECT
+    RW_TEXTURE2D(float2, _SsrHitPointTexture);
+#else
     // TEXTURE2D(        _ColorPyramidTexture);  // Declared in ShaderVariablesScreenSpaceLighting.hlsl
        TEXTURE2D(        _VelocityTexture);
        TEXTURE2D(        _SsrHitPointTexture);
@@ -56,6 +58,13 @@ CBUFFER_END
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
+
+void WriteDebugInfo(uint2 positionSS, float4 value)
+{
+#ifdef DEBUG
+    _SsrDebugTexture[positionSS] = value;
+#endif
+}
 
 #ifdef SSR_TRACE
 
@@ -111,8 +120,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 
     if (killRay)
     {
-        _SsrDebugTexture[positionSS]    = -1;
-        _SsrHitPointTexture[positionSS] = asuint(-1);
+        WriteDebugInfo(positionSS, -1);
         return;
     }
 
@@ -126,7 +134,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         bounds.x = (rcpRayDir.x >= 0) ? _ScreenSize.x - halfTexel : halfTexel;
         bounds.y = (rcpRayDir.y >= 0) ? _ScreenSize.y - halfTexel : halfTexel;
         // Since we do not want to intersect the skybox, it is more efficient to not trace too far.
-        bounds.z = (rcpRayDir.z >= 0) ? 1 : 0.00000012;
+        bounds.z = (rcpRayDir.z >= 0) ? 1 : 0.00000012; // 2^-23
 
         float3 dist = bounds * rcpRayDir - (rayOrigin * rcpRayDir);
         tMax = Min3(dist.x, dist.y, dist.z);
@@ -225,18 +233,18 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
     miss = miss || (rayPos.z == 0);
     hit  = hit && !miss;
 
-    uint2 hitPositionSS = asuint(-1);
+    float2 hitPositionNDC = 0;
 
     if (hit)
     {
         // Note that we are using 'rayPos' from the penultimate iteration, rather than
         // recompute it using the last value of 't', which would result in an overshoot.
         // It also needs to be precisely at the center of the pixel to avoid artifacts.
-        hitPositionSS = (uint2)rayPos.xy;
+        hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
+        _SsrHitPointTexture[positionSS] = hitPositionNDC;
     }
 
-    _SsrDebugTexture[positionSS]    = float4(hit ? hitPositionSS : -1, iterCount, hit);
-    _SsrHitPointTexture[positionSS] = (hitPositionSS.y << 16) | (hitPositionSS.x);
+    WriteDebugInfo(positionSS, float4(hitPositionNDC, iterCount, hit));
 }
 
 #else // SSR_REPROJECT
@@ -244,13 +252,12 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
 {
-    uint   hitInfo        = asuint(LOAD_TEXTURE2D(_SsrHitPointTexture, positionSS).r);
-    uint2  hitPositionSS  = uint2(hitInfo & 0xFFFF, hitInfo >> 16);
-    float2 hitPositionNDC = hitPositionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
+    // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
+    float2 hitPositionNDC = LOAD_TEXTURE2D(_SsrHitPointTexture, positionSS).xy;
 
-    if (hitInfo == asuint(-1))
+    if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
     {
-        _SsrLightingTexture[positionSS] = 0;
+        // Miss.
         return;
     }
 
@@ -259,11 +266,18 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
 
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
-    float2 velocityNDC  = LOAD_TEXTURE2D(_VelocityTexture, hitPositionSS).xy;
-    float2 prevFrameNDC = (hitPositionNDC - velocityNDC) * _ScreenToTargetScale.zw;
-    float  mipLevel     = 0;
-    float3 color        = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameNDC, mipLevel).rgb;
-    float  opacity      = 1;
+    float2 velocityNDC  = SAMPLE_TEXTURE2D_LOD(_VelocityTexture, s_linear_clamp_sampler, hitPositionNDC * _ScreenToTargetScale.zw, 0).xy;
+    float2 prevFrameNDC = hitPositionNDC - velocityNDC;
+
+    if (max(abs(prevFrameNDC.x - 0.5), abs(prevFrameNDC.y - 0.5)) > 0.5)
+    {
+        // Off-screen.
+        return;
+    }
+
+    float  mipLevel = 0;
+    float3 color    = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameNDC * _ScreenToTargetScale.zw, mipLevel).rgb;
+    float  opacity  = 1;
 
     _SsrLightingTexture[positionSS] = float4(color, opacity);
 }

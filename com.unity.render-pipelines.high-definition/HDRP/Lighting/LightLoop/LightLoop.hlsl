@@ -200,8 +200,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             IndirectLighting indirect;
             ZERO_INITIALIZE(IndirectLighting, indirect);
 
-            // TODO: we are going to read the entire SSR texture, even in the sky region,
-            // and for all the rough surfaces. Can we avoid doing that? How about using Hi-S?
+            // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
             float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
 
             // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
