@@ -1813,14 +1813,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float thickness      = volumeSettings.depthBufferThickness;
                 float thicknessScale = 1.0f / (1.0f + thickness);
                 float thicknessBias  = -n / (f - n) * (thickness * thicknessScale);
-                float maxRoughness   = 0.1f;
 
                 float rcpFadeDistance = Mathf.Min(1.0f / volumeSettings.screenWeightDistance, 65536.0f);
 
                 cmd.SetComputeIntParam(  cs, "_SsrIterLimit",          volumeSettings.rayMaxIterations);
                 cmd.SetComputeFloatParam(cs, "_SsrThicknessScale",     thicknessScale);
                 cmd.SetComputeFloatParam(cs, "_SsrThicknessBias",      thicknessBias);
-                cmd.SetComputeFloatParam(cs, "_SsrMaxRoughness",       maxRoughness);
+                cmd.SetComputeFloatParam(cs, "_SsrMaxRoughness",       1 - volumeSettings.minSmoothness);
                 cmd.SetComputeIntParam(  cs, "_SsrDepthPyramidMaxMip", maxUncroppedDepthPyramidMip);
                 cmd.SetComputeFloatParam(cs, "_SsrRcpFade",            rcpFadeDistance);
                 cmd.SetComputeFloatParam(cs, "_SsrOneMinusRcpFade",    1 - rcpFadeDistance);
