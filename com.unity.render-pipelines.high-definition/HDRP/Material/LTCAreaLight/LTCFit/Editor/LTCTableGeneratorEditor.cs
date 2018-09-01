@@ -56,8 +56,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.LTCFit
         void OnInspectorUpdate()
         {
             foreach ( BRDFType T in m_BRDFTypes )
-                if ( T.IsWorking )
+                if ( T.IsWorking || T.m_dirty )
                 {   // Repaint to show progress as long as a thread is working...
+                    T.m_dirty = false;
                     Repaint();
                     break;
                 }
@@ -135,6 +136,13 @@ if ( m_BRDFTypes.Length == 0 )
                     DoFitting();
                 }
             }
+            if ( workingCount > 0 )
+            {
+                if ( GUILayout.Button(new GUIContent( "Abort Computation", "" ), EditorStyles.toolbarButton ) ) {
+                    foreach ( BRDFType T in m_BRDFTypes )
+                        T.AbortFitting();
+                }
+            }
 
             EditorGUILayout.EndVertical();
         }
@@ -187,23 +195,26 @@ if ( m_BRDFTypes.Length == 0 )
                     try {
 //                      m_fitter.Fit( m_overwriteExistingValues, ( float _progress ) => { m_progress = _progress; return m_abort; } );
 
+
 // Fake working loop
+System.Random   RNG = new System.Random( (int) DateTime.Now.Ticks + m_BRDF.GetHashCode() );
+int crashInt = 5 + (int) (55.0f * RNG.NextDouble());
 for ( int i=0; i < 30; i++ ) {
-    System.Threading.Thread.Sleep( 1000 );
-//    new WaitForSeconds( 1 );
+    System.Threading.Thread.Sleep( 500 );
     m_progress = i / 30.0f;
-    if ( i == 10 )
+    if ( m_abort )
+        throw new Exception( "User Abort!" );   // Abort computation!
+    if ( i == crashInt )
         throw new Exception( "Rha!" );  // Simulate an exception
 }
 
-                        
 
-                        Debug.Log( "STREAD STOPPED! ==> SUCCESS!!" );
+                        Debug.Log( m_BRDF.GetType().Name +  " STREAD STOPPED! ==> SUCCESS!!" );
 
                     } catch ( Exception _e ) {
                         m_exception = _e;   // Store exception
 
-                        Debug.LogError( "STREAD STOPPED! ==> EXCEPTION!!" );
+                        Debug.LogError( m_BRDF.GetType().Name + " STREAD STOPPED! ==> EXCEPTION!!" );
                         Debug.LogException( _e );
                     }
 
@@ -216,6 +227,8 @@ for ( int i=0; i < 30; i++ ) {
             public Type                 m_type = null;
             public bool                 m_needsFitting = true;
             FittingWorkerThread         m_worker = null;
+
+            public bool                 m_dirty = false;
 
             public bool     IsWorking {
                 get { return m_worker != null; }
@@ -247,7 +260,15 @@ for ( int i=0; i < 30; i++ ) {
                 m_worker.Start( () => {
                     m_needsFitting = m_worker.m_exception != null;  // Clear the "Need Fitting" flag if the worker exited with an error
                     m_worker = null;                                // Auto-clear worker once job is finished
+                    m_dirty = true;
+//                    m_owner.Repaint();
                 } );
+            }
+
+            public void     AbortFitting()
+            {
+                if ( m_worker != null )
+                    m_worker.m_abort = true;    // Signal abort for the thread...
             }
         }
 
