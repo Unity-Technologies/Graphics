@@ -156,8 +156,11 @@ if ( m_BRDFTypes.Length == 0 )
                 bool                m_overwriteExistingValues = false;
                 CompletionDelegate  m_jobComplete;
 
+                // Runtime values
                 public float        m_progress = 0;
                 public bool         m_abort = false;
+                public Exception    m_exception = null;
+
                 public FittingWorkerThread( IBRDF _BRDF, FileInfo _tableFile, bool _overwriteExistingValues )
                 {
                     m_BRDF = _BRDF;
@@ -166,6 +169,7 @@ if ( m_BRDFTypes.Length == 0 )
 
                     m_progress = 0;
                     m_abort = false;
+                    m_exception = null;
 
                     m_fitter.SetupBRDF( m_BRDF, LTC_TABLE_SIZE, m_tableFile );
                 }
@@ -179,16 +183,29 @@ if ( m_BRDFTypes.Length == 0 )
                 public void DoFitting( object _state )
                 {
                     Debug.Log( "STREAD STARTED!" );
-//                    m_fitter.Fit( m_overwriteExistingValues, ( float _progress ) => { m_progress = _progress; return m_abort; } );
+
+                    try {
+//                      m_fitter.Fit( m_overwriteExistingValues, ( float _progress ) => { m_progress = _progress; return m_abort; } );
 
 // Fake working loop
 for ( int i=0; i < 30; i++ ) {
     System.Threading.Thread.Sleep( 1000 );
 //    new WaitForSeconds( 1 );
     m_progress = i / 30.0f;
+    if ( i == 10 )
+        throw new Exception( "Rha!" );  // Simulate an exception
 }
 
-                    Debug.Log( "STREAD STOPPED!" );
+                        
+
+                        Debug.Log( "STREAD STOPPED! ==> SUCCESS!!" );
+
+                    } catch ( Exception _e ) {
+                        m_exception = _e;   // Store exception
+
+                        Debug.LogError( "STREAD STOPPED! ==> EXCEPTION!!" );
+                        Debug.LogException( _e );
+                    }
 
                     if ( m_jobComplete != null )
                         m_jobComplete();    // Notify
@@ -227,7 +244,10 @@ for ( int i=0; i < 30; i++ ) {
 
                 Debug.Log( "Starting fit of BRDF " + m_type.FullName + " -> " + tableFile.FullName );
                 m_worker = new FittingWorkerThread( BRDF, tableFile, !m_owner.m_continueComputation );
-                m_worker.Start( () => { m_worker = null; } );   // Auto-clear worker once job is finished
+                m_worker.Start( () => {
+                    m_needsFitting = m_worker.m_exception != null;  // Clear the "Need Fitting" flag if the worker exited with an error
+                    m_worker = null;                                // Auto-clear worker once job is finished
+                } );
             }
         }
 
