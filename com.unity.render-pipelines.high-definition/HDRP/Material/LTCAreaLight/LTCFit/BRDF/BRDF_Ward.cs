@@ -20,7 +20,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
 
             Vector3 H = (_tsView + _tsLight).normalized;
             double  NdotL = Math.Max( 1e-8, _tsLight.z );
-            double  NdotV = _tsView.z;
             double  NdotH = Math.Max( 1e-8, H.z );
             double  LdotH = Math.Max( 1e-8, Vector3.Dot( _tsLight, H ) );
 
