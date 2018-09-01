@@ -57,7 +57,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.LTCFit
                 return m_type.Name;
             }
         }
+
         BRDFType[]  m_BRDFTypes = new BRDFType[0];
+        bool        m_continueComputation = true;   // Continue from where we left off
+
         Type[]  BRDFTypes {
             get {
                 Type[]  result = new Type[m_BRDFTypes.Length];
@@ -73,7 +76,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.LTCFit
                     m_BRDFTypes[i] = new BRDFType() { m_type = value[i] };
             }
         }
-
 
         private void OnGUI()
         {
@@ -119,6 +121,12 @@ if ( m_BRDFTypes.Length == 0 )
             }
 
             EditorGUILayout.Space();
+            EditorGUILayout.Separator();
+
+            m_continueComputation = EditorGUILayout.Toggle( "Continue Last Computation", m_continueComputation );
+
+            EditorGUILayout.Separator();
+            EditorGUILayout.Space();
 
             if ( fitCount > 0 ) {
                 if ( GUILayout.Button(new GUIContent( "Generate LTC Tables", "" ), EditorStyles.toolbarButton ) ) {
@@ -139,13 +147,19 @@ if ( m_BRDFTypes.Length == 0 )
 //                 W.WriteLine( "BISOU!" );
 
             // Fit all selected BRDFs
-            foreach ( BRDFType T in m_BRDFTypes )
-                if ( T.m_needsFitting ) {
-                    LTCFitter   fitter = new LTCFitter();
-                    IBRDF       BRDF = T.m_type.GetConstructor( new Type[0] ).Invoke( new object[0] ) as IBRDF;  // Invoke default constructor
-                    FileInfo    tableFile = new FileInfo( Path.Combine( TARGET_DIRECTORY.FullName, T.m_type.Name + ".ltc" ) );
-                    fitter.SetupBRDF( BRDF, LTC_TABLE_SIZE, tableFile );
-                }
+            foreach ( BRDFType T in m_BRDFTypes ) {
+                if ( !T.m_needsFitting )
+                    continue;
+
+                LTCFitter   fitter = new LTCFitter();
+                IBRDF       BRDF = T.m_type.GetConstructor( new Type[0] ).Invoke( new object[0] ) as IBRDF;  // Invoke default constructor
+                FileInfo    tableFile = new FileInfo( Path.Combine( TARGET_DIRECTORY.FullName, T.m_type.Name + ".ltc" ) );
+
+                Debug.Log( "Starting fit of BRDF " + T.m_type.FullName + " -> " + tableFile.FullName );
+
+                fitter.SetupBRDF( BRDF, LTC_TABLE_SIZE, tableFile );
+                fitter.Fit( m_continueComputation );
+            }
         }
     }
 }
