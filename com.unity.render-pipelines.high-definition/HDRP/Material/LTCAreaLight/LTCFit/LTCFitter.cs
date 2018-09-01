@@ -42,6 +42,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
 
         #endregion
 
+        #region NESTED TYPES
+
+        /// <summary>
+        /// Provides progress monitoring
+        /// </summary>
+        /// <param name="_progress"></param>
+        /// <returns>Return false to abort computation</returns>
+        public delegate bool    ProgressDelegate( float _progress );
+
+        #endregion
+
         #region FIELDS
 
         NelderMead          m_fitter = new NelderMead( new LTC().GetFittingParms().Length );
@@ -107,7 +118,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
         /// Fits the entire table
         /// </summary>
         /// <param name="_overwriteExistingValues">True to recompute the entire table, overwriting existing computed values</param>
-        public void Fit( bool _overwriteExistingValues )
+        /// <param name="_progress">Optional progress monitor</param>
+        public void Fit( bool _overwriteExistingValues, ProgressDelegate _progress )
         {
             for ( int roughnessIndex=m_tableSize-1; roughnessIndex >= 0; roughnessIndex-- )
             {
@@ -117,6 +129,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
                         FitSingle( roughnessIndex, thetaIndex );
                 }
                 SaveTable( m_tableFileName, m_results, m_errors );
+                if ( _progress != null && !_progress( 1.0f - (float) roughnessIndex / m_tableSize ) )
+                    return; // Abort!
             }
         }
 
