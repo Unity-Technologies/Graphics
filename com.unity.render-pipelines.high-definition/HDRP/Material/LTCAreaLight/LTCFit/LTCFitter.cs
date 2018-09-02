@@ -93,6 +93,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
 
         #endregion
 
+        #region PROPERTIES
+
+        public int      ErrorsCount { get { return m_errorsCount; } }
+        public string   Errors      { get { return m_errors; } }
+
+        #endregion
+
         #region METHODS
 
         /// <summary>
@@ -123,11 +130,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
         /// <param name="_progress">Optional progress monitor</param>
         public void Fit( bool _overwriteExistingValues, ProgressDelegate _progress )
         {
+            if ( !_overwriteExistingValues && m_tableFileName.Exists )
+            {
+                // Attempt to reload existing results
+                try {
+                    m_results = LoadTable( m_tableFileName, out m_validResultsCount );
+Debug.Log( "Loaded table " + m_tableFileName.FullName + " - " + m_validResultsCount + " valid results found" );
+                } catch ( Exception _e ) {
+                	throw new Exception( "Failed to reload existing LTC table! Can't resume computation. Please, either delete exiting LTC file on disk or choose to overwrite existing values...", _e );
+                }
+            }
+
             for ( int roughnessIndex=m_tableSize-1; roughnessIndex >= 0; roughnessIndex-- )
             {
                 for ( int thetaIndex=0; thetaIndex < m_tableSize; thetaIndex++ )
                 {
-                    if ( _overwriteExistingValues || m_results[roughnessIndex,thetaIndex] == null )
+                    if ( m_results[roughnessIndex,thetaIndex] == null )
                         FitSingle( roughnessIndex, thetaIndex );
                 }
 
@@ -144,55 +162,57 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
         /// <param name="_roughnessIndex"></param>
         /// <param name="_thetaIndex"></param>
         public void FitSingle( int _roughnessIndex, int _thetaIndex ) {
-            // Prepare a new LTC
-            LTC     ltc = new LTC();
-
-            float   alpha, cosTheta;
-            GetRoughnessAndAngle( _roughnessIndex, _thetaIndex, m_tableSize, out alpha, out cosTheta );
-
-            Vector3    tsView = new Vector3( Mathf.Sqrt( 1 - cosTheta*cosTheta ), 0, cosTheta );
-
-            // Compute BRDF's magnitude and average direction
-            ltc.ComputeAverageTerms( m_BRDF, ref tsView, alpha );
-
-            // 1. first guess for the fit
-            // init the hemisphere in which the distribution is fitted
-            bool    isotropic;
-            if ( _thetaIndex == 0 ) {
-                // if theta == 0 the lobe is rotationally symmetric and aligned with Z = (0 0 1)
-                ltc.X = new Vector3( 1, 0, 0 );
-                ltc.Y = new Vector3( 0, 1, 0 );
-                ltc.Z = new Vector3( 0, 0, 1 );
-
-                if ( _roughnessIndex == m_tableSize-1 || m_results[_roughnessIndex+1,_thetaIndex] == null ) {
-                    // roughness = 1 or no available result
-                    ltc.m11 = 1.0f;
-                    ltc.m22 = 1.0f;
-                } else {
-                    // init with roughness of previous fit
-                    LTC previousLTC = m_results[_roughnessIndex+1,_thetaIndex];
-                    ltc.m11 = previousLTC.m11;
-                    ltc.m22 = previousLTC.m22;
-                }
-
-                ltc.m13 = 0;
-
-                isotropic = true;
-            } else {
-                // Otherwise use average direction as Z vector
-                LTC previousLTC = m_results[_roughnessIndex,_thetaIndex-1];
-                if ( previousLTC != null ) {
-                    ltc.m11 = previousLTC.m11;
-                    ltc.m22 = previousLTC.m22;
-                    ltc.m13 = previousLTC.m13;
-                }
-
-                isotropic = false;
-            }
-            ltc.Update();
-
-            // Find best-fit LTC lobe (scale, alphax, alphay)
             try {
+                // Prepare a new LTC
+                LTC     ltc = new LTC();
+
+                float   alpha, cosTheta;
+                GetRoughnessAndAngle( _roughnessIndex, _thetaIndex, m_tableSize, out alpha, out cosTheta );
+
+                Vector3    tsView = new Vector3( Mathf.Sqrt( 1 - cosTheta*cosTheta ), 0, cosTheta );
+
+                // Compute BRDF's magnitude and average direction
+                ltc.ComputeAverageTerms( m_BRDF, ref tsView, alpha );
+
+                // 1. first guess for the fit
+                // init the hemisphere in which the distribution is fitted
+                bool    isotropic;
+                if ( _thetaIndex == 0 ) {
+                    // if theta == 0 the lobe is rotationally symmetric and aligned with Z = (0 0 1)
+                    ltc.X = new Vector3( 1, 0, 0 );
+                    ltc.Y = new Vector3( 0, 1, 0 );
+                    ltc.Z = new Vector3( 0, 0, 1 );
+
+                    if ( _roughnessIndex == m_tableSize-1 || m_results[_roughnessIndex+1,_thetaIndex] == null ) {
+                        // roughness = 1 or no available result
+                        ltc.m11 = 1.0f;
+                        ltc.m22 = 1.0f;
+                    } else {
+                        // init with roughness of previous fit
+                        LTC previousLTC = m_results[_roughnessIndex+1,_thetaIndex];
+                        ltc.m11 = previousLTC.m11;
+                        ltc.m22 = previousLTC.m22;
+                    }
+
+                    ltc.m13 = 0;
+
+                    isotropic = true;
+                } else {
+                    // Otherwise use average direction as Z vector
+                    LTC previousLTC = m_results[_roughnessIndex,_thetaIndex-1];
+                    if ( previousLTC != null ) {
+                        ltc.m11 = previousLTC.m11;
+                        ltc.m22 = previousLTC.m22;
+                        ltc.m13 = previousLTC.m13;
+                    }
+
+                    isotropic = false;
+                }
+                ltc.Update();
+
+//Debug.Log( "Computing new result at [" + _roughnessIndex + ", " + _thetaIndex + "]" );
+
+                // Find best-fit LTC lobe (scale, alphax, alphay)
                 if ( ltc.magnitude > 1e-6 ) {
 
                     double[]    startFit = ltc.GetFittingParms();
@@ -208,13 +228,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
 
                     // Update LTC with final best fitting values
                     ltc.SetFittingParms( resultFit, isotropic );
-
-                    // Store new valid result
-                    m_results[_roughnessIndex,_thetaIndex] = ltc;
-                    m_validResultsCount++;
                 }
+
+                // Store new valid result
+                m_results[_roughnessIndex,_thetaIndex] = ltc;
+                m_validResultsCount++;
+//Debug.Log( "New result computed at [" + _roughnessIndex + ", " + _thetaIndex + "]" );
+
             } catch ( Exception _e ) {
                 // Clear LTC!
+//Debug.LogError( "Failed result at [" + _roughnessIndex + ", " + _thetaIndex + "]" );
                 if ( m_results[_roughnessIndex,_thetaIndex] != null )
                     m_validResultsCount--;  // One less valid result!
                 m_results[_roughnessIndex,_thetaIndex] = null;
@@ -222,11 +245,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
                 m_errorsCount++;
                 m_errors += "An error occurred at [" + _roughnessIndex + ", " + _thetaIndex + "]: " + _e.Message + "\r\n";
             }
-
-//          // Show debug form
-//          m_validResultsCount++;
-//          if ( RenderBRDF )
-//              ShowBRDF( (float) m_validResultsCount / (m_tableSize*m_tableSize), Mathf.Acos( cosTheta ), alpha, m_BRDF, ltc );
         }
 
         /// <summary>
@@ -374,6 +392,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
                                 result[X,Y] = new LTC( R );
                                 _validResultsCount++;
                             }
+//else {
+//Debug.LogWarning( "Result at " + X + ", " + Y + " is invalid!" );
+//}
                         }
                     }
                 }

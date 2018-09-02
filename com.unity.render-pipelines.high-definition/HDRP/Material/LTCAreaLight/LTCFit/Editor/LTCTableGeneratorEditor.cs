@@ -86,7 +86,7 @@ if ( m_BRDFTypes.Length == 0 )
                 if ( T.IsWorking )
                 {   // Show current work progress
                     EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField( "<COMPUTING> " + T.ToString() + " " + (T.Progress * 100.0f).ToString( "G3" ) + "%", GUILayout.ExpandWidth( false ) );
+                        EditorGUILayout.LabelField( T.ToString() + " " + (T.Progress * 100.0f).ToString( "G3" ) + "%", GUILayout.ExpandWidth( false ) );
 //                        EditorGUILayout.LabelField( "<COMPUTING> " + T.ToString(), GUILayout.ExpandWidth( false ) );
 
                         Rect r = EditorGUILayout.BeginVertical();
@@ -124,7 +124,11 @@ if ( m_BRDFTypes.Length == 0 )
             EditorGUILayout.Space();
             EditorGUILayout.Separator();
 
-            m_continueComputation = EditorGUILayout.Toggle( "Continue Last Computation", m_continueComputation );
+            m_continueComputation = EditorGUILayout.Toggle( "Resume Computation", m_continueComputation );
+            if ( !m_continueComputation )
+            {
+                EditorGUILayout.HelpBox( "Be careful: if you do not wish to resume computation, existing values will be overwritten and you might lose existing work.", MessageType.Warning );
+            }
 
             if ( fitCount > 0 ) {
                 EditorGUILayout.Separator();
@@ -217,11 +221,19 @@ if ( m_BRDFTypes.Length == 0 )
 //}
 
 
-                        Debug.Log( m_BRDF.GetType().Name +  " ==> SUCCESS!!" );
-                    } catch ( LTCFitter.UserAbortException ) {
+                        Debug.Log( m_BRDF.GetType().Name + " ==> SUCCESS!!" );
+                        if ( m_fitter.ErrorsCount > 0 )
+                        {
+                            // Report errors
+                            Debug.LogError( m_BRDF.GetType().Name + " Fitter reported " + m_fitter.ErrorsCount + " errors:\n"
+                                            + m_fitter.Errors );
+                        }
+
+                    } catch ( LTCFitter.UserAbortException _e ) {
+                        m_exception = _e;   // Store exception to signal computing is still needed
                         Debug.LogWarning( m_BRDF.GetType().Name + " - ABORTED." );
                     } catch ( Exception _e ) {
-                        m_exception = _e;   // Store exception
+                        m_exception = _e;   // Store exception to signal computing is still needed
 
                         Debug.LogError( m_BRDF.GetType().Name + " THTREAD EXCEPTION!!" );
                         Debug.LogException( _e );
