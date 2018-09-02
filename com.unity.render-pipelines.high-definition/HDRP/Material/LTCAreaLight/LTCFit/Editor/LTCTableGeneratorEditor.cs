@@ -85,11 +85,9 @@ if ( m_BRDFTypes.Length == 0 )
 
                 if ( T.IsWorking )
                 {   // Show current work progress
-//                    EditorGUILayout.LabelField( "<COMPUTING> " + T.ToString() + " Progress = " + (T.Progress * 100.0f).ToString( "G3" ) );
-
                     EditorGUILayout.BeginHorizontal();
-
-                        EditorGUILayout.LabelField( "<COMPUTING> " + T.ToString(), GUILayout.ExpandWidth( false ) );
+                        EditorGUILayout.LabelField( "<COMPUTING> " + T.ToString() + " " + (T.Progress * 100.0f).ToString( "G3" ) + "%", GUILayout.ExpandWidth( false ) );
+//                        EditorGUILayout.LabelField( "<COMPUTING> " + T.ToString(), GUILayout.ExpandWidth( false ) );
 
                         Rect r = EditorGUILayout.BeginVertical();
                             EditorGUI.ProgressBar( r, T.Progress, (T.Progress*100.0f).ToString( "G3" ) + "%" );
@@ -128,16 +126,26 @@ if ( m_BRDFTypes.Length == 0 )
 
             m_continueComputation = EditorGUILayout.Toggle( "Continue Last Computation", m_continueComputation );
 
-            EditorGUILayout.Separator();
-            EditorGUILayout.Space();
-
             if ( fitCount > 0 ) {
+                EditorGUILayout.Separator();
+                EditorGUILayout.Space();
                 if ( GUILayout.Button(new GUIContent( "Generate LTC Tables", "" ), EditorStyles.toolbarButton ) ) {
-                    DoFitting();
+                    // Make sure target directory exists before creating any file!
+                    if ( !TARGET_DIRECTORY.Exists )
+                        TARGET_DIRECTORY.Create();
+
+                    // Fit all selected BRDFs
+                    foreach ( BRDFType T in m_BRDFTypes ) {
+                        if ( T.m_needsFitting && !T.IsWorking )
+                            T.StartFitting();
+                    }
                 }
             }
+
             if ( workingCount > 0 )
             {
+                EditorGUILayout.Separator();
+                EditorGUILayout.Space();
                 if ( GUILayout.Button(new GUIContent( "Abort Computation", "" ), EditorStyles.toolbarButton ) ) {
                     foreach ( BRDFType T in m_BRDFTypes )
                         T.AbortFitting();
@@ -193,28 +201,29 @@ if ( m_BRDFTypes.Length == 0 )
                     Debug.Log( "STREAD STARTED!" );
 
                     try {
-//                      m_fitter.Fit( m_overwriteExistingValues, ( float _progress ) => { m_progress = _progress; return m_abort; } );
+                      m_fitter.Fit( m_overwriteExistingValues, ( float _progress ) => { m_progress = _progress; return !m_abort; } );
 
 
 // Fake working loop
-System.Random   RNG = new System.Random( (int) DateTime.Now.Ticks + m_BRDF.GetHashCode() );
-int crashInt = 5 + (int) (55.0f * RNG.NextDouble());
-for ( int i=0; i < 30; i++ ) {
-    System.Threading.Thread.Sleep( 500 );
-    m_progress = i / 30.0f;
-    if ( m_abort )
-        throw new Exception( "User Abort!" );   // Abort computation!
-    if ( i == crashInt )
-        throw new Exception( "Rha!" );  // Simulate an exception
-}
+//System.Random   RNG = new System.Random( (int) DateTime.Now.Ticks + m_BRDF.GetHashCode() );
+//int crashInt = 5 + (int) (55.0f * RNG.NextDouble());
+//for ( int i=0; i < 30; i++ ) {
+//    System.Threading.Thread.Sleep( 500 );
+//    m_progress = i / 30.0f;
+//    if ( m_abort )
+//        throw new Exception( "User Abort!" );   // Abort computation!
+//    if ( i == crashInt )
+//        throw new Exception( "Rha!" );  // Simulate an exception
+//}
 
 
-                        Debug.Log( m_BRDF.GetType().Name +  " STREAD STOPPED! ==> SUCCESS!!" );
-
+                        Debug.Log( m_BRDF.GetType().Name +  " ==> SUCCESS!!" );
+                    } catch ( LTCFitter.UserAbortException ) {
+                        Debug.LogWarning( m_BRDF.GetType().Name + " - ABORTED." );
                     } catch ( Exception _e ) {
                         m_exception = _e;   // Store exception
 
-                        Debug.LogError( m_BRDF.GetType().Name + " STREAD STOPPED! ==> EXCEPTION!!" );
+                        Debug.LogError( m_BRDF.GetType().Name + " THTREAD EXCEPTION!!" );
                         Debug.LogException( _e );
                     }
 
@@ -226,15 +235,15 @@ for ( int i=0; i < 30; i++ ) {
             LTCTableGeneratorEditor     m_owner;
             public Type                 m_type = null;
             public bool                 m_needsFitting = true;
-            FittingWorkerThread         m_worker = null;
+            FittingWorkerThread         m_worker = null;        // Worker thread, also used to indicate whether the fitter is already working
 
-            public bool                 m_dirty = false;
+            public bool                 m_dirty = false;        // GUI needs repainting if this flag is set
 
             public bool     IsWorking {
-                get { return m_worker != null; }
+                get { lock ( this ) return m_worker != null; }
             }
             public float    Progress {
-                get { return m_worker != null ? m_worker.m_progress : 0; }
+                get { lock ( this ) return m_worker != null ? m_worker.m_progress : 0; }
             }
 
             public BRDFType( LTCTableGeneratorEditor _owner )
@@ -249,39 +258,29 @@ for ( int i=0; i < 30; i++ ) {
 
             public void     StartFitting()
             {
-                if ( m_worker != null )
-                    throw new Exception( "Already fitting!" );
+                lock ( this ) {
+                    if ( m_worker != null )
+                        throw new Exception( "Already fitting!" );
 
-                IBRDF       BRDF = m_type.GetConstructor( new Type[0] ).Invoke( new object[0] ) as IBRDF;  // Invoke default constructor
-                FileInfo    tableFile = new FileInfo( Path.Combine( TARGET_DIRECTORY.FullName, m_type.Name + ".ltc" ) );
+                    IBRDF       BRDF = m_type.GetConstructor( new Type[0] ).Invoke( new object[0] ) as IBRDF;  // Invoke default constructor
+                    FileInfo    tableFile = new FileInfo( Path.Combine( TARGET_DIRECTORY.FullName, m_type.Name + ".ltc" ) );
 
-                Debug.Log( "Starting fit of BRDF " + m_type.FullName + " -> " + tableFile.FullName );
-                m_worker = new FittingWorkerThread( BRDF, tableFile, !m_owner.m_continueComputation );
-                m_worker.Start( () => {
-                    m_needsFitting = m_worker.m_exception != null;  // Clear the "Need Fitting" flag if the worker exited with an error
-                    m_worker = null;                                // Auto-clear worker once job is finished
-                    m_dirty = true;
-//                    m_owner.Repaint();
-                } );
+                    Debug.Log( "Starting fit of BRDF " + m_type.FullName + " -> " + tableFile.FullName );
+                    m_worker = new FittingWorkerThread( BRDF, tableFile, !m_owner.m_continueComputation );
+                    m_worker.Start( () => {
+                        m_needsFitting = m_worker.m_exception != null;  // Clear the "Need Fitting" flag if the worker exited without an error
+                        m_worker = null;                                // Auto-clear worker once job is finished
+                        m_dirty = true;
+                    } );
+                }
             }
 
             public void     AbortFitting()
             {
-                if ( m_worker != null )
-                    m_worker.m_abort = true;    // Signal abort for the thread...
-            }
-        }
-
-        void    DoFitting()
-        {
-            // Make sure target directory exists before creating any file!
-            if ( !TARGET_DIRECTORY.Exists )
-                TARGET_DIRECTORY.Create();
-
-            // Fit all selected BRDFs
-            foreach ( BRDFType T in m_BRDFTypes ) {
-                if ( T.m_needsFitting && !T.IsWorking )
-                    T.StartFitting();
+                lock ( this ) {
+                    if ( m_worker != null )
+                        m_worker.m_abort = true;    // Signal abort for the thread...
+                }
             }
         }
 

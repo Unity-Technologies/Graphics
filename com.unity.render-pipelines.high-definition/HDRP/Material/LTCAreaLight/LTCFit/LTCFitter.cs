@@ -44,6 +44,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
 
         #region NESTED TYPES
 
+        public class UserAbortException : Exception {}
+
         /// <summary>
         /// Provides progress monitoring
         /// </summary>
@@ -128,9 +130,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
                     if ( _overwriteExistingValues || m_results[roughnessIndex,thetaIndex] == null )
                         FitSingle( roughnessIndex, thetaIndex );
                 }
+
                 SaveTable( m_tableFileName, m_results, m_errors );
                 if ( _progress != null && !_progress( 1.0f - (float) roughnessIndex / m_tableSize ) )
-                    return; // Abort!
+                    throw new UserAbortException(); // Abort!
             }
         }
 
