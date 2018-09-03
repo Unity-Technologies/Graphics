@@ -127,8 +127,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
         /// Fits the entire table
         /// </summary>
         /// <param name="_overwriteExistingValues">True to recompute the entire table, overwriting existing computed values</param>
+        /// <param name="_stopOnError">Stop computation as soon as we encounter an error</param>
         /// <param name="_progress">Optional progress monitor</param>
-        public void Fit( bool _overwriteExistingValues, ProgressDelegate _progress )
+        public void Fit( bool _overwriteExistingValues, bool _stopOnError, ProgressDelegate _progress )
         {
             if ( !_overwriteExistingValues && m_tableFileName.Exists )
             {
@@ -145,8 +146,12 @@ Debug.Log( "Loaded table " + m_tableFileName.FullName + " - " + m_validResultsCo
             {
                 for ( int thetaIndex=0; thetaIndex < m_tableSize; thetaIndex++ )
                 {
-                    if ( m_results[roughnessIndex,thetaIndex] == null )
-                        FitSingle( roughnessIndex, thetaIndex );
+                    if ( m_results[roughnessIndex,thetaIndex] != null )
+                        continue;   // Already computed...
+
+                    FitSingle( roughnessIndex, thetaIndex );
+                    if ( _stopOnError && m_errorsCount > 0 )
+                        throw new Exception( "Stopped because of error..." );
                 }
 
                 SaveTable( m_tableFileName, m_results, m_errors );

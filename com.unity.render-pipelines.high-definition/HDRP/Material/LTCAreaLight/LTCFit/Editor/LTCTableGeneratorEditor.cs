@@ -36,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.LTCFit
 
         BRDFType[]  m_BRDFTypes = new BRDFType[0];
         bool        m_continueComputation = true;   // Continue from where we left off
+        bool        m_stopOnError = true;           // Stop as soon as we encounter an error
 
         Type[]  BRDFTypes {
             get {
@@ -71,12 +72,12 @@ if ( m_BRDFTypes.Length == 0 )
     BRDFTypes = ListBRDFTypes();
 
 
-            EditorGUILayout.BeginVertical( EditorStyles.miniButton );
-            GUILayout.Button(new GUIContent( "Generate LTC Tables", ""), EditorStyles.centeredGreyMiniLabel);
-
             EditorGUILayout.Separator();
 
             EditorGUILayout.LabelField( "Recognized BRDF Types: " + m_BRDFTypes.Length );
+
+            EditorGUILayout.BeginVertical( EditorStyles.miniButtonLeft );
+//           GUILayout.Button(new GUIContent( "Generate LTC Tables", ""), EditorStyles.centeredGreyMiniLabel);
 
             int fitCount = 0;
             int workingCount = 0;
@@ -104,7 +105,11 @@ if ( m_BRDFTypes.Length == 0 )
                 }
             }
 
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
             EditorGUILayout.Separator();
+
+            EditorGUILayout.EndVertical();
 
             if ( m_BRDFTypes.Length > 1 ) {
                 EditorGUILayout.BeginHorizontal();
@@ -129,6 +134,8 @@ if ( m_BRDFTypes.Length == 0 )
             {
                 EditorGUILayout.HelpBox( "Be careful: if you do not wish to resume computation, existing values will be overwritten and you might lose existing work.", MessageType.Warning );
             }
+
+            m_stopOnError = EditorGUILayout.Toggle( "Stop on Error", m_stopOnError );
 
             if ( fitCount > 0 ) {
                 EditorGUILayout.Separator();
@@ -155,8 +162,6 @@ if ( m_BRDFTypes.Length == 0 )
                         T.AbortFitting();
                 }
             }
-
-            EditorGUILayout.EndVertical();
         }
 
         #region Fitting
@@ -168,28 +173,28 @@ if ( m_BRDFTypes.Length == 0 )
             /// </summary>
             class   FittingWorkerThread
             {
-                public delegate void    CompletionDelegate();
+                public delegate void    CompletionDelegate( bool _finishedWithErrors );
 
                 LTCFitter           m_fitter = new LTCFitter();
                 IBRDF               m_BRDF = null;
                 FileInfo            m_tableFile = null;
                 bool                m_overwriteExistingValues = false;
+                bool                m_stopOnError = true;
                 CompletionDelegate  m_jobComplete;
 
                 // Runtime values
                 public float        m_progress = 0;
                 public bool         m_abort = false;
-                public Exception    m_exception = null;
 
-                public FittingWorkerThread( IBRDF _BRDF, FileInfo _tableFile, bool _overwriteExistingValues )
+                public FittingWorkerThread( IBRDF _BRDF, FileInfo _tableFile, bool _overwriteExistingValues, bool _stopOnError )
                 {
                     m_BRDF = _BRDF;
                     m_tableFile = _tableFile;
                     m_overwriteExistingValues = _overwriteExistingValues;
+                    m_stopOnError = _stopOnError;
 
                     m_progress = 0;
                     m_abort = false;
-                    m_exception = null;
 
                     m_fitter.SetupBRDF( m_BRDF, LTC_TABLE_SIZE, m_tableFile );
                 }
@@ -202,10 +207,11 @@ if ( m_BRDFTypes.Length == 0 )
 
                 public void DoFitting( object _state )
                 {
-                    Debug.Log( "STREAD STARTED!" );
+//Debug.Log( "THREAD STARTED!" );
 
+                    Exception   exception = null;
                     try {
-                      m_fitter.Fit( m_overwriteExistingValues, ( float _progress ) => { m_progress = _progress; return !m_abort; } );
+                      m_fitter.Fit( m_overwriteExistingValues, m_stopOnError, ( float _progress ) => { m_progress = _progress; return !m_abort; } );
 
 
 // Fake working loop
@@ -221,26 +227,27 @@ if ( m_BRDFTypes.Length == 0 )
 //}
 
 
-                        Debug.Log( m_BRDF.GetType().Name + " ==> SUCCESS!!" );
-                        if ( m_fitter.ErrorsCount > 0 )
-                        {
-                            // Report errors
-                            Debug.LogError( m_BRDF.GetType().Name + " Fitter reported " + m_fitter.ErrorsCount + " errors:\n"
-                                            + m_fitter.Errors );
-                        }
+Debug.Log( m_BRDF.GetType().Name + " ==> SUCCESS!!" );
 
                     } catch ( LTCFitter.UserAbortException _e ) {
-                        m_exception = _e;   // Store exception to signal computing is still needed
+                        exception = _e;   // Store exception to signal computing is still needed
                         Debug.LogWarning( m_BRDF.GetType().Name + " - ABORTED." );
                     } catch ( Exception _e ) {
-                        m_exception = _e;   // Store exception to signal computing is still needed
+                        exception = _e;   // Store exception to signal computing is still needed
 
-                        Debug.LogError( m_BRDF.GetType().Name + " THTREAD EXCEPTION!!" );
+                        Debug.LogError( m_BRDF.GetType().Name + " THREAD EXCEPTION!!" );
                         Debug.LogException( _e );
                     }
 
+                    if ( m_fitter.ErrorsCount > 0 )
+                    {
+                        // Report errors
+                        Debug.LogError( m_BRDF.GetType().Name + " Fitter reported " + m_fitter.ErrorsCount + " errors:\n"
+                                        + m_fitter.Errors );
+                    }
+
                     if ( m_jobComplete != null )
-                        m_jobComplete();    // Notify
+                        m_jobComplete( exception != null || m_fitter.ErrorsCount > 0 );    // Notify
                 }
             }
 
@@ -278,10 +285,10 @@ if ( m_BRDFTypes.Length == 0 )
                     FileInfo    tableFile = new FileInfo( Path.Combine( TARGET_DIRECTORY.FullName, m_type.Name + ".ltc" ) );
 
                     Debug.Log( "Starting fit of BRDF " + m_type.FullName + " -> " + tableFile.FullName );
-                    m_worker = new FittingWorkerThread( BRDF, tableFile, !m_owner.m_continueComputation );
-                    m_worker.Start( () => {
-                        m_needsFitting = m_worker.m_exception != null;  // Clear the "Need Fitting" flag if the worker exited without an error
-                        m_worker = null;                                // Auto-clear worker once job is finished
+                    m_worker = new FittingWorkerThread( BRDF, tableFile, !m_owner.m_continueComputation, m_owner.m_stopOnError );
+                    m_worker.Start( ( bool _finishedWithErrors ) => {
+                        m_needsFitting = _finishedWithErrors;   // Clear the "Need Fitting" flag if the worker exited without an error
+                        m_worker = null;                        // Auto-clear worker once job is finished
                         m_dirty = true;
                     } );
                 }
