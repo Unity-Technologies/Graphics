@@ -180,8 +180,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
 
                     // accumulate
                     weight = eval / pdf;
-                    if ( double.IsNaN( weight ) )
+                    if ( double.IsNaN( weight ) ) {
+                        Debug.LogError( "Alpha = " + _alpha );
+                        Debug.LogError( "i,j = " + i + ", " + j );
+                        Debug.LogError( "U1, U2 = " + U1 + ", " + U2 );
+                        Debug.LogError( "_tsView = { " + _tsView.x + ", " + _tsView.y + ", " + _tsView.z + "}" );
+                        Debug.LogError( "tsLight = { " + tsLight.x + ", " + tsLight.y + ", " + tsLight.z + "}" );
                         throw new Exception( "NaN!" );
+                    }
 
                     magnitude += weight;
                     fresnel += weight * Math.Pow( 1 - Math.Max( 0.0f, Vector3.Dot( _tsView, H ) ), 5.0 );
