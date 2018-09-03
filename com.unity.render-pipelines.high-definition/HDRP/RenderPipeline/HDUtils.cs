@@ -346,7 +346,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 && layer.antialiasingMode == PostProcessLayer.Antialiasing.TemporalAntialiasing
                 && layer.temporalAntialiasing.IsSupported();
         }
-        
+
         // We need these at runtime for RenderPipelineResources upgrade
         public static string GetHDRenderPipelinePath()
         {
@@ -363,5 +363,72 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return "Packages/com.unity.render-pipelines.core/CoreRP/";
         }
 
+        public struct PackedMipChainInfo
+        {
+            public Vector2Int   textureSize;
+            public int          mipLevelCount;
+            public Vector2Int[] mipLevelSizes;
+            public Vector2Int[] mipLevelOffsets;
+        }
+
+        // We pack all MIP levels into the top MIP level to avoid the Pow2 MIP chain restriction.
+        // We compute the required size iteratively.
+        // This function is NOT fast, but it is illustrative, and can be optimized later.
+        public static PackedMipChainInfo ComputePackedMipChainInfo(Vector2Int textureSize)
+        {
+            PackedMipChainInfo info = new PackedMipChainInfo();
+
+            info.mipLevelOffsets    = new Vector2Int[14];
+            info.mipLevelSizes      = new Vector2Int[14];
+
+            info.textureSize        = textureSize;
+            info.mipLevelSizes[0]   = textureSize;
+            info.mipLevelOffsets[0] = Vector2Int.zero;
+
+            int        mipLevel = 0;
+            Vector2Int mipSize  = textureSize;
+
+            do
+            {
+                mipLevel++;
+
+                // Round up.
+                mipSize.x = Math.Max(1, (mipSize.x + 1) >> 1);
+                mipSize.y = Math.Max(1, (mipSize.y + 1) >> 1);
+
+                info.mipLevelSizes[mipLevel] = mipSize;
+
+                Vector2Int prevMipBegin = info.mipLevelOffsets[mipLevel - 1];
+                Vector2Int prevMipEnd   = prevMipBegin + info.mipLevelSizes[mipLevel - 1];
+
+                Vector2Int mipBegin = new Vector2Int();
+
+                if ((mipLevel & 1) != 0) // Odd
+                {
+                    mipBegin.x = prevMipBegin.x;
+                    mipBegin.y = prevMipEnd.y;
+                }
+                else // Even
+                {
+                    mipBegin.x = prevMipEnd.x;
+                    mipBegin.y = prevMipBegin.y;
+                }
+
+                info.mipLevelOffsets[mipLevel] = mipBegin;
+
+                info.textureSize.x = Math.Max(info.textureSize.x, mipBegin.x + mipSize.x);
+                info.textureSize.y = Math.Max(info.textureSize.y, mipBegin.y + mipSize.y);
+
+            } while (mipSize.x > 1 || mipSize.y > 1);
+
+            info.mipLevelCount = mipLevel + 1;
+
+            return info;
+        }
+
+        public static int DivRoundUp(int x, int y)
+        {
+            return (x + y - 1) / y;
+        }
     }
 }
