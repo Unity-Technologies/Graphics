@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
 
-        bool StripUnusedShader(PipelineCapabilities capabilities, Shader shader)
+        bool StripUnusedShader(ShaderFeatures features, Shader shader)
         {
             if (shader.name.Contains("Debug"))
                 return true;
@@ -45,45 +45,45 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (shader.name.Contains("HDRenderPipeline"))
                 return true;
 
-            if (!CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows) &&
+            if (!CoreUtils.HasFlag(features, ShaderFeatures.DirectionalShadows) &&
                 shader.name.Contains("ScreenSpaceShadows"))
                 return true;
 
             return false;
         }
 
-        bool StripUnusedPass(PipelineCapabilities capabilities, ShaderSnippetData snippetData)
+        bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData)
         {
             if (snippetData.passType == PassType.Meta)
                 return true;
 
             if (snippetData.passType == PassType.ShadowCaster)
-                if (!CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows) && !CoreUtils.HasFlag(capabilities, PipelineCapabilities.LocalShadows))
+                if (!CoreUtils.HasFlag(features, ShaderFeatures.DirectionalShadows) && !CoreUtils.HasFlag(features, ShaderFeatures.LocalShadows))
                     return true;
 
             return false;
         }
 
-        bool StripUnusedVariant(PipelineCapabilities capabilities, ShaderCompilerData compilerData)
+        bool StripUnusedVariant(ShaderFeatures features, ShaderCompilerData compilerData)
         {
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.AdditionalLights) &&
-                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.AdditionalLights))
+                !CoreUtils.HasFlag(features, ShaderFeatures.AdditionalLights))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.VertexLights) &&
-                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.VertexLights))
+                !CoreUtils.HasFlag(features, ShaderFeatures.VertexLights))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.DirectionalShadows) &&
-                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows))
+                !CoreUtils.HasFlag(features, ShaderFeatures.DirectionalShadows))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.LocalShadows) &&
-                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.LocalShadows))
+                !CoreUtils.HasFlag(features, ShaderFeatures.LocalShadows))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.SoftShadows) &&
-                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.SoftShadows))
+                !CoreUtils.HasFlag(features, ShaderFeatures.SoftShadows))
                 return true;
 
             return false;
@@ -112,15 +112,15 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
-        bool StripUnused(PipelineCapabilities capabilities, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            if (StripUnusedShader(capabilities, shader))
+            if (StripUnusedShader(features, shader))
                 return true;
 
-            if (StripUnusedPass(capabilities, snippetData))
+            if (StripUnusedPass(features, snippetData))
                 return true;
 
-            if (StripUnusedVariant(capabilities, compilerData))
+            if (StripUnusedVariant(features, compilerData))
                 return true;
 
             if (StripInvalidVariants(compilerData))
@@ -156,12 +156,12 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (lw == null)
                 return;
 
-            PipelineCapabilities capabilities = LightweightRP.GetPipelineCapabilities();
+            ShaderFeatures features = LightweightRP.GetSupportedShaderFeatures();
             int prevVariantCount = compilerDataList.Count;
 
             for (int i = 0; i < compilerDataList.Count; ++i)
             {
-                if (StripUnused(capabilities, shader, snippetData, compilerDataList[i]))
+                if (StripUnused(features, shader, snippetData, compilerDataList[i]))
                 {
                     compilerDataList.RemoveAt(i);
                     --i;

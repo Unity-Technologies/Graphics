@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEditor;
 using UnityEditor.AnimatedValues;
 using UnityEditor.Experimental.Rendering;
@@ -62,19 +61,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
 
             public static GUIContent XRConfig = new GUIContent("XR Graphics Settings", "SRP will attempt to set this configuration to the VRDevice.");
-        }
-
-        public static class StrippingStyles
-        {
-            public static GUIContent strippingLabel = new GUIContent("Shader Stripping");
-            public static GUIContent pipelineCapabilitiesLabel = new GUIContent("Pipeline Capabilities", "Select pipeline capabilities variants to be kept in the build.");
-            public static string[] strippingOptions = {"Automatic", "Custom"};
-
-            public static GUIContent localLightsLabel = new GUIContent("Additional Lights", "If enabled additional lights variants won't be stripped from build.");
-            public static GUIContent vertexLightsLabel = new GUIContent("Vertex Lights", "If enabled vertex lights variants wont' be stripped from build.");
-            public static GUIContent directionalShadowsLabel = new GUIContent("Directional Shadows", "If enabled directional shadows variants won't be stripped from build.");
-            public static GUIContent localShadowsLabel = new GUIContent("Local Shadows", "If enabled local shadows variants won't be stripped from build.");
-            public static GUIContent softShadowsLabel = new GUIContent("Soft Shadows", "If enabled soft shadows variants won't be stripped from build.");
         }
 
         AnimBool m_ShowSoftParticles = new AnimBool();

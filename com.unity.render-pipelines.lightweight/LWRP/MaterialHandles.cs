@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         DepthCopy,
         Sampling,
         Blit,
-        ScrenSpaceShadow,
+        ScreenSpaceShadow,
         Count,
     }
 }
