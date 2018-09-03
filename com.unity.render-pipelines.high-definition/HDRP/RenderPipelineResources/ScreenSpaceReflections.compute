@@ -56,7 +56,11 @@ CBUFFER_START(UnityScreenSpaceReflections)
     int   _SsrDepthPyramidMaxMip;
     float _SsrRcpFade;
     float _SsrOneMinusRcpFade;
+    float4 _SsrDepthPyramidMipLevelOffsets[7];
 CBUFFER_END
+
+// Actually an array of integers disguised as array of float vectors (because Unity)...
+static const float2 depthPyramidMipLevelOffsets[14] = (const float2[14])(_SsrDepthPyramidMipLevelOffsets);
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -169,14 +173,15 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         float2 satEdgeDist = clamp(raySign.xy * sgnEdgeDist + SSR_TRACE_EPS, 0, SSR_TRACE_EPS);
         rayPos.xy += raySign.xy * satEdgeDist;
 
-        int2 mipCoord = (int2)rayPos.xy >> mipLevel;
+        int2 mipCoord  = (int2)rayPos.xy >> mipLevel;
+        int2 mipOffset = /*asint*/(depthPyramidMipLevelOffsets[mipLevel]);
 
         // Bounds define 4 faces of a cube:
         // 2 walls in front of the ray, and a floor and a base below it.
         float4 bounds;
 
         bounds.xy = (mipCoord + rayStep) << mipLevel;
-        bounds.z  = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, mipCoord, mipLevel).r;
+        bounds.z  = LOAD_TEXTURE2D(_DepthPyramidTexture, mipOffset + mipCoord).r;
         rayPos.z  = bounds.z;
         // We define the depth of the base as the depth value as:
         // b = DeviceDepth((1 + thickness) * LinearDepth(d))
@@ -247,7 +252,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         _SsrHitPointTexture[positionSS] = hitPositionNDC;
     }
 
-    WriteDebugInfo(positionSS, float4(hitPositionNDC, iterCount, hit));
+    WriteDebugInfo(positionSS, float4(hitPositionNDC, iterCount, hit ? 1 : 0));
 }
 
 #else // SSR_REPROJECT
