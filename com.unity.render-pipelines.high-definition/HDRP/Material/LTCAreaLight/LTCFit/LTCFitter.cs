@@ -68,35 +68,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
         LTC[,]              m_results;
         int                 m_validResultsCount = 0;
 
+        LTC                 m_lastComputedResult = null;
+        Vector3             m_lastComputedView = new Vector3( 0, 0, 1 );
+        float               m_lastComputedAlpha = 1.0f;
+
         int                 m_errorsCount = 0;
         string              m_errors = null;
-
-//         // Rendering
-//         uint                m_width;
-//         float4[]            m_falseSpectrum;
-// 
-//         ImageFile            m_imageSource;
-//         ImageFile            m_imageTarget;
-//         ImageFile            m_imageDifference;
-//
-//        // Fitting stats
-//        int                 m_statsCounter;
-//        int                 m_statsNormalizationCounter;
-//        double              m_lastError;
-//        int                 m_lastIterationsCount;
-//        double              m_lastNormalization;
-//
-//        double              m_statsSumError;
-//        double              m_statsSumErrorWithoutHighValues;
-//        double              m_statsSumNormalization;
-//        int                 m_statsSumIterations;
 
         #endregion
 
         #region PROPERTIES
 
-        public int      ErrorsCount { get { return m_errorsCount; } }
-        public string   Errors      { get { return m_errors; } }
+        public int      ErrorsCount         { get { lock ( this ) return m_errorsCount; } }
+        public string   Errors              { get { lock ( this ) return m_errors; } }
+
+        public LTC[,]   Results             { get { lock ( this ) return m_results; } }
+
+        public LTC      LastComputedResult  { get { lock ( this ) return m_lastComputedResult; } }
+        public Vector3  LastComputedView    { get { lock ( this ) return m_lastComputedView; } }
+        public float    LastComputedAlpha   { get { lock ( this ) return m_lastComputedAlpha; } }
 
         #endregion
 
@@ -121,6 +111,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
 
             m_results = new LTC[m_tableSize,m_tableSize];
             m_validResultsCount = 0;
+            lock ( this ) {
+                m_lastComputedResult = null;
+                m_lastComputedView = new Vector3( 0, 0, 1 );
+                m_lastComputedAlpha = 1.0f;
+            }
         }
 
         /// <summary>
@@ -238,6 +233,13 @@ Debug.Log( "Loaded table " + m_tableFileName.FullName + " - " + m_validResultsCo
                 // Store new valid result
                 m_results[_roughnessIndex,_thetaIndex] = ltc;
                 m_validResultsCount++;
+
+                lock ( this ) {
+                    m_lastComputedResult = ltc;
+                    m_lastComputedView = tsView;
+                    m_lastComputedAlpha = alpha;
+                }
+
 //Debug.Log( "New result computed at [" + _roughnessIndex + ", " + _thetaIndex + "]" );
 
             } catch ( Exception _e ) {
