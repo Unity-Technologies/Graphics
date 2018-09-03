@@ -10,7 +10,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
     /// <summary>
     /// BRDF Interface that you must implement in order to generate a new table
     /// </summary>
-    public interface    IBRDF {
+    public interface    IBRDF
+    {
         /// <summary>
         /// Evaluation of the ***cosine-weighted*** BRDF
         /// </summary>

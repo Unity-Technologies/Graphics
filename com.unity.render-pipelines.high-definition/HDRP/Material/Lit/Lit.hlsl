@@ -2,10 +2,6 @@
 // Includes
 //-----------------------------------------------------------------------------
 
-
-//#define DYN_GROUNDTRUTH 1
-
-
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
@@ -991,12 +987,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // Area light
     // UVs for sampling the LUTs
-//    float2  uv = LTCGetSamplingUV( NdotV, bsdfData.perceptualRoughness );
-//#if DYN_GROUNDTRUTH
-//if ( _EnableGroundTruth )
-//    uv = LTCGetSamplingUV_New( NdotV, bsdfData.perceptualRoughness );
-//#endif
-    float2  uv = LTCGetSamplingUV_New( NdotV, bsdfData.perceptualRoughness );
+    float2  uv = LTCGetSamplingUV_New(NdotV, bsdfData.perceptualRoughness);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     float3x3    orthoBasisViewNormal;
@@ -1012,42 +1003,22 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     #else
         // Get the inverse LTC matrix for Disney Diffuse
         // Note we load the matrix transposed (avoid to have to transpose it in shader)
-//        preLightData.ltcTransformDiffuse = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX ) );
-//#if DYN_GROUNDTRUTH
-//if ( _EnableGroundTruth )
-//        preLightData.ltcTransformDiffuse = mul( orthoBasisViewNormal, LTCSampleMatrix_New( uv, LTC_MATRIX_INDEX_DISNEY ) );
-//#endif
-        preLightData.ltcTransformDiffuse = mul( orthoBasisViewNormal, LTCSampleMatrix_New( uv, LTC_MATRIX_INDEX_DISNEY ) );
+        preLightData.ltcTransformDiffuse = mul( orthoBasisViewNormal, LTCSampleMatrix_New(uv, LTC_MATRIX_INDEX_DISNEY) );
     #endif
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
-//    preLightData.ltcTransformSpecular = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_GGX_MATRIX_INDEX ) );
-//#if DYN_GROUNDTRUTH
-//if ( _EnableGroundTruth )
-//    preLightData.ltcTransformSpecular = mul( orthoBasisViewNormal, LTCSampleMatrix_New( uv, LTC_MATRIX_INDEX_GGX ) );
-//#endif
-    preLightData.ltcTransformSpecular = mul( orthoBasisViewNormal, LTCSampleMatrix_New( uv, LTC_MATRIX_INDEX_GGX ) );
+    preLightData.ltcTransformSpecular = mul( orthoBasisViewNormal, LTCSampleMatrix_New(uv, LTC_MATRIX_INDEX_GGX) );
 
 
     preLightData.ltcTransformCoat = 0.0;
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-//        float2  uv = LTCGetSamplingUV( NdotV, CLEAR_COAT_PERCEPTUAL_ROUGHNESS );
-//#if DYN_GROUNDTRUTH
-//if ( _EnableGroundTruth )
-//    uv = LTCGetSamplingUV_New( NdotV, CLEAR_COAT_PERCEPTUAL_ROUGHNESS );
-//#endif
-        float2  uv = LTCGetSamplingUV_New( NdotV, CLEAR_COAT_PERCEPTUAL_ROUGHNESS );
+        float2  uv = LTCGetSamplingUV_New(NdotV, CLEAR_COAT_PERCEPTUAL_ROUGHNESS);
 
         // Get the inverse LTC matrix for GGX
         // Note we load the matrix transpose (avoid to have to transpose it in shader)
-//        preLightData.ltcTransformCoat = mul( orthoBasisViewNormal, LTCSampleMatrix( uv, LTC_GGX_MATRIX_INDEX ) );
-//#if DYN_GROUNDTRUTH
-//if ( _EnableGroundTruth )
-//        preLightData.ltcTransformCoat = mul( orthoBasisViewNormal, LTCSampleMatrix_New( uv, LTC_MATRIX_INDEX_GGX ) );
-//#endif
-        preLightData.ltcTransformCoat = mul( orthoBasisViewNormal, LTCSampleMatrix_New( uv, LTC_MATRIX_INDEX_GGX ) );
+        preLightData.ltcTransformCoat = mul( orthoBasisViewNormal, LTCSampleMatrix_New(uv, LTC_MATRIX_INDEX_GGX) );
     }
 
     // refraction (forward only)
@@ -1230,7 +1201,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-/*
+
     float3 L = -lightData.forward;
     float3 N = bsdfData.normalWS;
     float NdotL = dot(N, L);
@@ -1277,7 +1248,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
-*/
+
     return lighting;
 }
 
@@ -1291,7 +1262,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-/*
+
     float3 L;
     float3 lightToSample;
     float4 distances; // {d, d^2, 1/d, d_proj}
@@ -1349,7 +1320,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
-*/
+
     return lighting;
 }
 
@@ -1365,15 +1336,13 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-//*
+
     float3 positionWS = posInput.positionWS;
 
 #ifdef LIT_DISPLAY_REFERENCE_AREA
-//if ( _EnableGroundTruth > 0.5 ) {
     IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
 #else
-//} else {
 
     float  len = lightData.size.x;
     float3 T   = lightData.right;
@@ -1406,13 +1375,13 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     float3 P1 = lightData.positionRWS - T * (0.5 * len);
     float3 P2 = lightData.positionRWS + T * (0.5 * len);
 
-float3      N = bsdfData.normalWS;
-float3x3    orthoBasisViewNormal;
-orthoBasisViewNormal[0] = normalize(V - N * preLightData.NdotV); // Do not clamp NdotV here
-orthoBasisViewNormal[2] = N;
-orthoBasisViewNormal[1] = cross(orthoBasisViewNormal[2], orthoBasisViewNormal[0]);
+    // Rebuild the orthogonal basis to remove it from its embedding in the LTC matrices
+    float3      N = bsdfData.normalWS;
+    float3x3    orthoBasisViewNormal;
+    orthoBasisViewNormal[0] = normalize(V - N * preLightData.NdotV); // Do not clamp NdotV here
+    orthoBasisViewNormal[2] = N;
+    orthoBasisViewNormal[1] = cross(orthoBasisViewNormal[2], orthoBasisViewNormal[0]);
 
-// This is ANNOYING!! => That's litterally the only place where orthoBasisViewNormal seems to be actually needed! (is it really needed? It's only to compute B after all?! Can't this be done)
     // Rotate the endpoints into the local coordinate system.
     P1 = mul(P1, transpose(orthoBasisViewNormal));
     P2 = mul(P2, transpose(orthoBasisViewNormal));
@@ -1481,8 +1450,6 @@ orthoBasisViewNormal[1] = cross(orthoBasisViewNormal[2], orthoBasisViewNormal[0]
 #endif
 
 #endif // LIT_DISPLAY_REFERENCE_AREA
-//}
-//*/
 
     return lighting;
 }
@@ -1500,11 +1467,9 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
         return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
 
 #if defined(LIT_DISPLAY_REFERENCE_AREA)
-//if ( _EnableGroundTruth > 0.5 ) {
     IntegrateBSDF_AreaRef(V, posInput.positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
 #else
-//} else {
 
     ////////////////////////////////////////////////////////////////////////////
     // Sphere pre-processing
@@ -1512,12 +1477,11 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float   intensity = 1.0;
     if ( lightData.lightType == GPULIGHTTYPE_SPHERE )
     {
-//        lightData.lightType = GPULIGHTTYPE_DISK;    // Fake a disk... This is needed if using the reference lighting
-
         float3      light = lightData.positionRWS - posInput.positionWS;
         float       D = length(light);
                     light *= D > 1e-3 ? 1.0 / D : 1.0;
 
+        // Re-orient the disk to face our position
         float3x3    faceLight = GetLocalFrame( -light );
         lightData.right = faceLight[0];
         lightData.up = faceLight[1];
@@ -1659,7 +1623,6 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     #endif
 
 #endif // LIT_DISPLAY_REFERENCE_AREA
-//}
 
     return lighting;
 }
@@ -1677,7 +1640,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
-/*
+
     // -------------------------------
     // Early out
     // -------------------------------
@@ -1943,7 +1906,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         return lighting;
     }
 #endif
-*/
+
     return lighting;
 }
 
@@ -1960,7 +1923,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
-/*
+
 #if !HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
         return lighting;
@@ -2079,7 +2042,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     else
         lighting.specularTransmitted = envLighting * preLightData.transparentTransmittance;
 #endif
-*/
+
     return lighting;
 }
 

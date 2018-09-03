@@ -7,10 +7,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
     /// Oren-Nayar Implementation
     /// Source from 1994 Oren, M. Nayar, S. K. "Generalization of Lambert's Reflectance Model"
     /// </summary>
-    class BRDF_OrenNayar : IBRDF {
+    class BRDF_OrenNayar : IBRDF
+    {
 
-        public double   Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf ) {
-            if ( _tsView.z <= 0 ) {
+        public double   Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf )
+        {
+            if ( _tsView.z <= 0 )
+            {
                 _pdf = 0;
                 return 0;
             }
@@ -54,8 +57,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
         }
 
         // Here we use a simple cosine-weighted hemisphere sampling
-        public void GetSamplingDirection( ref Vector3 _tsView, float _alpha, float _U1, float _U2, ref Vector3 _direction ) {
-
+        public void GetSamplingDirection( ref Vector3 _tsView, float _alpha, float _U1, float _U2, ref Vector3 _direction )
+        {
             // Performs uniform sampling of the unit disk.
             // Ref: PBRT v3, p. 777.
             float   r = Mathf.Sqrt( _U1 );

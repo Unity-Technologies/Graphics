@@ -31,7 +31,8 @@ TEXTURE2D_ARRAY(_LtcData); // We pack all Ltc data inside one texture array to l
 //
 
 // Expects NdotV clamped in [0,1]
-float2  LTCGetSamplingUV( float NdotV, float perceptualRoughness ) {
+float2  LTCGetSamplingUV(float NdotV, float perceptualRoughness)
+{
 // Original code
 //    return LTC_LUT_OFFSET + LTC_LUT_SCALE * float2( perceptualRoughness, theta * INV_HALF_PI );
 
@@ -45,7 +46,8 @@ float2  LTCGetSamplingUV( float NdotV, float perceptualRoughness ) {
 }
 
 // Fetches the transposed M^-1 matrix need for runtime LTC estimate
-float3x3    LTCSampleMatrix( float2 UV, uint BRDFIndex ) {
+float3x3    LTCSampleMatrix(float2 UV, uint BRDFIndex)
+{
     float3x3    invM = 0.0;
                 invM._m22 = 1.0;
                 invM._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD( _LtcData, s_linear_clamp_sampler, UV, BRDFIndex, 0 );
@@ -63,7 +65,8 @@ float3x3    LTCSampleMatrix( float2 UV, uint BRDFIndex ) {
 //
 
 // Expects NdotV clamped in [0,1]
-float2  LTCGetSamplingUV_New( float NdotV, float perceptualRoughness ) {
+float2  LTCGetSamplingUV_New(float NdotV, float perceptualRoughness)
+{
     float2  xy;
     xy.x = perceptualRoughness;
     xy.y = sqrt( 1 - NdotV );                   // Now, we use V = sqrt( 1 - cos(theta) ) which is kind of linear and only requires a single sqrt() instead of an expensive acos()
@@ -75,7 +78,8 @@ float2  LTCGetSamplingUV_New( float NdotV, float perceptualRoughness ) {
 
 // Fetches the transposed M^-1 matrix need for runtime LTC estimate
 // Note we load the matrix transposed (to avoid having to transpose it in shader)
-float3x3    LTCSampleMatrix_New( float2 UV, uint BRDFIndex ) {
+float3x3    LTCSampleMatrix_New(float2 UV, uint BRDFIndex)
+{
     float3x3    invM = 0.0;
                 invM._m11 = 1.0;
                 invM._m00_m02_m20_m22 = SAMPLE_TEXTURE2D_ARRAY_LOD( _LtcData, s_linear_clamp_sampler, UV, BRDFIndex, 0 );

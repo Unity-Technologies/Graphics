@@ -6,10 +6,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
     /// <summary>
     /// Cook-Torrance implementation of the BRDF interface
     /// </summary>
-    class BRDF_CookTorrance : IBRDF {
-
-        public double   Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf ) {
-            if ( _tsView.z <= 0 ) {
+    class BRDF_CookTorrance : IBRDF
+    {
+        public double   Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf )
+        {
+            if ( _tsView.z <= 0 )
+            {
                 _pdf = 0;
                 return 0;
             }
@@ -40,7 +42,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
             return res;
         }
 
-        public void    GetSamplingDirection( ref Vector3 _tsView, float _alpha, float _U1, float _U2, ref Vector3 _direction ) {
+        public void    GetSamplingDirection( ref Vector3 _tsView, float _alpha, float _U1, float _U2, ref Vector3 _direction )
+        {
             float   phi = 2.0f * Mathf.PI * _U1;
             float   cosTheta = 1.0f / Mathf.Sqrt( 1 - _alpha*_alpha * Mathf.Log( Mathf.Max( 1e-6f, _U2 ) ) );
             float   sinTheta = Mathf.Sqrt( 1 - cosTheta*cosTheta );

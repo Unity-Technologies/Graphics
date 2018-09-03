@@ -20,14 +20,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.LTCFit
 {
     public class LTCTableGeneratorEditor : EditorWindow
     {
-        static readonly DirectoryInfo   TARGET_DIRECTORY = new DirectoryInfo( "./Assets/Generated/LTCTables/" );
+        static readonly DirectoryInfo   TARGET_DIRECTORY = new DirectoryInfo("./Assets/Generated/LTCTables/");
         const int                       LTC_TABLE_SIZE = 64;    // Generated tables are 64x64
 
         [MenuItem("Window/Render Pipeline/LTC Tables Generator")]
         private static void Init()
         {
             // Create the window
-            LTCTableGeneratorEditor window = (LTCTableGeneratorEditor) EditorWindow.GetWindow( typeof(LTCTableGeneratorEditor) );
+            LTCTableGeneratorEditor window = (LTCTableGeneratorEditor) EditorWindow.GetWindow(typeof(LTCTableGeneratorEditor));
             window.titleContent.text = "LTC Tables Generator";
             window.BRDFTypes = ListBRDFTypes();
             window.Show();
@@ -42,17 +42,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.LTCFit
         Type[]  BRDFTypes {
             get {
                 Type[]  result = new Type[m_BRDFTypes.Length];
-                for ( int i=0; i < m_BRDFTypes.Length; i++ )
+                for (int i=0; i < m_BRDFTypes.Length; i++)
                     result[i] = m_BRDFTypes[i].m_type;
                 return result;
                 }
             set {
-                if ( value == null )
+                if (value == null)
                     value = new Type[0];
 
                 m_BRDFTypes = new BRDFType[value.Length];
-                for ( int i=0; i < value.Length; i++ )
-                    m_BRDFTypes[i] = new BRDFType( this, value[i] );
+                for (int i=0; i < value.Length; i++)
+                    m_BRDFTypes[i] = new BRDFType(this, value[i]);
             }
         }
 
@@ -60,53 +60,54 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.LTCFit
         {
             bool    UIDirty = false;
             bool    databaseDirty = false;
-            foreach ( BRDFType T in m_BRDFTypes )
+            foreach (BRDFType T in m_BRDFTypes)
             {
-                if ( T.IsWorking || T.m_dirty )
+                if (T.IsWorking || T.m_dirty)
                 {   // Repaint to show progress as long as a thread is working...
                     T.m_dirty = false;
                     UIDirty = true;
                 }
-                if ( !T.IsWorking && T.m_refreshAssetsDatabase )
+                if (!T.IsWorking && T.m_refreshAssetsDatabase)
                 {   // Database needs refresh!
                     T.m_refreshAssetsDatabase = false;
                     databaseDirty = true;
                 }
             }
 
-            if ( UIDirty )
+            if (UIDirty)
                 Repaint();
-            if ( databaseDirty )
+            if (databaseDirty)
                 AssetDatabase.Refresh();
         }
 
         private void OnGUI()
         {
 // During development, the array gets reset (it's only populated when the window gets created)
-if ( m_BRDFTypes.Length == 0 )
+if (m_BRDFTypes.Length == 0)
     BRDFTypes = ListBRDFTypes();
 
 
             EditorGUILayout.Separator();
 
-            EditorGUILayout.LabelField( "Recognized BRDF Types: " + m_BRDFTypes.Length );
+            EditorGUILayout.LabelField("Recognized BRDF Types: " + m_BRDFTypes.Length);
 
-            EditorGUILayout.BeginVertical( EditorStyles.miniButtonLeft );
-//           GUILayout.Button(new GUIContent( "Generate LTC Tables", ""), EditorStyles.centeredGreyMiniLabel);
+            EditorGUILayout.BeginVertical(EditorStyles.miniButtonLeft);
+//           GUILayout.Button(new GUIContent("Generate LTC Tables", ""), EditorStyles.centeredGreyMiniLabel);
 
             int fitCount = 0;
             int workingCount = 0;
-            foreach ( BRDFType T in m_BRDFTypes ) {
+            foreach (BRDFType T in m_BRDFTypes)
+            {
                 EditorGUILayout.Space();
 
-                if ( T.IsWorking )
+                if (T.IsWorking)
                 {   // Show current work progress
                     EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField( T.ToString() + " " + (T.Progress * 100.0f).ToString( "G3" ) + "%", GUILayout.ExpandWidth( false ) );
-//                        EditorGUILayout.LabelField( "<COMPUTING> " + T.ToString(), GUILayout.ExpandWidth( false ) );
+                        EditorGUILayout.LabelField(T.ToString() + " " + (T.Progress * 100.0f).ToString("G3") + "%", GUILayout.ExpandWidth(false));
+//                        EditorGUILayout.LabelField("<COMPUTING> " + T.ToString(), GUILayout.ExpandWidth(false));
 
                         Rect r = EditorGUILayout.BeginVertical();
-                            EditorGUI.ProgressBar( r, T.Progress, (T.Progress*100.0f).ToString( "G3" ) + "%" );
+                            EditorGUI.ProgressBar(r, T.Progress, (T.Progress*100.0f).ToString("G3") + "%");
                             EditorGUILayout.Space();
                         EditorGUILayout.EndVertical();
 
@@ -115,7 +116,7 @@ if ( m_BRDFTypes.Length == 0 )
                 }
                 else
                 {   // Propose a new computation
-                    T.m_needsFitting = EditorGUILayout.Toggle( T.ToString(), T.m_needsFitting );
+                    T.m_needsFitting = EditorGUILayout.Toggle(T.ToString(), T.m_needsFitting);
                     fitCount += T.m_needsFitting ? 1 : 0;
                 }
             }
@@ -126,15 +127,18 @@ if ( m_BRDFTypes.Length == 0 )
 
             EditorGUILayout.EndVertical();
 
-            if ( m_BRDFTypes.Length > 1 ) {
+            if (m_BRDFTypes.Length > 1)
+            {
                 EditorGUILayout.BeginHorizontal();
 
-                if ( GUILayout.Button( new GUIContent( "Select All", "" ), EditorStyles.miniButton, GUILayout.ExpandWidth( false ) ) ) {
-                    foreach ( BRDFType T in m_BRDFTypes )
+                if (GUILayout.Button(new GUIContent("Select All", ""), EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                {
+                    foreach (BRDFType T in m_BRDFTypes)
                         T.m_needsFitting = true;
                 }
-                if ( GUILayout.Button( new GUIContent( "Select None", "" ), EditorStyles.miniButton, GUILayout.ExpandWidth( false ) ) ) {
-                    foreach ( BRDFType T in m_BRDFTypes )
+                if (GUILayout.Button(new GUIContent("Select None", ""), EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
+                {
+                    foreach (BRDFType T in m_BRDFTypes)
                         T.m_needsFitting = false;
                 }
 
@@ -144,42 +148,46 @@ if ( m_BRDFTypes.Length == 0 )
             EditorGUILayout.Space();
             EditorGUILayout.Separator();
 
-            m_continueComputation = EditorGUILayout.Toggle( "Resume Computation", m_continueComputation );
-            if ( !m_continueComputation )
-                EditorGUILayout.HelpBox( "Be careful: if you do not wish to resume computation, existing values will be overwritten and you might lose existing work.", MessageType.Warning );
+            m_continueComputation = EditorGUILayout.Toggle("Resume Computation", m_continueComputation);
+            if (!m_continueComputation)
+                EditorGUILayout.HelpBox("Be careful: if you do not wish to resume computation, existing values will be overwritten and you might lose existing work.", MessageType.Warning);
 
-            m_stopOnError = EditorGUILayout.Toggle( "Stop on Error", m_stopOnError );
+            m_stopOnError = EditorGUILayout.Toggle("Stop on Error", m_stopOnError);
 
-            m_enableVisualDebugging = EditorGUILayout.Toggle( "Visual Debugging", m_enableVisualDebugging );
-            if ( m_enableVisualDebugging )
-                EditorGUILayout.HelpBox( "Visual debugging can significantly slow down computation.", MessageType.Warning );
+            m_enableVisualDebugging = EditorGUILayout.Toggle("Visual Debugging", m_enableVisualDebugging);
+            if (m_enableVisualDebugging)
+                EditorGUILayout.HelpBox("Visual debugging can significantly slow down computation.", MessageType.Warning);
 
-            if ( fitCount > 0 ) {
+            if (fitCount > 0)
+            {
                 EditorGUILayout.Separator();
                 EditorGUILayout.Space();
-                if ( GUILayout.Button(new GUIContent( "Generate LTC Tables", "" ), EditorStyles.toolbarButton ) ) {
+                if (GUILayout.Button(new GUIContent("Generate LTC Tables", ""), EditorStyles.toolbarButton))
+                {
                     // Make sure target directory exists before creating any file!
-                    if ( !TARGET_DIRECTORY.Exists )
+                    if (!TARGET_DIRECTORY.Exists)
                         TARGET_DIRECTORY.Create();
 
                     // Fit all selected BRDFs
-                    foreach ( BRDFType T in m_BRDFTypes ) {
-                        if ( T.m_needsFitting && !T.IsWorking )
+                    foreach (BRDFType T in m_BRDFTypes)
+                    {
+                        if (T.m_needsFitting && !T.IsWorking)
                             T.StartFitting();
                     }
                 }
             }
 
-            if ( workingCount > 0 )
+            if (workingCount > 0)
             {
                 EditorGUILayout.Separator();
                 EditorGUILayout.Space();
-                if ( GUILayout.Button(new GUIContent( "Abort Computation", "" ), EditorStyles.toolbarButton ) ) {
-                    foreach ( BRDFType T in m_BRDFTypes )
+                if (GUILayout.Button(new GUIContent("Abort Computation", ""), EditorStyles.toolbarButton))
+                {
+                    foreach (BRDFType T in m_BRDFTypes)
                         T.AbortFitting();
                 }
 
-                if ( m_enableVisualDebugging )
+                if (m_enableVisualDebugging)
                     ShowVisualDebugging();
             }
         }
@@ -193,7 +201,7 @@ if ( m_BRDFTypes.Length == 0 )
             /// </summary>
             class   FittingWorkerThread
             {
-                public delegate void    CompletionDelegate( bool _finishedWithErrors );
+                public delegate void    CompletionDelegate(bool _finishedWithErrors);
 
                 LTCFitter           m_fitter = new LTCFitter();
                 IBRDF               m_BRDF = null;
@@ -210,7 +218,7 @@ if ( m_BRDFTypes.Length == 0 )
                 public Vector3      LastComputedView   { get { return m_fitter.LastComputedView; } }
                 public float        LastComputedAlpha  { get { return m_fitter.LastComputedAlpha; } }
 
-                public FittingWorkerThread( IBRDF _BRDF, FileInfo _tableFile, bool _overwriteExistingValues, bool _stopOnError )
+                public FittingWorkerThread(IBRDF _BRDF, FileInfo _tableFile, bool _overwriteExistingValues, bool _stopOnError)
                 {
                     m_BRDF = _BRDF;
                     m_tableFile = _tableFile;
@@ -220,59 +228,46 @@ if ( m_BRDFTypes.Length == 0 )
                     m_progress = 0;
                     m_abort = false;
 
-                    m_fitter.SetupBRDF( m_BRDF, LTC_TABLE_SIZE, m_tableFile );
+                    m_fitter.SetupBRDF(m_BRDF, LTC_TABLE_SIZE, m_tableFile);
                 }
 
-                public void Start( CompletionDelegate _jobComplete )
+                public void Start(CompletionDelegate _jobComplete)
                 {
                     m_jobComplete = _jobComplete;
-                    System.Threading.ThreadPool.QueueUserWorkItem( DoFitting, this );
+                    System.Threading.ThreadPool.QueueUserWorkItem(DoFitting, this);
                 }
 
-                public void DoFitting( object _state )
+                public void DoFitting(object _state)
                 {
-//Debug.Log( "THREAD STARTED!" );
+//Debug.Log("THREAD STARTED!");
 
                     Exception   exception = null;
                     try {
-                      m_fitter.Fit( m_overwriteExistingValues, m_stopOnError, ( float _progress ) => { m_progress = _progress; return !m_abort; } );
-
-
-// Fake working loop
-//System.Random   RNG = new System.Random( (int) DateTime.Now.Ticks + m_BRDF.GetHashCode() );
-//int crashInt = 5 + (int) (55.0f * RNG.NextDouble());
-//for ( int i=0; i < 30; i++ ) {
-//    System.Threading.Thread.Sleep( 500 );
-//    m_progress = i / 30.0f;
-//    if ( m_abort )
-//        throw new Exception( "User Abort!" );   // Abort computation!
-//    if ( i == crashInt )
-//        throw new Exception( "Rha!" );  // Simulate an exception
-//}
-
-
-//Debug.Log( m_BRDF.GetType().Name + " ==> SUCCESS!!" );
-
-                    } catch ( LTCFitter.UserAbortException _e ) {
+                      m_fitter.Fit(m_overwriteExistingValues, m_stopOnError, (float _progress) => { m_progress = _progress; return !m_abort; });
+                    }
+                    catch (LTCFitter.UserAbortException _e)
+                    {
                         exception = _e;   // Store exception to signal computing is still needed
-                        Debug.LogWarning( m_BRDF.GetType().Name + " - ABORTED." );
-                    } catch ( Exception _e ) {
+                        Debug.LogWarning(m_BRDF.GetType().Name + " - ABORTED.");
+                    }
+                    catch (Exception _e)
+                    {
                         exception = _e;   // Store exception to signal computing is still needed
 
-                        Debug.LogError( m_BRDF.GetType().Name + " THREAD EXCEPTION!!" );
-                        Debug.LogException( _e );
+                        Debug.LogError(m_BRDF.GetType().Name + " THREAD EXCEPTION!!");
+                        Debug.LogException(_e);
                     }
 
                     // Report any error, whether computation succeeded or not
-                    if ( m_fitter.ErrorsCount > 0 )
+                    if (m_fitter.ErrorsCount > 0)
                     {
-                        Debug.LogError( m_BRDF.GetType().Name + " Fitter reported " + m_fitter.ErrorsCount + " errors:\n"
-                                        + m_fitter.Errors );
+                        Debug.LogError(m_BRDF.GetType().Name + " Fitter reported " + m_fitter.ErrorsCount + " errors:\n"
+                                        + m_fitter.Errors);
                     }
 
                     // Notify of completion
-                    if ( m_jobComplete != null )
-                        m_jobComplete( exception != null || m_fitter.ErrorsCount > 0 );
+                    if (m_jobComplete != null)
+                        m_jobComplete(exception != null || m_fitter.ErrorsCount > 0);
                 }
             }
 
@@ -285,18 +280,18 @@ if ( m_BRDFTypes.Length == 0 )
             public bool                 m_dirty = false;        // GUI needs repainting if this flag is set
             public bool                 m_refreshAssetsDatabase = false;    // Assets database needs a refresh if set
 
-            public bool     IsWorking       { get { lock ( this ) return m_worker != null; } }
-            public float    Progress        { get { lock ( this ) return m_worker != null ? m_worker.m_progress : 0; } }
+            public bool     IsWorking       { get { lock (this) return m_worker != null; } }
+            public float    Progress        { get { lock (this) return m_worker != null ? m_worker.m_progress : 0; } }
 
-            public LTC      LastComputedLTC    { get { lock ( this ) return m_worker != null ? m_worker.LastComputedLTC : null; } }
-            public Vector3  LastComputedView   { get { lock ( this ) return m_worker != null ? m_worker.LastComputedView : new Vector3( 0, 0, 1 ); } }
-            public float    LastComputedAlpha  { get { lock ( this ) return m_worker != null ? m_worker.LastComputedAlpha : 1.0f; } }
+            public LTC      LastComputedLTC    { get { lock (this) return m_worker != null ? m_worker.LastComputedLTC : null; } }
+            public Vector3  LastComputedView   { get { lock (this) return m_worker != null ? m_worker.LastComputedView : new Vector3(0, 0, 1); } }
+            public float    LastComputedAlpha  { get { lock (this) return m_worker != null ? m_worker.LastComputedAlpha : 1.0f; } }
 
-            public BRDFType( LTCTableGeneratorEditor _owner, Type _BRDFType )
+            public BRDFType(LTCTableGeneratorEditor _owner, Type _BRDFType)
             {
                 m_owner = _owner;
                 m_type = _BRDFType;
-                m_BRDF = m_type.GetConstructor( new Type[0] ).Invoke( new object[0] ) as IBRDF;  // Invoke default constructor
+                m_BRDF = m_type.GetConstructor(new Type[0]).Invoke(new object[0]) as IBRDF;  // Invoke default constructor
             }
 
             public override string ToString()
@@ -306,40 +301,45 @@ if ( m_BRDFTypes.Length == 0 )
 
             public void     StartFitting()
             {
-                lock ( this ) {
-                    if ( m_worker != null )
-                        throw new Exception( "Already fitting!" );
+                lock (this)
+                {
+                    if (m_worker != null)
+                        throw new Exception("Already fitting!");
 
-                    FileInfo    tableFileName = new FileInfo( Path.Combine( TARGET_DIRECTORY.FullName, m_type.Name + ".ltc" ) );
+                    FileInfo    tableFileName = new FileInfo(Path.Combine(TARGET_DIRECTORY.FullName, m_type.Name + ".ltc"));
 
-                    Debug.Log( "Starting fit of BRDF " + m_type.FullName + " -> " + tableFileName.FullName );
-                    m_worker = new FittingWorkerThread( m_BRDF, tableFileName, !m_owner.m_continueComputation, m_owner.m_stopOnError );
-                    m_worker.Start( ( bool _finishedWithErrors ) => {
+                    Debug.Log("Starting fit of BRDF " + m_type.FullName + " -> " + tableFileName.FullName);
+                    m_worker = new FittingWorkerThread(m_BRDF, tableFileName, !m_owner.m_continueComputation, m_owner.m_stopOnError);
+                    m_worker.Start((bool _finishedWithErrors) => {
                         m_needsFitting = _finishedWithErrors;   // Clear the "Need Fitting" flag if the worker exited without an error
                         m_worker = null;                        // Auto-clear worker once job is finished
                         m_dirty = true;
 
-                        if ( _finishedWithErrors )
+                        if (_finishedWithErrors)
                             return; // Can't export as long as we have errors...
 
                         // Export to C# source!
                         string      BRDFName = m_type.Name;
-                        FileInfo    CSharpFileName = new FileInfo( Path.Combine( TARGET_DIRECTORY.FullName, "LtcData." + BRDFName + ".cs" ) );
-                        try {
-                            LTCTableGeneratorEditor.ExportToCSharp( tableFileName, CSharpFileName, BRDFName );
+                        FileInfo    CSharpFileName = new FileInfo(Path.Combine(TARGET_DIRECTORY.FullName, "LtcData." + BRDFName + ".cs"));
+                        try
+                        {
+                            LTCTableGeneratorEditor.ExportToCSharp(tableFileName, CSharpFileName, BRDFName);
                             m_refreshAssetsDatabase = true;
-                        } catch ( Exception _e ) {
-                            Debug.LogError( "An error occurred during export to C# file \"" + CSharpFileName.FullName + "\":" );
-                            Debug.LogException( _e );
                         }
-                    } );
+                        catch (Exception _e)
+                        {
+                            Debug.LogError("An error occurred during export to C# file \"" + CSharpFileName.FullName + "\":");
+                            Debug.LogException(_e);
+                        }
+                    });
                 }
             }
 
             public void     AbortFitting()
             {
-                lock ( this ) {
-                    if ( m_worker != null )
+                lock (this)
+                {
+                    if (m_worker != null)
                         m_worker.m_abort = true;    // Signal abort for the thread...
                 }
             }
@@ -349,19 +349,19 @@ if ( m_BRDFTypes.Length == 0 )
 
         #region C# Code Export
 
-        static void    ExportToCSharp( FileInfo _tableFileName, FileInfo _CSharpFileName, string _BRDFName )
+        static void    ExportToCSharp(FileInfo _tableFileName, FileInfo _CSharpFileName, string _BRDFName)
         {
             int     validResultsCount = 0;
-            LTC[,]  table = LTCFitter.LoadTable( _tableFileName, out validResultsCount );
-            if ( table == null )
-                throw new Exception( "LTCFitter.LoadTable() returned an empty LTC table!" );
+            LTC[,]  table = LTCFitter.LoadTable(_tableFileName, out validResultsCount);
+            if (table == null)
+                throw new Exception("LTCFitter.LoadTable() returned an empty LTC table!");
 
             // Make sure we have all the results before exporting
-            if ( validResultsCount != table.Length )
+            if (validResultsCount != table.Length)
             {
-                Debug.LogWarning( "Can't generate C# code because the LTC table \"" + _tableFileName + "\" is incomplete: it only contains " + validResultsCount + " out of " + table.Length + " expected results\n" +
+                Debug.LogWarning("Can't generate C# code because the LTC table \"" + _tableFileName + "\" is incomplete: it only contains " + validResultsCount + " out of " + table.Length + " expected results\n" +
                     "Maybe some results failed because of an error? Try resuming computation or deleting the entire table on disk and restart the entire computation if the problem persists."
-                    );
+                   );
                 return;
             }
 
@@ -372,7 +372,7 @@ if ( m_BRDFTypes.Length == 0 )
             LTC     defaultLTC = new LTC();
             defaultLTC.magnitude = 0.0;
 
-Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFileName + " to C# file " + _CSharpFileName + "..." );
+Debug.Log("Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFileName + " to C# file " + _CSharpFileName + "...");
 
             string  tableName = "s_LtcMatrixData_" + _BRDFName;
 
@@ -383,6 +383,7 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
                         + "{\n"
                         + "    public partial class LTCAreaLight\n"
                         + "    {\n"
+                        + "        // [GENERATED CONTENT " + DateTime.Now.ToString( "dd MMM yyyy HH:mm:ss" ) + "]\n"
                         + "        // Table contains 3x3 matrix coefficients of M^-1 for the fitting of the " + _BRDFName + " BRDF using the LTC technique\n"
                         + "        // From \"Real-Time Polygonal-Light Shading with Linearly Transformed Cosines\" 2016 (https://eheitzresearch.wordpress.com/415-2/)\n"
                         + "        //\n"
@@ -391,22 +392,26 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
                         + "        //    • cosTheta = 1 - ( <thetaIndex> / " + (tableSize-1) + " )^2\n"
                         + "        //\n"
 //                        + "        public static double[,]    " + tableName + " = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim] {";
-                        + "        public static double[,]    " + tableName + " = new double[" + tableSize + " * " + tableSize + ", 3 * 3] {";
+                        + "        public static double[,]    " + tableName + " = new double[" + tableSize + " * " + tableSize + ", 3 * 3]\n"
+                        + "        {";
 
             string  lotsOfSpaces = "                                                                                                                            ";
 
             float   alpha, cosTheta;
-            for ( int thetaIndex=0; thetaIndex < tableSize; thetaIndex++ ) {
-                LTCFitter.GetRoughnessAndAngle( 0, thetaIndex, tableSize, out alpha, out cosTheta );
+            for (int thetaIndex=0; thetaIndex < tableSize; thetaIndex++)
+            {
+                LTCFitter.GetRoughnessAndAngle(0, thetaIndex, tableSize, out alpha, out cosTheta);
                 sourceCode += "\n";
                 sourceCode += "            // Cos(theta) = " + cosTheta + "\n";
 
-                for ( int roughnessIndex=0; roughnessIndex < tableSize; roughnessIndex++ ) {
+                for (int roughnessIndex=0; roughnessIndex < tableSize; roughnessIndex++)
+                {
                     LTC ltc = table[roughnessIndex,thetaIndex];
-                    if ( ltc == null ) {
+                    if (ltc == null)
+                    {
                         ltc = defaultLTC;   // Should NOT happen since we checked all results are valid before export!
                     }
-                    LTCFitter.GetRoughnessAndAngle( roughnessIndex, thetaIndex, tableSize, out alpha, out cosTheta );
+                    LTCFitter.GetRoughnessAndAngle(roughnessIndex, thetaIndex, tableSize, out alpha, out cosTheta);
 
                     // Export the matrix as a list of 3x3 doubles, columns first
 //                  double  factor = 1.0 / ltc.invM[2,2];
@@ -417,8 +422,8 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
                             matrixString += (factor * ltc.invM[0,2]) + ", " + (factor * ltc.invM[1,2]) + ", " + (factor * ltc.invM[2,2]);
 
                     string  line = "            { " + matrixString + " },";
-                    if ( line.Length < 132 )
-                        line += lotsOfSpaces.Substring( lotsOfSpaces.Length - (132 - line.Length) );    // Pad with spaces
+                    if (line.Length < 132)
+                        line += lotsOfSpaces.Substring(lotsOfSpaces.Length - (132 - line.Length));    // Pad with spaces
                     sourceCode += line;
                     sourceCode += "// alpha = " + alpha + "\n";
                 }
@@ -437,8 +442,8 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
             sourceCode += "}\n";
 
             // Write content
-            using ( StreamWriter W = _CSharpFileName.CreateText() )
-                W.Write( sourceCode );
+            using (StreamWriter W = _CSharpFileName.CreateText())
+                W.Write( sourceCode);
         }
 
         #endregion
@@ -449,28 +454,31 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
 
         void    ShowVisualDebugging()
         {
-            if ( m_texFalseSpectrum == null )
+            if (m_texFalseSpectrum == null)
             {
                 // Create false spectrum texture from our hardcoded array
                 int W = m_falseSpectrumColors.GetLength(0);
-                m_texFalseSpectrum = new Texture2D( W, 1, TextureFormat.ARGB32, false );
-                for ( int X=0; X < W; X++ )
-                    m_texFalseSpectrum.SetPixel( X, 0, new Color( m_falseSpectrumColors[X,0], m_falseSpectrumColors[X,1], m_falseSpectrumColors[X,2] ) );
+                m_texFalseSpectrum = new Texture2D(W, 1, TextureFormat.ARGB32, false);
+                for (int X=0; X < W; X++)
+                    m_texFalseSpectrum.SetPixel(X, 0, new Color(m_falseSpectrumColors[X,0], m_falseSpectrumColors[X,1], m_falseSpectrumColors[X,2]));
                 m_texFalseSpectrum.Apply();
             }
 
             EditorGUILayout.Separator();
             EditorGUILayout.Space();
 
-            foreach ( BRDFType T in m_BRDFTypes )
+            foreach (BRDFType T in m_BRDFTypes)
             {
-                if ( !T.IsWorking )
+                if (!T.IsWorking)
                     continue;   // Only debug working threads...
 
                 LTC lastComputedLTC = T.LastComputedLTC;
-                if ( lastComputedLTC != m_lastDebuggedLTC && lastComputedLTC != null )
+                if (lastComputedLTC == null)
+                    continue;
+
+                if (lastComputedLTC != m_lastDebuggedLTC)
                 {   // Update textures
-                    UpdateDebugTextures( T.m_BRDF, lastComputedLTC, T.LastComputedView, T.LastComputedAlpha );
+                    UpdateDebugTextures(T.m_BRDF, lastComputedLTC, T.LastComputedView, T.LastComputedAlpha);
                     m_lastDebuggedLTC = lastComputedLTC;
                 }
 
@@ -480,14 +488,14 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
                 //////////////////////////////////////////////////////////////////////////
                 // Draw Image Length
                 rect.x = MARGIN;
-                rect.width = DEBUG_TEXTURE_SIZE;
+                rect.width = 2*DEBUG_TEXTURE_SIZE;
                 rect.height = 16;
 
-                EditorGUI.LabelField( rect, T.m_type.Name );
+                EditorGUI.LabelField(rect, T.m_type.Name);
                 rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
-                EditorGUI.LabelField( rect, "LTC" );
+                EditorGUI.LabelField(rect, "LTC");
                 rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
-                EditorGUI.LabelField( rect, "Relative Error" );
+                EditorGUI.LabelField(rect, "Relative Error (total = " + lastComputedLTC.error.ToString("G4") + ")");
 
                 EditorGUILayout.EndHorizontal();
 
@@ -498,33 +506,33 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
 
                 // ==================================================================================
                 // Draw the target BRDF
-                if ( m_texDebugBRDF != null )
-                    EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE ), m_texDebugBRDF );
+                if (m_texDebugBRDF != null)
+                    EditorGUI.DrawPreviewTexture(new Rect(rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE), m_texDebugBRDF);
 
                 rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
 
                 // ==================================================================================
                 // Draw the matching LTC
-                if ( m_texDebugLTC != null )
-                    EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE ), m_texDebugLTC );
+                if (m_texDebugLTC != null)
+                    EditorGUI.DrawPreviewTexture(new Rect(rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE), m_texDebugLTC);
 
                 rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
 
                 // ==================================================================================
                 // Draw the relative error
-                if ( m_texDebugError != null )
-                    EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE ), m_texDebugError );
+                if (m_texDebugError != null)
+                    EditorGUI.DrawPreviewTexture(new Rect(rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE), m_texDebugError);
 
                 //////////////////////////////////////////////////////////////////////////
                 // Draw false spectrum scale
                 rect.x = MARGIN;
                 rect.y += DEBUG_TEXTURE_SIZE + 16;
 
-                EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, 4 ), m_texFalseSpectrum );
+                EditorGUI.DrawPreviewTexture(new Rect(rect.x, rect.y, DEBUG_TEXTURE_SIZE, 4), m_texFalseSpectrum);
                 rect.y += 8;
-                EditorGUI.LabelField( rect, "1e" + ERROR_LOG10_MIN );
+                EditorGUI.LabelField(rect, "1e" + ERROR_LOG10_MIN);
                 rect.x += DEBUG_TEXTURE_SIZE - 32;
-                EditorGUI.LabelField( rect, "1e" + ERROR_LOG10_MAX );
+                EditorGUI.LabelField(rect, "1e" + ERROR_LOG10_MAX);
 
                 break;
             }
@@ -535,53 +543,53 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
         /// </summary>
         /// <param name="_BRDF"></param>
         /// <param name="_LTC"></param>
-        void    UpdateDebugTextures( IBRDF _BRDF, LTC _LTC, Vector3 _tsView, float _alpha )
+        void    UpdateDebugTextures(IBRDF _BRDF, LTC _LTC, Vector3 _tsView, float _alpha)
         {
-            if ( m_texDebugBRDF == null )
+            if (m_texDebugBRDF == null)
             {
-// Debug.Log( "Creating textures" );
-                m_texDebugBRDF = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None );
-                m_texDebugLTC = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None );
-                m_texDebugError = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None );
+// Debug.Log("Creating textures");
+                m_texDebugBRDF = new Texture2D(DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
+                m_texDebugLTC = new Texture2D(DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
+                m_texDebugError = new Texture2D(DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
             }
 
             double  pdf;
             float   x2, y2, z2;
             Vector3 tsLight = new Vector3();
             int     pixelIndex = 0;
-            for ( int Y=0; Y < DEBUG_TEXTURE_SIZE; Y++ )
+            for (int Y=0; Y < DEBUG_TEXTURE_SIZE; Y++)
             {
                 tsLight.y = 2.0f * Y / (DEBUG_TEXTURE_SIZE-1) - 1.0f;
                 y2 = tsLight.y*tsLight.y;
-                for ( int X=0; X < DEBUG_TEXTURE_SIZE; X++, pixelIndex++ )
+                for (int X=0; X < DEBUG_TEXTURE_SIZE; X++, pixelIndex++)
                 {
                     tsLight.x = 2.0f * X / (DEBUG_TEXTURE_SIZE-1) - 1.0f;
                     x2 = tsLight.x*tsLight.x;
                     z2 = 1.0f - x2 - y2;
-                    if ( z2 <= 0.0f )
+                    if (z2 <= 0.0f)
                         continue;   // Outside hemisphere
-                    tsLight.z = Mathf.Sqrt( z2 );
+                    tsLight.z = Mathf.Sqrt(z2);
 
-                    float   V_ref = (float) _BRDF.Eval( ref _tsView, ref tsLight, _alpha, out pdf );
-                    float   V_ltc = (float) _LTC.Eval( ref tsLight );
-                    ComputeFalseSpectrumColor( V_ref, ERROR_LOG10_MIN, ERROR_LOG10_MAX, ref m_texDebugBRDF_CPU[pixelIndex] );
-                    ComputeFalseSpectrumColor( V_ltc, ERROR_LOG10_MIN, ERROR_LOG10_MAX, ref m_texDebugLTC_CPU[pixelIndex] );
+                    float   V_ref = (float) _BRDF.Eval(ref _tsView, ref tsLight, _alpha, out pdf);
+                    float   V_ltc = (float) _LTC.Eval(ref tsLight);
+                    ComputeFalseSpectrumColor(V_ref, ERROR_LOG10_MIN, ERROR_LOG10_MAX, ref m_texDebugBRDF_CPU[pixelIndex]);
+                    ComputeFalseSpectrumColor(V_ltc, ERROR_LOG10_MIN, ERROR_LOG10_MAX, ref m_texDebugLTC_CPU[pixelIndex]);
 
                     // Compute relative error
-                    float   relativeError = (V_ref > V_ltc ? V_ref / Math.Max( 1e-6f, V_ltc ) : V_ltc / Math.Max( 1e-6f, V_ref )) - 1.0f;
-                            relativeError *= Math.Min( Math.Abs( V_ref ), Math.Abs( V_ltc ) );  // Weigh by the value itself to give very low importance to small values after all
-                    ComputeFalseSpectrumColor( relativeError, ERROR_LOG10_MIN, ERROR_LOG10_MAX, ref m_texDebugError_CPU[pixelIndex] );
+                    float   relativeError = (V_ref > V_ltc ? V_ref / Math.Max(1e-6f, V_ltc) : V_ltc / Math.Max(1e-6f, V_ref)) - 1.0f;
+                            relativeError *= Math.Min(Math.Abs(V_ref), Math.Abs(V_ltc));  // Weigh by the value itself to give very low importance to small values after all
+                    ComputeFalseSpectrumColor(relativeError, ERROR_LOG10_MIN, ERROR_LOG10_MAX, ref m_texDebugError_CPU[pixelIndex]);
                 }
             }
 
             // Upload to texture
-//Debug.Log( "Updating debug textures" );
-            m_texDebugBRDF.SetPixels( m_texDebugBRDF_CPU );
-            m_texDebugLTC.SetPixels( m_texDebugLTC_CPU );
-            m_texDebugError.SetPixels( m_texDebugError_CPU );
-            m_texDebugBRDF.Apply( true );
-            m_texDebugLTC.Apply( true );
-            m_texDebugError.Apply( true );
+//Debug.Log("Updating debug textures");
+            m_texDebugBRDF.SetPixels(m_texDebugBRDF_CPU);
+            m_texDebugLTC.SetPixels(m_texDebugLTC_CPU);
+            m_texDebugError.SetPixels(m_texDebugError_CPU);
+            m_texDebugBRDF.Apply(true);
+            m_texDebugLTC.Apply(true);
+            m_texDebugError.Apply(true);
         }
 
         const int   DEBUG_TEXTURE_SIZE = 128;
@@ -598,11 +606,11 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
         Color[]    m_texDebugError_CPU = new Color[DEBUG_TEXTURE_SIZE * DEBUG_TEXTURE_SIZE];
 
         // Transform value into false spectrum color
-        void        ComputeFalseSpectrumColor( float _value, float _log10Min, float _log10Max, ref Color _color )
+        void        ComputeFalseSpectrumColor(float _value, float _log10Min, float _log10Max, ref Color _color)
         {
-            float   logV = Mathf.Clamp( Mathf.Log10( Mathf.Max( 1e-8f, _value ) ), _log10Min, _log10Max );
+            float   logV = Mathf.Clamp(Mathf.Log10(Mathf.Max(1e-8f, _value)), _log10Min, _log10Max);
             float   t = (logV - _log10Min) / (_log10Max - _log10Min);
-            int     it = Mathf.Clamp( (int) (t * m_falseSpectrumColors.GetLength(0)), 0, m_falseSpectrumColors.GetLength(0)-1 );
+            int     it = Mathf.Clamp((int) (t * m_falseSpectrumColors.GetLength(0)), 0, m_falseSpectrumColors.GetLength(0)-1);
             _color.r = m_falseSpectrumColors[it,0];
             _color.g = m_falseSpectrumColors[it,1];
             _color.b = m_falseSpectrumColors[it,2];
@@ -618,15 +626,16 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
 
         #region Helpers
 
-        static Type[]   ListBRDFTypes() {
+        static Type[]   ListBRDFTypes()
+        {
             // List all IBRDF implementers
             List<Type>  types = new List<Type>();
             Type        searchInterface = typeof(IBRDF);
-//            foreach ( System.Reflection.Assembly A in AppDomain.CurrentDomain.GetAssemblies() )
-//                foreach ( Type T in A.GetTypes() )
-                foreach ( Type T in System.Reflection.Assembly.GetExecutingAssembly().GetTypes() )
-                    if ( searchInterface.IsAssignableFrom( T ) && !T.IsInterface )
-                        types.Add( T );
+//            foreach (System.Reflection.Assembly A in AppDomain.CurrentDomain.GetAssemblies())
+//                foreach (Type T in A.GetTypes())
+                foreach (Type T in System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
+                    if (searchInterface.IsAssignableFrom(T) && !T.IsInterface)
+                        types.Add(T);
 
             return types.ToArray();
         }

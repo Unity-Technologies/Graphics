@@ -10,8 +10,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
     /// </summary>
     class BRDF_Ward : IBRDF {
 
-        public double    Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf ) {
-            if ( _tsView.z <= 0 ) {
+        public double    Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf )
+        {
+            if ( _tsView.z <= 0 )
+            {
                 _pdf = 0;
                 return 0;
             }
@@ -42,8 +44,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
             return res;
         }
 
-        public void    GetSamplingDirection( ref Vector3 _tsView, float _alpha, float _U1, float _U2, ref Vector3 _direction ) {
-
+        public void    GetSamplingDirection( ref Vector3 _tsView, float _alpha, float _U1, float _U2, ref Vector3 _direction )
+        {
             // Ward NDF sampling (eqs. 6 & 7 from above paper)
             float   tanTheta = _alpha * Mathf.Sqrt( -Mathf.Log( Mathf.Max( 1e-6f, _U1 ) ) );
             float   phi = _U2 * 2.0f * Mathf.PI;

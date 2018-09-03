@@ -8,10 +8,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
     /// Source from 2012 Burley, B. "Physically-Based Shading at Disney" Section 5.3
     /// (https://disney-animation.s3.amazonaws.com/library/s2012_pbs_disney_brdf_notes_v2.pdf)
     /// </summary>
-    class BRDF_Disney : IBRDF {
-
-        public double   Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf ) {
-            if ( _tsView.z <= 0 ) {
+    class BRDF_Disney : IBRDF
+    {
+        public double   Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf )
+        {
+            if ( _tsView.z <= 0 )
+            {
                 _pdf = 0;
                 return 0;
             }
@@ -50,8 +52,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
             return res;
         }
 
-        public void GetSamplingDirection( ref Vector3 _tsView, float _alpha, float _U1, float _U2, ref Vector3 _direction ) {
-
+        public void GetSamplingDirection( ref Vector3 _tsView, float _alpha, float _U1, float _U2, ref Vector3 _direction )
+        {
             // Performs uniform sampling of the unit disk.
             // Ref: PBRT v3, p. 777.
             float   r = Mathf.Sqrt( _U1 );
@@ -64,7 +66,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
             _direction.z = Mathf.Sqrt( 1 - _U1 );    // Project the point from the disk onto the hemisphere.
         }
 
-        double  F_Schlick( double _F0, double _F90, double _cosTheta ) {
+        double  F_Schlick( double _F0, double _F90, double _cosTheta )
+        {
             double  x = 1.0 - _cosTheta;
             double  x2 = x * x;
             double  x5 = x * x2 * x2;
