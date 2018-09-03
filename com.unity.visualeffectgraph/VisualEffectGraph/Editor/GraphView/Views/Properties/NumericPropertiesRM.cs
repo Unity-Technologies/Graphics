@@ -21,6 +21,7 @@ namespace UnityEditor.VFX.UI
             return range != Vector2.zero && range.y != Mathf.Infinity;
         }
 
+
         protected VFXBaseSliderField<U> m_Slider;
         protected TextValueField<U> m_TextField;
 
@@ -34,6 +35,7 @@ namespace UnityEditor.VFX.UI
             if (!RangeShouldCreateSlider(range))
             {
                 result = CreateSimpleField(out m_TextField);
+                m_TextField.RegisterCallback<KeyDownEvent>(OnKeyDown);
                 m_TextField.RegisterCallback<BlurEvent>(OnFocusLost);
             }
             else
@@ -45,8 +47,29 @@ namespace UnityEditor.VFX.UI
             return result;
         }
 
+        void OnKeyDown(KeyDownEvent e)
+        {
+            if( e.character == '\n')
+            {
+                if( isDelayed && hasChangeDelayed)
+                {
+                    NotifyValueChanged();
+                    hasChangeDelayed = false;
+                }
+                UpdateGUI(true);
+            }
+                
+
+            
+        }
+
         void OnFocusLost(BlurEvent e)
         {
+            if (isDelayed && hasChangeDelayed)
+            {
+                hasChangeDelayed = false;
+                NotifyValueChanged();
+            }
             UpdateGUI(true);
         }
 

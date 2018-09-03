@@ -138,8 +138,34 @@ namespace UnityEditor.VFX.UI
             else
             {
                 m_StringField = new VFXStringField(m_Label);
+                if( isDelayed)
+                {
+                    m_StringField.textfield.RegisterCallback<BlurEvent>(OnFocusLost);
+                    m_StringField.textfield.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                }
                 return m_StringField;
             }
+        }
+
+        void OnKeyDown(KeyDownEvent e)
+        {
+            if (e.character == '\n')
+            {
+                if (isDelayed && hasChangeDelayed)
+                {
+                    NotifyValueChanged();
+                }
+                UpdateGUI(true);
+            }
+        }
+
+        void OnFocusLost(BlurEvent e)
+        {
+            if (isDelayed && hasChangeDelayed)
+            {
+                NotifyValueChanged();
+            }
+            UpdateGUI(true);
         }
 
         public override bool IsCompatible(IPropertyRMProvider provider)
