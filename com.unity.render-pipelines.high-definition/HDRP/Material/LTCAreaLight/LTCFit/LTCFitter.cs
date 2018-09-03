@@ -176,10 +176,6 @@ Debug.Log( "Loaded table " + m_tableFileName.FullName + " - " + m_validResultsCo
 
                 Vector3    tsView = new Vector3( Mathf.Sqrt( 1 - cosTheta*cosTheta ), 0, cosTheta );
 
-
-// if ( _roughnessIndex == 61 && _thetaIndex == 42 )
-//     BRDF_GGX.ms_DEBUG = true;
-
                 // Compute BRDF's magnitude and average direction
                 ltc.ComputeAverageTerms( m_BRDF, ref tsView, alpha );
 

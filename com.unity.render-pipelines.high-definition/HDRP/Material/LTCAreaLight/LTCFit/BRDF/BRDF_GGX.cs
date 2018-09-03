@@ -8,8 +8,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
     /// </summary>
     class BRDF_GGX : IBRDF {
 
-public static bool ms_DEBUG = false;
-
         public double   Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf ) {
             if ( _tsView.z <= 0 ) {
                 _pdf = 0;
@@ -41,14 +39,6 @@ public static bool ms_DEBUG = false;
                     D = D / (Math.PI * _alpha * _alpha * H.z*H.z*H.z*H.z);
 
             double  res = D * G2 / 4.0 / _tsView.z;        // Full specular mico-facet model is F * D * G / (4 * NdotL * NdotV) but since we're fitting with the NdotL included, it gets nicely canceled out!
-
-// if ( ms_DEBUG ) {
-// Debug.LogWarning( "H = {" + H.x + ", " + H.y + ", " + H.z + "}" );
-// Debug.LogWarning( "slopex = " + slopex );
-// Debug.LogWarning( "slopey = " + slopey );
-// Debug.LogWarning( "D = " + D );
-// Debug.LogWarning( "res = " + res );
-// }
 
             // pdf = D(H) * (N.H) / (4 * (L.H))
             _pdf = Math.Abs( D * H.z / 4.0 / Vector3.Dot( _tsView, H ) );
