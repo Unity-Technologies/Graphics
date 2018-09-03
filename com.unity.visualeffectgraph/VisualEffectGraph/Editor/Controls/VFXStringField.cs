@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UIElements
 
         void CreateTextField()
         {
-            m_TextField = new TextField(30, false, false, '*');
+            m_TextField = new TextField(-1, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTextChanged);
             m_TextField.value = "";
