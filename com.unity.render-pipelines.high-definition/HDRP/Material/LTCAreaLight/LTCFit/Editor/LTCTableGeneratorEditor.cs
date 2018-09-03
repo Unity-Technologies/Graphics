@@ -475,15 +475,29 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
                 }
 
                 const int    MARGIN = 16;
-                Rect    rect  = EditorGUILayout.BeginHorizontal( GUILayout.ExpandWidth( false ) );
+                Rect    rect  = EditorGUILayout.BeginHorizontal();
+
+                //////////////////////////////////////////////////////////////////////////
+                // Draw Image Length
+//Debug.Log( "Rectangle text = " + rect.ToString() );
+rect.x = MARGIN;
+rect.width = DEBUG_TEXTURE_SIZE;
+rect.height = 16;
                     EditorGUI.LabelField( rect, T.m_type.Name );
                     rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
                     EditorGUI.LabelField( rect, "LTC" );
                     rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
                     EditorGUI.LabelField( rect, "Relative Error" );
+
                 EditorGUILayout.EndHorizontal();
 
-                rect  = EditorGUILayout.BeginHorizontal( GUILayout.ExpandWidth( false ) );
+                //////////////////////////////////////////////////////////////////////////
+                // Draw debug images
+rect.x = MARGIN;
+rect.y += 16;
+
+                EditorGUILayout.BeginHorizontal( GUILayout.ExpandWidth( false ) );
+Debug.Log( "Rectangle images = " + rect.ToString() );
 
                 // ==================================================================================
                 // Draw the target BRDF
@@ -562,6 +576,17 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
 
                 EditorGUILayout.EndHorizontal();
 
+                //////////////////////////////////////////////////////////////////////////
+                // Draw false spectrum scale
+                rect.x = MARGIN;
+                rect.y += DEBUG_TEXTURE_SIZE + 16;
+
+                EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, 4 ), m_texFalseSpectrum );
+                rect.y += 8;
+                EditorGUI.LabelField( rect, "1e" + ERROR_LOG10_MIN );
+                rect.x += DEBUG_TEXTURE_SIZE - 32;
+                EditorGUI.LabelField( rect, "1e" + ERROR_LOG10_MAX );
+
                 break;
             }
         }
@@ -576,16 +601,10 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
             if ( m_texDebugBRDF == null )
             {
 // Debug.Log( "Creating textures" );
-//                 m_texDebugBRDF = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, TextureFormat.RGBA32, false );
-//                 m_texDebugLTC = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, TextureFormat.RGBA32, false );
-//                 m_texDebugError = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, TextureFormat.RGBA32, false );
-                m_texDebugBRDF = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None );
-                m_texDebugLTC = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None );
-                m_texDebugError = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None );
+                m_texDebugBRDF = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None );
+                m_texDebugLTC = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None );
+                m_texDebugError = new Texture2D( DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None );
             }
-
-            const int   LOG10_MIN = -4;
-            const int   LOG10_MAX = 4;
 
             double  pdf;
             float   x2, y2, z2;
@@ -606,13 +625,13 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
 
                     float   V_ref = (float) _BRDF.Eval( ref _tsView, ref tsLight, _alpha, out pdf );
                     float   V_ltc = (float) _LTC.Eval( ref tsLight );
-                    ComputeFalseSpectrumColor( V_ref, LOG10_MIN, LOG10_MAX, ref m_texDebugBRDF_CPU[pixelIndex] );
-                    ComputeFalseSpectrumColor( V_ltc, LOG10_MIN, LOG10_MAX, ref m_texDebugLTC_CPU[pixelIndex] );
+                    ComputeFalseSpectrumColor( V_ref, ERROR_LOG10_MIN, ERROR_LOG10_MAX, ref m_texDebugBRDF_CPU[pixelIndex] );
+                    ComputeFalseSpectrumColor( V_ltc, ERROR_LOG10_MIN, ERROR_LOG10_MAX, ref m_texDebugLTC_CPU[pixelIndex] );
 
                     // Compute relative error
                     float   relativeError = (V_ref > V_ltc ? V_ref / Math.Max( 1e-6f, V_ltc ) : V_ltc / Math.Max( 1e-6f, V_ref )) - 1.0f;
                             relativeError *= Math.Min( Math.Abs( V_ref ), Math.Abs( V_ltc ) );  // Weigh by the value itself to give very low importance to small values after all
-                    ComputeFalseSpectrumColor( relativeError, LOG10_MIN, LOG10_MAX, ref m_texDebugError_CPU[pixelIndex] );
+                    ComputeFalseSpectrumColor( relativeError, ERROR_LOG10_MIN, ERROR_LOG10_MAX, ref m_texDebugError_CPU[pixelIndex] );
                 }
             }
 
@@ -627,6 +646,9 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
         }
 
         const int   DEBUG_TEXTURE_SIZE = 128;
+
+        const int   ERROR_LOG10_MIN = -4;
+        const int   ERROR_LOG10_MAX = 4;
 
         Texture2D   m_texDebugBRDF = null;
         Texture2D   m_texDebugLTC = null;
