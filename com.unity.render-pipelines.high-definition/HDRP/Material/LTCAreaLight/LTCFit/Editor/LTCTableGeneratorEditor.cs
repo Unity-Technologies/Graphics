@@ -56,23 +56,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.LTCFit
 
         void OnInspectorUpdate()
         {
+            bool    UIDirty = false;
             bool    databaseDirty = false;
             foreach ( BRDFType T in m_BRDFTypes )
             {
                 if ( T.IsWorking || T.m_dirty )
                 {   // Repaint to show progress as long as a thread is working...
                     T.m_dirty = false;
-                    Repaint();
-                    break;
+                    UIDirty = true;
                 }
                 if ( !T.IsWorking && T.m_refreshAssetsDatabase )
-                {
-                    // Database needs refresh!
+                {   // Database needs refresh!
                     T.m_refreshAssetsDatabase = false;
                     databaseDirty = true;
                 }
             }
-            
+
+            if ( UIDirty )
+                Repaint();
             if ( databaseDirty )
                 AssetDatabase.Refresh();
         }
