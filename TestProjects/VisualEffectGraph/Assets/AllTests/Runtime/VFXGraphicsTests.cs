@@ -72,8 +72,8 @@ namespace UnityEngine.VFX.Test
                 var vfxAssets = vfxComponents.Select(o => o.visualEffectAsset).Where(o => o != null).Distinct();
                 foreach (var vfx in vfxAssets)
                 {
-                    var graph = vfx.GetResource().GetOrCreateGraph();
-                    graph.RecompileIfNeeded();
+                    //var graph = null;// vfx.GetResource().GetOrCreateGraph();
+                    //graph.RecompileIfNeeded();
                 }
 #endif
 

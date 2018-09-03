@@ -49,7 +49,7 @@ namespace UnityEditor.VFX
                     var currentValue = new StringBuilder();
                     foreach (var line in valueLines)
                     {
-                        currentValue.AppendLine(indent + line);
+                        currentValue.Append(indent + line + '\n');
                     }
                     target.Replace(indent + targetQuery, currentValue.ToString());
                 }
@@ -119,9 +119,9 @@ namespace UnityEditor.VFX
 
         private const string eventListOutName = "eventListOut";
 
-        static private StringBuilder GenerateStoreAttribute(string matching, VFXContext context, uint linkedOutCount)
+        static private VFXShaderWriter GenerateStoreAttribute(string matching, VFXContext context, uint linkedOutCount)
         {
-            var r = new StringBuilder();
+            var r = new VFXShaderWriter();
             var regex = new Regex(matching);
 
             var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name) &&
@@ -130,8 +130,8 @@ namespace UnityEditor.VFX
 
             foreach (var attribute in attributesFromContext.Select(o => o.attrib))
             {
-                r.Append(context.GetData().GetStoreAttributeCode(attribute, new VFXAttributeExpression(attribute).GetCodeString(null)));
-                r.AppendLine(";");
+                r.Write(context.GetData().GetStoreAttributeCode(attribute, new VFXAttributeExpression(attribute).GetCodeString(null)));
+                r.WriteLine(';');
             }
 
             var eventCountName = VFXAttribute.EventCount.name;
@@ -140,8 +140,7 @@ namespace UnityEditor.VFX
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    r.AppendFormat("for (uint i = 0; i < {1}_{0}; ++i) {2}_{0}.Append(index);", prefix, eventCountName, eventListOutName);
-                    r.AppendLine();
+                    r.WriteLineFormat("for (uint i = 0; i < {1}_{0}; ++i) {2}_{0}.Append(index);", prefix, eventCountName, eventListOutName);
                 }
             }
             return r;
@@ -265,7 +264,7 @@ namespace UnityEditor.VFX
             {
                 var includeHierarchy = new StringBuilder(string.Format("Cyclic VFXInclude dependency detected: {0}\n", formattedPath));
                 foreach (var str in Enumerable.Reverse<string>(includes))
-                    includeHierarchy.AppendLine(str);
+                    includeHierarchy.Append(str + '\n');
                 throw new InvalidOperationException(includeHierarchy.ToString());
             }
 
@@ -542,7 +541,7 @@ namespace UnityEditor.VFX
             if (stringBuilder.ToString().Contains("${VFXStoreAttributes}"))
             {
                 var storeAttribute = GenerateStoreAttribute(".*", context, (uint)linkedEventOut.Count);
-                ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", storeAttribute);
+                ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", storeAttribute.builder);
             }
 
             foreach (var match in GetUniqueMatches("\\${VFXStoreAttributes:{(.*?)}}", stringBuilder.ToString()))
@@ -550,7 +549,7 @@ namespace UnityEditor.VFX
                 var str = match.Groups[0].Value;
                 var pattern = match.Groups[1].Value;
                 var storeAttributes = GenerateStoreAttribute(pattern, context, (uint)linkedEventOut.Count);
-                ReplaceMultiline(stringBuilder, str, storeAttributes);
+                ReplaceMultiline(stringBuilder, str, storeAttributes.builder);
             }
 
             foreach (var addionalReplacement in context.additionalReplacements)
@@ -561,7 +560,8 @@ namespace UnityEditor.VFX
             // Replace defines
             SubstituteMacros(stringBuilder);
 
-            Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
+            if(VFXViewPreference.advancedLogs)
+                Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
 
             return stringBuilder;
         }

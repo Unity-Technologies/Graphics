@@ -158,6 +158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DebugLightingSpecularColor = Shader.PropertyToID("_DebugLightingSpecularColor");
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
         public static readonly int _DebugMipMapMode = Shader.PropertyToID("_DebugMipMapMode");
+        public static readonly int _DebugMipMapModeTerrainTexture = Shader.PropertyToID("_DebugMipMapModeTerrainTexture");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
@@ -371,8 +372,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");
-        public static readonly int _Source4 = Shader.PropertyToID("_Source4");
-        public static readonly int _Result1 = Shader.PropertyToID("_Result1");
+        public static readonly int _Source = Shader.PropertyToID("_Source");
+        public static readonly int _Destination = Shader.PropertyToID("_Destination");
+        public static readonly int _Mip0 = Shader.PropertyToID("_Mip0");
 
         public static readonly int _AtmosphericScatteringType      = Shader.PropertyToID("_AtmosphericScatteringType");
         public static readonly int _AmbientProbeCoeffs             = Shader.PropertyToID("_AmbientProbeCoeffs");

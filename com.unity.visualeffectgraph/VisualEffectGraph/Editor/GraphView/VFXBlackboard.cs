@@ -41,6 +41,7 @@ namespace  UnityEditor.VFX.UI
         PropertyRM m_MinProperty;
         PropertyRM m_MaxProperty;
         List<PropertyRM> m_SubProperties;
+        StringPropertyRM m_TooltipProperty;
 
         IEnumerable<PropertyRM> allProperties
         {
@@ -54,6 +55,8 @@ namespace  UnityEditor.VFX.UI
                     result = result.Concat(Enumerable.Repeat(m_Property, 1));
                 if (m_SubProperties != null)
                     result = result.Concat(m_SubProperties);
+                if (m_TooltipProperty != null)
+                    result = result.Concat(Enumerable.Repeat<PropertyRM>(m_TooltipProperty, 1));
                 if (m_RangeProperty != null)
                     result = result.Concat(Enumerable.Repeat<PropertyRM>(m_RangeProperty, 1));
                 if (m_MinProperty != null)
@@ -173,6 +176,15 @@ namespace  UnityEditor.VFX.UI
                     {
                         CreateSubProperties(ref insertIndex, fieldpath);
                     }
+                    if(m_TooltipProperty == null)
+                    {
+                        m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
+                    }
+                    Insert(insertIndex++, m_TooltipProperty);
+                }
+                else
+                {
+                    m_TooltipProperty = null;
                 }
             }
             else

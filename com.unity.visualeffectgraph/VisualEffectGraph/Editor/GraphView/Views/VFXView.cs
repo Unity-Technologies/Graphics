@@ -52,11 +52,13 @@ namespace UnityEditor.VFX.UI
 
         Func<Descriptor, bool> m_Filter;
         IEnumerable<Type> m_AcceptedTypes;
+        VFXViewController m_Controller;
 
-        public VFXNodeProvider(Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter = null, IEnumerable<Type> acceptedTypes = null) : base(onAddBlock)
+        public VFXNodeProvider(VFXViewController controller,Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter = null, IEnumerable<Type> acceptedTypes = null) : base(onAddBlock)
         {
             m_Filter = filter;
             m_AcceptedTypes = acceptedTypes;
+            m_Controller = controller;
         }
 
         protected override string GetCategory(Descriptor desc)
@@ -95,11 +97,11 @@ namespace UnityEditor.VFX.UI
 
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
-            var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath, "*.vfx").Select(t => t.Replace("\\", "/").Replace(VisualEffectGraphPackageInfo.fileSystemPackagePath, VisualEffectGraphPackageInfo.assetPackagePath));
-            var systemDesc = systemFiles.Select(t => new Descriptor() {modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t)});
+            IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();
 
-
-            var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
+            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXContext)))
+            {
+                var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
                 {
                     return new Descriptor()
                     {
@@ -109,7 +111,11 @@ namespace UnityEditor.VFX.UI
                     };
                 }).OrderBy(o => o.category + o.name);
 
-            var descriptorsOperator = VFXLibrary.GetOperators().Select(o =>
+                descs = descs.Concat(descriptorsContext);
+            }
+            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXOperator)))
+            {
+                var descriptorsOperator = VFXLibrary.GetOperators().Select(o =>
                 {
                     return new Descriptor()
                     {
@@ -119,18 +125,25 @@ namespace UnityEditor.VFX.UI
                     };
                 }).OrderBy(o => o.category + o.name);
 
-            IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();
-
-            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXContext)))
-            {
-                descs = descs.Concat(descriptorsContext);
-            }
-            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXOperator)))
-            {
                 descs = descs.Concat(descriptorsOperator);
+            }
+            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXParameter)))
+            {
+                var parameterDescriptors = m_Controller.parameterControllers.Select(t =>
+                new Descriptor
+                {
+                    modelDescriptor = t,
+                    category = string.IsNullOrEmpty(t.model.category) ? "Parameter" : string.Format("Parameter/{0}", t.model.category),
+                    name = t.exposedName
+                }
+                );
+                descs = descs.Concat(parameterDescriptors);
             }
             if (m_AcceptedTypes == null)
             {
+                var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath, "*.vfx").Select(t => t.Replace("\\", "/").Replace(VisualEffectGraphPackageInfo.fileSystemPackagePath, VisualEffectGraphPackageInfo.assetPackagePath));
+                var systemDesc = systemFiles.Select(t => new Descriptor() { modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t) });
+
                 descs = descs.Concat(systemDesc);
             }
             var groupNodeDesc = new Descriptor()
@@ -215,6 +228,7 @@ namespace UnityEditor.VFX.UI
             rootNodes.Clear();
             rootGroupNodeElements.Clear();
             VFXExpression.ClearCache();
+            m_NodeProvider = null;
         }
 
         void ConnectController()
@@ -236,6 +250,8 @@ namespace UnityEditor.VFX.UI
             elementsAddedToGroup = ElementAddedToGroupNode;
             elementsRemovedFromGroup = ElementRemovedFromGroupNode;
             groupTitleChanged = GroupNodeTitleChanged;
+
+            m_NodeProvider = new VFXNodeProvider(controller, (d, mPos) => AddNode(d, mPos));
         }
 
         public VisualEffect attachedComponent
@@ -300,6 +316,12 @@ namespace UnityEditor.VFX.UI
             {
                 controller.AddGroupNode(mPos);
             }
+            else if( d.modelDescriptor is VFXParameterController)
+            {
+                var parameter = d.modelDescriptor as VFXParameterController;
+
+                return controller.AddVFXParameter(mPos, parameter, groupNode != null ? groupNode.controller : null );
+            }
             else
                 return controller.AddNode(mPos, d.modelDescriptor, groupNode != null ? groupNode.controller : null);
             return null;
@@ -318,8 +340,6 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new SelectionDragger());
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new FreehandSelector());
-
-            m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
             AddStyleSheetPath("VFXView");
 
@@ -795,17 +815,12 @@ namespace UnityEditor.VFX.UI
                     groupNodes.Remove(deletedController);
                 }
 
-
-                bool addNew = false;
-
                 foreach (var newController in controller.groupNodes.Except(groupNodes.Keys))
                 {
                     var newElement = new VFXGroupNode();
                     AddElement(newElement);
                     newElement.controller = newController;
                     groupNodes.Add(newController, newElement);
-
-                    addNew = true;
                 }
             }
         }
@@ -1317,7 +1332,7 @@ namespace UnityEditor.VFX.UI
         {
             if (controller == null) return;
 
-            var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null).ToArray();
+            var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model).Cast<VFXModel>()).Where(t => t != null).ToArray();
 
             if (objectSelected.Length > 0)
             {

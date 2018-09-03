@@ -93,7 +93,11 @@ namespace UnityEditor.VFX.UI
             m_ExposedIcon = this.Q<Image>("exposed-icon");
             m_SuperCollapsedButton = this.Q("super-collapse-button");
             m_SuperCollapsedButton.AddManipulator(new Clickable(OnToggleSuperCollapse));
+
+            m_Pill = this.Q("pill");
         }
+
+        VisualElement m_Pill;
 
         void OnToggleSuperCollapse()
         {
@@ -134,6 +138,9 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveFromClassList("exposed");
             }
+
+            if(m_Pill != null)
+                m_Pill.tooltip = controller.parentController.model.tooltip;
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)

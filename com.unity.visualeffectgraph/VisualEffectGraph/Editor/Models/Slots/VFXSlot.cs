@@ -407,7 +407,6 @@ namespace UnityEditor.VFX
                     if (VFXConverter.TryConvertTo(src.value, dst.property.type, out newValue))
                     {
                         dst.SetValueInternal(newValue, notify);
-                        Debug.LogFormat("Value automatically converted : {0}, {1} to {2}, {3}", src.property.type, src.value, dst.property.type, dst.value);
                     }
                 }
             }

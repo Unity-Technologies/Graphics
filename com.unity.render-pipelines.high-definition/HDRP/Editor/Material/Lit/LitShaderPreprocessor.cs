@@ -81,6 +81,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             stripperFuncs.Add("HDRenderPipeline/LitTessellation", LitShaderStripper);
             stripperFuncs.Add("HDRenderPipeline/LayeredLit", LitShaderStripper);
             stripperFuncs.Add("HDRenderPipeline/LayeredLitTessellation", LitShaderStripper);
+            stripperFuncs.Add("HDRenderPipeline/TerrainLit", LitShaderStripper);
+            stripperFuncs.Add("Hidden/HDRenderPipeline/TerrainLit_Basemap", LitShaderStripper);
         }
     }
 }

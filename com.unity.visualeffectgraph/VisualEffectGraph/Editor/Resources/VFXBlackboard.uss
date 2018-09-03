@@ -3,6 +3,11 @@
     font-size:11;
 }
 
+#vfx-properties
+{
+    margin-bottom:7;
+}
+
  #vfx-properties .propertyrm
 {
     flex:0 0 auto;

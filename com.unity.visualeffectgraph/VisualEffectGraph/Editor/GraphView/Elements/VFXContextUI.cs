@@ -8,6 +8,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Profiling;
+using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
@@ -16,19 +17,19 @@ namespace UnityEditor.VFX.UI
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
 
-        Image                       m_HeaderIcon;
-        Image                       m_HeaderSpace;
+        Image m_HeaderIcon;
+        Image m_HeaderSpace;
 
-        VisualElement               m_Footer;
-        Image                       m_FooterIcon;
-        Label                       m_FooterTitle;
+        VisualElement m_Footer;
+        Image m_FooterIcon;
+        Label m_FooterTitle;
 
-        VisualElement               m_FlowInputConnectorContainer;
-        VisualElement               m_FlowOutputConnectorContainer;
-        VisualElement               m_BlockContainer;
-        VisualElement               m_NoBlock;
+        VisualElement m_FlowInputConnectorContainer;
+        VisualElement m_FlowOutputConnectorContainer;
+        VisualElement m_BlockContainer;
+        VisualElement m_NoBlock;
 
-        VisualElement               m_DragDisplay;
+        VisualElement m_DragDisplay;
 
         public new VFXContextController controller
         {
@@ -66,13 +67,13 @@ namespace UnityEditor.VFX.UI
             }
             Profiler.EndSample();
 
-            m_HeaderIcon.image = GetIconForVFXType(controller.context.inputType);
+            m_HeaderIcon.image = GetIconForVFXType(controller.model.inputType);
             m_HeaderIcon.visible = m_HeaderIcon.image.value != null;
 
 
             Profiler.BeginSample("VFXContextUI.SetAllStyleClasses");
 
-            VFXContextType contextType = controller.context.contextType;
+            VFXContextType contextType = controller.model.contextType;
             foreach (VFXContextType value in System.Enum.GetValues(typeof(VFXContextType)))
             {
                 if (value != contextType)
@@ -80,10 +81,10 @@ namespace UnityEditor.VFX.UI
             }
             AddToClassList(ContextEnumToClassName(contextType.ToString()));
 
-            var inputType = controller.context.inputType;
+            var inputType = controller.model.inputType;
             if (inputType == VFXDataType.kNone)
             {
-                inputType = controller.context.ownedType;
+                inputType = controller.model.ownedType;
             }
             foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
@@ -92,7 +93,7 @@ namespace UnityEditor.VFX.UI
             }
             AddToClassList("inputType" + ContextEnumToClassName(inputType.ToString()));
 
-            var outputType = controller.context.outputType;
+            var outputType = controller.model.outputType;
             foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
                 if (value != outputType)
@@ -100,7 +101,7 @@ namespace UnityEditor.VFX.UI
             }
             AddToClassList("outputType" + ContextEnumToClassName(outputType.ToString()));
 
-            var type = controller.context.ownedType;
+            var type = controller.model.ownedType;
             foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
                 if (value != type)
@@ -109,15 +110,15 @@ namespace UnityEditor.VFX.UI
             AddToClassList("type" + ContextEnumToClassName(type.ToString()));
 
 
-            var space = controller.context.space;
+            var space = controller.model.space;
             foreach (VFXCoordinateSpace val in System.Enum.GetValues(typeof(VFXCoordinateSpace)))
             {
                 if (val != space)
                     m_HeaderSpace.RemoveFromClassList("space" + val.ToString());
             }
-            m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
+            m_HeaderSpace.AddToClassList("space" + (controller.model.space).ToString());
             Profiler.EndSample();
-            if (controller.context.outputType == VFXDataType.kNone)
+            if (controller.model.outputType == VFXDataType.kNone)
             {
                 if (m_Footer.parent != null)
                     m_Footer.RemoveFromHierarchy();
@@ -126,8 +127,8 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_Footer.parent == null)
                     mainContainer.Add(m_Footer);
-                m_FooterTitle.text = controller.context.outputType.ToString().Substring(1);
-                m_FooterIcon.image = GetIconForVFXType(controller.context.outputType);
+                m_FooterTitle.text = controller.model.outputType.ToString().Substring(1);
+                m_FooterIcon.image = GetIconForVFXType(controller.model.outputType);
                 m_FooterIcon.visible = m_FooterIcon.image.value != null;
             }
 
@@ -219,7 +220,7 @@ namespace UnityEditor.VFX.UI
         bool m_CanHaveBlocks = false;
         void OnSpace()
         {
-            controller.context.space = (VFXCoordinateSpace)(((int)controller.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
+            controller.model.space = (VFXCoordinateSpace)(((int)controller.model.space + 1) % (CoordinateSpaceInfo.SpaceCount));
         }
 
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks)
@@ -614,6 +615,111 @@ namespace UnityEditor.VFX.UI
                 }
         }
 
+
+        public class VFXContextOnlyVFXNodeProvider : VFXNodeProvider
+        {
+            public VFXContextOnlyVFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter) :
+                base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext)})
+            {
+            }
+            protected override string GetCategory(Descriptor desc)
+            {
+                return string.Empty;
+            }
+        }
+
+        bool ProviderFilter(VFXNodeProvider.Descriptor d)
+        {
+            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
+            if (desc == null)
+                return false;
+
+            if (!(desc.model is VFXContext))
+                return false;
+
+            return (desc.model as VFXContext).contextType == VFXContextType.kOutput;
+        }
+
+        void OnConvertContext(DropdownMenu.MenuAction action)
+        {
+            VFXView view = this.GetFirstAncestorOfType<VFXView>();
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
+        }
+
+        void ConvertContext(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        {
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            VFXViewController viewController = controller.viewController;
+            if (view == null) return;
+
+            mPos = view.contentViewContainer.ChangeCoordinatesTo(view, controller.position);
+
+            var newNodeController = view.AddNode(d, mPos);
+            var newContextController = newNodeController as VFXContextController;
+
+            //transfer blocks
+            foreach (var block in controller.model.children.ToArray()) // To array needed as the IEnumerable content will change
+                newContextController.AddBlock(-1,block);
+
+            //transfer settings
+            var contextType = controller.model.GetType();
+            foreach(var setting in newContextController.model.GetSettings(true))
+            {
+                FieldInfo myField = contextType.GetField(setting.Name,BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic);
+                if (myField == null || myField.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
+                    continue;
+
+                object value;
+                if(VFXConverter.TryConvertTo(myField.GetValue(controller.model),setting.FieldType,out value))
+                {
+                    newContextController.model.SetSettingValue(setting.Name, value);
+                }
+            }
+
+            //transfer flow edges
+            if( controller.flowInputAnchors.Count == 1)
+            {
+                foreach( var output in controller.flowInputAnchors[0].connections.Select(t=>t.output).ToArray())
+                {
+                    newContextController.model.LinkFrom(output.context.model, output.slotIndex);
+                }
+            }
+
+            // Apply the slot changes that can be the result of settings changes
+            newContextController.ApplyChanges();
+
+            //transfer master slot values
+            foreach ( var slot in newContextController.model.inputSlots)
+            {
+                VFXSlot mySlot = controller.model.inputSlots.FirstOrDefault(t => t.name == slot.name);
+                if (mySlot == null)
+                    continue;
+
+                object value;
+                if (VFXConverter.TryConvertTo(mySlot.value, slot.property.type, out value))
+                {
+                    slot.value = value;
+                }
+            }
+
+            foreach( var anchor in newContextController.inputPorts)
+            {
+                string path = anchor.path;
+                Debug.Log(path);
+                var myAnchor = controller.inputPorts.FirstOrDefault(t => t.path == path);
+
+                if (myAnchor == null || !myAnchor.HasLink())
+                    continue;
+
+                //There should be only one
+                var output = myAnchor.connections.First().output;
+
+                viewController.CreateLink(anchor, output);
+            }
+
+            viewController.RemoveElement(controller);
+        }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target is VFXContextUI || evt.target is VFXBlockUI)
@@ -623,6 +729,11 @@ namespace UnityEditor.VFX.UI
                     evt.menu.InsertAction(0, "Create Block", OnCreateBlock, e => DropdownMenu.MenuAction.StatusFlags.Normal);
                     evt.menu.AppendSeparator();
                 }
+            }
+
+            if( evt.target is VFXContextUI && controller.model.contextType == VFXContextType.kOutput )
+            {
+                evt.menu.InsertAction(0, "Convert Context", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
             }
         }
     }

@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.UI
     abstract class VFXFlowAnchorController : Controller, IVFXAnchorController
     {
         VFXContextController m_Context;
-        public VFXContext owner { get { return m_Context.context; } }
+        public VFXContext owner { get { return m_Context.model; } }
         public VFXContextController context { get { return m_Context; } }
 
         private int m_SlotIndex;
