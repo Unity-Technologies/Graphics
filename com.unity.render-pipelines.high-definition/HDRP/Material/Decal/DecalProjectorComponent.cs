@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 m_Size = new Vector3(1, 1, 1);
         private Material m_OldMaterial = null;
         private DecalSystem.DecalHandle m_Handle = null;
+        public bool m_IsCropModeEnabled = false;
 
         public DecalSystem.DecalHandle Handle
         {
@@ -45,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             if (m_Handle != null)
-            { 
+            {
                 DecalSystem.instance.RemoveDecal(m_Handle);
                 m_Handle = null;
             }
@@ -58,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnDisable()
         {
             if (m_Handle != null)
-            { 
+            {
                 DecalSystem.instance.RemoveDecal(m_Handle);
                 m_Handle = null;
             }
@@ -71,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public event OnMaterialChangeDelegate OnMaterialChange;
 
         public void OnValidate()
-        {            
+        {
             if (m_Handle != null) // don't do anything if OnEnable hasn't been called yet when scene is loading.
             {
                 Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
