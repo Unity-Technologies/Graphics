@@ -1817,31 +1817,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 HDUtils.PackedMipChainInfo info = HDUtils.ComputePackedMipChainInfo(screenSize);
 
-                // Pack 'info.mipLevelOffsets' into an array of integers disguised as array of float vectors (because Unity)...
-                Vector4[] depthPyramidMipLevelOffsets = new Vector4[7];
+                // Pack the integer array.
+                int[] depthPyramidMipLevelOffsets = new int[28];
 
                 for (int i = 0; i < 14; i++)
                 {
-                    int   x = info.mipLevelOffsets[i].x;
-                    int   y = info.mipLevelOffsets[i].y;
-                    float ix = x, iy = y;
-
-                    unsafe
-                    {
-                        //ix = *(float*)&x;
-                        //iy = *(float*)&y;
-                    }
-
-                    if ((i & 1) == 0)
-                    {
-                        depthPyramidMipLevelOffsets[i >> 1].x = ix;
-                        depthPyramidMipLevelOffsets[i >> 1].y = iy;
-                    }
-                    else
-                    {
-                        depthPyramidMipLevelOffsets[i >> 1].z = ix;
-                        depthPyramidMipLevelOffsets[i >> 1].w = iy;
-                    }
+                    depthPyramidMipLevelOffsets[2 * i + 0] = info.mipLevelOffsets[i].x;
+                    depthPyramidMipLevelOffsets[2 * i + 1] = info.mipLevelOffsets[i].y;
                 }
 
                 cmd.SetComputeIntParam(  cs, "_SsrIterLimit",                   volumeSettings.rayMaxIterations);
@@ -1851,7 +1833,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(  cs, "_SsrDepthPyramidMaxMip",          info.mipLevelCount);
                 cmd.SetComputeFloatParam(cs, "_SsrRcpFade",                     rcpFadeDistance);
                 cmd.SetComputeFloatParam(cs, "_SsrOneMinusRcpFade",             1 - rcpFadeDistance);
-                cmd.SetComputeVectorArrayParam( cs, "_SsrDepthPyramidMipLevelOffsets", depthPyramidMipLevelOffsets);
+                cmd.SetComputeIntParams( cs, "_SsrDepthPyramidMipLevelOffsets", depthPyramidMipLevelOffsets);
 
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", m_SsrHitPointTexture);
