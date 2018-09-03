@@ -479,102 +479,41 @@ Debug.Log( "Exporting " + tableSize + "x" + tableSize + " LTC table " + _tableFi
 
                 //////////////////////////////////////////////////////////////////////////
                 // Draw Image Length
-//Debug.Log( "Rectangle text = " + rect.ToString() );
-rect.x = MARGIN;
-rect.width = DEBUG_TEXTURE_SIZE;
-rect.height = 16;
-                    EditorGUI.LabelField( rect, T.m_type.Name );
-                    rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
-                    EditorGUI.LabelField( rect, "LTC" );
-                    rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
-                    EditorGUI.LabelField( rect, "Relative Error" );
+                rect.x = MARGIN;
+                rect.width = DEBUG_TEXTURE_SIZE;
+                rect.height = 16;
+
+                EditorGUI.LabelField( rect, T.m_type.Name );
+                rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
+                EditorGUI.LabelField( rect, "LTC" );
+                rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
+                EditorGUI.LabelField( rect, "Relative Error" );
 
                 EditorGUILayout.EndHorizontal();
 
                 //////////////////////////////////////////////////////////////////////////
                 // Draw debug images
-rect.x = MARGIN;
-rect.y += 16;
-
-                EditorGUILayout.BeginHorizontal( GUILayout.ExpandWidth( false ) );
-Debug.Log( "Rectangle images = " + rect.ToString() );
+                rect.x = MARGIN;
+                rect.y += 16;
 
                 // ==================================================================================
                 // Draw the target BRDF
-                {
-//                     Rect    rect  = EditorGUILayout.BeginVertical();
-//                    Rect    rect = EditorGUILayout.BeginVertical( );
+                if ( m_texDebugBRDF != null )
+                    EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE ), m_texDebugBRDF );
 
-                        // Draw debug image
-                        if ( m_texDebugBRDF != null )
-                        {
-//                            Rect    rect = EditorGUILayout.BeginVertical();
-//                                    rect.width = DEBUG_TEXTURE_SIZE;
-//                                    rect.height = DEBUG_TEXTURE_SIZE;
-                            EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE ), m_texDebugBRDF );
-//                             EditorGUILayout.EndVertical();
-//                            EditorGUI.DrawTextureAlpha( rect, m_texFalseSpectrum );
-                        }
-
-                        rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
-
-                        // Draw text
-//                         EditorGUILayout.LabelField( T.m_type.Name );
-
-//                    EditorGUILayout.EndVertical();
-                }
-
-//                EditorGUILayout.Space();
+                rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
 
                 // ==================================================================================
                 // Draw the matching LTC
-                {
-//                     Rect    rect  = EditorGUILayout.BeginVertical();
-//                     EditorGUILayout.BeginVertical( );
- 
-                    // Draw debug image
-                    if ( m_texDebugLTC != null )
-                    {
-//                         Rect    rect = EditorGUILayout.BeginVertical();
-//                                 rect.width = DEBUG_TEXTURE_SIZE;
-//                                 rect.height = DEBUG_TEXTURE_SIZE;
-                        EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE ), m_texDebugLTC );
-//                         EditorGUILayout.EndVertical();
-                    }
+                if ( m_texDebugLTC != null )
+                    EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE ), m_texDebugLTC );
 
-                        rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
-
-                     // Draw text
-//                      EditorGUILayout.LabelField( "LTC" );
- 
-//                      EditorGUILayout.EndVertical();
-                }
-
-//                EditorGUILayout.Space();
+                rect.x += DEBUG_TEXTURE_SIZE + MARGIN;
 
                 // ==================================================================================
                 // Draw the relative error
-                {
-//                    Rect    rect  = EditorGUILayout.BeginVertical();
-//                    EditorGUILayout.BeginVertical();
- 
-                    // Draw debug image
-                    if ( m_texDebugError != null )
-                    {
-//                         Rect    rect = EditorGUILayout.BeginVertical();
-//                                 rect.width = DEBUG_TEXTURE_SIZE;
-//                                 rect.height = DEBUG_TEXTURE_SIZE;
-                        EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE ), m_texDebugError );
-//                         EditorGUILayout.EndVertical();
-                    }
- 
-                     // Draw text
-//                      EditorGUILayout.LabelField( "Relative Error" );
- 
-//                     EditorGUILayout.EndVertical();
-                }
-
-                EditorGUILayout.EndHorizontal();
+                if ( m_texDebugError != null )
+                    EditorGUI.DrawPreviewTexture( new Rect( rect.x, rect.y, DEBUG_TEXTURE_SIZE, DEBUG_TEXTURE_SIZE ), m_texDebugError );
 
                 //////////////////////////////////////////////////////////////////////////
                 // Draw false spectrum scale
