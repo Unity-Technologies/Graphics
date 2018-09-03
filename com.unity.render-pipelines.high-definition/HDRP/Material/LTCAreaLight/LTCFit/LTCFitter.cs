@@ -386,6 +386,9 @@ Debug.Log( "Loaded table " + m_tableFileName.FullName + " - " + m_validResultsCo
         #region I/O
 
         public static LTC[,]    LoadTable( System.IO.FileInfo _tableFileName, out int _validResultsCount ) {
+            if ( !_tableFileName.Exists )
+                throw new Exception( "LTC Table file \"" + _tableFileName + "\" not found!" );
+
             LTC[,]    result = null;
             _validResultsCount = 0;
             using ( System.IO.FileStream S = _tableFileName.OpenRead() )
