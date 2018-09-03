@@ -56,11 +56,11 @@ CBUFFER_START(UnityScreenSpaceReflections)
     int   _SsrDepthPyramidMaxMip;
     float _SsrRcpFade;
     float _SsrOneMinusRcpFade;
-    float4 _SsrDepthPyramidMipLevelOffsets[7];
+    int4  _SsrDepthPyramidMipLevelOffsets[7];
 CBUFFER_END
 
-// Actually an array of integers disguised as array of float vectors (because Unity)...
-static const float2 depthPyramidMipLevelOffsets[14] = (const float2[14])(_SsrDepthPyramidMipLevelOffsets);
+// Unpack the integer array.
+static const int2 depthPyramidMipLevelOffsets[14] = (const int2[14])(_SsrDepthPyramidMipLevelOffsets);
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -174,7 +174,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         rayPos.xy += raySign.xy * satEdgeDist;
 
         int2 mipCoord  = (int2)rayPos.xy >> mipLevel;
-        int2 mipOffset = /*asint*/(depthPyramidMipLevelOffsets[mipLevel]);
+        int2 mipOffset = depthPyramidMipLevelOffsets[mipLevel];
 
         // Bounds define 4 faces of a cube:
         // 2 walls in front of the ray, and a floor and a base below it.
