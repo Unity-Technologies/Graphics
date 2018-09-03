@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.XR;
 using UnityEngine.Experimental.Rendering;
@@ -8,7 +7,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     [Flags]
-    public enum PipelineCapabilities
+    public enum ShaderFeatures
     {
         AdditionalLights    = (1 << 0),
         VertexLights        = (1 << 1),
@@ -96,58 +95,38 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public sealed partial class LightweightPipeline
     {
-        static PipelineCapabilities s_PipelineCapabilities;
+        static ShaderFeatures s_ShaderFeatures;
 
-        public static PipelineCapabilities GetPipelineCapabilities()
+        public static ShaderFeatures GetSupportedShaderFeatures()
         {
-            return s_PipelineCapabilities;
+            return s_ShaderFeatures;
         }
 
-        public void SortCameras(Camera[] cameras)
+        void SortCameras(Camera[] cameras)
         {
             Array.Sort(cameras, (lhs, rhs) => (int)(lhs.depth - rhs.depth));
         }
 
-        static void SetPipelineCapabilities(LightweightPipelineAsset pipelineAsset)
+        static void SetSupportedShaderFeatures(LightweightPipelineAsset pipelineAsset)
         {
-            s_PipelineCapabilities = 0U;
+            s_ShaderFeatures = 0U;
 
             // Strip variants based on selected pipeline features
-            if (!pipelineAsset.customShaderVariantStripping)
-            {
-                if (pipelineAsset.maxPixelLights > 1 || pipelineAsset.supportsVertexLight)
-                    s_PipelineCapabilities |= PipelineCapabilities.AdditionalLights;
+            if (pipelineAsset.maxPixelLights > 1 || pipelineAsset.supportsVertexLight)
+                s_ShaderFeatures |= ShaderFeatures.AdditionalLights;
 
-                if (pipelineAsset.supportsVertexLight)
-                    s_PipelineCapabilities |= PipelineCapabilities.VertexLights;
+            if (pipelineAsset.supportsVertexLight)
+                s_ShaderFeatures |= ShaderFeatures.VertexLights;
 
-                if (pipelineAsset.supportsDirectionalShadows)
-                    s_PipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
+            if (pipelineAsset.supportsDirectionalShadows)
+                s_ShaderFeatures |= ShaderFeatures.DirectionalShadows;
 
-                if (pipelineAsset.supportsLocalShadows)
-                    s_PipelineCapabilities |= PipelineCapabilities.LocalShadows;
+            if (pipelineAsset.supportsLocalShadows)
+                s_ShaderFeatures |= ShaderFeatures.LocalShadows;
 
-                bool anyShadows = pipelineAsset.supportsDirectionalShadows || pipelineAsset.supportsLocalShadows;
-                if (pipelineAsset.supportsSoftShadows && anyShadows)
-                    s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
-            }
-            else
-            {
-                if (pipelineAsset.keepAdditionalLightVariants)
-                    s_PipelineCapabilities |= PipelineCapabilities.AdditionalLights;
-
-                if (pipelineAsset.keepVertexLightVariants)
-                    s_PipelineCapabilities |= PipelineCapabilities.VertexLights;
-
-                if (pipelineAsset.keepDirectionalShadowVariants)
-                    s_PipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
-
-                if (pipelineAsset.keepLocalShadowVariants)
-                    s_PipelineCapabilities |= PipelineCapabilities.LocalShadows;
-
-                if (pipelineAsset.keepSoftShadowVariants)
-                    s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
-            }
+            bool anyShadows = pipelineAsset.supportsDirectionalShadows || pipelineAsset.supportsLocalShadows;
+            if (pipelineAsset.supportsSoftShadows && anyShadows)
+                s_ShaderFeatures |= ShaderFeatures.SoftShadows;
         }
         public static bool IsStereoEnabled(Camera camera)
         {
