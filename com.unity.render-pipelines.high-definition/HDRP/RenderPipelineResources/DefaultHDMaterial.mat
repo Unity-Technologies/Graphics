@@ -481,7 +481,7 @@ Material:
     - _LinkDetailsWithBase2: 1
     - _LinkDetailsWithBase3: 1
     - _MaterialID: 1
-    - _Metallic: 0.602
+    - _Metallic: 0.387
     - _Metallic0: 0
     - _Metallic1: 0
     - _Metallic2: 0
@@ -521,7 +521,7 @@ Material:
     - _ShowLayer2: 0
     - _ShowLayer3: 0
     - _ShowMaterialReferences: 0
-    - _Smoothness: 0.717
+    - _Smoothness: 0.964
     - _Smoothness0: 1
     - _Smoothness1: 1
     - _Smoothness2: 1

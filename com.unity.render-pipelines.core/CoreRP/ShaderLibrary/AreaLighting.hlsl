@@ -17,7 +17,7 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
     // You can use the following Mathematica code to reproduce our results:
     // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
     // m = NonlinearModelFit[t, x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3)), {a, b, c, d, e}, {x, y}]
-    real    fit = saturate( x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))) );
+    real    fit = saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
 
     // BMAYAUX (18/08/27) it appears that the imprecision in fitting leads to light leaking issues
     // This apparently comes from the fact that the transition when the sphere is going below the horizon is a very sensitive area of the 2D table
@@ -26,8 +26,8 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
     //
     // Each of these fade routines is equally interesting
     real    sqCosOmega = cosOmega < 0.0 ? -cosOmega*cosOmega : cosOmega*cosOmega;   // Signed square value
-    real    fade = smoothstep( -sinSqSigma, 0, sqCosOmega );    // This one fade for a shorter time <== Prefer this if using smoothstep
-//    real    fade = step( -0.05*sinSqSigma, sqCosOmega );        // This one is abrupt but does the job... And less expensive than a smoothstep. Problem is, the 0.05 actually should change depending on the size of the sphere (i.e. the sinSqSigma parameter)
+    real    fade = smoothstep(-sinSqSigma, 0, sqCosOmega);    // This one fade for a shorter time <== Prefer this if using smoothstep
+//    real    fade = step(-0.05*sinSqSigma, sqCosOmega);        // This one is abrupt but does the job... And less expensive than a smoothstep. Problem is, the 0.05 actually should change depending on the size of the sphere (i.e. the sinSqSigma parameter)
 
     return fade * fit;
 
@@ -145,7 +145,7 @@ real IntegrateEdge(real3 V1, real3 V2)
 // Returns the vector form-factor (i.e. vector irradiance/2PI) of the quadrilateral
 // L contains the 4 corners of the quad
 // Returns an average direction vector scaled by the scalar form-factor
-real3   PolygonFormFactor( real4x3 L )
+real3   PolygonFormFactor(real4x3 L)
 {
     UNITY_UNROLL
     for (uint i = 0; i < 4; i++)
@@ -172,14 +172,14 @@ real3   PolygonFormFactor( real4x3 L )
 real PolygonIrradiance(real4x3 L)
 {
 #ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-    real3 F = PolygonFormFactor( L );
+    real3 F = PolygonFormFactor(L);
 
     // Clamp invalid values to avoid visual artifacts.
-    real    f = length( F );
-    real    cosOmega   = clamp( F.z / f, -1, 1);
-    real    sqSinSigma = min( f, 0.999 );
+    real    f = length(F);
+    real    cosOmega   = clamp(F.z / f, -1, 1);
+    real    sqSinSigma = min(f, 0.999);
 
-    return DiffuseSphereLightIrradiance( sqSinSigma, cosOmega );
+    return DiffuseSphereLightIrradiance(sqSinSigma, cosOmega);
 #else
     // 1. ClipQuadToHorizon
 
@@ -339,7 +339,7 @@ real PolygonIrradiance(real4x3 L)
 //
 
 // An extended version of the implementation from "How to solve a cubic equation, revisited" (From http://momentsingraphics.de/?p=105)
-real3 SolveCubic( real4 coefficients )
+real3 SolveCubic(real4 coefficients )
 {
     // Normalize the polynomial
 //  coefficients.xyz /= coefficients.w; // No use in our case: w=1
@@ -357,7 +357,7 @@ real3 SolveCubic( real4 coefficients )
         -coefficients.z*coefficients.z + coefficients.y,
         -coefficients.y*coefficients.z + coefficients.x,
         dot(real2(coefficients.z, -coefficients.y), coefficients.xy)
-    );
+   );
 
     real  Discriminant = dot(real2(4.0*Delta.x, -Delta.y), Delta.zy);
 
@@ -372,7 +372,7 @@ real3 SolveCubic( real4 coefficients )
         real  D_a = -2.0*B*Delta.x + Delta.y;
 
         // Take the cubic root of a normalized complex number
-        real  Theta = atan2( sqrt(Discriminant), -D_a ) / 3.0;
+        real  Theta = atan2( sqrt(Discriminant), -D_a) / 3.0;
 
         real  x_1a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta );
         real  x_3a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta + (2.0/3.0)*PI );
@@ -426,7 +426,7 @@ real3 SolveCubic( real4 coefficients )
 // Returns the vector form-factor (i.e. vector irradiance/2PI) of the disc
 // L contains the 4 corners of the quad bounding the elliptical disc, in tangent space
 // Returns an average direction vector scaled by the scalar form-factor
-real3   DiskFormFactor( real4x3 lightVerts )
+real3   DiskFormFactor(real4x3 lightVerts)
 {
     // Initalize ellipse in original clamped-cosine space
     real3   C  = 0.5 * (lightVerts[0] + lightVerts[2]);
@@ -434,7 +434,7 @@ real3   DiskFormFactor( real4x3 lightVerts )
     real3   V2 = 0.5 * (lightVerts[3] - lightVerts[2]);
 
     real3   V3 = cross(V2, V1);         // Normal to ellipse's plane
-    if( dot( V3, C ) < 0.0 )
+    if( dot( V3, C) < 0.0 )
         return 0.0;
 
     // compute eigenvectors of ellipse
@@ -526,16 +526,16 @@ real3   DiskFormFactor( real4x3 lightVerts )
 }
 
 // L contains the 4 corners of the quad bounding the elliptical disc
-real   LTCEvaluate_Disk( real4x3 L )
+real   LTCEvaluate_Disk(real4x3 L)
 {
-    real3   F = DiskFormFactor( L );
+    real3   F = DiskFormFactor(L);
 
     // Clamp invalid values to avoid visual artifacts.
-    real    f = length( F );
-    real    cosOmega   = clamp( F.z / f, -1, 1);
-    real    sqSinSigma = min( f, 0.999 );
+    real    f = length(F);
+    real    cosOmega   = clamp(F.z / f, -1, 1);
+    real    sqSinSigma = min(f, 0.999);
 
-    return DiffuseSphereLightIrradiance( sqSinSigma, cosOmega );
+    return DiffuseSphereLightIrradiance(sqSinSigma, cosOmega);
 }
 
 
@@ -642,20 +642,20 @@ real LTCEvaluate(real3 P1, real3 P2, real3 B, real3x3 invM)
 // GENERIC EVALUATE (RECTANGLE + DISK + SPHERE LIGHTS)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-real LTCEvaluate_RectDisk( real4x3 L, bool isRectangleLight )
+real LTCEvaluate_RectDisk(real4x3 L, bool isRectangleLight)
 {
     real3   F;
-    if ( isRectangleLight )
-        F = PolygonFormFactor( L );
+    if (isRectangleLight)
+        F = PolygonFormFactor(L);
     else
-        F = DiskFormFactor( L );
+        F = DiskFormFactor(L);
 
     // Clamp invalid values to avoid visual artifacts.
-    real    f = length( F );
-    real    cosOmega   = clamp( F.z / f, -1, 1);
-    real    sqSinSigma = min( f, 0.999 );
+    real    f = length(F);
+    real    cosOmega   = clamp(F.z / f, -1, 1);
+    real    sqSinSigma = min(f, 0.999);
 
-    return DiffuseSphereLightIrradiance( sqSinSigma, cosOmega );
+    return DiffuseSphereLightIrradiance(sqSinSigma, cosOmega);
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
