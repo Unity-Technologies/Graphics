@@ -13,11 +13,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static GUIContent s_VolumeTextureLabel   = new GUIContent("Density Mask Texture");
         static GUIContent s_TextureScrollLabel   = new GUIContent("Texture Scroll Speed");
         static GUIContent s_TextureTileLabel     = new GUIContent("Texture Tiling Amount");
-        static GUIContent s_TextureSettingsTitle = new GUIContent("Volume Texture Settings");
         static GUIContent s_PositiveFadeLabel    = new GUIContent("Positive Fade", "Controls the [0, 1] distance from the +X/+Y/+Z face at which a linear fade ends. 0 means no fade, 1 means the fade ends at the opposite face.");
         static GUIContent s_NegativeFadeLabel    = new GUIContent("Negative Fade", "Controls the [0, 1] distance from the -X/-Y/-Z face at which a linear fade ends. 0 means no fade, 1 means the fade ends at the opposite face.");
-
-        private bool showTextureParams = false;
 
         SerializedProperty densityParams;
         SerializedProperty albedo;
@@ -43,11 +40,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             positiveFade  = densityParams.FindPropertyRelative("positiveFade");
             negativeFade  = densityParams.FindPropertyRelative("negativeFade");
-
-            if (volumeTexture != null && volumeTexture.objectReferenceValue != null)
-            {
-                showTextureParams = true;
-            }
         }
 
         public override void OnInspectorGUI()
