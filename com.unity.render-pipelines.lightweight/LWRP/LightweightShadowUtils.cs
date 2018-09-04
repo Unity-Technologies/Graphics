@@ -24,8 +24,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             ShadowSplitData splitData;
             bool success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
-                    cascadeIndex, shadowData.directionalLightCascadeCount, shadowData.directionalLightCascades, shadowResolution, shadowNearPlane, out viewMatrix, out projMatrix,
-                    out splitData);
+                cascadeIndex, shadowData.directionalLightCascadeCount, shadowData.directionalLightCascades, shadowResolution, shadowNearPlane, out viewMatrix, out projMatrix,
+                out splitData);
 
             cascadeSplitDistance = splitData.cullingSphere;
             shadowSliceData.offsetX = (cascadeIndex % 2) * shadowResolution;

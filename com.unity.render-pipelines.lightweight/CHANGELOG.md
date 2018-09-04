@@ -4,17 +4,46 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.4.0-preview]
+### Added
+- When you have enabled Gizmos, they now appear correctly in the Game view.
+- Added requiresDepthPrepass field to RenderingData struct to tell if the runtime platform requires a depth prepass to generate a camera depth texture.
+- The `RenderingData` struct now holds a reference to `CullResults`.
+- When __HDR__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
+- When __MSAA__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
+- Enabled instancing on the terrain shader.
+- Sorting of opaque objects now respects camera opaqueSortMode setting.
+- Sorting of opaque objects disables front-to-back sorting flag when camera settings allow that and the GPU has hidden surface removal.
+### Changed
+- The `RenderingData` struct is now read-only.
+- `ScriptableRenderer`always perform a Clear before calling `IRendererSetup::Setup.` 
+- `ScriptableRenderPass::Execute` no longer takes `CullResults` as input. Instead, use `RenderingData`as input, since that references `CullResults`.
+- `IRendererSetup_Setup` no longer takes `ScriptableRenderContext` and `CullResults` as input.
+
+### Fixed
+- The Unlit shader now samples Global Illumination correctly.
+- The Inspector window for the Unlit shader now displays correctly.
+- Reduced GC pressure by removing several per-frame memory allocations.
+- The tooltip for the the camera __MSAA__ property now appears correctly.
+
 ## [3.3.0-preview]
 ### Added
+- Added callbacks to LWRP that can be attached to a camera (IBeforeCameraRender, IAfterDepthPrePass, IAfterOpaquePass, IAfterOpaquePostProcess, IAfterSkyboxPass, IAfterTransparentPass, IAfterRender)
+
+###Changed
+- Clean up LWRP creation of render textures. If we are not going straight to screen ensure that we create both depth and color targets.
 - UNITY_DECLARE_FRAMEBUFFER_INPUT and UNITY_READ_FRAMEBUFFER_INPUT macros were added. They are necessary for reading transient attachments.
 - UNITY_MATRIX_I_VP is now defined.
-
-### Changed
 - Renamed LightweightForwardRenderer to ScriptableRenderer.
 - Moved all light constants to _LightBuffer CBUFFER. Now _PerCamera CBUFFER contains all other per camera constants.
 
 ### Fixed
 - Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.
+
+### Changed
+- Change real-time attenuation to inverse square.
+- Change attenuation for baked GI to inverse square, to match real-time attenuation.
+- Small optimization in light attenuation shader code.
 
 ## [3.2.0-preview]
 ### Changed

@@ -482,7 +482,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var name = preferredCoordinateSpace.ToVariableName(InterpolatorType.Position);
                 var preferredSpacePosition = ConvertBetweenSpace("v.vertex", CoordinateSpace.Object, preferredCoordinateSpace, InputType.Position);
-                vertexShader.AppendLine("float3 {0} = {1};", name, preferredSpacePosition);
+                vertexShader.AppendLine("float3 {0} = {1}.xyz;", name, preferredSpacePosition);
                 if (graphModelRequirements.requiresPosition > 0)
                 {
                     vertexOutputStruct.AppendLine("float3 {0} : TEXCOORD{1};", name, interpolatorIndex);
@@ -738,6 +738,22 @@ namespace UnityEditor.ShaderGraph
             }
             return "error";
         }
+        
+        private static string DimensionToSwizzle(Dimension d)
+        {
+            switch (d)
+            {
+                case Dimension.One:
+                    return "x";
+                case Dimension.Two:
+                    return "xy";
+                case Dimension.Three:
+                    return "xyz";
+                case Dimension.Four:
+                    return "xyzw";
+            }
+            return "error";
+        }
 
         public static void GenerateSpaceTranslations(
             NeededCoordinateSpace neededSpaces,
@@ -748,22 +764,26 @@ namespace UnityEditor.ShaderGraph
             Dimension dimension)
         {
             if ((neededSpaces & NeededCoordinateSpace.Object) > 0 && from != CoordinateSpace.Object)
-                pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
-                    CoordinateSpace.Object.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Object, inputType, from));
+                pixelShader.AppendLine("float{0} {1} = {2}.{3};", DimensionToString(dimension),
+                    CoordinateSpace.Object.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Object, inputType, from),
+                    DimensionToSwizzle(dimension));
 
             if ((neededSpaces & NeededCoordinateSpace.World) > 0 && from != CoordinateSpace.World)
-                pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
-                    CoordinateSpace.World.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.World, inputType, from));
+                pixelShader.AppendLine("float{0} {1} = {2}.{3};", DimensionToString(dimension),
+                    CoordinateSpace.World.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.World, inputType, from),
+                    DimensionToSwizzle(dimension));
 
             if ((neededSpaces & NeededCoordinateSpace.View) > 0 && from != CoordinateSpace.View)
-                pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
+                pixelShader.AppendLine("float{0} {1} = {2}.{3};", DimensionToString(dimension),
                     CoordinateSpace.View.ToVariableName(type),
-                    ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.View, inputType, from));
+                    ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.View, inputType, from),
+                    DimensionToSwizzle(dimension));
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0 && from != CoordinateSpace.Tangent)
-                pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
+                pixelShader.AppendLine("float{0} {1} = {2}.{3};", DimensionToString(dimension),
                     CoordinateSpace.Tangent.ToVariableName(type),
-                    ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from));
+                    ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from),
+                    DimensionToSwizzle(dimension));
         }
 
         public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)

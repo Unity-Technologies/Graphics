@@ -1429,6 +1429,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Build light data
             var envLightData = new EnvLightData();
 
+            envLightData.lightLayers = probe.GetLightLayers();
             envLightData.influenceShapeType = probe.influenceShapeType;
             envLightData.weight = probe.weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity;

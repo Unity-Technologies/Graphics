@@ -9,8 +9,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         int kDepthBufferBits = 32;
 
         private RenderTargetHandle depthAttachmentHandle { get; set; }
-        private RenderTextureDescriptor descriptor { get; set; }
-        public FilterRenderersSettings opaqueFilterSettings { get; private set; }
+        internal RenderTextureDescriptor descriptor { get; set; }
+        private FilterRenderersSettings opaqueFilterSettings { get; set; }
 
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
@@ -39,9 +39,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             };
         }
 
-        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
-            ref CullResults cullResults,
-            ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_DepthPrepassTag);
             using (new ProfilingSample(cmd, k_DepthPrepassTag))
@@ -59,21 +57,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                var drawSettings = CreateDrawRendererSettings(renderingData.cameraData.camera, SortFlags.CommonOpaque, RendererConfiguration.None, renderingData.supportsDynamicBatching);
+                var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
+                var drawSettings = CreateDrawRendererSettings(renderingData.cameraData.camera, sortFlags, RendererConfiguration.None, renderingData.supportsDynamicBatching);
                 if (renderingData.cameraData.isStereoEnabled)
                 {
                     Camera camera = renderingData.cameraData.camera;
                     context.StartMultiEye(camera);
-                    context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
+                    context.DrawRenderers(renderingData.cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
                     context.StopMultiEye(camera);
                 }
                 else
-                    context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
+                    context.DrawRenderers(renderingData.cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
-
 
         public override void FrameCleanup(CommandBuffer cmd)
         {
@@ -83,6 +81,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 depthAttachmentHandle = RenderTargetHandle.CameraTarget;
             }
         }
-
     }
 }
