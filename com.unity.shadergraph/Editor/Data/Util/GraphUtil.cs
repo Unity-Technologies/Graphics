@@ -1131,7 +1131,7 @@ namespace UnityEditor.ShaderGraph
                         (activeNode as IGeneratesFunction).GenerateNodeFunction(functionRegistry, graphContext, mode);
                     }
                     if (activeNode is IGeneratesBodyCode)
-                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(sg, mode);
+                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(sg, graphContext, mode);
                     if (masterNode == null && activeNode.hasPreview)
                     {
                         var outputSlot = activeNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
@@ -1245,7 +1245,7 @@ namespace UnityEditor.ShaderGraph
                     var generatesBodyCode = node as IGeneratesBodyCode;
                     if (generatesBodyCode != null)
                     {
-                        generatesBodyCode.GenerateNodeCode(sg, mode);
+                        generatesBodyCode.GenerateNodeCode(sg, graphContext, mode);
                     }
                     node.CollectShaderProperties(shaderProperties, mode);
                 }
