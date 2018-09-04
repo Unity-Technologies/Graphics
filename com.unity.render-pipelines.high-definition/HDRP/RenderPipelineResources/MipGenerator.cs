@@ -54,9 +54,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Vector2Int srcOffset = info.mipLevelOffsets[i - 1];
                 Vector2Int srcLimit  = srcOffset + srcSize - Vector2Int.one;
 
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, new Vector4(srcOffset.x, srcOffset.y, srcLimit.x, srcLimit.y));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._DstOffset,         new Vector4(dstOffset.x, dstOffset.y));
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain, texture);
+                cmd.SetComputeIntParams(   cs,         HDShaderIDs._SrcOffsetAndLimit, new int[4] {srcOffset.x, srcOffset.y, srcLimit.x, srcLimit.y});
+                cmd.SetComputeIntParams(   cs,         HDShaderIDs._DstOffset,         new int[4] {dstOffset.x, dstOffset.y, 0, 0});
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain,     texture);
+
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), 1);
             }
 
