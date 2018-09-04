@@ -225,11 +225,6 @@ TEXTURE2D(unity_LightmapInd);
 // We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
 
-// Lightweight Pipeline Specific
-TEXTURE2D(_MainLightCookie);
-SAMPLER(sampler_MainLightCookie);
-
-
 // ----------------------------------------------------------------------------
 
 // TODO: all affine matrices should be 3x4.
