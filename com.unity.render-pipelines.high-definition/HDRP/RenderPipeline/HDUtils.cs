@@ -369,61 +369,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int          mipLevelCount;
             public Vector2Int[] mipLevelSizes;
             public Vector2Int[] mipLevelOffsets;
-        }
 
-        // We pack all MIP levels into the top MIP level to avoid the Pow2 MIP chain restriction.
-        // We compute the required size iteratively.
-        // This function is NOT fast, but it is illustrative, and can be optimized later.
-        public static PackedMipChainInfo ComputePackedMipChainInfo(Vector2Int textureSize)
-        {
-            PackedMipChainInfo info = new PackedMipChainInfo();
-
-            info.mipLevelOffsets    = new Vector2Int[15];
-            info.mipLevelSizes      = new Vector2Int[15];
-
-            info.textureSize        = textureSize;
-            info.mipLevelSizes[0]   = textureSize;
-            info.mipLevelOffsets[0] = Vector2Int.zero;
-
-            int        mipLevel = 0;
-            Vector2Int mipSize  = textureSize;
-
-            do
+            public void Allocate()
             {
-                mipLevel++;
+                mipLevelOffsets = new Vector2Int[15];
+                mipLevelSizes   = new Vector2Int[15];
+            }
 
-                // Round up.
-                mipSize.x = Math.Max(1, (mipSize.x + 1) >> 1);
-                mipSize.y = Math.Max(1, (mipSize.y + 1) >> 1);
+            // We pack all MIP levels into the top MIP level to avoid the Pow2 MIP chain restriction.
+            // We compute the required size iteratively.
+            // This function is NOT fast, but it is illustrative, and can be optimized later.
+            public void ComputePackedMipChainInfo(Vector2Int viewportSize)
+            {
+                textureSize        = viewportSize;
+                mipLevelSizes[0]   = viewportSize;
+                mipLevelOffsets[0] = Vector2Int.zero;
 
-                info.mipLevelSizes[mipLevel] = mipSize;
+                int        mipLevel = 0;
+                Vector2Int mipSize  = viewportSize;
 
-                Vector2Int prevMipBegin = info.mipLevelOffsets[mipLevel - 1];
-                Vector2Int prevMipEnd   = prevMipBegin + info.mipLevelSizes[mipLevel - 1];
-
-                Vector2Int mipBegin = new Vector2Int();
-
-                if ((mipLevel & 1) != 0) // Odd
+                do
                 {
-                    mipBegin.x = prevMipBegin.x;
-                    mipBegin.y = prevMipEnd.y;
-                }
-                else // Even
-                {
-                    mipBegin.x = prevMipEnd.x;
-                    mipBegin.y = prevMipBegin.y;
-                }
+                    mipLevel++;
 
-                info.mipLevelOffsets[mipLevel] = mipBegin;
+                    // Round up.
+                    mipSize.x = Math.Max(1, (mipSize.x + 1) >> 1);
+                    mipSize.y = Math.Max(1, (mipSize.y + 1) >> 1);
 
-                info.textureSize.x = Math.Max(info.textureSize.x, mipBegin.x + mipSize.x);
-                info.textureSize.y = Math.Max(info.textureSize.y, mipBegin.y + mipSize.y);
+                    mipLevelSizes[mipLevel] = mipSize;
 
-            } while ((mipSize.x > 1) || (mipSize.y > 1));
+                    Vector2Int prevMipBegin = mipLevelOffsets[mipLevel - 1];
+                    Vector2Int prevMipEnd   = prevMipBegin + mipLevelSizes[mipLevel - 1];
 
-            info.mipLevelCount = mipLevel + 1;
+                    Vector2Int mipBegin = new Vector2Int();
 
-            return info;
+                    if ((mipLevel & 1) != 0) // Odd
+                    {
+                        mipBegin.x = prevMipBegin.x;
+                        mipBegin.y = prevMipEnd.y;
+                    }
+                    else // Even
+                    {
+                        mipBegin.x = prevMipEnd.x;
+                        mipBegin.y = prevMipBegin.y;
+                    }
+
+                    mipLevelOffsets[mipLevel] = mipBegin;
+
+                    textureSize.x = Math.Max(textureSize.x, mipBegin.x + mipSize.x);
+                    textureSize.y = Math.Max(textureSize.y, mipBegin.y + mipSize.y);
+
+                } while ((mipSize.x > 1) || (mipSize.y > 1));
+
+                mipLevelCount = mipLevel + 1;
+            }
         }
 
         public static int DivRoundUp(int x, int y)

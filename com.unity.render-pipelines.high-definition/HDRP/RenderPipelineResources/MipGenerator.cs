@@ -34,14 +34,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Generates an in-place depth pyramid
-        // Returns the number of generated mips
         // TODO: Mip-mapping depth is problematic for precision at lower mips, generate a packed atlas instead
-        public int RenderMinDepthPyramid(CommandBuffer cmd, Vector2Int screenSize, RenderTexture texture)
+        public void RenderMinDepthPyramid(CommandBuffer cmd, RenderTexture texture, HDUtils.PackedMipChainInfo info)
         {
             var cs     = m_DepthPyramidCS;
             int kernel = m_DepthDownsampleKernel;
-
-            HDUtils.PackedMipChainInfo info = HDUtils.ComputePackedMipChainInfo(screenSize);
 
             // TODO: Do it 1x MIP at a time for now. In the future, do 4x MIPs per pass, or even use a single pass.
             // Note: Gather() doesn't take a LOD parameter and we cannot bind an SRV of a MIP level,
@@ -60,8 +57,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), 1);
             }
-
-            return info.mipLevelCount;
         }
 
         // Generates the gaussian pyramid of source into destination

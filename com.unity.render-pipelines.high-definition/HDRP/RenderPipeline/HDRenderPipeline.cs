@@ -104,9 +104,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_CameraColorBufferMipChain;
         RTHandleSystem.RTHandle m_CameraSssDiffuseLightingBuffer;
 
-        RTHandleSystem.RTHandle m_CameraDepthStencilBuffer;
-        RTHandleSystem.RTHandle m_CameraDepthBufferMipChain; // This texture contains the full Min Depth MIP chain packed in a single MIP level
-        RTHandleSystem.RTHandle m_CameraStencilBufferCopy;
+        RTHandleSystem.RTHandle    m_CameraDepthStencilBuffer;
+        RTHandleSystem.RTHandle    m_CameraDepthBufferMipChain;     // This texture contains the full Min Depth MIP chain packed in a single MIP level
+        HDUtils.PackedMipChainInfo m_CameraDepthBufferMipChainInfo; // This is metadata
+        RTHandleSystem.RTHandle    m_CameraStencilBufferCopy;
 
         RTHandleSystem.RTHandle m_VelocityBuffer;
         RTHandleSystem.RTHandle m_ScreenSpaceShadowsBuffer;
@@ -299,9 +300,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Vector2Int ComputeDepthBufferMipChainSize(Vector2Int screenSize)
         {
-            HDUtils.PackedMipChainInfo info = HDUtils.ComputePackedMipChainInfo(screenSize);
+            m_CameraDepthBufferMipChainInfo.ComputePackedMipChainInfo(screenSize);
 
-            return info.textureSize;
+            return m_CameraDepthBufferMipChainInfo.textureSize;
         }
 
         void InitializeRenderTextures()
@@ -325,6 +326,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (NeedDepthBufferCopy())
             {
+                m_CameraDepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
+                m_CameraDepthBufferMipChainInfo.Allocate();
                 m_CameraDepthBufferMipChain = RTHandles.Alloc(ComputeDepthBufferMipChainSize, colorFormat: RenderTextureFormat.RFloat, filterMode: FilterMode.Point, sRGB: false, bindTextureMS: true, enableMSAA: true, enableRandomWrite: true, name: "CameraDepthBufferMipChain");
             }
 
@@ -1835,8 +1838,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 float rcpFadeDistance = Mathf.Min(1.0f / volumeSettings.screenWeightDistance, 65536.0f);
 
-                Vector2Int screenSize = new Vector2Int(w, h);
-                HDUtils.PackedMipChainInfo info = HDUtils.ComputePackedMipChainInfo(screenSize);
+                HDUtils.PackedMipChainInfo info = m_CameraDepthBufferMipChainInfo;
 
                 // Pack the integer array.
                 int[] depthPyramidMipLevelOffsetsX = new int[8];
@@ -1918,12 +1920,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, m_CameraDepthStencilBuffer, m_CameraDepthBufferMipChain, new RectInt(0, 0, m_CurrentWidth, m_CurrentHeight));
             }
 
-            int mipCount;
+            int mipCount = m_CameraDepthBufferMipChainInfo.mipLevelCount;
 
             using (new ProfilingSample(cmd, "Generate Depth Buffer MIP Chain", CustomSamplerId.DepthPyramid))
             {
-                var screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
-                mipCount = m_MipGenerator.RenderMinDepthPyramid(cmd, screenSize, m_CameraDepthBufferMipChain);
+                m_MipGenerator.RenderMinDepthPyramid(cmd, m_CameraDepthBufferMipChain, m_CameraDepthBufferMipChainInfo);
             }
 
             float scaleX = hdCamera.actualWidth / (float)m_CameraDepthBufferMipChain.rt.width;
