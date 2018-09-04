@@ -456,66 +456,6 @@ namespace UnityEditor.VFX
                 return true;
             }
 
-            object GetObjectValue(SerializedProperty prop)
-            {
-                switch (prop.propertyType)
-                {
-                    case SerializedPropertyType.Float:
-                        return prop.floatValue;
-                    case SerializedPropertyType.Vector3:
-                        return prop.vector3Value;
-                    case SerializedPropertyType.Vector2:
-                        return prop.vector2Value;
-                    case SerializedPropertyType.Vector4:
-                        return prop.vector4Value;
-                    //case SerializedPropertyType.ObjectReference:
-                    //    return prop.objectReferenceValue;
-                    case SerializedPropertyType.Integer:
-                        return prop.intValue;
-                    case SerializedPropertyType.Boolean:
-                        return prop.boolValue;
-                        //case SerializedPropertyType.Gradient:
-                        //    return prop.gradientValue;
-                        //case SerializedPropertyType.AnimationCurve:
-                        //    return prop.animationCurveValue;
-                }
-                return null;
-            }
-
-            void SetObjectValue(SerializedProperty prop, object value)
-            {
-                switch (prop.propertyType)
-                {
-                    case SerializedPropertyType.Float:
-                        prop.floatValue = (float)value;
-                        return;
-                    case SerializedPropertyType.Vector3:
-                        prop.vector3Value = (Vector3)value;
-                        return;
-                    case SerializedPropertyType.Vector2:
-                        prop.vector2Value = (Vector2)value;
-                        return;
-                    case SerializedPropertyType.Vector4:
-                        prop.vector4Value = (Vector4)value;
-                        return;
-                    //case SerializedPropertyType.ObjectReference:
-                    //    prop.objectReferenceValue = (UnityEngine.Object)value;
-                    //    return;
-                    case SerializedPropertyType.Integer:
-                        prop.intValue = (int)value;
-                        return;
-                    case SerializedPropertyType.Boolean:
-                        prop.boolValue = (bool)value;
-                        return;
-                        //case SerializedPropertyType.Gradient:
-                        //    prop.gradientValue = (Gradient)value;
-                        //    return;
-                        //case SerializedPropertyType.AnimationCurve:
-                        //    prop.animationCurveValue = (AnimationCurve)value;
-                        //    return;
-                }
-            }
-
             public void SetParameter(VFXParameter parameter)
             {
                 if (parameter != m_Parameter)
