@@ -1154,7 +1154,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         StopStereoRendering(renderContext, hdCamera);
 
                         PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.NanTracker);
-                        PushColorPickerDebugTexture(hdCamera, cmd, m_CameraColorBuffer);
+                        PushColorPickerDebugTexture(cmd, m_CameraColorBuffer, hdCamera);
 
                         // The final pass either postprocess of Blit will flip the screen (as it is reverse by default due to Unity openGL legacy)
                         // Postprocess system (that doesn't use cmd.Blit) handle it with configuration (and do not flip in SceneView) or it is automatically done in Blit
