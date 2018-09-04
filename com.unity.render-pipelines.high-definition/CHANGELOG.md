@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.
 - Stencil test during decals normal buffer update is now properly applied
 - Decals corectly update normal buffer in forward
+- Fixed a normalization problem in reflection probe face fading causing artefacts in some cases
 
 ## [3.3.0-preview]
 
