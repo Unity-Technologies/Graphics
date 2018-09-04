@@ -1161,6 +1161,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         StartStereoRendering(renderContext, hdCamera);
 
+                        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                        // VFX DEMO SPECIFIC : CAPTURE COLOR AND DEPTH
+                        using (new ProfilingSample(cmd, "VFX Copy Color and Depth"))
+                        {
+                            if (HDRPColorDepthCapture.instance != null)
+                                HDRPColorDepthCapture.instance.CaptureColorAndDepth(hdCamera.camera, cmd, m_CameraColorBuffer, GetDepthTexture());
+
+                        }
+                        // END VFX DEMO SPECIFIC
+
                         // Final blit
                         if (hdCamera.frameSettings.enablePostprocess)
                         {
