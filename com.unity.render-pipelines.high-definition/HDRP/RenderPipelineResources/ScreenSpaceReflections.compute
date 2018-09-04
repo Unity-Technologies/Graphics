@@ -149,6 +149,9 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         tMax = Min3(dist.x, dist.y, dist.z);
     }
 
+    // Clamp the MIP level to give the compiler more information to optimize.
+    const int maxMipLevel = min(_SsrDepthPyramidMaxMip, 14);
+
     // Start ray marching from the next texel to avoid self-intersections.
     float t;
     {
@@ -234,7 +237,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         // rather than logarithmic complexity! This is due to the fact that we only store
         // the maximum value of depth, and not the min-max.
         mipLevel += (hitFloor || belowFloor || rayTowardsEye) ? -1 : 1;
-        mipLevel  = clamp(mipLevel, 0, _SsrDepthPyramidMaxMip);
+        mipLevel  = clamp(mipLevel, 0, maxMipLevel);
 
         // mipLevel = 0;
 
