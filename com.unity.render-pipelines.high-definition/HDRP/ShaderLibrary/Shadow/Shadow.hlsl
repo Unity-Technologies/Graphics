@@ -59,7 +59,7 @@
 #   pragma warning( disable : 3557 ) // loop only executes for 1 iteration(s)
 #endif
 
-#include "CoreRP/Shadow/ShadowBase.cs.hlsl" // ShadowData definition, auto generated (don't modify)
+#include "HDRP/CoreRP/Shadow/ShadowBase.cs.hlsl" // ShadowData definition, auto generated (don't modify)
 #include "ShadowTexFetch.hlsl"              // Resource sampling definitions (don't modify)
 
 struct ShadowContext
