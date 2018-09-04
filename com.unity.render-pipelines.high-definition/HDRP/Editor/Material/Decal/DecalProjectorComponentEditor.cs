@@ -9,6 +9,7 @@ using UnityEditor.IMGUI.Controls;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [CustomEditor(typeof(DecalProjectorComponent))]
+    [CanEditMultipleObjects]
     public class DecalProjectorComponentEditor : Editor
     {
         private MaterialEditor m_MaterialEditor = null;

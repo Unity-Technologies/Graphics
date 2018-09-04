@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public class DefaultRendererSetup : IRendererSetup
+    internal class DefaultRendererSetup : IRendererSetup
     {
         private DepthOnlyPass m_DepthOnlyPass;
         private DirectionalShadowsPass m_DirectionalShadowPass;

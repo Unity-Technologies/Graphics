@@ -221,6 +221,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DecalIndexShift = Shader.PropertyToID("_DecalIndexShift");
         public static readonly int _DecalCount = Shader.PropertyToID("_DecalCount");
         public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
+        public static readonly int _DecalNormalBufferStencilReadMask = Shader.PropertyToID("_DecalNormalBufferStencilReadMask");
+        public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
@@ -399,6 +401,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferLighting                = Shader.PropertyToID("_VBufferLighting");
         public static readonly int _VBufferLightingIntegral        = Shader.PropertyToID("_VBufferLightingIntegral");
         public static readonly int _VBufferLightingHistory         = Shader.PropertyToID("_VBufferLightingHistory");
+        public static readonly int _VBufferLightingHistoryIsValid  = Shader.PropertyToID("_VBufferLightingHistoryIsValid");
         public static readonly int _VBufferLightingFeedback        = Shader.PropertyToID("_VBufferLightingFeedback");
         public static readonly int _VBufferSampleOffset            = Shader.PropertyToID("_VBufferSampleOffset");
         public static readonly int _VolumeBounds                   = Shader.PropertyToID("_VolumeBounds");
