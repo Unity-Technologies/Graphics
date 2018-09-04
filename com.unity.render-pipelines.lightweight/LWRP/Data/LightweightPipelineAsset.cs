@@ -82,14 +82,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_LocalShadowsSupported = true;
         [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._512;
         [SerializeField] bool m_SoftShadowsSupported = false;
-        [SerializeField] bool m_KeepAdditionalLightVariants = true;
-        [SerializeField] bool m_KeepVertexLightVariants = true;
-        [SerializeField] bool m_KeepDirectionalShadowVariants = true;
-        [SerializeField] bool m_KeepLocalShadowVariants = true;
-        [SerializeField] bool m_KeepSoftShadowVariants = true;
 
         [SerializeField] LightweightPipelineResources m_ResourcesAsset;
-        [SerializeField] XRGraphicsConfig m_SavedXRConfig = XRGraphicsConfig.s_DefaultXRConfig;        
+        [SerializeField] XRGraphicsConfig m_SavedXRConfig = XRGraphicsConfig.s_DefaultXRConfig;
 
         // Deprecated
         [SerializeField] ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -316,36 +311,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool supportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
-        }
-
-        public bool customShaderVariantStripping
-        {
-            get { return false; }
-        }
-
-        public bool keepAdditionalLightVariants
-        {
-            get { return m_KeepAdditionalLightVariants; }
-        }
-
-        public bool keepVertexLightVariants
-        {
-            get { return m_KeepVertexLightVariants; }
-        }
-
-        public bool keepDirectionalShadowVariants
-        {
-            get { return m_KeepDirectionalShadowVariants; }
-        }
-
-        public bool keepLocalShadowVariants
-        {
-            get { return m_KeepLocalShadowVariants; }
-        }
-
-        public bool keepSoftShadowVariants
-        {
-            get { return m_KeepSoftShadowVariants; }
         }
 
         public override Material GetDefaultMaterial()

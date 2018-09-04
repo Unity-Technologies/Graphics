@@ -7,13 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [3.4.0-preview]
 
 ### Added
+- Added a new TerrainLit shader that supports rendering of Unity terrains.
 - Added controls for linear fade at the boundary of density volumes
 - Added new API to control decals without monobehaviour object
 - Improve Decal Gizmo
 
+### Changed
+- Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
+
 ### Fixed
-- Stencil test during decals normal buffer update is now properly applied
 - Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.
+- Stencil test during decals normal buffer update is now properly applied
 - Decals corectly update normal buffer in forward
 
 ## [3.3.0-preview]
@@ -22,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an error message to say to use Metal or Vulkan when trying to use OpenGL API
 - Added a new Fabric shader model that supports Silk and Cotton/Wool
 - Added a new HDRP Lighting Debug mode to visualize Light Volumes for Point, Spot, Line, Rectangular and Reflection Probes
+- Add support for reflection probe light layers
+- Improve quality of anisotropic on IBL
 
 ### Fixed
 - Fix an issue where the screen where darken when rendering camera preview
@@ -29,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove workaround for metal and vulkan in normal buffer encoding/decoding
 - Fixed an issue with color picker not working in forward
 - Fixed an issue where reseting HDLight do not reset all of its parameters
+- Fixed shader compile warning in DebugLightVolumes.shader
 
 ### Changed
 - Changed default reflection probe to be 256x256x6 and array size to be 64

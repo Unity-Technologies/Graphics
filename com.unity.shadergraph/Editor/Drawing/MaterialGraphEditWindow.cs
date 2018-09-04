@@ -34,6 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
+        bool m_FrameAllAfterLayout;
 
         GraphEditorView m_GraphEditorView;
 
@@ -54,6 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.saveRequested += UpdateAsset;
                     m_GraphEditorView.convertToSubgraphRequested += ToSubGraph;
                     m_GraphEditorView.showInProjectRequested += PingAsset;
+                    m_GraphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
                     this.GetRootVisualContainer().Add(graphEditorView);
                 }
             }
@@ -164,7 +166,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (graphObject != null)
             {
-                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the shader graph?\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
+                string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the shader graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
                     UpdateAsset();
                 Undo.ClearUndo(graphObject);
                 DestroyImmediate(graphObject);
@@ -506,6 +509,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     persistenceKey = selectedGuid,
                     assetName = asset.name.Split('/').Last()
                 };
+                m_FrameAllAfterLayout = true;
                 graphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
                 titleContent = new GUIContent(asset.name.Split('/').Last());
@@ -524,7 +528,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnGeometryChanged(GeometryChangedEvent evt)
         {
             graphEditorView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-            graphEditorView.graphView.FrameAll();
+            if (m_FrameAllAfterLayout)
+                graphEditorView.graphView.FrameAll();
+            m_FrameAllAfterLayout = false;
+            foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
+                node.Dirty(ModificationScope.Node);
         }
     }
 }
