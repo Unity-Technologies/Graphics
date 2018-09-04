@@ -67,3 +67,4 @@ MonoBehaviour:
   shadowClearShader: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
   shadowBlurMoments: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08, type: 3}
   debugShadowMapShader: {fileID: 4800000, guid: ee25e539f5594f44085e0a9000c15d9b, type: 3}
+  decalNormalBuffer: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a, type: 3}

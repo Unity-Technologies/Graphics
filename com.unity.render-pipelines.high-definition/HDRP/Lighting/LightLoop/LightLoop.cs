@@ -2803,6 +2803,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (currentHDRLight == null) continue;
 
                     MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
+                    materialBlock.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     Matrix4x4 positionMat = Matrix4x4.Translate(currentLegacyLight.transform.position);
 
                     if(currentLegacyLight.type == LightType.Point || currentLegacyLight.type == LightType.Area)
@@ -2872,6 +2873,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDAdditionalReflectionData currentHDProbe = currentLegacyProbe.GetComponent<HDAdditionalReflectionData>();
 
                     MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
+                    materialBlock.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     Mesh targetMesh = null;
                     if (currentHDProbe.influenceVolume.shape == InfluenceShape.Sphere)
                     {
