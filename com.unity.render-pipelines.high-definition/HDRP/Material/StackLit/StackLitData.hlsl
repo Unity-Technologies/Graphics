@@ -4,6 +4,7 @@
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "HDRP/Material/BuiltinUtilities.hlsl"
 #include "HDRP/Material/MaterialUtilities.hlsl"
+#include "HDRP/Material/Decal/DecalUtilities.hlsl"
 
 //-----------------------------------------------------------------------------
 // Texture Mapping
@@ -364,6 +365,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatNormalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], coatGradient.xyz);
 
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+#if HAVE_DECALS
+    AddDecalContribution(posInput, surfaceData, alpha);
+#endif
 
     if ((_GeometricNormalFilteringEnabled + _TextureNormalFilteringEnabled) > 0.0)
     {
