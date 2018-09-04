@@ -3,10 +3,25 @@
 
 #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
+#if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
+    #define ENABLE_TERRAIN_PERPIXEL_NORMAL
+#endif
+
+#ifdef UNITY_INSTANCING_ENABLED
+    TEXTURE2D(_TerrainHeightmapTexture);
+    TEXTURE2D(_TerrainNormalmapTexture);
+    SAMPLER(sampler_TerrainNormalmapTexture);
+    float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
+    float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
+#endif
+
+UNITY_INSTANCING_BUFFER_START(Terrain)
+    UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
+UNITY_INSTANCING_BUFFER_END(Terrain)
+
 struct VertexInput
 {
     float4 vertex : POSITION;
-    float4 tangent : TANGENT;
     float3 normal : NORMAL;
     float2 texcoord : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -20,7 +35,7 @@ struct VertexOutput
     float4 uvSplat23                : TEXCOORD2; // xy: splat2, zw: splat3
 #endif
 
-#if _NORMALMAP
+#if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
     half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
     half4 binormal                  : TEXCOORD5;    // xyz: binormal, w: viewDir.z
@@ -41,9 +56,15 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 
     input.positionWS = IN.positionWS;
 
-#ifdef _NORMALMAP
+#if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDir = half3(IN.normal.w, IN.tangent.w, IN.binormal.w);
     input.normalWS = TangentToWorldNormal(normalTS, IN.tangent.xyz, IN.binormal.xyz, IN.normal.xyz);
+#elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+    half3 viewDir = IN.viewDir;
+    float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
+    half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
+    half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
+    input.normalWS = TangentToWorldNormal(normalTS, tangentWS, cross(normalWS, tangentWS), normalWS);
 #else
     half3 viewDir = IN.viewDir;
     input.normalWS = FragmentNormalWS(IN.normal);
@@ -93,8 +114,6 @@ void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splatControl, ou
     nrm += SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, IN.uvSplat23.xy) * splatControl.b;
     nrm += SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, IN.uvSplat23.zw) * splatControl.a;
     mixedNormal = UnpackNormal(nrm);
-#else
-    mixedNormal = half3(0.0h, 0.0h, 1.0h);
 #endif
 }
 
@@ -109,16 +128,6 @@ void SplatmapFinalColor(inout half4 color, half fogCoord)
         ApplyFog(color.rgb, fogCoord);
     #endif
 }
-#ifdef UNITY_INSTANCING_ENABLED
-    TEXTURE2D(_TerrainHeightmapTexture);
-    TEXTURE2D(_TerrainNormalmapTexture);
-    float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-    float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
-#endif
-
-UNITY_INSTANCING_BUFFER_START(Terrain)
-    UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
-UNITY_INSTANCING_BUFFER_END(Terrain)
 
 void TerrainInstancing(inout float4 vertex, inout float3 normal, inout float2 uv)
 {
@@ -132,7 +141,11 @@ void TerrainInstancing(inout float4 vertex, inout float3 normal, inout float2 uv
     vertex.xz = sampleCoords * _TerrainHeightmapScale.xz;
     vertex.y = height * _TerrainHeightmapScale.y;
 
-    normal = _TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1;
+    #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+        normal = float3(0, 1, 0);
+    #else
+        normal = _TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1;
+    #endif
     uv = sampleCoords * _TerrainHeightmapRecipSize.zw;
 #endif
 }
@@ -169,8 +182,8 @@ VertexOutput SplatmapVert(VertexInput v)
 
     half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - positionWS.xyz);
 
-#ifdef _NORMALMAP
-    float4 vertexTangent = float4(cross(v.normal, float3(0, 0, 1)), -1.0);
+#if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+    float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normal), 1.0);
     OutputTangentToWorld(vertexTangent, v.normal, o.tangent.xyz, o.binormal.xyz, o.normal.xyz);
 
     o.normal.w = viewDir.x;
@@ -201,8 +214,8 @@ TEXTURE2D(_MetallicTex);   SAMPLER(sampler_MetallicTex);
 // Used in Standard Terrain shader
 half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
 {
+    half3 normalTS = half3(0.0h, 0.0h, 1.0h);
 #ifdef TERRAIN_SPLAT_BASEPASS
-    half3 normalTS = float3(0, 1, 0);
     half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).rgb;
     half smoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).a;
     half metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MetallicTex, IN.uvMainAndLM.xy).r;
@@ -212,7 +225,6 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     half weight;
     half4 mixedDiffuse;
     half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
-    half3 normalTS;
     SplatmapMix(IN, defaultSmoothness, splatControl, weight, mixedDiffuse, normalTS);
 
     half3 albedo = mixedDiffuse.rgb;

@@ -24,6 +24,9 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
         // used in fallback on old cards & base map
         [HideInInspector] _MainTex("BaseMap (RGB)", 2D) = "grey" {}
         [HideInInspector] _Color("Main Color", Color) = (1,1,1,1)
+
+        // TODO: Implement ShaderGUI for the shader and display the checkbox only when instancing is enabled.
+        [Toggle(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)] _TERRAIN_INSTANCED_PERPIXEL_NORMAL("Enable Instanced Per-pixel Normal", Float) = 0
     }
 
     SubShader
@@ -65,6 +68,8 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma shader_feature _NORMALMAP
+            // Sample normal in pixel shader when doing instancing
+            #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
             #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
             #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
