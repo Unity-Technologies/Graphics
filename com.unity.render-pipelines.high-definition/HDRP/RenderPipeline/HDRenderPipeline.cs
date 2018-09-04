@@ -1818,12 +1818,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HDUtils.PackedMipChainInfo info = HDUtils.ComputePackedMipChainInfo(screenSize);
 
                 // Pack the integer array.
-                int[] depthPyramidMipLevelOffsets = new int[28];
+                int[] depthPyramidMipLevelOffsetsX = new int[8];
+                int[] depthPyramidMipLevelOffsetsY = new int[8];
 
-                for (int i = 0; i < 14; i++)
+                for (int mip = 0; mip < 15; mip++)
                 {
-                    depthPyramidMipLevelOffsets[2 * i + 0] = info.mipLevelOffsets[i].x;
-                    depthPyramidMipLevelOffsets[2 * i + 1] = info.mipLevelOffsets[i].y;
+                    depthPyramidMipLevelOffsetsX[(mip + 0) >> 1] = info.mipLevelOffsets[mip].x;
+                    depthPyramidMipLevelOffsetsY[(mip + 1) >> 1] = info.mipLevelOffsets[mip].y;
                 }
 
                 cmd.SetComputeIntParam(  cs, "_SsrIterLimit",                   volumeSettings.rayMaxIterations);
@@ -1833,7 +1834,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(  cs, "_SsrDepthPyramidMaxMip",          info.mipLevelCount);
                 cmd.SetComputeFloatParam(cs, "_SsrRcpFade",                     rcpFadeDistance);
                 cmd.SetComputeFloatParam(cs, "_SsrOneMinusRcpFade",             1 - rcpFadeDistance);
-                cmd.SetComputeIntParams( cs, "_SsrDepthPyramidMipLevelOffsets", depthPyramidMipLevelOffsets);
+                cmd.SetComputeIntParams( cs, "_SsrDepthPyramidMipLevelOffsetsX", depthPyramidMipLevelOffsetsX);
+                cmd.SetComputeIntParams( cs, "_SsrDepthPyramidMipLevelOffsetsY", depthPyramidMipLevelOffsetsY);
 
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
                 cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", m_SsrHitPointTexture);
