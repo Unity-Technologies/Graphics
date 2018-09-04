@@ -19,6 +19,9 @@ Shader "HDRenderPipeline/Decal"
 		[ToggleUI] _MaskmapSmoothness("_MaskmapSmoothness", Range(0.0, 1.0)) = 1.0
 		[HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0 
 		[HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
+        // Stencil state
+        [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 8 
+        [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 8
     }
 
     HLSLINCLUDE
@@ -75,7 +78,16 @@ Shader "HDRenderPipeline/Decal"
 		Pass
 		{
 			Name "DBufferMesh_3RT"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh_3RT"} // Smoothness 
+			Tags{"LightMode" = "DBufferMesh_3RT"} // Smoothness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			ZWrite Off
 			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -118,7 +130,16 @@ Shader "HDRenderPipeline/Decal"
 		Pass
 		{
 			Name "DBufferProjector_M"  // Name is not used
-			Tags{"LightMode" = "DBufferProjector_M"} // Metalness 
+			Tags{"LightMode" = "DBufferProjector_M"} // Metalness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			// back faces with zfail, for cases when camera is inside the decal volume
 			Cull Front
 			ZWrite Off
@@ -149,6 +170,14 @@ Shader "HDRenderPipeline/Decal"
 			Name "DBufferProjector_AO"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_AO"} // AO only
 													  // back faces with zfail, for cases when camera is inside the decal volume
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			Cull Front
 			ZWrite Off
 			ZTest Greater
@@ -178,6 +207,14 @@ Shader "HDRenderPipeline/Decal"
 			Name "DBufferProjector_MAO"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_MAO"} // AO + Metalness
 													   // back faces with zfail, for cases when camera is inside the decal volume
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			Cull Front
 			ZWrite Off
 			ZTest Greater
@@ -205,7 +242,16 @@ Shader "HDRenderPipeline/Decal"
 		Pass
 		{
 			Name "DBufferProjector_S"  // Name is not used
-			Tags{"LightMode" = "DBufferProjector_S"} // Smoothness 
+			Tags{"LightMode" = "DBufferProjector_S"} // Smoothness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			// back faces with zfail, for cases when camera is inside the decal volume
 			Cull Front
 			ZWrite Off
@@ -233,7 +279,16 @@ Shader "HDRenderPipeline/Decal"
 		Pass
 		{
 			Name "DBufferProjector_MS"  // Name is not used
-			Tags{"LightMode" = "DBufferProjector_MS"} // Smoothness and Metalness 
+			Tags{"LightMode" = "DBufferProjector_MS"} // Smoothness and Metalness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			// back faces with zfail, for cases when camera is inside the decal volume
 			Cull Front
 			ZWrite Off
@@ -264,6 +319,15 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferProjector_AOS"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_AOS"} // AO + Smoothness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			// back faces with zfail, for cases when camera is inside the decal volume
 			Cull Front
 			ZWrite Off
@@ -293,6 +357,15 @@ Shader "HDRenderPipeline/Decal"
         {
             Name "DBufferProjector_MAOS"  // Name is not used
             Tags { "LightMode" = "DBufferProjector_MAOS" } // Metalness AO and Smoothness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
             // back faces with zfail, for cases when camera is inside the decal volume
             Cull Front
             ZWrite Off
@@ -327,7 +400,16 @@ Shader "HDRenderPipeline/Decal"
 		Pass
 		{
 			Name "DBufferMesh_M"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh_M"} // Metalness 
+			Tags{"LightMode" = "DBufferMesh_M"} // Metalness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			ZWrite Off
 			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -355,6 +437,15 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_AO"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_AO"} // AO only
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			ZWrite Off
 			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -382,6 +473,15 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_MAO"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_MAO"} // AO + Metalness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			ZWrite Off
 			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -408,7 +508,16 @@ Shader "HDRenderPipeline/Decal"
 		Pass
 		{
 			Name "DBufferMesh_S"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh_S"} // Smoothness 
+			Tags{"LightMode" = "DBufferMesh_S"} // Smoothness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			ZWrite Off
 			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -435,7 +544,16 @@ Shader "HDRenderPipeline/Decal"
 		Pass
 		{
 			Name "DBufferMesh_MS"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh_MS"} // Smoothness and Metalness 
+			Tags{"LightMode" = "DBufferMesh_MS"} // Smoothness and Metalness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			ZWrite Off
 			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -463,6 +581,15 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_AOS"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_AOS"} // AO + Smoothness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			ZWrite Off
 			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -490,6 +617,15 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_MAOS"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_MAOS"} // Metalness AO and Smoothness
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
 			ZWrite Off
 			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html

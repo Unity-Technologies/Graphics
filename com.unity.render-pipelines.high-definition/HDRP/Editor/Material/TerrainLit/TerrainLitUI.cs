@@ -111,8 +111,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
 
-            Material material = m_MaterialEditor.target as Material;
-            AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
+            //Material material = m_MaterialEditor.target as Material;
+            //AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
 
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
