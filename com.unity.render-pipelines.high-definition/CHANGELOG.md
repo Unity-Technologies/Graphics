@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.4.0-preview]
 
+### Added
+ - Added controls for linear fade at the boundary of density volumes
+ - Added a new TerrainLit shader that supports rendering of Unity terrains.
+ - Added new API to control decals without monobehaviour object
+
+### Fixed
+- Stencil test during decals normal buffer update is now properly applied
+- Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.
+
+
+### Changed
+- Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
+
 ## [3.3.0-preview]
 
 ### Added
@@ -20,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix display correct target platform when showing message to inform user that a platform is not supported
 - Remove workaround for metal and vulkan in normal buffer encoding/decoding
 - Fixed an issue with color picker not working in forward
+- Decals corectly update normal buffer in forward 
 - Fixed an issue where reseting HDLight do not reset all of its parameters
 - Fixed shader compile warning in DebugLightVolumes.shader
 

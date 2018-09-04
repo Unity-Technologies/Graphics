@@ -48,8 +48,6 @@ Pass
     #include "CoreRP/ShaderLibrary/Common.hlsl"
     #include "CoreRP/ShaderLibrary/Wind.hlsl"
 
-    #include "ShaderGraphLibrary/Functions.hlsl"
-
     // define FragInputs structure
     #include "HDRP/ShaderPass/FragInputs.hlsl"
     #include "HDRP/ShaderPass/ShaderPass.cs.hlsl"
@@ -81,8 +79,8 @@ $splice(Defines)
     // End Defines
     //-------------------------------------------------------------------------------------
 
-    #include "ShaderGraphLibrary/Functions.hlsl"
     #include "HDRP/ShaderVariables.hlsl"
+    #include "HDRP/ShaderGraphFunctions.hlsl"
     #ifdef DEBUG_DISPLAY
         #include "HDRP/Debug/DebugDisplay.hlsl"
     #endif
