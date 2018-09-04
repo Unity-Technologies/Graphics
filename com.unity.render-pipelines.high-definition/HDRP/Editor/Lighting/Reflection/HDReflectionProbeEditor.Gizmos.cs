@@ -47,7 +47,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
 
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
-            Gizmos_CapturePoint(reflectionProbe, reflectionData, e);
+            if (reflectionProbe == e.target)
+            {
+                //will draw every preview, thus no need to do it multiple times
+                Gizmos_CapturePoint(e);
+            }
             var mat = Matrix4x4.TRS(reflectionProbe.transform.position, reflectionProbe.transform.rotation, Vector3.one); 
             InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.None, InfluenceVolumeUI.HandleType.Base);
 
@@ -77,7 +81,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void Gizmos_CapturePoint(ReflectionProbe p, HDAdditionalReflectionData a, HDReflectionProbeEditor e)
+        static void Gizmos_CapturePoint(HDReflectionProbeEditor e)
         {
             if(sphere == null)
             {
@@ -87,9 +91,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 material = new Material(Shader.Find("Debug/ReflectionProbePreview"));
             }
-            material.SetTexture("_Cubemap", e.GetTexture());
-            material.SetPass(0);
-            Graphics.DrawMeshNow(sphere, Matrix4x4.TRS(p.transform.position, Quaternion.identity, Vector3.one));
+
+            foreach (ReflectionProbe target in e.targets)
+            {
+                material.SetTexture("_Cubemap", GetTexture(e, target));
+                material.SetPass(0);
+                Graphics.DrawMeshNow(sphere, Matrix4x4.TRS(target.transform.position, Quaternion.identity, Vector3.one));
+            }
         }
     }
 }

@@ -37,7 +37,7 @@ ${Defines}
     #include "LWRP/ShaderLibrary/Lighting.hlsl"
     #include "CoreRP/ShaderLibrary/Color.hlsl"
     #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
-    #include "ShaderGraphLibrary/Functions.hlsl"
+    #include "LWRP/ShaderLibrary/ShaderGraphFunctions.hlsl"
 
 ${Graph}
     struct GraphVertexOutput
