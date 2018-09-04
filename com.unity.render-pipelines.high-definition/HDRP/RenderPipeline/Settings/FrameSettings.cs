@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableShadow = true;
         public bool enableContactShadows = true;
         public bool enableShadowMask = true;
-        public bool enableSSR = true; // Depends on DepthPyramid
+        public bool enableSSR = false;
         public bool enableSSAO = true;
         public bool enableSubsurfaceScattering = true;
         public bool enableTransmission = true;  // Caution: this is only for debug, it doesn't save the cost of Transmission execution
