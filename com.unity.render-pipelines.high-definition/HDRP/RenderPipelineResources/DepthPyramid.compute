@@ -7,8 +7,8 @@
 RW_TEXTURE2D(float, _DepthMipChain);
 
 CBUFFER_START(cb)
-    float4 _SrcOffsetAndLimit; // {x, y, w - 1, h - 1}
-    float4 _DstOffset;         // {x, y, 0, 0}
+    uint4 _SrcOffsetAndLimit; // {x, y, w - 1, h - 1}
+    uint4 _DstOffset;         // {x, y, 0, 0}
 CBUFFER_END
 
 #if UNITY_REVERSED_Z
@@ -22,10 +22,9 @@ CBUFFER_END
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
 void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    // Cannot properly pass integer vectors to the shader...
-    uint2 srcOffset = uint2(_SrcOffsetAndLimit.xy);
-    uint2 srcLimit  = uint2(_SrcOffsetAndLimit.zw);
-    uint2 dstOffset = uint2(_DstOffset.xy);
+    uint2 srcOffset = _SrcOffsetAndLimit.xy;
+    uint2 srcLimit  = _SrcOffsetAndLimit.zw;
+    uint2 dstOffset = _DstOffset.xy;
 
     // Upper-left pixel coordinate of quad that this thread will read
     uint2 srcPixelUL = srcOffset + (dispatchThreadId << 1);
