@@ -114,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_DistortionBuffer;
 
         // TODO: remove me, I am just a temporary debug texture. :-)
-        RTHandleSystem.RTHandle m_SsrDebugTexture;
+        // RTHandleSystem.RTHandle m_SsrDebugTexture;
         RTHandleSystem.RTHandle m_SsrHitPointTexture;
         RTHandleSystem.RTHandle m_SsrLightingTexture;
 
@@ -349,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (settings.supportSSR)
             {
-                m_SsrDebugTexture    = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false, enableRandomWrite: true, name: "SSR_Debug_Texture");
+                // m_SsrDebugTexture    = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false, enableRandomWrite: true, name: "SSR_Debug_Texture");
                 m_SsrHitPointTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RG32,      sRGB: false, enableRandomWrite: true, name: "SSR_Hit_Point_Texture");
                 m_SsrLightingTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf,  sRGB: false, enableRandomWrite: true, name: "SSR_Lighting_Texture");
             }
@@ -380,7 +380,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_DistortionBuffer);
             RTHandles.Release(m_ScreenSpaceShadowsBuffer);
 
-            RTHandles.Release(m_SsrDebugTexture);
+            // RTHandles.Release(m_SsrDebugTexture);
             RTHandles.Release(m_SsrHitPointTexture);
             RTHandles.Release(m_SsrLightingTexture);
 
@@ -655,9 +655,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Light loop stuff...
                 if (hdCamera.frameSettings.enableSSR)
-                    cmd.SetGlobalTexture("_SsrLightingTexture", m_SsrLightingTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
                 else
-                    cmd.SetGlobalTexture("_SsrLightingTexture", Texture2D.blackTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, Texture2D.blackTexture);
             }
         }
 
@@ -1824,20 +1824,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 int kernel = m_SsrTracingKernel;
 
-                int w = hdCamera.actualWidth;
-                int h = hdCamera.actualHeight;
-
-                Vector2Int screenSize = new Vector2Int(w, h);
-
-                //int maxUncroppedDepthPyramidMip = 0;
-
-                //while (((w & 1) == 0) && ((h & 1) == 0))
-                //{
-                //    w = w >> 1;
-                //    h = h >> 1;
-                //    maxUncroppedDepthPyramidMip++;
-                //}
-
+                int   w = hdCamera.actualWidth;
+                int   h = hdCamera.actualHeight;
                 float n = hdCamera.camera.nearClipPlane;
                 float f = hdCamera.camera.farClipPlane;
 
@@ -1847,30 +1835,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 float rcpFadeDistance = Mathf.Min(1.0f / volumeSettings.screenWeightDistance, 65536.0f);
 
+                Vector2Int screenSize = new Vector2Int(w, h);
                 HDUtils.PackedMipChainInfo info = HDUtils.ComputePackedMipChainInfo(screenSize);
 
                 // Pack the integer array.
                 int[] depthPyramidMipLevelOffsetsX = new int[8];
                 int[] depthPyramidMipLevelOffsetsY = new int[8];
 
-                for (int mip = 0; mip < 15; mip++)
+                for (int i = 0; i < 8; i++)
                 {
-                    depthPyramidMipLevelOffsetsX[(mip + 0) >> 1] = info.mipLevelOffsets[mip].x;
-                    depthPyramidMipLevelOffsetsY[(mip + 1) >> 1] = info.mipLevelOffsets[mip].y;
+                    int j = i << 1;
+                    depthPyramidMipLevelOffsetsX[i] = info.mipLevelOffsets[j].x;
+                    depthPyramidMipLevelOffsetsY[i] = info.mipLevelOffsets[Math.Max(0, j - 1)].y;
                 }
 
-                cmd.SetComputeIntParam(  cs, "_SsrIterLimit",                   volumeSettings.rayMaxIterations);
-                cmd.SetComputeFloatParam(cs, "_SsrThicknessScale",              thicknessScale);
-                cmd.SetComputeFloatParam(cs, "_SsrThicknessBias",               thicknessBias);
-                cmd.SetComputeFloatParam(cs, "_SsrMaxRoughness",                1 - volumeSettings.minSmoothness);
-                cmd.SetComputeIntParam(  cs, "_SsrDepthPyramidMaxMip",          info.mipLevelCount);
-                cmd.SetComputeFloatParam(cs, "_SsrRcpFade",                     rcpFadeDistance);
-                cmd.SetComputeFloatParam(cs, "_SsrOneMinusRcpFade",             1 - rcpFadeDistance);
-                cmd.SetComputeIntParams( cs, "_SsrDepthPyramidMipLevelOffsetsX", depthPyramidMipLevelOffsetsX);
-                cmd.SetComputeIntParams( cs, "_SsrDepthPyramidMipLevelOffsetsY", depthPyramidMipLevelOffsetsY);
+                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrIterLimit,                   volumeSettings.rayMaxIterations);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessScale,              thicknessScale);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessBias,               thicknessBias);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrMaxRoughness,                1 - volumeSettings.minSmoothness);
+                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrDepthPyramidMaxMip,          info.mipLevelCount);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrRcpFade,                     rcpFadeDistance);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrOneMinusRcpFade,             1 - rcpFadeDistance);
+                cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsX, depthPyramidMipLevelOffsetsX);
+                cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsY, depthPyramidMipLevelOffsetsY);
 
-                cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
-                cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", m_SsrHitPointTexture);
+                // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrHitPointTexture, m_SsrHitPointTexture);
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(hdCamera.actualWidth, 8), HDUtils.DivRoundUp(hdCamera.actualHeight, 8), 1);
             }
@@ -1879,10 +1869,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int kernel = m_SsrReprojectionKernel;
 
-                cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
-                cmd.SetComputeTextureParam(cs, kernel, "_VelocityTexture",    m_VelocityBuffer);
-                cmd.SetComputeTextureParam(cs, kernel, "_SsrHitPointTexture", m_SsrHitPointTexture);
-                cmd.SetComputeTextureParam(cs, kernel, "_SsrLightingTexture", m_SsrLightingTexture);
+                // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityTexture,    m_VelocityBuffer);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrHitPointTexture, m_SsrHitPointTexture);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(hdCamera.actualWidth, 8), HDUtils.DivRoundUp(hdCamera.actualHeight, 8), 1);
             }
@@ -2215,7 +2205,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                         // and much faster than fully overwriting them from within SSR shaders.
-                        HDUtils.SetRenderTarget(cmd, hdCamera, m_SsrDebugTexture,    ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                        // HDUtils.SetRenderTarget(cmd, hdCamera, m_SsrDebugTexture,    ClearFlag.Color, CoreUtils.clearColorAllBlack);
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_SsrHitPointTexture, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_SsrLightingTexture, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                     }
