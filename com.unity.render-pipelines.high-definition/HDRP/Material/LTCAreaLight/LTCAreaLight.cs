@@ -88,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_refCounting == 0)
             {
-                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 2 + 5, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
+                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 2 + 6, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Clamp,
@@ -107,6 +107,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 LoadLUT2(m_LtcData, 4, TextureFormat.RGBAHalf, s_LtcMatrixData_CookTorrance);
                 LoadLUT2(m_LtcData, 5, TextureFormat.RGBAHalf, s_LtcMatrixData_Charlie);
                 LoadLUT2(m_LtcData, 6, TextureFormat.RGBAHalf, s_LtcMatrixData_Ward);
+                LoadLUT2(m_LtcData, 7, TextureFormat.RGBAHalf, s_LtcMatrixData_OrenNayar);
 
                 m_LtcData.Apply();
             }
