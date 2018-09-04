@@ -2,7 +2,7 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
-#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #pragma kernel ScreenSpaceReflectionsTracing      SSR_TRACE
@@ -56,11 +56,13 @@ CBUFFER_START(UnityScreenSpaceReflections)
     int   _SsrDepthPyramidMaxMip;
     float _SsrRcpFade;
     float _SsrOneMinusRcpFade;
-    int4  _SsrDepthPyramidMipLevelOffsets[7];
+    int4  _SsrDepthPyramidMipLevelOffsetsX[2]; // Up to 15 levels => 8 offsets => 2 int4s
+    int4  _SsrDepthPyramidMipLevelOffsetsY[2]; // Up to 15 levels => 8 offsets => 2 int4s
 CBUFFER_END
 
-// Unpack the integer array.
-static const int2 depthPyramidMipLevelOffsets[14] = (const int2[14])(_SsrDepthPyramidMipLevelOffsets);
+// Unpack integer arrays.
+static const int depthPyramidMipLevelOffsetsX[8] = (const int[8])(_SsrDepthPyramidMipLevelOffsetsX);
+static const int depthPyramidMipLevelOffsetsY[8] = (const int[8])(_SsrDepthPyramidMipLevelOffsetsY);
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -174,7 +176,8 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         rayPos.xy += raySign.xy * satEdgeDist;
 
         int2 mipCoord  = (int2)rayPos.xy >> mipLevel;
-        int2 mipOffset = depthPyramidMipLevelOffsets[mipLevel];
+        int2 mipOffset = int2(depthPyramidMipLevelOffsetsX[(mipLevel + 0) >> 1],
+                              depthPyramidMipLevelOffsetsY[(mipLevel + 1) >> 1]);
 
         // Bounds define 4 faces of a cube:
         // 2 walls in front of the ray, and a floor and a base below it.

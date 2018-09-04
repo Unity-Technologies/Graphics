@@ -378,8 +378,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             PackedMipChainInfo info = new PackedMipChainInfo();
 
-            info.mipLevelOffsets    = new Vector2Int[14];
-            info.mipLevelSizes      = new Vector2Int[14];
+            info.mipLevelOffsets    = new Vector2Int[15];
+            info.mipLevelSizes      = new Vector2Int[15];
 
             info.textureSize        = textureSize;
             info.mipLevelSizes[0]   = textureSize;
@@ -419,7 +419,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 info.textureSize.x = Math.Max(info.textureSize.x, mipBegin.x + mipSize.x);
                 info.textureSize.y = Math.Max(info.textureSize.y, mipBegin.y + mipSize.y);
 
-            } while (mipSize.x > 1 || mipSize.y > 1);
+            } while ((mipSize.x > 1) || (mipSize.y > 1));
 
             info.mipLevelCount = mipLevel + 1;
 
