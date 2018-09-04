@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var graph = owner as AbstractMaterialGraph;
             var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
