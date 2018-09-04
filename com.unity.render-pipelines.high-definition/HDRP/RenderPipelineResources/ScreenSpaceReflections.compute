@@ -9,7 +9,7 @@
 #pragma kernel ScreenSpaceReflectionsReprojection SSR_REPROJECT
 
 // Tweak parameters.
-#define DEBUG
+// #define DEBUG
 #define SSR_TRACE_BEHIND_OBJECTS
 #define SSR_TRACE_TOWARDS_EYE
 #define SSR_TRACE_EPS            0.00024414 // 2^-12, should be good up to 4K
