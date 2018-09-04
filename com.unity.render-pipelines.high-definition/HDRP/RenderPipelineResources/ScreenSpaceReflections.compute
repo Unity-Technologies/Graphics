@@ -212,13 +212,14 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         // Victory conditions:
         // * See below. Do NOT reorder the statements!
 
+    #ifdef SSR_TRACE_BEHIND_OBJECTS
         miss      = belowMip0 && insideFloor;
+    #else
+        miss      = belowMip0;
+    #endif
         hit       = (mipLevel == 0) && (hitFloor || insideFloor);
         belowMip0 = (mipLevel == 0) && belowFloor;
 
-    #ifndef SSR_TRACE_BEHIND_OBJECTS
-        miss = belowMip0;
-    #endif
 
         // 'distFloor' can be smaller than the current distance 't'.
         // We can also safely ignore 'distBase'.
