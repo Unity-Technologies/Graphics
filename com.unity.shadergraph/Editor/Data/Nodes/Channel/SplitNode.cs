@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         static int[] s_OutputSlots = {OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId};
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var inputValue = GetSlotValue(InputSlotId, generationMode);
 

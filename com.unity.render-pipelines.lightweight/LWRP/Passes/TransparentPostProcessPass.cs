@@ -1,8 +1,15 @@
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
+    /// <summary>
+    /// Perform final frame post-processing using the given color attachment
+    /// as the source and the current camera target as the destination.
+    ///
+    /// You can use this pass to apply post-processing to the given color
+    /// buffer. The pass uses the currently configured post-process stack,
+    /// and it copies the result to the Camera target.
+    /// </summary>
     public class TransparentPostProcessPass : ScriptableRenderPass
     {
         const string k_PostProcessingTag = "Render PostProcess Effects";
@@ -10,8 +17,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTextureDescriptor descriptor { get; set; }
         private RenderTargetIdentifier destination { get; set; }
 
+        /// <summary>
+        /// Setup the pass
+        /// </summary>
+        /// <param name="baseDescriptor"></param>
+        /// <param name="colorAttachmentHandle">Source of rendering to execute the post on</param>
+        /// <param name="destination">Destination target for the final blit</param>
         public void Setup(
-            PostProcessRenderContext postProcessRenderContext,
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle colorAttachmentHandle,
             RenderTargetIdentifier destination)
@@ -21,6 +33,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             descriptor = baseDescriptor;
         }
 
+        /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_PostProcessingTag);

@@ -4,13 +4,26 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
+    /// <summary>
+    /// Inherit from this class to perform custom rendering in the Lightweight Render Pipeline. 
+    /// </summary>
     public abstract class ScriptableRenderPass
     {
         private List<ShaderPassName> m_ShaderPassNames = new List<ShaderPassName>();
 
+        /// <summary>
+        /// Cleanup any allocated data that was created during the execution of the pass.
+        /// </summary>
+        /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void FrameCleanup(CommandBuffer cmd)
         {}
 
+        /// <summary>
+        /// Execute the pass. This is where custom rendering occurs. Specific details are left to the implementation
+        /// </summary>
+        /// <param name="renderer">The currently executing renderer. Contains configuration for the current execute call.</param>
+        /// <param name="context">Use this render context to issue any draw commands during execution</param>
+        /// <param name="renderingData">Current rendering state information</param>
         public abstract void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData);
 
         protected void RegisterShaderPassName(string passName)

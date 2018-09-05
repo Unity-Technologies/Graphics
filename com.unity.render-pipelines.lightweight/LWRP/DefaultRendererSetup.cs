@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public class DefaultRendererSetup : IRendererSetup
+    internal class DefaultRendererSetup : IRendererSetup
     {
         private DepthOnlyPass m_DepthOnlyPass;
         private DirectionalShadowsPass m_DirectionalShadowPass;
@@ -157,7 +157,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (renderingData.cameraData.postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessingContext))
             {
-                m_OpaquePostProcessPass.Setup(renderer.postProcessingContext, baseDescriptor, colorHandle);
+                m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle);
                 renderer.EnqueuePass(m_OpaquePostProcessPass);
 
                 foreach (var pass in camera.GetComponents<IAfterOpaquePostProcess>())
@@ -193,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (!renderingData.cameraData.isStereoEnabled && renderingData.cameraData.postProcessEnabled)
             {
-                m_TransparentPostProcessPass.Setup(renderer.postProcessingContext, baseDescriptor, colorHandle, BuiltinRenderTextureType.CameraTarget);
+                m_TransparentPostProcessPass.Setup(baseDescriptor, colorHandle, BuiltinRenderTextureType.CameraTarget);
                 renderer.EnqueuePass(m_TransparentPostProcessPass);
             }
             else if (!renderingData.cameraData.isOffscreenRender && colorHandle != RenderTargetHandle.CameraTarget)

@@ -26,7 +26,7 @@ Shader "Hidden/HDRenderPipeline/DebugLightVolume"
 
             struct AttributesDefault
             {
-                float4 positionOS : POSITION;
+                float3 positionOS : POSITION;
             };
 
             struct VaryingsDefault
@@ -37,6 +37,7 @@ Shader "Hidden/HDRenderPipeline/DebugLightVolume"
             float3 _Range;
             float3 _Offset;
             float4 _Color;
+            float _RequireToFlipInputTexture;
 
             VaryingsDefault vert(AttributesDefault att) 
             {
@@ -44,6 +45,10 @@ Shader "Hidden/HDRenderPipeline/DebugLightVolume"
 
                 float3 positionRWS = TransformObjectToWorld(att.positionOS.xyz * _Range + _Offset);
                 output.positionCS = TransformWorldToHClip(positionRWS);
+                if (_RequireToFlipInputTexture > 0.0)
+                {
+                    output.positionCS.y = 1.0 - output.positionCS.y;
+                }
                 return output;
             }
 
