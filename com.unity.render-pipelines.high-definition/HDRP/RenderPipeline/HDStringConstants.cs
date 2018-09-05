@@ -326,6 +326,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SsrDepthPyramidMipLevelOffsetsX = Shader.PropertyToID("_SsrDepthPyramidMipLevelOffsetsX");
         public static readonly int _SsrDepthPyramidMipLevelOffsetsY = Shader.PropertyToID("_SsrDepthPyramidMipLevelOffsetsY");
         public static readonly int _SsrLightingTexture              = Shader.PropertyToID("_SsrLightingTexture");
+        public static readonly int _SsrLightingTextureRW            = Shader.PropertyToID("_SsrLightingTextureRW");
         public static readonly int _SsrHitPointTexture              = Shader.PropertyToID("_SsrHitPointTexture");
 
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");

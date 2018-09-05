@@ -1853,13 +1853,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     depthPyramidMipLevelOffsetsY[i] = info.mipLevelOffsets[Math.Max(0, j - 1)].y;
                 }
 
-                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrIterLimit,                   volumeSettings.rayMaxIterations);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessScale,              thicknessScale);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessBias,               thicknessBias);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrMaxRoughness,                1 - volumeSettings.minSmoothness);
-                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrDepthPyramidMaxMip,          info.mipLevelCount);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrRcpFade,                     rcpFadeDistance);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrOneMinusRcpFade,             1 - rcpFadeDistance);
+                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrIterLimit,                    volumeSettings.rayMaxIterations);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessScale,               thicknessScale);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessBias,                thicknessBias);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrMaxRoughness,                 1 - volumeSettings.minSmoothness);
+                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrDepthPyramidMaxMip,           info.mipLevelCount);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrRcpFade,                      rcpFadeDistance);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrOneMinusRcpFade,              1 - rcpFadeDistance);
                 cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsX, depthPyramidMipLevelOffsetsX);
                 cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsY, depthPyramidMipLevelOffsetsY);
 
@@ -1874,9 +1874,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int kernel = m_SsrReprojectionKernel;
 
                 // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityTexture,    m_VelocityBuffer);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrHitPointTexture, m_SsrHitPointTexture);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityTexture,      m_VelocityBuffer);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrHitPointTexture,   m_SsrHitPointTexture);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrLightingTextureRW, m_SsrLightingTexture);
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(hdCamera.actualWidth, 8), HDUtils.DivRoundUp(hdCamera.actualHeight, 8), 1);
             }
