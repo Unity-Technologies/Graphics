@@ -4,6 +4,13 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
+    /// <summary>
+    /// Configure the shader constants needed by the render pipeline
+    ///
+    /// This pass configures constants that LWRP uses when rendering.
+    /// For example, you can execute this pass before you render opaque
+    /// objects, to make sure that lights are configured correctly.
+    /// </summary>
     public class SetupLightweightConstanstPass : ScriptableRenderPass
     {
         public static class LightConstantBuffer
@@ -36,6 +43,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private int maxVisibleLocalLights { get; set; }
         private ComputeBuffer perObjectLightIndices { get; set; }
 
+        /// <summary>
+        /// Create the pass
+        /// </summary>
         public SetupLightweightConstanstPass()
         {
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
@@ -53,6 +63,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LightSpotDirections = new Vector4[0];
         }
 
+        /// <summary>
+        /// Configure the pass
+        /// </summary>
+        /// <param name="maxVisibleLocalLights">Maximum number of allowed visible local lights</param>
+        /// <param name="perObjectLightIndices">Buffer holding per object light indicies</param>
         public void Setup(int maxVisibleLocalLights, ComputeBuffer perObjectLightIndices)
         {
             this.maxVisibleLocalLights = maxVisibleLocalLights;
@@ -275,7 +290,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // TODO: Remove this. legacy particles support will be removed from Unity in 2018.3. This should be a shader_feature instead with prop exposed in the Standard particles shader.
             CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.SoftParticles, cameraData.requiresSoftParticles);
         }
-
+        
+        /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
