@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Position")]
-    class ProjectOnScreen : VFXBlock
+    class ProjectOnDepth : VFXBlock
     {
 		public enum PositionMode
 		{
@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool inheritSceneColor = false;
 
-        public override string name { get { return "Project On Screen"; } }
+        public override string name { get { return "Project On Depth"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInit; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
 				
                 if (cullOnFarPlane)
-                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Write);
+                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Write);   
             }
         }
 
@@ -91,6 +91,9 @@ namespace UnityEditor.VFX.Block
                 {
                     yield return input;
                 }
+
+                if (((VFXDataParticle)GetData()).space == VFXCoordinateSpace.Local)
+                    yield return new VFXNamedExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal");
             }
         }
 
@@ -98,7 +101,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string source = "";
+                string source = "";              
 
 				switch(mode)
 				{
@@ -134,9 +137,10 @@ float2 projpos = uvs * 2.0f - 1.0f;
 float n = Camera_nearPlane;
 float f = Camera_farPlane;
 
+// TODO We should compute the clipToWorld directly in expressions
 float4x4 camToWorld = transpose(Camera_transform);
 				
-float PlaneHalfHeight = tan(Camera_fieldOfView * 0.5f) * n; // TODO This can be computed via expressions
+float PlaneHalfHeight = tan(Camera_fieldOfView * 0.5f) * n;
 float3 PlaneRight = camToWorld[0].xyz * PlaneHalfHeight * Camera_aspectRatio;
 float3 PlaneUp = camToWorld[1].xyz * PlaneHalfHeight;
 
@@ -151,6 +155,9 @@ float linearEyeDepth = n * f / (depth * (f - n) + n) - n;
 float3 worldPos = (PlaneRight * projpos.x) + (PlaneUp * projpos.y) + PlanePos;
 float3 dir = normalize(worldPos - camPos);
 position = worldPos + dir * ZMultiplier * linearEyeDepth / dot(dir,camFront);
+#if VFX_LOCAL_SPACE
+position = mul(worldToLocal,float4(position,1.0f)).xyz;
+#endif
 ";
 
                 if (cullOnFarPlane)
