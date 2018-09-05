@@ -194,19 +194,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         //  2. Environment Reflection / Refraction
         //  3. Sky Reflection / Refraction
 
-    #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(UNITY_MATERIAL_LIT)
         // Apply SSR.
+    #ifndef _SURFACE_TYPE_TRANSPARENT
         {
-            IndirectLighting indirect;
-            ZERO_INITIALIZE(IndirectLighting, indirect);
-
-            // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
-            float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
-
-            // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
-            indirect.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
-            reflectionHierarchyWeight  = ssrLighting.a;
-
+            IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
+                                                                           reflectionHierarchyWeight);
             AccumulateIndirectLighting(indirect, aggregateLighting);
         }
     #endif
