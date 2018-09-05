@@ -81,7 +81,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_applyDistortionKernel;
 
         Material m_CameraMotionVectorsMaterial;
-        Material m_DecalNormalBufferMaterial;
 
         // Debug material
         Material m_DebugViewMaterialGBuffer;
@@ -136,12 +135,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Flags]
         public enum StencilBitMask
         {
-            Clear                           = 0,    // 0x0
-            LightingMask                    = 7,    // 0x7  - 3 bit
-            Decals                          = 8,    // 0x8  - 1 bit
-            DecalsForwardOutputNormalBuffer = 16,   // 0x10  - 1 bit
-            ObjectVelocity                  = 128,  // 0x80 - 1 bit
-            All                             = 255   // 0xFF - 8 bit
+            Clear           = 0,             // 0x0
+            LightingMask    = 7,             // 0x7  - 3 bit
+            ObjectVelocity  = 128,           // 0x80 - 1 bit
+            All             = 255            // 0xFF - 8 bit
         }
 
         RenderStateBlock m_DepthStateOpaque;
@@ -248,7 +245,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
             m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.LightingMask);
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.cameraMotionVectors);
-            m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.decalNormalBuffer);
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.copyDepthBuffer);
 
@@ -529,7 +525,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             CoreUtils.Destroy(m_CopyStencilForNoLighting);
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
-            CoreUtils.Destroy(m_DecalNormalBufferMaterial);
 
             CoreUtils.Destroy(m_DebugViewMaterialGBuffer);
             CoreUtils.Destroy(m_DebugViewMaterialGBufferShadowMask);
@@ -972,33 +967,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // We can now bind the normal buffer to be use by any effect
                     m_NormalBufferManager.BindNormalBuffers(cmd);
 
-                    if (!hdCamera.frameSettings.enableMSAA) // MSAA not supported
-                    {
-                        using (new ProfilingSample(cmd, "DBuffer Normal (forward)", CustomSamplerId.DBufferNormal.GetSampler()))
-                        {
-                            int stencilMask;
-                            int stencilRef;
-                            if (hdCamera.frameSettings.enableForwardRenderingOnly) // in forward rendering all pixels that decals wrote into have to be composited
-                            {
-                                stencilMask = (int)StencilBitMask.Decals;
-                                stencilRef = (int)StencilBitMask.Decals;
-                            }
-                            else // in deferred rendering only pixels affected by both forward materials and decals need to be composited
-                            {
-                                stencilMask = (int)StencilBitMask.Decals | (int)StencilBitMask.DecalsForwardOutputNormalBuffer;
-                                stencilRef = (int)StencilBitMask.Decals | (int)StencilBitMask.DecalsForwardOutputNormalBuffer;
-                            }
-
-                            m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, stencilMask);
-                            m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, stencilRef);
-
-                            HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
-                            cmd.SetRandomWriteTarget(1, m_NormalBufferManager.GetNormalBuffer(0));
-                            cmd.DrawProcedural(Matrix4x4.identity, m_DecalNormalBufferMaterial, 0, MeshTopology.Triangles, 3, 1);
-                            cmd.ClearRandomWriteTargets();
-                        }
-                    }
-
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
                     // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
@@ -1083,7 +1051,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
 
                             // In some cases when loading a project for the first time in the editor, the internal resource is destroyed.
-                            // When used as render target, the C++ code will re-create the resource automatically. Since here it's used directly as an UAV, we need to check manually
+                            // When used as render target, the C++ code will re-create the resource automatically. Since here it's used directly as an UAV, we need to check manually/
                             if (!m_ScreenSpaceShadowsBuffer.rt.IsCreated())
                                 m_ScreenSpaceShadowsBuffer.rt.Create();
 
@@ -1154,7 +1122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         StopStereoRendering(renderContext, hdCamera);
 
                         PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.NanTracker);
-                        PushColorPickerDebugTexture(cmd, m_CameraColorBuffer, hdCamera);
+                        PushColorPickerDebugTexture(hdCamera, cmd, m_CameraColorBuffer);
 
                         // The final pass either postprocess of Blit will flip the screen (as it is reverse by default due to Unity openGL legacy)
                         // Postprocess system (that doesn't use cmd.Blit) handle it with configuration (and do not flip in SceneView) or it is automatically done in Blit

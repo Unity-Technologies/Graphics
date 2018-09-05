@@ -132,37 +132,17 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
-        // This function can either return the mouse position in the scene view
-        // or in the game/game view. 
-        public Vector2 GetMousePosition(float ScreenHeight, bool sceneView)
+        public Vector2 GetMousePosition(float ScreenHeight)
         {
+            Vector2 mousePixelCoord = Input.mousePosition;
 #if UNITY_EDITOR
-            if (sceneView)
+            if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
             {
-                // In play mode, m_mousePosition the one in the scene view
-                Vector2 mousePixelCoord = m_mousePosition;
+                mousePixelCoord = m_mousePosition;
                 mousePixelCoord.y = (ScreenHeight - 1.0f) - mousePixelCoord.y;
-                return mousePixelCoord;
             }
-            else
-            {
-                // In play mode, Input.mousecoords matches the position in the game view
-                if (EditorApplication.isPlayingOrWillChangePlaymode)
-                {
-                    return Input.mousePosition;
-                }
-                else
-                {
-                    // In non-play mode, only m_mousePosition is valid. 
-                    // We force -1, -1 as a game view pixel pos to avoid 
-                    // rendering un-wanted effects
-                    return new Vector2(-1.0f, -1.0f);
-                }
-            }
-#else
-            // In app mode, we only use the Input.mousecoords
-            return Input.mousePosition;
 #endif
+            return mousePixelCoord;
         }
 
         public Vector2 GetMouseClickPosition(float ScreenHeight)

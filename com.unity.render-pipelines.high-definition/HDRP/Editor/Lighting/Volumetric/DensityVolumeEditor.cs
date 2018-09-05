@@ -13,8 +13,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static GUIContent s_VolumeTextureLabel   = new GUIContent("Density Mask Texture");
         static GUIContent s_TextureScrollLabel   = new GUIContent("Texture Scroll Speed");
         static GUIContent s_TextureTileLabel     = new GUIContent("Texture Tiling Amount");
-        static GUIContent s_PositiveFadeLabel    = new GUIContent("Positive Fade", "Controls the [0, 1] distance from the +X/+Y/+Z face at which a linear fade ends. 0 means no fade, 1 means the fade ends at the opposite face.");
-        static GUIContent s_NegativeFadeLabel    = new GUIContent("Negative Fade", "Controls the [0, 1] distance from the -X/-Y/-Z face at which a linear fade ends. 0 means no fade, 1 means the fade ends at the opposite face.");
+        static GUIContent s_TextureSettingsTitle = new GUIContent("Volume Texture Settings");
+
+        private bool showTextureParams = false;
 
         SerializedProperty densityParams;
         SerializedProperty albedo;
@@ -24,59 +25,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty textureScroll;
         SerializedProperty textureTile;
 
-        SerializedProperty positiveFade;
-        SerializedProperty negativeFade;
-
         void OnEnable()
         {
             densityParams = serializedObject.FindProperty("parameters");
-
-            albedo        = densityParams.FindPropertyRelative("albedo");
-            meanFreePath  = densityParams.FindPropertyRelative("meanFreePath");
+            albedo = densityParams.FindPropertyRelative("albedo");
+            meanFreePath = densityParams.FindPropertyRelative("meanFreePath");
 
             volumeTexture = densityParams.FindPropertyRelative("volumeMask");
             textureScroll = densityParams.FindPropertyRelative("textureScrollingSpeed");
-            textureTile   = densityParams.FindPropertyRelative("textureTiling");
+            textureTile = densityParams.FindPropertyRelative("textureTiling");
 
-            positiveFade  = densityParams.FindPropertyRelative("positiveFade");
-            negativeFade  = densityParams.FindPropertyRelative("negativeFade");
+            if (volumeTexture != null && volumeTexture.objectReferenceValue != null)
+            {
+                showTextureParams = true;
+            }
         }
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
+            albedo.colorValue = EditorGUILayout.ColorField(s_AlbedoLabel, albedo.colorValue, true, false, false);
+            EditorGUILayout.PropertyField(meanFreePath, s_MeanFreePathLabel);
+            EditorGUILayout.Space();
 
-            EditorGUI.BeginChangeCheck();
+            showTextureParams = EditorGUILayout.Foldout(showTextureParams, s_TextureSettingsTitle, true);
+            if (showTextureParams)
             {
-                albedo.colorValue = EditorGUILayout.ColorField(s_AlbedoLabel, albedo.colorValue, true, false, false);
-                EditorGUILayout.PropertyField(meanFreePath, s_MeanFreePathLabel);
-
-                EditorGUILayout.Space();
-
-                EditorGUILayout.PropertyField(positiveFade,  s_PositiveFadeLabel);
-                EditorGUILayout.PropertyField(negativeFade,  s_NegativeFadeLabel);
-
-                EditorGUILayout.Space();
-
+                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(volumeTexture, s_VolumeTextureLabel);
                 EditorGUILayout.PropertyField(textureScroll, s_TextureScrollLabel);
-                EditorGUILayout.PropertyField(textureTile,   s_TextureTileLabel);
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                Vector3 posFade = new Vector3();
-                posFade.x = Mathf.Clamp01(positiveFade.vector3Value.x);
-                posFade.y = Mathf.Clamp01(positiveFade.vector3Value.y);
-                posFade.z = Mathf.Clamp01(positiveFade.vector3Value.z);
-
-                Vector3 negFade = new Vector3();
-                negFade.x = Mathf.Clamp01(negativeFade.vector3Value.x);
-                negFade.y = Mathf.Clamp01(negativeFade.vector3Value.y);
-                negFade.z = Mathf.Clamp01(negativeFade.vector3Value.z);
-
-                positiveFade.vector3Value = posFade;
-                negativeFade.vector3Value = negFade;
+                EditorGUILayout.PropertyField(textureTile, s_TextureTileLabel);
+                EditorGUI.indentLevel--;
             }
 
             serializedObject.ApplyModifiedProperties();

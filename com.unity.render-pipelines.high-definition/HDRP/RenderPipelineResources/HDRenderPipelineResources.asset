@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
-  m_Version: 3
+  m_Version: 2
   defaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
   defaultMirrorMaterial: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
   defaultDecalMaterial: {fileID: 2100000, guid: 500e733574922d04ea961553b1b26a63, type: 2}
@@ -67,4 +67,3 @@ MonoBehaviour:
   shadowClearShader: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
   shadowBlurMoments: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08, type: 3}
   debugShadowMapShader: {fileID: 4800000, guid: ee25e539f5594f44085e0a9000c15d9b, type: 3}
-  decalNormalBuffer: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a, type: 3}

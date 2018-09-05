@@ -1791,7 +1791,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_SortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | shadow << 16 | (uint)lightIndex;
                     }
 
-                    CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
+                    CoreUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
@@ -1956,7 +1956,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Not necessary yet but call it for future modification with sphere influence volume
-                    CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
+                    CoreUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
@@ -2803,7 +2803,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (currentHDRLight == null) continue;
 
                     MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
-                    materialBlock.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     Matrix4x4 positionMat = Matrix4x4.Translate(currentLegacyLight.transform.position);
 
                     if(currentLegacyLight.type == LightType.Point || currentLegacyLight.type == LightType.Area)
@@ -2873,7 +2872,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDAdditionalReflectionData currentHDProbe = currentLegacyProbe.GetComponent<HDAdditionalReflectionData>();
 
                     MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
-                    materialBlock.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     Mesh targetMesh = null;
                     if (currentHDProbe.influenceVolume.shape == InfluenceShape.Sphere)
                     {
