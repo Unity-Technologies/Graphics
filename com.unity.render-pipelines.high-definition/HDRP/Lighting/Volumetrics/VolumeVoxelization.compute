@@ -29,7 +29,7 @@
 //--------------------------------------------------------------------------------------------------
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
-#include "CoreRP/Utilities/GeometryUtils.cs.hlsl"
+#include "HDRP/CoreRP/Utilities/GeometryUtils.cs.hlsl"
 
 #include "../../ShaderVariables.hlsl"
 #include "VolumetricLighting.cs.hlsl"

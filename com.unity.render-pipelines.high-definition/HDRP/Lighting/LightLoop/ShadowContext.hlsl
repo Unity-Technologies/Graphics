@@ -7,7 +7,7 @@
 #define SHADOWCONTEXT_MAX_COMPSAMPLER  1
 #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
 
-#include "CoreRP/ShaderLibrary/Shadow/Shadow.hlsl"
+#include "HDRP/ShaderLibrary/Shadow/Shadow.hlsl"
 
 #if SHADOWCONTEXT_MAX_TEX2DARRAY == 4
 TEXTURE2D_ARRAY(_ShadowmapExp_VSM_0);
