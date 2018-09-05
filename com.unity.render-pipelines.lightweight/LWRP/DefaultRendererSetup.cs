@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
@@ -79,25 +79,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Initialized = true;
         }
 
-       
-        public void Setup(ScriptableRenderer renderer, ref ScriptableRenderContext context,
-            ref CullResults cullResults, ref RenderingData renderingData)
+        public void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             Init();
 
-            renderer.Clear();
-
             Camera camera = renderingData.cameraData.camera;
 
-            renderer.SetupPerObjectLightIndices(ref cullResults, ref renderingData.lightData);
-            RenderTextureDescriptor baseDescriptor = ScriptableRenderer.CreateRTDesc(ref renderingData.cameraData);
+            renderer.SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
+            RenderTextureDescriptor baseDescriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
             RenderTextureDescriptor shadowDescriptor = baseDescriptor;
             shadowDescriptor.dimension = TextureDimension.Tex2D;
 
-            bool requiresCameraDepth = renderingData.cameraData.requiresDepthTexture;
-            bool requiresDepthPrepass = renderingData.shadowData.requiresScreenSpaceShadowResolve
-                                        || renderingData.cameraData.isSceneViewCamera 
-                                        || (requiresCameraDepth && !ScriptableRenderer.CanCopyDepth(ref renderingData.cameraData));
+            bool requiresDepthPrepass = renderingData.shadowData.requiresScreenSpaceShadowResolve || renderingData.cameraData.isSceneViewCamera ||
+                (renderingData.cameraData.requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData));
 
             // For now VR requires a depth prepass until we figure out how to properly resolve texture2DMS in stereo
             requiresDepthPrepass |= renderingData.cameraData.isStereoEnabled;
@@ -132,11 +126,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 renderer.EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
-            bool requiresRenderToTexture =
-                ScriptableRenderer.RequiresIntermediateColorTexture(
-                    ref renderingData.cameraData,
-                    baseDescriptor);
-            
+            bool requiresRenderToTexture = ScriptableRenderer.RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor);
+
             RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
             RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
 
@@ -144,30 +135,29 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 colorHandle = ColorAttachment;
                 depthHandle = DepthAttachment;
-                
+
                 var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
                 m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
                 renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
-            }          
+            }
 
             if (renderingData.cameraData.isStereoEnabled)
                 renderer.EnqueuePass(m_BeginXrRenderingPass);
 
-            bool dynamicBatching = renderingData.supportsDynamicBatching;
             RendererConfiguration rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.totalAdditionalLightsCount);
 
             m_SetupLightweightConstants.Setup(renderer.maxVisibleLocalLights, renderer.perObjectLightIndices);
             renderer.EnqueuePass(m_SetupLightweightConstants);
 
-            m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, rendererConfiguration, dynamicBatching);
+            m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, rendererConfiguration);
             renderer.EnqueuePass(m_RenderOpaqueForwardPass);
             foreach (var pass in camera.GetComponents<IAfterOpaquePass>())
                 renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
 
             if (renderingData.cameraData.postProcessEnabled &&
-                renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessRenderContext))
+                renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessingContext))
             {
-                m_OpaquePostProcessPass.Setup(renderer.postProcessRenderContext, baseDescriptor, colorHandle);
+                m_OpaquePostProcessPass.Setup(renderer.postProcessingContext, baseDescriptor, colorHandle);
                 renderer.EnqueuePass(m_OpaquePostProcessPass);
 
                 foreach (var pass in camera.GetComponents<IAfterOpaquePostProcess>())
@@ -183,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             foreach (var pass in camera.GetComponents<IAfterSkyboxPass>())
                 renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
 
-            if (requiresCameraDepth && !requiresDepthPrepass)
+            if (renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass)
             {
                 m_CopyDepthPass.Setup(depthHandle, DepthTexture);
                 renderer.EnqueuePass(m_CopyDepthPass);
@@ -195,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 renderer.EnqueuePass(m_CopyColorPass);
             }
 
-            m_RenderTransparentForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ClearFlag.None, camera.backgroundColor, rendererConfiguration, dynamicBatching);
+            m_RenderTransparentForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, rendererConfiguration);
             renderer.EnqueuePass(m_RenderTransparentForwardPass);
 
             foreach (var pass in camera.GetComponents<IAfterTransparentPass>())
@@ -203,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (!renderingData.cameraData.isStereoEnabled && renderingData.cameraData.postProcessEnabled)
             {
-                m_TransparentPostProcessPass.Setup(renderer.postProcessRenderContext, baseDescriptor, colorHandle, BuiltinRenderTextureType.CameraTarget);
+                m_TransparentPostProcessPass.Setup(renderer.postProcessingContext, baseDescriptor, colorHandle, BuiltinRenderTextureType.CameraTarget);
                 renderer.EnqueuePass(m_TransparentPostProcessPass);
             }
             else if (!renderingData.cameraData.isOffscreenRender && colorHandle != RenderTargetHandle.CameraTarget)
@@ -227,6 +217,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 renderer.EnqueuePass(m_SceneViewDepthCopyPass);
             }
 #endif
+        }
+
+        bool CanCopyDepth(ref CameraData cameraData)
+        {
+            bool msaaEnabledForCamera = (int)cameraData.msaaSamples > 1;
+            bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
+            bool supportsDepthTarget = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
+            bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
+
+            // TODO:  We don't have support to highp Texture2DMS currently and this breaks depth precision.
+            // currently disabling it until shader changes kick in.
+            //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
+            bool msaaDepthResolve = false;
+            return supportsDepthCopy || msaaDepthResolve;
         }
     }
 }

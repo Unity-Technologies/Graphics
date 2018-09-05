@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return false;  // We only handle one preview for reflection probes
 
             // Ensure valid cube map editor (if possible)
-            Texture texture = GetTexture();
+            Texture texture = GetTexture(this, target);
             if (m_CubemapEditor != null && m_CubemapEditor.target as Texture != texture)
             {
                 DestroyImmediate(m_CubemapEditor);
@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (ValidPreviewSetup() && m_CubemapEditor == null)
             {
                 Editor editor = m_CubemapEditor;
-                CreateCachedEditor(GetTexture(), typeof(HDCubemapInspector), ref editor);
+                CreateCachedEditor(GetTexture(this, target), typeof(HDCubemapInspector), ref editor);
                 m_CubemapEditor = editor as HDCubemapInspector;
             }
 
@@ -55,19 +55,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
             }
             
-            Texture tex = GetTexture();
+            Texture tex = GetTexture(this, target);
             if (tex != null && targets.Length == 1)
                 m_CubemapEditor.DrawPreview(position);
         }
 
         bool ValidPreviewSetup()
         {
-            return GetTexture() != null;
+            return GetTexture(this, target) != null;
         }
 
-        Texture GetTexture()
+        static Texture GetTexture(HDReflectionProbeEditor e, Object target)
         {
-            HDProbe additional = GetTarget(target);
+            HDProbe additional = e.GetTarget(target);
             if (additional != null && additional.mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
             {
                 return additional.realtimeTexture;
