@@ -45,7 +45,7 @@
     // TEXTURE2D(        _ColorPyramidTexture);  // Declared in ShaderVariablesScreenSpaceLighting.hlsl
        TEXTURE2D(        _VelocityTexture);
        TEXTURE2D(        _SsrHitPointTexture);
-    RW_TEXTURE2D(float4, _SsrLightingTexture);
+    RW_TEXTURE2D(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
 #endif
 
 CBUFFER_START(UnityScreenSpaceReflections)
@@ -305,7 +305,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     float  opacity  = EdgeFade(prevFrameNDC, _SsrRcpFade, _SsrOneMinusRcpFade);
 
     // Use premultiplied alpha.
-    _SsrLightingTexture[positionSS] = float4(color, 1) * opacity;
+    _SsrLightingTextureRW[positionSS] = float4(color, 1) * opacity;
 }
 
 #endif
