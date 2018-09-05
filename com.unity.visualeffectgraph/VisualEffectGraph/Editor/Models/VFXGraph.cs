@@ -161,7 +161,9 @@ namespace UnityEditor.VFX
         public void BuildParameterInfo()
         {
             m_ParameterInfo = VFXParameterInfo.BuildParameterInfo(this);
+            VisualEffectEditor.RepaintAllEditors();
         }
+
 
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
@@ -298,7 +300,7 @@ namespace UnityEditor.VFX
             m_saved = false;
             base.OnInvalidate(model, cause);
 
-            if (model is VFXParameter)
+            if (model is VFXParameter || model is VFXSlot && (model as VFXSlot).owner is VFXParameter)
             {
                 BuildParameterInfo();
             }

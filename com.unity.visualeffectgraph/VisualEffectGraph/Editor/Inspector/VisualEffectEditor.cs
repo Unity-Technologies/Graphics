@@ -77,11 +77,23 @@ namespace UnityEditor.VFX
         SerializedProperty m_RandomSeed;
         SerializedProperty m_VFXPropertySheet;
 
-        FakeObject s_FakeObjectCache;
-        SerializedObject s_FakeObjectSerializedCache;
+        static FakeObject s_FakeObjectCache;
+        static SerializedObject s_FakeObjectSerializedCache;
+
+        static List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
+
+
+        static public void RepaintAllEditors()
+        {
+            foreach(var ed in s_AllEditors)
+            {
+                ed.Repaint();
+            }
+        }
 
         protected void OnEnable()
         {
+            s_AllEditors.Add(this);
             m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
             m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
             m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
@@ -96,6 +108,7 @@ namespace UnityEditor.VFX
                 effect.pause = false;
                 effect.playRate = 1.0f;
             }
+            s_AllEditors.Remove(this);
         }
 
         protected const float overrideWidth = 16;
@@ -246,6 +259,7 @@ namespace UnityEditor.VFX
                 }
             }
 
+            serializedObject.ApplyModifiedProperties();
             EditorGUILayout.EndHorizontal();
         }
 
