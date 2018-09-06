@@ -11,15 +11,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added controls for linear fade at the boundary of density volumes
 - Added new API to control decals without monobehaviour object
 - Improve Decal Gizmo
-
-### Changed
-- Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
+- Implement Screen Space Reflections (SSR) (alpha version, highly experimental)
 
 ### Fixed
 - Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.
-- Stencil test during decals normal buffer update is now properly applied
-- Decals corectly update normal buffer in forward
-- Fixed a normalization problem in reflection probe face fading causing artefacts in some cases
+
+### Changed
+- Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
 
 ## [3.3.0-preview]
 

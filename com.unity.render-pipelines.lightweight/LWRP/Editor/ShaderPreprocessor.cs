@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         public static readonly ShaderKeyword AdditionalLights = new ShaderKeyword(LightweightKeywordStrings.AdditionalLights);
         public static readonly ShaderKeyword VertexLights = new ShaderKeyword(LightweightKeywordStrings.VertexLights);
         public static readonly ShaderKeyword MixedLightingSubtractive = new ShaderKeyword(LightweightKeywordStrings.MixedLightingSubtractive);
+        public static readonly ShaderKeyword MainLightCookie = new ShaderKeyword(LightweightKeywordStrings.MainLightCookie);
         public static readonly ShaderKeyword DirectionalShadows = new ShaderKeyword(LightweightKeywordStrings.DirectionalShadows);
         public static readonly ShaderKeyword LocalShadows = new ShaderKeyword(LightweightKeywordStrings.LocalShadows);
         public static readonly ShaderKeyword SoftShadows = new ShaderKeyword(LightweightKeywordStrings.SoftShadows);
@@ -37,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
 
-        bool StripUnusedShader(ShaderFeatures features, Shader shader)
+        bool StripUnusedShader(PipelineCapabilities capabilities, Shader shader)
         {
             if (shader.name.Contains("Debug"))
                 return true;
@@ -45,45 +46,45 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (shader.name.Contains("HDRenderPipeline"))
                 return true;
 
-            if (!CoreUtils.HasFlag(features, ShaderFeatures.DirectionalShadows) &&
+            if (!CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows) &&
                 shader.name.Contains("ScreenSpaceShadows"))
                 return true;
 
             return false;
         }
 
-        bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData)
+        bool StripUnusedPass(PipelineCapabilities capabilities, ShaderSnippetData snippetData)
         {
             if (snippetData.passType == PassType.Meta)
                 return true;
 
             if (snippetData.passType == PassType.ShadowCaster)
-                if (!CoreUtils.HasFlag(features, ShaderFeatures.DirectionalShadows) && !CoreUtils.HasFlag(features, ShaderFeatures.LocalShadows))
+                if (!CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows) && !CoreUtils.HasFlag(capabilities, PipelineCapabilities.LocalShadows))
                     return true;
 
             return false;
         }
 
-        bool StripUnusedVariant(ShaderFeatures features, ShaderCompilerData compilerData)
+        bool StripUnusedVariant(PipelineCapabilities capabilities, ShaderCompilerData compilerData)
         {
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.AdditionalLights) &&
-                !CoreUtils.HasFlag(features, ShaderFeatures.AdditionalLights))
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.AdditionalLights))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.VertexLights) &&
-                !CoreUtils.HasFlag(features, ShaderFeatures.VertexLights))
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.VertexLights))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.DirectionalShadows) &&
-                !CoreUtils.HasFlag(features, ShaderFeatures.DirectionalShadows))
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.LocalShadows) &&
-                !CoreUtils.HasFlag(features, ShaderFeatures.LocalShadows))
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.LocalShadows))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.SoftShadows) &&
-                !CoreUtils.HasFlag(features, ShaderFeatures.SoftShadows))
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.SoftShadows))
                 return true;
 
             return false;
@@ -112,15 +113,15 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
-        bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripUnused(PipelineCapabilities capabilities, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            if (StripUnusedShader(features, shader))
+            if (StripUnusedShader(capabilities, shader))
                 return true;
 
-            if (StripUnusedPass(features, snippetData))
+            if (StripUnusedPass(capabilities, snippetData))
                 return true;
 
-            if (StripUnusedVariant(features, compilerData))
+            if (StripUnusedVariant(capabilities, compilerData))
                 return true;
 
             if (StripInvalidVariants(compilerData))
@@ -156,12 +157,12 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (lw == null)
                 return;
 
-            ShaderFeatures features = LightweightRP.GetSupportedShaderFeatures();
+            PipelineCapabilities capabilities = LightweightRP.GetPipelineCapabilities();
             int prevVariantCount = compilerDataList.Count;
 
             for (int i = 0; i < compilerDataList.Count; ++i)
             {
-                if (StripUnused(features, shader, snippetData, compilerDataList[i]))
+                if (StripUnused(capabilities, shader, snippetData, compilerDataList[i]))
                 {
                     compilerDataList.RemoveAt(i);
                     --i;

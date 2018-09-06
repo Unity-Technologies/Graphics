@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // (not just the atmospheric scattering one) receive neutral parameters.
             if (hdCamera.frameSettings.enableVolumetrics)
             {
-                var data = DensityVolumeEngineData.GetNeutralValues();
+                var data = DensityVolumeData.GetNeutralValues();
 
                 cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, data.scattering);
                 cmd.SetGlobalFloat(HDShaderIDs._GlobalExtinction, data.extinction);
