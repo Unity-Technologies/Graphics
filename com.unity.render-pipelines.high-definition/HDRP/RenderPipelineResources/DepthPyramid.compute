@@ -4,11 +4,11 @@
 
 #pragma kernel KDepthDownsample8DualUav  KERNEL_SIZE=8  KERNEL_NAME=KDepthDownsample8DualUav
 
-RW_TEXTURE2D(float, _Destination);
-RW_TEXTURE2D(float, _Source);
+RW_TEXTURE2D(float, _DepthMipChain);
 
 CBUFFER_START(cb)
-    float4 _Size;   // x: src width, y: src height, zw: unused
+    uint4 _SrcOffsetAndLimit; // {x, y, w - 1, h - 1}
+    uint4 _DstOffset;         // {x, y, 0, 0}
 CBUFFER_END
 
 #if UNITY_REVERSED_Z
@@ -22,23 +22,23 @@ CBUFFER_END
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
 void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    // Upper-left pixel coordinate of quad that this thread will read
-    uint2 srcPixelUL = dispatchThreadId << 1;
+    uint2 srcOffset = _SrcOffsetAndLimit.xy;
+    uint2 srcLimit  = _SrcOffsetAndLimit.zw;
+    uint2 dstOffset = _DstOffset.xy;
 
-    // '_Source' and '_Destination' are two different MIP levels of the same texture.
-    // TODO: Use Gather here instead of 4 loads
-    uint2 size = uint2(_Size.xy) - 1u;
-    float p00 = _Source[min(srcPixelUL + uint2(0u, 0u), size)];
-    float p10 = _Source[min(srcPixelUL + uint2(1u, 0u), size)];
-    float p01 = _Source[min(srcPixelUL + uint2(0u, 1u), size)];
-    float p11 = _Source[min(srcPixelUL + uint2(1u, 1u), size)];
+    // Upper-left pixel coordinate of quad that this thread will read
+    uint2 srcPixelUL = srcOffset + (dispatchThreadId << 1);
+
+    float p00 = _DepthMipChain[min(srcPixelUL + uint2(0u, 0u), srcLimit)];
+    float p10 = _DepthMipChain[min(srcPixelUL + uint2(1u, 0u), srcLimit)];
+    float p01 = _DepthMipChain[min(srcPixelUL + uint2(0u, 1u), srcLimit)];
+    float p11 = _DepthMipChain[min(srcPixelUL + uint2(1u, 1u), srcLimit)];
     float4 depths = float4(p00, p10, p01, p11);
 
-    // Select the nearest sample
+    // Select the closest sample
     float minDepth = MIN_DEPTH(MIN_DEPTH(depths.x, depths.y), MIN_DEPTH(depths.z, depths.w));
 
-    // Write to the final target
-    _Destination[dispatchThreadId] = minDepth;
+    _DepthMipChain[dstOffset + dispatchThreadId] = minDepth;
 }
 
 #undef MIN_DEPTH

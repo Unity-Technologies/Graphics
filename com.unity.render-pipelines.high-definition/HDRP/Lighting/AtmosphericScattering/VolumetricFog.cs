@@ -57,9 +57,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
-            DensityVolumeParameters param = new DensityVolumeParameters(albedo, meanFreePath, anisotropy);
+            DensityVolumeArtistParameters param = new DensityVolumeArtistParameters(albedo, meanFreePath, anisotropy);
 
-            DensityVolumeData data = param.GetData();
+            DensityVolumeEngineData data = param.GetData();
 
             cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)FogType.Volumetric);
 

@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableShadow = true;
         public bool enableContactShadows = true;
         public bool enableShadowMask = true;
-        public bool enableSSR = true; // Depends on DepthPyramid
+        public bool enableSSR = false;
         public bool enableSSAO = true;
         public bool enableSubsurfaceScattering = true;
         public bool enableTransmission = true;  // Caution: this is only for debug, it doesn't save the cost of Transmission execution
@@ -112,8 +112,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableShadow = srcFrameSettings.enableShadow;
             aggregate.enableContactShadows = srcFrameSettings.enableContactShadows;
-            aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;            
-            aggregate.enableSSR = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR;
+            aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
+            aggregate.enableSSR = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR; // No recursive reflections
             aggregate.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
             aggregate.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
             aggregate.enableTransmission = srcFrameSettings.enableTransmission;

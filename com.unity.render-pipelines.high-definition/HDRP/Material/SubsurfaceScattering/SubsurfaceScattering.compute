@@ -4,10 +4,12 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
 #pragma kernel SubsurfaceScatteringMQ SubsurfaceScattering=SubsurfaceScatteringMQ SSS_ENABLE_NEAR_FIELD=0
 #pragma kernel SubsurfaceScatteringHQ SubsurfaceScattering=SubsurfaceScatteringHQ SSS_ENABLE_NEAR_FIELD=1
 
-// #pragma enable_d3d11_debug_symbols
 // TODO: use sharp load hoisting on PS4.
 
 // Tweak parameters.
@@ -46,7 +48,6 @@
 #include "../../Lighting/LightDefinition.cs.hlsl"
 #include "SubsurfaceScattering.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -424,7 +425,11 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 #endif
 
 #if SSS_RANDOM_ROTATION
-    float startAngle = TWO_PI * GenerateHashedRandomFloat(asuint(centerPosVS));
+    // Previously, we used asuint(centerPosVS) as the seed.
+    // This was not temporarily stable for some reason (pattern changed every frame),
+    // even if both the camera and the scene were completely static.
+    // Note that GenerateHashedRandomFloat() only uses the 23 low bits, hence the 2^24 factor.
+    float startAngle = TWO_PI * GenerateHashedRandomFloat(uint3(pixelCoord, (uint)(centerDepth * 16777216)));
 #else
     float startAngle = 0;
 #endif

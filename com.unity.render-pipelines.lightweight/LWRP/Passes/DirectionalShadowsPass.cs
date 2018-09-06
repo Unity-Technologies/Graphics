@@ -65,7 +65,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             this.destination = destination;
         }
-
+        
+        /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (renderingData.shadowData.renderDirectionalShadows)
@@ -74,7 +75,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 RenderDirectionalCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
             }
         }
-
+        
+        /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (m_DirectionalShadowmapTexture)

@@ -6,6 +6,9 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
+#if UNITY_EDITOR
+    [CanEditMultipleObjects]
+#endif
     public class DecalProjectorComponent : MonoBehaviour
     {
         public Material m_Material = null;

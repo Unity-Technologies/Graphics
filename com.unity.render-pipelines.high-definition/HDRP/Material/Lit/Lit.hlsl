@@ -1605,6 +1605,25 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // EvaluateBSDF_SSLighting for screen space lighting
 // ----------------------------------------------------------------------------
 
+IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
+                                                    PreLightData   preLightData,
+                                                    BSDFData       bsdfData,
+                                                    inout float    reflectionHierarchyWeight)
+{
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
+
+    // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
+    float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
+
+    // Note: RGB is already premultiplied by A.
+    // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
+    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * preLightData.specularFGD;
+    reflectionHierarchyWeight  = ssrLighting.a;
+
+    return lighting;
+}
+
 IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
                                             float3 V, PositionInputs posInput,
                                             PreLightData preLightData, BSDFData bsdfData,
