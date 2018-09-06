@@ -83,7 +83,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     {
         float alpha = 1.0; // unused
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(surfaceData, decalSurfaceData);
+        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
     }
 #endif
 

@@ -6,7 +6,7 @@
 #include "HDRP/Material/MaterialUtilities.hlsl"
 #include "HDRP/Material/Decal/DecalUtilities.hlsl"
 
-void ApplyDecalToSurfaceData(SurfaceData surfaceData, DecalSurfaceData decalSurfaceData)
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
 {
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
@@ -395,7 +395,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(surfaceData, decalSurfaceData);
+        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
     }
 #endif
 
