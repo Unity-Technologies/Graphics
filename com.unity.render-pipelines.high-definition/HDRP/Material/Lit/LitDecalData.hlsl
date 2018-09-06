@@ -1,4 +1,4 @@
-void ApplyDecalToSurfaceData(SurfaceData surfaceData, DecalSurfaceData decalSurfaceData)
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
 {
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
