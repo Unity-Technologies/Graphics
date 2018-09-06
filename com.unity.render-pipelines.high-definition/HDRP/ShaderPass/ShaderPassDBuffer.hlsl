@@ -45,7 +45,6 @@ void Frag(  PackedVaryingsToPS packedInput,
 	// have to do explicit test since compiler behavior is not defined for RW resources and discard instructions
 	if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
 	{
-
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 	GetSurfaceData(input, surfaceData);
 #endif
@@ -56,5 +55,6 @@ void Frag(  PackedVaryingsToPS packedInput,
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
     }
 #endif
+
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
 }
