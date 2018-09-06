@@ -110,142 +110,115 @@ void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout int matM
     matMask |= mapMask;
 }
 
-void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData, inout float alpha)
+DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
-    if (_EnableDecals)
-    {
-        int mask = 0;
-        // the code in the macros, gets moved inside the conditionals by the compiler
-        FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
+    int mask = 0;
+    // the code in the macros, gets moved inside the conditionals by the compiler
+    FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
 
 #ifdef _SURFACE_TYPE_TRANSPARENT    // forward transparent using clustered decals
-        uint decalCount, decalStart;
-        DBuffer0 = float4(0.0f, 0.0f, 0.0f, 1.0f);
-        DBuffer1 = float4(0.5f, 0.5f, 0.5f, 1.0f);
-        DBuffer2 = float4(0.0f, 0.0f, 0.0f, 1.0f);
-#ifdef DECALS_4RT
-		DBuffer3 = float2(1.0f, 1.0f);
-#else
-		float2 DBuffer3 = float2(1.0f, 1.0f);
-#endif
+    uint decalCount, decalStart;
+    DBuffer0 = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    DBuffer1 = float4(0.5f, 0.5f, 0.5f, 1.0f);
+    DBuffer2 = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    #ifdef DECALS_4RT
+	DBuffer3 = float2(1.0f, 1.0f);
+    #else
+	float2 DBuffer3 = float2(1.0f, 1.0f);
+    #endif
 
     #ifdef LIGHTLOOP_TILE_PASS
-        GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
+    GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
     #else
-        decalCount = _DecalCount;
-        decalStart = 0;
+    decalCount = _DecalCount;
+    decalStart = 0;
     #endif
 
-        float3 positionRWS = posInput.positionWS;
+    float3 positionRWS = posInput.positionWS;
 
-        // get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
-        float3 positionRWSDdx = ddx(positionRWS);
-        float3 positionRWSDdy = ddy(positionRWS);
+    // get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
+    float3 positionRWSDdx = ddx(positionRWS);
+    float3 positionRWSDdy = ddy(positionRWS);
 
-        for (uint i = 0; i < decalCount; i++)
+    for (uint i = 0; i < decalCount; i++)
+    {
+        DecalData decalData = FetchDecal(decalStart, i);
+
+        // Get the relative world camera to decal matrix
+        float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
+
+        float3 positionDS = mul(worldToDecal, float4(positionRWS, 1.0)).xyz;
+        positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);  // decal clip space
+        if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
         {
-            DecalData decalData = FetchDecal(decalStart, i);
+            float2 uvScale = float2(decalData.normalToWorld[3][0], decalData.normalToWorld[3][1]);
+            float2 uvBias = float2(decalData.normalToWorld[3][2], decalData.normalToWorld[3][3]);
+            positionDS.xz = positionDS.xz * uvScale + uvBias;
+            positionDS.xz = frac(positionDS.xz);
 
-            // Get the relative world camera to decal matrix
-            float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
+            // clamp by half a texel to avoid sampling neighboring textures in the atlas
+            float2 clampAmount = float2(0.5f / _DecalAtlasResolution.x, 0.5f / _DecalAtlasResolution.y);
 
-            float3 positionDS = mul(worldToDecal, float4(positionRWS, 1.0)).xyz;
-            positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);  // decal clip space
-            if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
-            {
-                float2 uvScale = float2(decalData.normalToWorld[3][0], decalData.normalToWorld[3][1]);
-                float2 uvBias = float2(decalData.normalToWorld[3][2], decalData.normalToWorld[3][3]);
-                positionDS.xz = positionDS.xz * uvScale + uvBias;
-                positionDS.xz = frac(positionDS.xz);
+            float2 diffuseMin = decalData.diffuseScaleBias.zw + clampAmount;                                    // offset into atlas is in .zw
+            float2 diffuseMax = decalData.diffuseScaleBias.zw + decalData.diffuseScaleBias.xy - clampAmount;    // scale relative to full atlas size is in .xy so total texture extent in atlas is (1,1) * scale
 
-                // clamp by half a texel to avoid sampling neighboring textures in the atlas
-                float2 clampAmount = float2(0.5f / _DecalAtlasResolution.x, 0.5f / _DecalAtlasResolution.y);
+            float2 normalMin = decalData.normalScaleBias.zw + clampAmount;
+            float2 normalMax = decalData.normalScaleBias.zw + decalData.normalScaleBias.xy - clampAmount;
 
-                float2 diffuseMin = decalData.diffuseScaleBias.zw + clampAmount;                                    // offset into atlas is in .zw
-                float2 diffuseMax = decalData.diffuseScaleBias.zw + decalData.diffuseScaleBias.xy - clampAmount;    // scale relative to full atlas size is in .xy so total texture extent in atlas is (1,1) * scale
+            float2 maskMin = decalData.maskScaleBias.zw + clampAmount;
+            float2 maskMax = decalData.maskScaleBias.zw + decalData.maskScaleBias.xy - clampAmount;
 
-                float2 normalMin = decalData.normalScaleBias.zw + clampAmount;
-                float2 normalMax = decalData.normalScaleBias.zw + decalData.normalScaleBias.xy - clampAmount;
+            float2 sampleDiffuse = clamp(positionDS.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw, diffuseMin, diffuseMax);
+            float2 sampleNormal = clamp(positionDS.xz * decalData.normalScaleBias.xy + decalData.normalScaleBias.zw, normalMin, normalMax);
+            float2 sampleMask = clamp(positionDS.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw, maskMin, maskMax);
 
-                float2 maskMin = decalData.maskScaleBias.zw + clampAmount;
-                float2 maskMax = decalData.maskScaleBias.zw + decalData.maskScaleBias.xy - clampAmount;
+            // need to compute the mipmap LOD manually because we are sampling inside a loop
+            float3 positionDSDdx = mul(worldToDecal, float4(positionRWSDdx, 0.0)).xyz; // transform the derivatives to decal space, any translation is irrelevant
+            float3 positionDSDdy = mul(worldToDecal, float4(positionRWSDdy, 0.0)).xyz;
 
-                float2 sampleDiffuse = clamp(positionDS.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw, diffuseMin, diffuseMax);
-                float2 sampleNormal = clamp(positionDS.xz * decalData.normalScaleBias.xy + decalData.normalScaleBias.zw, normalMin, normalMax);
-                float2 sampleMask = clamp(positionDS.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw, maskMin, maskMax);
+            float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy; // factor in the atlas scale
+            float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
+            float lodDiffuse = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution);
 
-                // need to compute the mipmap LOD manually because we are sampling inside a loop
-                float3 positionDSDdx = mul(worldToDecal, float4(positionRWSDdx, 0.0)).xyz; // transform the derivatives to decal space, any translation is irrelevant
-                float3 positionDSDdy = mul(worldToDecal, float4(positionRWSDdy, 0.0)).xyz;
+            float2 sampleNormalDdx = positionDSDdx.xz * decalData.normalScaleBias.xy;
+            float2 sampleNormalDdy = positionDSDdy.xz * decalData.normalScaleBias.xy;
+            float lodNormal = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution);
 
-                float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy; // factor in the atlas scale
-                float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
-                float lodDiffuse = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution);
+            float2 sampleMaskDdx = positionDSDdx.xz * decalData.maskScaleBias.xy;
+            float2 sampleMaskDdy = positionDSDdy.xz * decalData.maskScaleBias.xy;
+            float lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution);
 
-                float2 sampleNormalDdx = positionDSDdx.xz * decalData.normalScaleBias.xy;
-                float2 sampleNormalDdy = positionDSDdy.xz * decalData.normalScaleBias.xy;
-                float lodNormal = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution);
-
-                float2 sampleMaskDdx = positionDSDdx.xz * decalData.maskScaleBias.xy;
-                float2 sampleMaskDdy = positionDSDdy.xz * decalData.maskScaleBias.xy;
-                float lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution);
-
-                float albedoBlend = decalData.normalToWorld[0][3];
-				float4 src = decalData.baseColor;
-				int diffuseTextureBound = (decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0);
+            float albedoBlend = decalData.normalToWorld[0][3];
+			float4 src = decalData.baseColor;
+			int diffuseTextureBound = (decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0);
                 
-				ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, src, DBUFFERHTILEBIT_DIFFUSE, albedoBlend, lodDiffuse, diffuseTextureBound);		
-				alpha = alpha < albedoBlend ? albedoBlend : alpha;    // use decal alpha if it is higher than transparent alpha
+			ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, src, DBUFFERHTILEBIT_DIFFUSE, albedoBlend, lodDiffuse, diffuseTextureBound);		
+			alpha = alpha < albedoBlend ? albedoBlend : alpha;    // use decal alpha if it is higher than transparent alpha
 
-				float albedoContribution = decalData.normalToWorld[1][3];
-				if (albedoContribution == 0.0f)
-				{
-					mask = 0;	// diffuse will not get modified						
-				}
+			float albedoContribution = decalData.normalToWorld[1][3];
+			if (albedoContribution == 0.0f)
+			{
+				mask = 0;	// diffuse will not get modified						
+			}
 				
-				float normalBlend = albedoBlend;
-				if ((decalData.maskScaleBias.x > 0) && (decalData.maskScaleBias.y > 0))
-				{
-					ApplyBlendMask(DBuffer2, DBuffer3, mask, sampleMask, DBUFFERHTILEBIT_MASK, albedoBlend, lodMask, decalData.normalToWorld[0][3], normalBlend, decalData.blendParams);
-				}
+			float normalBlend = albedoBlend;
+			if ((decalData.maskScaleBias.x > 0) && (decalData.maskScaleBias.y > 0))
+			{
+				ApplyBlendMask(DBuffer2, DBuffer3, mask, sampleMask, DBUFFERHTILEBIT_MASK, albedoBlend, lodMask, decalData.normalToWorld[0][3], normalBlend, decalData.blendParams);
+			}
 
-                if ((decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0))
-                {
-                    ApplyBlendNormal(DBuffer1, mask, sampleNormal, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, normalBlend, lodNormal);
-                }
+            if ((decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0))
+            {
+                ApplyBlendNormal(DBuffer1, mask, sampleNormal, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, normalBlend, lodNormal);
             }
         }
-#else
-        mask = UnpackByte(LOAD_TEXTURE2D(_DecalHTileTexture, posInput.positionSS / 8).r);
-#endif
-        DecalSurfaceData decalSurfaceData;
-        DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
-        // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-        if (mask & DBUFFERHTILEBIT_DIFFUSE)
-        {
-            surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
-        }
-
-        if (mask & DBUFFERHTILEBIT_NORMAL)
-        {
-            surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
-        }
-
-        if (mask & DBUFFERHTILEBIT_MASK)
-        {
-#ifdef DECALS_4RT // only smoothness in 3RT mode
-    #if !defined(UNITY_MATERIAL_FABRIC)
-            surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSBlend.x + decalSurfaceData.mask.x;
-    #endif
-			surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
-#endif
-#if defined(UNITY_MATERIAL_STACKLIT)
-            surfaceData.perceptualSmoothnessA = surfaceData.perceptualSmoothnessA * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
-            surfaceData.perceptualSmoothnessB = surfaceData.perceptualSmoothnessB * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
-            surfaceData.coatPerceptualSmoothness = surfaceData.coatPerceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
-#else
-            surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
-#endif
-        }
     }
+#else
+    mask = UnpackByte(LOAD_TEXTURE2D(_DecalHTileTexture, posInput.positionSS / 8).r);
+#endif
+    DecalSurfaceData decalSurfaceData;
+    DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
+    decalSurfaceData.HTileMask = mask;
+
+    return decalSurfaceData;
 }

@@ -4,6 +4,7 @@
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "HDRP/Material/MaterialUtilities.hlsl"
 #include "HDRP/Material/Decal/DecalUtilities.hlsl"
+#include "HDRP/Material/Lit/LitDecalData.hlsl"
 
 //#include "HDRP/Material/SphericalCapPivot/SPTDistribution.hlsl"
 //#define SPECULAR_OCCLUSION_USE_SPTD
@@ -213,7 +214,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
 #if HAVE_DECALS
-    AddDecalContribution(posInput, surfaceData, alpha);
+    if (_EnableDecals)
+    {
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+        ApplyDecalToSurfaceData(surfaceData, decalSurfaceData);
+    }
 #endif
 
 #if defined(DEBUG_DISPLAY)
