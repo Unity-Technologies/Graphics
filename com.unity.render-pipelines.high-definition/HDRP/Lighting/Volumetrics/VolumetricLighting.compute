@@ -2,6 +2,9 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
 #pragma kernel VolumetricLightingBruteforceMQ       VolumetricLighting=VolumetricLightingBruteforceMQ       VL_PRESET_MQ ENABLE_REPROJECTION=0 LIGHTLOOP_SINGLE_PASS
 #pragma kernel VolumetricLightingBruteforceReprojMQ VolumetricLighting=VolumetricLightingBruteforceReprojMQ VL_PRESET_MQ ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
 #pragma kernel VolumetricLightingClusteredMQ        VolumetricLighting=VolumetricLightingClusteredMQ        VL_PRESET_MQ ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
@@ -10,8 +13,6 @@
 #pragma kernel VolumetricLightingBruteforceReprojHQ VolumetricLighting=VolumetricLightingBruteforceReprojHQ VL_PRESET_HQ ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
 #pragma kernel VolumetricLightingClusteredHQ        VolumetricLighting=VolumetricLightingClusteredHQ        VL_PRESET_HQ ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 #pragma kernel VolumetricLightingClusteredReprojHQ  VolumetricLighting=VolumetricLightingClusteredReprojHQ  VL_PRESET_HQ ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
-
-// #pragma enable_d3d11_debug_symbols
 
 #ifdef VL_PRESET_MQ
     // E.g. for 1080p: (1920/8)x(1080/8)x(64)  =  2,073,600 voxels
@@ -46,7 +47,6 @@
 #include "../Lighting.hlsl"       // Includes Material.hlsl
 #include "../LightEvaluation.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -60,9 +60,11 @@ TEXTURE3D(_VBufferDensity);                     // RGB = sqrt(scattering), A = s
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
     float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
-    float4   _VBufferSampleOffset;              // Not used by this shader
-    float    _CornetteShanksConstant;           // Not used by this shader
-    uint     _NumVisibleDensityVolumes;
+    float4   _VBufferSampleOffset;
+    float4   _VolumeMaskDimensions;             // Not used by this shader
+    uint     _NumVisibleDensityVolumes;         // Not used by this shader
+    float    _CornetteShanksConstant;
+    uint     _VBufferLightingHistoryIsValid;
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -536,11 +538,17 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float  ds              = ConvertJitterDistToCenterRayDist(ray, dt);
         float  centerTransmInt = TransmittanceIntegralHomogeneousMedium(extinction, ds);
 
-        bool   reprojSuccess   = reprojValue.a != 0;
-        float  blendFactor     = reprojSuccess ? historyWeight : 0;
-        float  reprojScale     = reprojSuccess ? (centerTransmInt * rcp(reprojValue.a)) : 0;
-        float3 reprojRadiance  = reprojValue.rgb;
-        float3 blendedRadiance = (1 - blendFactor) * lighting.radianceNoPhase + blendFactor * reprojScale * reprojRadiance;
+        float3 blendedRadiance = lighting.radianceNoPhase;
+
+        bool reprojSuccess = (_VBufferLightingHistoryIsValid != 0) && (reprojValue.a != 0);
+
+        if (reprojSuccess)
+        {
+            float  reprojScale    = centerTransmInt * rcp(reprojValue.a);
+            float3 reprojRadiance = reprojValue.rgb * reprojScale;
+
+            blendedRadiance = lerp(lighting.radianceNoPhase, reprojRadiance, historyWeight);
+        }
 
         // Store the feedback for the voxel.
         // TODO: dynamic lights (which update their position, rotation, cookie or shadow at runtime)

@@ -84,6 +84,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty drawOrder = new MaterialProperty();
         protected const string kDrawOrder = "_DrawOrder";
 
+        protected const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
+        protected const string kDecalStencilRef = "_DecalStencilRef";
+
         protected MaterialEditor m_MaterialEditor;
 
         // This is call by the inspector
@@ -118,8 +121,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_ALBEDOCONTRIBUTION", material.GetFloat(kAlbedoMode) == 1.0f);
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
-            CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap)); 
+            CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
 
+            material.SetInt(kDecalStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.Decals);
+            material.SetInt(kDecalStencilRef, (int)HDRenderPipeline.StencilBitMask.Decals);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOStr, false);

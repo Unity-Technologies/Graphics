@@ -16,7 +16,7 @@ MonoBehaviour:
   m_FrameSettings:
     enableShadow: 1
     enableContactShadows: 1
-    enableSSR: 1
+    enableSSR: 0
     enableSSAO: 1
     enableSubsurfaceScattering: 1
     enableTransmission: 1
@@ -50,7 +50,7 @@ MonoBehaviour:
       isFptlEnabled: 1
   renderPipelineSettings:
     supportShadowMask: 1
-    supportSSR: 1
+    supportSSR: 0
     supportSSAO: 1
     supportSubsurfaceScattering: 1
     supportOnlyForward: 0

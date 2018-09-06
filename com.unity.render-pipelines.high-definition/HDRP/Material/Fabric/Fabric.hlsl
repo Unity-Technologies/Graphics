@@ -82,6 +82,14 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
+NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
+{
+    NormalData normalData;
+    normalData.normalWS = surfaceData.normalWS;
+    normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    return normalData;
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -514,6 +522,19 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_SSLighting for screen space lighting
 // ----------------------------------------------------------------------------
+
+IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
+                                                    PreLightData   preLightData,
+                                                    BSDFData       bsdfData,
+                                                    inout float    reflectionHierarchyWeight)
+{
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
+
+    // TODO
+
+    return lighting;
+}
 
 IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
                                             float3 V, PositionInputs posInput,

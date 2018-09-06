@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var id = GetSlotValue(CubemapInputId, generationMode);
             string result = string.Format("{0}4 {1} = SAMPLE_TEXTURECUBE_LOD({2}, {3}, reflect(-{4}, {5}), {6});"

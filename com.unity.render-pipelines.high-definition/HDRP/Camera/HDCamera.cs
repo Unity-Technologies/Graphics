@@ -297,15 +297,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ConfigureStereoMatrices();
             }
 
+            Vector2 lastTextureSize = new Vector2(RTHandles.maxWidth, RTHandles.maxHeight);
+
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
             RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
             m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
             m_HistoryRTSystem.Swap();
 
-            int maxWidth = RTHandles.maxWidth;
+            int maxWidth  = RTHandles.maxWidth;
             int maxHeight = RTHandles.maxHeight;
-            m_ViewportScalePreviousFrame = m_ViewportScaleCurrentFrame; // Double-buffer
+
+            Vector2 lastByCurrentTextureSizeRatio = lastTextureSize / new Vector2(maxWidth, maxHeight);
+
+            // Double-buffer. Note: this should be (LastViewportSize / CurrentTextureSize).
+            m_ViewportScalePreviousFrame  = m_ViewportScaleCurrentFrame * lastByCurrentTextureSizeRatio;
             m_ViewportScaleCurrentFrame.x = (float)m_ActualWidth / maxWidth;
             m_ViewportScaleCurrentFrame.y = (float)m_ActualHeight / maxHeight;
 
