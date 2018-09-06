@@ -4,10 +4,12 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
 #pragma kernel SubsurfaceScatteringMQ SubsurfaceScattering=SubsurfaceScatteringMQ SSS_ENABLE_NEAR_FIELD=0
 #pragma kernel SubsurfaceScatteringHQ SubsurfaceScattering=SubsurfaceScatteringHQ SSS_ENABLE_NEAR_FIELD=1
 
-// #pragma enable_d3d11_debug_symbols
 // TODO: use sharp load hoisting on PS4.
 
 // Tweak parameters.
@@ -46,7 +48,6 @@
 #include "../../Lighting/LightDefinition.cs.hlsl"
 #include "SubsurfaceScattering.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
