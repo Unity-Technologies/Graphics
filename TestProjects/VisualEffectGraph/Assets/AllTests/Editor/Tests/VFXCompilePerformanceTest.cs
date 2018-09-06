@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            vfxAssets = vfxAssets.Take(1).ToList();
+            //vfxAssets = vfxAssets.Take(1).ToList();
 
             var dependenciesPerAsset = new List<ScriptableObject[]>();
             foreach (var vfxAsset in vfxAssets)
@@ -96,13 +96,13 @@ namespace UnityEditor.VFX.Test
             }
 
             var report = new List<string>();
-            var levels = new[] { CompressionLevel.None };
+            var levels = new[] { CompressionLevel.None, CompressionLevel.Fastest };
             foreach (var level in levels)
             {
                 byte[][] data = new byte[vfxAssets.Count][];
                 long[] elapsedTimeCompression = new long[vfxAssets.Count];
                 long[] elapsedTimeDecompression = new long[vfxAssets.Count];
-                uint processCount = 1;
+                uint processCount = 8;
                 for (int pass = 0; pass < processCount; ++pass)
                 {
                     for (int i = 0; i < vfxAssets.Count; ++i)
@@ -127,10 +127,11 @@ namespace UnityEditor.VFX.Test
                 }
 
                 report.Add(level.ToString());
+                report.Add("asset;size;compression;decompression");
                 for (int i = 0; i < vfxAssets.Count; ++i)
                 {
                     var nameAsset = AssetDatabase.GetAssetPath(vfxAssets[i]);
-                    report.Add(string.Format("{0};{1}mb;{2}ms;{3}ms", nameAsset, data[i].Length / (1024 * 1024), elapsedTimeCompression[i] / processCount, elapsedTimeDecompression[i] / processCount));
+                    report.Add(string.Format("{0};{1}kb;{2}ms;{3}ms", nameAsset, data[i].Length / (1024), elapsedTimeCompression[i] / processCount, elapsedTimeDecompression[i] / processCount));
                 }
             }
             UnityEngine.Debug.unityLogger.logEnabled = true;
