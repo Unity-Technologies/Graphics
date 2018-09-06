@@ -47,12 +47,12 @@ namespace UnityEditor.ShaderGraph
             base.AddNode(node);
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             foreach (var node in activeNodes)
             {
                 if (node is IGeneratesBodyCode)
-                    (node as IGeneratesBodyCode).GenerateNodeCode(visitor, graphContext, generationMode);
+                    (node as IGeneratesBodyCode).GenerateNodeCode(visitor, generationMode);
             }
         }
 
@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
                         arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
 
                     // now pass surface inputs
-                    arguments.Add(string.Format("{0} IN", graphContext.graphInputStructName));
+                    arguments.Add("SurfaceDescriptionInputs IN");
 
                     // Now generate outputs
                     foreach (var slot in graphOutputs)
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         // Just grab the body from the active nodes
                         var bodyGenerator = new ShaderGenerator();
-                        GenerateNodeCode(bodyGenerator, graphContext, GenerationMode.ForReals);
+                        GenerateNodeCode(bodyGenerator, GenerationMode.ForReals);
 
                         if (outputNode != null)
                             outputNode.RemapOutputs(bodyGenerator, GenerationMode.ForReals);

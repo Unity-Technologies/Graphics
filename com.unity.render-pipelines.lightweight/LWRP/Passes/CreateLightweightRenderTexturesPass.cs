@@ -1,15 +1,7 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    /// <summary>
-    /// Generate rendering attachments that can be used for rendering.
-    ///
-    /// You can use this pass to generate valid rendering targets that
-    /// the Lightweight Render Pipeline can use for rendering. For example,
-    /// when you render a frame, the LWRP renders into a valid color and
-    /// depth buffer.
-    /// </summary>
     public class CreateLightweightRenderTexturesPass : ScriptableRenderPass
     {
         const string k_CreateRenderTexturesTag = "Create Render Textures";
@@ -19,9 +11,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTextureDescriptor descriptor { get; set; }
         private SampleCount samples { get; set; }
 
-        /// <summary>
-        /// Configure the pass
-        /// </summary>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle colorAttachmentHandle,
@@ -34,7 +23,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             descriptor = baseDescriptor;
         }
 
-        /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_CreateRenderTexturesTag);
@@ -53,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                 depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
                 depthDescriptor.msaaSamples = (int)samples;
-                depthDescriptor.bindMS = (int)samples > 1;
+                depthDescriptor.bindMS = (int)samples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, depthDescriptor, FilterMode.Point);
             }
 
@@ -61,7 +49,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)

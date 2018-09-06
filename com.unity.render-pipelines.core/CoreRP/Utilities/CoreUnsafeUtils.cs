@@ -28,12 +28,6 @@ namespace UnityEngine.Experimental.Rendering
             QuickSort<T>(data, 0, count - 1);
         }
 
-        public static unsafe void QuickSort(uint[] arr, int left, int right)
-        {
-            fixed (uint* ptr = arr)
-                CoreUnsafeUtils.QuickSort<uint>(ptr, left, right);
-        }
-
         public static void QuickSort<T>(void* data, int left, int right)
             where T : struct, IComparable<T>
         {

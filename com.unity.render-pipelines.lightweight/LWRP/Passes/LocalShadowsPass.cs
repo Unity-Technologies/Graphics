@@ -63,7 +63,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (renderingData.shadowData.renderLocalShadows)

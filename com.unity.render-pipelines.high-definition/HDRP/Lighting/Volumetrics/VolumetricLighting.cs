@@ -5,35 +5,24 @@ using System.Runtime.InteropServices;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    // TODO: pack better. This data structure contains a bunch of UNORMs.
     [GenerateHLSL]
-    public struct DensityVolumeEngineData
+    public struct DensityVolumeData
     {
         public Vector3 scattering;    // [0, 1]
         public float   extinction;    // [0, 1]
         public Vector3 textureTiling;
         public int     textureIndex;
         public Vector3 textureScroll;
-        public float   pad0;
-        public Vector3 rcpPosFade;
-        public float   pad1;
-        public Vector3 rcpNegFade;
-        public float   pad2;
 
-        public static DensityVolumeEngineData GetNeutralValues()
+        public static DensityVolumeData GetNeutralValues()
         {
-            DensityVolumeEngineData data;
+            DensityVolumeData data;
 
             data.scattering    = Vector3.zero;
             data.extinction    = 0;
             data.textureIndex  = -1;
             data.textureTiling = Vector3.one;
             data.textureScroll = Vector3.zero;
-            data.rcpPosFade    = new Vector3(65536.0f, 65536.0f, 65536.0f);
-            data.rcpNegFade    = new Vector3(65536.0f, 65536.0f, 65536.0f);
-            data.pad0          = 0;
-            data.pad1          = 0;
-            data.pad2          = 0;
 
             return data;
         }
@@ -70,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct DensityVolumeList
     {
         public List<OrientedBBox>      bounds;
-        public List<DensityVolumeEngineData> density;
+        public List<DensityVolumeData> density;
     }
 
     public class VolumetricLightingSystem
@@ -122,33 +111,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public VolumetricLightingPreset preset = VolumetricLightingPreset.Off;
 
-        static ComputeShader          m_VolumeVoxelizationCS      = null;
-        static ComputeShader          m_VolumetricLightingCS      = null;
+        static ComputeShader    m_VolumeVoxelizationCS      = null;
+        static ComputeShader    m_VolumetricLightingCS      = null;
 
-        List<OrientedBBox>            m_VisibleVolumeBounds       = null;
-        List<DensityVolumeEngineData> m_VisibleVolumeData         = null;
-        public const int              k_MaxVisibleVolumeCount     = 512;
+        List<OrientedBBox>      m_VisibleVolumeBounds       = null;
+        List<DensityVolumeData> m_VisibleVolumeData         = null;
+        public const int        k_MaxVisibleVolumeCount     = 512;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
-        static ComputeBuffer          s_VisibleVolumeBoundsBuffer = null;
-        static ComputeBuffer          s_VisibleVolumeDataBuffer   = null;
+        static ComputeBuffer    s_VisibleVolumeBoundsBuffer = null;
+        static ComputeBuffer    s_VisibleVolumeDataBuffer   = null;
 
         // These two buffers do not depend on the frameID and are therefore shared by all views.
-        RTHandleSystem.RTHandle       m_DensityBufferHandle;
-        RTHandleSystem.RTHandle       m_LightingBufferHandle;
+        RTHandleSystem.RTHandle m_DensityBufferHandle;
+        RTHandleSystem.RTHandle m_LightingBufferHandle;
 
         // Is the feature globally disabled?
-        bool m_SupportVolumetrics = false;
-
-        // The history buffer starts in the uninitialized state after being created or resized,
-        // and contains arbitrary data. Therefore, we must initialize it before use.
-        Vector3Int m_PreviousResolutionOfHistoryBuffer = Vector3Int.zero;
+        bool m_supportVolumetrics = false;
 
         public void Build(HDRenderPipelineAsset asset)
         {
-            m_SupportVolumetrics = asset.renderPipelineSettings.supportVolumetrics;
+            m_supportVolumetrics = asset.renderPipelineSettings.supportVolumetrics;
 
-            if (!m_SupportVolumetrics)
+            if (!m_supportVolumetrics)
                 return;
 
             preset = asset.renderPipelineSettings.increaseResolutionOfVolumetrics ? VolumetricLightingPreset.High :
@@ -209,9 +194,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(m_VolumetricLightingCS != null);
 
             m_VisibleVolumeBounds       = new List<OrientedBBox>();
-            m_VisibleVolumeData         = new List<DensityVolumeEngineData>();
+            m_VisibleVolumeData         = new List<DensityVolumeData>();
             s_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
-            s_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
+            s_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeData)));
 
             int d = ComputeVBufferSliceCount(preset);
 
@@ -270,7 +255,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Note: Here we can't test framesettings as they are not initialize yet
             // TODO: Here we allocate history even for camera that may not use volumetric
-            if (!m_SupportVolumetrics)
+            if (!m_supportVolumetrics)
                 return;
 
             // Start with the same parameters for both frames. Then update them one by one every frame.
@@ -715,25 +700,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, m_LightingBufferHandle); // Write
                 if (enableReprojection)
                 {
-                    var historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
-                    var feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
-
-                    // Detect if the history buffer has been recreated or resized.
-                    Vector3Int currentResolutionOfHistoryBuffer = new Vector3Int();
-                    currentResolutionOfHistoryBuffer.x = historyRT.rt.width;
-                    currentResolutionOfHistoryBuffer.y = historyRT.rt.height;
-                    currentResolutionOfHistoryBuffer.z = historyRT.rt.volumeDepth;
-
-                    // We allow downsizing, as this does not cause a reallocation.
-                    bool validHistory = (currentResolutionOfHistoryBuffer.x <= m_PreviousResolutionOfHistoryBuffer.x &&
-                                         currentResolutionOfHistoryBuffer.y <= m_PreviousResolutionOfHistoryBuffer.y &&
-                                         currentResolutionOfHistoryBuffer.z <= m_PreviousResolutionOfHistoryBuffer.z);
-
-                    cmd.SetComputeIntParam(    m_VolumetricLightingCS,         HDShaderIDs._VBufferLightingHistoryIsValid, validHistory ? 1 : 0);
-                    cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,        historyRT);  // Read
-                    cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback,       feedbackRT); // Write
-
-                    m_PreviousResolutionOfHistoryBuffer = currentResolutionOfHistoryBuffer;
+                    cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting));// Read
+                    cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting)); // Write
                 }
 
                 int w = (int)resolution.x;

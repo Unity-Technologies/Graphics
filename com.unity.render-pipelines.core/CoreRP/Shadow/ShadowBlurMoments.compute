@@ -78,7 +78,7 @@
 #pragma kernel main_MSAA_MSM_17         KERNEL_MAIN=main_MSAA_MSM_17    SHADOW_MOMENT_ALGORITHM=MSM         MAX_MSAA=8  BLUR_SIZE=17
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
-#include "HDRP/ShaderLibrary/Shadow/ShadowMoments.hlsl"
+#include "CoreRP/ShaderLibrary/Shadow/ShadowMoments.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 

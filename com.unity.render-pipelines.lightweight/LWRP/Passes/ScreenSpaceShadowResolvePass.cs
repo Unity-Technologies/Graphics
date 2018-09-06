@@ -27,8 +27,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             baseDescriptor.colorFormat = m_ColorFormat;
             descriptor = baseDescriptor;
         }
-        
-        /// <inheritdoc/>
+
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (renderingData.lightData.mainLightIndex == -1)
@@ -49,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTargetIdentifier screenSpaceOcclusionTexture = colorAttachmentHandle.Identifier();
             SetRenderTarget(cmd, screenSpaceOcclusionTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 ClearFlag.Color | ClearFlag.Depth, Color.white, descriptor.dimension);
-            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, renderer.GetMaterial(MaterialHandles.ScreenSpaceShadow));
+            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, renderer.GetMaterial(MaterialHandles.ScrenSpaceShadow));
 
             if (renderingData.cameraData.isStereoEnabled)
             {
@@ -63,7 +62,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)

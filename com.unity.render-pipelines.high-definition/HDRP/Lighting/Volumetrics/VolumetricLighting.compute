@@ -60,11 +60,9 @@ TEXTURE3D(_VBufferDensity);                     // RGB = sqrt(scattering), A = s
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
     float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
-    float4   _VBufferSampleOffset;
-    float4   _VolumeMaskDimensions;             // Not used by this shader
-    uint     _NumVisibleDensityVolumes;         // Not used by this shader
-    float    _CornetteShanksConstant;
-    uint     _VBufferLightingHistoryIsValid;
+    float4   _VBufferSampleOffset;              // Not used by this shader
+    float    _CornetteShanksConstant;           // Not used by this shader
+    uint     _NumVisibleDensityVolumes;
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -538,17 +536,11 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float  ds              = ConvertJitterDistToCenterRayDist(ray, dt);
         float  centerTransmInt = TransmittanceIntegralHomogeneousMedium(extinction, ds);
 
-        float3 blendedRadiance = lighting.radianceNoPhase;
-
-        bool reprojSuccess = (_VBufferLightingHistoryIsValid != 0) && (reprojValue.a != 0);
-
-        if (reprojSuccess)
-        {
-            float  reprojScale    = centerTransmInt * rcp(reprojValue.a);
-            float3 reprojRadiance = reprojValue.rgb * reprojScale;
-
-            blendedRadiance = lerp(lighting.radianceNoPhase, reprojRadiance, historyWeight);
-        }
+        bool   reprojSuccess   = reprojValue.a != 0;
+        float  blendFactor     = reprojSuccess ? historyWeight : 0;
+        float  reprojScale     = reprojSuccess ? (centerTransmInt * rcp(reprojValue.a)) : 0;
+        float3 reprojRadiance  = reprojValue.rgb;
+        float3 blendedRadiance = (1 - blendFactor) * lighting.radianceNoPhase + blendFactor * reprojScale * reprojRadiance;
 
         // Store the feedback for the voxel.
         // TODO: dynamic lights (which update their position, rotation, cookie or shadow at runtime)

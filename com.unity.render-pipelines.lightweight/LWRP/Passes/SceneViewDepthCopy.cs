@@ -12,8 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             this.source = source;
         }
-        
-        /// <inheritdoc/>
+
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Restore Render target for additional editor rendering.

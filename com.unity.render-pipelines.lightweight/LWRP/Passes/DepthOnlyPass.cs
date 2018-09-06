@@ -2,12 +2,6 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    /// <summary>
-    /// Render all objects that have a 'DepthOnly' pass into the given depth buffer.
-    ///
-    /// You can use this pass to prime a depth buffer for subsequent rendering.
-    /// Use it as a z-prepass, or use it to generate a depth buffer.
-    /// </summary>
     public class DepthOnlyPass : ScriptableRenderPass
     {
         const string k_DepthPrepassTag = "Depth Prepass";
@@ -15,24 +9,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         int kDepthBufferBits = 32;
 
         private RenderTargetHandle depthAttachmentHandle { get; set; }
-        internal RenderTextureDescriptor descriptor { get; private set; }
+        internal RenderTextureDescriptor descriptor { get; set; }
         private FilterRenderersSettings opaqueFilterSettings { get; set; }
 
-        /// <summary>
-        /// Create the DepthOnlyPass
-        /// </summary>
-        public DepthOnlyPass()
-        {
-            RegisterShaderPassName("DepthOnly");
-            opaqueFilterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = RenderQueueRange.opaque,
-            };
-        }
-        
-        /// <summary>
-        /// Configure the pass
-        /// </summary>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle depthAttachmentHandle,
@@ -51,7 +30,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             descriptor = baseDescriptor;
         }
 
-        /// <inheritdoc/>
+        public DepthOnlyPass()
+        {
+            RegisterShaderPassName("DepthOnly");
+            opaqueFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.opaque,
+            };
+        }
+
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_DepthPrepassTag);
@@ -70,8 +57,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawRendererSettings(renderingData.cameraData.camera, sortFlags, RendererConfiguration.None, renderingData.supportsDynamicBatching);
+                var drawSettings = CreateDrawRendererSettings(renderingData.cameraData.camera, SortFlags.CommonOpaque, RendererConfiguration.None, renderingData.supportsDynamicBatching);
                 if (renderingData.cameraData.isStereoEnabled)
                 {
                     Camera camera = renderingData.cameraData.camera;
@@ -86,7 +72,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (depthAttachmentHandle != RenderTargetHandle.CameraTarget)

@@ -21,7 +21,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         GBuffer,
         DBufferRender,
         DBufferPrepareDrawData,
-        DBufferNormal,
         DisplayDebugDecalsAtlas,
         DisplayDebugViewMaterial,
         DebugViewMaterialGBuffer,

@@ -340,7 +340,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);

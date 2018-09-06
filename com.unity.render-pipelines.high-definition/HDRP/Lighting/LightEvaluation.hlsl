@@ -237,7 +237,7 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
 
     float3x3 worldToIS = WorldToInfluenceSpace(lightData); // IS: Influence space
     float3 positionIS = WorldToInfluencePosition(lightData, worldToIS, positionWS);
-    float3 dirIS = normalize(mul(R, worldToIS));
+    float3 dirIS = mul(R, worldToIS);
 
     float3x3 worldToPS = WorldToProxySpace(lightData); // PS: Proxy space
     float3 positionPS = WorldToProxyPosition(lightData, worldToPS, positionWS);
@@ -346,7 +346,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
             // Note: we do not modify the distance to the light, or the light angle for the back face.
             // This is a performance-saving optimization which makes sense as long as the thickness is small.
         }
-
+        
         transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
     }
 
