@@ -234,18 +234,10 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         if (mask & DBUFFERHTILEBIT_MASK)
         {
 #ifdef DECALS_4RT // only smoothness in 3RT mode
-    #if !defined(UNITY_MATERIAL_FABRIC)
             surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSBlend.x + decalSurfaceData.mask.x;
-    #endif
 			surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
 #endif
-#if defined(UNITY_MATERIAL_STACKLIT)
-            surfaceData.perceptualSmoothnessA = surfaceData.perceptualSmoothnessA * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
-            surfaceData.perceptualSmoothnessB = surfaceData.perceptualSmoothnessB * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
-            surfaceData.coatPerceptualSmoothness = surfaceData.coatPerceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
-#else
             surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
-#endif
         }
     }
 }

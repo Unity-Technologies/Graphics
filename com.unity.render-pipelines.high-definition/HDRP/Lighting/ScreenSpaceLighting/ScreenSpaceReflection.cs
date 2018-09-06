@@ -34,9 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        int m_DeferredProjectionModel;
-
-        public LitProjectionModelParameter                 deferredProjectionModel = new LitProjectionModelParameter();
+        public ClampedFloatParameter minSmoothness = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
 
         protected override void FetchIDs(
             out int rayLevelID,
@@ -63,8 +61,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void PushShaderParameters(CommandBuffer cmd)
         {
-            base.PushShaderParameters(cmd);
-            cmd.SetGlobalInt(HDShaderIDs._SSReflectionProjectionModel, (int)deferredProjectionModel.value);
+            //base.PushShaderParameters(cmd);
+            //cmd.SetGlobalInt(HDShaderIDs._SSReflectionProjectionModel, (int)minSmoothness.value);
         }
     }
 }

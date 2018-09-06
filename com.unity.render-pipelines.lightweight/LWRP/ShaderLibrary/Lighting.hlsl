@@ -41,8 +41,9 @@ struct LightInput
 {
     float4  position;
     half3   color;
-    half4   distanceAndSpotAttenuation;
+    half4   distanceAttenuation;
     half4   spotDirection;
+    half4   spotAttenuation;
 };
 
 // Abstraction over Light shading data.
@@ -58,21 +59,32 @@ struct Light
 ///////////////////////////////////////////////////////////////////////////////
 //                        Attenuation Functions                               /
 ///////////////////////////////////////////////////////////////////////////////
+half CookieAttenuation(float3 worldPos)
+{
+#ifdef _MAIN_LIGHT_COOKIE
+#ifdef _MAIN_LIGHT_DIRECTIONAL
+    float2 cookieUV = mul(_WorldToLight, float4(worldPos, 1.0)).xy;
+    return SAMPLE_TEXTURE2D(_MainLightCookie, sampler_MainLightCookie, cookieUV).a;
+#elif defined(_MAIN_LIGHT_SPOT)
+    float4 projPos = mul(_WorldToLight, float4(worldPos, 1.0));
+    float2 cookieUV = projPos.xy / projPos.w + 0.5;
+    return SAMPLE_TEXTURE2D(_MainLightCookie, sampler_MainLightCookie, cookieUV).a;
+#endif // POINT LIGHT cookie not supported
+#endif
+
+    return 1;
+}
 
 // Matches Unity Vanila attenuation
 // Attenuation smoothly decreases to light range.
-half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
+half DistanceAttenuation(half distanceSqr, half3 distanceAttenuation)
 {
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
-    half lightAtten = 1.0h / distanceSqr;
+    half quadFalloff = distanceAttenuation.x;
+    half denom = distanceSqr * quadFalloff + 1.0h;
+    half lightAtten = 1.0h / denom;
 
-#if defined(SHADER_HINT_NICE_QUALITY)
-    // Use the smoothing factor also used in the Unity lightmapper.
-    half factor = distanceSqr * distanceAttenuation.x;
-    half smoothFactor = saturate(1.0h - factor * factor);
-    smoothFactor = smoothFactor * smoothFactor;
-#else
     // We need to smoothly fade attenuation to light range. We start fading linearly at 80% of light range
     // Therefore:
     // fadeDistance = (0.8 * 0.8 * lightRangeSq)
@@ -80,13 +92,11 @@ half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
     // We can rewrite that to fit a MAD by doing
     // distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
     // distanceSqr *        distanceAttenuation.y            +             distanceAttenuation.z
-    half smoothFactor = saturate(distanceSqr * distanceAttenuation.x + distanceAttenuation.y);
-#endif
-
+    half smoothFactor = saturate(distanceSqr * distanceAttenuation.y + distanceAttenuation.z);
     return lightAtten * smoothFactor;
 }
 
-half SpotAttenuation(half3 spotDirection, half3 lightDirection, half2 spotAttenuation)
+half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenuation)
 {
     // Spot Attenuation with a linear falloff can be defined as
     // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
@@ -108,8 +118,18 @@ half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
     float distanceSqr = max(dot(posToLightVec, posToLightVec), FLT_MIN);
 
     directionAndAttenuation.xyz = half3(posToLightVec * rsqrt(distanceSqr));
-    directionAndAttenuation.w = DistanceAttenuation(distanceSqr, lightInput.distanceAndSpotAttenuation.xy);
-    directionAndAttenuation.w *= SpotAttenuation(lightInput.spotDirection.xyz, directionAndAttenuation.xyz, lightInput.distanceAndSpotAttenuation.zw);
+    directionAndAttenuation.w = DistanceAttenuation(distanceSqr, lightInput.distanceAttenuation.xyz);
+    directionAndAttenuation.w *= SpotAttenuation(lightInput.spotDirection.xyz, directionAndAttenuation.xyz, lightInput.spotAttenuation);
+    return directionAndAttenuation;
+}
+
+half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
+{
+    half4 directionAndAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
+
+    // Cookies disabled for now due to amount of shader variants
+    //directionAndAttenuation.w *= CookieAttenuation(positionWS);
+
     return directionAndAttenuation;
 }
 
@@ -147,11 +167,11 @@ Light GetLight(half i, float3 positionWS)
     // dynamic indexing. Ideally we need to configure light data at a cluster of
     // objects granularity level. We will only be able to do that when scriptable culling kicks in.
     // TODO: Use StructuredBuffer on PC/Console and profile access speed on mobile that support it.
-    float4 positionAndSubtractiveLightMode = _AdditionalLightPosition[lightIndex];
-    lightInput.position = float4(positionAndSubtractiveLightMode.xyz, 1.);
+    lightInput.position = _AdditionalLightPosition[lightIndex];
     lightInput.color = _AdditionalLightColor[lightIndex].rgb;
-    lightInput.distanceAndSpotAttenuation = _AdditionalLightAttenuation[lightIndex];
+    lightInput.distanceAttenuation = _AdditionalLightDistanceAttenuation[lightIndex];
     lightInput.spotDirection = _AdditionalLightSpotDir[lightIndex];
+    lightInput.spotAttenuation = _AdditionalLightSpotAttenuation[lightIndex];
 
     half4 directionAndRealtimeAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
 
@@ -159,7 +179,7 @@ Light GetLight(half i, float3 positionWS)
     light.index = lightIndex;
     light.direction = directionAndRealtimeAttenuation.xyz;
     light.attenuation = directionAndRealtimeAttenuation.w;
-    light.subtractiveModeAttenuation = positionAndSubtractiveLightMode.w;
+    light.subtractiveModeAttenuation = lightInput.distanceAttenuation.w;
     light.color = lightInput.color;
 
     return light;
