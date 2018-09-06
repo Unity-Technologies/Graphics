@@ -18,11 +18,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportOnlyForward;
 
+        public SerializedProperty xrConfig;
+
         public SerializedProperty supportDecals;
         public SerializedProperty supportMSAA;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
-        public SerializedProperty supportStereo;
         public SerializedProperty supportRuntimeDebugDisplay;
         public SerializedProperty supportDitheringCrossFade;
 
@@ -44,11 +45,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             supportOnlyForward              = root.Find((RenderPipelineSettings s) => s.supportOnlyForward);
 
+            xrConfig                        = root.Find((RenderPipelineSettings s) => s.xrConfig);
+
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
             supportMSAA                     = root.Find((RenderPipelineSettings s) => s.supportMSAA);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
-            supportStereo                   = root.Find((RenderPipelineSettings s) => s.supportStereo);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
 
