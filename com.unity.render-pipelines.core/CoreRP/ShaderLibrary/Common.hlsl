@@ -234,9 +234,7 @@ void ToggleBit(inout uint data, uint offset)
 {
     data ^= 1u << offset;
 }
-
 #endif
-
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument's value must be the same across all lanes of the wave.
@@ -439,10 +437,27 @@ real3 Orthonormalize(real3 tangent, real3 normal)
     return normalize(tangent - dot(tangent, normal) * normal);
 }
 
-// Same as smoothstep except it assume 0, 1 interval for x
+// saturate((t - a) / (b - a)).
+real Remap01(real a, real b, real t)
+{
+    return saturate(t * rcp(b - a) - a * rcp(b - a));
+}
+
+// smoothstep that assumes that 'x' lies within the [0, 1] interval.
 real Smoothstep01(real x)
 {
-    return x * x * (3.0 - (2.0 * x));
+    return x * x * (3 - (2 * x));
+}
+
+real Smootherstep01(real x)
+{
+  return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
+real Smootherstep(real a, real b, real t)
+{
+    real x = Remap01(a, b, t);
+    return Smootherstep01(x);
 }
 
 real Pow4(real x)
@@ -481,10 +496,11 @@ float ComputeTextureLOD(float2 uv, float2 texelSize)
     return ComputeTextureLOD(uv);
 }
 
+// LOD clamp is optional and happens outside the function.
 float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale)
 {
     float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
-    return max(0.0, 0.5 * log2(d * (scale * scale)));
+    return 0.5 * log2(d * (scale * scale));
 }
 
 
@@ -817,6 +833,37 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 }
 
 // ----------------------------------------------------------------------------
+// Terrain/Brush heightmap encoding/decoding
+// ----------------------------------------------------------------------------
+
+#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
+
+real4 PackHeightmap(real height)
+{
+    uint a = (uint)(65535.0 * height);
+    return real4((a >> 0) & 0xFF, (a >> 8) & 0xFF, 0, 0) / 255.0;
+}
+
+real UnpackHeightmap(real4 height)
+{
+    return (height.r + height.g * 256.0) / 257.0; // (255.0 * height.r + 255.0 * 256.0 * height.g) / 65535.0
+}
+
+#else
+
+real4 PackHeightmap(real height)
+{
+    return real4(height, 0, 0, 0);
+}
+
+real UnpackHeightmap(real4 height)
+{
+    return height.r;
+}
+
+#endif
+
+// ----------------------------------------------------------------------------
 // Misc utilities
 // ----------------------------------------------------------------------------
 
@@ -831,6 +878,13 @@ real3 SafeNormalize(real3 inVec)
 {
     real dp3 = max(REAL_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
+}
+
+// Division which returns 1 for (inf/inf) and (0/0).
+// If any of the input parameters are NaNs, the result is a NaN.
+real SafeDiv(real numer, real denom)
+{
+    return (numer != denom) ? numer / denom : 1;
 }
 
 // Generates a triangle in homogeneous clip space, s.t.

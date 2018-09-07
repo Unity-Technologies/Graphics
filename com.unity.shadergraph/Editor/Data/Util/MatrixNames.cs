@@ -9,10 +9,8 @@ namespace UnityEditor.ShaderGraph
         public const string View = "UNITY_MATRIX_V";
         public const string ViewInverse = "UNITY_MATRIX_I_V";
         public const string Projection = "UNITY_MATRIX_P";
+        public const string ProjectionInverse = "UNITY_MATRIX_I_P";
         public const string ViewProjection = "UNITY_MATRIX_VP";
-        public const string ModelView = "UNITY_MATRIX_MV";
-        public const string ModelViewTransposed = "UNITY_MATRIX_T_MV";
-        public const string ModelViewInverseTransposed = "UNITY_MATRIX_IT_MV";
-        public const string ModelViewProjection = "UNITY_MATRIX_MVP";
+        public const string ViewProjectionInverse = "UNITY_MATRIX_I_VP";
     }
 }

@@ -1,7 +1,7 @@
 using UnityEditor.AnimatedValues;
 using UnityEngine.Events;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<FrameSettingsUI, SerializedFrameSettings>;
@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering
                     "XR Settings",
                     (s, p, o) => s.isSectionExpandedXRSettings,
                     FoldoutOption.Indent,
-                    CED.LabelWidth(200, CED.Action(Drawer_FieldStereoEnabled))));
+                    CED.LabelWidth(200, CED.Action(Drawer_XR))));
 
         public static CED.IDrawer SectionLightingSettings = CED.FoldoutGroup(
                 "Lighting Settings",
@@ -95,7 +95,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.enableTransparentPostpass, _.GetContent("Enable Transparent Postpass"));
             EditorGUILayout.PropertyField(p.enableMotionVectors, _.GetContent("Enable Motion Vectors"));
             EditorGUILayout.PropertyField(p.enableObjectMotionVectors, _.GetContent("Enable Object Motion Vectors"));
-            EditorGUILayout.PropertyField(p.enableDBuffer, _.GetContent("Enable DBuffer"));
+            EditorGUILayout.PropertyField(p.enableDecals, _.GetContent("Enable DBuffer"));
             EditorGUILayout.PropertyField(p.enableRoughRefraction, _.GetContent("Enable Rough Refraction"));
             EditorGUILayout.PropertyField(p.enableDistortion, _.GetContent("Enable Distortion"));
             EditorGUILayout.PropertyField(p.enablePostprocess, _.GetContent("Enable Postprocess"));
@@ -118,25 +118,28 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.enableOpaqueObjects, _.GetContent("Enable Opaque Objects"));
             EditorGUILayout.PropertyField(p.enableTransparentObjects, _.GetContent("Enable Transparent Objects"));
 
-            EditorGUILayout.PropertyField(p.enableMSAA, _.GetContent("Enable MSAA"));
+            // Hide for now as not supported
+            //EditorGUILayout.PropertyField(p.enableMSAA, _.GetContent("Enable MSAA"));
         }
 
-        static void Drawer_FieldStereoEnabled(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
+        static void Drawer_XR(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.enableStereo, _.GetContent("Enable Stereo"));
+            EditorGUILayout.PropertyField(p.xrGraphicsConfig, _.GetContent("XR Graphics Config"));
         }
 
         static void Drawer_SectionLightingSettings(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
         {
+            EditorGUILayout.PropertyField(p.enableShadow, _.GetContent("Enable Shadow"));
+            EditorGUILayout.PropertyField(p.enableContactShadow, _.GetContent("Enable Contact Shadows"));
+            EditorGUILayout.PropertyField(p.enableShadowMask, _.GetContent("Enable Shadow Masks"));
             EditorGUILayout.PropertyField(p.enableSSR, _.GetContent("Enable SSR"));
             EditorGUILayout.PropertyField(p.enableSSAO, _.GetContent("Enable SSAO"));
             EditorGUILayout.PropertyField(p.enableSubsurfaceScattering, _.GetContent("Enable Subsurface Scattering"));
             EditorGUILayout.PropertyField(p.enableTransmission, _.GetContent("Enable Transmission"));
             EditorGUILayout.PropertyField(p.enableAtmosphericScattering, _.GetContent("Enable Atmospheric Scattering"));
             EditorGUILayout.PropertyField(p.enableVolumetric, _.GetContent("    Enable Volumetric"));
-            EditorGUILayout.PropertyField(p.enableShadow, _.GetContent("Enable Shadow"));
-            EditorGUILayout.PropertyField(p.enableContactShadow, _.GetContent("Enable Contact Shadows"));
-            EditorGUILayout.PropertyField(p.enableShadowMask, _.GetContent("Enable Shadow Masks"));
+            EditorGUILayout.PropertyField(p.enableLightLayers, _.GetContent("Enable LightLayers"));
         }
     }
 }

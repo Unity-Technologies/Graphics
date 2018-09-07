@@ -5,10 +5,22 @@
 #include "VertMesh.hlsl"
 
 
+void MeshDecalsPositionZBias(inout VaryingsToPS input)
+{
+#if defined(UNITY_REVERSED_Z)
+	input.vmesh.positionCS.z -= _DecalMeshDepthBias * input.vmesh.positionCS.w;
+#else
+	input.vmesh.positionCS.z += _DecalMeshDepthBias * input.vmesh.positionCS.w;
+#endif
+}
+
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
+#if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+	MeshDecalsPositionZBias(varyingsType);
+#endif
     return PackVaryingsType(varyingsType);
 }
 
@@ -24,7 +36,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 	PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
-    positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
+    positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);
     clip(positionDS);       // clip negative value
     clip(1.0 - positionDS); // Clip value above one
 
@@ -33,7 +45,6 @@ void Frag(  PackedVaryingsToPS packedInput,
 	// have to do explicit test since compiler behavior is not defined for RW resources and discard instructions
 	if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
 	{
-
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 	GetSurfaceData(input, surfaceData);
 #endif
@@ -44,5 +55,6 @@ void Frag(  PackedVaryingsToPS packedInput,
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
     }
 #endif
+
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
 }

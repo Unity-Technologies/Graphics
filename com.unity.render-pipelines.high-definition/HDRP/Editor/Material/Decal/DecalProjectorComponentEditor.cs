@@ -9,6 +9,7 @@ using UnityEditor.IMGUI.Controls;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [CustomEditor(typeof(DecalProjectorComponent))]
+    [CanEditMultipleObjects]
     public class DecalProjectorComponentEditor : Editor
     {
         private MaterialEditor m_MaterialEditor = null;
@@ -19,47 +20,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private SerializedProperty m_UVScaleProperty;
         private SerializedProperty m_UVBiasProperty;
         private SerializedProperty m_AffectsTransparencyProperty;
+        private SerializedProperty m_Size;
+        private SerializedProperty m_IsCropModeEnabledProperty;
 
-        public class DecalBoundsHandle : BoxBoundsHandle
-        {
-            protected override Bounds OnHandleChanged(HandleDirection handle, Bounds boundsOnClick, Bounds newBounds)
-            {
-                // special case for Y axis because decal mesh is centered at 0, -0.5, 0
-                if (handle == HandleDirection.NegativeY)
-                {
-                    m_Translation = Vector3.zero;
-                    m_Scale = newBounds.size;
-                }
-                else if (handle == HandleDirection.PositiveY)
-                {
-                    m_Translation = (newBounds.center + newBounds.extents - (m_Center + 0.5f * m_Size));
-                    m_Scale = (m_Size + m_Translation);
-                }
-                else
-                {
-                    m_Translation = newBounds.center - m_Center;
-                    m_Scale = newBounds.size;
-                }
-                return newBounds;
-            }
-
-            public void SetSizeAndCenter(Vector3 inSize, Vector3 inCenter)
-            {
-                // boundsOnClick implies that it gets refreshed only if the handle is clicked on again, but we need actual center and scale which we set before handle is drawn every frame
-                m_Center = inCenter;
-                m_Size = inSize;
-                center = inCenter;
-                size = inSize;
-            }
-
-            private Vector3 m_Center;
-            private Vector3 m_Size;
-
-            public Vector3 m_Translation;
-            public Vector3 m_Scale;
-        }
-
-        private DecalBoundsHandle m_Handle = new DecalBoundsHandle();
+        private DecalProjectorComponentHandle m_Handle = new DecalProjectorComponentHandle();
 
         private void OnEnable()
         {
@@ -73,11 +37,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_UVScaleProperty = serializedObject.FindProperty("m_UVScale");
             m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
+            m_Size = serializedObject.FindProperty("m_Size");
+            m_IsCropModeEnabledProperty = serializedObject.FindProperty("m_IsCropModeEnabled");
         }
 
         private void OnDisable()
         {
             m_DecalProjectorComponent.OnMaterialChange -= OnMaterialChange;
+        }
+
+        private void OnDestroy()
+        {
+            DestroyImmediate(m_MaterialEditor);
         }
 
         public void OnMaterialChange()
@@ -88,23 +59,58 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void OnSceneGUI()
         {
-            EditorGUI.BeginChangeCheck();
             var mat = Handles.matrix;
             var col = Handles.color;
 
             Handles.color = Color.white;
-            // decal mesh is centered at (0, -0.5, 0)
-            // zero out the local scale in the matrix so that handle code gives us back the actual scale
-            Handles.matrix = Matrix4x4.TRS(m_DecalProjectorComponent.transform.position, m_DecalProjectorComponent.transform.rotation, Vector3.one) * Matrix4x4.Translate(new Vector3(0.0f, -0.5f * m_DecalProjectorComponent.transform.localScale.y, 0.0f));
-            // pass in the scale
-            m_Handle.SetSizeAndCenter(m_DecalProjectorComponent.transform.localScale, Vector3.zero);
+            Handles.matrix = m_DecalProjectorComponent.transform.localToWorldMatrix;
+            m_Handle.center = m_DecalProjectorComponent.m_Offset;
+            m_Handle.size = m_DecalProjectorComponent.m_Size;
+
+            Vector3 boundsSizePreviousOS = m_Handle.size;
+            Vector3 boundsMinPreviousOS = m_Handle.size * -0.5f + m_Handle.center;
+
+            EditorGUI.BeginChangeCheck();
             m_Handle.DrawHandle();
             if (EditorGUI.EndChangeCheck())
             {
-                // adjust decal transform if handle changed
-                m_DecalProjectorComponent.transform.Translate(m_Handle.m_Translation);
-                m_DecalProjectorComponent.transform.localScale = m_Handle.m_Scale;
-                Repaint();
+                // Adjust decal transform if handle changed.
+                Undo.RecordObject(m_DecalProjectorComponent, "Decal Projector Change");
+
+                m_DecalProjectorComponent.m_Size = m_Handle.size;
+                m_DecalProjectorComponent.m_Offset = m_Handle.center;
+
+                Vector3 boundsSizeCurrentOS = m_Handle.size;
+                Vector3 boundsMinCurrentOS = m_Handle.size * -0.5f + m_Handle.center;
+
+                if (m_DecalProjectorComponent.m_IsCropModeEnabled)
+                {
+                    // Treat decal projector bounds as a crop tool, rather than a scale tool.
+                    // Compute a new uv scale and bias terms to pin decal projection pixels in world space, irrespective of projector bounds.
+                    m_DecalProjectorComponent.m_UVScale.x *= Mathf.Max(1e-5f, boundsSizeCurrentOS.x) / Mathf.Max(1e-5f, boundsSizePreviousOS.x);
+                    m_DecalProjectorComponent.m_UVScale.y *= Mathf.Max(1e-5f, boundsSizeCurrentOS.z) / Mathf.Max(1e-5f, boundsSizePreviousOS.z);
+
+                    m_DecalProjectorComponent.m_UVBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(1e-5f, boundsSizeCurrentOS.x) * m_DecalProjectorComponent.m_UVScale.x;
+                    m_DecalProjectorComponent.m_UVBias.y += (boundsMinCurrentOS.z - boundsMinPreviousOS.z) / Mathf.Max(1e-5f, boundsSizeCurrentOS.z) * m_DecalProjectorComponent.m_UVScale.y;
+                }
+            }
+
+            // Automatically recenter our transform component if necessary.
+            // In order to correctly handle world-space snapping, we only perform this recentering when the user is no longer interacting with the gizmo.
+            if ((GUIUtility.hotControl == 0) && (m_DecalProjectorComponent.m_Offset != Vector3.zero))
+            {
+                // Both the DecalProjectorComponent, and the transform will be modified.
+                // The undo system will automatically group all RecordObject() calls here into a single action.
+                Undo.RecordObject(m_DecalProjectorComponent.transform, "Decal Projector Change");
+
+                // Re-center the transform to the center of the decal projector bounds,
+                // while maintaining the world-space coordinates of the decal projector boundings vertices.
+                m_DecalProjectorComponent.transform.Translate(
+                    Vector3.Scale(m_DecalProjectorComponent.m_Offset, m_DecalProjectorComponent.transform.localScale),
+                    Space.Self
+                );
+
+                m_DecalProjectorComponent.m_Offset = Vector3.zero;
             }
 
             Handles.matrix = mat;
@@ -114,13 +120,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_IsCropModeEnabledProperty, new GUIContent("Crop Decal with Gizmo"));
 
+            EditorGUILayout.PropertyField(m_Size);
             EditorGUILayout.PropertyField(m_MaterialProperty);
             EditorGUILayout.PropertyField(m_DrawDistanceProperty);
             EditorGUILayout.Slider(m_FadeScaleProperty, 0.0f, 1.0f, new GUIContent("Fade scale"));
             EditorGUILayout.PropertyField(m_UVScaleProperty);
             EditorGUILayout.PropertyField(m_UVBiasProperty);
             EditorGUILayout.PropertyField(m_AffectsTransparencyProperty);
+
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();

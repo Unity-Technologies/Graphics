@@ -1,39 +1,29 @@
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    public class PlanarReflectionProbe : MonoBehaviour
+    public class PlanarReflectionProbe : HDProbe, ISerializationCallbackReceiver
     {
+        const int currentVersion = 2;
+
+        [SerializeField, FormerlySerializedAs("version")]
+        int m_Version;
+
         public enum CapturePositionMode
         {
             Static,
-            MirrorCamera
+            MirrorCamera,
         }
 
         [SerializeField]
-        ReflectionProxyVolumeComponent m_ProxyVolumeReference;
-        [SerializeField]
-        InfluenceVolume m_InfluenceVolume = new InfluenceVolume();
-        [SerializeField]
         Vector3 m_CaptureLocalPosition;
-        [SerializeField]
-        [FormerlySerializedAsAttribute("m_Dimmer")]
-        float m_Multiplier = 1.0f;
-        [SerializeField]
-        [Range(0.0f, 1.0f)]
-        float m_Weight = 1.0f;
-        [SerializeField]
-        ReflectionProbeMode m_Mode = ReflectionProbeMode.Baked;
-        [SerializeField]
-        ReflectionProbeRefreshMode m_RefreshMode = ReflectionProbeRefreshMode.OnAwake;
         [SerializeField]
         Texture m_CustomTexture;
         [SerializeField]
         Texture m_BakedTexture;
-        [SerializeField]
-        FrameSettings m_FrameSettings;
         [SerializeField]
         float m_CaptureNearPlane = 1;
         [SerializeField]
@@ -50,20 +40,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(0, 180)]
         float m_FieldOfViewOverride = 90;
 
-        RenderTexture m_RealtimeTexture;
-
         public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
         public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 
-        public ReflectionProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
-        public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
-        public BoundingSphere boundingSphere { get { return m_InfluenceVolume.GetBoundingSphereAt(transform); } }
+        public BoundingSphere boundingSphere { get { return influenceVolume.GetBoundingSphereAt(transform); } }
 
         public Texture texture
         {
             get
             {
-                switch (m_Mode)
+                switch (mode)
                 {
                     default:
                     case ReflectionProbeMode.Baked:
@@ -75,11 +61,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-        public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
+        public Bounds bounds { get { return influenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
-        public float weight { get { return m_Weight; } }
-        public float multiplier { get { return m_Multiplier; } }
-        public ReflectionProbeMode mode { get { return m_Mode; } }
         public Matrix4x4 influenceToWorld
         {
             get
@@ -95,9 +78,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }
         public Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; }}
-        public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
-        public ReflectionProbeRefreshMode refreshMode { get { return m_RefreshMode; } }
-        public FrameSettings frameSettings { get { return m_FrameSettings; } }
         public float captureNearPlane { get { return m_CaptureNearPlane; } }
         public float captureFarPlane { get { return m_CaptureFarPlane; } }
         public CapturePositionMode capturePositionMode { get { return m_CapturePositionMode; } }
@@ -119,30 +99,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.transform.localToWorldMatrix
+                return proxyVolume != null
+                    ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
                     : influenceToWorld;
             }
         }
-        public ShapeType proxyShape
+        public ProxyShape proxyShape
         {
             get
             {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.proxyVolume.shapeType
-                    : influenceVolume.shapeType;
+                return proxyVolume != null
+                    ? proxyVolume.proxyVolume.shape
+                    : (ProxyShape)influenceVolume.shape;
             }
         }
         public Vector3 proxyExtents
         {
             get
             {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.proxyVolume.extents
-                    : influenceVolume.boxBaseSize;
+                return proxyVolume != null
+                    ? proxyVolume.proxyVolume.extents
+                    : influenceVolume.boxSize;
             }
         }
-        public bool infiniteProjection { get { return m_ProxyVolumeReference != null && m_ProxyVolumeReference.proxyVolume.infiniteProjection; } }
 
         public bool useMirrorPlane
         {
@@ -178,6 +157,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (isActiveAndEnabled)
                 ReflectionSystem.RegisterProbe(this);
+        }
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            Assert.IsNotNull(influenceVolume, "influenceVolume must have an instance at this point. See HDProbe.Awake()");
+            if (m_Version != currentVersion)
+            {
+                // Add here data migration code
+                if(m_Version < 2)
+                {
+                    influenceVolume.MigrateOffsetSphere();
+                }
+                m_Version = currentVersion;
+            }
+
+            influenceVolume.boxBlendNormalDistanceNegative = Vector3.zero;
+            influenceVolume.boxBlendNormalDistancePositive = Vector3.zero;
         }
     }
 }

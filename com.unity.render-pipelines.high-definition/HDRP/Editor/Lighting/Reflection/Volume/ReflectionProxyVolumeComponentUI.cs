@@ -43,14 +43,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ProxyVolumeUI.DrawHandles_EditBase(target.transform, target.proxyVolume, ui.proxyVolume, target);
         }
 
-        public static void DrawHandles_EditNone(ReflectionProxyVolumeComponentUI ui, ReflectionProxyVolumeComponent target)
+        public static void DrawGizmos_EditNone(ReflectionProxyVolumeComponent target)
         {
-            ProxyVolumeUI.DrawHandles_EditNone(target.transform, target.proxyVolume, ui.proxyVolume, target);
-        }
-
-        public static void DrawGizmos_EditNone(ReflectionProxyVolumeComponentUI ui, ReflectionProxyVolumeComponent target)
-        {
-            ProxyVolumeUI.DrawGizmos_EditNone(target.transform, target.proxyVolume, ui.proxyVolume, target);
+            ProxyVolumeUI.DrawGizmos(target.transform, target.proxyVolume);
         }
     }
 }

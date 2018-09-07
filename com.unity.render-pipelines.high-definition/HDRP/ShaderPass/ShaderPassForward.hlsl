@@ -45,7 +45,8 @@ void Frag(PackedVaryingsToPS packedInput,
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 #else
-    float3 V = 0; // Avoid the division by 0
+    // Unused
+    float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
 #endif
 
     SurfaceData surfaceData;
@@ -80,12 +81,8 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
         float3 diffuseLighting;
         float3 specularLighting;
-        BakeLightingData bakeLightingData;
-        bakeLightingData.bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
-#ifdef SHADOWS_SHADOWMASK
-        bakeLightingData.bakeShadowMask = float4(builtinData.shadowMask0, builtinData.shadowMask1, builtinData.shadowMask2, builtinData.shadowMask3);
-#endif
-        LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
+
+        LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
 #ifdef OUTPUT_SPLIT_LIGHTING
         if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))

@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Object = UnityEngine.Object;
+using System.Linq;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -13,16 +14,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     [CustomEditorForRenderPipeline(typeof(PlanarReflectionProbe), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    class PlanarReflectionProbeEditor : Editor
+    class PlanarReflectionProbeEditor : HDProbeEditor
     {
-        static Dictionary<PlanarReflectionProbe, PlanarReflectionProbeUI> s_StateMap = new Dictionary<PlanarReflectionProbe, PlanarReflectionProbeUI>();
-        const float k_PreviewHeight = 128;
-
-        public static bool TryGetUIStateFor(PlanarReflectionProbe p, out PlanarReflectionProbeUI r)
-        {
-            return s_StateMap.TryGetValue(p, out r);
-        }
-
         [DidReloadScripts]
         static void DidReloadScripts()
         {
@@ -33,69 +26,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        SerializedPlanarReflectionProbe m_SerializedAsset;
-        PlanarReflectionProbeUI m_UIState = new PlanarReflectionProbeUI();
-        PlanarReflectionProbeUI[] m_UIHandleState;
-        PlanarReflectionProbe[] m_TypedTargets;
-
-        List<Texture> m_PreviewedTextures = new List<Texture>();
-
-        void OnEnable()
+        internal override HDProbe GetTarget(Object editorTarget)
         {
-            m_SerializedAsset = new SerializedPlanarReflectionProbe(serializedObject);
-            m_UIState.Reset(m_SerializedAsset, Repaint);
-
-            m_TypedTargets = new PlanarReflectionProbe[targets.Length];
-            m_UIHandleState = new PlanarReflectionProbeUI[m_TypedTargets.Length];
-            for (var i = 0; i < m_TypedTargets.Length; i++)
-            {
-                m_TypedTargets[i] = (PlanarReflectionProbe)targets[i];
-                m_UIHandleState[i] = new PlanarReflectionProbeUI();
-                m_UIHandleState[i].Reset(m_SerializedAsset, null);
-
-                s_StateMap[m_TypedTargets[i]] = m_UIHandleState[i];
-            }
+            return editorTarget as HDProbe;
         }
 
-        void OnDisable()
+        protected override void Draw(HDProbeUI s, SerializedHDProbe serialized, Editor owner)
         {
-            for (var i = 0; i < m_TypedTargets.Length; i++)
-                s_StateMap.Remove(m_TypedTargets[i]);
+            PlanarReflectionProbeUI.Inspector.Draw(s, serialized, owner);
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnEnable()
         {
-            var s = m_UIState;
-            var d = m_SerializedAsset;
-            var o = this;
+            m_SerializedHDProbe = new SerializedPlanarReflectionProbe(serializedObject);
+            base.OnEnable();
 
-            s.Update();
-            d.Update();
-
-            PlanarReflectionProbeUI.Inspector.Draw(s, d, o);
-
-            d.Apply();
+            PlanarReflectionProbe probe = (PlanarReflectionProbe)target;
+            probe.influenceVolume.Init(probe);
         }
 
-        void OnSceneGUI()
+        protected override void OnSceneGUI()
         {
-            for (var i = 0; i < m_TypedTargets.Length; i++)
-            {
-                m_UIHandleState[i].Update();
-                m_UIHandleState[i].influenceVolume.showInfluenceHandles = m_UIState.influenceVolume.isSectionExpandedShape.target;
-                m_UIHandleState[i].showCaptureHandles = m_UIState.isSectionExpandedCaptureSettings.target;
-                PlanarReflectionProbeUI.DrawHandles(m_UIHandleState[i], m_TypedTargets[i], this);
-            }
+            base.OnSceneGUI();
 
             SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
         }
 
+
+        const float k_PreviewHeight = 128;
+        List<Texture> m_PreviewedTextures = new List<Texture>();
+
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
             var previewSize = new Rect();
-            for (var i = 0; i < m_TypedTargets.Length; i++)
+            foreach(PlanarReflectionProbe p in m_TypedTargets)
             {
-                var p = m_TypedTargets[i];
                 if (p.texture == null)
                     continue;
 
@@ -111,9 +76,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (Event.current.type == EventType.Repaint)
             {
                 var c = new Rect(cameraRect);
-                for (var i = 0; i < m_TypedTargets.Length; i++)
+                foreach(PlanarReflectionProbe p in m_TypedTargets)
                 {
-                    var p = m_TypedTargets[i];
                     if (p.texture == null)
                         continue;
 
@@ -130,9 +94,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override bool HasPreviewGUI()
         {
-            for (var i = 0; i < m_TypedTargets.Length; i++)
+            foreach(PlanarReflectionProbe p in m_TypedTargets)
             {
-                if (m_TypedTargets[i].texture != null)
+                if (p.texture != null)
                     return true;
             }
             return false;
@@ -146,14 +110,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
             m_PreviewedTextures.Clear();
-            for (var i = 0; i < m_TypedTargets.Length; i++)
-                m_PreviewedTextures.Add(m_TypedTargets[i].texture);
+            foreach (PlanarReflectionProbe p in m_TypedTargets)
+            {
+                m_PreviewedTextures.Add(p.texture);
+            }
 
             var space = Vector2.one;
             var rowSize = Mathf.CeilToInt(Mathf.Sqrt(m_PreviewedTextures.Count));
             var size = r.size / rowSize - space * (rowSize - 1);
 
-            for (var i = 0; i < m_TypedTargets.Length; i++)
+            for (var i = 0; i < m_PreviewedTextures.Count; i++)
             {
                 var row = i / rowSize;
                 var col = i % rowSize;

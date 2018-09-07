@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -25,18 +26,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if ((showedHandle & HandleType.Influence) != 0)
                 DrawGizmos_FadeHandle(
                     s, d, matrix,
-                    d.boxInfluenceOffset, d.boxInfluenceSizeOffset,
-                    d.sphereInfluenceRadiusOffset,
+                    d.boxBlendOffset, d.boxBlendSize,
+                    -d.sphereBlendDistance,
                     (editedHandle & HandleType.Influence) != 0,
-                    k_GizmoThemeColorInfluence);
+                    k_GizmoThemeColorInfluence,
+                    false);
 
             if ((showedHandle & HandleType.InfluenceNormal) != 0)
                 DrawGizmos_FadeHandle(
                     s, d, matrix,
-                    d.boxInfluenceNormalOffset, d.boxInfluenceNormalSizeOffset,
-                    d.sphereInfluenceNormalRadiusOffset,
+                    d.boxBlendNormalOffset, d.boxBlendNormalSize,
+                    -d.sphereBlendNormalDistance,
                     (editedHandle & HandleType.InfluenceNormal) != 0,
-                    k_GizmoThemeColorInfluenceNormal);
+                    k_GizmoThemeColorInfluenceNormal,
+                    true);
         }
 
         static void DrawGizmos_BaseHandle(
@@ -47,22 +50,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var c = Gizmos.color;
             Gizmos.matrix = matrix;
             Gizmos.color = color;
-            switch (d.shapeType)
+            switch (d.shape)
             {
-                case ShapeType.Box:
+                case InfluenceShape.Box:
                 {
-                    if (isSolid)
-                        Gizmos.DrawCube(d.boxBaseOffset, d.boxBaseSize);
-                    else
-                        Gizmos.DrawWireCube(d.boxBaseOffset, d.boxBaseSize);
+                    s.boxBaseHandle.center = d.offset;
+                    s.boxBaseHandle.size = d.boxSize;
+                    s.boxBaseHandle.DrawHull(isSolid);
                     break;
                 }
-                case ShapeType.Sphere:
+                case InfluenceShape.Sphere:
                 {
                     if (isSolid)
-                        Gizmos.DrawSphere(d.sphereBaseOffset, d.sphereBaseRadius);
+                        Gizmos.DrawSphere(d.offset, d.sphereRadius);
                     else
-                        Gizmos.DrawWireSphere(d.sphereBaseOffset, d.sphereBaseRadius);
+                        Gizmos.DrawWireSphere(d.offset, d.sphereRadius);
                     break;
                 }
             }
@@ -74,28 +76,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix,
             Vector3 boxOffset, Vector3 boxSizeOffset,
             float sphereOffset,
-            bool isSolid, Color color)
+            bool isSolid, Color color, bool isNormal)
         {
             var mat = Gizmos.matrix;
             var c = Gizmos.color;
             Gizmos.matrix = matrix;
             Gizmos.color = color;
-            switch (d.shapeType)
+            switch (d.shape)
             {
-                case ShapeType.Box:
+                case InfluenceShape.Box:
                 {
-                    if (isSolid)
-                        Gizmos.DrawCube(d.boxBaseOffset + boxOffset, d.boxBaseSize + boxSizeOffset);
-                    else
-                        Gizmos.DrawWireCube(d.boxBaseOffset + boxOffset, d.boxBaseSize + boxSizeOffset);
+                    Gizmo6FacesBox refBox = isNormal ? s.boxInfluenceNormalHandle : s.boxInfluenceHandle;
+                    refBox.center = d.offset + boxOffset;
+                    refBox.size = d.boxSize + boxSizeOffset;
+                    refBox.DrawHull(isSolid);
                     break;
                 }
-                case ShapeType.Sphere:
+                case InfluenceShape.Sphere:
                 {
                     if (isSolid)
-                        Gizmos.DrawSphere(d.sphereBaseOffset, d.sphereBaseRadius + sphereOffset);
+                        Gizmos.DrawSphere(d.offset, d.sphereRadius + sphereOffset);
                     else
-                        Gizmos.DrawWireSphere(d.sphereBaseOffset, d.sphereBaseRadius + sphereOffset);
+                        Gizmos.DrawWireSphere(d.offset, d.sphereRadius + sphereOffset);
                     break;
                 }
             }

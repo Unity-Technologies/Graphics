@@ -1,19 +1,22 @@
 {
     "name": "HDRP_Tests_Editor",
     "references": [
-        "com.unity.postprocessing.Editor",
-        "com.unity.render-pipelines.core.Editor",
-        "com.unity.render-pipelines.high-defintion.Editor",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Editor",
+        "Unity.Postprocessing.Runtime",
         "HDRP_Tests",
-        "com.unity.postprocessing.Runtime",
-        "com.unity.render-pipelines.core.IncludePaths",
-        "com.unity.render-pipelines.core.Runtime",
-        "com.unity.render-pipelines.high-definition.Runtime"
+        "Unity.Postprocessing.Editor",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Editor"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
 }
