@@ -587,8 +587,7 @@ real4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     #ifndef USE_KARIS_APPROXIMATION
         // The choice of the Fresnel factor does not appear to affect the result.
         real F = 1; // F_Schlick(F0, LdotH);
-        real V = V_SmithJointGGX(NdotL, NdotV, roughness, partLambdaV);
-        real G = V * NdotL * NdotV; // 4 cancels out
+        real G = V_SmithJointGGX(NdotL, NdotV, roughness, partLambdaV) * NdotL * NdotV; // 4 cancels out
 
         lightInt += F * G * val;
         cbsdfInt += F * G;

@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "XR Settings",
                     (s, p, o) => s.isSectionExpandedXRSettings,
                     FoldoutOption.Indent,
-                    CED.LabelWidth(200, CED.Action(Drawer_FieldStereoEnabled))));
+                    CED.LabelWidth(200, CED.Action(Drawer_XR))));
 
         public static CED.IDrawer SectionLightingSettings = CED.FoldoutGroup(
                 "Lighting Settings",
@@ -122,9 +122,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //EditorGUILayout.PropertyField(p.enableMSAA, _.GetContent("Enable MSAA"));
         }
 
-        static void Drawer_FieldStereoEnabled(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
+        static void Drawer_XR(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.enableStereo, _.GetContent("Enable Stereo"));
+            EditorGUILayout.PropertyField(p.xrGraphicsConfig, _.GetContent("XR Graphics Config"));
         }
 
         static void Drawer_SectionLightingSettings(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
