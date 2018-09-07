@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // Lighting
         public bool supportShadowMask = true;
-        public bool supportSSR = true;
+        public bool supportSSR = false;
         public bool supportSSAO = true;
         public bool supportSubsurfaceScattering = true;
         public bool increaseSssSampleCount = false;
@@ -38,9 +38,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportMSAA = false;
         public MSAASamples  msaaSampleCount = MSAASamples.None;
         public bool supportMotionVectors = true;
-        public bool supportStereo = false;
         public bool supportRuntimeDebugDisplay = true;
         public bool supportDitheringCrossFade = true;
+
+        public XRGraphicsConfig xrConfig = XRGraphicsConfig.s_DefaultXRConfig;
 
         public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
         public ShadowInitParameters     shadowInitParams = new ShadowInitParameters();
