@@ -3,7 +3,7 @@
 //-------------------------------------------------------------------------------------
 
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
-#include "../MaterialUtilities.hlsl"
+#include "HDRP/Material/MaterialUtilities.hlsl"
 
 #include "TerrainLitSplatCommon.hlsl"
 
@@ -19,11 +19,12 @@ float4 _MainTex_MipInfo;
 // We don't use emission for terrain
 #define _EmissiveColor float3(0,0,0)
 #define _AlbedoAffectEmissive 0
-#include "../Lit/LitBuiltinData.hlsl"
+#include "HDRP/Material/Lit/LitBuiltinData.hlsl"
 #undef _EmissiveColor
 #undef _AlbedoAffectEmissive
 
-#include "../Decal/DecalUtilities.hlsl"
+#include "HDRP/Material/Decal/DecalUtilities.hlsl"
+#include "HDRP/Material/Lit/LitDecalData.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -92,8 +93,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         surfaceData.specularOcclusion = 1.0f;
 
 #if HAVE_DECALS
-    float alpha = 1;
-    AddDecalContribution(posInput, surfaceData, alpha);
+    if (_EnableDecals)
+    {
+        float alpha = 1.0; // unused
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+    }
 #endif
 
 #ifdef DEBUG_DISPLAY
