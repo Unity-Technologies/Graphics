@@ -6,9 +6,6 @@
     uint   _EnableSubsurfaceScattering; // Globally toggles subsurface and transmission scattering on/off
     float  _TexturingModeFlags;         // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
     float  _TransmissionFlags;          // 1 bit/profile; 0 = regular, 1 = thin
-    // Old SSS Model >>>
-    float4 _HalfRcpVariancesAndWeights[DIFFUSION_PROFILE_COUNT][2]; // 2x Gaussians in RGB, A is interpolation weights
-    // <<< Old SSS Model
     // Use float4 to avoid any packing issue between compute and pixel shaders
     float4  _ThicknessRemaps[DIFFUSION_PROFILE_COUNT];   // R: start, G = end - start, BA unused
     float4 _ShapeParams[DIFFUSION_PROFILE_COUNT];        // RGB = S = 1 / D, A = filter radius
