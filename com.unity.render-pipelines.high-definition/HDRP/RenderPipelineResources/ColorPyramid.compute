@@ -130,12 +130,13 @@ void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThr
 {
     // Upper-left pixel coordinate of quad that this thread will read
     int2 threadUL = (groupThreadId << 1) + (groupId << 3) - 4;
+    uint2 uthreadUL = uint2(max(0, threadUL));
 
     uint2 size = uint2(_Size.xy) - 1u;
-    float4 p00 = _Source[clamp(threadUL + uint2(0u, 0u), 0u, size)];
-    float4 p10 = _Source[clamp(threadUL + uint2(1u, 0u), 0u, size)];
-    float4 p11 = _Source[clamp(threadUL + uint2(1u, 1u), 0u, size)];
-    float4 p01 = _Source[clamp(threadUL + uint2(0u, 1u), 0u, size)];
+    float4 p00 = _Source[min(uthreadUL + uint2(0u, 0u), size)];
+    float4 p10 = _Source[min(uthreadUL + uint2(1u, 0u), size)];
+    float4 p11 = _Source[min(uthreadUL + uint2(1u, 1u), size)];
+    float4 p01 = _Source[min(uthreadUL + uint2(0u, 1u), size)];
 
     // Store the 4 downsampled pixels in LDS
     uint destIdx = groupThreadId.x + (groupThreadId.y << 4u);
@@ -160,10 +161,10 @@ void MAIN_DOWNSAMPLE(uint2 dispatchThreadId : SV_DispatchThreadID)
     uint2 offset = dispatchThreadId * 2u;
     uint2 size = uint2(_Size.xy) - 1u;
 
-    uint2 c00 = clamp(offset + uint2(0u, 0u), 0u, size);
-    uint2 c10 = clamp(offset + uint2(1u, 0u), 0u, size);
-    uint2 c11 = clamp(offset + uint2(1u, 1u), 0u, size);
-    uint2 c01 = clamp(offset + uint2(0u, 1u), 0u, size);
+    uint2 c00 = min(offset + uint2(0u, 0u), size);
+    uint2 c10 = min(offset + uint2(1u, 0u), size);
+    uint2 c11 = min(offset + uint2(1u, 1u), size);
+    uint2 c01 = min(offset + uint2(0u, 1u), size);
     float4 p00 = _Source[c00];
     float4 p10 = _Source[c10];
     float4 p11 = _Source[c11];
