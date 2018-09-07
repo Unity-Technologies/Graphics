@@ -99,30 +99,37 @@ namespace UnityEditor.VFX.Test
             var levels = new[] { CompressionLevel.None, CompressionLevel.Fastest };
             foreach (var level in levels)
             {
-                byte[][] data = new byte[vfxAssets.Count][];
-                long[] elapsedTimeCompression = new long[vfxAssets.Count];
-                long[] elapsedTimeDecompression = new long[vfxAssets.Count];
+                var data = new byte[vfxAssets.Count][];
+                var elapsedTimeCompression = new long[vfxAssets.Count];
+                var elapsedTimeDecompression = new long[vfxAssets.Count];
+                var watch = Enumerable.Repeat(0, vfxAssets.Count).Select(o => new Stopwatch()).ToArray();
+
                 uint processCount = 8;
                 for (int pass = 0; pass < processCount; ++pass)
                 {
                     for (int i = 0; i < vfxAssets.Count; ++i)
                     {
-                        var sw = Stopwatch.StartNew();
+                        var sw = watch[i];
+                        sw.Start();
                         var currentData = VFXMemorySerializer.StoreObjectsToByteArray(dependenciesPerAsset[i], level);
                         sw.Stop();
-                        elapsedTimeCompression[i] += sw.ElapsedMilliseconds;
+
+                        elapsedTimeCompression[i] = sw.ElapsedMilliseconds;
                         data[i] = currentData;
                     }
                 }
 
+                watch = Enumerable.Repeat(0, vfxAssets.Count).Select(o => new Stopwatch()).ToArray();
                 for (int pass = 0; pass < processCount; ++pass)
                 {
                     for (int i = 0; i < vfxAssets.Count; ++i)
                     {
-                        var sw = Stopwatch.StartNew();
+                        var sw = watch[i];
+                        sw.Start();
                         VFXMemorySerializer.ExtractObjects(data[i], false);
                         sw.Stop();
-                        elapsedTimeDecompression[i] += sw.ElapsedMilliseconds;
+
+                        elapsedTimeDecompression[i] = sw.ElapsedMilliseconds;
                     }
                 }
 
