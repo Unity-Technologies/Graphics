@@ -119,7 +119,7 @@ Shader "LightweightPipeline/Standard Unlit"
     #else
                 half3 normalWS = normalize(IN.normal);
     #endif
-                color += SAMPLE_GI(IN.lightmapUV, IN.vertexSH, normalWS);
+                color *= SAMPLE_GI(IN.lightmapUV, IN.vertexSH, normalWS);
 #endif
                 ApplyFog(color, IN.uv0AndFogCoord.z);
 
@@ -154,6 +154,27 @@ Shader "LightweightPipeline/Standard Unlit"
 
             #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
+            ENDHLSL
+        }
+
+        // This pass it not used during regular rendering, only for lightmap baking.
+        Pass
+        {
+            Name "Meta"
+            Tags{"LightMode" = "Meta"}
+
+            Cull Off
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma vertex LightweightVertexMeta
+            #pragma fragment LightweightFragmentMetaUnlit
+
+            #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassMetaUnlit.hlsl"
+
             ENDHLSL
         }
     }

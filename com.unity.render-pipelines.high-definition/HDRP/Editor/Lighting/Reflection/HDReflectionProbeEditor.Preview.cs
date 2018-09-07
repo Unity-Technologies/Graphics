@@ -1,6 +1,7 @@
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class HDReflectionProbeEditor
     {
@@ -12,10 +13,16 @@ namespace UnityEditor.Experimental.Rendering
                 return false;  // We only handle one preview for reflection probes
 
             // Ensure valid cube map editor (if possible)
-            if (ValidPreviewSetup())
+            Texture texture = GetTexture(this, target);
+            if (m_CubemapEditor != null && m_CubemapEditor.target as Texture != texture)
+            {
+                DestroyImmediate(m_CubemapEditor);
+                m_CubemapEditor = null;
+            }
+            if (ValidPreviewSetup() && m_CubemapEditor == null)
             {
                 Editor editor = m_CubemapEditor;
-                CreateCachedEditor(((ReflectionProbe)target).texture, typeof(HDCubemapInspector), ref editor);
+                CreateCachedEditor(GetTexture(this, target), typeof(HDCubemapInspector), ref editor);
                 m_CubemapEditor = editor as HDCubemapInspector;
             }
 
@@ -47,16 +54,36 @@ namespace UnityEditor.Experimental.Rendering
                 GUILayout.EndHorizontal();
                 return;
             }
-
-            var p = target as ReflectionProbe;
-            if (p != null && p.texture != null && targets.Length == 1)
+            
+            Texture tex = GetTexture(this, target);
+            if (tex != null && targets.Length == 1)
                 m_CubemapEditor.DrawPreview(position);
         }
 
         bool ValidPreviewSetup()
         {
-            var p = target as ReflectionProbe;
-            return p != null && p.texture != null;
+            return GetTexture(this, target) != null;
+        }
+
+        static Texture GetTexture(HDReflectionProbeEditor e, Object target)
+        {
+            HDProbe additional = e.GetTarget(target);
+            if (additional != null && additional.mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
+            {
+                return additional.realtimeTexture;
+            }
+            else
+            {
+                var p = target as ReflectionProbe;
+                if (p != null)
+                    return p.texture;
+            }
+            return null;
+        }
+
+        private void OnDestroy()
+        {
+            DestroyImmediate(m_CubemapEditor);
         }
     }
 }

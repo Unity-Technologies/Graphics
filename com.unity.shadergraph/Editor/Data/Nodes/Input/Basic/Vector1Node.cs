@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     public class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
-        private float m_Value;
+        private float m_Value = 0;
 
         const string kInputSlotXName = "X";
         const string kOutputSlotName = "Out";
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, InputSlotXId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var inputValue = GetSlotValue(InputSlotXId, generationMode);
             visitor.AddShaderChunk(precision + " " + GetVariableNameForSlot(OutputSlotId) + " = " + inputValue + ";", false);

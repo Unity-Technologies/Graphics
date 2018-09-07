@@ -53,7 +53,7 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 #endif
 
     inputData.viewDirectionWS = FragmentViewDirWS(viewDir);
-#ifdef _SHADOWS_ENABLED
+#if defined(_SHADOWS_ENABLED) && !defined(_RECEIVE_SHADOWS_OFF)
     inputData.shadowCoord = IN.shadowCoord;
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
@@ -106,7 +106,7 @@ LightweightVertexOutput LitPassVertexSimple(LightweightVertexInput v)
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-#ifdef _SHADOWS_ENABLED
+#if defined(_SHADOWS_ENABLED) && !defined(_RECEIVE_SHADOWS_OFF)
 #if SHADOWS_SCREEN
     o.shadowCoord = ComputeShadowCoord(o.clipPos);
 #else
@@ -140,7 +140,9 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
 
-    return LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
+    half4 color = LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
+    ApplyFog(color.rgb, inputData.fogCoord);
+    return color;
 };
 
 #endif

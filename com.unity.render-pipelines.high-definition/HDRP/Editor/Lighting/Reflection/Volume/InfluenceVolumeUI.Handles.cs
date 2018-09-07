@@ -3,222 +3,218 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Object = UnityEngine.Object;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class InfluenceVolumeUI
     {
-        public static void DrawHandles_EditBase(InfluenceVolumeUI s, InfluenceVolume d, Editor o, Matrix4x4 matrix, Object sourceAsset)
+        public static void DrawHandles_EditBase(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Matrix4x4 matrix, Object sourceAsset)
         {
-            var mat = Handles.matrix;
-            var c = Handles.color;
-            Handles.matrix = matrix;
-            Handles.color = k_GizmoThemeColorBase;
-            switch (d.shapeType)
+            using (new Handles.DrawingScope(k_GizmoThemeColorBase, matrix))
             {
-                case ShapeType.Box:
+                switch ((InfluenceShape)d.shape.intValue)
                 {
-                    var center = d.boxBaseOffset;
-                    var size = d.boxBaseSize;
-                    DrawBoxHandle(
-                        s, d, o, sourceAsset,
-                        s1 => s1.boxBaseHandle,
-                        ref center,
-                        ref size);
-                    d.boxBaseOffset = center;
-                    d.boxBaseSize = size;
-                    break;
-                }
-                case ShapeType.Sphere:
-                {
-                    var center = d.sphereBaseOffset;
-                    var radius = d.sphereBaseRadius;
-                    DrawSphereHandle(
-                        s, d, o, sourceAsset,
-                        s1 => s1.sphereBaseHandle,
-                        ref center,
-                        ref radius);
-                    d.sphereBaseOffset = center;
-                    d.sphereBaseRadius = radius;
-                    break;
+                    case InfluenceShape.Box:
+                        DrawBoxHandle(s, d, o, sourceAsset, s.boxBaseHandle);
+                        break;
+                    case InfluenceShape.Sphere:
+                        DrawSphereHandle(s, d, o, sourceAsset, s.sphereBaseHandle);
+                        break;
                 }
             }
-            Handles.matrix = mat;
-            Handles.color = c;
         }
 
-        public static void DrawHandles_EditInfluence(InfluenceVolumeUI s, InfluenceVolume d, Editor o, Matrix4x4 matrix, Object sourceAsset)
+        public static void DrawHandles_EditInfluence(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Matrix4x4 matrix, Object sourceAsset)
         {
-            var mat = Handles.matrix;
-            var c = Handles.color;
-            Handles.matrix = matrix;
-            Handles.color = k_GizmoThemeColorInfluence;
-            switch (d.shapeType)
+            using (new Handles.DrawingScope(k_GizmoThemeColorInfluence, matrix))
             {
-                case ShapeType.Box:
+                switch ((InfluenceShape)d.shape.intValue)
                 {
-                    var positive = d.boxInfluencePositiveFade;
-                    var negative = d.boxInfluenceNegativeFade;
-                    DrawBoxFadeHandle(
-                        s, d, o, sourceAsset,
-                        s1 => s1.boxInfluenceHandle,
-                        d.boxBaseOffset, d.boxBaseSize,
-                        ref positive,
-                        ref negative);
-                    d.boxInfluencePositiveFade = positive;
-                    d.boxInfluenceNegativeFade = negative;
-                    break;
-                }
-                case ShapeType.Sphere:
-                {
-                    var fade = d.sphereInfluenceFade;
-                    DrawSphereFadeHandle(
-                        s, d, o, sourceAsset,
-                        s1 => s1.sphereInfluenceHandle,
-                        d.sphereBaseOffset, d.sphereBaseRadius,
-                        ref fade);
-                    d.sphereInfluenceFade = fade;
-                    break;
+                    case InfluenceShape.Box:
+                        EditorGUI.BeginChangeCheck();
+                        DrawBoxFadeHandle(s, d, o, sourceAsset, s.boxInfluenceHandle, d.boxBlendDistancePositive, d.boxBlendDistanceNegative);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            //save advanced/simplified saved data
+                            if (d.editorAdvancedModeEnabled.boolValue)
+                            {
+                                d.editorAdvancedModeBlendDistancePositive.vector3Value = d.boxBlendDistancePositive.vector3Value;
+                                d.editorAdvancedModeBlendDistanceNegative.vector3Value = d.boxBlendDistanceNegative.vector3Value;
+                            }
+                            else
+                            {
+                                d.editorSimplifiedModeBlendDistance.floatValue = d.boxBlendDistancePositive.vector3Value.x;
+                            }
+                            d.Apply();
+                        }
+                        break;
+                    case InfluenceShape.Sphere:
+                        DrawSphereFadeHandle(s, d, o, sourceAsset, s.sphereInfluenceHandle, d.sphereBlendDistance);
+                        break;
                 }
             }
-            Handles.matrix = mat;
-            Handles.color = c;
         }
 
-        public static void DrawHandles_EditInfluenceNormal(InfluenceVolumeUI s, InfluenceVolume d, Editor o, Matrix4x4 matrix, Object sourceAsset)
+        public static void DrawHandles_EditInfluenceNormal(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Matrix4x4 matrix, Object sourceAsset)
         {
-            var mat = Handles.matrix;
-            var c = Handles.color;
-            Handles.matrix = matrix;
-            Handles.color = k_GizmoThemeColorInfluenceNormal;
-            switch (d.shapeType)
+            using (new Handles.DrawingScope(k_GizmoThemeColorInfluenceNormal, matrix))
             {
-                case ShapeType.Box:
+                switch ((InfluenceShape)d.shape.intValue)
                 {
-                    var positive = d.boxInfluenceNormalPositiveFade;
-                    var negative = d.boxInfluenceNormalNegativeFade;
-                    DrawBoxFadeHandle(
-                        s, d, o, sourceAsset,
-                        s1 => s1.boxInfluenceNormalHandle,
-                        d.boxBaseOffset, d.boxBaseSize,
-                        ref positive,
-                        ref negative);
-                    d.boxInfluenceNormalPositiveFade = positive;
-                    d.boxInfluenceNormalNegativeFade = negative;
-                    break;
-                }
-                case ShapeType.Sphere:
-                {
-                    var fade = d.sphereInfluenceNormalFade;
-                    DrawSphereFadeHandle(
-                        s, d, o, sourceAsset,
-                        s1 => s1.sphereInfluenceNormalHandle,
-                        d.sphereBaseOffset, d.sphereBaseRadius,
-                        ref fade);
-                    d.sphereInfluenceNormalFade = fade;
-                    break;
+                    case InfluenceShape.Box:
+                        EditorGUI.BeginChangeCheck();
+                        DrawBoxFadeHandle(s, d, o, sourceAsset, s.boxInfluenceNormalHandle, d.boxBlendNormalDistancePositive, d.boxBlendNormalDistanceNegative);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            //save advanced/simplified saved data
+                            if (d.editorAdvancedModeEnabled.boolValue)
+                            {
+                                d.editorAdvancedModeBlendNormalDistancePositive.vector3Value = d.boxBlendNormalDistancePositive.vector3Value;
+                                d.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = d.boxBlendNormalDistanceNegative.vector3Value;
+                            }
+                            else
+                            {
+                                d.editorSimplifiedModeBlendNormalDistance.floatValue = d.boxBlendNormalDistancePositive.vector3Value.x;
+                            }
+                            d.Apply();
+                        }
+                        break;
+                    case InfluenceShape.Sphere:
+                        DrawSphereFadeHandle(s, d, o, sourceAsset, s.sphereInfluenceNormalHandle, d.sphereBlendNormalDistance);
+                        break;
                 }
             }
-            Handles.matrix = mat;
-            Handles.color = c;
         }
 
-        static void DrawBoxHandle(
-            InfluenceVolumeUI s, InfluenceVolume d, Editor o, Object sourceAsset,
-            Func<InfluenceVolumeUI, BoxBoundsHandle> boundsGetter,
-            ref Vector3 center, ref Vector3 size)
+        static void DrawBoxHandle(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Object sourceAsset, Gizmo6FacesBox box)
         {
-            var b = boundsGetter(s);
-            b.center = center;
-            b.size = size;
+            box.center = d.offset.vector3Value;
+            box.size = d.boxSize.vector3Value;
 
             EditorGUI.BeginChangeCheck();
-            b.DrawHandle();
+            box.DrawHandle();
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(sourceAsset, "Modified Base Volume AABB");
 
-                center = b.center;
-                size = b.size;
+                d.offset.vector3Value = box.center;
+                var size = box.size;
+                
+                Vector3 blendPositive = d.boxBlendDistancePositive.vector3Value;
+                Vector3 blendNegative = d.boxBlendDistanceNegative.vector3Value;
+                Vector3 blendNormalPositive = d.boxBlendNormalDistancePositive.vector3Value;
+                Vector3 blendNormalNegative = d.boxBlendNormalDistanceNegative.vector3Value;
+                for (int i = 0; i < 3; ++i)
+                {
+                    size[i] = Mathf.Max(0f, size[i]);
+                }
+                d.boxSize.vector3Value = size;
+                Vector3 halfSize = size * .5f;
+                for (int i = 0; i < 3; ++i)
+                {
+                    blendPositive[i] = Mathf.Clamp(blendPositive[i], 0f, halfSize[i]);
+                    blendNegative[i] = Mathf.Clamp(blendNegative[i], 0f, halfSize[i]);
+                    blendNormalPositive[i] = Mathf.Clamp(blendNormalPositive[i], 0f, halfSize[i]);
+                    blendNormalNegative[i] = Mathf.Clamp(blendNormalNegative[i], 0f, halfSize[i]);
+                }
+                d.boxBlendDistancePositive.vector3Value = blendPositive;
+                d.boxBlendDistanceNegative.vector3Value = blendNegative;
+                d.boxBlendNormalDistancePositive.vector3Value = blendNormalPositive;
+                d.boxBlendNormalDistanceNegative.vector3Value = blendNormalNegative;
 
-                EditorUtility.SetDirty(sourceAsset);
+                if (d.editorAdvancedModeEnabled.boolValue)
+                {
+                    d.editorAdvancedModeBlendDistancePositive.vector3Value = d.boxBlendDistancePositive.vector3Value;
+                    d.editorAdvancedModeBlendDistanceNegative.vector3Value = d.boxBlendDistanceNegative.vector3Value;
+                    d.editorAdvancedModeBlendNormalDistancePositive.vector3Value = d.boxBlendNormalDistancePositive.vector3Value;
+                    d.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = d.boxBlendNormalDistanceNegative.vector3Value;
+                }
+                else
+                {
+                    d.editorSimplifiedModeBlendDistance.floatValue = Mathf.Min(
+                        d.boxBlendDistancePositive.vector3Value.x,
+                        d.boxBlendDistancePositive.vector3Value.y,
+                        d.boxBlendDistancePositive.vector3Value.z,
+                        d.boxBlendDistanceNegative.vector3Value.x,
+                        d.boxBlendDistanceNegative.vector3Value.y,
+                        d.boxBlendDistanceNegative.vector3Value.z);
+                    d.boxBlendDistancePositive.vector3Value = d.boxBlendDistanceNegative.vector3Value = Vector3.one * d.editorSimplifiedModeBlendDistance.floatValue;
+                    d.editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Min(
+                        d.boxBlendNormalDistancePositive.vector3Value.x,
+                        d.boxBlendNormalDistancePositive.vector3Value.y,
+                        d.boxBlendNormalDistancePositive.vector3Value.z,
+                        d.boxBlendNormalDistanceNegative.vector3Value.x,
+                        d.boxBlendNormalDistanceNegative.vector3Value.y,
+                        d.boxBlendNormalDistanceNegative.vector3Value.z);
+                    d.boxBlendNormalDistancePositive.vector3Value = d.boxBlendNormalDistanceNegative.vector3Value = Vector3.one * d.editorSimplifiedModeBlendNormalDistance.floatValue;
+                }
+
+                d.Apply();
             }
         }
 
-        static void DrawBoxFadeHandle(
-            InfluenceVolumeUI s, InfluenceVolume d, Editor o, Object sourceAsset,
-            Func<InfluenceVolumeUI, BoxBoundsHandle> boundsGetter,
-            Vector3 baseOffset, Vector3 baseSize,
-            ref Vector3 positive, ref Vector3 negative)
+        static void DrawBoxFadeHandle(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Object sourceAsset, Gizmo6FacesBox box, SerializedProperty positive, SerializedProperty negative)
         {
-            var b = boundsGetter(s);
-
-            b.center = baseOffset - (positive - negative) * 0.5f;
-            b.size = baseSize - positive - negative;
+            box.center = d.offset.vector3Value - (positive.vector3Value - negative.vector3Value) * 0.5f;
+            box.size = d.boxSize.vector3Value - positive.vector3Value - negative.vector3Value;
+            box.allHandleControledByOne = !d.editorAdvancedModeEnabled.boolValue;
 
             EditorGUI.BeginChangeCheck();
-            b.DrawHandle();
+            box.DrawHandle();
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(sourceAsset, "Modified Influence Volume");
 
-                var center = baseOffset;
-                var influenceSize = baseSize;
+                var influenceCenter = d.offset.vector3Value;
+                var halfInfluenceSize = d.boxSize.vector3Value * .5f;
 
-                var diff = 2 * (b.center - center);
-                var sum = influenceSize - b.size;
-                var positiveNew = (sum - diff) * 0.5f;
-                var negativeNew = (sum + diff) * 0.5f;
-                var blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positiveNew, influenceSize));
-                var blendDistanceNegative = Vector3.Max(Vector3.zero, Vector3.Min(negativeNew, influenceSize));
+                var centerDiff = box.center - influenceCenter;
+                var halfSizeDiff = halfInfluenceSize - box.size * .5f;
+                var positiveNew = halfSizeDiff - centerDiff;
+                var negativeNew = halfSizeDiff + centerDiff;
+                var blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positiveNew, halfInfluenceSize));
+                var blendDistanceNegative = Vector3.Max(Vector3.zero, Vector3.Min(negativeNew, halfInfluenceSize));
 
-                positive = blendDistancePositive;
-                negative = blendDistanceNegative;
+                positive.vector3Value = blendDistancePositive;
+                negative.vector3Value = blendDistanceNegative;
 
-                EditorUtility.SetDirty(sourceAsset);
+                d.Apply();
             }
         }
 
-        static void DrawSphereHandle(
-            InfluenceVolumeUI s, InfluenceVolume d, Editor o, Object sourceAsset,
-            Func<InfluenceVolumeUI, SphereBoundsHandle> boundsGetter,
-            ref Vector3 center, ref float radius)
+        static void DrawSphereHandle(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Object sourceAsset,  SphereBoundsHandle sphere)
         {
-            var b = boundsGetter(s);
-            b.center = center;
-            b.radius = radius;
+            sphere.center = d.offset.vector3Value;
+            sphere.radius = d.sphereRadius.floatValue;
 
             EditorGUI.BeginChangeCheck();
-            b.DrawHandle();
+            sphere.DrawHandle();
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(sourceAsset, "Modified Base Volume AABB");
 
-                radius = b.radius;
-
-                EditorUtility.SetDirty(sourceAsset);
+                float radius = sphere.radius;
+                d.sphereRadius.floatValue = radius;
+                d.sphereBlendDistance.floatValue = Mathf.Clamp(s.data.sphereBlendDistance.floatValue, 0, radius);
+                d.sphereBlendNormalDistance.floatValue = Mathf.Clamp(s.data.sphereBlendNormalDistance.floatValue, 0, radius);
+                d.Apply();
             }
         }
 
-        static void DrawSphereFadeHandle(
-            InfluenceVolumeUI s, InfluenceVolume d, Editor o, Object sourceAsset,
-            Func<InfluenceVolumeUI, SphereBoundsHandle> boundsGetter,
-            Vector3 baseOffset, float baseRadius,
-            ref float radius)
+        static void DrawSphereFadeHandle(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Object sourceAsset, SphereBoundsHandle sphere, SerializedProperty radius)
         {
-            var b = boundsGetter(s);
-            b.center = baseOffset;
-            b.radius = Mathf.Clamp(baseRadius - radius, 0, baseRadius);
+            sphere.center = d.offset.vector3Value;
+            sphere.radius = radius.floatValue;
 
             EditorGUI.BeginChangeCheck();
-            b.DrawHandle();
+            sphere.DrawHandle();
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(sourceAsset, "Modified Influence volume");
 
-                radius = Mathf.Clamp(baseRadius - b.radius, 0, baseRadius);
-
-                EditorUtility.SetDirty(sourceAsset);
+                radius.floatValue = Mathf.Clamp(d.sphereRadius.floatValue - sphere.radius, 0, d.sphereRadius.floatValue);
+                d.Apply();
             }
         }
     }

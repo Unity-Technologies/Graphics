@@ -8,37 +8,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [VolumeComponentEditor(typeof(ScreenSpaceReflection))]
     public class HDScreenSpaceReflectionEditor : ScreenSpaceLightingEditor
     {
-        SerializedDataParameter m_DeferredProjectionModel;
+        SerializedDataParameter m_MinSmoothness;
 
         public override void OnEnable()
         {
             base.OnEnable();
 
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
-            m_DeferredProjectionModel = Unpack(o.Find(x => x.deferredProjectionModel));
+            m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
         }
 
         public override void OnInspectorGUI()
         {
             OnCommonInspectorGUI();
-            var projectionModel = (Lit.ProjectionModel)m_DeferredProjectionModel.value.enumValueIndex;
-            switch (projectionModel)
-            {
-                case Lit.ProjectionModel.HiZ:
-                    EditorGUILayout.Separator();
-                    OnHiZInspectorGUI();
-                    break;
-                case Lit.ProjectionModel.Proxy:
-                    EditorGUILayout.Separator();
-                    OnProxyInspectorGUI();
-                    break;
-            }
-        }
 
-        protected override void OnCommonInspectorGUI()
-        {
-            base.OnCommonInspectorGUI();
-            PropertyField(m_DeferredProjectionModel, CoreEditorUtils.GetContent("Projection Model"));
+            OnHiZInspectorGUI();
+            PropertyField(m_MinSmoothness, CoreEditorUtils.GetContent("Min Smoothness|Minimal value of smoothness at which SSR is activated."));
         }
     }
 }

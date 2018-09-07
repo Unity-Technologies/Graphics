@@ -24,13 +24,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             ShadowSplitData splitData;
             bool success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
-                    cascadeIndex, shadowData.directionalLightCascadeCount, shadowData.directionalLightCascades, shadowResolution, shadowNearPlane, out viewMatrix, out projMatrix,
-                    out splitData);
+                cascadeIndex, shadowData.directionalLightCascadeCount, shadowData.directionalLightCascades, shadowResolution, shadowNearPlane, out viewMatrix, out projMatrix,
+                out splitData);
 
-            float cullingSphereRadius = splitData.cullingSphere.w;
             cascadeSplitDistance = splitData.cullingSphere;
-            cascadeSplitDistance.w = cullingSphereRadius * cullingSphereRadius;
-
             shadowSliceData.offsetX = (cascadeIndex % 2) * shadowResolution;
             shadowSliceData.offsetY = (cascadeIndex / 2) * shadowResolution;
             shadowSliceData.resolution = shadowResolution;
@@ -53,8 +50,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
-            ref ShadowSliceData shadowSliceData,
-            Matrix4x4 proj, Matrix4x4 view, DrawShadowsSettings settings)
+            ref ShadowSliceData shadowSliceData, ref DrawShadowsSettings settings,
+            Matrix4x4 proj, Matrix4x4 view)
         {
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.EnableScissorRect(new Rect(shadowSliceData.offsetX + 4, shadowSliceData.offsetY + 4, shadowSliceData.resolution - 8, shadowSliceData.resolution - 8));

@@ -22,15 +22,15 @@ void GetPreIntegratedFGDGGXAndDisneyDiffuse(float NdotV, float perceptualRoughne
     reflectivity = preFGD.y;
 }
 
-TEXTURE2D(_PreIntegratedFGD_CharlieAndCloth);
+TEXTURE2D(_PreIntegratedFGD_CharlieAndFabric);
 
-void GetPreIntegratedFGDCharlieAndClothLambert(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 CharlieSpecularFGD, out float clothLambertDiffuseFGD, out float reflectivity)
+void GetPreIntegratedFGDCharlieAndFabricLambert(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 CharlieSpecularFGD, out float fabricLambertDiffuseFGD, out float reflectivity)
 {
-    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_CharlieAndCloth, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
+    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_CharlieAndFabric, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
 
     CharlieSpecularFGD = lerp(preFGD.xxx, preFGD.yyy, fresnel0);
-    // z = ClothLambert
-    clothLambertDiffuseFGD = preFGD.z;
+    // z = FabricLambert
+    fabricLambertDiffuseFGD = preFGD.z;
 
     reflectivity = preFGD.y;
 }

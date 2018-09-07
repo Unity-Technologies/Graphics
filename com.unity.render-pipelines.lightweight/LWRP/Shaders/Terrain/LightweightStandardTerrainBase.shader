@@ -48,16 +48,19 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
-
-            //--------------------------------------
-            // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #pragma vertex LitPassVertex
-            #pragma fragment LitPassFragment
+            #pragma vertex SplatmapVert
+            #pragma fragment SplatmapFragment
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrainBase.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
+            #pragma shader_feature _NORMALMAP
+            // Sample normal in pixel shader when doing instancing
+            #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
+            #define TERRAIN_SPLAT_BASEPASS 1
+
+            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
 
@@ -74,16 +77,14 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
-            //--------------------------------------
-            // GPU Instancing
             #pragma multi_compile_instancing
-            #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrainBase.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
+            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
 
@@ -104,15 +105,11 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
 
-            #define _METALLICSPECGLOSSMAP 1
-            #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
-
-            //--------------------------------------
-            // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrainBase.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
+            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
 
@@ -142,6 +139,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             ENDHLSL
         }
 
+        UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
     FallBack "Hidden/InternalErrorShader"
     CustomEditor "LightweightStandardGUI"

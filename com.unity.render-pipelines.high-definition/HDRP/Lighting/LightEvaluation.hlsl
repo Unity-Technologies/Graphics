@@ -28,7 +28,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 // None of the outputs are premultiplied.
 // Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
-                               DirectionalLightData lightData, BakeLightingData bakeLightingData,
+                               DirectionalLightData lightData, BuiltinData builtinData,
                                float3 N, float3 L,
                                out float3 color, out float attenuation)
 {
@@ -41,7 +41,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
     UNITY_BRANCH if (lightData.cookieIndex >= 0)
     {
-        float3 lightToSample = positionWS - lightData.positionWS;
+        float3 lightToSample = positionWS - lightData.positionRWS;
         float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
 
         color *= cookie;
@@ -50,7 +50,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
+    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
 #endif
 
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
@@ -102,7 +102,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 // Return L vector for punctual light (normalize surface to light), lightToSample (light to surface non normalize) and distances {d, d^2, 1/d, d_proj}
 void GetPunctualLightVectors(float3 positionWS, LightData lightData, out float3 L, out float3 lightToSample, out float4 distances)
 {
-    lightToSample = positionWS - lightData.positionWS;
+    lightToSample = positionWS - lightData.positionRWS;
     int lightType = lightData.lightType;
 
     distances.w = dot(lightToSample, lightData.forward);
@@ -163,7 +163,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, lightData.forward).
 // Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
-                            LightData lightData, BakeLightingData bakeLightingData,
+                            LightData lightData, BuiltinData builtinData,
                             float3 N, float3 L, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
@@ -175,11 +175,9 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     attenuation = SmoothPunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
                                                  lightData.angleScale, lightData.angleOffset);
 
-#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
     // TODO: sample the extinction from the density V-buffer.
     float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
     attenuation *= TransmittanceHomogeneousMedium(_GlobalExtinction, distVol);
-#endif
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
     UNITY_BRANCH if (lightData.cookieIndex >= 0)
@@ -193,7 +191,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
+    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
 #endif
 
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
@@ -239,7 +237,7 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
 
     float3x3 worldToIS = WorldToInfluenceSpace(lightData); // IS: Influence space
     float3 positionIS = WorldToInfluencePosition(lightData, worldToIS, positionWS);
-    float3 dirIS = mul(R, worldToIS);
+    float3 dirIS = normalize(mul(R, worldToIS));
 
     float3x3 worldToPS = WorldToProxySpace(lightData); // PS: Proxy space
     float3 positionPS = WorldToProxyPosition(lightData, worldToPS, positionWS);
@@ -253,9 +251,8 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     if (influenceShapeType == ENVSHAPETYPE_SPHERE)
     {
         projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = lightData.capturePositionWS;
-        R = (positionWS + projectionDistance * R) - capturePositionWS;
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionRWS
+        R = (positionWS + projectionDistance * R) - lightData.capturePositionRWS;
 
         weight = InfluenceSphereWeight(lightData, normalWS, positionWS, positionIS, dirIS);
     }
@@ -263,9 +260,8 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     {
         projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = lightData.capturePositionWS;
-        R = (positionWS + projectionDistance * R) - capturePositionWS;
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionRWS
+        R = (positionWS + projectionDistance * R) - lightData.capturePositionRWS;
 
         weight = InfluenceBoxWeight(lightData, normalWS, positionWS, positionIS, dirIS);
     }
@@ -307,11 +303,12 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
 
             // Compute the distance from the light to the back face of the object along the light direction.
             float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
-                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
+                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS);
 
             // Our subsurface scattering models use the semi-infinite planar slab assumption.
             // Therefore, we need to find the thickness along the normal.
-            float thicknessInUnits = (distFrontFaceToLight - distBackFaceToLight) * -NdotL;
+            // Warning: based on the artist's input, dependence on the NdotL has been disabled.
+            float thicknessInUnits = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
             float thicknessInMeters = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
             float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
@@ -349,6 +346,8 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
             // Note: we do not modify the distance to the light, or the light angle for the back face.
             // This is a performance-saving optimization which makes sense as long as the thickness is small.
         }
+
+        transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
     }
 
     return transmittance;

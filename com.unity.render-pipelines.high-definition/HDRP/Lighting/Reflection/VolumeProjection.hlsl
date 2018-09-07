@@ -18,7 +18,7 @@ float3x3 WorldToProxySpace(EnvLightData lightData)
 
 float3 WorldToProxyPosition(EnvLightData lightData, float3x3 worldToPS, float3 positionWS)
 {
-    float3 positionPS = positionWS - lightData.proxyPositionWS;
+    float3 positionPS = positionWS - lightData.proxyPositionRWS;
     positionPS = mul(positionPS, worldToPS).xyz;
     return positionPS;
 }
@@ -50,7 +50,7 @@ float InfluenceSphereWeight(EnvLightData lightData, float3 normalWS, float3 posi
 
 #if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
     float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.influenceExtents.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
-    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionWS));
+    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionRWS));
     alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 #endif
 
@@ -90,14 +90,14 @@ float InfluenceBoxWeight(EnvLightData lightData, float3 normalWS, float3 positio
     float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistancePositive);
     float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistanceNegative);
     float insideInfluenceNormalVolume = all(belowPositiveInfluenceNormalVolume >= 1.0) && all(aboveNegativeInfluenceNormalVolume >= 1.0) ? 1.0 : 0;
-    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionWS));
+    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionRWS));
     alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 #endif
 
 #if defined(ENVMAP_FEATURE_PERFACEFADE)
     // 4. Fade specific cubemap faces
-    // For each axes (both positive and negative ones), we want to fade from the center of one face to another
-    // So we normalized the sample direction (R) and use its component to fade for each axis
+    // For each axis (both positive and negative ones), we want to fade from the center of one face to another
+    // So we normalize the sample direction (R) and use its component to fade for each axis
     // We consider R.x as cos(X) and then fade as angle from 60°(=acos(1/2)) to 75°(=acos(1/4))
     // For positive axes: axisFade = (R - 1/4) / (1/2 - 1/4)
     // <=> axisFace = 4 * R - 1;
@@ -124,7 +124,7 @@ float3x3 WorldToInfluenceSpace(EnvLightData lightData)
 
 float3 WorldToInfluencePosition(EnvLightData lightData, float3x3 worldToIS, float3 positionWS)
 {
-    float3 positionIS = positionWS - lightData.influencePositionWS;
+    float3 positionIS = positionWS - lightData.influencePositionRWS;
     positionIS = mul(positionIS, worldToIS).xyz;
     return positionIS;
 }

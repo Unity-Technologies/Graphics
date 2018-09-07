@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph
                 alphaChannel = TextureChannel.Red;
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             ValidateChannelCount();
             var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision);

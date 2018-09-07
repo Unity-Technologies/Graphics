@@ -23,13 +23,24 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
+#pragma kernel KColorGaussian            KERNEL_SIZE=8  MAIN_GAUSSIAN=KColorGaussian
+#pragma kernel KColorDownsample          KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample
+#pragma kernel KColorDownsampleCopyMip0  KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsampleCopyMip0  COPY_MIP_0
+
+
+#if COPY_MIP_0
 Texture2D<float4> _Source;
-RWTexture2D<float4> _Result;
+RWTexture2D<float4> _Mip0;
+#else
+RWTexture2D<float4> _Source;
+#endif
+
+RWTexture2D<float4> _Destination;
 
 SamplerState sampler_LinearClamp;
 
 CBUFFER_START(cb)
-    float4 _Size;
+    float4 _Size;       // x: src width, y: src height, zw: unused
 CBUFFER_END
 
 // 16x16 pixels with an 8x8 center that we will be blurring writing out. Each uint is two color
@@ -111,22 +122,21 @@ void BlurVertically(uint2 pixelCoord, uint topMostIndex)
     float4 blurred = BlurPixels(s0, s1, s2, s3, s4, s5, s6, s7, s8);
 
     // Write to the final target
-    _Result[pixelCoord] = blurred;
+    _Destination[pixelCoord] = blurred;
 }
 
-#pragma kernel KMain
-[numthreads(8, 8, 1)]
-void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     // Upper-left pixel coordinate of quad that this thread will read
     int2 threadUL = (groupThreadId << 1) + (groupId << 3) - 4;
+    uint2 uthreadUL = uint2(max(0, threadUL));
 
-    // Downsample the block
-    float2 offset = float2(threadUL);
-    float4 p00 = _Source.SampleLevel(sampler_LinearClamp, (offset                    + 0.5) * _Size.zw, 0.0);
-    float4 p10 = _Source.SampleLevel(sampler_LinearClamp, (offset + float2(1.0, 0.0) + 0.5) * _Size.zw, 0.0);
-    float4 p01 = _Source.SampleLevel(sampler_LinearClamp, (offset + float2(0.0, 1.0) + 0.5) * _Size.zw, 0.0);
-    float4 p11 = _Source.SampleLevel(sampler_LinearClamp, (offset + float2(1.0, 1.0) + 0.5) * _Size.zw, 0.0);
+    uint2 size = uint2(_Size.xy) - 1u;
+    float4 p00 = _Source[min(uthreadUL + uint2(0u, 0u), size)];
+    float4 p10 = _Source[min(uthreadUL + uint2(1u, 0u), size)];
+    float4 p11 = _Source[min(uthreadUL + uint2(1u, 1u), size)];
+    float4 p01 = _Source[min(uthreadUL + uint2(0u, 1u), size)];
 
     // Store the 4 downsampled pixels in LDS
     uint destIdx = groupThreadId.x + (groupThreadId.y << 4u);
@@ -143,4 +153,29 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
 
     // Vertically blur the pixels in LDS and write the result to memory
     BlurVertically(dispatchThreadId, (groupThreadId.y << 3u) + groupThreadId.x);
+}
+
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void MAIN_DOWNSAMPLE(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 offset = dispatchThreadId * 2u;
+    uint2 size = uint2(_Size.xy) - 1u;
+
+    uint2 c00 = min(offset + uint2(0u, 0u), size);
+    uint2 c10 = min(offset + uint2(1u, 0u), size);
+    uint2 c11 = min(offset + uint2(1u, 1u), size);
+    uint2 c01 = min(offset + uint2(0u, 1u), size);
+    float4 p00 = _Source[c00];
+    float4 p10 = _Source[c10];
+    float4 p11 = _Source[c11];
+    float4 p01 = _Source[c01];
+
+    #if COPY_MIP_0
+    _Mip0[c00] = p00;
+    _Mip0[c10] = p10;
+    _Mip0[c11] = p11;
+    _Mip0[c01] = p01;
+    #endif
+
+    _Destination[dispatchThreadId] = (p00 + p01 + p11 + p10) * 0.25;
 }

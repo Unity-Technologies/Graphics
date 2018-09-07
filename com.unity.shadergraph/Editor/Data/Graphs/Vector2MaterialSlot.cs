@@ -14,12 +14,14 @@ namespace UnityEditor.ShaderGraph
         Vector2 m_Value;
 
         [SerializeField]
-        Vector2 m_DefaultValue;
+        Vector2 m_DefaultValue = Vector2.zero;
 
+        [SerializeField]
         string[] m_Labels;
 
         public Vector2MaterialSlot()
-        {}
+        {
+        }
 
         public Vector2MaterialSlot(
             int slotId,

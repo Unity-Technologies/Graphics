@@ -14,5 +14,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int drawDistance = 1000;
         public int atlasWidth = 4096;
         public int atlasHeight = 4096;
+        public bool perChannelMask = false;
     }
 }

@@ -46,6 +46,7 @@ public class HDRP_GraphicTestRunner
     }
 
 #if UNITY_EDITOR
+
     [TearDown]
     public void DumpImagesInEditor()
     {

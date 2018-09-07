@@ -26,6 +26,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
         public static GUIContent twoSidedText = new GUIContent("Two Sided", "Render front and back faces");
         public static GUIContent alphaClipText = new GUIContent("Alpha Clip", "Enable Alpha Clip");
         public static GUIContent alphaClipThresholdText = new GUIContent("Clip Threshold", "Threshold for alpha clip");
+        public static GUIContent receiveShadowText = new GUIContent("Receive Shadows", "Enables this material to receive shadows if there is at least one shadow casting light affecting it.");
         public static readonly string[] surfaceNames = Enum.GetNames(typeof(SurfaceType));
         public static readonly string[] blendNames = Enum.GetNames(typeof(BlendMode));
     }
@@ -36,6 +37,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
     protected MaterialProperty cullingProp;
     protected MaterialProperty alphaClipProp;
     protected MaterialProperty alphaCutoffProp;
+    protected MaterialProperty receiveShadowsProp;
     private bool m_FirstTimeApply = true;
 
     public abstract void MaterialChanged(Material material);
@@ -47,6 +49,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
         cullingProp = FindProperty("_Cull", properties);
         alphaClipProp = FindProperty("_AlphaClip", properties);
         alphaCutoffProp = FindProperty("_Cutoff", properties);
+        receiveShadowsProp = FindProperty("_ReceiveShadows", properties, false);
     }
 
     public virtual void ShaderPropertiesGUI(Material material)
@@ -67,6 +70,15 @@ public abstract class LightweightShaderGUI : ShaderGUI
 
         if (alphaClipProp.floatValue == 1)
             m_MaterialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
+
+        if (receiveShadowsProp != null)
+        {
+            EditorGUI.BeginChangeCheck();
+            bool receiveShadows =
+                EditorGUILayout.Toggle(Styles.receiveShadowText, receiveShadowsProp.floatValue == 1.0f);
+            if (EditorGUI.EndChangeCheck())
+                receiveShadowsProp.floatValue = receiveShadows ? 1.0f : 0.0f;
+        }
 
         EditorGUILayout.Space();
     }

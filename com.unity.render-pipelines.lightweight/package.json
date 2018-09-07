@@ -1,12 +1,12 @@
 {
     "name": "com.unity.render-pipelines.lightweight",
     "description": "Lightweight Render Pipeline for Unity.",
-    "version": "3.0.0-preview",
-    "unity": "2018.2",
+    "version": "3.4.0-preview",
+    "unity": "2018.3",
     "displayName": "Lightweight Render Pipeline",
     "dependencies": {
-        "com.unity.postprocessing": "2.0.7-preview",
-        "com.unity.render-pipelines.core": "3.0.0-preview",
-        "com.unity.shadergraph": "3.0.0-preview"
+        "com.unity.postprocessing": "2.0.11-preview",
+        "com.unity.render-pipelines.core": "3.4.0-preview",
+        "com.unity.shadergraph": "3.4.0-preview"
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -13,6 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
         static public HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
+        static public AdditionalShadowData s_DefaultAdditionalShadowData { get { return ComponentSingleton<AdditionalShadowData>.instance; } }
+
 
         public static Material GetBlitMaterial()
         {
@@ -215,7 +218,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 2 : 3, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)
@@ -314,7 +317,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Returns mouse coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
         public static Vector4 GetMouseCoordinates(HDCamera camera)
         {
-            Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y);
+            // We request the mouse post based on the type of the camera
+            Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y, camera.camera.cameraType == CameraType.SceneView);
             return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.viewportScale.x * mousePixelCoord.x / camera.screenSize.x, camera.viewportScale.y * mousePixelCoord.y / camera.screenSize.y);
         }
 
@@ -330,6 +334,103 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
             return camera.cameraType == CameraType.Preview && ((additionalCameraData == null) || (additionalCameraData && !additionalCameraData.isEditorCameraPreview));
+        }
+
+        // Post-processing misc
+        public static bool IsPostProcessingActive(PostProcessLayer layer)
+        {
+            return layer != null
+                && layer.enabled;
+        }
+
+        public static bool IsTemporalAntialiasingActive(PostProcessLayer layer)
+        {
+            return IsPostProcessingActive(layer)
+                && layer.antialiasingMode == PostProcessLayer.Antialiasing.TemporalAntialiasing
+                && layer.temporalAntialiasing.IsSupported();
+        }
+
+        // We need these at runtime for RenderPipelineResources upgrade
+        public static string GetHDRenderPipelinePath()
+        {
+            return "Packages/com.unity.render-pipelines.high-definition/HDRP/";
+        }
+
+        public static string GetPostProcessingPath()
+        {
+            return "Packages/com.unity.postprocessing/";
+        }
+
+        public static string GetCorePath()
+        {
+            return "Packages/com.unity.render-pipelines.core/CoreRP/";
+        }
+
+        public struct PackedMipChainInfo
+        {
+            public Vector2Int   textureSize;
+            public int          mipLevelCount;
+            public Vector2Int[] mipLevelSizes;
+            public Vector2Int[] mipLevelOffsets;
+
+            public void Allocate()
+            {
+                mipLevelOffsets = new Vector2Int[15];
+                mipLevelSizes   = new Vector2Int[15];
+            }
+
+            // We pack all MIP levels into the top MIP level to avoid the Pow2 MIP chain restriction.
+            // We compute the required size iteratively.
+            // This function is NOT fast, but it is illustrative, and can be optimized later.
+            public void ComputePackedMipChainInfo(Vector2Int viewportSize)
+            {
+                textureSize        = viewportSize;
+                mipLevelSizes[0]   = viewportSize;
+                mipLevelOffsets[0] = Vector2Int.zero;
+
+                int        mipLevel = 0;
+                Vector2Int mipSize  = viewportSize;
+
+                do
+                {
+                    mipLevel++;
+
+                    // Round up.
+                    mipSize.x = Math.Max(1, (mipSize.x + 1) >> 1);
+                    mipSize.y = Math.Max(1, (mipSize.y + 1) >> 1);
+
+                    mipLevelSizes[mipLevel] = mipSize;
+
+                    Vector2Int prevMipBegin = mipLevelOffsets[mipLevel - 1];
+                    Vector2Int prevMipEnd   = prevMipBegin + mipLevelSizes[mipLevel - 1];
+
+                    Vector2Int mipBegin = new Vector2Int();
+
+                    if ((mipLevel & 1) != 0) // Odd
+                    {
+                        mipBegin.x = prevMipBegin.x;
+                        mipBegin.y = prevMipEnd.y;
+                    }
+                    else // Even
+                    {
+                        mipBegin.x = prevMipEnd.x;
+                        mipBegin.y = prevMipBegin.y;
+                    }
+
+                    mipLevelOffsets[mipLevel] = mipBegin;
+
+                    textureSize.x = Math.Max(textureSize.x, mipBegin.x + mipSize.x);
+                    textureSize.y = Math.Max(textureSize.y, mipBegin.y + mipSize.y);
+
+                } while ((mipSize.x > 1) || (mipSize.y > 1));
+
+                mipLevelCount = mipLevel + 1;
+            }
+        }
+
+        public static int DivRoundUp(int x, int y)
+        {
+            return (x + y - 1) / y;
         }
     }
 }

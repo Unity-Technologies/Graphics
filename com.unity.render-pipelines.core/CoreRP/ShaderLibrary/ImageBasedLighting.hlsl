@@ -31,6 +31,12 @@ real PerceptualRoughnessToMipmapLevel(real perceptualRoughness)
     return PerceptualRoughnessToMipmapLevel(perceptualRoughness, UNITY_SPECCUBE_LOD_STEPS);
 }
 
+// Mapping for convolved Texture2D, this is an empirical remapping to match GGX version of cubemap convolution
+real PlanarPerceptualRoughnessToMipmapLevel(real perceptualRoughness, uint mipMapcount)
+{
+    return PositivePow(perceptualRoughness, 0.8) * uint(max(mipMapcount - 1, 0));
+}
+
 // The *accurate* version of the non-linear remapping. It works by
 // approximating the cone of the specular lobe, and then computing the MIP map level
 // which (approximately) covers the footprint of the lobe with a single texel.
@@ -91,8 +97,8 @@ void GetGGXAnisotropicModifiedNormalAndRoughness(real3 bitangentWS, real3 tangen
 {
     // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
     float3 grainDirWS = (anisotropy >= 0.0) ? bitangentWS : tangentWS;
-    // Reduce stretching for (perceptualRoughness < 0.2).
-    float stretch = abs(anisotropy) * saturate(5.0 * perceptualRoughness);
+    // Reduce stretching depends on the perceptual roughness
+    float stretch = abs(anisotropy) * saturate(1.5 * sqrt(perceptualRoughness));
     // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV)
     // However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here. Let's save performance instead.
     iblN = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch);
@@ -391,7 +397,7 @@ real4 IntegrateGGXAndDisneyDiffuseFGD(real3 V, real3 N, real roughness, uint sam
 #endif
 
 #if !defined SHADER_API_GLES
-real4 IntegrateCharlieAndClothLambertFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
+real4 IntegrateCharlieAndFabricLambertFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
 {
     real NdotV     = ClampNdotV(dot(N, V));
     real4 acc      = real4(0.0, 0.0, 0.0, 0.0);
@@ -435,13 +441,13 @@ real4 IntegrateCharlieAndClothLambertFGD(real3 V, real3 N, real roughness, uint 
             acc.y += weightOverPdf;
         }
 
-        // for cloth Lambert we still use a Cosine importance sampling
+        // for Fabric Lambert we still use a Cosine importance sampling
         ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
 
         if (NdotL > 0.0)
         {
-            real clothLambert = ClothLambertNoPI(roughness);
-            acc.z += clothLambert * weightOverPdf;
+            real fabricLambert = FabricLambertNoPI(roughness);
+            acc.z += fabricLambert * weightOverPdf;
         }
     }
 
@@ -451,7 +457,7 @@ real4 IntegrateCharlieAndClothLambertFGD(real3 V, real3 N, real roughness, uint 
 }
 #else
 // Not supported due to lack of random library in GLES 2
-#define IntegrateCharlieAndClothLambertFGD ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateCharlieAndClothLambertFGD)
+#define IntegrateCharlieAndFabricLambertFGD ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateCharlieAndFabricLambertFGD)
 #endif
 
 uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
@@ -581,8 +587,7 @@ real4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     #ifndef USE_KARIS_APPROXIMATION
         // The choice of the Fresnel factor does not appear to affect the result.
         real F = 1; // F_Schlick(F0, LdotH);
-        real V = V_SmithJointGGX(NdotL, NdotV, roughness, partLambdaV);
-        real G = V * NdotL * NdotV; // 4 cancels out
+        real G = V_SmithJointGGX(NdotL, NdotV, roughness, partLambdaV) * NdotL * NdotV; // 4 cancels out
 
         lightInt += F * G * val;
         cbsdfInt += F * G;

@@ -1,42 +1,213 @@
 using UnityEngine.Serialization;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [RequireComponent(typeof(ReflectionProbe), typeof(MeshFilter), typeof(MeshRenderer))]
-    public class HDAdditionalReflectionData : MonoBehaviour
+    [RequireComponent(typeof(ReflectionProbe))]
+    public class HDAdditionalReflectionData : HDProbe
     {
-        [HideInInspector]
-        public float version = 1.0f;
+        enum Version
+        {
+            First,
+            Second,
+            HDProbeChild,
+            UseInfluenceVolume,
+            MergeEditors,
+            // Add new version here and they will automatically be the Current one
+            Max,
+            Current = Max - 1
+        }
 
-        public ShapeType influenceShape;
-        [FormerlySerializedAsAttribute("dimmer")]
-        public float multiplier = 1.0f;
-        [Range(0.0f, 1.0f)]
-        public float weight = 1.0f;
-        public float influenceSphereRadius = 3.0f;
-        public float sphereReprojectionVolumeRadius = 1.0f;
-        public bool useSeparateProjectionVolume = false;
-        public Vector3 boxReprojectionVolumeSize = Vector3.one;
-        public Vector3 boxReprojectionVolumeCenter = Vector3.zero;
-        public float maxSearchDistance = 8.0f;
-        public Texture previewCubemap;
-        public Vector3 blendDistancePositive = Vector3.zero;
-        public Vector3 blendDistanceNegative = Vector3.zero;
-        public Vector3 blendNormalDistancePositive = Vector3.zero;
-        public Vector3 blendNormalDistanceNegative = Vector3.zero;
-        public Vector3 boxSideFadePositive = Vector3.one;
-        public Vector3 boxSideFadeNegative = Vector3.one;
+        [SerializeField, FormerlySerializedAs("version")]
+        int m_Version;
 
-        public ReflectionProxyVolumeComponent proxyVolumeComponent;
+        ReflectionProbe m_LegacyProbe;
+        /// <summary>Get the sibling component ReflectionProbe</summary>
+        public ReflectionProbe reflectionProbe
+        {
+            get
+            {
+                if(m_LegacyProbe == null || m_LegacyProbe.Equals(null))
+                {
+                    m_LegacyProbe = GetComponent<ReflectionProbe>();
+                }
+                return m_LegacyProbe;
+            }
+        }
 
-        public Vector3 boxBlendCenterOffset { get { return (blendDistanceNegative - blendDistancePositive) * 0.5f; } }
-        public Vector3 boxBlendSizeOffset { get { return -(blendDistancePositive + blendDistanceNegative); } }
-        public Vector3 boxBlendNormalCenterOffset { get { return (blendNormalDistanceNegative - blendNormalDistancePositive) * 0.5f; } }
-        public Vector3 boxBlendNormalSizeOffset { get { return -(blendNormalDistancePositive + blendNormalDistanceNegative); } }
+#pragma warning disable 649 //never assigned
+        //data only kept for migration, to be removed in future version
+        [SerializeField, System.Obsolete("influenceShape is deprecated, use influenceVolume parameters instead")]
+        InfluenceShape influenceShape;
+        [SerializeField, System.Obsolete("influenceSphereRadius is deprecated, use influenceVolume parameters instead")]
+        float influenceSphereRadius = 3.0f;
+        [SerializeField, System.Obsolete("blendDistancePositive is deprecated, use influenceVolume parameters instead")]
+        Vector3 blendDistancePositive = Vector3.zero;
+        [SerializeField, System.Obsolete("blendDistanceNegative is deprecated, use influenceVolume parameters instead")]
+        Vector3 blendDistanceNegative = Vector3.zero;
+        [SerializeField, System.Obsolete("blendNormalDistancePositive is deprecated, use influenceVolume parameters instead")]
+        Vector3 blendNormalDistancePositive = Vector3.zero;
+        [SerializeField, System.Obsolete("blendNormalDistanceNegative is deprecated, use influenceVolume parameters instead")]
+        Vector3 blendNormalDistanceNegative = Vector3.zero;
+        [SerializeField, System.Obsolete("boxSideFadePositive is deprecated, use influenceVolume parameters instead")]
+        Vector3 boxSideFadePositive = Vector3.one;
+        [SerializeField, System.Obsolete("boxSideFadeNegative is deprecated, use influenceVolume parameters instead")]
+        Vector3 boxSideFadeNegative = Vector3.one;
+#pragma warning restore 649 //never assigned
 
+        bool needMigrateToHDProbeChild = false;
+        bool needMigrateToUseInfluenceVolume = false;
+        bool needMigrateToMergeEditors = false;
 
-        public float sphereBlendRadiusOffset { get { return -blendDistancePositive.x; } }
-        public float sphereBlendNormalRadiusOffset { get { return -blendNormalDistancePositive.x; } }
+        public void CopyTo(HDAdditionalReflectionData data)
+        {
+            influenceVolume.CopyTo(data.influenceVolume);
+            data.influenceVolume.shape = influenceVolume.shape; //force the legacy probe to refresh its size
+
+            data.mode = mode;
+            data.refreshMode = refreshMode;
+            data.multiplier = multiplier;
+            data.weight = weight;
+        }
+
+        bool CheckMigrationRequirement()
+        {
+            //exit as quicker as possible
+            if (m_Version == (int)Version.Current)
+                return false;
+
+            //it is mandatory to call them in order
+            //they can be grouped (without 'else' or not
+            if (m_Version < (int)Version.HDProbeChild)
+            {
+                needMigrateToHDProbeChild = true;
+            }
+            if (m_Version < (int)Version.UseInfluenceVolume)
+            {
+                needMigrateToUseInfluenceVolume = true;
+            }
+            if (m_Version < (int)Version.MergeEditors)
+            {
+                needMigrateToMergeEditors = true;
+            }
+            //mandatory 'else' to only update version if other migrations done
+            else if (m_Version < (int)Version.Current)
+            {
+                m_Version = (int)Version.Current;
+                return false;
+            }
+            return true;
+        }
+
+        void ApplyMigration()
+        {
+            //it is mandatory to call them in order
+            if (needMigrateToHDProbeChild)
+                MigrateToHDProbeChild();
+            if (needMigrateToUseInfluenceVolume)
+                MigrateToUseInfluenceVolume();
+            if (needMigrateToMergeEditors)
+                MigrateToMergeEditors();
+        }
+
+        void Migrate()
+        {
+            //Must not be called at deserialisation time if require other component
+            while (CheckMigrationRequirement())
+            {
+                ApplyMigration();
+            }
+        }
+
+        internal override void Awake()
+        {
+            base.Awake();
+
+            //launch migration at creation too as m_Version could not have an
+            //existance in older version
+            Migrate();
+        }
+
+        void OnEnable()
+        {
+            ReflectionSystem.RegisterProbe(this);
+        }
+
+        void OnDisable()
+        {
+            ReflectionSystem.UnregisterProbe(this);
+        }
+
+        void OnValidate()
+        {
+            ReflectionSystem.UnregisterProbe(this);
+
+            if (isActiveAndEnabled)
+                ReflectionSystem.RegisterProbe(this);
+        }
+
+        void MigrateToHDProbeChild()
+        {
+            mode = reflectionProbe.mode;
+            refreshMode = reflectionProbe.refreshMode;
+            m_Version = (int)Version.HDProbeChild;
+            needMigrateToHDProbeChild = false;
+        }
+
+        void MigrateToUseInfluenceVolume()
+        {
+            influenceVolume.boxSize = reflectionProbe.size;
+#pragma warning disable CS0618 // Type or member is obsolete
+            influenceVolume.sphereRadius = influenceSphereRadius;
+            influenceVolume.shape = influenceShape; //must be done after each size transfert
+            influenceVolume.boxBlendDistancePositive = blendDistancePositive;
+            influenceVolume.boxBlendDistanceNegative = blendDistanceNegative;
+            influenceVolume.boxBlendNormalDistancePositive = blendNormalDistancePositive;
+            influenceVolume.boxBlendNormalDistanceNegative = blendNormalDistanceNegative;
+            influenceVolume.boxSideFadePositive = boxSideFadePositive;
+            influenceVolume.boxSideFadeNegative = boxSideFadeNegative;
+#pragma warning restore CS0618 // Type or member is obsolete
+            m_Version = (int)Version.UseInfluenceVolume;
+            needMigrateToUseInfluenceVolume = false;
+
+            //Note: former editor parameters will be recreated as if non existent.
+            //User will lose parameters corresponding to non used mode between simplified and advanced
+        }
+
+        void MigrateToMergeEditors()
+        {
+            infiniteProjection = !reflectionProbe.boxProjection;
+            reflectionProbe.boxProjection = false;
+            m_Version = (int)Version.MergeEditors;
+            needMigrateToMergeEditors = false;
+        }
+
+        public override ReflectionProbeMode mode
+        {
+            set
+            {
+                base.mode = value;
+                reflectionProbe.mode = value; //ensure compatibility till we capture without the legacy component
+                if(value == ReflectionProbeMode.Realtime)
+                {
+                    refreshMode = ReflectionProbeRefreshMode.EveryFrame;
+                }
+            }
+        }
+
+        public override ReflectionProbeRefreshMode refreshMode
+        {
+            set
+            {
+                base.refreshMode = value;
+                reflectionProbe.refreshMode = value; //ensure compatibility till we capture without the legacy component
+            }
+        }
+
+        internal override void UpdatedInfluenceVolumeShape(Vector3 size, Vector3 offset)
+        {
+            reflectionProbe.size = size;
+            reflectionProbe.center = transform.rotation*offset;
+        }
     }
 }

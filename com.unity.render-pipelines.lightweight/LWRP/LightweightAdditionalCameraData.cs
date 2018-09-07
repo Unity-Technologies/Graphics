@@ -2,6 +2,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
+    [ImageEffectAllowedInSceneView]
     public class LightweightAdditionalCameraData : MonoBehaviour
     {
         [Tooltip("If enabled shadows will render for this camera.")]
@@ -13,7 +14,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [Tooltip("If enabled opaque color texture will render for this camera and bound as _CameraOpaqueTexture.")]
         public bool requiresColorTexture = false;
 
-        [HideInInspector][SerializeField] float m_Version;
+        [HideInInspector]
+        [SerializeField]
+        float m_Version = 1;
+
         public float version
         {
             get { return m_Version; }

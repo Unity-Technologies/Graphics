@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
             {
                 // In case of deferred, we must be in sync with SubsurfaceScattering.hlsl and lit.hlsl files and setup the correct buffers
-                m_ColorMRTs[0] = gbufferManager.GetBuffer(0); // Note: This buffer must be sRGB (which is the case with Lit.shader)
+                m_ColorMRTs[0] = gbufferManager.GetSubsurfaceScatteringBuffer(0); // Note: This buffer must be sRGB (which is the case with Lit.shader)
                 m_ExternalBuffer[0] = true;
             }
 
@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Build(HDRenderPipelineAsset hdAsset)
         {
             // Disney SSS (compute + combine)
-            string kernelName = hdAsset.renderPipelineSettings.enableUltraQualitySSS ? "SubsurfaceScatteringQualityUltra" : "SubsurfaceScatteringQualityNormal";
+            string kernelName = hdAsset.renderPipelineSettings.increaseSssSampleCount ? "SubsurfaceScatteringHQ" : "SubsurfaceScatteringMQ";
             m_SubsurfaceScatteringCS = hdAsset.renderPipelineResources.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
             m_CombineLightingPass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.combineLighting);

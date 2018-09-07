@@ -9,6 +9,9 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using Object = UnityEngine.Object;
+#if UNITY_2018_3_OR_NEWER
+using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
