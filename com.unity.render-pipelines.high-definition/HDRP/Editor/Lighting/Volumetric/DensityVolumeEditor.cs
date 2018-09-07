@@ -48,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.BeginChangeCheck();
             {
-                albedo.colorValue = EditorGUILayout.ColorField(s_AlbedoLabel, albedo.colorValue, true, false, false);
+                EditorGUILayout.PropertyField(albedo, s_AlbedoLabel);
                 EditorGUILayout.PropertyField(meanFreePath, s_MeanFreePathLabel);
 
                 EditorGUILayout.Space();
