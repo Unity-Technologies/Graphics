@@ -6,6 +6,30 @@
 #include "HDRP/Material/BuiltinUtilities.hlsl"
 #include "HDRP/Material/Decal/DecalUtilities.hlsl"
 
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
+{
+    // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
+    {
+        surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+    }
+
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
+    {
+        surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+    }
+
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
+    {
+#ifdef DECALS_4RT // only smoothness in 3RT mode
+        // Don't apply any metallic modification
+        surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
+#endif
+
+        surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
+    }
+}
+
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
@@ -171,7 +195,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
 #if HAVE_DECALS
-    AddDecalContribution(posInput, surfaceData, alpha);
+    if (_EnableDecals)
+    {
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+    }
 #endif
 
 #if defined(DEBUG_DISPLAY)

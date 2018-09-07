@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_RayMinLevel.value.intValue = Mathf.Clamp(m_RayMinLevel.value.intValue, 0, m_RayMaxLevel.value.intValue);
             m_RayMaxLevel.value.intValue = Mathf.Max(0, m_RayMaxLevel.value.intValue);
             m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
-            m_DepthBufferThickness.value.floatValue = Mathf.Max(0.001f, m_DepthBufferThickness.value.floatValue);
+            m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
             m_RayMaxScreenDistance.value.floatValue = Mathf.Clamp(m_RayMaxScreenDistance.value.floatValue, 0.001f, 1.0f);
             m_RayBlendScreenDistance.value.floatValue = Mathf.Clamp(m_RayBlendScreenDistance.value.floatValue, 0.0f, m_RayMaxScreenDistance.value.floatValue);
         }

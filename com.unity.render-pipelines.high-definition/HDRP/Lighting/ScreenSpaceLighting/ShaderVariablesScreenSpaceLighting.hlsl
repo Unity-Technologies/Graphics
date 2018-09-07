@@ -29,4 +29,5 @@
     // Ambient occlusion texture
     TEXTURE2D(_AmbientOcclusionTexture);
     TEXTURE2D(_CameraMotionVectorsTexture);
+    TEXTURE2D(_SsrLightingTexture);
 #endif
