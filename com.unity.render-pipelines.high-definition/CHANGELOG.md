@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Stencil test during decals normal buffer update is now properly applied
 - Decals corectly update normal buffer in forward
 - Fixed a normalization problem in reflection probe face fading causing artefacts in some cases
+- Fix multi-selection behavior of Density Volumes overwriting the albedo value
 
 ## [3.3.0-preview]
 
