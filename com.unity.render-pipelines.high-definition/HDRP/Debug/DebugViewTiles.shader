@@ -34,6 +34,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "../ShaderVariables.hlsl"
             #include "../Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "HDRP/Debug/DebugDisplay.hlsl"
 
             //-------------------------------------------------------------------------------------
             // variable declaration
@@ -41,7 +42,6 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 
             uint _ViewTilesFlags;
             uint _NumTiles;
-            float4 _MousePixelCoord; // xy unorm, zw norm
 
             StructuredBuffer<uint> g_TileList;
             Buffer<uint> g_DispatchIndirectBuffer;
@@ -139,6 +139,11 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                if (ShouldFlipDebugTexture())
+                {
+                    input.positionCS.y = _ScreenSize.y - input.positionCS.y;
+                }
+
                 // positionCS is SV_Position
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());

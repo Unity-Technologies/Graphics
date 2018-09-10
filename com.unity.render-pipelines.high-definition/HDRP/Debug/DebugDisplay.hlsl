@@ -241,4 +241,15 @@ void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inou
     }
 }
 
+// Debug rendering is performed at the end of the frame (after post-processing).
+// Debug textures are never flipped upside-down automatically. Therefore, we must always flip manually.
+bool ShouldFlipDebugTexture()
+{
+    #if UNITY_UV_STARTS_AT_TOP
+        return (_ProjectionParams.x > 0);
+    #else
+        return (_ProjectionParams.x < 0);
+    #endif
+}
+
 #endif

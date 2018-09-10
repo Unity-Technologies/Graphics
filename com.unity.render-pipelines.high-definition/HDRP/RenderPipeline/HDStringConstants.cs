@@ -343,7 +343,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ColorPickerMode = Shader.PropertyToID("_ColorPickerMode");
         public static readonly int _ApplyLinearToSRGB = Shader.PropertyToID("_ApplyLinearToSRGB");
         public static readonly int _ColorPickerFontColor = Shader.PropertyToID("_ColorPickerFontColor");
-        public static readonly int _RequireToFlipInputTexture = Shader.PropertyToID("_RequireToFlipInputTexture");
         public static readonly int _FalseColorEnabled = Shader.PropertyToID("_FalseColor");
         public static readonly int _FalseColorThresholds = Shader.PropertyToID("_FalseColorThresholds");
 
