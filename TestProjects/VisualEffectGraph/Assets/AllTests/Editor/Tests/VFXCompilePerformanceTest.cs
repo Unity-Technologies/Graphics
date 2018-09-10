@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Test
     class VFXCompilePerformanceTest
     {
         //[Test]  //Not really a test but an helper to measure compilation time for every existing visual effect
-        public void MesureCompilationTime()
+        public void MeasureCompilationTime()
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
             var vfxAssets = new List<VisualEffectAsset>();
@@ -66,8 +66,8 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        [Test]  //Not really a test but an helper to measure compilation time for every existing 
-        public void MesureBackupTime()
+        [Test]  //Not really a test but an helper to measure backup (for undo/redo) time for every existing asset
+        public void MeasureBackupTime()
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
             var vfxAssets = new List<VisualEffectAsset>();

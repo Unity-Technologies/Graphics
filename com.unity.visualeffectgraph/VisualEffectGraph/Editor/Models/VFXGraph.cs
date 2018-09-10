@@ -170,7 +170,42 @@ namespace UnityEditor.VFX
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
         }
 
-        public string Backup()
+        private static Func<ScriptableObject[], CompressionLevel, object> GetStoreObjectsFunction()
+        {
+            var advancedMethod = typeof(VFXMemorySerializer).GetMethod("StoreObjectsToByteArray", BindingFlags.Public | BindingFlags.Static);
+            if (advancedMethod != null)
+            {
+                return delegate (ScriptableObject[] objects, CompressionLevel level)
+                {
+                    return advancedMethod.Invoke(null, new object[] { objects, level }) as byte[];
+                };
+            }
+
+            return delegate (ScriptableObject[] objects, CompressionLevel level)
+            {
+                return VFXMemorySerializer.StoreObjects(objects) as object;
+            };
+        }
+        private static Func<object, bool, ScriptableObject[]> GetExtractObjectsFunction()
+        {
+            var advancedMethod = typeof(VFXMemorySerializer).GetMethod("ExtractObjects", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]), typeof(bool) }, null);
+            if (advancedMethod != null)
+            {
+                return delegate (object objects, bool asCopy)
+                {
+                    return advancedMethod.Invoke(null, new object[] { objects as byte[], asCopy }) as ScriptableObject[];
+                };
+            }
+
+            return delegate (object objects, bool asCopy)
+            {
+                return VFXMemorySerializer.ExtractObjects(objects as string, asCopy);
+            };
+        }
+        private static readonly Func<ScriptableObject[], CompressionLevel, object> fnStoreObjects = GetStoreObjectsFunction();
+        private static readonly Func<object, bool, ScriptableObject[]> fnExtractObjects = GetExtractObjectsFunction();
+
+        public object Backup()
         {
             Profiler.BeginSample("VFXGraph.Backup");
             var dependencies = new HashSet<ScriptableObject>();
@@ -178,18 +213,17 @@ namespace UnityEditor.VFX
             dependencies.Add(this);
             CollectDependencies(dependencies);
 
-
-            var result = VFXMemorySerializer.StoreObjects(dependencies.Cast<ScriptableObject>().ToArray());
+            var result = fnStoreObjects(dependencies.Cast<ScriptableObject>().ToArray(), CompressionLevel.Fastest);
 
             Profiler.EndSample();
 
             return result;
         }
 
-        public void Restore(string str)
+        public void Restore(object str)
         {
             Profiler.BeginSample("VFXGraph.Restore");
-            var scriptableObject = VFXMemorySerializer.ExtractObjects(str, false);
+            var scriptableObject = fnExtractObjects(str, false);
 
             Profiler.BeginSample("VFXGraph.Restore SendUnknownChange");
             foreach (var model in scriptableObject.OfType<VFXModel>())
