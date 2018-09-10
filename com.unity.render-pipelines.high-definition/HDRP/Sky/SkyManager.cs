@@ -314,11 +314,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, cmd);
         }
 
-        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd)
+        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, bool isMSAA)
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
             {
-                CoreUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial);
+                CoreUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, null, isMSAA? 1 : 0);
             }
         }
 

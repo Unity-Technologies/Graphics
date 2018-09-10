@@ -408,6 +408,8 @@ Shader "HDRenderPipeline/StackLit"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ WRITE_MSAA_DEPTH
+
             #define WRITE_NORMAL_BUFFER
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
