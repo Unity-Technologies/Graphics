@@ -116,15 +116,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             LTCAreaLight.instance.Build();
 
-            if (m_preIntegratedFGDMaterial_Ward != null)
-                return; // Already initialized
+            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
 
             // Create Materials
-            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD_Ward");
+            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_Ward);
             if (m_preIntegratedFGDMaterial_Ward == null)
                 throw new Exception("Failed to create material for Ward BRDF pre-integration!");
 
-            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD_CookTorrance");
+            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_CookTorrance);
             if (m_preIntegratedFGDMaterial_CookTorrance == null)
                 throw new Exception("Failed to create material for Cook-Torrance BRDF pre-integration!");
 
