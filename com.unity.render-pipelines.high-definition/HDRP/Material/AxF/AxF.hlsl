@@ -127,7 +127,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     NormalData normalData;
     normalData.normalWS = surfaceData.normalWS;
 #if defined(_AXF_BRDF_TYPE_SVBRDF)
-    normalData.perceptualRoughness = RoughnessToPerceptualRoughness(surfaceData.specularLobe);
+    normalData.perceptualRoughness = RoughnessToPerceptualRoughness(surfaceData.specularLobe.x);
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
     normalData.perceptualRoughness = 0.0;
 #else
