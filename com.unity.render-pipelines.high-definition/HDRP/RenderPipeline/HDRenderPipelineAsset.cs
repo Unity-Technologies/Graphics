@@ -181,7 +181,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override Material GetDefaultTerrainMaterial()
         {
-            return null;
+            return m_RenderPipelineResources.defaultTerrainMaterial;
         }
 
         public override Material GetDefaultUIMaterial()

@@ -28,7 +28,7 @@ public class VFXManagerEditor : Editor
 
     public override void OnInspectorGUI()
     {
-
+        serializedObject.Update();
         var pathProperty = serializedObject.FindProperty("m_RenderPipeSettingsPath");
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.LabelField(ObjectNames.NicifyVariableName(pathProperty.name));
@@ -37,6 +37,7 @@ public class VFXManagerEditor : Editor
         {
             pathProperty.stringValue = resultPath;
         }
+        
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Default"))
         {
@@ -49,8 +50,7 @@ public class VFXManagerEditor : Editor
         GUILayout.EndHorizontal();
         GUILayout.Space(15);
 
-
-        foreach(var propertyName in new string[] { "m_FixedTimeStep", "m_MaxDeltaTime" })
+        foreach (var propertyName in new string[] { "m_FixedTimeStep", "m_MaxDeltaTime" })
         {
             var property = serializedObject.FindProperty(propertyName);
             EditorGUILayout.PropertyField(property);
@@ -63,7 +63,7 @@ public class VFXManagerEditor : Editor
             var property = serializedObject.FindProperty(propertyName);
             EditorGUILayout.PropertyField(property);
         }
-
+        serializedObject.ApplyModifiedProperties();
     }
     public static void CheckVFXManager()
     {

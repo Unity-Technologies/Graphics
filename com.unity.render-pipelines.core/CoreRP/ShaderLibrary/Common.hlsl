@@ -437,10 +437,27 @@ real3 Orthonormalize(real3 tangent, real3 normal)
     return normalize(tangent - dot(tangent, normal) * normal);
 }
 
-// Same as smoothstep except it assume 0, 1 interval for x
+// saturate((t - a) / (b - a)).
+real Remap01(real a, real b, real t)
+{
+    return saturate(t * rcp(b - a) - a * rcp(b - a));
+}
+
+// smoothstep that assumes that 'x' lies within the [0, 1] interval.
 real Smoothstep01(real x)
 {
-    return x * x * (3.0 - (2.0 * x));
+    return x * x * (3 - (2 * x));
+}
+
+real Smootherstep01(real x)
+{
+  return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
+real Smootherstep(real a, real b, real t)
+{
+    real x = Remap01(a, b, t);
+    return Smootherstep01(x);
 }
 
 real Pow4(real x)
@@ -814,6 +831,37 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
     // 'depthOffsetVS' applies in the direction away from the camera.
     posInput.linearDepth += depthOffsetVS * abs(dot(V, viewForwardDir));
 }
+
+// ----------------------------------------------------------------------------
+// Terrain/Brush heightmap encoding/decoding
+// ----------------------------------------------------------------------------
+
+#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
+
+real4 PackHeightmap(real height)
+{
+    uint a = (uint)(65535.0 * height);
+    return real4((a >> 0) & 0xFF, (a >> 8) & 0xFF, 0, 0) / 255.0;
+}
+
+real UnpackHeightmap(real4 height)
+{
+    return (height.r + height.g * 256.0) / 257.0; // (255.0 * height.r + 255.0 * 256.0 * height.g) / 65535.0
+}
+
+#else
+
+real4 PackHeightmap(real height)
+{
+    return real4(height, 0, 0, 0);
+}
+
+real UnpackHeightmap(real4 height)
+{
+    return height.r;
+}
+
+#endif
 
 // ----------------------------------------------------------------------------
 // Misc utilities

@@ -15,10 +15,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         StreamingMip
     }
 
+    [GenerateHLSL]
+    public enum DebugMipMapModeTerrainTexture
+    {
+        Control,
+        Layer0,
+        Layer1,
+        Layer2,
+        Layer3,
+        Layer4,
+        Layer5,
+        Layer6,
+        Layer7
+    }
+
     [Serializable]
     public class MipMapDebugSettings
     {
         public DebugMipMapMode debugMipMapMode = DebugMipMapMode.None;
+        public DebugMipMapModeTerrainTexture terrainTexture = DebugMipMapModeTerrainTexture.Control;
 
         public bool IsDebugDisplayEnabled()
         {

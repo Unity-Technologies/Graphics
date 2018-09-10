@@ -634,7 +634,7 @@ namespace UnityEditor.VFX.UI
             if (desc == null)
                 return false;
 
-            if (!(desc.model is VFXContext))
+            if (!(desc.model is VFXAbstractParticleOutput))
                 return false;
 
             return (desc.model as VFXContext).contextType == VFXContextType.kOutput;
@@ -717,6 +717,9 @@ namespace UnityEditor.VFX.UI
                 viewController.CreateLink(anchor, output);
             }
 
+            // Apply the change so that it won't unlink the blocks links
+            controller.ApplyChanges();
+
             viewController.RemoveElement(controller);
         }
 
@@ -731,9 +734,9 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if( evt.target is VFXContextUI && controller.model.contextType == VFXContextType.kOutput )
+            if( evt.target is VFXContextUI && controller.model is VFXAbstractParticleOutput )
             {
-                evt.menu.InsertAction(0, "Convert Context", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.InsertAction(0, "Convert Output", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
             }
         }
     }

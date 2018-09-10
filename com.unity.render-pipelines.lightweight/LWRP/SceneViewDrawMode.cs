@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 cameraMode.drawMode == DrawCameraMode.ValidateMetalSpecular ||
                 cameraMode.drawMode == DrawCameraMode.ShadowMasks ||
                 cameraMode.drawMode == DrawCameraMode.LightOverlap
-                )
+            )
                 return false;
 
             return true;
