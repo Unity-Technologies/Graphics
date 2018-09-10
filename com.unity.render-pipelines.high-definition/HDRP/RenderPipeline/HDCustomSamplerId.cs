@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ClearSsrBuffers,
         HDRenderPipelineRender,
         CullResultsCull,
-        CopyDepthForSceneView,
+        CopyDepth,
 
         // Profile sampler for tile pass
         TPPrepareLightsForGPU,
