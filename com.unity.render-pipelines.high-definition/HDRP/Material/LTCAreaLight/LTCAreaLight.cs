@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_refCounting == 0)
             {
-                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
+                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 8, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Clamp,
@@ -80,6 +80,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
                 LoadLUT(m_LtcData, 1, TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
+
+
+                // BMAYAUX (18/07/04) New BRDF Fittings
+Debug.Log( "Updating LTC tables!" );
+                LoadLUT(m_LtcData, 2, TextureFormat.RGBAHalf, s_LtcMatrixData_GGX);
+                LoadLUT(m_LtcData, 3, TextureFormat.RGBAHalf, s_LtcMatrixData_Disney);
+                LoadLUT(m_LtcData, 4, TextureFormat.RGBAHalf, s_LtcMatrixData_CookTorrance);
+                LoadLUT(m_LtcData, 5, TextureFormat.RGBAHalf, s_LtcMatrixData_Charlie);
+                LoadLUT(m_LtcData, 6, TextureFormat.RGBAHalf, s_LtcMatrixData_Ward);
+                LoadLUT(m_LtcData, 7, TextureFormat.RGBAHalf, s_LtcMatrixData_DisneyT); // Test of fittinf the transposed matrix instead...
 
                 m_LtcData.Apply();
             }
