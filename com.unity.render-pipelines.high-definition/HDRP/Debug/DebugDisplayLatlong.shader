@@ -19,12 +19,12 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "HDRP/ShaderVariables.hlsl"
+            #include "HDRP/Debug/DebugDisplay.hlsl"
 
             TEXTURECUBE(_InputCubemap);
             SAMPLER(sampler_InputCubemap);
             float _Mipmap;
-            float _RequireToFlipInputTexture;
-            float _DebugExposure;
 
             struct Attributes
             {
@@ -43,7 +43,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);// *_TextureScaleBias.xy + _TextureScaleBias.zw;
 
-                if (_RequireToFlipInputTexture > 0.0f)
+                if (ShouldFlipDebugTexture())
                 {
                     output.texcoord.y = 1.0f - output.texcoord.y;
                 }

@@ -23,19 +23,18 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #include "HDRP/Material/Lit/Lit.cs.hlsl"
             #include "HDRP/ShaderVariables.hlsl"
             #include "HDRP/Debug/DebugDisplay.cs.hlsl"
+            #include "HDRP/Debug/DebugDisplay.hlsl"
             #include "HDRP/Material/Builtin/BuiltinData.hlsl"
             #include "HDRP/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.cs.hlsl"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
-            float _RequireToFlipInputTexture;
             float _ShowGrid;
             float _ShowDepthPyramidDebug;
             float _ShowSSRaySampledColor;
             CBUFFER_END
 
             TEXTURE2D(_DebugFullScreenTexture);
-            StructuredBuffer<ScreenSpaceTracingDebug> _DebugScreenSpaceTracingData;
 
             struct Attributes
             {
@@ -130,7 +129,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                if (_RequireToFlipInputTexture > 0.0)
+                if (ShouldFlipDebugTexture())
                 {
                     // Texcoord are already scaled by _ScreenToTargetScale but we need to account for the flip here anyway.
                     input.texcoord.y = 1.0 * _ScreenToTargetScale.y - input.texcoord.y;
@@ -188,7 +187,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     // Sample the center of the cell to get the current arrow vector
                     float2 arrow_coord = center * _ScreenSize.zw;
 
-                    if (_RequireToFlipInputTexture > 0.0)
+                    if (ShouldFlipDebugTexture())
                     {
                         arrow_coord.y = 1.0 - arrow_coord.y;
                     }
@@ -196,7 +195,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
                     float2 mv_arrow = SampleMotionVectors(arrow_coord);
 
-                    if (_RequireToFlipInputTexture == 0.0)
+                    if (!ShouldFlipDebugTexture())
                     {
                         mv_arrow.y *= -1;
                     }
@@ -255,7 +254,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     uint2 endPositionSS = uint2(debug.endPositionSSX, debug.endPositionSSY);
                     float3 iterationPositionSS = debug.iterationPositionSS;
 
-                    if (_RequireToFlipInputTexture > 0)
+                    if (ShouldFlipDebugTexture())
                     {
                         loopStartPositionSS.y = uint(_ScreenSize.y) - loopStartPositionSS.y;
                         endPositionSS.y = uint(_ScreenSize.y) - endPositionSS.y;
