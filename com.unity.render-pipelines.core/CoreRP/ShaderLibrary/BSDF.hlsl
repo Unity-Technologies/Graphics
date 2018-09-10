@@ -538,5 +538,9 @@ real FabricLambert(real roughness)
     return INV_PI * FabricLambertNoPI(roughness);
 }
 
+real G_CookTorrance(real NdotH, real NdotV, real NdotL, real HdotV)
+{
+    return min(1.0, 2.0 * NdotH * min(NdotV, NdotL) / HdotV);
+}
 
 #endif // UNITY_BSDF_INCLUDED

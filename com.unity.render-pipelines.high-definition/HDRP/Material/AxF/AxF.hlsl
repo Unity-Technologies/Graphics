@@ -8,7 +8,7 @@
 
 // Declare the BSDF specific FGD property and its fetching function
 #include "HDRP/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
-#include "HDRP/Material/AxF/Resources/PreIntegratedFGD.hlsl"
+#include "HDRP/Material/AxF/AxFPreIntegratedFGD.hlsl"
 
 // Add support for LTC Area Lights
 #include "HDRP/Material/LTCAreaLight/LTCAreaLight.hlsl"
@@ -203,11 +203,6 @@ float CT_F(float H_V, float F0)
     return F0 + (1.0 - F0) * f_1_sub_cos_fifth;
 }
 
-float CT_G(float N_H, float N_V, float N_L, float H_V)
-{
-    return min(1.0, 2.0 * N_H * min(N_V, N_L) / H_V);
-}
-
 float3  MultiLobesCookTorrance(float NdotL, float NdotV, float NdotH, float VdotH)
 {
     // Ensure numerical stability
@@ -223,7 +218,7 @@ float3  MultiLobesCookTorrance(float NdotL, float NdotV, float NdotH, float Vdot
 
         specularIntensity += coeff * CT_D(NdotH, spread) * CT_F(VdotH, F0);
     }
-    specularIntensity *= CT_G(NdotH, NdotV, NdotL, VdotH)  // Shadowing/Masking term
+    specularIntensity *= G_CookTorrance(NdotH, NdotV, NdotL, VdotH)  // Shadowing/Masking term
         / (PI * max(1e-3, NdotV * NdotL));
 
     return specularIntensity;
@@ -421,14 +416,23 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     float specularReflectivity;
     switch ((_SVBRDF_BRDFType >> 1) & 7)
     {
-    case 0: GetPreIntegratedFGDWardLambert(NdotV_UnderCoat, preLightData.IBLPerceptualRoughness, bsdfData.fresnelF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity); break;
-        //            case 1: // @TODO: Support Blinn-Phong FGD?
-    case 2: GetPreIntegratedFGDCookTorranceLambert(NdotV_UnderCoat, preLightData.IBLPerceptualRoughness, bsdfData.fresnelF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity); break;
-    case 3: GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV_UnderCoat, preLightData.IBLPerceptualRoughness, bsdfData.fresnelF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity); break;
-        //            case 4: // @TODO: Support Blinn-Phong FGD?
+    case 0:
+        GetPreIntegratedFGDWardAndLambert(NdotV_UnderCoat, preLightData.IBLPerceptualRoughness, bsdfData.fresnelF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+        break;
+
+    // case 1: // @TODO: Support Blinn-Phong FGD?
+
+    case 2:
+        GetPreIntegratedFGDCookTorranceAndLambert(NdotV_UnderCoat, preLightData.IBLPerceptualRoughness, bsdfData.fresnelF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+        break;
+    case 3:
+        GetPreIntegratedFGDGGXAndLambert(NdotV_UnderCoat, preLightData.IBLPerceptualRoughness, bsdfData.fresnelF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+        break;
+
+     // case 4: // @TODO: Support Blinn-Phong FGD?
 
     default:    // Use GGX by default
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV_UnderCoat, preLightData.IBLPerceptualRoughness, bsdfData.fresnelF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+        GetPreIntegratedFGDGGXAndLambert(NdotV_UnderCoat, preLightData.IBLPerceptualRoughness, bsdfData.fresnelF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
         break;
     }
 
@@ -713,7 +717,7 @@ float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, flo
         / (PI * Sq(sqNdotH) * sqAlpha);
 
     // Evaluate shadowing/masking term
-    float   G = CT_G(NdotH, NdotV, NdotL, LdotH);
+    float   G = G_CookTorrance(NdotH, NdotV, NdotL, LdotH);
 
     return bsdfData.specularColor * F * N * G;
 }
@@ -1818,7 +1822,7 @@ IndirectLighting    EvaluateBSDF_Env(LightLoopContext lightLoopContext,
         envLighting += lobeIntensity * specularFGD * preLD.xyz;
         sumWeights += preLD.w;
     }
-    envLighting *= CT_G(NdotH, NdotV, NdotL, VdotH)  // Shadowing/Masking term
+    envLighting *= G_CookTorrance(NdotH, NdotV, NdotL, VdotH)  // Shadowing/Masking term
         / (PI * max(1e-3, NdotV * NdotL));
     envLighting *= GetBRDFColor(thetaH, thetaD);
 

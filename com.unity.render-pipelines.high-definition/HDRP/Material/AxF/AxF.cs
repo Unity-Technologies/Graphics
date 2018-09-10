@@ -120,11 +120,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return; // Already initialized
 
             // Create Materials
-            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD_WardLambert");
+            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD_Ward");
             if (m_preIntegratedFGDMaterial_Ward == null)
                 throw new Exception("Failed to create material for Ward BRDF pre-integration!");
 
-            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD_CookTorranceLambert");
+            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD_CookTorrance");
             if (m_preIntegratedFGDMaterial_CookTorrance == null)
                 throw new Exception("Failed to create material for Cook-Torrance BRDF pre-integration!");
 
@@ -196,7 +196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             Shader.SetGlobalTexture("_PreIntegratedFGD_WardLambert", m_preIntegratedFGD_Ward);
-            Shader.SetGlobalTexture("_PreIntegratedFGD_CookTorranceLambert", m_preIntegratedFGD_CookTorrance);
+            Shader.SetGlobalTexture("_PreIntegratedFGD_CookTorrance", m_preIntegratedFGD_CookTorrance);
         }
     }
 }
