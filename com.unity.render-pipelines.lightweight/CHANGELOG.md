@@ -11,15 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `RenderingData` struct now holds a reference to `CullResults`.
 - When __HDR__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
 - When __MSAA__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
-- Enabled instancing on the terrain shader.
-- Sorting of opaque objects now respects camera opaqueSortMode setting.
-- Sorting of opaque objects disables front-to-back sorting flag when camera settings allow that and the GPU has hidden surface removal.
 ### Changed
 - The `RenderingData` struct is now read-only.
 - `ScriptableRenderer`always perform a Clear before calling `IRendererSetup::Setup.` 
 - `ScriptableRenderPass::Execute` no longer takes `CullResults` as input. Instead, use `RenderingData`as input, since that references `CullResults`.
 - `IRendererSetup_Setup` no longer takes `ScriptableRenderContext` and `CullResults` as input.
-
 ### Fixed
 - The Unlit shader now samples Global Illumination correctly.
 - The Inspector window for the Unlit shader now displays correctly.
@@ -39,11 +35,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.
-
-### Changed
-- Change real-time attenuation to inverse square.
-- Change attenuation for baked GI to inverse square, to match real-time attenuation.
-- Small optimization in light attenuation shader code.
 
 ## [3.2.0-preview]
 ### Changed

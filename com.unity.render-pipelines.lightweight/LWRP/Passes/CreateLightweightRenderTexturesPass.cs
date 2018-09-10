@@ -1,4 +1,4 @@
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                 depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
                 depthDescriptor.msaaSamples = (int)samples;
-                depthDescriptor.bindMS = (int)samples > 1;
+                depthDescriptor.bindMS = (int)samples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, depthDescriptor, FilterMode.Point);
             }
 

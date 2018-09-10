@@ -201,7 +201,6 @@ Shader "HDRenderPipeline/Fabric"
 
             HLSLPROGRAM
 
-            #define WRITE_NORMAL_BUFFER
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "HDRP/ShaderVariables.hlsl"
             #include "HDRP/Material/Material.hlsl"
@@ -296,7 +295,6 @@ Shader "HDRenderPipeline/Fabric"
             //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "HDRP/ShaderVariables.hlsl"
