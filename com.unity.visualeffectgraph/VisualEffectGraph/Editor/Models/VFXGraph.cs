@@ -170,6 +170,7 @@ namespace UnityEditor.VFX
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
         }
 
+        //Temporary : Use reflection to access to StoreObjectsToByteArray (doesn't break previous behavior if editor isn't up to date)
         private static Func<ScriptableObject[], CompressionLevel, object> GetStoreObjectsFunction()
         {
             var advancedMethod = typeof(VFXMemorySerializer).GetMethod("StoreObjectsToByteArray", BindingFlags.Public | BindingFlags.Static);

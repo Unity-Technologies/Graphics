@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        [Test]  //Not really a test but an helper to measure backup (for undo/redo) time for every existing asset
+        //[Test]  //Not really a test but an helper to measure backup (for undo/redo) time for every existing asset
         public void MeasureBackupTime()
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
