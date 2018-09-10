@@ -1278,6 +1278,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DebugScreenSpaceTracingData.SetData(m_DebugScreenSpaceTracingDataArray);
                 }
 
+            #if UNITY_EDITOR
+                UnityEditor.Handles.DrawGizmos(camera);
+            #endif
+
             } // For each camera
         }
 
