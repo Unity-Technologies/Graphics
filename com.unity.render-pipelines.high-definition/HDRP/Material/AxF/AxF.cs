@@ -103,12 +103,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
         // Init precomputed texture
         //-----------------------------------------------------------------------------
-        //
+
         Material        m_preIntegratedFGDMaterial_Ward = null;
         Material        m_preIntegratedFGDMaterial_CookTorrance = null;
         RenderTexture   m_preIntegratedFGD_Ward = null;
         RenderTexture   m_preIntegratedFGD_CookTorrance = null;
-        bool            m_preIntegratedTableAvailable = false;
+
+        public static readonly int _PreIntegratedFGD_Ward = Shader.PropertyToID("_PreIntegratedFGD_Ward");
+        public static readonly int _PreIntegratedFGD_CookTorrance = Shader.PropertyToID("_PreIntegratedFGD_CookTorrance");
 
         public AxF() {}
 
@@ -155,7 +157,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_preIntegratedFGD_Ward = null;
             m_preIntegratedFGDMaterial_Ward = null;
             m_preIntegratedFGDMaterial_CookTorrance = null;
-            m_preIntegratedTableAvailable = false;
 
             LTCAreaLight.instance.Cleanup();
         }
@@ -167,21 +168,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            // Disable cache while developing shader
-            if (m_preIntegratedTableAvailable)
-            {
-                return;
-            }
-
-            //Debug.Log( "Rendering Ward/Cook-Torrance FGD table!" );
-
             using (new ProfilingSample(cmd, "PreIntegratedFGD Material Generation for Ward & Cook-Torrance BRDF"))
             {
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_Ward, new RenderTargetIdentifier(m_preIntegratedFGD_Ward));
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_CookTorrance, new RenderTargetIdentifier(m_preIntegratedFGD_CookTorrance));
-                m_preIntegratedTableAvailable = true;
-
-                //Debug.Log( "*FINISHED RENDERING* Ward/Cook-Torrance FGD table!" );
             }
         }
 
@@ -189,13 +179,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             LTCAreaLight.instance.Bind();
 
-            if (m_preIntegratedFGD_Ward == null ||  m_preIntegratedFGD_CookTorrance == null ||  !m_preIntegratedTableAvailable)
+            if (m_preIntegratedFGD_Ward == null ||  m_preIntegratedFGD_CookTorrance == null)
             {
                 throw new Exception("Ward & Cook-Torrance BRDF pre-integration table not available!");
             }
 
-            Shader.SetGlobalTexture("_PreIntegratedFGD_WardLambert", m_preIntegratedFGD_Ward);
-            Shader.SetGlobalTexture("_PreIntegratedFGD_CookTorrance", m_preIntegratedFGD_CookTorrance);
+            Shader.SetGlobalTexture(_PreIntegratedFGD_Ward, m_preIntegratedFGD_Ward);
+            Shader.SetGlobalTexture(_PreIntegratedFGD_CookTorrance, m_preIntegratedFGD_CookTorrance);
         }
     }
 }
