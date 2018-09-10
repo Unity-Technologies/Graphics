@@ -52,7 +52,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader volumetricLightingCS;
 
         public ComputeShader subsurfaceScatteringCS; // Disney SSS
-        public Shader subsurfaceScattering; // Jimenez SSS
         public Shader combineLighting;
 
         // General
@@ -149,7 +148,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             volumetricLightingCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Volumetrics/VolumetricLighting.compute");
 
             subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.compute");
-            subsurfaceScattering = Load<Shader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.shader");
             combineLighting = Load<Shader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/CombineLighting.shader");
 
             // General

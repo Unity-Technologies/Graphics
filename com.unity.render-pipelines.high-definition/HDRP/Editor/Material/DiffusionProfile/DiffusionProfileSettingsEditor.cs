@@ -23,12 +23,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             internal SerializedProperty worldScale;
             internal SerializedProperty ior;
 
-            // Old SSS Model >>>
-            internal SerializedProperty scatterDistance1;
-            internal SerializedProperty scatterDistance2;
-            internal SerializedProperty lerpWeight;
-            // <<< Old SSS Model
-
             // Render preview
             internal RenderTexture profileRT;
             internal RenderTexture transmittanceRT;
@@ -82,11 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     transmissionMode = rp.Find(x => x.transmissionMode),
                     thicknessRemap = rp.Find(x => x.thicknessRemap),
                     worldScale = rp.Find(x => x.worldScale),
-                    ior = rp.Find(x => x.ior),
-
-                    scatterDistance1 = rp.Find(x => x.scatterDistance1),
-                    scatterDistance2 = rp.Find(x => x.scatterDistance2),
-                    lerpWeight = rp.Find(x => x.lerpWeight)
+                    ior = rp.Find(x => x.ior)
                 };
 
                 m_Profiles.Add(profile);
@@ -119,8 +109,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (m_Profiles == null || m_Profiles.Count == 0)
                 return;
 
-            bool useDisneySSS = ShaderConfig.k_UseDisneySSS == 1;
-
             for (int i = 0; i < m_Profiles.Count; i++)
             {
                 var profile = m_Profiles[i];
@@ -137,19 +125,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     using (var scope = new EditorGUI.ChangeCheckScope())
                     {
-                        if (useDisneySSS)
-                        {
-                            EditorGUILayout.PropertyField(profile.scatteringDistance, s_Styles.profileScatteringDistance);
+                        EditorGUILayout.PropertyField(profile.scatteringDistance, s_Styles.profileScatteringDistance);
 
-                            using (new EditorGUI.DisabledScope(true))
-                                EditorGUILayout.FloatField(s_Styles.profileMaxRadius, profile.objReference.maxRadius);
-                        }
-                        else
-                        {
-                            EditorGUILayout.PropertyField(profile.scatterDistance1, s_Styles.profileScatterDistance1);
-                            EditorGUILayout.PropertyField(profile.scatterDistance2, s_Styles.profileScatterDistance2);
-                            EditorGUILayout.PropertyField(profile.lerpWeight, s_Styles.profileLerpWeight);
-                        }
+                        using (new EditorGUI.DisabledScope(true))
+                            EditorGUILayout.FloatField(s_Styles.profileMaxRadius, profile.objReference.maxRadius);
 
                         EditorGUILayout.Slider(profile.ior, 1.0f, 2.0f, s_Styles.profileIor);
                         EditorGUILayout.PropertyField(profile.worldScale, s_Styles.profileWorldScale);
@@ -187,7 +166,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    RenderPreview(profile, useDisneySSS);
+                    RenderPreview(profile);
 
                     EditorGUILayout.Space();
                     EditorGUI.indentLevel--;
@@ -201,7 +180,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             serializedObject.ApplyModifiedProperties();
         }
 
-        void RenderPreview(Profile profile, bool useDisneySSS)
+        void RenderPreview(Profile profile)
         {
             var obj = profile.objReference;
             float r = obj.maxRadius;
@@ -212,23 +191,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius, r);
             m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
 
-            // Old SSS Model >>>
-            CoreUtils.SelectKeyword(m_ProfileMaterial, "SSS_MODEL_DISNEY", "SSS_MODEL_BASIC", useDisneySSS);
-
-            // Apply the three-sigma rule, and rescale.
-            float s = (1f / 3f) * DiffusionProfileConstants.SSS_BASIC_DISTANCE_SCALE;
-            var scatterDist1 = profile.scatterDistance1.colorValue;
-            var scatterDist2 = profile.scatterDistance2.colorValue;
-            float rMax = Mathf.Max(scatterDist1.r, scatterDist1.g, scatterDist1.b,
-                    scatterDist2.r, scatterDist2.g, scatterDist2.b);
-            var stdDev1 = s * (Vector4)scatterDist1;
-            var stdDev2 = s * (Vector4)scatterDist2;
-            m_ProfileMaterial.SetVector(HDShaderIDs._StdDev1, stdDev1);
-            m_ProfileMaterial.SetVector(HDShaderIDs._StdDev2, stdDev2);
-            m_ProfileMaterial.SetFloat(HDShaderIDs._LerpWeight, profile.lerpWeight.floatValue);
-            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius, rMax);
-            // <<< Old SSS Model
-
             // Draw the profile.
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256f, 256f), profile.profileRT, m_ProfileMaterial, ScaleMode.ScaleToFit, 1f);
 
@@ -237,15 +199,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(s_Styles.transmittancePreview1, EditorStyles.centeredGreyMiniLabel);
             EditorGUILayout.LabelField(s_Styles.transmittancePreview2, EditorStyles.centeredGreyMiniLabel);
             EditorGUILayout.Space();
-
-            // Old SSS Model >>>
-            // Multiply by 0.1 to convert from millimeters to centimeters. Apply the distance scale.
-            float a = 0.1f * DiffusionProfileConstants.SSS_BASIC_DISTANCE_SCALE;
-            var halfRcpVarianceAndWeight1 = new Vector4(a * a * 0.5f / (stdDev1.x * stdDev1.x), a * a * 0.5f / (stdDev1.y * stdDev1.y), a * a * 0.5f / (stdDev1.z * stdDev1.z), 4f * (1f - profile.lerpWeight.floatValue));
-            var halfRcpVarianceAndWeight2 = new Vector4(a * a * 0.5f / (stdDev2.x * stdDev2.x), a * a * 0.5f / (stdDev2.y * stdDev2.y), a * a * 0.5f / (stdDev2.z * stdDev2.z), 4f * profile.lerpWeight.floatValue);
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._HalfRcpVarianceAndWeight1, halfRcpVarianceAndWeight1);
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._HalfRcpVarianceAndWeight2, halfRcpVarianceAndWeight2);
-            // <<< Old SSS Model
 
             m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam, S);
             m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, T);

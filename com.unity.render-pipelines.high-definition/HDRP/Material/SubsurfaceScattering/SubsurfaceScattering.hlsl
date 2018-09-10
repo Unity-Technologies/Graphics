@@ -203,18 +203,9 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always used for indirect lighting).
-#if SHADEROPTIONS_USE_DISNEY_SSS
     bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
                                                         _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
                                                         bsdfData.thickness);
-#else
-    bsdfData.transmittance = ComputeTransmittanceJimenez(   _HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
-                                                            _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
-                                                            _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
-                                                            _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
-                                                            _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                            bsdfData.thickness);
-#endif
 }
 
 #endif
