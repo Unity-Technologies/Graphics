@@ -3,6 +3,44 @@
 //-------------------------------------------------------------------------------------
 #include "HDRP/Material/BuiltinUtilities.hlsl"
 #include "HDRP/Material/MaterialUtilities.hlsl"
+#include "HDRP/Material/Decal/DecalUtilities.hlsl"
+
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
+{
+    // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
+    {
+        surfaceData.diffuseColor.xyz = surfaceData.diffuseColor.xyz * decalSurfaceData.diffuseColor.w + decalSurfaceData.diffuseColor.xyz;
+#ifdef _AXF_BRDF_TYPE_SVBRDF
+        surfaceData.clearcoatColor.xyz = surfaceData.clearcoatColor.xyz * decalSurfaceData.diffuseColor.w + decalSurfaceData.diffuseColor.xyz;
+#endif
+    }
+
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
+    {
+        // Affect both normal and clearcoat normal
+        surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+#if defined(_AXF_BRDF_TYPE_SVBRDF) || defined(_AXF_BRDF_TYPE_CAR_PAINT)
+        surfaceData.clearcoatNormalWS = normalize(surfaceData.clearcoatNormalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+#endif
+    }
+
+    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
+    {
+#ifdef DECALS_4RT // only smoothness in 3RT mode
+#ifdef _AXF_BRDF_TYPE_SVBRDF
+        float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
+        surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSBlend.x + decalSpecularColor;
+#endif
+#if defined(_AXF_BRDF_TYPE_SVBRDF) || defined(_AXF_BRDF_TYPE_CAR_PAINT)
+        surfaceData.clearcoatIOR = 1.0; // Neutral
+#endif
+        // Note:There is no ambient occlusion with AxF material
+#endif
+
+        surfaceData.specularLobe = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
+    }
+}
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -96,6 +134,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     //NEWLITTODO: Once we include those passes in the main AxF.shader, add handling of CUTOFF_TRANSPARENT_DEPTH_PREPASS and _POSTPASS
     // and the related properties (in the .shader) and uniforms (in the AxFProperties file) _AlphaCutoffPrepass, _AlphaCutoffPostpass
     DoAlphaTest(alpha, _AlphaCutoff);
+#endif
+
+#if HAVE_DECALS
+    if (_EnableDecals)
+    {
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+    }
 #endif
 
 #if defined(DEBUG_DISPLAY)

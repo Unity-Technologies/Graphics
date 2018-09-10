@@ -4,6 +4,8 @@
 // SurfaceData is defined in AxF.cs which generates AxF.cs.hlsl
 #include "AxF.cs.hlsl"
 
+#include "HDRP/Material/NormalBuffer.hlsl"
+
 // Declare the BSDF specific FGD property and its fetching function
 #include "HDRP/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 #include "HDRP/Material/AxF/Resources/PreIntegratedFGD.hlsl"
@@ -110,28 +112,29 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
     // this can be use also in case of debug lighting mode like specular only
+    bool overrideSpecularColor = _DebugLightingSpecularColor.x != 0.0;
 
-    //NEWLITTODO
-    //bool overrideSpecularColor = _DebugLightingSpecularColor.x != 0.0;
-
-    //if (overrideSpecularColor)
-    //{
-    //   float3 overrideSpecularColor = _DebugLightingSpecularColor.yzw;
-    //    bsdfData.fresnel0 = overrideSpecularColor;
-    //}
+    if (overrideSpecularColor)
+    {
+        float3 overrideSpecularColor = _DebugLightingSpecularColor.yzw;
+        bsdfData.specularColor = overrideSpecularColor;
+    }
 #endif
+}
 
-
-// DEBUG Anisotropy
-//bsdfData.anisotropyAngle = _DEBUG_anisotropyAngle;
-//bsdfData.anisotropyAngle += _DEBUG_anisotropyAngle;
-//bsdfData.roughness = _SVBRDF_SpecularLobeMap_Scale * float2(_DEBUG_anisotropicRoughessX, _DEBUG_anisotropicRoughessY);
-
-// DEBUG Clearcoat
-//bsdfData.clearcoatIOR = max(1.001, _DEBUG_clearcoatIOR);
-//bsdfData.clearcoatIOR = max(1.0, _DEBUG_clearcoatIOR);
-
-
+NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
+{
+    NormalData normalData;
+    normalData.normalWS = surfaceData.normalWS;
+#if defined(_AXF_BRDF_TYPE_SVBRDF)
+    normalData.perceptualRoughness = RoughnessToPerceptualRoughness(surfaceData.specularLobe);
+#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
+    normalData.perceptualRoughness = 0.0;
+#else
+    // This is only possible if the AxF is a BTF type. However, there is a bunch of ifdefs do not support this third case
+    normalData.perceptualRoughness = 0.0;
+#endif
+    return normalData;
 }
 
 //----------------------------------------------------------------------
