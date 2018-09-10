@@ -64,16 +64,17 @@ CBUFFER_END
 // Implementation
 //--------------------------------------------------------------------------------------------------
 
-float ComputeFadeFactor(float3 coordNDC, float3 rcpPosFade, float3 rcpNegFade)
+float ComputeFadeFactor(float3 coordNDC, float3 rcpPosFade, float3 rcpNegFade, bool invertFade)
 {
     // We have to account for handedness.
     coordNDC.z = 1 - coordNDC.z;
 
-    float3 posT = saturate(coordNDC * rcpPosFade - rcpPosFade + 1);
-    float3 negT = saturate(1 - coordNDC * rcpNegFade);
+    float3 posT = saturate(1 + rcpPosFade * (coordNDC - 1));
+    float3 negT = saturate(1 - rcpNegFade * coordNDC);
+    float  fade = saturate(lerp(1, 0, posT.x) * lerp(1, 0, posT.y) * lerp(1, 0, posT.z) *
+                           lerp(1, 0, negT.x) * lerp(1, 0, negT.y) * lerp(1, 0, negT.z));
 
-    return lerp(1, 0, posT.x) * lerp(1, 0, posT.y) * lerp(1, 0, posT.z)
-         * lerp(1, 0, negT.x) * lerp(1, 0, negT.y) * lerp(1, 0, negT.z);
+    return invertFade ? (1 - fade) : fade;
 }
 
 float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
@@ -253,9 +254,13 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
 
                 if (overlapFraction > 0)
                 {
-                    float3 voxelCenterNDC = voxelCenterCS * 0.5 + 0.5;
+                    // We must clamp here, otherwise, with soft voxelization enabled,
+                    // the center of the voxel can be slightly outside the box.
+                    float3 voxelCenterNDC = saturate(voxelCenterCS * 0.5 + 0.5);
 
-                    overlapFraction *= ComputeFadeFactor(voxelCenterNDC, _VolumeData[volumeIndex].rcpPosFade, _VolumeData[volumeIndex].rcpNegFade);
+                    overlapFraction *= ComputeFadeFactor(voxelCenterNDC, _VolumeData[volumeIndex].rcpPosFade,
+                                                                         _VolumeData[volumeIndex].rcpNegFade,
+                                                                         _VolumeData[volumeIndex].invertFade);
 
                     //Sample the volumeMask
                     if (_VolumeData[volumeIndex].textureIndex != -1)
