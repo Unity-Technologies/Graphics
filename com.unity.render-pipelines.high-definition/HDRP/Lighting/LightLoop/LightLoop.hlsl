@@ -76,7 +76,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     {
         UNITY_BRANCH if(_DirectionalShadowIndex != -1)
         {
-            context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionWS, bsdfData.normalWS, _DirectionalLightDatas[_DirectionalShadowIndex].shadowIndex, -_DirectionalLightDatas[_DirectionalShadowIndex].forward, posInput.positionSS);
+            context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionWS, GetShadowNormalBias(bsdfData), _DirectionalLightDatas[_DirectionalShadowIndex].shadowIndex, -_DirectionalLightDatas[_DirectionalShadowIndex].forward, posInput.positionSS);
         }
         else
         {

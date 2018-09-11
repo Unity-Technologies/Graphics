@@ -21,6 +21,11 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+float3 GetShadowNormalBias(BSDFData bsdfData)
+{
+    return bsdfData.geomNormalWS;
+}
+
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
@@ -105,6 +110,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.diffuseColor = surfaceData.baseColor;
     bsdfData.specularOcclusion = surfaceData.specularOcclusion;
     bsdfData.normalWS = surfaceData.normalWS;
+    bsdfData.geomNormalWS = surfaceData.geomNormalWS;
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;

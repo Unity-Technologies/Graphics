@@ -103,6 +103,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Extract the alpha value (will be useful if we need to trigger the alpha test)
     float alpha = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, uvBase).a * _BaseColor.a * detailSample.r;
 
+    // Propagate the geometry normal
+    surfaceData.geomNormalWS = input.worldToTangent[2];
+    
 #ifdef _NORMALMAP
     float2 derivative = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uvBase), _NormalScale);
     #ifdef _DETAIL_MAP
