@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.Test
             }
 
             var report = new List<string>();
-            var levels = new[] { CompressionLevel.None, CompressionLevel.Fastest };
+            var levels = new[] { (CompressionLevel)int.MaxValue, CompressionLevel.None, CompressionLevel.Fastest };
             foreach (var level in levels)
             {
                 var data = new byte[vfxAssets.Count][];
@@ -110,12 +110,22 @@ namespace UnityEditor.VFX.Test
                     for (int i = 0; i < vfxAssets.Count; ++i)
                     {
                         var sw = watch[i];
-                        sw.Start();
-                        var currentData = VFXMemorySerializer.StoreObjectsToByteArray(dependenciesPerAsset[i], level);
-                        sw.Stop();
+                        if (level == (CompressionLevel)int.MaxValue)
+                        {
+                            sw.Start();
+                            var currentData = VFXMemorySerializer.StoreObjects(dependenciesPerAsset[i]);
+                            sw.Stop();
+                            data[i] = System.Text.Encoding.UTF8.GetBytes(currentData);
+                        }
+                        else
+                        {
 
+                            sw.Start();
+                            var currentData = VFXMemorySerializer.StoreObjectsToByteArray(dependenciesPerAsset[i], level);
+                            sw.Stop();
+                            data[i] = currentData;
+                        }
                         elapsedTimeCompression[i] = sw.ElapsedMilliseconds;
-                        data[i] = currentData;
                     }
                 }
 
@@ -125,15 +135,26 @@ namespace UnityEditor.VFX.Test
                     for (int i = 0; i < vfxAssets.Count; ++i)
                     {
                         var sw = watch[i];
-                        sw.Start();
-                        VFXMemorySerializer.ExtractObjects(data[i], false);
-                        sw.Stop();
+                        if (level == (CompressionLevel)int.MaxValue)
+                        {
+                           var currentData = System.Text.Encoding.UTF8.GetString(data[i]);
+                            sw.Start();
+                            VFXMemorySerializer.ExtractObjects(currentData, false);
+                            sw.Stop();
+                        }
+                        else
+                        {
+                            
+                            sw.Start();
+                            VFXMemorySerializer.ExtractObjects(data[i], false);
+                            sw.Stop();
+                        }
 
                         elapsedTimeDecompression[i] = sw.ElapsedMilliseconds;
                     }
                 }
 
-                report.Add(level.ToString());
+                report.Add(level == (CompressionLevel)int.MaxValue ? "original" : level.ToString());
                 report.Add("asset;size;compression;decompression");
                 for (int i = 0; i < vfxAssets.Count; ++i)
                 {
