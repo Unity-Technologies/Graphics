@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Experimental.Rendering;
@@ -471,9 +473,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
             }
 
-            float constantAlpha = 0.0f;
             if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId) ||
-                (float.TryParse(masterNode.GetSlotValue(PBRMasterNode.AlphaThresholdSlotId, GenerationMode.ForReals), out constantAlpha) && (constantAlpha > 0.0f)))
+                masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == PBRMasterNode.AlphaThresholdSlotId).value > 0.0f)
             {
                 activeFields.Add("AlphaTest");
             }
