@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
@@ -93,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                         m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                     }
                     float newValue;
-                    if (!float.TryParse(evt.newData, out newValue))
+                    if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
                         newValue = 0f;
                     var value = GetValue();
                     value[index] = newValue;
