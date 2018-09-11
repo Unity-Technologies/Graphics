@@ -100,8 +100,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Cleanup()
         {
             CoreUtils.Destroy(m_CombineLightingPass);
-            CoreUtils.Destroy(m_SssVerticalFilterPass);
-            CoreUtils.Destroy(m_SssHorizontalFilterAndCombinePass);
             CoreUtils.Destroy(m_CopyStencilForSplitLighting);
 
             for (int i = 0; i < k_MaxSSSBuffer; ++i)
