@@ -293,7 +293,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             switch (src.spotLightShape)
                             {
                                 case SpotLightShape.Cone:
-                                    CoreLightEditorUtilities.DrawSpotlightGizmo(light, src.GetInnerSpotPercent01(), true);
+                                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
+                                    {
+                                        Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * src.GetInnerSpotPercent01(), light.range);
+                                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                                        Handles.color = wireframeColorBehind;
+                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, light.shadowNearPlane);
+                                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                                        Handles.color = wireframeColorAbove;
+                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, light.shadowNearPlane);
+                                        EditorGUI.BeginChangeCheck();
+                                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                                        Handles.color = handleColorBehind;
+                                        outterAngleInnerAngleRange = CoreLightEditorUtilities.DrawSpotlightHandle(outterAngleInnerAngleRange);
+                                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                                        Handles.color = handleColorAbove;
+                                        outterAngleInnerAngleRange = CoreLightEditorUtilities.DrawSpotlightHandle(outterAngleInnerAngleRange);
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            Undo.RecordObjects(new UnityEngine.Object[] { target, src }, "Adjust Cone Spot Light");
+                                            src.m_InnerSpotPercent = 100f * outterAngleInnerAngleRange.y / outterAngleInnerAngleRange.x;
+                                            light.spotAngle = outterAngleInnerAngleRange.x;
+                                            light.range = outterAngleInnerAngleRange.z;
+                                        }
+
+                                        // Handles.color reseted at end of scope
+                                    }
                                     break;
                                 case SpotLightShape.Pyramid:
                                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
