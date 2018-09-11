@@ -23,11 +23,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_HTile;
         // End Disney SSS Model
 
-        // Jimenez SSS Model
-        Material m_SssVerticalFilterPass;
-        Material m_SssHorizontalFilterAndCombinePass;
-        // End Jimenez SSS Model
-
         // Jimenez need an extra buffer and Disney need one for some platform
         RTHandleSystem.RTHandle m_CameraFilteringBuffer;
 
@@ -105,8 +100,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Cleanup()
         {
             CoreUtils.Destroy(m_CombineLightingPass);
-            CoreUtils.Destroy(m_SssVerticalFilterPass);
-            CoreUtils.Destroy(m_SssHorizontalFilterAndCombinePass);
             CoreUtils.Destroy(m_CopyStencilForSplitLighting);
 
             for (int i = 0; i < k_MaxSSSBuffer; ++i)
