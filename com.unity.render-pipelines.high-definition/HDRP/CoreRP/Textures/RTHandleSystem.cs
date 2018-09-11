@@ -92,7 +92,13 @@ namespace UnityEngine.Experimental.Rendering
 
             bool msaaSamplesChanged = msaa && (msaaSamples != m_ScaledRTCurrentMSAASamples);
             if (width > GetMaxWidth(category) || height > GetMaxHeight(category) || msaaSamplesChanged)
-                Resize(width, height, category, msaaSamples);
+            {   
+                // The regular rendertargets should always be resized
+                Resize(width, height, RTCategory.Regular, msaaSamples);
+                // The MSAA render targets should only be resized if msaa if required (in addition to the regular ones given that both are used)
+                if (msaa)
+                    Resize(width, height, RTCategory.MSAA, msaaSamples);
+            }
         }
 
         public void ResetReferenceSize(int width, int height, bool msaa, MSAASamples msaaSamples)

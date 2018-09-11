@@ -4,6 +4,7 @@ using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
+using System.Globalization;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -118,7 +119,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                         m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                     }
                     float newValue;
-                    if (!float.TryParse(evt.newData, out newValue))
+                    if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
                         newValue = 0f;
                     var value = (Vector3)m_PropertyInfo.GetValue(m_Node, null);
                     value[index] = newValue;

@@ -162,21 +162,31 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             List<VisibleLight> visibleLights = lightData.visibleLights;
             int[] perObjectLightIndexMap = cullResults.GetLightIndexMap();
-            int directionalLightCount = 0;
+
+            int directionalLightsCount = 0;
+            int localLightsCount = 0;    
 
             // Disable all directional lights from the perobject light indices
-            // Pipeline handles them globally
-            for (int i = 0; i < visibleLights.Count; ++i)
-            {
+            // Pipeline handles them globally.
+            for (int i = 0; i < visibleLights.Count && localLightsCount < maxVisibleLocalLights; ++i)
+            {    
                 VisibleLight light = visibleLights[i];
                 if (light.lightType == LightType.Directional)
                 {
                     perObjectLightIndexMap[i] = -1;
-                    ++directionalLightCount;
+                    ++directionalLightsCount;
                 }
                 else
-                    perObjectLightIndexMap[i] -= directionalLightCount;
+                {
+                    perObjectLightIndexMap[i] -= directionalLightsCount;
+                    ++localLightsCount;
+                }
             }
+
+            // Disable all remaining lights we cannot fit into the global light buffer.
+            for (int i = directionalLightsCount + localLightsCount; i < perObjectLightIndexMap.Length; ++i)
+                perObjectLightIndexMap[i] = -1;
+
             cullResults.SetLightIndexMap(perObjectLightIndexMap);
 
             // if not using a compute buffer, engine will set indices in 2 vec4 constants

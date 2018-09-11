@@ -71,6 +71,23 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowContext = InitShadowContext();
     context.contactShadow = InitContactShadow(posInput);
 
+    // First of all we compute the shadow value of the directional light to reduce the VGPR pressure
+    if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
+    {
+        UNITY_BRANCH if(_DirectionalShadowIndex != -1)
+        {
+            context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionWS, bsdfData.normalWS, _DirectionalLightDatas[_DirectionalShadowIndex].shadowIndex, -_DirectionalLightDatas[_DirectionalShadowIndex].forward, posInput.positionSS);
+        }
+        else
+        {
+            context.shadowValue = 1.0f;
+        }
+    }
+    else
+    {
+        context.shadowValue = 1.0f;
+    }
+
     // This struct is define in the material. the Lightloop must not access it
     // PostEvaluateBSDF call at the end will convert Lighting to diffuse and specular lighting
     AggregateLighting aggregateLighting;

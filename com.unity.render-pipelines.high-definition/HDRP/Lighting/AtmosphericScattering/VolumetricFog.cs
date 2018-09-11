@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             DensityVolumeArtistParameters param = new DensityVolumeArtistParameters(albedo, meanFreePath, anisotropy);
 
-            DensityVolumeEngineData data = param.GetData();
+            DensityVolumeEngineData data = param.ConvertToEngineData();
 
             cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)FogType.Volumetric);
 
