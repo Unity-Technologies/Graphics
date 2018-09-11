@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering
             GUI.changed |= temp;
             return angleValue;
         }
-
+        
         public static Color GetLightHandleColor(Color wireframeColor)
         {
             Color color = wireframeColor;
@@ -99,6 +99,7 @@ namespace UnityEditor.Experimental.Rendering
             Gizmos.DrawLine(pos, lastPos);
         }
 
+        [Obsolete("DrawSpotlightGizmo is out of date. Should use the DrawSpotlightWireframe/Handle instead", true)]
         public static void DrawSpotlightGizmo(Light spotlight, float innerSpotPercent, bool selected)
         {
             var flatRadiusAtRange = spotlight.range * Mathf.Tan(spotlight.spotAngle * Mathf.Deg2Rad * 0.5f);
@@ -115,8 +116,8 @@ namespace UnityEditor.Experimental.Rendering
 
             //Draw Range disc
             DrawWireDisc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * rangeDiscDistance, spotlight.gameObject.transform.forward, rangeDiscRadius);
-            //Draw Lines
 
+            //Draw Lines
             Gizmos.DrawLine(spotlight.gameObject.transform.position, spotlight.gameObject.transform.position + vectorLineUp * spotlight.range);
             Gizmos.DrawLine(spotlight.gameObject.transform.position, spotlight.gameObject.transform.position + vectorLineDown * spotlight.range);
             Gizmos.DrawLine(spotlight.gameObject.transform.position, spotlight.gameObject.transform.position + vectorLineRight * spotlight.range);
@@ -130,7 +131,7 @@ namespace UnityEditor.Experimental.Rendering
                 //Draw Near Plane Disc
                 if (spotlight.shadows != LightShadows.None)
                     DrawWireDisc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * nearDiscDistance, spotlight.gameObject.transform.forward, nearDiscRadius);
-
+                
                 //Inner Cone
                 DrawInnerCone(spotlight, innerSpotPercent);
             }
@@ -147,7 +148,6 @@ namespace UnityEditor.Experimental.Rendering
             var vectorLineLeft = Vector3.Normalize(spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * spotlight.range + spotlight.gameObject.transform.right * -flatRadiusAtRange - spotlight.gameObject.transform.position);
 
             //Draw Lines
-
             Gizmos.DrawLine(spotlight.gameObject.transform.position, spotlight.gameObject.transform.position + vectorLineUp * spotlight.range);
             Gizmos.DrawLine(spotlight.gameObject.transform.position, spotlight.gameObject.transform.position + vectorLineDown * spotlight.range);
             Gizmos.DrawLine(spotlight.gameObject.transform.position, spotlight.gameObject.transform.position + vectorLineRight * spotlight.range);
@@ -161,6 +161,64 @@ namespace UnityEditor.Experimental.Rendering
                 //Draw Range disc
                 DrawWireDisc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * innerDiscDistance, spotlight.gameObject.transform.forward, innerDiscRadius);
             }
+        }
+
+        public static void DrawSpotlightWireframe(Vector3 outerAngleInnerAngleRange, float shadowPlaneDistance = -1f)
+        {
+            float outerAngle = outerAngleInnerAngleRange.x;
+            float innerAngle = outerAngleInnerAngleRange.y;
+            float range = outerAngleInnerAngleRange.z;
+
+
+            var outerDiscRadius = range * Mathf.Sin(outerAngle * Mathf.Deg2Rad * 0.5f);
+            var outerDiscDistance = Mathf.Cos(Mathf.Deg2Rad * outerAngle * 0.5f) * range;
+            var vectorLineUp = Vector3.Normalize(Vector3.forward * outerDiscDistance + Vector3.up * outerDiscRadius);
+            var vectorLineLeft = Vector3.Normalize(Vector3.forward * outerDiscDistance + Vector3.left * outerDiscRadius);
+
+            if(innerAngle>0f)
+            {
+                var innerDiscRadius = range * Mathf.Sin(innerAngle * Mathf.Deg2Rad * 0.5f);
+                var innerDiscDistance = Mathf.Cos(Mathf.Deg2Rad * innerAngle * 0.5f) * range;
+                DrawConeWireframe(innerDiscRadius, innerDiscDistance);
+            }
+            DrawConeWireframe(outerDiscRadius, outerDiscDistance);
+            Handles.DrawWireArc(Vector3.zero, Vector3.right, vectorLineUp, outerAngle, range);
+            Handles.DrawWireArc(Vector3.zero, Vector3.up, vectorLineLeft, outerAngle, range);
+
+            if (shadowPlaneDistance > 0)
+            {
+                var shadowDiscRadius = shadowPlaneDistance * Mathf.Sin(outerAngle * Mathf.Deg2Rad * 0.5f);
+                var shadowDiscDistance = Mathf.Cos(Mathf.Deg2Rad * outerAngle / 2) * shadowPlaneDistance;
+                Handles.DrawWireDisc(Vector3.forward * shadowDiscDistance, Vector3.forward, shadowDiscRadius);
+            }
+        }
+
+        static void DrawConeWireframe(float radius, float height)
+        {
+            var rangeCenter = Vector3.forward * height;
+            var rangeUp = rangeCenter + Vector3.up * radius;
+            var rangeDown = rangeCenter - Vector3.up * radius;
+            var rangeRight = rangeCenter + Vector3.right * radius;
+            var rangeLeft = rangeCenter - Vector3.right * radius;
+
+            //Draw Lines
+            Handles.DrawLine(Vector3.zero, rangeUp);
+            Handles.DrawLine(Vector3.zero, rangeDown);
+            Handles.DrawLine(Vector3.zero, rangeRight);
+            Handles.DrawLine(Vector3.zero, rangeLeft);
+            
+            Handles.DrawWireDisc(Vector3.forward * height, Vector3.forward, radius);
+        }
+
+        public static Vector3 DrawSpotlightHandle(Vector3 outerAngleInnerAngleRange)
+        {
+            float outerAngle = outerAngleInnerAngleRange.x;
+            float innerAngle = outerAngleInnerAngleRange.y;
+            float range = outerAngleInnerAngleRange.z;
+
+            //[TO BE COMPLETED] @martint I'll let you put your handle here when ready, I only redone the wireframe to patch as soon as possible
+
+            return new Vector3(outerAngle, innerAngle, range);
         }
 
         public static void DrawArealightGizmo(Light arealight)
