@@ -82,9 +82,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Engine
             EditorGUILayout.PropertyField(d.supportDecals, _.GetContent("Support Decals|Enable memory and variant for decals buffer and cluster decals"));
-            // TODO: Implement MSAA - Hide for now as it doesn't work
-            //EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing|This feature doesn't work currently."));
-            //EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
+
+            // MSAA is an option that is only available in full forward
+            if (d.supportOnlyForward.boolValue)
+            {
+                EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing|This feature doesn't work currently."));
+                if (d.supportMSAA.boolValue)
+                {
+                    EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
+                }
+            }
+            else
+            {
+                // Otherwise we force the MSAA flag to false
+                d.supportMSAA.boolValue =  false;
+            }
+
             EditorGUILayout.PropertyField(d.supportMotionVectors, _.GetContent("Support Motion Vectors|Motion vector are use for Motion Blur, TAA, temporal re-projection of various effect like SSR."));
             EditorGUILayout.PropertyField(d.supportRuntimeDebugDisplay, _.GetContent("Support runtime debug display|Remove all debug display shader variant only in the player. Allow faster build."));
             EditorGUILayout.PropertyField(d.supportDitheringCrossFade, _.GetContent("Support dithering cross fade|Remove all dithering cross fade shader variant only in the player. Allow faster build."));
