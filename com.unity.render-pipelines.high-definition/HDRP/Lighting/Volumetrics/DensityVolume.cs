@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector3   positiveFade;
         public Vector3   negativeFade;
+        public bool      invertFade;
 
         public  int      textureIndex; // This shouldn't be public... Internal, maybe?
         private Vector3  volumeScrollingAmount;
@@ -34,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             positiveFade          = Vector3.zero;
             negativeFade          = Vector3.zero;
+            invertFade            = false;
         }
 
         public void Update(bool animate, float time)
@@ -63,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             volumeScrollingAmount = Vector3.zero;
         }
 
-        public DensityVolumeEngineData GetData()
+        public DensityVolumeEngineData ConvertToEngineData()
         {
             DensityVolumeEngineData data = new DensityVolumeEngineData();
 
@@ -74,13 +76,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.textureScroll  = volumeScrollingAmount;
             data.textureTiling  = textureTiling;
 
-            // Avoid numerical problems by clamping extreme values.
-            data.rcpPosFade.x = Mathf.Clamp(1.0f / positiveFade.x, 0.00001526f, 65536.0f);
-            data.rcpNegFade.x = Mathf.Clamp(1.0f / negativeFade.x, 0.00001526f, 65536.0f);
-            data.rcpPosFade.y = Mathf.Clamp(1.0f / positiveFade.y, 0.00001526f, 65536.0f);
-            data.rcpNegFade.y = Mathf.Clamp(1.0f / negativeFade.y, 0.00001526f, 65536.0f);
-            data.rcpPosFade.z = Mathf.Clamp(1.0f / positiveFade.z, 0.00001526f, 65536.0f);
-            data.rcpNegFade.z = Mathf.Clamp(1.0f / negativeFade.z, 0.00001526f, 65536.0f);
+            // Note that we do not clamp here. Infinities work in the expected way in the shader.
+            // This also allows us to avoid artifacts caused by numerical issues.
+            data.rcpPosFade.x = 1.0f / positiveFade.x;
+            data.rcpPosFade.y = 1.0f / positiveFade.y;
+            data.rcpPosFade.z = 1.0f / positiveFade.z;
+
+            data.rcpNegFade.y = 1.0f / negativeFade.y;
+            data.rcpNegFade.x = 1.0f / negativeFade.x;
+            data.rcpNegFade.z = 1.0f / negativeFade.z;
+
+            data.invertFade = invertFade ? 1 : 0;
 
             return data;
         }

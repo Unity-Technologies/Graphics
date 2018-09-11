@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled instancing on the terrain shader.
 - Sorting of opaque objects now respects camera opaqueSortMode setting.
 - Sorting of opaque objects disables front-to-back sorting flag when camera settings allow that and the GPU has hidden surface removal.
+- Custom Light Explorer for LWRP, compared to builtin only reflection probes have changed, removed projection and added resolution.
 ### Changed
 - The `RenderingData` struct is now read-only.
 - `ScriptableRenderer`always perform a Clear before calling `IRendererSetup::Setup.` 
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `IRendererSetup_Setup` no longer takes `ScriptableRenderContext` and `CullResults` as input.
 
 ### Fixed
+- If you have more than 16 lights in a scene, LWRP no longer causes random glitches while rendering lights.
 - The Unlit shader now samples Global Illumination correctly.
 - The Inspector window for the Unlit shader now displays correctly.
 - Reduced GC pressure by removing several per-frame memory allocations.
@@ -36,14 +38,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - UNITY_MATRIX_I_VP is now defined.
 - Renamed LightweightForwardRenderer to ScriptableRenderer.
 - Moved all light constants to _LightBuffer CBUFFER. Now _PerCamera CBUFFER contains all other per camera constants.
-
-### Fixed
-- Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.
-
-### Changed
 - Change real-time attenuation to inverse square.
 - Change attenuation for baked GI to inverse square, to match real-time attenuation.
 - Small optimization in light attenuation shader code.
+
+### Fixed
+- Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.
 
 ## [3.2.0-preview]
 ### Changed

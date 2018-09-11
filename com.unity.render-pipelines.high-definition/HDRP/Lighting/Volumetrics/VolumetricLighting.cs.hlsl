@@ -13,7 +13,7 @@ struct DensityVolumeEngineData
     float3 textureTiling;
     int textureIndex;
     float3 textureScroll;
-    float pad0;
+    int invertFade;
     float3 rcpPosFade;
     float pad1;
     float3 rcpNegFade;
@@ -43,9 +43,9 @@ float3 GetTextureScroll(DensityVolumeEngineData value)
 {
     return value.textureScroll;
 }
-float GetPad0(DensityVolumeEngineData value)
+int GetInvertFade(DensityVolumeEngineData value)
 {
-    return value.pad0;
+    return value.invertFade;
 }
 float3 GetRcpPosFade(DensityVolumeEngineData value)
 {
