@@ -180,7 +180,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TransmissionFlags = Shader.PropertyToID("_TransmissionFlags");
         public static readonly int _ThicknessRemaps = Shader.PropertyToID("_ThicknessRemaps");
         public static readonly int _ShapeParams = Shader.PropertyToID("_ShapeParams");
-        public static readonly int _HalfRcpVariancesAndWeights = Shader.PropertyToID("_HalfRcpVariancesAndWeights");
         public static readonly int _TransmissionTintsAndFresnel0 = Shader.PropertyToID("_TransmissionTintsAndFresnel0");
         public static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
         public static readonly int diffuseLightingUAV = Shader.PropertyToID("diffuseLightingUAV");
@@ -257,6 +256,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _EnableDecals = Shader.PropertyToID("_EnableDecals");
         public static readonly int _DecalAtlasResolution = Shader.PropertyToID("_DecalAtlasResolution");
+
+        // MSAA shader properties
+        public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");
+        public static readonly int _DepthTextureMS = Shader.PropertyToID("_DepthTextureMS");
+        public static readonly int _NormalTextureMS = Shader.PropertyToID("_NormalTextureMS");
+        public static readonly int _CameraDepthValuesTexture = Shader.PropertyToID("_CameraDepthValues");
 
         public static readonly int[] _GBufferTexture =
         {
@@ -344,7 +349,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ColorPickerMode = Shader.PropertyToID("_ColorPickerMode");
         public static readonly int _ApplyLinearToSRGB = Shader.PropertyToID("_ApplyLinearToSRGB");
         public static readonly int _ColorPickerFontColor = Shader.PropertyToID("_ColorPickerFontColor");
-        public static readonly int _RequireToFlipInputTexture = Shader.PropertyToID("_RequireToFlipInputTexture");
         public static readonly int _FalseColorEnabled = Shader.PropertyToID("_FalseColor");
         public static readonly int _FalseColorThresholds = Shader.PropertyToID("_FalseColorThresholds");
 

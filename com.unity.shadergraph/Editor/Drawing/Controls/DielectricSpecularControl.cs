@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine;
@@ -155,7 +156,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                         m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                     }
                     float newValue;
-                    if (!float.TryParse(evt.newData, out newValue))
+                    if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
                         newValue = 0f;
                     var value = (DielectricSpecularNode.DielectricMaterial)m_PropertyInfo.GetValue(m_Node, null);
                     if (index == 1)

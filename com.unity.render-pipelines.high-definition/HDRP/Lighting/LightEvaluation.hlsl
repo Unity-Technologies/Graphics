@@ -56,11 +56,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
     UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
-#ifdef USE_DEFERRED_DIRECTIONAL_SHADOWS
-        shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
-#else
-        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
-#endif
+        shadow = lightLoopContext.shadowValue;
 
 #ifdef SHADOWS_SHADOWMASK
 

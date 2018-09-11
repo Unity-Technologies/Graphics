@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    // Optimized version of 'DensityVolumeArtistParameters'.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
     [GenerateHLSL]
     public struct DensityVolumeEngineData
@@ -14,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 textureTiling;
         public int     textureIndex;
         public Vector3 textureScroll;
-        public float   pad0;
+        public int     invertFade;    // No bool support :-(
         public Vector3 rcpPosFade;
         public float   pad1;
         public Vector3 rcpNegFade;
@@ -29,9 +30,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.textureIndex  = -1;
             data.textureTiling = Vector3.one;
             data.textureScroll = Vector3.zero;
-            data.rcpPosFade    = new Vector3(65536.0f, 65536.0f, 65536.0f);
-            data.rcpNegFade    = new Vector3(65536.0f, 65536.0f, 65536.0f);
-            data.pad0          = 0;
+            data.rcpPosFade    = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+            data.rcpNegFade    = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+            data.invertFade    = 0;
             data.pad1          = 0;
             data.pad2          = 0;
 
@@ -503,7 +504,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8))
                     {
                         // TODO: cache these?
-                        var data = volume.parameters.GetData();
+                        var data = volume.parameters.ConvertToEngineData();
 
                         m_VisibleVolumeBounds.Add(obb);
                         m_VisibleVolumeData.Add(data);

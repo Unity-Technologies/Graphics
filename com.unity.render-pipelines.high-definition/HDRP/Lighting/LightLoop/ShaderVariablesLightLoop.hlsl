@@ -8,6 +8,7 @@
     uint _EnvLightCount;
     uint _EnvProxyCount;
     int  _EnvLightSkyEnabled;         // TODO: make it a bool
+    int _DirectionalShadowIndex;
 
     uint _NumTileFtplX;
     uint _NumTileFtplY;
