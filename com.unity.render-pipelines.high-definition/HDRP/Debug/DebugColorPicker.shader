@@ -29,7 +29,6 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             float4 _ColorPickerParam; // 4 increasing threshold
             float3 _ColorPickerFontColor;
             float _ApplyLinearToSRGB;
-            float _RequireToFlipInputTexture;
             int _FalseColor;
             float4 _FalseColorThresholds; // 4 increasing threshold
 
@@ -67,7 +66,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
 
             float4 DisplayPixelInformationAtMousePosition(Varyings input, float4 result, float4 mouseResult, float4 mousePixelCoord)
             {
-                bool flipY = _RequireToFlipInputTexture > 0.0;
+                bool flipY = ShouldFlipDebugTexture();
 
                 if (mousePixelCoord.z >= 0.0 && mousePixelCoord.z <= 1.0 && mousePixelCoord.w >= 0 && mousePixelCoord.w <= 1.0)
                 {
@@ -151,7 +150,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                if (_RequireToFlipInputTexture > 0.0)
+                if (ShouldFlipDebugTexture())
                 {
                     input.texcoord.y = 1.0 * _ScreenToTargetScale.y - input.texcoord.y;
                 }
@@ -173,7 +172,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
                 {
                     float4 mousePixelCoord = _MousePixelCoord;
-                    if (_RequireToFlipInputTexture > 0.0)
+                    if (ShouldFlipDebugTexture())
                     {
                         mousePixelCoord.y = _ScreenSize.y - mousePixelCoord.y;
                         // Note: We must not flip the mousePixelCoord.w coordinate

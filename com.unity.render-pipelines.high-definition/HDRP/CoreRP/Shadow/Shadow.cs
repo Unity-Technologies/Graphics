@@ -195,7 +195,7 @@ namespace UnityEngine.Experimental.Rendering
                 new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1, ShadowVariant.V2, ShadowVariant.V3, ShadowVariant.V4 },
                 new string[] {"1 tap", "9 tap adaptive", "tent 3x3 (4 taps)", "tent 5x5 (9 taps)", "tent 7x7 (16 taps)" },
                 new ShadowRegistry.VariantDelegate[] { del, del, del, del, del });
-            
+
             registry.Register(type, precision, ShadowAlgorithm.PCSS, "Percentage Closer Soft Shadows (PCSS)",
                 new ShadowVariant[] { ShadowVariant.V0 },
                 new string[] { "poisson 64" },
@@ -212,7 +212,7 @@ namespace UnityEngine.Experimental.Rendering
                  variant != ShadowVariant.V3 &&
                  variant != ShadowVariant.V4))
                 return true;
-            
+
             switch (algorithm)
             {
                 case  ShadowAlgorithm.PCF:
@@ -810,7 +810,6 @@ namespace UnityEngine.Experimental.Rendering
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetFloat("_TextureSlice", (float)slice);
             propertyBlock.SetVector("_ValidRange", validRange);
-            propertyBlock.SetFloat("_RequireToFlipInputTexture", flipY ? 1.0f : 0.0f);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             debugCB.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
@@ -1260,7 +1259,6 @@ namespace UnityEngine.Experimental.Rendering
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetFloat("_TextureSlice", (float)slice);
             propertyBlock.SetVector("_ValidRange", validRange);
-            propertyBlock.SetFloat("_RequireToFlipInputTexture", flipY ? 1.0f : 0.0f);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             debugCB.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
