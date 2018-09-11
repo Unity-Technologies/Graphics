@@ -257,6 +257,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _EnableDecals = Shader.PropertyToID("_EnableDecals");
         public static readonly int _DecalAtlasResolution = Shader.PropertyToID("_DecalAtlasResolution");
 
+        // MSAA shader properties
+        public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");
+        public static readonly int _DepthTextureMS = Shader.PropertyToID("_DepthTextureMS");
+        public static readonly int _NormalTextureMS = Shader.PropertyToID("_NormalTextureMS");
+        public static readonly int _CameraDepthValuesTexture = Shader.PropertyToID("_CameraDepthValues");
+
         public static readonly int[] _GBufferTexture =
         {
             Shader.PropertyToID("_GBufferTexture0"),

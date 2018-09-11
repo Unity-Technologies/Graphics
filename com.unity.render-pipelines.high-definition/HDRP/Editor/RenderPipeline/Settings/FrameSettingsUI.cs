@@ -38,6 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FoldoutOption.Indent,
                 CED.LabelWidth(300,
                     CED.Action(Drawer_FieldForwardRenderingOnly),
+                    CED.Action(Drawer_FieldEnableMSAA),
                     CED.FadeGroup(
                         (s, d, o, i) => s.isSectionExpandedUseForwardOnly,
                         FadeOption.None,
@@ -104,6 +105,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_FieldForwardRenderingOnly(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.enableForwardRenderingOnly, _.GetContent("Enable Forward Rendering Only"));
+        }
+
+        static void Drawer_FieldEnableMSAA(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.enableMSAA, _.GetContent("Enable MSAA"));
         }
 
         static void Drawer_FieldUseDepthPrepassWithDefferedRendering(FrameSettingsUI s, SerializedFrameSettings p, Editor owner)
