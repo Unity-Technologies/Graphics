@@ -200,6 +200,11 @@ float GetCoatEta(in BSDFData bsdfData)
     return eta;
 }
 
+float3 GetShadowNormalBias(BSDFData bsdfData)
+{
+    return bsdfData.geomNormalWS;
+}
+
 float3 ConvertF0ForAirInterfaceToF0ForNewTopIor(float3 fresnel0, float newTopIor)
 {
     float3 ior = Fresnel0ToIor(fresnel0 + 0.0001); // guard against 1.0
