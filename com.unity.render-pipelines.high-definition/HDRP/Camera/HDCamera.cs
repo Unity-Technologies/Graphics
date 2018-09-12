@@ -176,7 +176,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Pass all the systems that may want to update per-camera data here.
         // That way you will never update an HDCamera and forget to update the dependent system.
-        public void Update(FrameSettings currentFrameSettings, PostProcessLayer postProcessLayer, VolumetricLightingSystem vlSys)
+        public void Update(FrameSettings currentFrameSettings, PostProcessLayer postProcessLayer, VolumetricLightingSystem vlSys, MSAASamples msaaSamples)
         {
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we do'nt create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
@@ -300,9 +300,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2 lastTextureSize = new Vector2(RTHandles.maxWidth, RTHandles.maxHeight);
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
-            m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
-            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
-            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
+            m_msaaSamples = msaaSamples;
+            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
+            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
             m_HistoryRTSystem.Swap();
 
             int maxWidth  = RTHandles.maxWidth;
