@@ -130,13 +130,14 @@ real PunctualLightAttenuation(real4 distances, real rangeAttenuationScale, real 
 // The transformation is performed along the major axis of the ellipsoid (corresponding to 'r1').
 // Both the ellipsoid (e.i. 'axis') and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the ellipsoid.
-real EllipsoidalDistanceAttenuation(real3 unL, real rangeAttenuationScale, real rangeAttenuationBias,
-                                    real3 axis, real invAspectRatio)
+real EllipsoidalDistanceAttenuation(real3 unL, real3 axis, real invAspectRatio,
+                                    real rangeAttenuationScale, real rangeAttenuationBias)
 {
     // Project the unnormalized light vector onto the axis.
     real projL = dot(unL, axis);
 
-    // Transform the light vector instead of transforming the ellipsoid.
+    // Transform the light vector so that we can work with
+    // with the ellipsoid as if it was a sphere with the radius of light's range.
     real diff = projL - projL * invAspectRatio;
     unL -= diff * axis;
 
@@ -147,21 +148,23 @@ real EllipsoidalDistanceAttenuation(real3 unL, real rangeAttenuationScale, real 
 // Applies SmoothDistanceWindowing() using the axis-aligned ellipsoid of the given dimensions.
 // Both the ellipsoid and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the ellipsoid.
-real EllipsoidalDistanceAttenuation(real3 unL, real3 invHalfDim)
+real EllipsoidalDistanceAttenuation(real3 unL, real3 invHalfDim,
+                                    real rangeAttenuationScale, real rangeAttenuationBias)
 {
     // Transform the light vector so that we can work with
     // with the ellipsoid as if it was a unit sphere.
     unL *= invHalfDim;
 
     real sqDist = dot(unL, unL);
-    return SmoothDistanceWindowing(sqDist, 1.0, 0.0);
+    return SmoothDistanceWindowing(sqDist, rangeAttenuationScale, rangeAttenuationBias);
 }
 
 // Applies SmoothDistanceWindowing() after mapping the axis-aligned box to a sphere.
 // If the diagonal of the box is 'd', invHalfDim = rcp(0.5 * d).
 // Both the box and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the box.
-real BoxDistanceAttenuation(real3 unL, real3 invHalfDim)
+real BoxDistanceAttenuation(real3 unL, real3 invHalfDim,
+                            real rangeAttenuationScale, real rangeAttenuationBias)
 {
     // Transform the light vector so that we can work with
     // with the box as if it was a [-1, 1]^2 cube.
@@ -171,7 +174,7 @@ real BoxDistanceAttenuation(real3 unL, real3 invHalfDim)
     if (Max3(abs(unL.x), abs(unL.y), abs(unL.z)) > 1.0) return 0.0;
 
     real sqDist = ComputeCubeToSphereMapSqMagnitude(unL);
-    return SmoothDistanceWindowing(sqDist, 1.0, 0.0);
+    return SmoothDistanceWindowing(sqDist, rangeAttenuationScale, rangeAttenuationBias);
 }
 
 //-----------------------------------------------------------------------------

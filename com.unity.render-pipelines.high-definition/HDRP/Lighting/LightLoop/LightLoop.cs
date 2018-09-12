@@ -1019,6 +1019,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return false;
             }
 
+            lightData.range = light.range;
+
             if (applyRangeAttenuation)
             {
                 lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
@@ -1033,6 +1035,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 const float sqrtHuge  = 4096.0f;
                 lightData.rangeAttenuationScale = sqrtHuge / (light.range * light.range);
                 lightData.rangeAttenuationBias  = hugeValue;
+
+                if (lightData.lightType == GPULightType.Rectangle)
+                {
+                    // Rect lights are currently a special case because they use the normalized
+                    // [0, 1] attenuation range rather than the regular [0, r] one.
+                    lightData.rangeAttenuationScale = sqrtHuge;
+                }
             }
 
             lightData.color = GetLightColor(light);
