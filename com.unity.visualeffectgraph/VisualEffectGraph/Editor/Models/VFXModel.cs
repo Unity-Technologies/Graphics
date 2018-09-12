@@ -315,7 +315,7 @@ namespace UnityEditor.VFX
             {
                 matrix = VFXBuiltInExpression.WorldToLocal;
             }
-            else if (space == VFXCoordinateSpace.Global)
+            else if (space == VFXCoordinateSpace.World)
             {
                 matrix = VFXBuiltInExpression.LocalToWorld;
             }
