@@ -118,6 +118,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_CameraColorMSAABuffer;
         RTHandleSystem.RTHandle m_CameraSssDiffuseLightingMSAABuffer;
 
+        // The current MSAA count
+        MSAASamples m_MSAASamples;
+
         // AO resolve property block
         MaterialPropertyBlock m_AOPropertyBlock = new MaterialPropertyBlock();
         Material m_AOResolveMaterial = null;
@@ -295,6 +298,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Init the MSAA AO resolve material
             m_AOResolveMaterial = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.aoResolve);
+
+            // Keep track of the original msaa sample value
+            m_MSAASamples = m_Asset ? m_Asset.renderPipelineSettings.msaaSampleCount : MSAASamples.None;
+
+            // Propagate it to the debug menu
+            m_DebugDisplaySettings.msaaSamples = m_MSAASamples;
         }
 
         void UpgradeResourcesIfNeeded()
@@ -865,6 +874,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     else
                     {
                         m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
+
+                        // Make sure we are in sync with the debug menu for the msaa count
+                        m_MSAASamples = m_DebugDisplaySettings.msaaSamples;
+                        m_SharedRTManager.SetNumMSAASamples(m_MSAASamples);
                     }
 
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
@@ -889,7 +902,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // From this point, we should only use frame settings from the camera
-                    hdCamera.Update(currentFrameSettings, postProcessLayer, m_VolumetricLightingSystem);
+                    hdCamera.Update(currentFrameSettings, postProcessLayer, m_VolumetricLightingSystem, m_MSAASamples);
 
                     using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
                     {
