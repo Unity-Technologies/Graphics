@@ -49,7 +49,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableTransparentObjects = true;
 
         public bool enableMSAA = false;
-        public MSAASamples msaaSampleCount { get; private set; }
 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
@@ -159,7 +158,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
-            aggregate.msaaSampleCount = renderPipelineSettings.msaaSampleCount;
 
             aggregate.ConfigureMSAADependentSettings();
             aggregate.ConfigureStereoDependentSettings();
