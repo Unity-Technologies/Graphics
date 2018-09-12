@@ -14,9 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum MaterialFeatureFlags
         {
             FabricCottonWool = 1 << 0,
-            FabricSilk = 1 << 1,
-            FabricSubsurfaceScattering = 1 << 2,
-            FabricTransmission = 1 << 3
+            FabricSubsurfaceScattering = 1 << 1,
+            FabricTransmission = 1 << 2
         };
 
         //-----------------------------------------------------------------------------
@@ -48,9 +47,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
 
-            // Fuzz Tint
-            [SurfaceDataAttributes("Fuzz Tint", false, true)]
-            public Vector3 fuzzTint;
+            // Specular Tint
+            [SurfaceDataAttributes("Specular Tint", false, true)]
+            public Vector3 specularColor;
 
             // MaterialFeature dependent attribute
 
@@ -88,7 +87,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float ambientOcclusion;
             public float specularOcclusion;
 
-            public Vector3 fuzzTint;
+            public Vector3 specularColor;
 
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
