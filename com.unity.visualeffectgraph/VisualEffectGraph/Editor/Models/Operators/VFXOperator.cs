@@ -92,9 +92,27 @@ namespace UnityEditor.VFX
                 GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.IsMasterSlot());
 
                 var outputSlotSpaceable = outputSlots.Where(o => o.spaceable);
+                bool needUpdateInputSpaceable = false;
                 foreach (var output in outputSlotSpaceable)
                 {
-                    output.space = GetOutputSpaceFromSlot(output);
+                    var currentSpaceForSlot = GetOutputSpaceFromSlot(output);
+                    if (currentSpaceForSlot != output.space)
+                    {
+                        output.space = currentSpaceForSlot;
+                        needUpdateInputSpaceable = true;
+
+                    }
+                }
+
+                //If one of output slot has changed its space, expression tree for inputs,
+                //and more generally, current operation expression graph is invalid.
+                //=> Trigger invalidation on input is enough to recompute the graph from this operator
+                if (needUpdateInputSpaceable)
+                {
+                    foreach (var input in inputSlotSpaceable)
+                    {
+                        input.Invalidate(InvalidationCause.kSpaceChanged);
+                    }
                 }
             }
 

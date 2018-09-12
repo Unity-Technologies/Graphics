@@ -255,5 +255,38 @@ namespace UnityEditor.VFX.Test
             slotSpherePositionExpressions = CollectParentExpression(positionSphere.inputSlots[0][0][0].GetExpression()).ToArray();
             Assert.IsTrue(slotSpherePositionExpressions.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
         }
+
+        [Test]
+        public void SpaceConversion_Verify_Expected_Invalidation_Of_Space()
+        {
+            var inlineVector = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            inlineVector.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
+
+            var transformSpace = ScriptableObject.CreateInstance<TransformSpace>();
+            transformSpace.SetOperandType(typeof(Position));
+            transformSpace.outputSlots[0].Link(inlineVector.inputSlots[0]);
+
+            //Local => Local
+            var slotVectorExpression = CollectParentExpression(inlineVector.outputSlots[0].GetExpression()).ToArray();
+            Assert.AreEqual(VFXCoordinateSpace.Local, transformSpace.inputSlots[0].space);
+            Assert.IsFalse(slotVectorExpression.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+
+            //World => Local
+            transformSpace.inputSlots[0].space = VFXCoordinateSpace.Global;
+            slotVectorExpression = CollectParentExpression(inlineVector.outputSlots[0].GetExpression()).ToArray();
+            Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 0);
+            Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 1);
+
+            //World => World
+            transformSpace.SetSettingValue("m_targetSpace", VFXCoordinateSpace.Global);
+            slotVectorExpression = CollectParentExpression(inlineVector.outputSlots[0].GetExpression()).ToArray();
+            Assert.IsFalse(slotVectorExpression.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+
+            //Local => World
+            transformSpace.inputSlots[0].space = VFXCoordinateSpace.Local;
+            slotVectorExpression = CollectParentExpression(inlineVector.outputSlots[0].GetExpression()).ToArray();
+            Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
+            Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 0);
+        }
     }
 }
