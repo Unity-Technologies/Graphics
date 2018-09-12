@@ -64,10 +64,10 @@ namespace UnityEditor.VFX.Test
             var result = context.Compile(add.outputSlots[0].GetExpression());
 
             var allExpr = CollectParentExpression(result).ToArray();
-            Assert.IsTrue(allExpr.Any(o =>
+            Assert.IsTrue(allExpr.Count(o =>
                 {
                     return o.operation == VFXExpressionOperation.LocalToWorld;
-                }));
+                }) == 1);
         }
 
         #pragma warning disable 0414
@@ -117,7 +117,7 @@ namespace UnityEditor.VFX.Test
             resultCenter = context.Compile(arcSphere.inputSlots[0][0][0].GetExpression());
             allExprCenter = CollectParentExpression(resultCenter).ToArray();
 
-            Assert.IsTrue(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld));
+            Assert.IsTrue(allExprCenter.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
         }
 
         [Test]
@@ -172,7 +172,7 @@ namespace UnityEditor.VFX.Test
             var allExprCenter = CollectParentExpression(sphere_B.outputSlots[0][0].GetExpression()).ToArray();
             var allExprRadius = CollectParentExpression(sphere_B.outputSlots[0][1].GetExpression()).ToArray();
 
-            Assert.IsTrue(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+            Assert.IsTrue(allExprCenter.Count(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal) == 1);
             Assert.IsFalse(allExprRadius.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
         }
 
@@ -227,7 +227,7 @@ namespace UnityEditor.VFX.Test
             var lineOutputSlotB = CollectParentExpression(line.outputSlots[0][1].GetExpression()).ToArray();
 
             Assert.AreEqual(line.inputSlots[0].space, VFXCoordinateSpace.Local);
-            Assert.IsTrue(lineOutputSlotA.Any(o => o.operation == VFXExpressionOperation.WorldToLocal));
+            Assert.IsTrue(lineOutputSlotA.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 1);
             Assert.IsFalse(lineOutputSlotB.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
 
             line.inputSlots[0].space = VFXCoordinateSpace.Global;
@@ -235,7 +235,7 @@ namespace UnityEditor.VFX.Test
             lineOutputSlotB = CollectParentExpression(line.outputSlots[0][1].GetExpression()).ToArray();
             Assert.AreEqual(line.inputSlots[0].space, VFXCoordinateSpace.Global);
             Assert.IsFalse(lineOutputSlotA.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
-            Assert.IsTrue(lineOutputSlotB.Any(o => o.operation == VFXExpressionOperation.LocalToWorld));
+            Assert.IsTrue(lineOutputSlotB.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
         }
 
         [Test]
@@ -253,7 +253,7 @@ namespace UnityEditor.VFX.Test
             //Now switch space of block
             initializeContext.space = VFXCoordinateSpace.Global;
             slotSpherePositionExpressions = CollectParentExpression(positionSphere.inputSlots[0][0][0].GetExpression()).ToArray();
-            Assert.IsTrue(slotSpherePositionExpressions.Any(o => o.operation == VFXExpressionOperation.LocalToWorld));
+            Assert.IsTrue(slotSpherePositionExpressions.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
         }
     }
 }
