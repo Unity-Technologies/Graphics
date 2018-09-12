@@ -20,8 +20,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Base Color
             public static GUIContent baseColorText = new GUIContent("Base Color + Opacity", "Albedo (RGB) and Opacity (A)");
 
-            // Fuzz Tint
-            public static GUIContent fuzzTintText = new GUIContent("Fuzz Tint", "");
+            // Specular Color
+            public static GUIContent specularColorText = new GUIContent("Specular Color", "");
 
             // Smoothness
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
@@ -46,15 +46,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
             public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (R)", "Anisotropy");
 
-            // Detail map
-            public static string detailText = "Detail Inputs";
-            public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
-            public static GUIContent detailMapNormalText = new GUIContent("Detail Map AO(R) Ny(G) S(B) Nx(A)", "Detail Map");
-            public static GUIContent FuzzDetailText = new GUIContent("Fuzz Detail", "Fuzz Detail factor");
-            public static GUIContent detailAOScaleText = new GUIContent("Detail AO", "Detail AO Scale factor");
-            public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
-            public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
+            // Thread map
+            public static string threadText = "Thread Inputs";
+            public static GUIContent UVThreadMappingText = new GUIContent("Thread UV mapping", "");
+            public static GUIContent threadMapText = new GUIContent("Thread Map AO(R) Ny(G) S(B) Nx(A)", "Thread Map");
+            public static GUIContent threadAOScaleText = new GUIContent("Thread AO", "Thread AO Scale factor");
+            public static GUIContent threadNormalScaleText = new GUIContent("Thread NormalScale", "Normal Scale factor");
+            public static GUIContent threadSmoothnessScaleText = new GUIContent("Thread SmoothnessScale", "Smoothness Scale factor");
             public static GUIContent linkDetailsWithBaseText = new GUIContent("Lock to Base Tiling/Offset", "Lock details Tiling/Offset to Base Tiling/Offset");
+
+            // Fuzz detail
+            public static GUIContent FuzzDetailText = new GUIContent("Fuzz Detail", "Fuzz Detail factor, it affects the base color of the fabric.");
+            public static GUIContent FuzzDetailScale = new GUIContent("Fuzz Detail Scale", "Fuzz Detail scale");
+            public static GUIContent FuzzDetailUVScale = new GUIContent("Fuzz Detail UV Scale", "Fuzz Detail uv scale");
 
             // Diffusion
             public static GUIContent diffusionProfileText = new GUIContent("Diffusion profile", "A profile determines the shape of the SSS/transmission filter.");
@@ -132,9 +136,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty tangentMap = null;
         protected const string kTangentMap = "_TangentMap";
 
-        // Fuzz Tint
-        protected MaterialProperty fuzzTint = null;
-        protected const string kFuzzTint = "_FuzzTint";
+        // Specular Color
+        protected MaterialProperty specularColor = null;
+        protected const string kSpecularColor = "_SpecularColor";
 
         // Diffusion profile
         protected MaterialProperty diffusionProfileID = null;
@@ -160,31 +164,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty thicknessRemap = null;
         protected const string kThicknessRemap = "_ThicknessRemap";
 
-        // UV Detail Set & Mask
-        protected MaterialProperty UVDetail = null;
-        protected const string kUVDetail = "_UVDetail";
-        protected MaterialProperty UVMappingMaskDetail = null;
-        protected const string kUVMappingMaskDetail = "_UVMappingMaskDetail";
+        // UV Thread Set & Mask
+        protected MaterialProperty UVThread = null;
+        protected const string kUVThread = "_UVThread";
+        protected MaterialProperty UVMappingMaskThread = null;
+        protected const string kUVMappingMaskThread = "_UVMappingMaskThread";
         
-        // Detail Map
-        protected MaterialProperty detailMap = null;
-        protected const string kDetailMap = "_DetailMap";
+        // Thread Map
+        protected MaterialProperty threadMap = null;
+        protected const string kThreadMap = "_ThreadMap";
+
+        // Thread adjusting
+        protected MaterialProperty threadAOScale = null;
+        protected const string kThreadAOScale = "_ThreadAOScale";
+        protected MaterialProperty threadNormalScale = null;
+        protected const string kThreadNormalScale = "_ThreadNormalScale";
+        protected MaterialProperty threadSmoothnessScale = null;
+        protected const string kThreadSmoothnessScale = "_ThreadSmoothnessScale";
 
         // Fuzz Detail
         protected MaterialProperty fuzzDetailMap = null;
         protected const string kFuzzDetailMap = "_FuzzDetailMap";
+        protected MaterialProperty fuzzDetailScale = null;
+        protected const string kFuzzDetailScale = "_FuzzDetailScale";
+        protected MaterialProperty fuzzDetailUVScale = null;
+        protected const string kFuzzDetailUVScale = "_FuzzDetailUVScale";
 
         // Link detail with base
         protected MaterialProperty linkDetailsWithBase = null;
         protected const string kLinkDetailsWithBase = "_LinkDetailsWithBase";     
-
-        // Detail adjusting
-        protected MaterialProperty detailAOScale = null;
-        protected const string kDetailAOScale = "_DetailAOScale";
-        protected MaterialProperty detailNormalScale = null;
-        protected const string kDetailNormalScale = "_DetailNormalScale";
-        protected MaterialProperty detailSmoothnessScale = null;
-        protected const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
 
         // protected MaterialProperty tangentMap = null;
         // protected const string kTangentMap = "_TangentMap";
@@ -240,8 +248,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Tangent map
             tangentMap = FindProperty(kTangentMap, props);
 
-            // Fuzz tint
-            fuzzTint = FindProperty(kFuzzTint, props);
+            // Specular Color
+            specularColor = FindProperty(kSpecularColor, props);
 
             // Diffusion profile
             diffusionProfileID = FindProperty(kDiffusionProfileID, props);
@@ -260,16 +268,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             thicknessRemap = FindProperty(kThicknessRemap, props);
 
             // Details Set and Mask
-            UVDetail = FindProperty(kUVDetail, props);
-            UVMappingMaskDetail = FindProperty(kUVMappingMaskDetail, props);
+            UVThread = FindProperty(kUVThread, props);
+            UVMappingMaskThread = FindProperty(kUVMappingMaskThread, props);
             
-            // Detail map and rmapping
-            detailMap = FindProperty(kDetailMap, props);
-            fuzzDetailMap = FindProperty(kFuzzDetailMap, props);
-            detailAOScale = FindProperty(kDetailAOScale, props);
-            detailNormalScale = FindProperty(kDetailNormalScale, props);
-            detailSmoothnessScale = FindProperty(kDetailSmoothnessScale, props);
+            // Thread map and remapping
+            threadMap = FindProperty(kThreadMap, props);
+            threadAOScale = FindProperty(kThreadAOScale, props);
+            threadNormalScale = FindProperty(kThreadNormalScale, props);
+            threadSmoothnessScale = FindProperty(kThreadSmoothnessScale, props);
             linkDetailsWithBase = FindProperty(kLinkDetailsWithBase, props);
+
+            // Fuzz Detail
+            fuzzDetailMap = FindProperty(kFuzzDetailMap, props);
+            fuzzDetailScale = FindProperty(kFuzzDetailScale, props);
+            fuzzDetailUVScale = FindProperty(kFuzzDetailUVScale, props);
 
             // Anisotropy
             // tangentMap = FindProperty(kTangentMap, props);
@@ -302,7 +314,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UV3
         }
 
-        public enum UVDetailMapping
+        public enum UVThreadMapping
         {
             UV0,
             UV1,
@@ -378,8 +390,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // The primal normal map field
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
 
-            // The fuzz tint value (that affects the color of the specular lighting term)
-            m_MaterialEditor.ShaderProperty(fuzzTint, Styles.fuzzTintText);
+            // The specular color value (that affects the color of the specular lighting term)
+            m_MaterialEditor.ShaderProperty(specularColor, Styles.specularColorText);
 
             // m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap);
 
@@ -397,40 +409,45 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void DetailsInput(Material material)
         {
-            EditorGUILayout.LabelField(Styles.detailText, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(Styles.threadText, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap);
 
-            if (material.GetTexture(kDetailMap))
+            m_MaterialEditor.TexturePropertySingleLine(Styles.threadMapText, threadMap);
+            if (material.GetTexture(kThreadMap))
             {
                 EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(detailAOScale, Styles.detailAOScaleText);
-                m_MaterialEditor.ShaderProperty(detailNormalScale, Styles.detailNormalScaleText);
-                m_MaterialEditor.ShaderProperty(detailSmoothnessScale, Styles.detailSmoothnessScaleText);
+                m_MaterialEditor.ShaderProperty(threadAOScale, Styles.threadAOScaleText);
+                m_MaterialEditor.ShaderProperty(threadNormalScale, Styles.threadNormalScaleText);
+                m_MaterialEditor.ShaderProperty(threadSmoothnessScale, Styles.threadSmoothnessScaleText);
                 EditorGUI.indentLevel--;
             }
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.FuzzDetailText, fuzzDetailMap);
+            if (material.GetTexture(kFuzzDetailMap))
+            {
+                m_MaterialEditor.ShaderProperty(fuzzDetailScale, Styles.FuzzDetailScale);
+                m_MaterialEditor.ShaderProperty(fuzzDetailUVScale, Styles.FuzzDetailUVScale);
+            }
 
-            if (material.GetTexture(kDetailMap) || material.GetTexture(kFuzzDetailMap))
+            if (material.GetTexture(kThreadMap) || material.GetTexture(kFuzzDetailMap))
             {
                 EditorGUI.indentLevel++;
 
-                m_MaterialEditor.ShaderProperty(UVDetail, Styles.UVDetailMappingText);
+                m_MaterialEditor.ShaderProperty(UVThread, Styles.UVThreadMappingText);
 
                 // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
                 float X, Y, Z, W;
-                X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-                Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-                Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
-                W = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-                UVMappingMaskDetail.colorValue = new Color(X, Y, Z, W);
+                X = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV0) ? 1.0f : 0.0f;
+                Y = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV1) ? 1.0f : 0.0f;
+                Z = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV2) ? 1.0f : 0.0f;
+                W = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV3) ? 1.0f : 0.0f;
+                UVMappingMaskThread.colorValue = new Color(X, Y, Z, W);
 
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(linkDetailsWithBase, Styles.linkDetailsWithBaseText);
                 EditorGUI.indentLevel--;
-                m_MaterialEditor.TextureScaleOffsetProperty(detailMap);
+                m_MaterialEditor.TextureScaleOffsetProperty(threadMap);
             }
             EditorGUI.indentLevel--;
         }
@@ -607,7 +624,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupBaseLitKeywords(material);
             SetupBaseLitMaterialPass(material);
 
-            // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for it
+            // We need to override the behavior of the baselitui given that we do not use the LitSSS material ID to trigger the stencil
+            int stencilRef = (int)StencilLightingUsage.RegularLighting;
+            if (material.GetFloat(kEnableSubsurfaceScattering) > 0.0f)
+            {
+                stencilRef = (int)StencilLightingUsage.SplitLighting;
+            }
+            material.SetInt(kStencilRef, stencilRef);
+            
+            // With thread map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for it
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
 
             // However, the tangent map flag is only bound to the presence of a tangent map
@@ -622,15 +647,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
             CoreUtils.SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
-            CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
+            CoreUtils.SetKeyword(material, "_THREAD_MAP", material.GetTexture(kThreadMap));
             CoreUtils.SetKeyword(material, "_FUZZDETAIL_MAP", material.GetTexture(kFuzzDetailMap));
             CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP", material.GetTexture(kSubsurfaceMaskMap));
             CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap)); 
 
             // Require and set 
-            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVEmissive) == UVBaseMapping.UV2;
-            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV3 || (UVBaseMapping)material.GetFloat(kUVEmissive) == UVBaseMapping.UV2;
+            bool needUV2 = (UVThreadMapping)material.GetFloat(kUVThread) == UVThreadMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVEmissive) == UVBaseMapping.UV2;
+            bool needUV3 = (UVThreadMapping)material.GetFloat(kUVThread) == UVThreadMapping.UV3 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV3 || (UVBaseMapping)material.GetFloat(kUVEmissive) == UVBaseMapping.UV2;
 
             if (needUV3)
             {
