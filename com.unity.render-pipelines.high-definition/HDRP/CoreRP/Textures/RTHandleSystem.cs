@@ -180,11 +180,11 @@ namespace UnityEngine.Experimental.Rendering
 
         void Resize(int width, int height, MSAASamples msaaSamples, bool sizeChanged, bool msaaSampleChanged)
         {
-            m_MaxWidths = width;
-            m_MaxHeights = height;
+            m_MaxWidths = Math.Max(width, m_MaxWidths);
+            m_MaxHeights = Math.Max(height, m_MaxHeights);
             m_ScaledRTCurrentMSAASamples = msaaSamples;
 
-            var maxSize = new Vector2Int(width, height);
+            var maxSize = new Vector2Int(m_MaxWidths, m_MaxHeights);
 
             Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
             m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
