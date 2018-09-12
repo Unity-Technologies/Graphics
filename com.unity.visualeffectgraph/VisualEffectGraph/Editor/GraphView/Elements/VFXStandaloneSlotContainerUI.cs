@@ -27,24 +27,34 @@ namespace UnityEditor.VFX.UI
         public override void RefreshLayout()
         {
             base.RefreshLayout();
-            float settingsLabelWidth = 30;
-            float settingsControlWidth = 50;
-            GetPreferedSettingsWidths(ref  settingsLabelWidth, ref settingsControlWidth);
-
-            float labelWidth = 30;
-            float controlWidth = 50;
-            GetPreferedWidths(ref labelWidth, ref controlWidth);
-
-            float newMinWidth = Mathf.Max(settingsLabelWidth + settingsControlWidth, labelWidth + controlWidth) + 20;
-
-            if (this.style.minWidth != newMinWidth)
+            if(!superCollapsed)
             {
-                this.style.minWidth = newMinWidth;
+                float settingsLabelWidth = 30;
+                float settingsControlWidth = 50;
+                GetPreferedSettingsWidths(ref settingsLabelWidth, ref settingsControlWidth);
+
+                float labelWidth = 30;
+                float controlWidth = 50;
+                GetPreferedWidths(ref labelWidth, ref controlWidth);
+
+                float newMinWidth = Mathf.Max(settingsLabelWidth + settingsControlWidth, labelWidth + controlWidth) + 20;
+
+                if (style.minWidth != newMinWidth)
+                {
+                    style.minWidth = newMinWidth;
+                }
+
+                ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
+
+                ApplyWidths(labelWidth, controlWidth);
             }
-
-            ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
-
-            ApplyWidths(labelWidth, controlWidth);
+            else
+            {
+                if (style.minWidth != 0)
+                {
+                    style.minWidth = 0;
+                }
+            }
         }
 
         public override void ApplyWidths(float labelWidth, float controlWidth)
