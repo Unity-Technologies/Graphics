@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move a lot of files from CoreRP to HDRP/CoreRP. All moved files weren't used by Ligthweight pipeline. Long term they could move back to CoreRP after CoreRP become out of preview
 - Updated camera inspector UI
 - Updated decal gizmo
+- Optimization: The objects that are rendered in the Motion Vector Pass are not rendered in the prepass anymore
 
 ## [3.3.0-preview]
 
