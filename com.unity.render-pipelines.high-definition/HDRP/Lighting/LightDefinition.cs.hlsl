@@ -94,6 +94,7 @@ struct LightData
     float specularScale;
     float2 size;
     float volumetricDimmer;
+    float range;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
