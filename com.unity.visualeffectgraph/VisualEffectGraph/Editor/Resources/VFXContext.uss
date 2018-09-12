@@ -85,42 +85,6 @@ VFXContextUI > #selection-border
     margin-top:18;
     margin-bottom:18;
 }
-
-VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI
-{
-    background-color:rgba(57,57,57,0.8);
-    margin-top:4;
-    margin-right:0;
-    margin-left:0;
-    margin-bottom:0;
-
-    border-left-width:1;
-    border-right-width:1;
-    border-top-width:1;
-    border-bottom-width:1;
-    padding-top: 2;
-    padding-left: 0;
-    padding-bottom: 2;
-    padding-right: 0;
-}
-
-VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI #settings
-{
-    background-color:rgba(0,0,0,0);
-}
-
-VFXOwnContextSlotContainerUI.VFXNodeUI #pane
-{
-    border-left-width:0;
-    border-right-width:0;
-    border-top-width:0;
-    border-bottom-width:0;
-    border-top:0;
-    border-bottom:0;
-    border-left:0;
-    border-right:0;
-}
-
 VFXContextUI #inside
 {
     margin-left: 8;
@@ -223,7 +187,7 @@ VFXContextUI VFXOwnContextSlotContainerUI.VFXNodeUI #title
 
 
 
-VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI #left #leftBackground
+VFXContextUI VFXBlockUI.VFXNodeUI #left #leftBackground
 {
     background-color:rgba(0,0,0,0);
 }

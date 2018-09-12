@@ -194,8 +194,6 @@ namespace UnityEditor.VFX.UI
 
             this.mainContainer.clippingOptions = ClippingOptions.NoClipping;
 
-            //mainContainer.Q("contents").clippingOptions = ClippingOptions.ClipAndCacheContents;
-
             m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
             m_FlowOutputConnectorContainer = this.Q("flow-outputs");
@@ -241,10 +239,10 @@ namespace UnityEditor.VFX.UI
         public override bool HitTest(Vector2 localPoint)
         {
             // needed so that if we click on a block we won't select the context as well.
-            if (m_BlockContainer.ContainsPoint(this.ChangeCoordinatesTo(m_BlockContainer, localPoint)))
+            /*if (m_NoBlock.parent ==  null && m_BlockContainer.ContainsPoint(this.ChangeCoordinatesTo(m_BlockContainer, localPoint)))
             {
                 return false;
-            }
+            }*/
             return ContainsPoint(localPoint);
         }
 

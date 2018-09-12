@@ -48,6 +48,22 @@ namespace UnityEditor.VFX.UI
                 persistenceKey = string.Format("NodeID-{0}", controller.model.GetInstanceID());
         }
 
+        public void OnSelectionMouseDown(MouseDownEvent e)
+        {
+            var gv = GetFirstAncestorOfType<VFXView>();
+            if (IsSelected(gv))
+            {
+                if (e.actionKey)
+                {
+                    Unselect(gv);
+                }
+            }
+            else
+            {
+                Select(gv, e.actionKey);
+            }
+        }
+
         public VisualElement settingsContainer {get; private set; }
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
 

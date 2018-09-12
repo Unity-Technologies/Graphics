@@ -64,26 +64,32 @@ namespace UnityEditor.VFX.UIElements
         void SetupLabel()
         {
             if (typeof(IValueField<U>).IsAssignableFrom(typeof(T)))
+            {
                 if (typeof(U) == typeof(float))
                 {
                     var dragger = new FieldMouseDragger<float>((IValueField<float>)m_Control);
                     dragger.SetDragZone(m_Label);
+                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
                 else if (typeof(U) == typeof(double))
                 {
                     var dragger = new FieldMouseDragger<double>((IValueField<double>)m_Control);
                     dragger.SetDragZone(m_Label);
+                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
                 else if (typeof(U) == typeof(long))
                 {
-                    var dragger = new FieldMouseDragger<long>((IValueField<long> )m_Control);
+                    var dragger = new FieldMouseDragger<long>((IValueField<long>)m_Control);
                     dragger.SetDragZone(m_Label);
+                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
                 else if (typeof(U) == typeof(int))
                 {
-                    var dragger = new FieldMouseDragger<int>((IValueField<int> )m_Control);
+                    var dragger = new FieldMouseDragger<int>((IValueField<int>)m_Control);
                     dragger.SetDragZone(m_Label);
+                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
+            }
 
             m_IndeterminateLabel = new Label()
             {

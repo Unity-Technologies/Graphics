@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
@@ -309,6 +310,11 @@ namespace UnityEditor.VFX.UI
 
         void OnCatchMouse(MouseDownEvent e)
         {
+            var node = GetFirstAncestorOfType<VFXNodeUI>();
+            if( node != null)
+            {
+                node.OnSelectionMouseDown(e);
+            }
             e.StopPropagation();
         }
 
