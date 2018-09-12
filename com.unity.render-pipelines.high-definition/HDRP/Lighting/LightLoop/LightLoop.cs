@@ -1019,18 +1019,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return false;
             }
 
-            // In the shader we do range remapping: (x - start) / (end - start) = (dist^2 * rangeAttenuationScale + rangeAttenuationBias)
             if (applyRangeAttenuation)
             {
-                // start = 0.0f, end = range^2
                 lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
-                lightData.rangeAttenuationBias = 0.0f;
+                lightData.rangeAttenuationBias  = 1.0f;
             }
             else // Don't apply any attenuation but do a 'step' at range
             {
-                // start = range^2 - epsilon, end = range^2
-                lightData.rangeAttenuationScale = 1.0f / 0.01f;
-                lightData.rangeAttenuationBias = - (light.range * light.range - 0.01f) / 0.01f;
+                // Solve f(x) = b - (a * x)^2 where x = (d/r)^2.
+                // f(0) = huge -> b = huge.
+                // f(1) = 0    -> huge - a^2 = 0 -> a = sqrt(huge).
+                const float hugeValue = 16777216.0f;
+                const float sqrtHuge  = 4096.0f;
+                lightData.rangeAttenuationScale = sqrtHuge / (light.range * light.range);
+                lightData.rangeAttenuationBias  = hugeValue;
             }
 
             lightData.color = GetLightColor(light);
