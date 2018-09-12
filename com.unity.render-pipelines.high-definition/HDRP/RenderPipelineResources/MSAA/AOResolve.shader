@@ -45,7 +45,7 @@ Shader "Hidden/HDRenderPipeline/AOResolve"
             float2 aoValues = LOAD_TEXTURE2D(_MultiAOTexture, pixelCoords);
 
             // Lerp between Both
-            return lerp(aoValues.x, aoValues.y, lerpVal * lerpVal);
+            return lerp(aoValues.x, aoValues.y, lerpVal);
         }
     ENDHLSL
 
