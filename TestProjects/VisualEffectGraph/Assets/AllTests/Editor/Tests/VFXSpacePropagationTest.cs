@@ -262,7 +262,7 @@ namespace UnityEditor.VFX.Test
             var inlineVector = ScriptableObject.CreateInstance<VFXInlineOperator>();
             inlineVector.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
 
-            var transformSpace = ScriptableObject.CreateInstance<TransformSpace>();
+            var transformSpace = ScriptableObject.CreateInstance<ChangeSpace>();
             transformSpace.SetOperandType(typeof(Position));
             transformSpace.outputSlots[0].Link(inlineVector.inputSlots[0]);
 
