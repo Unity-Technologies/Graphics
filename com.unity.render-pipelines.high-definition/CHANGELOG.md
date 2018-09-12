@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
 - Stabilize the dithered LOD transition mask with respect to the camera rotation.
+- Avoid multiple depth buffer copies when decals are present
 
 ### Fixed
 - Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.

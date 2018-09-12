@@ -195,6 +195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle         m_DebugFullScreenTempBuffer;
         bool                            m_FullScreenDebugPushed;
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
+        bool                            m_IsDepthBufferCopyValid;
 
         public Material GetBlitMaterial() { return m_Blit; }
 
@@ -681,8 +682,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)
-        {
-            using (new ProfilingSample(cmd, "Copy DepthBuffer", CustomSamplerId.CopySetDepthBuffer.GetSampler()))
+        {           
+            if (!m_IsDepthBufferCopyValid)
             {
                 using (new ProfilingSample(cmd, "Copy depth buffer", CustomSamplerId.CopyDepthBuffer.GetSampler()))
                 {
@@ -690,8 +691,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // That way we could avoid making the copy, and build the MIP hierarchy directly.
                     // The downside is that our SSR tracing accuracy would decrease a little bit.
                     // But since we never render SSR at full resolution, this may be acceptable.
+
+                    // TODO: reading the depth buffer with a compute shader will cause it to decompress in place.
+                    // On console, to preserve the depth test performance, we must NOT decompress the 'm_CameraDepthStencilBuffer' in place.
+                    // We should call decompressDepthSurfaceToCopy() and decompress it to 'm_CameraDepthBufferMipChain'.
                     m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), new RectInt(0, 0, m_CurrentWidth, m_CurrentHeight));
                 }
+                m_IsDepthBufferCopyValid = true;
             }
         }
 
@@ -743,6 +749,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!m_ValidAPI)
                 return;
+
             if (XRGraphicsConfig.enabled)
             {
                 // FIXME add support for renderscale, viewportscale, etc.
@@ -951,6 +958,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         CullResults.Cull(ref cullingParams, renderContext, ref m_CullResults);
                     }
 
+                    m_IsDepthBufferCopyValid = false; // this is a new render frame
                     m_ReflectionProbeCullResults.Cull();
 
                     m_DbufferManager.enableDecals = false;
@@ -1971,13 +1979,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void GenerateDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, FullScreenDebugMode debugMode)
         {
-            using (new ProfilingSample(cmd, "Copy Depth Buffer", CustomSamplerId.CopyDepthBuffer.GetSampler()))
-            {
-                // TODO: reading the depth buffer with a compute shader will cause it to decompress in place.
-                // On console, to preserve the depth test performance, we must NOT decompress the 'm_CameraDepthStencilBuffer' in place.
-                // We should call decompressDepthSurfaceToCopy() and decompress it to 'm_CameraDepthBufferMipChain'.
-                m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), new RectInt(0, 0, m_CurrentWidth, m_CurrentHeight));
-            }
+            CopyDepthBufferIfNeeded(cmd);
 
             int mipCount = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelCount;
 
