@@ -11,12 +11,10 @@ struct NormalData
     float  perceptualRoughness;
 };
 
-#define NormalBufferType0 float4  // Must match GBufferType1 in deferred
-
 // SSSBuffer texture declaration
-TEXTURE2D(_NormalBufferTexture0);
+TEXTURE2D(_NormalBufferTexture);
 
-void EncodeIntoNormalBuffer(NormalData normalData, uint2 positionSS, out NormalBufferType0 outNormalBuffer0)
+void EncodeIntoNormalBuffer(NormalData normalData, uint2 positionSS, out float4 outNormalBuffer0)
 {
     // The sign of the Z component of the normal MUST round-trip through the G-Buffer, otherwise
     // the reconstruction of the tangent frame for anisotropic GGX creates a seam along the Z axis.
@@ -44,12 +42,9 @@ void DecodeFromNormalBuffer(float4 normalBuffer, uint2 positionSS, out NormalDat
 
 void DecodeFromNormalBuffer(uint2 positionSS, out NormalData normalData)
 {
-    float4 normalBuffer = LOAD_TEXTURE2D(_NormalBufferTexture0, positionSS);
+    float4 normalBuffer = LOAD_TEXTURE2D(_NormalBufferTexture, positionSS);
     DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
 }
 
 // OUTPUT_NORMAL_NORMALBUFFER start from SV_Target0 as it is used during depth prepass where there is no color buffer
-#define OUTPUT_NORMALBUFFER(NAME) out NormalBufferType0 MERGE_NAME(NAME, 0) : SV_Target0
-#define ENCODE_INTO_NORMALBUFFER(SURFACE_DATA, UNPOSITIONSS, NAME) EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(SURFACE_DATA), UNPOSITIONSS, MERGE_NAME(NAME, 0))
-
 #define DECODE_FROM_NORMALBUFFER(UNPOSITIONSS, NORMAL_DATA) DecodeFromNormalBuffer(UNPOSITIONSS, NORMAL_DATA)

@@ -24,20 +24,18 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-void Frag(  PackedVaryingsToPS packedInput,
+void Frag(  PackedVaryingsToPS packedInput
             #ifdef WRITE_NORMAL_BUFFER
-            OUTPUT_NORMALBUFFER(outNormalBuffer)
+            , out float4 outNormalBuffer : SV_Target0
                 #ifdef WRITE_MSAA_DEPTH
             , out float1 depthColor : SV_Target1
                 #endif
             #else
-                #ifdef WRITE_MSAA_DEPTH
-            out float4 outColor : SV_Target0
-            , out float1 depthColor : SV_Target1
-                #else
-            out float4 outColor : SV_Target
+                #ifdef SCENESELECTIONPASS
+            , out float4 outColor : SV_Target0
                 #endif
             #endif
+
             #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
             #endif
@@ -64,15 +62,13 @@ void Frag(  PackedVaryingsToPS packedInput,
 #endif
 
 #ifdef WRITE_NORMAL_BUFFER
-    ENCODE_INTO_NORMALBUFFER(surfaceData, posInput.positionSS, outNormalBuffer);
+    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), posInput.positionSS, outNormalBuffer);
+    #ifdef WRITE_MSAA_DEPTH
+    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
+    depthColor = packedInput.vmesh.positionCS.z;
+    #endif
 #elif defined(SCENESELECTIONPASS)
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
-#else
-    outColor = float4(0.0, 0.0, 0.0, 0.0);
-#endif
-#ifdef WRITE_MSAA_DEPTH
-    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-    depthColor = packedInput.vmesh.positionCS.z;
 #endif
 }
