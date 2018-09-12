@@ -68,9 +68,13 @@ real ComputeCubemapTexelSolidAngle(real2 uv)
 // Square the result to smoothen the function.
 real DistanceWindowing(real distSquare, real rangeAttenuationScale, real rangeAttenuationBias)
 {
-    // Apply the saturate here as we can have negative number
-    real factor = saturate(distSquare * rangeAttenuationScale + rangeAttenuationBias);
-    return 1.0 - factor * factor;
+    // If (range attenuation is enabled)
+    //   rangeAttenuationScale = 1 / r^2
+    //   rangeAttenuationBias  = 1
+    // Else
+    //   rangeAttenuationScale = 2^12 / r^2
+    //   rangeAttenuationBias  = 2^24
+    return saturate(rangeAttenuationBias - Sq(distSquare * rangeAttenuationScale));
 }
 
 real SmoothDistanceWindowing(real distSquare, real rangeAttenuationScale, real rangeAttenuationBias)
