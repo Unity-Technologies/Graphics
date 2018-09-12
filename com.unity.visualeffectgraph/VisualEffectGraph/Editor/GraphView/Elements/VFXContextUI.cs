@@ -56,7 +56,6 @@ namespace UnityEditor.VFX.UI
         {
             base.SelfChange();
 
-
             Profiler.BeginSample("VFXContextUI.CreateBlockProvider");
             if (m_BlockProvider == null)
             {
@@ -66,6 +65,15 @@ namespace UnityEditor.VFX.UI
                     });
             }
             Profiler.EndSample();
+
+            if(inputContainer.childCount == 0 && !hasSettings)
+            {
+                mainContainer.AddToClassList("empty");
+            }
+            else
+            {
+                mainContainer.RemoveFromClassList("empty");
+            }
 
             m_HeaderIcon.image = GetIconForVFXType(controller.model.inputType);
             m_HeaderIcon.visible = m_HeaderIcon.image.value != null;
@@ -470,6 +478,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var kv in blocksUIs)
                 {
+                    kv.Value.RemoveFromClassList("first");
                     m_BlockContainer.Remove(kv.Value);
                 }
                 if (blockControllers.Count() > 0 || !m_CanHaveBlocks)
@@ -480,18 +489,25 @@ namespace UnityEditor.VFX.UI
                 {
                     m_BlockContainer.Add(m_NoBlock);
                 }
-                foreach (var blockController in blockControllers)
+                if(blockControllers.Count > 0)
                 {
-                    VFXBlockUI blockUI;
-                    if (blocksUIs.TryGetValue(blockController, out blockUI))
+                    foreach (var blockController in blockControllers)
                     {
-                        m_BlockContainer.Add(blockUI);
+                        VFXBlockUI blockUI;
+                        if (blocksUIs.TryGetValue(blockController, out blockUI))
+                        {
+                            m_BlockContainer.Add(blockUI);
+                        }
+                        else
+                        {
+                            InstantiateBlock(blockController);
+                        }
                     }
-                    else
-                    {
-                        InstantiateBlock(blockController);
-                    }
+                    VFXBlockUI firstBlock = m_BlockContainer.Query<VFXBlockUI>();
+                    firstBlock.AddToClassList("first");
                 }
+
+                
             }
             Profiler.EndSample();
         }

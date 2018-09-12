@@ -75,8 +75,15 @@ namespace UnityEditor.VFX.UI
 
         public VFXNodeUI(string template) : base(UXMLResourceToPackage(template))
         {
-            AddStyleSheetPath("VFXNodeUI");
             Initialize();
+        }
+
+        void OnFocusIn(FocusInEvent e)
+        {
+            var gv = GetFirstAncestorOfType<VFXView>();
+            if( ! IsSelected(gv))
+                Select(gv,false);
+            e.StopPropagation();
         }
         VisualElement m_SelectionBorder;
 
@@ -143,6 +150,7 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<MouseEnterEvent>(OnMouseEnter);
             RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
+            RegisterCallback<FocusInEvent>(OnFocusIn);
 
             m_SelectionBorder = this.Query("selection-border");
         }
@@ -197,7 +205,7 @@ namespace UnityEditor.VFX.UI
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
 
-                bool hasSettings = false;
+                hasSettings = false;
                 for (int i = 0; i < m_Settings.Count; ++i)
                 {
                     PropertyRM prop = m_Settings[i];
@@ -219,6 +227,11 @@ namespace UnityEditor.VFX.UI
                 }
             }
             Profiler.EndSample();
+        }
+        protected bool hasSettings
+        {
+            get;
+            private set;
         }
 
         protected virtual bool syncInput
