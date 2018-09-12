@@ -100,7 +100,6 @@ namespace UnityEditor.VFX
                     {
                         output.space = currentSpaceForSlot;
                         needUpdateInputSpaceable = true;
-
                     }
                 }
 
