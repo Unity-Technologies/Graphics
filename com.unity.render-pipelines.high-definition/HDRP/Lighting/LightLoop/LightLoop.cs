@@ -1025,6 +1025,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
                 lightData.rangeAttenuationBias  = 1.0f;
+
+                if (lightData.lightType == GPULightType.Rectangle)
+                {
+                    // Rect lights are currently a special case because they use the normalized
+                    // [0, 1] attenuation range rather than the regular [0, r] one.
+                    lightData.rangeAttenuationScale = 1.0f;
+                }
             }
             else // Don't apply any attenuation but do a 'step' at range
             {
