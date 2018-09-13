@@ -2,8 +2,8 @@
 #define LIGHTWEIGHT_INPUT_SURFACE_COMMON_INCLUDED
 
 #include "Core.hlsl"
-#include "CoreRP/ShaderLibrary/Packing.hlsl"
-#include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 
 TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
 TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);

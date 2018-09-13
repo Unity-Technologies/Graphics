@@ -8,7 +8,7 @@
 // Note: These parameters can be store in GBuffer if the writer wants
 //-----------------------------------------------------------------------------
 
-#include "CoreRP/ShaderLibrary/Debug.hlsl" // Require for GetIndexColor auto generated
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl" // Require for GetIndexColor auto generated
 #include "BuiltinData.cs.hlsl"
 
 //-----------------------------------------------------------------------------

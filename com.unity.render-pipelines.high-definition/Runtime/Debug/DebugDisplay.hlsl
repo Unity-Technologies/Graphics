@@ -1,7 +1,7 @@
 #ifndef UNITY_DEBUG_DISPLAY_INCLUDED
 #define UNITY_DEBUG_DISPLAY_INCLUDED
 
-#include "CoreRP/ShaderLibrary/Debug.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 #include "DebugDisplay.cs.hlsl"
 #include "MaterialDebug.cs.hlsl"
 #include "LightingDebug.cs.hlsl"

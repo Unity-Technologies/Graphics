@@ -28,7 +28,7 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "HDRP/CoreRP/Utilities/GeometryUtils.cs.hlsl"
 
 #include "../../ShaderVariables.hlsl"

@@ -18,11 +18,11 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "HDRP/ShaderVariables.hlsl"
 
 #ifdef DEBUG_DISPLAY
-    #include "CoreRP/ShaderLibrary/Debug.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
     #include "HDRP/Debug/DebugDisplay.hlsl"
 #endif
 

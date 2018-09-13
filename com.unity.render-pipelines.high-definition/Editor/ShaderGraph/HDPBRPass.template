@@ -54,10 +54,10 @@ Pass
     #define OUTPUT_SPLIT_LIGHTING
     #endif
 
-    #include "CoreRP/ShaderLibrary/Common.hlsl"
-    #include "CoreRP/ShaderLibrary/Wind.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
 
-    #include "CoreRP/ShaderLibrary/NormalSurfaceGradient.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 
     // define FragInputs structure
     #include "HDRP/ShaderPass/FragInputs.hlsl"

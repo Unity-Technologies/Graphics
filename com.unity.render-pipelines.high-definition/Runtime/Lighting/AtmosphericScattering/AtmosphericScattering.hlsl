@@ -1,8 +1,8 @@
 #ifndef UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 #define UNITY_ATMOSPHERIC_SCATTERING_INCLUDED
 
-#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
-#include "CoreRP/ShaderLibrary/Filtering.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 
 #include "AtmosphericScattering.cs.hlsl"
 #include "HDRP/ShaderVariables.hlsl"

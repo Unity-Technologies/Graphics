@@ -59,8 +59,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_BASEPASS 1
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
-            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
 
@@ -83,8 +83,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
-            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
 
@@ -108,8 +108,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
-            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
 
@@ -133,8 +133,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
             #pragma shader_feature EDITOR_VISUALIZATION
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrainBase.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassMetaPBR.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceTerrainBase.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassMetaPBR.hlsl"
 
             ENDHLSL
         }

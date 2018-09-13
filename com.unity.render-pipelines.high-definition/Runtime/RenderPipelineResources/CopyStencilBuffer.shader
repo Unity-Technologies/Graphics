@@ -12,8 +12,8 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     // #pragma enable_d3d11_debug_symbols
 
-    #include "CoreRP/ShaderLibrary/Common.hlsl"
-    #include "CoreRP/ShaderLibrary/Packing.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
     #include "../ShaderVariables.hlsl"
 
     int _StencilRef;

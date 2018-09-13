@@ -17,9 +17,9 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
-            #include "CoreRP/ShaderLibrary/Color.hlsl"
-            #include "CoreRP/ShaderLibrary/Debug.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
             #include "HDRP/Material/Lit/Lit.cs.hlsl"
             #include "HDRP/ShaderVariables.hlsl"
             #include "HDRP/Debug/DebugDisplay.cs.hlsl"

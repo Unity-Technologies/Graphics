@@ -9,7 +9,7 @@
 #define MATERIAL_INCLUDE_TRANSMISSION
 #include "HDRP/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "HDRP/Material/NormalBuffer.hlsl"
-#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
 //-----------------------------------------------------------------------------
 // Configuration

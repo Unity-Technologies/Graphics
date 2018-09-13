@@ -49,8 +49,8 @@ Shader "Hidden/TerrainEngine/Details/BillboardWavingDoublePass" // Has to overri
             #define _ALPHATEST_ON
 
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceGrass.hlsl"
-            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitGrass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceGrass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/LightweightPassLitGrass.hlsl"
 
             ENDHLSL
         }
@@ -81,8 +81,8 @@ Shader "Hidden/TerrainEngine/Details/BillboardWavingDoublePass" // Has to overri
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceGrass.hlsl"
-            #include "LWRP/ShaderLibrary/Terrain/LightweightPassDepthOnlyGrass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceGrass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/LightweightPassDepthOnlyGrass.hlsl"
             ENDHLSL
         }
     }

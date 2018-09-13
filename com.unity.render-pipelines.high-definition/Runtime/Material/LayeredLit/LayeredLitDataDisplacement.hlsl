@@ -153,7 +153,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
     return BlendLayeredScalar(height0, height1, height2, height3, weights);
 }
 
-#include "CoreRP/ShaderLibrary/PerPixelDisplacement.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/PerPixelDisplacement.hlsl"
 
 #endif // defined(_PIXEL_DISPLACEMENT) && LAYERS_HEIGHTMAP_ENABLE
 

@@ -67,7 +67,7 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                 #pragma vertex vertParticleUnlit
                 #pragma fragment fragParticleUnlit
 
-                #include "LWRP/ShaderLibrary/Particles.hlsl"
+                #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Particles.hlsl"
 
                 VertexOutputLit vertParticleUnlit(appdata_particles v)
                 {

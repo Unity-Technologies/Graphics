@@ -1,7 +1,7 @@
 #ifndef LIGHTWEIGHT_DEPTH_COPY_INCLUDED
 #define LIGHTWEIGHT_DEPTH_COPY_INCLUDED
 
-#include "LWRP/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 
 struct VertexInput
 {

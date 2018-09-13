@@ -10,7 +10,7 @@ Shader "Hidden/BlitCubemap" {
             #pragma fragment frag
             #pragma target 4.5
 
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             TEXTURECUBE(_MainTex);
             SAMPLER(sampler_MainTex);

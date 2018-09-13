@@ -1,6 +1,6 @@
-#include "CoreRP/ShaderLibrary/Common.hlsl"
-#include "CoreRP/ShaderLibrary/BC6H.hlsl"
-#include "CoreRP/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BC6H.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 

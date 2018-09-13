@@ -45,8 +45,8 @@ Pass
 
     #define UNITY_MATERIAL_UNLIT // Need to be define before including Material.hlsl
 
-    #include "CoreRP/ShaderLibrary/Common.hlsl"
-    #include "CoreRP/ShaderLibrary/Wind.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
 
     // define FragInputs structure
     #include "HDRP/ShaderPass/FragInputs.hlsl"

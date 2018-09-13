@@ -1,4 +1,4 @@
-#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
 static const float2 poissonDisk64[64] =
 {

@@ -69,7 +69,7 @@ StructuredBuffer<int> _LightIndexBuffer;
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
 
 #include "InputBuiltin.hlsl"
-#include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "CoreFunctions.hlsl"
 
 #endif

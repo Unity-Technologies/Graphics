@@ -1,9 +1,9 @@
 #ifndef LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED
 #define LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED
 
-#include "LWRP/ShaderLibrary/Core.hlsl"
-#include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
-#include "LWRP/ShaderLibrary/InputSurfaceCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceCommon.hlsl"
 
 CBUFFER_START(_Terrain)
 half _Metallic0, _Metallic1, _Metallic2, _Metallic3;

@@ -19,9 +19,9 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             #pragma target 4.5
             #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
-            #include "CoreRP/ShaderLibrary/Color.hlsl"
-            #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "../../ShaderVariables.hlsl"
 
             struct Attributes

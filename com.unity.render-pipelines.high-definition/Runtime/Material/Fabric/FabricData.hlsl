@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-#include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "HDRP/Material/MaterialUtilities.hlsl"
 #include "HDRP/Material/BuiltinUtilities.hlsl"
 #include "HDRP/Material/Decal/DecalUtilities.hlsl"

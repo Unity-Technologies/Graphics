@@ -10,8 +10,8 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 
         Texture2DMS<float> _DepthTextureMS;
         
-        #include "CoreRP/ShaderLibrary/Common.hlsl"
-        #include "CoreRP/ShaderLibrary/Color.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "HDRP/ShaderVariables.hlsl"
         #include "HDRP/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 

@@ -1,4 +1,4 @@
-#include "CoreRP/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
 //-----------------------------------------------------------------------------
 // LightLoop

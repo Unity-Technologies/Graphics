@@ -48,8 +48,8 @@ Shader "LightweightPipeline/Standard Unlit"
             #pragma multi_compile_instancing
 
             // Lighting include is needed because of GI
-            #include "LWRP/ShaderLibrary/Lighting.hlsl"
-            #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceUnlit.hlsl"
 
             struct VertexInput
             {
@@ -152,8 +152,8 @@ Shader "LightweightPipeline/Standard Unlit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceUnlit.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
 
@@ -172,8 +172,8 @@ Shader "LightweightPipeline/Standard Unlit"
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMetaUnlit
 
-            #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassMetaUnlit.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceUnlit.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassMetaUnlit.hlsl"
 
             ENDHLSL
         }

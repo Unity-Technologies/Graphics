@@ -6,7 +6,7 @@
 #   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
 #endif
 
-#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "../ShaderVariables.hlsl"
 #include "../Material/NormalBuffer.hlsl"
 #include "Lighting.hlsl"

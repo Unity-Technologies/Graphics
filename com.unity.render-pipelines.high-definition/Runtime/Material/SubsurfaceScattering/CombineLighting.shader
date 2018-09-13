@@ -31,7 +31,7 @@ Shader "Hidden/HDRenderPipeline/CombineLighting"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             TEXTURE2D(_IrradianceSource);
 

@@ -1,4 +1,4 @@
-#include "CoreRP/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "../DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
 #include "../DiffusionProfile/DiffusionProfile.hlsl"
 

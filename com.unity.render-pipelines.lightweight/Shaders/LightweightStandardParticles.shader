@@ -71,8 +71,8 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _REQUIRE_UV2
 
-            #include "LWRP/ShaderLibrary/ParticlesPBR.hlsl"
-            #include "LWRP/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/ParticlesPBR.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
 
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
             {

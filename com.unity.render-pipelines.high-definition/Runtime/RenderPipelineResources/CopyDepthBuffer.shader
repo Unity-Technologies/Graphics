@@ -27,7 +27,7 @@ Shader "Hidden/HDRenderPipeline/CopyDepthBuffer"
             #pragma vertex Vert
             // #pragma enable_d3d11_debug_symbols
 
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "../ShaderVariables.hlsl"
 
             TEXTURE2D_FLOAT(_InputDepthTexture);

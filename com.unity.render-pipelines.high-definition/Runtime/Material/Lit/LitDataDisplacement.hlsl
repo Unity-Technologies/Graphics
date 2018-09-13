@@ -73,7 +73,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
     return SAMPLE_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, param.uv + texOffsetCurrent, lod).r;
 }
 
-#include "CoreRP/ShaderLibrary/PerPixelDisplacement.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/PerPixelDisplacement.hlsl"
 
 void ApplyDisplacementTileScale(inout float height)
 {

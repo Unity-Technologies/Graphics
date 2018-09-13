@@ -21,7 +21,7 @@ Shader "Hidden/HDRenderPipeline/DebugLightVolume"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "HDRP/ShaderVariables.hlsl"
 
             struct AttributesDefault
