@@ -8,8 +8,16 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
+        public enum DefaultType
+        {
+            White, Black, Grey, Bump
+        }
+
         [SerializeField]
         private bool m_Modifiable = true;
+
+        [SerializeField]
+        private DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
 
         public TextureShaderProperty()
         {
@@ -26,6 +34,12 @@ namespace UnityEditor.ShaderGraph
         {
             get { return m_Modifiable; }
             set { m_Modifiable = value; }
+        }
+
+        public DefaultType defaultType
+        {
+            get { return m_DefaultType; }
+            set { m_DefaultType = value; }
         }
 
         public override Vector4 defaultValue
@@ -45,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);
-            result.Append("\", 2D) = \"white\" {}");
+            result.Append("\", 2D) = \"" + defaultType.ToString().ToLower() + "\" {}");
             return result.ToString();
         }
 
