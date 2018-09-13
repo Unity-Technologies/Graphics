@@ -443,13 +443,19 @@ public class VisualEffectAssetEditor : Editor
 
         bool needRecompile = false;
         EditorGUI.BeginChangeCheck();
-        bool castShadows = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Cast Shadows"), resource.rendererSettings.shadowCastingMode != ShadowCastingMode.Off);
-        if (EditorGUI.EndChangeCheck())
+
+        // Use reflection to know if transparent priority has been exposed TODO REMOVE REFLECTION ONCE C++ MERGED
+        var transparencyPriorityField = typeof(VFXRendererSettings).GetField("transparencyPriority");
+        if (transparencyPriorityField != null)
         {
-            var settings = resource.rendererSettings;
-            settings.shadowCastingMode = castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
-            resource.rendererSettings = settings;
-            needRecompile = true;
+            int transparentPriority = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("Transparent Priority"), (int)transparencyPriorityField.GetValue(resource.rendererSettings));
+            if (EditorGUI.EndChangeCheck())
+            {
+                var settings = (object)resource.rendererSettings;
+                transparencyPriorityField.SetValue(settings, transparentPriority);
+                resource.rendererSettings = (VFXRendererSettings)settings;
+                needRecompile = true;
+            }
         }
 
         EditorGUI.BeginChangeCheck();
