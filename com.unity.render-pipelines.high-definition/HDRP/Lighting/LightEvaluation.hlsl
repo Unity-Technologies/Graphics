@@ -308,7 +308,6 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
             float thicknessInMeters = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
             float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
-#if SHADEROPTIONS_USE_DISNEY_SSS
             // We need to make sure it's not less than the baked thickness to minimize light leaking.
             float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
 
@@ -325,19 +324,6 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
 #endif
 
             transmittance *= expOneThird;
-
-#else // SHADEROPTIONS_USE_DISNEY_SSS
-
-            // We need to make sure it's not less than the baked thickness to minimize light leaking.
-            thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
-
-            transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].rgb,
-                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].a,
-                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].rgb,
-                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].a,
-                                                        _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
-                                                        thicknessInMillimeters);
-#endif // SHADEROPTIONS_USE_DISNEY_SSS
 
             // Note: we do not modify the distance to the light, or the light angle for the back face.
             // This is a performance-saving optimization which makes sense as long as the thickness is small.
