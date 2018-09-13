@@ -6,16 +6,16 @@
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
-#include "HDRP/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
-#include "HDRP/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
 //-----------------------------------------------------------------------------
 
-#include "HDRP/Material/LTCAreaLight/LTCAreaLight.hlsl"
-#include "HDRP/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -297,8 +297,8 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 #define USE_DEFERRED_DIRECTIONAL_SHADOWS // Deferred shadows are always enabled for opaque objects
 #endif
 
-#include "HDRP/Material/MaterialEvaluation.hlsl"
-#include "HDRP/Lighting/LightEvaluation.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)

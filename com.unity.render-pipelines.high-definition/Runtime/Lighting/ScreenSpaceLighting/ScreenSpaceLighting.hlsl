@@ -1,16 +1,16 @@
 #ifndef UNITY_SCREENSPACELIGHTING_INCLUDED
  #define UNITY_SCREENSPACELIGHTING_INCLUDED
 
-#include "HDRP/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.cs.hlsl"
-#include "HDRP/Lighting/Reflection/VolumeProjection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 
 #define SSRTID Reflection
-#include "HDRP/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
 #undef SSRTID
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Refraction.hlsl"
 #define SSRTID Refraction
-#include "HDRP/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
 #undef SSRTID
 
 #endif

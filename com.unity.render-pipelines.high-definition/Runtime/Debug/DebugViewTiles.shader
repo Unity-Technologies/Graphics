@@ -34,7 +34,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "../ShaderVariables.hlsl"
             #include "../Lighting/Lighting.hlsl" // This include Material.hlsl
-            #include "HDRP/Debug/DebugDisplay.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
             //-------------------------------------------------------------------------------------
             // variable declaration

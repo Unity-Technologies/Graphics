@@ -9,7 +9,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
-#include "HDRP/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 // Guidelines for Material Keyword.
 // There is a set of Material Keyword that a HD shaders must define (or not define). We call them system KeyWord.

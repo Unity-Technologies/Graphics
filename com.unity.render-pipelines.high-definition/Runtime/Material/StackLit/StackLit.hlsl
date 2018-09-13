@@ -7,8 +7,8 @@
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
-#include "HDRP/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
-#include "HDRP/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -42,8 +42,8 @@
 // Required for SSS, GBuffer texture declaration
 TEXTURE2D(_GBufferTexture0);
 
-#include "HDRP/Material/LTCAreaLight/LTCAreaLight.hlsl"
-#include "HDRP/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
 //-----------------------------------------------------------------------------
 // Definition
@@ -1866,10 +1866,10 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 #define USE_DEFERRED_DIRECTIONAL_SHADOWS // Deferred shadows are always enabled for opaque objects
 #endif
 
-#include "HDRP/Material/MaterialEvaluation.hlsl"
-#include "HDRP/Lighting/LightEvaluation.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 
-#include "HDRP/Lighting/Reflection/VolumeProjection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)

@@ -3,7 +3,7 @@
 //-------------------------------------------------------------------------------------
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
-#include "HDRP/Material/MaterialUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 
 #include "TerrainLitSplatCommon.hlsl"
 
@@ -19,12 +19,12 @@ float4 _MainTex_MipInfo;
 // We don't use emission for terrain
 #define _EmissiveColor float3(0,0,0)
 #define _AlbedoAffectEmissive 0
-#include "HDRP/Material/Lit/LitBuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 #undef _EmissiveColor
 #undef _AlbedoAffectEmissive
 
-#include "HDRP/Material/Decal/DecalUtilities.hlsl"
-#include "HDRP/Material/Lit/LitDecalData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {

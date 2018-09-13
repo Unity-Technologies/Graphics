@@ -5,8 +5,8 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "HDRP/ShaderVariables.hlsl"
-        #include "HDRP/Debug/DebugDisplay.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
         float4 _TextureScaleBias;
         float _TextureSlice;

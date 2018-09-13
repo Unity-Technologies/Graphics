@@ -19,8 +19,8 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
-            #include "HDRP/ShaderVariables.hlsl"
-            #include "HDRP/Debug/DebugDisplay.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
             TEXTURECUBE(_InputCubemap);
             SAMPLER(sampler_InputCubemap);

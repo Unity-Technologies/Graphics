@@ -12,8 +12,8 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
         
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-        #include "HDRP/ShaderVariables.hlsl"
-        #include "HDRP/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
         struct Attributes
         {
