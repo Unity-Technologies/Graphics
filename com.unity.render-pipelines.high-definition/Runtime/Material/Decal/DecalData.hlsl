@@ -1,9 +1,9 @@
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-#include "CoreRP/ShaderLibrary/Packing.hlsl"
-#include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
-#include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 void GetSurfaceData(float2 texCoordDS, float4x4 normalToWorld, out DecalSurfaceData surfaceData)

@@ -1,7 +1,7 @@
 // Various shadow sampling logic.
 // Again two versions, one for dynamic resource indexing, one for static resource access.
 
-#include "CoreRP/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 
 // ------------------------------------------------------------------
 //  PCF Filtering methods

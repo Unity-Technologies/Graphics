@@ -2,7 +2,7 @@
 #define LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED
 
 #include "Core.hlsl"
-#include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "InputSurfaceCommon.hlsl"
 
 CBUFFER_START(UnityPerMaterial)

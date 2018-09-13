@@ -12,7 +12,7 @@ Shader "Hidden/SRP/BlitCubeTextureFace"
 
             HLSLPROGRAM
             #pragma prefer_hlslcc gles
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             #pragma vertex vert
             #pragma fragment frag

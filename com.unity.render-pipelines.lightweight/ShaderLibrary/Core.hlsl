@@ -1,8 +1,8 @@
 #ifndef LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 #define LIGHTWEIGHT_PIPELINE_CORE_INCLUDED
 
-#include "CoreRP/ShaderLibrary/Common.hlsl"
-#include "CoreRP/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Input.hlsl"
 
 #if !defined(SHADER_HINT_NICE_QUALITY)

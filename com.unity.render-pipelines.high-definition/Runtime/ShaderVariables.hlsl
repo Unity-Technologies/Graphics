@@ -361,7 +361,7 @@ float4x4 GetUnityWorldToObject() { return unity_WorldToObject; }
 
 // This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-#include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
 // This is located after the include of UnityInstancing.hlsl so it can be used for declaration
 // Undef in order to include all textures and buffers declarations

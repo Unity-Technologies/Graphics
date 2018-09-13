@@ -71,8 +71,8 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
-            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
 
             ENDHLSL
         }
@@ -96,8 +96,8 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
-            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
 
@@ -121,8 +121,8 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
-            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
             ENDHLSL
         }
 

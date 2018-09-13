@@ -13,11 +13,11 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
         //Keep compiler quiet about Shadows.hlsl.
-        #include "CoreRP/ShaderLibrary/Common.hlsl"
-        #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
-        #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
-        #include "LWRP/ShaderLibrary/Core.hlsl"
-        #include "LWRP/ShaderLibrary/Shadows.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+        #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
         TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);

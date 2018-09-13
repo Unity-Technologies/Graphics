@@ -1,8 +1,8 @@
 #ifndef LIGHTWEIGHT_SHADOWS_INCLUDED
 #define LIGHTWEIGHT_SHADOWS_INCLUDED
 
-#include "CoreRP/ShaderLibrary/Common.hlsl"
-#include "CoreRP/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 #include "Core.hlsl"
 
 #define MAX_SHADOW_CASCADES 4

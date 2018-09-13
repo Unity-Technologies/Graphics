@@ -177,7 +177,7 @@ Shader "HDRenderPipeline/Fabric"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "CoreRP/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "HDRP/ShaderPass/FragInputs.hlsl"
     #include "HDRP/ShaderPass/ShaderPass.cs.hlsl"
 

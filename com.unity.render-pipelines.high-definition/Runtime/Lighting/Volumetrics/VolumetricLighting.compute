@@ -34,10 +34,10 @@
 // Included headers
 //--------------------------------------------------------------------------------------------------
 
-#include "CoreRP/ShaderLibrary/Common.hlsl"
-#include "CoreRP/ShaderLibrary/Color.hlsl"
-#include "CoreRP/ShaderLibrary/Filtering.hlsl"
-#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
 #include "../../ShaderVariables.hlsl"
 #include "VolumetricLighting.cs.hlsl"

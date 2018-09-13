@@ -65,8 +65,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Add Pass"
             #pragma shader_feature _NORMALMAP
             #define TERRAIN_SPLAT_ADDPASS 1
 
-            #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
-            #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
 
             ENDHLSL
         }

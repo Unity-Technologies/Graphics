@@ -83,8 +83,8 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 
             #define BUMP_SCALE_NOT_SUPPORTED 1
 
-            #include "LWRP/ShaderLibrary/Particles.hlsl"
-            #include "LWRP/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Particles.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
 
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
             {

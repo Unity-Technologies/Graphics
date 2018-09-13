@@ -121,8 +121,8 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
-            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfacePBR.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
 
@@ -153,8 +153,8 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfacePBR.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
 
@@ -185,8 +185,8 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfacePBR.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
 
@@ -214,8 +214,8 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassMetaPBR.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfacePBR.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassMetaPBR.hlsl"
 
             ENDHLSL
         }

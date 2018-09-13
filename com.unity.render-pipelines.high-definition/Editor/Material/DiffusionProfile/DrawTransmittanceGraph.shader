@@ -21,8 +21,8 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
-            #include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "HDRP/ShaderVariables.hlsl"
             #include "HDRP/Material/DiffusionProfile/DiffusionProfile.hlsl"

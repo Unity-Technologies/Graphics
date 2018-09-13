@@ -12,7 +12,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
         HLSLINCLUDE
 
         #define USE_LEGACY_UNITY_MATRIX_VARIABLES
-        #include "CoreRP/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "../../ShaderVariables.hlsl"
         #include "../Material.hlsl"
 

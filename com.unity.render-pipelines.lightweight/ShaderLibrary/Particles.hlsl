@@ -2,7 +2,7 @@
 #define LIGHTWEIGHT_PARTICLES_INCLUDED
 
 #include "Core.hlsl"
-#include "CoreRP/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "InputSurfaceCommon.hlsl"
 
 CBUFFER_START(UnityPerMaterial)

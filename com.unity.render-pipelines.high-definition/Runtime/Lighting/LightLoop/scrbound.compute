@@ -5,7 +5,7 @@
 #pragma kernel ScreenBoundsAABB_Oblique           SCRAABBGEN=ScreenBoundsAABB_Oblique           USE_OBLIQUE_MODE
 
 
-#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "LightLoop.cs.hlsl"
 #include "LightCullUtils.hlsl"
 

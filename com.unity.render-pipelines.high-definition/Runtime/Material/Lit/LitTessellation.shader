@@ -302,10 +302,10 @@ Shader "HDRenderPipeline/LitTessellation"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "CoreRP/ShaderLibrary/Common.hlsl"
-    #include "CoreRP/ShaderLibrary/Wind.hlsl"
-    #include "CoreRP/ShaderLibrary/GeometricTools.hlsl"
-    #include "CoreRP/ShaderLibrary/Tessellation.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Tessellation.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 

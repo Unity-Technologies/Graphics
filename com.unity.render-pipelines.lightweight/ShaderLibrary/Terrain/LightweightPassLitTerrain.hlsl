@@ -1,7 +1,7 @@
 #ifndef LIGHTWEIGHT_PASS_LIT_TERRAIN_INCLUDED
 #define LIGHTWEIGHT_PASS_LIT_TERRAIN_INCLUDED
 
-#include "LWRP/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
 
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
     #define ENABLE_TERRAIN_PERPIXEL_NORMAL

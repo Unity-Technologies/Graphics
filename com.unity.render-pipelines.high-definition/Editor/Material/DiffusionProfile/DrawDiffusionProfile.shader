@@ -23,7 +23,7 @@ Shader "Hidden/HDRenderPipeline/DrawDiffusionProfile"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "HDRP/ShaderVariables.hlsl"
         #ifdef SSS_MODEL_BASIC

@@ -17,8 +17,8 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "CoreRP/ShaderLibrary/Common.hlsl"
-            #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "HDRP/ShaderVariables.hlsl"
             #include "HDRP/Debug/DebugDisplay.hlsl"
 

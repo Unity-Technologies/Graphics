@@ -106,8 +106,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma fragment LitPassFragmentSimple
             #define BUMP_SCALE_NOT_SUPPORTED 1
 
-            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassLitSimple.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceSimple.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassLitSimple.hlsl"
             ENDHLSL
         }
 
@@ -138,8 +138,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceSimple.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
 
@@ -170,8 +170,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceSimple.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
 
@@ -193,8 +193,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassMetaSimple.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceSimple.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassMetaSimple.hlsl"
 
             ENDHLSL
         }

@@ -8,7 +8,7 @@
 #include "HDRP/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
 #undef SSRTID
 
-#include "CoreRP/ShaderLibrary/Refraction.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Refraction.hlsl"
 #define SSRTID Refraction
 #include "HDRP/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
 #undef SSRTID
