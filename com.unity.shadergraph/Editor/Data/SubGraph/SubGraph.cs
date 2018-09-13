@@ -107,10 +107,10 @@ namespace UnityEditor.ShaderGraph
                     {
                         // Just grab the body from the active nodes
                         var bodyGenerator = new ShaderGenerator();
-                        GenerateNodeCode(bodyGenerator, graphContext, GenerationMode.ForReals);
+                        GenerateNodeCode(bodyGenerator, graphContext, generationMode);
 
                         if (outputNode != null)
-                            outputNode.RemapOutputs(bodyGenerator, GenerationMode.ForReals);
+                            outputNode.RemapOutputs(bodyGenerator, generationMode);
 
                         s.Append(bodyGenerator.GetShaderString(1));
                     }
