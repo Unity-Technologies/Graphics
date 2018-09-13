@@ -453,6 +453,12 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     float  centerRcpPdf = _FilterKernels[profileID][0][iP];
     float3 centerWeight = DisneyProfilePolar(centerRadius, shapeParam) * centerRcpPdf;
 
+    // If the shape parameter is 0, the weight is be 0.
+    // This is desirable for all but the central sample.
+    // We make sure that if the shape parameter is 0, the weight is non-zero.
+    // Weight normalization will ensure that the result is correct.
+    centerWeight = max(centerWeight, FLT_EPS);
+
     // Accumulate filtered irradiance and bilateral weights (for renormalization).
     float3 totalIrradiance = centerWeight * centerIrradiance;
     float3 totalWeight     = centerWeight;
