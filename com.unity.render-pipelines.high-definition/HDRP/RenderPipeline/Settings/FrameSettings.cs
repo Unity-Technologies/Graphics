@@ -193,9 +193,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Initially, MSAA will only support forward
                 enableForwardRenderingOnly = true;
 
-                // Assuming MSAA is being used, TAA, and therefore, motion vectors are not needed
-                enableMotionVectors = false;
-
                 // TODO: The work will be implemented piecemeal to support all passes
                 enableDistortion = false; // no gaussian final color
                 enableSSR = false;
