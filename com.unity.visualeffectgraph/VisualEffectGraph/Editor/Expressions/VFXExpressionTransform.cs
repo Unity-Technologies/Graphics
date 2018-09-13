@@ -383,7 +383,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionMatrixToVector3s : VFXExpression
     {
-        public VFXExpressionMatrixToVector3s() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) }
+        public VFXExpressionMatrixToVector3s() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) } // TODO row index should not be an expression!
                                                       )
         {
         }
@@ -419,7 +419,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionMatrixToVector4s : VFXExpression
     {
-        public VFXExpressionMatrixToVector4s() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) }
+        public VFXExpressionMatrixToVector4s() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) } // TODO row index should not be an expression!
                                                       )
         {
         }

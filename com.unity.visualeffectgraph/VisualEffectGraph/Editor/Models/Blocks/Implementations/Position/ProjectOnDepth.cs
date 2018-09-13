@@ -87,10 +87,22 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var input in GetExpressionsFromSlots(this))
+                var expressions = GetExpressionsFromSlots(this);
+                foreach (var input in expressions)
                 {
                     yield return input;
                 }
+
+                var fov = expressions.First(e => e.name == "Camera_fieldOfView");
+                var aspect = expressions.First(e => e.name == "Camera_aspectRatio");
+                var near = expressions.First(e => e.name == "Camera_nearPlane");
+                var far = expressions.First(e => e.name == "Camera_farPlane");
+                var cameraMatrix = expressions.First(e => e.name == "Camera_transform");
+
+                var invPerspMat = new VFXExpressionInverseMatrix(VFXOperatorUtility.GetPerspectiveMatrix(fov.exp,aspect.exp,near.exp,far.exp));
+                var clipToWorld = invPerspMat;// new VFXExpressionTransformMatrix(invPerspMat, cameraMatrix.exp);
+
+                yield return new VFXNamedExpression(clipToWorld, "clipToWorld");
 
                 if (((VFXDataParticle)GetData()).space == VFXCoordinateSpace.Local)
                     yield return new VFXNamedExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal");
@@ -155,8 +167,17 @@ float linearEyeDepth = n * f / (depth * (f - n) + n) - n;
 float3 worldPos = (PlaneRight * projpos.x) + (PlaneUp * projpos.y) + PlanePos;
 float3 dir = normalize(worldPos - camPos);
 position = worldPos + dir * ZMultiplier * linearEyeDepth / dot(dir,camFront);
+
+
+float4 worldPos2 = mul(clipToWorld,float4(projpos,depth,1.0f));
+position = worldPos2.xyz / worldPos2.w;
+
+
+
+
+
 #if VFX_LOCAL_SPACE
-position = mul(worldToLocal,float4(position,1.0f)).xyz;
+//position = mul(worldToLocal,float4(position,1.0f)).xyz;
 #endif
 ";
 
