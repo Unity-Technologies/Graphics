@@ -1,5 +1,5 @@
 #ifdef SHADER_VARIABLES_INCLUDE_CB
-    #include "HDRP/Material/DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
 
     // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
     // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.

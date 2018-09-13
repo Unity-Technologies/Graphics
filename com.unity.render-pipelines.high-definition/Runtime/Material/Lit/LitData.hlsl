@@ -2,11 +2,11 @@
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
-#include "HDRP/Material/MaterialUtilities.hlsl"
-#include "HDRP/Material/Decal/DecalUtilities.hlsl"
-#include "HDRP/Material/Lit/LitDecalData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
 
-//#include "HDRP/Material/SphericalCapPivot/SPTDistribution.hlsl"
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SPTDistribution.hlsl"
 //#define SPECULAR_OCCLUSION_USE_SPTD
 
 // Struct that gather UVMapping info of all layers + common calculation

@@ -25,9 +25,9 @@ Shader "Hidden/HDRenderPipeline/DrawDiffusionProfile"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
-            #include "HDRP/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
         #ifdef SSS_MODEL_BASIC
-            #include "HDRP/Material/DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
         #endif
 
             //-------------------------------------------------------------------------------------

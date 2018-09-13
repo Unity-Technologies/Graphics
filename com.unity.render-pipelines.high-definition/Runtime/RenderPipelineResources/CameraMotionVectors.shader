@@ -5,11 +5,11 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
         #pragma target 4.5
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "HDRP/ShaderVariables.hlsl"
-        #include "HDRP/ShaderPass/FragInputs.hlsl"
-        #include "HDRP/ShaderPass/VaryingMesh.hlsl"
-        #include "HDRP/ShaderPass/VertMesh.hlsl"
-        #include "HDRP/Material/Builtin/BuiltinData.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderPass/FragInputs.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderPass/VaryingMesh.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderPass/VertMesh.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
         struct Attributes
         {

@@ -5,11 +5,11 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 
 #include "AtmosphericScattering.cs.hlsl"
-#include "HDRP/ShaderVariables.hlsl"
-#include "HDRP/Lighting/Volumetrics/VBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Volumetrics/VBuffer.hlsl"
 
 #ifdef DEBUG_DISPLAY
-#include "HDRP/Debug/DebugDisplay.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 
 float3 GetFogColor(PositionInputs posInput)

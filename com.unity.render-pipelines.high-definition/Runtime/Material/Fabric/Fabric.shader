@@ -178,14 +178,14 @@ Shader "HDRenderPipeline/Fabric"
     //-------------------------------------------------------------------------------------
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "HDRP/ShaderPass/FragInputs.hlsl"
-    #include "HDRP/ShaderPass/ShaderPass.cs.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderPass/FragInputs.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #include "HDRP/Material/Fabric/FabricProperties.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricProperties.hlsl"
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
@@ -220,11 +220,11 @@ Shader "HDRenderPipeline/Fabric"
 
             #define WRITE_NORMAL_BUFFER
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "HDRP/ShaderVariables.hlsl"
-            #include "HDRP/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "ShaderPass/FabricDepthPass.hlsl"
             #include "FabricData.hlsl"
-            #include "HDRP/ShaderPass/ShaderPassDepthOnly.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
         }
@@ -245,11 +245,11 @@ Shader "HDRenderPipeline/Fabric"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "HDRP/ShaderVariables.hlsl"
-            #include "HDRP/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "ShaderPass/FabricSharePass.hlsl"
             #include "FabricData.hlsl"
-            #include "HDRP/ShaderPass/ShaderPassLightTransport.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
         }
@@ -271,12 +271,12 @@ Shader "HDRenderPipeline/Fabric"
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
-            #include "HDRP/ShaderVariables.hlsl"
-            #include "HDRP/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
             #include "ShaderPass/FabricDepthPass.hlsl"
             #include "FabricData.hlsl"
-            #include "HDRP/ShaderPass/ShaderPassDepthOnly.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
         }
@@ -309,23 +309,23 @@ Shader "HDRenderPipeline/Fabric"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
-            // #include "HDRP/Lighting/Forward.hlsl" : nothing left in there.
+            // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Forward.hlsl" : nothing left in there.
             //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 
             #define SHADERPASS SHADERPASS_FORWARD
-            #include "HDRP/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
             #ifdef DEBUG_DISPLAY
-            #include "HDRP/Debug/DebugDisplay.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
             #endif
-            #include "HDRP/Lighting/Lighting.hlsl"
-            //...this will include #include "HDRP/Material/Material.hlsl" but also LightLoop which the forward pass directly uses.
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+            //...this will include #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl" but also LightLoop which the forward pass directly uses.
 
             #include "ShaderPass/FabricSharePass.hlsl"
             #include "FabricData.hlsl"
-            #include "HDRP/ShaderPass/ShaderPassForward.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
         }

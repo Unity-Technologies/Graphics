@@ -19,14 +19,14 @@
 //--------------------------------------------------------------------------------------------------
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "HDRP/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
 
 #ifdef DEBUG_DISPLAY
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
-    #include "HDRP/Debug/DebugDisplay.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 
-#include "HDRP/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
