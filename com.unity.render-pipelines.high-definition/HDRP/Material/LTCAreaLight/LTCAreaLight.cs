@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
                 // BMAYAUX (18/07/04) New BRDF Fittings
-Debug.Log( "Updating LTC tables!" );
+                //Debug.Log( "Updating LTC tables!" );
                 LoadLUT(m_LtcData, 2, TextureFormat.RGBAHalf, s_LtcMatrixData_GGX);
                 LoadLUT(m_LtcData, 3, TextureFormat.RGBAHalf, s_LtcMatrixData_Disney);
                 LoadLUT(m_LtcData, 4, TextureFormat.RGBAHalf, s_LtcMatrixData_CookTorrance);

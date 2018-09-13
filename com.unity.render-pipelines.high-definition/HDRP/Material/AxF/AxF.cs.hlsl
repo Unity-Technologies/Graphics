@@ -60,6 +60,7 @@ struct SurfaceData
     float3 clearcoatColor;
     float3 clearcoatNormalWS;
     float clearcoatIOR;
+    float3 geomNormalWS;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.AxF+BSDFData
@@ -80,6 +81,7 @@ struct BSDFData
     float3 clearcoatColor;
     float3 clearcoatNormalWS;
     float clearcoatIOR;
+    float3 geomNormalWS;
 };
 
 //

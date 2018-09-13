@@ -35,6 +35,11 @@
 
 #include "HDRP/Material/MaterialEvaluation.hlsl"
 
+float3 GetShadowNormalBias(BSDFData bsdfData)
+{
+    return bsdfData.geomNormalWS;
+}
+
 //-----------------------------------------------------------------------------
 // Debug method (use to display values)
 //-----------------------------------------------------------------------------
@@ -275,48 +280,50 @@ float   G_smith(float NdotV, float roughness)
 
 BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
-    BSDFData    data;
+    BSDFData    bsdfData;
     //  ZERO_INITIALIZE(BSDFData, data);
 
-    data.normalWS = surfaceData.normalWS;
-    data.tangentWS = surfaceData.tangentWS;
-    data.biTangentWS = surfaceData.biTangentWS;
+    bsdfData.normalWS = surfaceData.normalWS;
+    bsdfData.tangentWS = surfaceData.tangentWS;
+    bsdfData.biTangentWS = surfaceData.biTangentWS;
 
     ////////////////////////////////////////////////////////////////////////////////////////
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-    data.diffuseColor = surfaceData.diffuseColor;
-    data.specularColor = surfaceData.specularColor;
-    data.fresnelF0 = surfaceData.fresnelF0;
-    data.roughness = surfaceData.specularLobe;
-    data.height_mm = surfaceData.height_mm;
-    data.anisotropyAngle = surfaceData.anisotropyAngle;
-    data.clearcoatColor = surfaceData.clearcoatColor;
-    data.clearcoatNormalWS = surfaceData.clearcoatNormalWS;
-    data.clearcoatIOR = surfaceData.clearcoatIOR;
+    bsdfData.diffuseColor = surfaceData.diffuseColor;
+    bsdfData.specularColor = surfaceData.specularColor;
+    bsdfData.fresnelF0 = surfaceData.fresnelF0;
+    bsdfData.roughness = surfaceData.specularLobe;
+    bsdfData.height_mm = surfaceData.height_mm;
+    bsdfData.anisotropyAngle = surfaceData.anisotropyAngle;
+    bsdfData.clearcoatColor = surfaceData.clearcoatColor;
+    bsdfData.clearcoatNormalWS = surfaceData.clearcoatNormalWS;
+    bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
 
     // Useless but pass along anyway
-    data.flakesUV = surfaceData.flakesUV;
-    data.flakesMipLevel = surfaceData.flakesMipLevel;
+    bsdfData.flakesUV = surfaceData.flakesUV;
+    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
 
     ////////////////////////////////////////////////////////////////////////////////////////
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
-    data.diffuseColor = surfaceData.diffuseColor;
-    data.flakesUV = surfaceData.flakesUV;
-    data.flakesMipLevel = surfaceData.flakesMipLevel;
-    data.clearcoatColor = 1.0;  // Not provided, assume white...
-    data.clearcoatIOR = surfaceData.clearcoatIOR;
-    data.clearcoatNormalWS = surfaceData.clearcoatNormalWS;
+    bsdfData.diffuseColor = surfaceData.diffuseColor;
+    bsdfData.flakesUV = surfaceData.flakesUV;
+    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
+    bsdfData.clearcoatColor = 1.0;  // Not provided, assume white...
+    bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
+    bsdfData.clearcoatNormalWS = surfaceData.clearcoatNormalWS;
 
     // Although not used, needs to be initialized... :'(
-    data.specularColor = 0;
-    data.fresnelF0 = 0;
-    data.roughness = 0;
-    data.height_mm = 0;
-    data.anisotropyAngle = 0;
+    bsdfData.specularColor = 0;
+    bsdfData.fresnelF0 = 0;
+    bsdfData.roughness = 0;
+    bsdfData.height_mm = 0;
+    bsdfData.anisotropyAngle = 0;
 #endif
 
-    ApplyDebugToBSDFData(data);
-    return data;
+    bsdfData.geomNormalWS = surfaceData.geomNormalWS;
+
+    ApplyDebugToBSDFData(bsdfData);
+    return bsdfData;
 }
 
 //-----------------------------------------------------------------------------
@@ -1289,8 +1296,9 @@ DirectLighting  EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     float   invAspectRatio = saturate(radius / (radius + (0.5 * len)));
 
     // Compute the light attenuation.
-    float   intensity = EllipsoidalDistanceAttenuation(unL, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
-        axis, invAspectRatio);
+    float intensity = EllipsoidalDistanceAttenuation(unL, axis, invAspectRatio,
+                                                     lightData.rangeAttenuationScale,
+                                                     lightData.rangeAttenuationBias);
 
     // Terminate if the shaded point is too far away.
     if (intensity == 0.0)
@@ -1498,11 +1506,15 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
 #ifdef ELLIPSOIDAL_ATTENUATION
     // The attenuation volume is an axis-aligned ellipsoid s.t.
     // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
-    float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim);
+    float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
+                                                     lightData.rangeAttenuationScale,
+                                                     lightData.rangeAttenuationBias);
 #else
     // The attenuation volume is an axis-aligned box s.t.
     // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
-    float intensity = BoxDistanceAttenuation(unL, invHalfDim);
+    float intensity = BoxDistanceAttenuation(unL, invHalfDim,
+                                             lightData.rangeAttenuationScale,
+                                             lightData.rangeAttenuationBias);
 #endif
 
     // Terminate if the shaded point is too far away.

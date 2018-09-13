@@ -129,6 +129,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = Orthonormalize(input.worldToTangent[0], surfaceData.normalWS);
     surfaceData.biTangentWS = Orthonormalize(input.worldToTangent[1], surfaceData.normalWS);
 
+    // Propagate the geometry normal
+    surfaceData.geomNormalWS = input.worldToTangent[2];
+
 #ifdef _ALPHATEST_ON
     //NEWLITTODO: Once we include those passes in the main AxF.shader, add handling of CUTOFF_TRANSPARENT_DEPTH_PREPASS and _POSTPASS
     // and the related properties (in the .shader) and uniforms (in the AxFProperties file) _AlphaCutoffPrepass, _AlphaCutoffPostpass

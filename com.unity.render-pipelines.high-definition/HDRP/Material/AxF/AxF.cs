@@ -63,6 +63,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [SurfaceDataAttributes("Clearcoat IOR")]
             public float    clearcoatIOR;
+
+            [SurfaceDataAttributes(new string[] {"Geometric Normal"}, true)]
+            public Vector3 geomNormalWS;
         };
 
         //-----------------------------------------------------------------------------
@@ -98,6 +101,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3  clearcoatColor;
             public Vector3  clearcoatNormalWS;
             public float    clearcoatIOR;
+
+            public Vector3 geomNormalWS;
         };
 
         //-----------------------------------------------------------------------------
