@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public override string name { get { return "Transform Space"; } }
+        public override string name { get { return "Change Space"; } }
 
         protected override ValidTypeRule typeFilter
         {

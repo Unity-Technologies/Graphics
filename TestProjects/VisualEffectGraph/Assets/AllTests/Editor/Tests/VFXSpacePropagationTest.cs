@@ -10,9 +10,9 @@ using UnityEditor.VFX.Block;
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
-    public class VFXSpacePropagationTest
+    internal class VFXSpacePropagationTest
     {
-        static IEnumerable<VFXExpression> CollectParentExpression(VFXExpression expression, HashSet<VFXExpression> hashSet = null)
+        public static IEnumerable<VFXExpression> CollectParentExpression(VFXExpression expression, HashSet<VFXExpression> hashSet = null)
         {
             if (expression != null)
             {
