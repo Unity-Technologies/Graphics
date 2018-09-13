@@ -329,7 +329,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // float Vis = V_Charlie(NdotL, NdotV, bsdfData.roughness);
         float Vis = V_Ashikhmin(NdotL, NdotV);
 
-        specularLighting = F * Vis * D * PI;
+        specularLighting = F * Vis * D;
 
         // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
         diffuseLighting = FabricLambert(bsdfData.roughnessT);
