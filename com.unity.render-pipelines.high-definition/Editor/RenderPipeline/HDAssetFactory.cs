@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         static string s_RenderPipelineResourcesPath
         {
-            get { return HDUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/HDRenderPipelineResources.asset"; }
+            get { return HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset"; }
         }
 
         class DoCreateNewAssetHDRenderPipeline : ProjectWindowCallback.EndNameEditAction

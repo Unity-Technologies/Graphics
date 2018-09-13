@@ -353,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // We need these at runtime for RenderPipelineResources upgrade
         public static string GetHDRenderPipelinePath()
         {
-            return "Packages/com.unity.render-pipelines.high-definition/HDRP/";
+            return "Packages/com.unity.render-pipelines.high-definition/";
         }
 
         public static string GetPostProcessingPath()
@@ -363,7 +363,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static string GetCorePath()
         {
-            return "Packages/com.unity.render-pipelines.core/CoreRP/";
+            return "Packages/com.unity.render-pipelines.core/";
         }
 
         public struct PackedMipChainInfo

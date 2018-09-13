@@ -136,13 +136,12 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         static string GetTemplatePath(string templateName)
         {
-            string relativeTemplatePath = Path.Combine("LWRP", Path.Combine("Editor", Path.Combine("ShaderGraph", templateName)));
-            foreach (var path in LightweightIncludePaths.GetPaths())
-            {
-                var templatePath = Path.Combine(path, relativeTemplatePath);
-                if (File.Exists(templatePath))
-                    return templatePath;
-            }
+            var basePath = Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/Editor/ShaderGraph");
+            string templatePath = Path.Combine(basePath, templateName);
+            
+            if (File.Exists(templatePath))
+                return templatePath;
+
             throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
         }
 
