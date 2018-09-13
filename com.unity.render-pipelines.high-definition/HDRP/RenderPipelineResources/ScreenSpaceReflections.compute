@@ -55,9 +55,8 @@ CBUFFER_START(UnityScreenSpaceReflections)
     float _SsrRoughnessFadeEnd;
     float _SsrRoughnessFadeRcpLength;
     float _SsrRoughnessFadeEndTimesRcpLength;
+    float _SsrEdgeFadeRcpLength;
     int   _SsrDepthPyramidMaxMip;
-    float _SsrRcpFade;
-    float _SsrOneMinusRcpFade;
     int4  _SsrDepthPyramidMipLevelOffsetsX[2]; // Up to 15 levels => 8 offsets => 2 int4s
     int4  _SsrDepthPyramidMipLevelOffsetsY[2]; // Up to 15 levels => 8 offsets => 2 int4s
 CBUFFER_END
@@ -265,10 +264,10 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 
 #else // SSR_REPROJECT
 
-float EdgeFade(float2 coordNDC, float rcpFade, float oneMinusRcpFade)
+float EdgeFade(float2 coordNDC, float fadeRcpLength)
 {
     float2 coordCS = coordNDC * 2 - 1;
-    float2 t = Remap10(abs(coordCS), rcpFade, rcpFade);
+    float2 t = Remap10(abs(coordCS), fadeRcpLength, fadeRcpLength);
     return Smoothstep01(t.x) * Smoothstep01(t.y);
 }
 
@@ -309,7 +308,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
     float  mipLevel = lerp(0, _SsrDepthPyramidMaxMip, roughness);
     float3 color    = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameNDC * _ScreenToTargetScale.zw, mipLevel).rgb;
-    float  opacity  = EdgeFade(prevFrameNDC, _SsrRcpFade, _SsrOneMinusRcpFade)
+    float  opacity  = EdgeFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
                     * RoughnessFade(roughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
     // Use premultiplied alpha.
