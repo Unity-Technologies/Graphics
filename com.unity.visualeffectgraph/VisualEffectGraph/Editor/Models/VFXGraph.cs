@@ -171,6 +171,7 @@ namespace UnityEditor.VFX
         }
 
         //Temporary : Use reflection to access to StoreObjectsToByteArray (doesn't break previous behavior if editor isn't up to date)
+        //TODO : Clean this when major version is released
         private static Func<ScriptableObject[], CompressionLevel, object> GetStoreObjectsFunction()
         {
             var advancedMethod = typeof(VFXMemorySerializer).GetMethod("StoreObjectsToByteArray", BindingFlags.Public | BindingFlags.Static);
@@ -203,8 +204,8 @@ namespace UnityEditor.VFX
                 return VFXMemorySerializer.ExtractObjects(objects as string, asCopy);
             };
         }
-        private static readonly Func<ScriptableObject[], CompressionLevel, object> fnStoreObjects = GetStoreObjectsFunction();
-        private static readonly Func<object, bool, ScriptableObject[]> fnExtractObjects = GetExtractObjectsFunction();
+        private static readonly Func<ScriptableObject[], CompressionLevel, object> k_fnStoreObjects = GetStoreObjectsFunction();
+        private static readonly Func<object, bool, ScriptableObject[]> k_fnExtractObjects = GetExtractObjectsFunction();
 
         public object Backup()
         {
@@ -214,7 +215,7 @@ namespace UnityEditor.VFX
             dependencies.Add(this);
             CollectDependencies(dependencies);
 
-            var result = fnStoreObjects(dependencies.Cast<ScriptableObject>().ToArray(), CompressionLevel.Fastest);
+            var result = k_fnStoreObjects(dependencies.Cast<ScriptableObject>().ToArray(), CompressionLevel.Fastest);
 
             Profiler.EndSample();
 
@@ -224,7 +225,7 @@ namespace UnityEditor.VFX
         public void Restore(object str)
         {
             Profiler.BeginSample("VFXGraph.Restore");
-            var scriptableObject = fnExtractObjects(str, false);
+            var scriptableObject = k_fnExtractObjects(str, false);
 
             Profiler.BeginSample("VFXGraph.Restore SendUnknownChange");
             foreach (var model in scriptableObject.OfType<VFXModel>())
