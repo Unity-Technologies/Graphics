@@ -114,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Init()
         {
             // Load default renderPipelineResources / Material / Shader
-            string HDRenderPipelinePath = HDUtils.GetHDRenderPipelinePath();
+            string HDRenderPipelinePath = HDUtils.GetHDRenderPipelinePath() + "Runtime/";
             string CorePath = HDUtils.GetCorePath();
 
             defaultDiffuseMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMaterial.mat");

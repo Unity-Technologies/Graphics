@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassGBuffer.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassGBuffer.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -93,7 +93,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassGBuffer.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassGBuffer.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -127,7 +127,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CullOverride = "Cull Off",
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassLightTransport.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassLightTransport.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -169,7 +169,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -196,7 +196,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ColorMaskOverride = "ColorMask 0",
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -222,7 +222,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderPassName = "SHADERPASS_VELOCITY",
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassVelocity.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassVelocity.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -262,7 +262,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZWriteOverride = "ZWrite Off",
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassDistortion.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassDistortion.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -293,7 +293,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -330,7 +330,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassForward.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassForward.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -384,7 +384,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassForward.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassForward.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -422,7 +422,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Runtime/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             RequiredFields = new List<string>()
             {

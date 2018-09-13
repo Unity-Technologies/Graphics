@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // There's currently an issue that prevents FindAssets from find resources withing the package folder.
             if (resourceAsset == null)
             {
-                string path = s_SearchPathPackage + "/LWRP/Data/" + typeof(T).Name + ".asset";
+                string path = s_SearchPathPackage + "/Runtime/Data/" + typeof(T).Name + ".asset";
                 resourceAsset = AssetDatabase.LoadAssetAtPath<T>(path);
             }
             return resourceAsset;
