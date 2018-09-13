@@ -276,7 +276,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             thicknessRemaps[i]   = new Vector4(profiles[p].thicknessRemap.x, profiles[p].thicknessRemap.y - profiles[p].thicknessRemap.x, 0f, 0f);
             worldScales[i]       = new Vector4(profiles[p].worldScale, 1.0f / profiles[p].worldScale, 0f, 0f);
-            shapeParams[i]       = profiles[p].shapeParam;
+
+            // Premultiply S by ((-1.0 / 3.0) * LOG2_E) on the CPU.
+            const float log2e = 1.44269504088896340736f;
+            const float k     = (-1.0f / 3.0f) * log2e;
+
+            shapeParams[i]       = profiles[p].shapeParam * k;
             shapeParams[i].w     = profiles[p].maxRadius;
             // Convert ior to fresnel0
             float fresnel0 = (profiles[p].ior - 1.0f) / (profiles[p].ior + 1.0f);

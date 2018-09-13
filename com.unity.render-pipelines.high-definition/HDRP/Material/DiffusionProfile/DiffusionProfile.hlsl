@@ -15,9 +15,8 @@ float3 ComputeTransmittanceDisney(float3 S, float3 volumeAlbedo, float thickness
 #if 0
     float3 expOneThird = exp(((-1.0 / 3.0) * thickness) * S);
 #else
-    // Help the compiler.
-    float  k = (-1.0 / 3.0) * LOG2_E;
-    float3 p = (k * thickness) * S;
+    // Help the compiler. S is premultiplied by ((-1.0 / 3.0) * LOG2_E) on the CPU.
+    float3 p = thickness * S;
     float3 expOneThird = exp2(p);
 #endif
 

@@ -182,9 +182,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void RenderPreview(Profile profile)
         {
+            // Premultiply S by ((-1.0 / 3.0) * LOG2_E) on the CPU.
+            const float log2e = 1.44269504088896340736f;
+            const float k     = (-1.0f / 3.0f) * log2e;
+
             var obj = profile.objReference;
             float r = obj.maxRadius;
-            var S = obj.shapeParam;
+            var S = obj.shapeParam * k;
             var T = (Vector4)profile.transmissionTint.colorValue;
             var R = profile.thicknessRemap.vector2Value;
 
