@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // FullscreenPassthrough below is a hard coded path (a path that can't be implemented only with FrameSettings)
         public enum RenderingPath
         {
-            Default,
+            UseGraphicsSettings,
             Custom,  // Fine grained
             FullscreenPassthrough  // Hard coded path
         };
@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
         public bool clearDepth = true;
 
-        public RenderingPath renderingPath = RenderingPath.Default;
+        public RenderingPath renderingPath = RenderingPath.UseGraphicsSettings;
         [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
         public LayerMask volumeLayerMask = -1;
         [Tooltip("Transform used for the volume interpolation for this camera.")]
@@ -121,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_frameSettingsIsDirty || assetFrameSettingsIsDirty)
             {
                 // We do a copy of the settings to those effectively used
-                if (renderingPath == RenderingPath.Default)
+                if (renderingPath == RenderingPath.UseGraphicsSettings)
                 {
                     defaultFrameSettings.CopyTo(m_FrameSettingsRuntime);
                 }

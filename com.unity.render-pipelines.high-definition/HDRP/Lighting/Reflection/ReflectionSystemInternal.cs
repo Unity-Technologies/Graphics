@@ -315,13 +315,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         public void Render(PlanarReflectionProbe probe, RenderTexture target, Camera viewerCamera = null)
         {
             var renderCamera = GetRenderCamera();
+            var renderCameraAdditionalData = GetRenderCameraAdditionalData();
 
             // Copy current frameSettings of this probe to the HDAdditionalData of the render camera
             probe.frameSettings.CopyTo(s_RenderCameraData.GetFrameSettings());
 
             renderCamera.targetTexture = target;
 
-            SetupCameraForRender(renderCamera, probe, viewerCamera);
+            SetupCameraForRender(renderCamera, renderCameraAdditionalData, probe, viewerCamera);
             GL.invertCulling = IsProbeCaptureMirrored(probe, viewerCamera);
             renderCamera.Render();
             GL.invertCulling = false;
@@ -332,11 +333,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         public void Render(HDAdditionalReflectionData additional, RenderTexture target, Camera viewerCamera = null)
         {
             var renderCamera = GetRenderCamera();
+            var renderCameraAdditionalData = GetRenderCameraAdditionalData();
 
             // Copy current frameSettings of this probe to the HDAdditionalData of the render camera
             //probe.frameSettings.CopyTo(s_RenderCameraData.GetFrameSettings());
             
-            SetupCameraForRender(renderCamera, additional, viewerCamera);
+            SetupCameraForRender(renderCamera, renderCameraAdditionalData, additional, viewerCamera);
             renderCamera.RenderToCubemap(target);
             target.IncrementUpdateCount();
         }
@@ -371,7 +373,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             m_PlanarReflectionProbeBounds[planarReflectionProbe] = planarReflectionProbe.boundingSphere;
         }
 
-        static void SetupCameraForRender(Camera camera, PlanarReflectionProbe probe, Camera viewerCamera = null)
+        static void SetupCameraForRender(Camera camera, HDAdditionalCameraData additionalData, PlanarReflectionProbe probe, Camera viewerCamera = null)
         {
             float nearClipPlane, farClipPlane, aspect, fov;
             Color backgroundColor;
@@ -395,12 +397,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             camera.projectionMatrix = projection;
             camera.worldToCameraMatrix = worldToCamera;
 
+            additionalData.volumeAnchorOverride = viewerCamera.transform;
+
             var ctr = camera.transform;
             ctr.position = capturePosition;
             ctr.rotation = captureRotation;
         }
 
-        static void SetupCameraForRender(Camera camera, HDAdditionalReflectionData additional, Camera viewerCamera = null)
+        static void SetupCameraForRender(Camera camera, HDAdditionalCameraData additionalData, HDAdditionalReflectionData additional, Camera viewerCamera = null)
         {
             float nearClipPlane, farClipPlane, aspect, fov;
             Color backgroundColor;
@@ -424,6 +428,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             camera.projectionMatrix = projection;
             camera.worldToCameraMatrix = worldToCamera;
             camera.cullingMask = additional.reflectionProbe.cullingMask;
+
+            additionalData.volumeAnchorOverride = null;
 
             var ctr = camera.transform;
             ctr.position = capturePosition;
@@ -546,6 +552,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             }
 
             return s_RenderCamera;
+        }
+
+        static HDAdditionalCameraData GetRenderCameraAdditionalData()
+        {
+            if (s_RenderCameraData == null)
+            {
+                GetRenderCamera();
+            }
+
+            return s_RenderCameraData;
         }
     }
 }
