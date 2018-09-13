@@ -2461,7 +2461,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool outputSplitLighting;
         }
 
-        public void RenderScreenSpaceShadows(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd, FrameSettings frameSettings)
+        public void RenderScreenSpaceShadows(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
         {
             bool sunLightShadow = m_CurrentSunLight != null && m_CurrentSunLight.GetComponent<AdditionalShadowData>() != null && m_CurrentShadowSortedSunLightIndex >= 0;
             if(sunLightShadow)
@@ -2487,7 +2487,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int             kernel;
 
                 // Pick the adequate kenel
-                kernel = frameSettings.enableMSAA ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
+                kernel = hdCamera.frameSettings.enableMSAA ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
 
                 // We use the .w component of the direction/position vectors to choose in the shader the
                 // light direction of the contact shadows (direction light direction or (pixel position - light position))
@@ -2517,7 +2517,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeVectorParam(screenSpaceShadowComputeShader, HDShaderIDs._PunctualLightPosition, lightPosition);
 
                 // Inject the texture in the adequate slot
-                cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, frameSettings.enableMSAA ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);
+                cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, hdCamera.frameSettings.enableMSAA ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);
 
                 cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
 
