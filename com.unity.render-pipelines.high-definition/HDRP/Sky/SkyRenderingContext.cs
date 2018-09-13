@@ -145,17 +145,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDAdditionalLightData ald = light.GetComponent<HDAdditionalLightData>();
             unchecked
             {
+                // Sun could influence the sky (like for procedural sky). We need to handle this possibility. If sun property change, then we need to update the sky
                 int hash = 13;
                 hash = hash * 23 + (light.GetHashCode() * 23 + light.transform.position.GetHashCode()) * 23 + light.transform.rotation.GetHashCode();
                 hash = hash * 23 + light.color.GetHashCode();
                 hash = hash * 23 + light.colorTemperature.GetHashCode();
                 hash = hash * 23 + light.intensity.GetHashCode();
-                hash = hash * 23 + light.range.GetHashCode();
-                if (light.cookie != null)
-                {
-                    hash = hash * 23 + (int)light.cookie.updateCount;
-                    hash = hash * 23 + (int)light.cookie.GetInstanceID();
-                }
+                // Note: We don't take into account cookie as it doesn't influence GI
                 if (ald != null)
                 {
                     hash = hash * 23 + ald.lightDimmer.GetHashCode();

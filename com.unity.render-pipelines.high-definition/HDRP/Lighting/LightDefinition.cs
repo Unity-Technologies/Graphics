@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return lightType == GPULightType.Rectangle || lightType == GPULightType.Line;
         }
-        
+
         public static bool IsSpot(this GPULightType lightType)
         {
             return lightType == GPULightType.Spot || lightType == GPULightType.ProjectorBox || lightType == GPULightType.ProjectorPyramid;
@@ -102,6 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector2 size;        // Used by area (X = length or width, Y = height) and box projector lights (X = range (depth))
         public float volumetricDimmer;
+        public float range;
     };
 
 

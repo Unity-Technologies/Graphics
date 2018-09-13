@@ -3,6 +3,29 @@
 
 #include "Common.hlsl"
 
+#define LIGHTMAP_RGBM_MAX_GAMMA     real(5.0)       // NB: Must match value in RGBMRanges.h
+#define LIGHTMAP_RGBM_MAX_LINEAR    real(34.493242) // LIGHTMAP_RGBM_MAX_GAMMA ^ 2.2
+
+#ifdef UNITY_LIGHTMAP_RGBM_ENCODING
+    #ifdef UNITY_COLORSPACE_GAMMA
+        #define LIGHTMAP_HDR_MULTIPLIER LIGHTMAP_RGBM_MAX_GAMMA
+        #define LIGHTMAP_HDR_EXPONENT   real(1.0)   // Not used in gamma color space
+    #else
+        #define LIGHTMAP_HDR_MULTIPLIER LIGHTMAP_RGBM_MAX_LINEAR
+        #define LIGHTMAP_HDR_EXPONENT   real(2.2)
+    #endif
+#elif defined(UNITY_LIGHTMAP_DLDR_ENCODING)
+    #ifdef UNITY_COLORSPACE_GAMMA
+        #define LIGHTMAP_HDR_MULTIPLIER real(2.0)
+    #else
+        #define LIGHTMAP_HDR_MULTIPLIER real(4.59) // 2.0 ^ 2.2
+    #endif
+    #define LIGHTMAP_HDR_EXPONENT real(0.0)
+#else // (UNITY_LIGHTMAP_FULL_HDR)
+    #define LIGHTMAP_HDR_MULTIPLIER real(1.0)
+    #define LIGHTMAP_HDR_EXPONENT real(1.0)
+#endif
+
 // TODO: Check if PI is correctly handled!
 
 // Ref: "Efficient Evaluation of Irradiance Environment Maps" from ShaderX 2
@@ -147,7 +170,11 @@ real4 PackEmissiveRGBM(real3 rgb)
 
 real3 UnpackLightmapRGBM(real4 rgbmInput, real4 decodeInstructions)
 {
-    return rgbmInput.rgb * PositivePow(rgbmInput.a, decodeInstructions.y) * decodeInstructions.x;
+#ifdef UNITY_COLORSPACE_GAMMA
+    return rgbmInput.rgb * (rgbmInput.a * decodeInstructions.x);
+#else
+    return rgbmInput.rgb * (PositivePow(rgbmInput.a, decodeInstructions.y) * decodeInstructions.x);
+#endif
 }
 
 real3 UnpackLightmapDoubleLDR(real4 encodedColor, real4 decodeInstructions)
@@ -159,8 +186,10 @@ real3 DecodeLightmap(real4 encodedIlluminance, real4 decodeInstructions)
 {
 #if defined(UNITY_LIGHTMAP_RGBM_ENCODING)
     return UnpackLightmapRGBM(encodedIlluminance, decodeInstructions);
-#else // DLDR encoding on mobile platforms
+#elif defined(UNITY_LIGHTMAP_DLDR_ENCODING)
     return UnpackLightmapDoubleLDR(encodedIlluminance, decodeInstructions);
+#else // (UNITY_LIGHTMAP_FULL_HDR)
+    return encodedIlluminance.rgb;
 #endif
 }
 

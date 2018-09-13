@@ -95,6 +95,17 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     return normalData;
 }
 
+SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
+{
+    SSSData sssData;
+
+    sssData.diffuseColor = surfaceData.baseColor;
+    sssData.subsurfaceMask = surfaceData.subsurfaceMask;
+    sssData.diffusionProfile = surfaceData.diffusionProfile;
+
+    return sssData;
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -114,7 +125,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
-    bsdfData.fuzzTint = surfaceData.fuzzTint;
+    bsdfData.specularColor = surfaceData.specularColor;
     bsdfData.fresnel0 = DEFAULT_SPECULAR_VALUE;
 
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
@@ -205,7 +216,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     float3 iblN;
 
     // Reminder: This is a static if resolve at compile time
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SILK))
+    if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
         GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
 
@@ -309,7 +320,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
 
     // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
-	float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+	float3 F = F_Schlick(bsdfData.specularColor, LdotH);
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
@@ -343,8 +354,6 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
         diffuseLighting = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
     }
-
-    specularLighting *= bsdfData.fuzzTint;
 }
 
 //-----------------------------------------------------------------------------

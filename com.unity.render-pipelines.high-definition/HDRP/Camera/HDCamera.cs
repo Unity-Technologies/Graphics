@@ -35,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4[] viewMatrixStereo;
         public Matrix4x4[] projMatrixStereo;
         public Vector4 centerEyeTranslationOffset;
+        public float textureWidthScaling; // 0.5 for SinglePassDoubleWide (stereo) and 1.0 otherwise
 
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
@@ -79,6 +80,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return (projMatrixStereo[eyeIndex] * viewMatrixStereo[eyeIndex]);
         }
+
+        public Matrix4x4[] prevViewProjMatrixStereo = new Matrix4x4[2];
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
@@ -176,13 +179,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Pass all the systems that may want to update per-camera data here.
         // That way you will never update an HDCamera and forget to update the dependent system.
-        public void Update(FrameSettings currentFrameSettings, PostProcessLayer postProcessLayer, VolumetricLightingSystem vlSys)
+        public void Update(FrameSettings currentFrameSettings, PostProcessLayer postProcessLayer, VolumetricLightingSystem vlSys, MSAASamples msaaSamples)
         {
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
-            // we do'nt create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
+            // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
             m_AdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
             m_frameSettings = currentFrameSettings;
+
+            // In stereo, this corresponds to the center eye position
+            var pos = camera.transform.position;
+            worldSpaceCameraPos = pos;
 
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
@@ -201,9 +208,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuView = camera.worldToCameraMatrix;
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
 
-            // In stereo, this corresponds to the center eye position
-            var pos = camera.transform.position;
-            worldSpaceCameraPos = pos;
+            m_ActualWidth = camera.pixelWidth;
+            m_ActualHeight = camera.pixelHeight;
+            var screenWidth = m_ActualWidth;
+            var screenHeight = m_ActualHeight;
+            textureWidthScaling = 1.0f; 
+            if (m_frameSettings.enableStereo)
+            {
+                if (XRGraphicsConfig.stereoRenderingMode == UnityEditor.StereoRenderingPath.SinglePass) // VR TODO: is this also true for single-pass instanced and multi-view?
+                    textureWidthScaling = 0.5f; 
+                for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
+                {
+                    // For VR, TAA proj matrices don't need to be jittered
+                    var currProjStereo = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex);
+                    var gpuCurrProjStereo = GL.GetGPUProjectionMatrix(currProjStereo, true);
+                    var gpuCurrViewStereo = camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex);
+
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        // Zero out the translation component.
+                        gpuCurrViewStereo.SetColumn(3, new Vector4(0, 0, 0, 1));
+                    }
+                    var gpuCurrVPStereo = gpuCurrProjStereo * gpuCurrViewStereo;
+
+                    // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
+                    if (m_LastFrameActive != Time.frameCount)
+                    {
+                        if (isFirstFrame)
+                        {
+                            prevViewProjMatrixStereo[eyeIndex] = gpuCurrVPStereo;
+                        }
+                        else
+                        {
+                            prevViewProjMatrixStereo[eyeIndex] = GetViewProjMatrixStereo(eyeIndex); // Grabbing this before ConfigureStereoMatrices updates view/proj
+                        }
+
+                        isFirstFrame = false;
+                    }
+                }
+                isFirstFrame = true; // So that mono vars can still update when stereo active
+
+                screenWidth = XRGraphicsConfig.eyeTextureWidth;
+                screenHeight = XRGraphicsConfig.eyeTextureHeight;
+
+                var xrDesc = XRGraphicsConfig.eyeTextureDesc;
+                m_ActualWidth = xrDesc.width;
+                m_ActualHeight = xrDesc.height;
+
+                ConfigureStereoMatrices();
+            }
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -281,28 +334,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LastFrameActive = Time.frameCount;
 
-            m_ActualWidth = camera.pixelWidth;
-            m_ActualHeight = camera.pixelHeight;
-            var screenWidth = m_ActualWidth;
-            var screenHeight = m_ActualHeight;
-            if (m_frameSettings.enableStereo)
-            {
-                screenWidth = XRGraphicsConfig.eyeTextureWidth;
-                screenHeight = XRGraphicsConfig.eyeTextureHeight;
-
-                var xrDesc = XRGraphicsConfig.eyeTextureDesc;
-                m_ActualWidth = xrDesc.width;
-                m_ActualHeight = xrDesc.height;
-
-                ConfigureStereoMatrices();
-            }
-
             Vector2 lastTextureSize = new Vector2(RTHandles.maxWidth, RTHandles.maxHeight);
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
-            m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
-            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
-            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
+            m_msaaSamples = msaaSamples;
+            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
+            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
             m_HistoryRTSystem.Swap();
 
             int maxWidth  = RTHandles.maxWidth;
@@ -595,6 +632,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewMatrixStereo, invViewStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvProjMatrixStereo, invProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
+            cmd.SetGlobalMatrixArray(HDShaderIDs._PrevViewProjMatrixStereo, prevViewProjMatrixStereo);
+            cmd.SetGlobalFloat(HDShaderIDs._TextureWidthScaling, textureWidthScaling);
         }
 
         public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)

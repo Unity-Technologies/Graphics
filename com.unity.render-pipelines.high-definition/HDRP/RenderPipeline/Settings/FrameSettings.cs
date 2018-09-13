@@ -49,7 +49,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableTransparentObjects = true;
 
         public bool enableMSAA = false;
-        public MSAASamples msaaSampleCount { get; private set; }
 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
@@ -159,7 +158,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
-            aggregate.msaaSampleCount = renderPipelineSettings.msaaSampleCount;
 
             aggregate.ConfigureMSAADependentSettings();
             aggregate.ConfigureStereoDependentSettings();
@@ -194,9 +192,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Initially, MSAA will only support forward
                 enableForwardRenderingOnly = true;
-
-                // Assuming MSAA is being used, TAA, and therefore, motion vectors are not needed
-                enableMotionVectors = false;
 
                 // TODO: The work will be implemented piecemeal to support all passes
                 enableDistortion = false; // no gaussian final color

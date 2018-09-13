@@ -17,8 +17,8 @@ SAMPLER(sampler_NormalMap);
 
 TEXTURE2D(_FuzzDetailMap);
 SAMPLER(sampler_FuzzDetailMap);
-TEXTURE2D(_DetailMap);
-SAMPLER(sampler_DetailMap);
+TEXTURE2D(_ThreadMap);
+SAMPLER(sampler_ThreadMap);
 
 TEXTURE2D(_TangentMap);
 SAMPLER(sampler_TangentMap);
@@ -37,17 +37,19 @@ SAMPLER(sampler_EmissiveColorMap);
 CBUFFER_START(UnityPerMaterial)
 
 float4 _UVMappingMask;
-float4 _UVMappingMaskDetail;
+float4 _UVMappingMaskThread;
 float4 _UVMappingMaskEmissive;
 
 float4 _DoubleSidedConstants;
+
+float _LinkDetailsWithBase;
 
 float4 _BaseColor;
 float4 _BaseColorMap_ST;
 float4 _BaseColorMap_TexelSize;
 float4 _BaseColorMap_MipInfo;
 
-float4 _FuzzTint;
+float4 _SpecularColor;
 
 float _AlphaCutoff;
 
@@ -61,11 +63,13 @@ float _AORemapMax;
 
 float _NormalScale;
 
-float4 _DetailMap_ST;
-float _DetailFuzz1;
-float _DetailAOScale;
-float _DetailNormalScale;
-float _DetailSmoothnessScale;
+float4 _ThreadMap_ST;
+float _ThreadAOScale;
+float _ThreadNormalScale;
+float _ThreadSmoothnessScale;
+
+float _FuzzDetailScale;
+float _FuzzDetailUVScale;
 
 float _Anisotropy;
 
