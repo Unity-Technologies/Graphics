@@ -500,7 +500,7 @@ real D_Charlie(real NdotH, real roughness)
 real CharlieL(real x, real r)
 {
     r = saturate(r);
-    r = (1. - r) * (1. - r);
+    r = 1.0 - (1.0 - r) * (1.0 - r);
 
     float a = lerp(25.3245, 21.5473, r);
     float b = lerp(3.32435, 3.82987, r);

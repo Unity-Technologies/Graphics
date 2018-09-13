@@ -182,7 +182,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Update(FrameSettings currentFrameSettings, PostProcessLayer postProcessLayer, VolumetricLightingSystem vlSys, MSAASamples msaaSamples)
         {
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
-            // we do'nt create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
+            // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
             m_AdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
             m_frameSettings = currentFrameSettings;
