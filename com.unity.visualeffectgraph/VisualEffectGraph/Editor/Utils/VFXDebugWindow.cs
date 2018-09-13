@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
         private void OnGUI()
         {
             titleContent = Contents.title;
-#if !USE_SHADER_AS_SUBASSET
+
             EditorGUILayout.LabelField("VFX Assets", EditorStyles.boldLabel);
             using (new GUILayout.HorizontalScope())
             {
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
                     VFXCacheManager.Build();
             }
             EditorGUILayout.Space();
-#endif
+
             EditorGUILayout.LabelField("Run VFX Tests", EditorStyles.boldLabel);
             using (new GUILayout.HorizontalScope())
             {

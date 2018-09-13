@@ -12,10 +12,10 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-#if !USE_SHADER_AS_SUBASSET
+
     public class VFXCacheManager : EditorWindow
     {
-        //[MenuItem("VFX Editor/Build All VFXs")]
+        [MenuItem("Edit/Visual Effects//Rebuild All Visual Effect Graphs", priority = 320)]
         public static void Build()
         {
             var vfxAssets = new List<VisualEffectAsset>();
@@ -32,7 +32,9 @@ namespace UnityEditor.VFX
 
             foreach (var vfxAsset in vfxAssets)
             {
-                Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+                if (VFXViewPreference.advancedLogs)
+                    Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+
                 VFXExpression.ClearCache();
                 vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
                 vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
@@ -40,7 +42,6 @@ namespace UnityEditor.VFX
             AssetDatabase.SaveAssets();
         }
     }
-#endif
 
     public class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
