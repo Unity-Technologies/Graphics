@@ -317,9 +317,8 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
 #if 0
             float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
 #else
-            // Help the compiler.
-            float  k = (-1.0 / 3.0) * LOG2_E;
-            float3 p = (k * thicknessDelta) * S;
+            // Help the compiler. S is premultiplied by ((-1.0 / 3.0) * LOG2_E) on the CPU.
+            float3 p = thicknessDelta * S;
             float3 expOneThird = exp2(p);
 #endif
 
