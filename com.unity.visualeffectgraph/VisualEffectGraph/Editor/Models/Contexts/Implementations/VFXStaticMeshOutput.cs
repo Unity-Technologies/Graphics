@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Experimental.VFX;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.VFX;
@@ -11,6 +12,9 @@ namespace UnityEditor.VFX
     {
         [VFXSetting]
         private Shader shader; // not serialized here but in VFXDataMesh
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Rendering Options")]
+        protected int sortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool castShadows = false;
@@ -143,6 +147,14 @@ namespace UnityEditor.VFX
 
                 default:
                     return null;
+            }
+        }
+
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                yield return new VFXMapping("sortPriority", sortPriority);
             }
         }
     }
