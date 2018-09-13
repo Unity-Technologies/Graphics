@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with SAMPLE_TEXTURECUBE_SHADOW macro
 - Fixed issue with color picker not display correctly when game and scene view are visible at the same time
 - Fixed an issue with reflection probe face fading
+- Fixed camera motion vectors shader and associated matrices to update correctly for single-pass double-wide stereo rendering
 
 ### Changed
 - Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
@@ -42,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move a lot of files from CoreRP to HDRP/CoreRP. All moved files weren't used by Ligthweight pipeline. Long term they could move back to CoreRP after CoreRP become out of preview
 - Updated camera inspector UI
 - Updated decal gizmo
+- Optimization: The objects that are rendered in the Motion Vector Pass are not rendered in the prepass anymore
 
 ## [3.3.0-preview]
 
