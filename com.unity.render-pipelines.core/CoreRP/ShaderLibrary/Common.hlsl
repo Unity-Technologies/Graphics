@@ -437,10 +437,10 @@ real3 Orthonormalize(real3 tangent, real3 normal)
     return normalize(tangent - dot(tangent, normal) * normal);
 }
 
-// [start, end] -> [0, 1] : (x - start) / (end - start)
+// [start, end] -> [0, 1] : (x - start) / (end - start) = x * rcpLength - (start * rcpLength)
 TEMPLATE_3_REAL(Remap01, x, rcpLength, startTimesRcpLength, return saturate(x * rcpLength - startTimesRcpLength))
 
-// [start, end] -> [1, 0] : (end - x) / (end - start)
+// [start, end] -> [1, 0] : (end - x) / (end - start) = (end * rcpLength) - x * rcpLength
 TEMPLATE_3_REAL(Remap10, x, rcpLength, endTimesRcpLength, return saturate(endTimesRcpLength - x * rcpLength))
 
 // smoothstep that assumes that 'x' lies within the [0, 1] interval.
