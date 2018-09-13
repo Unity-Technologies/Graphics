@@ -317,18 +317,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SSReflectionProjectionModel = Shader.PropertyToID("_SSReflectionProjectionModel");
         public static readonly int _SSReflectionEnabled = Shader.PropertyToID("_SSReflectionEnabled");
 
-        public static readonly int _SsrIterLimit                    = Shader.PropertyToID("_SsrIterLimit");
-        public static readonly int _SsrThicknessScale               = Shader.PropertyToID("_SsrThicknessScale");
-        public static readonly int _SsrThicknessBias                = Shader.PropertyToID("_SsrThicknessBias");
-        public static readonly int _SsrMaxRoughness                 = Shader.PropertyToID("_SsrMaxRoughness");
-        public static readonly int _SsrDepthPyramidMaxMip           = Shader.PropertyToID("_SsrDepthPyramidMaxMip");
-        public static readonly int _SsrRcpFade                      = Shader.PropertyToID("_SsrRcpFade");
-        public static readonly int _SsrOneMinusRcpFade              = Shader.PropertyToID("_SsrOneMinusRcpFade");
-        public static readonly int _SsrDepthPyramidMipLevelOffsetsX = Shader.PropertyToID("_SsrDepthPyramidMipLevelOffsetsX");
-        public static readonly int _SsrDepthPyramidMipLevelOffsetsY = Shader.PropertyToID("_SsrDepthPyramidMipLevelOffsetsY");
-        public static readonly int _SsrLightingTexture              = Shader.PropertyToID("_SsrLightingTexture");
-        public static readonly int _SsrLightingTextureRW            = Shader.PropertyToID("_SsrLightingTextureRW");
-        public static readonly int _SsrHitPointTexture              = Shader.PropertyToID("_SsrHitPointTexture");
+        public static readonly int _SsrIterLimit                      = Shader.PropertyToID("_SsrIterLimit");
+        public static readonly int _SsrThicknessScale                 = Shader.PropertyToID("_SsrThicknessScale");
+        public static readonly int _SsrThicknessBias                  = Shader.PropertyToID("_SsrThicknessBias");
+        public static readonly int _SsrRoughnessFadeEnd               = Shader.PropertyToID("_SsrRoughnessFadeEnd");
+        public static readonly int _SsrRoughnessFadeRcpLength         = Shader.PropertyToID("_SsrRoughnessFadeRcpLength");
+        public static readonly int _SsrRoughnessFadeEndTimesRcpLength = Shader.PropertyToID("_SsrRoughnessFadeEndTimesRcpLength");
+        public static readonly int _SsrDepthPyramidMaxMip             = Shader.PropertyToID("_SsrDepthPyramidMaxMip");
+        public static readonly int _SsrRcpFade                        = Shader.PropertyToID("_SsrRcpFade");
+        public static readonly int _SsrOneMinusRcpFade                = Shader.PropertyToID("_SsrOneMinusRcpFade");
+        public static readonly int _SsrDepthPyramidMipLevelOffsetsX   = Shader.PropertyToID("_SsrDepthPyramidMipLevelOffsetsX");
+        public static readonly int _SsrDepthPyramidMipLevelOffsetsY   = Shader.PropertyToID("_SsrDepthPyramidMipLevelOffsetsY");
+        public static readonly int _SsrLightingTexture                = Shader.PropertyToID("_SsrLightingTexture");
+        public static readonly int _SsrLightingTextureRW              = Shader.PropertyToID("_SsrLightingTextureRW");
+        public static readonly int _SsrHitPointTexture                = Shader.PropertyToID("_SsrHitPointTexture");
 
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
