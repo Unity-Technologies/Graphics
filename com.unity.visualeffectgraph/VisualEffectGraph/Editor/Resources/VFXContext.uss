@@ -1,7 +1,10 @@
-VFXContextUI {
+VFXContextUI.graphElement {
     font-size:18;
     flex-direction: column;
     margin-top:0;
+    padding-left:0;
+    padding-right:0;
+    
 }
 VFXContextUI > #node-border
 {
@@ -16,8 +19,19 @@ VFXContextUI > #node-border
     padding-bottom : 5;
     margin-top : 19;
     margin-bottom : 19;
-    margin-left:2;
-    margin-right:2;
+    marging-top:2;
+    margin-left:3;
+    margin-right:3;
+}
+
+VFXContextUI > #node-border > #inside > #contents
+{
+    margin-top : 5;
+}
+
+VFXContextUI > #node-border.empty > #inside > #contents
+{
+    margin-top : 0;
 }
 
 /*  update */
@@ -85,50 +99,10 @@ VFXContextUI > #selection-border
     margin-top:18;
     margin-bottom:18;
 }
-
-VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI
-{
-    background-color:rgba(57,57,57,0.8);
-    margin-top:4;
-    margin-right:0;
-    margin-left:0;
-    margin-bottom:0;
-
-    border-left-width:1;
-    border-right-width:1;
-    border-top-width:1;
-    border-bottom-width:1;
-    padding-top: 2;
-    padding-left: 0;
-    padding-bottom: 2;
-    padding-right: 0;
-}
-
-VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI #settings
-{
-    background-color:rgba(0,0,0,0);
-}
-
-VFXOwnContextSlotContainerUI.VFXNodeUI #pane
-{
-    border-left-width:0;
-    border-right-width:0;
-    border-top-width:0;
-    border-bottom-width:0;
-    border-top:0;
-    border-bottom:0;
-    border-left:0;
-    border-right:0;
-}
-
 VFXContextUI #inside
 {
     margin-left: 8;
     margin-right:8;
-    border-top:2;
-    border-bottom:2;
-    border-left:2;
-    border-right:2;
 }
 
 VFXContextUI .extremity
@@ -136,6 +110,7 @@ VFXContextUI .extremity
     border-radius:2;
     justify-content:center;
     align-items:center;
+    flex-direction:row;
 }
 
 VFXContextUI #HeaderContainer
@@ -184,6 +159,8 @@ VFXContextUI #node-border > #inside > #contents
 {
     border-radius:6;
     background-color: rgba(63,63,63,0.8);
+    margin-left:4; 
+    margin-right:4;
 }
 VFXContextUI #node-border > #inside > #contents > #settings
 {
@@ -213,19 +190,6 @@ VFXContextUI #footer #icon
 VFXContextUI *
 {
     font-size:11;
-}
-
-VFXContextUI VFXOwnContextSlotContainerUI.VFXNodeUI #title
-{
-    max-height:0;
-    height:0;
-}
-
-
-
-VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI #left #leftBackground
-{
-    background-color:rgba(0,0,0,0);
 }
 
 VFXContextUI #block-container {

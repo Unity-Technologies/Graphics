@@ -35,7 +35,7 @@ static class VisualElementExtensions
     public static void AddStyleSheetPathWithSkinVariant(this VisualElement visualElement, string path)
     {
         visualElement.AddStyleSheetPath(path);
-        if (EditorGUIUtility.isProSkin)
+        if (true)
         {
             visualElement.AddStyleSheetPath(path + "Dark");
         }

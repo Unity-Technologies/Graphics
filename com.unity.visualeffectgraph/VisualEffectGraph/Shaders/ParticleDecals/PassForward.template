@@ -7,13 +7,10 @@ Pass
 	
 	HLSLPROGRAM
 	#pragma target 4.5
-	
-	#define VFX_NEEDS_POSSS 1
-	
+		
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
-		float4 projPos : COLOR1;
 
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
@@ -39,7 +36,6 @@ Pass
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-#define VFX_VARYING_POSSS projPos
 #define VFX_VARYING_COLOR color.rgb
 #define VFX_VARYING_ALPHA color.a
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
@@ -69,7 +65,7 @@ o.viewToDecal2 = viewToDecal[2];
 		
 		float3 clipPos;
 		clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
-		clipPos.z = VFXSampleDepth(i.projPos);
+		clipPos.z = VFXSampleDepth(i.pos);
 		clipPos *= VFXLinearEyeDepth(clipPos.z);
 		
 		float4 worldPos;
