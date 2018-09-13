@@ -13,7 +13,7 @@ using Branch = UnityEditor.VFX.Operator.Branch;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXOperatorUI : VFXStandaloneSlotContainerUI
+    class VFXOperatorUI : VFXNodeUI
     {
         VisualElement m_EditButton;
 
@@ -28,6 +28,9 @@ namespace UnityEditor.VFX.UI
             m_EditButton = new VisualElement() {name = "edit"};
             m_EditButton.Add(new VisualElement() { name = "icon" });
             m_EditButton.AddManipulator(new Clickable(OnEdit));
+            this.AddManipulator(new SuperCollapser());
+
+            RegisterCallback<GeometryChangedEvent>(OnPostLayout);
         }
 
         VisualElement m_EditContainer;
@@ -86,6 +89,7 @@ namespace UnityEditor.VFX.UI
             {
                 port.SetLabelWidth(labelWidth);
             }
+            inputContainer.style.width = labelWidth + controlWidth + 20;
         }
 
         public bool isEditable
@@ -184,6 +188,44 @@ namespace UnityEditor.VFX.UI
                 if (m_EditButton.parent != null)
                 {
                     m_EditButton.RemoveFromHierarchy();
+                }
+            }
+        }
+
+        void OnPostLayout(GeometryChangedEvent e)
+        {
+            RefreshLayout();
+        }
+
+        public override void RefreshLayout()
+        {
+            base.RefreshLayout();
+            if (!superCollapsed)
+            {
+                float settingsLabelWidth = 30;
+                float settingsControlWidth = 50;
+                GetPreferedSettingsWidths(ref settingsLabelWidth, ref settingsControlWidth);
+
+                float labelWidth = 30;
+                float controlWidth = 50;
+                GetPreferedWidths(ref labelWidth, ref controlWidth);
+
+                float newMinWidth = Mathf.Max(settingsLabelWidth + settingsControlWidth, labelWidth + controlWidth) + 20;
+
+                if (style.minWidth != newMinWidth)
+                {
+                    style.minWidth = newMinWidth;
+                }
+
+                ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
+
+                ApplyWidths(labelWidth, controlWidth);
+            }
+            else
+            {
+                if (style.minWidth != 0)
+                {
+                    style.minWidth = 0;
                 }
             }
         }
