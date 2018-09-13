@@ -4,8 +4,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
-{
-    
+{    
     [Title("Input", "Texture", "Sample Texture 2D LOD")]
     public class SampleTexture2DLODNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
@@ -56,6 +55,8 @@ namespace UnityEditor.ShaderGraph
 
                 m_TextureType = value;
                 Dirty(ModificationScope.Graph);
+
+                ValidateNode();
             }
         }
 
@@ -71,6 +72,14 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input));
             AddSlot(new Vector1MaterialSlot(LODInput, kLODInputName, kLODInputName, SlotType.Input, 0));
             RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInput, SamplerInput, LODInput });
+        }
+
+        public override void ValidateNode()
+        {
+            var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
+            textureSlot.defaultType = (textureType == TextureType.Normal ? TextureShaderProperty.DefaultType.Bump : TextureShaderProperty.DefaultType.White);
+
+            base.ValidateNode();
         }
 
         // Node generations
