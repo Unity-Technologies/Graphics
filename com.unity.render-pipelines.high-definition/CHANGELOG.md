@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with color picker not display correctly when game and scene view are visible at the same time
 - Fixed an issue with reflection probe face fading
 - Fixed camera motion vectors shader and associated matrices to update correctly for single-pass double-wide stereo rendering
+- Fixed light attenuation functions when range attenuation is disabled
 
 ### Changed
 - Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
