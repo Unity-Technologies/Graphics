@@ -267,22 +267,16 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 
 float EdgeFade(float2 coordNDC, float rcpFade, float oneMinusRcpFade)
 {
-    float2 posT = saturate(coordNDC * rcpFade + oneMinusRcpFade);
+    float2 posT = Remap10(coordNDC * rcpFade + oneMinusRcpFade);
     float2 negT = saturate(1 - coordNDC * rcpFade);
 
     // TODO: optimize away (1 - ).
     return Smoothstep01(1 - max(posT.x, negT.x)) * Smoothstep01(1 - max(posT.y, negT.y));
 }
 
-// (end - x) / (end - start)
-float FastRemap01(float x, float rcpLength, float endTimesRcpLength)
-{
-    return saturate(endTimesRcpLength - x * rcpLength);
-}
-
 float RoughnessFade(float roughness, float fadeRcpLength, float fadeEndTimesRcpLength)
 {
-    float t = FastRemap01(roughness, fadeRcpLength, fadeEndTimesRcpLength);
+    float t = Remap10(roughness, fadeRcpLength, fadeEndTimesRcpLength);
     return Smoothstep01(t);
 }
 
