@@ -59,6 +59,7 @@ Shader "Hidden/HDRenderPipeline/DrawDiffusionProfile"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                // Profile display does not use premultiplied S.
                 float  r = (2 * length(input.texcoord - 0.5)) * _MaxRadius;
                 float3 S = _ShapeParam.rgb;
                 float3 M = S * (exp(-r * S) + exp(-r * S * (1.0 / 3.0))) / (8 * PI * r);
