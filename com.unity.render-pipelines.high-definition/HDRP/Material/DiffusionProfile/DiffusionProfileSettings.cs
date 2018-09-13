@@ -78,12 +78,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (filterKernelFarField == null || filterKernelFarField.Length != DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD)
                 filterKernelFarField = new Vector2[DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD];
 
-            // Clamp to avoid artifacts.
-            shapeParam = new Vector3(
-                    1f / Mathf.Max(0.001f, scatteringDistance.r),
-                    1f / Mathf.Max(0.001f, scatteringDistance.g),
-                    1f / Mathf.Max(0.001f, scatteringDistance.b)
-                    );
+            // Note: if the scattering distance is 0, exp2(-inf) will produce 0, as desired.
+            shapeParam = new Vector3(1.0f / scatteringDistance.r,
+                                     1.0f / scatteringDistance.g,
+                                     1.0f / scatteringDistance.b);
 
             // We importance sample the color channel with the widest scattering distance.
             float s = Mathf.Min(shapeParam.x, shapeParam.y, shapeParam.z);
