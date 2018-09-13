@@ -76,15 +76,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.textureScroll  = volumeScrollingAmount;
             data.textureTiling  = textureTiling;
 
-            // Note that we do not clamp here. Infinities work in the expected way in the shader.
-            // This also allows us to avoid artifacts caused by numerical issues.
-            data.rcpPosFade.x = 1.0f / positiveFade.x;
-            data.rcpPosFade.y = 1.0f / positiveFade.y;
-            data.rcpPosFade.z = 1.0f / positiveFade.z;
+            // Clamp to avoid NaNs.
+            data.rcpPosFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
+            data.rcpPosFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);
+            data.rcpPosFade.z = Mathf.Min(1.0f / positiveFade.z, float.MaxValue);
 
-            data.rcpNegFade.y = 1.0f / negativeFade.y;
-            data.rcpNegFade.x = 1.0f / negativeFade.x;
-            data.rcpNegFade.z = 1.0f / negativeFade.z;
+            data.rcpNegFade.y = Mathf.Min(1.0f / negativeFade.y, float.MaxValue);
+            data.rcpNegFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
+            data.rcpNegFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
 
             data.invertFade = invertFade ? 1 : 0;
 
