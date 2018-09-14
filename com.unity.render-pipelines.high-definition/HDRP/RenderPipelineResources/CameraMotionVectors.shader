@@ -32,13 +32,13 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
         {
             float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
 
-            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+            PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
             float4 worldPos = float4(posInput.positionWS, 1.0);
             float4 prevPos = worldPos;
 
-            float4 prevClipPos = mul(_PrevViewProjMatrix, prevPos);
-            float4 curClipPos = mul(_NonJitteredViewProjMatrix, worldPos);
+            float4 prevClipPos = mul(UNITY_MATRIX_PREV_VP, prevPos);
+            float4 curClipPos = mul(UNITY_MATRIX_UNJITTERED_VP, worldPos);
 
             float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
             float2 positionCS = curClipPos.xy / curClipPos.w;
@@ -48,6 +48,9 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 #if UNITY_UV_STARTS_AT_TOP
             velocity.y = -velocity.y;
 #endif
+
+            velocity.x = velocity.x * _TextureWidthScaling; // _TextureWidthScaling = 0.5 for SinglePassDoubleWide (stereo) and 1.0 otherwise
+
             // Convert velocity from Clip space (-1..1) to NDC 0..1 space
             // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
             // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
