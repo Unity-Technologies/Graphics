@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated camera inspector UI
 - Updated decal gizmo
 - Optimization: The objects that are rendered in the Motion Vector Pass are not rendered in the prepass anymore
+- Removed setting shader inclue path via old API, use package shader include paths
 
 ## [3.3.0-preview]
 
