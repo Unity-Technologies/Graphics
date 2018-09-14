@@ -66,6 +66,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+#if _TEST
         //[Test]  //Not really a test but an helper to measure backup (for undo/redo) time for every existing asset
         public void MeasureBackupTime()
         {
@@ -168,5 +169,6 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Debug.Log(log);
             }
         }
+#endif
     }
 }
