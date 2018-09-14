@@ -410,7 +410,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static NodeID CopyNode(ref Node node, VFXModel model,int index)
+        static NodeID CopyNode(ref Node node, VFXModel model,uint index)
         {
             // Copy node infos
             node.position = model.position;
@@ -667,11 +667,6 @@ namespace UnityEditor.VFX.UI
 
 #endif
 
-        struct PasteInfo
-        {
-            public Dictionary<NodeID, VFXModel> newModels;
-            public Dictionary<VFXParameter, uint> newNodeOffsets;
-        }
 
         private static void PasteDataEdges(ref SerializableGraph copyData, PasteInfo infos)
         {
@@ -703,10 +698,38 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        static void PasteContext(Dictionary<uint, VFXNodeController> idToNodeControllers,ref Context context,uint index)
+        {
+            Type type = context.node.type;
+            if (type == null)
+                return;
+            var newContext = ScriptableObject.CreateInstance(type) as VFXContext;
+            if (newContext == null)
+                return;
+
+            newContext.position = context.node.position;
+            PasteNode(newContext, context.node);
+        }
+
+        static void PasteNode(VFXModel model,ref Node context)
+        {
+            model.position = context.position + pasteOffset;
+        }
+
+        struct PasteInfo
+        {
+            public Dictionary<NodeID, VFXModel> newModels;
+            public Dictionary<VFXParameter, uint> newNodeOffsets;
+            public Vector2 pasteOffset;
+        }
+
         static void PasteNodes(VFXViewController viewController, Vector2 center, SerializableGraph copyData, VFXView view, VFXGroupNodeController groupNode)
         {
+            PasteInfo infos = new PasteInfo();
+
             var graph = viewController.graph;
-            Vector2 pasteOffset = (copyData.bounds.width > 0 && copyData.bounds.height > 0) ? center - copyData.bounds.center : Vector2.zero;
+            infos.pasteOffset = (copyData.bounds.width > 0 && copyData.bounds.height > 0) ? center - copyData.bounds.center : Vector2.zero;
 
             // look if pasting there will result in the first element beeing exactly on top of other
             while (true)
@@ -714,31 +737,30 @@ namespace UnityEditor.VFX.UI
                 bool foundSamePosition = false;
                 if (copyData.contexts != null && copyData.contexts.Length > 0)
                 {
-                    VFXContext firstContext = copyData.contexts[0];
+                    var type = copyData.contexts[0].node.type;
 
                     foreach (var existingContext in viewController.graph.children.OfType<VFXContext>())
                     {
-                        if ((firstContext.position + pasteOffset - existingContext.position).sqrMagnitude < 1)
+                        if ((copyData.contexts[0].node.position + infos.pasteOffset - existingContext.position).sqrMagnitude < 1)
                         {
                             foundSamePosition = true;
                             break;
                         }
                     }
                 }
-                else if (copyData.slotContainers != null && copyData.slotContainers.Length > 0)
+                else if (copyData.operators != null && copyData.operators.Length > 0)
                 {
-                    VFXModel firstContainer = copyData.slotContainers[0];
-
                     foreach (var existingSlotContainer in viewController.graph.children.Where(t => t is IVFXSlotContainer))
                     {
-                        if ((firstContainer.position + pasteOffset - existingSlotContainer.position).sqrMagnitude < 1)
+                        if ((copyData.operators[0].position + infos.pasteOffset - existingSlotContainer.position).sqrMagnitude < 1)
                         {
                             foundSamePosition = true;
                             break;
                         }
                     }
                 }
-                else
+                //TODO take stickyNote and groupNode in account if nothing else
+                /*else
                 {
                     VFXUI ui = allSerializedObjects.OfType<VFXUI>().First();
 
@@ -767,7 +789,7 @@ namespace UnityEditor.VFX.UI
                             }
                         }
                     }
-                }
+                }*/
 
                 if (foundSamePosition)
                 {
@@ -778,15 +800,15 @@ namespace UnityEditor.VFX.UI
                     break;
                 }
             }
-
+            Dictionary<uint, VFXNodeController> idToNodeControllers = new Dictionary<NodeID, VFXNodeController>();
 
             if (copyData.contexts != null)
             {
-                foreach (var slotContainer in copyData.contexts)
+                int cpt = 0;
+                foreach (var context in copyData.contexts)
                 {
-                    var newContext = slotContainer;
-                    newContext.position += pasteOffset;
-                    ClearLinks(newContext);
+                    ++cpt;
+                    PasteContext(idToNodeControllers, context);
                 }
             }
 
