@@ -78,12 +78,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (filterKernelFarField == null || filterKernelFarField.Length != DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD)
                 filterKernelFarField = new Vector2[DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD];
 
-            // Clamp to avoid artifacts.
-            shapeParam = new Vector3(
-                    1f / Mathf.Max(0.001f, scatteringDistance.r),
-                    1f / Mathf.Max(0.001f, scatteringDistance.g),
-                    1f / Mathf.Max(0.001f, scatteringDistance.b)
-                    );
+            // Note: if the scattering distance is 0, exp2(-inf) will produce 0, as desired.
+            shapeParam = new Vector3(1.0f / scatteringDistance.r,
+                                     1.0f / scatteringDistance.g,
+                                     1.0f / scatteringDistance.b);
 
             // We importance sample the color channel with the widest scattering distance.
             float s = Mathf.Min(shapeParam.x, shapeParam.y, shapeParam.z);
@@ -275,11 +273,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             texturingModeFlags |= (uint)profiles[p].texturingMode    << i;
             transmissionFlags  |= (uint)profiles[p].transmissionMode << i;
+            thicknessRemaps[i]  = new Vector4(profiles[p].thicknessRemap.x, profiles[p].thicknessRemap.y - profiles[p].thicknessRemap.x, 0f, 0f);
+            worldScales[i]      = new Vector4(profiles[p].worldScale, 1.0f / profiles[p].worldScale, 0f, 0f);
 
-            thicknessRemaps[i]   = new Vector4(profiles[p].thicknessRemap.x, profiles[p].thicknessRemap.y - profiles[p].thicknessRemap.x, 0f, 0f);
-            worldScales[i]       = new Vector4(profiles[p].worldScale, 1.0f / profiles[p].worldScale, 0f, 0f);
-            shapeParams[i]       = profiles[p].shapeParam;
-            shapeParams[i].w     = profiles[p].maxRadius;
+            // Premultiply S by ((-1.0 / 3.0) * LOG2_E) on the CPU.
+            const float log2e = 1.44269504088896340736f;
+            const float k     = (-1.0f / 3.0f) * log2e;
+
+            shapeParams[i]   = profiles[p].shapeParam * k;
+            shapeParams[i].w = profiles[p].maxRadius;
             // Convert ior to fresnel0
             float fresnel0 = (profiles[p].ior - 1.0f) / (profiles[p].ior + 1.0f);
             fresnel0 *= fresnel0; // square

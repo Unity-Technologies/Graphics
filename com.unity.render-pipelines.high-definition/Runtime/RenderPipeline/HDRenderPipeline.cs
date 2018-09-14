@@ -388,7 +388,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
-            
+
             RTHandles.Release(m_CameraColorMSAABuffer);
             RTHandles.Release(m_MultiAmbientOcclusionBuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
@@ -675,7 +675,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)
-        {           
+        {
             if (!m_IsDepthBufferCopyValid)
             {
                 using (new ProfilingSample(cmd, "Copy depth buffer", CustomSamplerId.CopyDepthBuffer.GetSampler()))
@@ -1125,7 +1125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 m_ScreenSpaceShadowsBuffer.rt.Create();
 
                             m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, hdCamera.frameSettings.enableMSAA ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), cmd);
-                            
+
                             PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ScreenSpaceShadows);
                         }
 
@@ -1893,7 +1893,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float thicknessScale = 1.0f / (1.0f + thickness);
                 float thicknessBias  = -n / (f - n) * (thickness * thicknessScale);
 
-                float rcpFadeDistance = Mathf.Min(1.0f / volumeSettings.screenWeightDistance, 65536.0f);
 
                 HDUtils.PackedMipChainInfo info = m_SharedRTManager.GetDepthBufferMipChainInfo();
 
@@ -1908,15 +1907,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     depthPyramidMipLevelOffsetsY[i] = info.mipLevelOffsets[Math.Max(0, j - 1)].y;
                 }
 
-                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrIterLimit,                    volumeSettings.rayMaxIterations);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessScale,               thicknessScale);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessBias,                thicknessBias);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrMaxRoughness,                 1 - volumeSettings.minSmoothness);
-                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrDepthPyramidMaxMip,           info.mipLevelCount);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrRcpFade,                      rcpFadeDistance);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrOneMinusRcpFade,              1 - rcpFadeDistance);
-                cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsX, depthPyramidMipLevelOffsetsX);
-                cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsY, depthPyramidMipLevelOffsetsY);
+                float roughnessFadeStart             = 1 - volumeSettings.smoothnessFadeStart;
+                float roughnessFadeEnd               = 1 - volumeSettings.minSmoothness;
+                float roughnessFadeLength            = roughnessFadeEnd - roughnessFadeStart;
+                float roughnessFadeEndTimesRcpLength = (roughnessFadeLength != 0) ? (roughnessFadeEnd * (1.0f / roughnessFadeLength)) : 1;
+                float roughnessFadeRcpLength         = (roughnessFadeLength != 0) ? (1.0f / roughnessFadeLength) : 0;
+                float edgeFadeRcpLength              = Mathf.Min(1.0f / volumeSettings.screenWeightDistance, float.MaxValue);
+
+                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrIterLimit,                      volumeSettings.rayMaxIterations);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessScale,                 thicknessScale);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrThicknessBias,                  thicknessBias);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrRoughnessFadeEnd,               roughnessFadeEnd);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrRoughnessFadeRcpLength,         roughnessFadeRcpLength);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrRoughnessFadeEndTimesRcpLength, roughnessFadeEndTimesRcpLength);
+                cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrDepthPyramidMaxMip,             info.mipLevelCount);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrEdgeFadeRcpLength,              edgeFadeRcpLength);
+                cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsX,   depthPyramidMipLevelOffsetsX);
+                cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsY,   depthPyramidMipLevelOffsetsY);
 
                 // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrHitPointTexture, m_SsrHitPointTexture);
