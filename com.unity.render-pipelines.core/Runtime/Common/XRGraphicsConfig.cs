@@ -106,9 +106,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public static uint GetPixelOffset(uint eye)
         {
-            if (!enabled || XRSettings.eyeTextureDesc.vrUsage != VRTextureUsage.TwoEyes)
+            if (!enabled || eyeTextureDesc.vrUsage != VRTextureUsage.TwoEyes)
                 return 0;
-
             return (uint)(Mathf.CeilToInt((eye * XRSettings.eyeTextureWidth) / 2));
         }
 
