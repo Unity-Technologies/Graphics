@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `ScriptableRenderer`always perform a Clear before calling `IRendererSetup::Setup.` 
 - `ScriptableRenderPass::Execute` no longer takes `CullResults` as input. Instead, use `RenderingData`as input, since that references `CullResults`.
 - `IRendererSetup_Setup` no longer takes `ScriptableRenderContext` and `CullResults` as input.
+- Removed setting shader inclue path via old API, use package shader include paths
 
 ### Fixed
 - If you have more than 16 lights in a scene, LWRP no longer causes random glitches while rendering lights.
