@@ -30,8 +30,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.textureIndex  = -1;
             data.textureTiling = Vector3.one;
             data.textureScroll = Vector3.zero;
-            data.rcpPosFade    = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
-            data.rcpNegFade    = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+            data.rcpPosFade    = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            data.rcpNegFade    = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
             data.invertFade    = 0;
             data.pad1          = 0;
             data.pad2          = 0;

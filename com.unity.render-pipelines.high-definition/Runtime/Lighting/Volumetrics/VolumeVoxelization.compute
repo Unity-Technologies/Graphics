@@ -69,10 +69,9 @@ float ComputeFadeFactor(float3 coordNDC, float3 rcpPosFade, float3 rcpNegFade, b
     // We have to account for handedness.
     coordNDC.z = 1 - coordNDC.z;
 
-    float3 posT = saturate(1 + rcpPosFade * (coordNDC - 1));
-    float3 negT = saturate(1 - rcpNegFade * coordNDC);
-    float  fade = saturate(lerp(1, 0, posT.x) * lerp(1, 0, posT.y) * lerp(1, 0, posT.z) *
-                           lerp(1, 0, negT.x) * lerp(1, 0, negT.y) * lerp(1, 0, negT.z));
+    float3 posT = Remap10(coordNDC, rcpPosFade, rcpPosFade);
+    float3 negT = Remap01(coordNDC, rcpNegFade, 0);
+    float  fade = posT.x * posT.y * posT.z * negT.x * negT.y * negT.z;
 
     return invertFade ? (1 - fade) : fade;
 }

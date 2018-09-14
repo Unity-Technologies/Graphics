@@ -556,7 +556,15 @@ namespace UnityEngine.Experimental.Rendering
                 if (!CheckDataIntegrity(algo, vari, prec, ref shadowData))
                 {
                     asd.SetShadowAlgorithm((int)algo, (int)vari, (int)prec, shadowDataFormat, shadowData);
-                    Debug.Log("Fixed up shadow data for algorithm " + algo + ", variant " + vari);
+#if UNITY_EDITOR
+                    if(!Application.isPlaying)
+                    {
+                        // mark the component and scene as dirty, so the fixed component gets serialized to disk
+                        UnityEditor.EditorUtility.SetDirty(asd);
+                        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(asd.gameObject.scene);
+                    }
+#endif
+                    Debug.Log("Fixed up shadow data for algorithm " + algo + ", variant " + vari, asd);
                 }
 
                 if (algo == ShadowAlgorithm.PCF)

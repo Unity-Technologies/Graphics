@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public IntParameter                 rayMinLevel = new IntParameter(2);
         public IntParameter                 rayMaxLevel = new IntParameter(6);
         public IntParameter                 rayMaxIterations = new IntParameter(32);
-        public FloatParameter               depthBufferThickness = new FloatParameter(1f);
+        public ClampedFloatParameter        depthBufferThickness = new ClampedFloatParameter(0.01f, 0, 1);
         public ClampedFloatParameter        screenWeightDistance = new ClampedFloatParameter(0.1f, 0, 1);
         public ClampedFloatParameter        rayMaxScreenDistance = new ClampedFloatParameter(0.3f, 0, 1);
         public ClampedFloatParameter        rayBlendScreenDistance = new ClampedFloatParameter(0.1f, 0, 1);
