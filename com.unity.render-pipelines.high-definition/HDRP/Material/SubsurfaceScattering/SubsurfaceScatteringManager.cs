@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_HTile;
         // End Disney SSS Model
 
-        // Jimenez need an extra buffer and Disney need one for some platform
+        // Need an extra buffer on some platforms
         RTHandleSystem.RTHandle m_CameraFilteringBuffer;
 
         // This is use to be able to read stencil value in compute shader
@@ -39,7 +39,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_MSAASupport = settings.supportMSAA;
 
-            // TODO: For MSAA, at least initially, we can only support Jimenez, because we can't create MSAA + UAV render targets.
             if (settings.supportOnlyForward)
             {
                 // In case of full forward we must allocate the render target for forward SSS (or reuse one already existing)
@@ -196,13 +195,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     uint texturingModeFlags = sssParameters.texturingModeFlags;
                     cmd.SetComputeFloatParam(m_SubsurfaceScatteringCS, HDShaderIDs._TexturingModeFlags, *(float*)&texturingModeFlags);
                 }
-        
+
                 cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._WorldScales,        sssParameters.worldScales);
                 cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._FilterKernels,      sssParameters.filterKernels);
                 cmd.SetComputeVectorArrayParam(m_SubsurfaceScatteringCS, HDShaderIDs._ShapeParams,        sssParameters.shapeParams);
 
                 int sssKernel = hdCamera.frameSettings.enableMSAA ? m_SubsurfaceScatteringKernelMSAA : m_SubsurfaceScatteringKernel;
-             
+
                 cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, sssKernel, HDShaderIDs._DepthTexture,       depthTextureRT);
                 cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, sssKernel, HDShaderIDs._SSSHTile,           m_HTile);
                 cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, sssKernel, HDShaderIDs._IrradianceSource,   diffuseBufferRT);
