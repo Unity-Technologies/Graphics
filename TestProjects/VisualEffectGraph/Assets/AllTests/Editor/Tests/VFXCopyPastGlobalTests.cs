@@ -146,7 +146,7 @@ public class VFXCopyPastGlobalTests
         Assert.IsTrue(maxFrame > 0);
         yield return null; //wait for exactly one more update if visible
 
-        Assert.AreEqual(capacity * 2, vfxComponent.aliveParticleCount);
+        Assert.AreEqual(capacity * 2, vfxComponent.aliveParticleCount); //Excepted to have two viable equivalent particles system
         UnityEngine.Object.DestroyImmediate(vfxComponent);
         UnityEngine.Object.DestroyImmediate(cameraObj);
     }
