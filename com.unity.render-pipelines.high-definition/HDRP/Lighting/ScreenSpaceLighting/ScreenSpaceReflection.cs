@@ -35,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public ClampedFloatParameter minSmoothness = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
+        public ClampedFloatParameter smoothnessFadeStart = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         protected override void FetchIDs(
             out int rayLevelID,
