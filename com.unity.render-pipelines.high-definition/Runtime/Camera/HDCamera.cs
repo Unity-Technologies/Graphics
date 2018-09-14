@@ -215,8 +215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             textureWidthScaling = 1.0f; 
             if (m_frameSettings.enableStereo)
             {
-                if (XRGraphicsConfig.stereoRenderingMode == UnityEditor.StereoRenderingPath.SinglePass) // VR TODO: is this also true for single-pass instanced and multi-view?
-                    textureWidthScaling = 0.5f; 
+                textureWidthScaling = 0.5f; 
                 for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {
                     // For VR, TAA proj matrices don't need to be jittered
