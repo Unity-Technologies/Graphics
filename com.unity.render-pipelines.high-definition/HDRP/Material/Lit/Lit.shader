@@ -482,7 +482,9 @@ Shader "HDRenderPipeline/Lit"
             ZWrite On
 
             HLSLPROGRAM
-
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_MSAA_DEPTH
+            
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"

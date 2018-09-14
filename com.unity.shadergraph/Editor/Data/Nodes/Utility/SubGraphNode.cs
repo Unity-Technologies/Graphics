@@ -330,7 +330,7 @@ namespace UnityEditor.ShaderGraph
             if (referencedGraph == null)
                 return;
 
-            referencedGraph.CollectShaderProperties(visitor, GenerationMode.ForReals);
+            referencedGraph.CollectShaderProperties(visitor, generationMode);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -354,8 +354,8 @@ namespace UnityEditor.ShaderGraph
             if (subGraphAsset == null || referencedGraph == null)
                 return;
 
-            referencedGraph.GenerateNodeFunction(registry, graphContext, GenerationMode.ForReals);
-            referencedGraph.GenerateSubGraphFunction(SubGraphFunctionName(graphContext), registry, graphContext, ShaderGraphRequirements.FromNodes(new List<INode> {this}), GenerationMode.ForReals);
+            referencedGraph.GenerateNodeFunction(registry, graphContext, generationMode);
+            referencedGraph.GenerateSubGraphFunction(SubGraphFunctionName(graphContext), registry, graphContext, ShaderGraphRequirements.FromNodes(new List<INode> {this}), generationMode);
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)

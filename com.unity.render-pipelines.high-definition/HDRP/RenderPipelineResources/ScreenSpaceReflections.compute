@@ -37,11 +37,11 @@
 #endif
 
 #ifdef SSR_TRACE
-    // TEXTURE2D(        _NormalBufferTexture0); // Declared in NormalBuffer.hlsl.
+    // TEXTURE2D(        _NormalBufferTexture); // Declared in NormalBuffer.hlsl.
     // TEXTURE2D(        _DepthPyramidTexture);  // Declared in ShaderVariablesScreenSpaceLighting.hlsl
     RW_TEXTURE2D(float2, _SsrHitPointTexture);
 #else
-    // TEXTURE2D(        _NormalBufferTexture0); // Declared in NormalBuffer.hlsl.
+    // TEXTURE2D(        _NormalBufferTexture); // Declared in NormalBuffer.hlsl.
     // TEXTURE2D(        _ColorPyramidTexture);  // Declared in ShaderVariablesScreenSpaceLighting.hlsl
        TEXTURE2D(        _VelocityTexture);
        TEXTURE2D(        _SsrHitPointTexture);

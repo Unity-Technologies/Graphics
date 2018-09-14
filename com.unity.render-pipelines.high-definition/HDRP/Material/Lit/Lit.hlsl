@@ -1355,12 +1355,13 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
     // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
     // TODO: This could be precomputed.
-    float radius         = rsqrt(lightData.rangeAttenuationScale); //  // rangeAttenuationScale is inverse Square Radius
-    float invAspectRatio = saturate(radius / (radius + (0.5 * len)));
+    float range          = lightData.range;
+    float invAspectRatio = saturate(range / (range + (0.5 * len)));
 
     // Compute the light attenuation.
-    float intensity = EllipsoidalDistanceAttenuation(unL, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
-                                                     axis, invAspectRatio);
+    float intensity = EllipsoidalDistanceAttenuation(unL, axis, invAspectRatio,
+                                                     lightData.rangeAttenuationScale,
+                                                     lightData.rangeAttenuationBias);
 
     // Terminate if the shaded point is too far away.
     if (intensity == 0.0)
@@ -1485,20 +1486,24 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     // Define the dimensions of the attenuation volume.
     // TODO: This could be precomputed.
-    float  radius     = rsqrt(lightData.rangeAttenuationScale); // rangeAttenuationScale is inverse Square Radius
-    float3 invHalfDim = rcp(float3(radius + halfWidth,
-                                   radius + halfHeight,
-                                   radius));
+    float  range      = lightData.range;
+    float3 invHalfDim = rcp(float3(range + halfWidth,
+                                   range + halfHeight,
+                                   range));
 
     // Compute the light attenuation.
 #ifdef ELLIPSOIDAL_ATTENUATION
     // The attenuation volume is an axis-aligned ellipsoid s.t.
     // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
-    float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim);
+    float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
+                                                     lightData.rangeAttenuationScale,
+                                                     lightData.rangeAttenuationBias);
 #else
     // The attenuation volume is an axis-aligned box s.t.
     // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
-    float intensity = BoxDistanceAttenuation(unL, invHalfDim);
+    float intensity = BoxDistanceAttenuation(unL, invHalfDim,
+                                             lightData.rangeAttenuationScale,
+                                             lightData.rangeAttenuationBias);
 #endif
 
     // Terminate if the shaded point is too far away.

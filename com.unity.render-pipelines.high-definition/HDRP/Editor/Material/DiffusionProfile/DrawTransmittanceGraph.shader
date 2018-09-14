@@ -60,18 +60,9 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                // Profile display does not use premultiplied S.
                 float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
-                float3 T;
-
-#if SHADEROPTIONS_USE_DISNEY_SSS
-                    T = ComputeTransmittanceDisney(_ShapeParam.rgb, float3(0.25, 0.25, 0.25), d);
-#else
-                    T = ComputeTransmittanceJimenez(_HalfRcpVarianceAndWeight1.rgb,
-                                                    _HalfRcpVarianceAndWeight1.a,
-                                                    _HalfRcpVarianceAndWeight2.rgb,
-                                                    _HalfRcpVarianceAndWeight2.a,
-                                                    float3(0.25, 0.25, 0.25), d);
-#endif
+                float3 T = ComputeTransmittanceDisney(_ShapeParam.rgb * ((-1.0 / 3.0) * LOG2_E), float3(0.25, 0.25, 0.25), d);
 
                 // Apply gamma for visualization only. Do not apply gamma to the color.
                 return float4(sqrt(T) * _TransmissionTint.rgb, 1);

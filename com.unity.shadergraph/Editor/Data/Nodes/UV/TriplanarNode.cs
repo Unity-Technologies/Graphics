@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
-{
+{    
     [Title("UV", "Triplanar")]
     public class TriplanarNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireBitangent
     {
@@ -54,6 +54,8 @@ namespace UnityEditor.ShaderGraph
 
                 m_TextureType = value;
                 Dirty(ModificationScope.Graph);
+
+                ValidateNode();
             }
         }
 
@@ -67,6 +69,14 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(TileInputId, kTileInputName, kTileInputName, SlotType.Input, 1));
             AddSlot(new Vector1MaterialSlot(BlendInputId, kBlendInputName, kBlendInputName, SlotType.Input, 1));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, TextureInputId, SamplerInputId, PositionInputId, NormalInputId, TileInputId, BlendInputId });
+        }
+
+        public override void ValidateNode()
+        {
+            var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
+            textureSlot.defaultType = (textureType == TextureType.Normal ? TextureShaderProperty.DefaultType.Bump : TextureShaderProperty.DefaultType.White);
+
+            base.ValidateNode();
         }
 
         // Node generations
