@@ -149,7 +149,7 @@ namespace UnityEditor.VFX.UI
             public bool blocksOnly;
 
             public Context[] contexts;
-            public Node[] operators;
+            public Node[] operatorsOrBlocks; // this contains blocks if blocksOnly else it contains operators and blocks are included in their respective contexts
             public Data[] datas;
 
             public Parameter[] parameters;
@@ -416,11 +416,11 @@ namespace UnityEditor.VFX.UI
                 infos.modelIndices[infos.contexts[i]] = id;
             }
 
-            copyData.operators = new Node[infos.operators.Length];
+            copyData.operatorsOrBlocks = new Node[infos.operators.Length];
 
             for(int i = 0; i < infos.operators.Length; ++i)
             {
-                uint id = CopyNode(ref copyData.operators[i], infos.operators[i].model,(NodeID)i);
+                uint id = CopyNode(ref copyData.operatorsOrBlocks[i], infos.operators[i].model,(NodeID)i);
                 infos.modelIndices[infos.operators[i]] = id;
             }
         }
@@ -477,25 +477,32 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        static Node[] CopyBlocks(IList<VFXBlockController> blocks,int contextIndex, ref CopyInfo infos)
+        {
+            var newBlocks = new Node[blocks.Count];
+            for (uint i = 0; i < newBlocks.Length; ++i)
+            {
+                CopyNode(ref newBlocks[(int)i], blocks[(int)i].model, i);
+                if (blocks[(int)i].model.enabled)
+                {
+                    newBlocks[i].flags |= Node.Flags.Enabled;
+                }
+
+                if (contextIndex < (1 << 18) && i < (1 << 11))
+                    infos.modelIndices[blocks[(int)i]] = BlockFlag | (i << 18) | (uint)contextIndex;
+                else
+                    infos.modelIndices[blocks[(int)i]] = InvalidID;
+            }
+
+            return newBlocks;
+        }
+
         static NodeID CopyContext(ref Context context,VFXContextController controller,int index, ref CopyInfo infos)
         {
             NodeID id = CopyNode(ref context.node, controller.model, (NodeID)index);
 
             var blocks = controller.blockControllers;
-            context.blocks = new Node[blocks.Count];
-            for(uint i = 0; i< context.blocks.Length; ++i)
-            {
-                CopyNode(ref context.blocks[(int)i], blocks[(int)i].model,i);
-                if( blocks[(int)i].model.enabled)
-                {
-                    context.blocks[i].flags |= Node.Flags.Enabled;
-                }
-
-                if (index < (1 << 18) && i < (1 << 11))
-                    infos.modelIndices[blocks[(int)i]] = BlockFlag | (i << 18) | (uint)index;
-                else
-                    infos.modelIndices[blocks[(int)i]] = InvalidID;
-            }
+            context.blocks = CopyBlocks(controller.blockControllers,index,ref infos);
 
             return id;
         }
@@ -503,21 +510,23 @@ namespace UnityEditor.VFX.UI
         public static object CreateCopy(IEnumerable<Controller> elements, Rect bounds)
         {
             IEnumerable<VFXContextController> contexts = elements.OfType<VFXContextController>();
-            IEnumerable<VFXNodeController> slotContainers = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXNodeController>();
+            IEnumerable<VFXNodeController> nodes = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXNodeController>();
             IEnumerable<VFXBlockController> blocks = elements.OfType<VFXBlockController>();
 
             SerializableGraph copyData = new SerializableGraph();
 
-            if (contexts.Count() == 0 && slotContainers.Count() == 0 && blocks.Count() > 0)
+            if (contexts.Count() == 0 && nodes.Count() == 0 && blocks.Count() > 0)
             {
-                /*VFXBlock[] copiedBlocks = blocks.Select(t => t.block).ToArray();
-                copyData.blocks = copiedBlocks;
-                PrepareSerializedObjects(copyData, null);*/
+                var copiedBlocks = new List<VFXBlockController>(blocks);
+
+                CopyInfo infos = new CopyInfo();
+                infos.modelIndices = new Dictionary<VFXNodeController, NodeID>();
+                copyData.operatorsOrBlocks = CopyBlocks(copiedBlocks, 0, ref infos);
                 copyData.blocksOnly = true;
             }
             else
             {
-                CopyNodes(copyData, elements, contexts, slotContainers, bounds);
+                CopyNodes(copyData, elements, contexts, nodes, bounds);
             }
 
             return copyData;
@@ -586,7 +595,7 @@ namespace UnityEditor.VFX.UI
         {
             var copyData = JsonUtility.FromJson<SerializableGraph>(data);
 
-            if (copyData.contexts.Length == 0 && copyData.operators.Length == 0)
+            if (copyData.contexts.Length == 0 && copyData.operatorsOrBlocks.Length == 0)
             {
                 /*copyData.contexts = null;
                 copyData.slotContainers = null;
@@ -602,11 +611,10 @@ namespace UnityEditor.VFX.UI
 
             if (copyData.blocksOnly)
             {
-                /*if (view != null)
+                if (view != null)
                 {
-                    copyData.blocks = allSerializedObjects.OfType<VFXBlock>().ToArray();
                     PasteBlocks(view, copyData);
-                }*/
+                }
             }
             else
             {
@@ -615,7 +623,7 @@ namespace UnityEditor.VFX.UI
         }
 
         static readonly GUIContent m_BlockPasteError = EditorGUIUtility.TextContent("To paste blocks, please select one target block or one target context.");
-#if false
+
         static void PasteBlocks(VFXView view, SerializableGraph copyData)
         {
             var selectedContexts = view.selection.OfType<VFXContextUI>();
@@ -626,7 +634,7 @@ namespace UnityEditor.VFX.UI
 
             if (selectedBlocks.Count() > 0)
             {
-                targetBlock = selectedBlocks.OrderByDescending(t => t.context.controller.model.GetIndex(t.controller.block)).First();
+                targetBlock = selectedBlocks.OrderByDescending(t => t.context.controller.model.GetIndex(t.controller.model)).First();
                 targetContext = targetBlock.context;
             }
             else if (selectedContexts.Count() == 1)
@@ -644,43 +652,40 @@ namespace UnityEditor.VFX.UI
             int targetIndex = -1;
             if (targetBlock != null)
             {
-                targetIndex = targetModelContext.GetIndex(targetBlock.controller.block) + 1;
+                targetIndex = targetModelContext.GetIndex(targetBlock.controller.model) + 1;
             }
 
             var newBlocks = new HashSet<VFXBlock>();
 
-            foreach (var block in copyData.blocks)
-            {
-                if (targetModelContext.AcceptChild(block, targetIndex))
-                {
-                    newBlocks.Add(block);
+            var infos = new PasteInfo();
+            infos.newControllers = new Dictionary<NodeID, VFXNodeController>();
 
-                    foreach (var slot in block.inputSlots)
-                    {
-                        slot.UnlinkAll(true, false);
-                    }
-                    foreach (var slot in block.outputSlots)
-                    {
-                        slot.UnlinkAll(true, false);
-                    }
-                    targetModelContext.AddChild(block, targetIndex, false); // only notify once after all blocks have been added
+            foreach (var block in copyData.operatorsOrBlocks)
+            {
+                Node blk = block;
+                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(view.controller, ref blk, ref infos);
+
+
+                if (targetModelContext.AcceptChild(newBlock, targetIndex))
+                {
+                    newBlocks.Add(newBlock);
+                    targetModelContext.AddChild(newBlock, targetIndex, false); // only notify once after all blocks have been added
+
+                    targetIndex++;
                 }
             }
 
             targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
 
-            // Create all ui based on model
-            view.controller.LightApplyChanges();
+            //TODO fill infos.indexToController for when external links will optionally copied.
 
             view.ClearSelection();
 
-            foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => newBlocks.Contains(t.controller.block)).ToList())
+            foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => newBlocks.Contains(t.controller.model)).ToList())
             {
                 view.AddToSelection(uiBlock);
             }
         }
-
-#endif
 
 
         private static void PasteDataEdges(ref SerializableGraph copyData, ref PasteInfo infos)
@@ -732,6 +737,9 @@ namespace UnityEditor.VFX.UI
             }
             return InvalidID;
         }
+
+        public List<VFXBlock> PasteBlocks()
+        { return null; }
 
 
         static VFXContext PasteContext(VFXViewController controller,ref Context context,ref PasteInfo infos)
@@ -852,11 +860,11 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-                else if (copyData.operators != null && copyData.operators.Length > 0)
+                else if (copyData.operatorsOrBlocks != null && copyData.operatorsOrBlocks.Length > 0)
                 {
                     foreach (var existingSlotContainer in viewController.graph.children.Where(t => t is IVFXSlotContainer))
                     {
-                        if ((copyData.operators[0].position + infos.pasteOffset - existingSlotContainer.position).sqrMagnitude < 1)
+                        if ((copyData.operatorsOrBlocks[0].position + infos.pasteOffset - existingSlotContainer.position).sqrMagnitude < 1)
                         {
                             foundSamePosition = true;
                             break;
@@ -1124,9 +1132,9 @@ namespace UnityEditor.VFX.UI
         private static List<VFXOperator> PasteOperators(VFXViewController viewController, ref SerializableGraph copyData, ref PasteInfo infos)
         {
             List<VFXOperator> newOperators = new List<VFXOperator>();
-            if (copyData.operators != null)
+            if (copyData.operatorsOrBlocks != null)
             {
-                foreach (var operat in copyData.operators)
+                foreach (var operat in copyData.operatorsOrBlocks)
                 {
                     Node ope = operat;
                     VFXOperator newOperator = PasteAndInitializeNode<VFXOperator>(viewController, ref ope, ref infos);
