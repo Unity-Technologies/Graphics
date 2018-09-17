@@ -39,10 +39,10 @@ static class VisualElementExtensions
         {
             visualElement.AddStyleSheetPath(path + "Dark");
         }
-        else
+        /*else
         {
             visualElement.AddStyleSheetPath(path + "Light");
-        }
+        }*/
     }
 
     public static Vector2 GlobalToBound(this VisualElement visualElement, Vector2 position)

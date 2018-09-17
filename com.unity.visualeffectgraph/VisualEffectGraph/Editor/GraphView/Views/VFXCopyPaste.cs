@@ -487,7 +487,7 @@ namespace UnityEditor.VFX.UI
             for(uint i = 0; i< context.blocks.Length; ++i)
             {
                 CopyNode(ref context.blocks[(int)i], blocks[(int)i].model,i);
-                if( blocks[(int)i].enabled)
+                if( blocks[(int)i].model.enabled)
                 {
                     context.blocks[i].flags |= Node.Flags.Enabled;
                 }
@@ -611,7 +611,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                PasteNodes(viewController, center, copyData, view, groupNode);
+                PasteAll(viewController, center, copyData, view, groupNode);
             }
         }
 
@@ -753,6 +753,8 @@ namespace UnityEditor.VFX.UI
 
                 VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(null,ref blk,ref infos);
 
+                newBlock.enabled = (blk.flags & Node.Flags.Enabled) == Node.Flags.Enabled;
+
                 blocks.Add(newBlock);
 
                 if ( newBlock != null)
@@ -806,6 +808,15 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
+            foreach (var slot in AllSlots(slotContainer.inputSlots))
+            {
+                slot.collapsed = !node.expandedInputs.Contains(slot.path);
+            }
+            foreach (var slot in AllSlots(slotContainer.outputSlots))
+            {
+                slot.collapsed = !node.expandedOutputs.Contains(slot.path);
+            }
+
         }
 
         struct PasteInfo
@@ -816,7 +827,7 @@ namespace UnityEditor.VFX.UI
             public List<KeyValuePair<VFXContext, List<VFXBlock>>> newContexts;
         }
 
-        static void PasteNodes(VFXViewController viewController, Vector2 center, SerializableGraph copyData, VFXView view, VFXGroupNodeController groupNode)
+        static void PasteAll(VFXViewController viewController, Vector2 center, SerializableGraph copyData, VFXView view, VFXGroupNodeController groupNode)
         {
             PasteInfo infos = new PasteInfo();
             infos.newControllers = new Dictionary<NodeID, VFXNodeController>();

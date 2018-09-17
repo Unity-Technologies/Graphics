@@ -665,9 +665,9 @@ namespace UnityEditor.VFX.UI
             {
                 var block = element as VFXBlockController;
                 block.NodeGoingToBeRemoved();
-                block.contextController.RemoveBlock(block.block);
+                block.contextController.RemoveBlock(block.model);
 
-                UnityObject.DestroyImmediate(block.block, true);
+                UnityObject.DestroyImmediate(block.model, true);
             }
             else if (element is VFXParameterNodeController)
             {

@@ -221,11 +221,6 @@ namespace UnityEditor.VFX.UI
             get { return m_Settings; }
         }
 
-        public virtual bool enabled
-        {
-            get { return true; }
-        }
-
         public virtual bool expanded
         {
             get

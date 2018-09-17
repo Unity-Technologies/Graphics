@@ -224,11 +224,11 @@ namespace UnityEditor.VFX.UI
             {
                 if (copy)
                 {
-                    this.AddBlock(blockIndex++, DuplicateBlock(draggedBlock.block));
+                    this.AddBlock(blockIndex++, DuplicateBlock(draggedBlock.model));
                 }
                 else
                 {
-                    this.ReorderBlock(blockIndex++, draggedBlock.block);
+                    this.ReorderBlock(blockIndex++, draggedBlock.model);
                 }
             }
         }

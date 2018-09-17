@@ -63,14 +63,14 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleEnable(ChangeEvent<bool> e)
         {
-            controller.block.enabled = !controller.block.enabled;
+            controller.model.enabled = !controller.model.enabled;
         }
 
         protected override void SelfChange()
         {
             base.SelfChange();
 
-            if (controller.block.enabled)
+            if (controller.model.enabled)
             {
                 titleContainer.RemoveFromClassList("disabled");
             }
@@ -79,11 +79,11 @@ namespace UnityEditor.VFX.UI
                 titleContainer.AddToClassList("disabled");
             }
 
-            m_EnableToggle.SetValueWithoutNotify(controller.block.enabled);
+            m_EnableToggle.SetValueWithoutNotify(controller.model.enabled);
             if (inputContainer != null)
-                inputContainer.SetEnabled(controller.block.enabled);
+                inputContainer.SetEnabled(controller.model.enabled);
             if (settingsContainer != null)
-                settingsContainer.SetEnabled(controller.block.enabled);
+                settingsContainer.SetEnabled(controller.model.enabled);
         }
         public override bool superCollapsed
         {

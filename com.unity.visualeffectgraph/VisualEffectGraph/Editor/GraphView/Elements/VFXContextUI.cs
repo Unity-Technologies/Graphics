@@ -235,7 +235,7 @@ namespace UnityEditor.VFX.UI
             if (blocks.Count() == 0) return false;
             foreach (var block in blocks)
             {
-                if (!controller.model.AcceptChild(block.controller.block))
+                if (!controller.model.AcceptChild(block.controller.model))
                 {
                     accept = false;
                     break;
@@ -432,7 +432,7 @@ namespace UnityEditor.VFX.UI
             if (block == null)
                 return;
 
-            controller.RemoveBlock(block.controller.block);
+            controller.RemoveBlock(block.controller.model);
         }
 
         private void InstantiateBlock(VFXBlockController blockController)
