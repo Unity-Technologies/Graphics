@@ -235,7 +235,7 @@ namespace UnityEditor.VFX.UI
         {
             schedule.Execute(() =>
             {
-                if (controller.graph)
+                if (controller != null && controller.graph)
                     controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
             }).ExecuteLater(1);
 

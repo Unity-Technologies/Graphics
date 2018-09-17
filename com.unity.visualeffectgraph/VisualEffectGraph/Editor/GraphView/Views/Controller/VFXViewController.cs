@@ -220,7 +220,7 @@ namespace UnityEditor.VFX.UI
             
         }
 
-        public VFXGraph graph { get {return model.graph as VFXGraph; }}
+        public VFXGraph graph { get {return model!= null ? model.graph as VFXGraph : null; }}
 
         List<VFXFlowAnchorController> m_FlowAnchorController = new List<VFXFlowAnchorController>();
 

@@ -1163,7 +1163,7 @@ namespace UnityEditor.VFX.UI
                                 p.m_Min = parameter.min;
                                 p.m_Max = parameter.max;
                             }
-                            p.SetSettingValue("m_ExposedName", parameter.name); // the controller will take care or name unicity later
+                            p.SetSettingValue("m_exposedName", parameter.name); // the controller will take care or name unicity later
                             p.tooltip = parameter.tooltip;
                         }
 

@@ -218,9 +218,9 @@ namespace UnityEditor.VFX.Test
 
             foreach (var newBlock in newBlocks)
             {
-                Assert.AreEqual(contextController.blockControllers.Where(t => t.block == newBlock).Count(), 1, "Failing Block" + newBlock.name + "in context" + newContext.name);
+                Assert.AreEqual(contextController.blockControllers.Where(t => t.model == newBlock).Count(), 1, "Failing Block" + newBlock.name + "in context" + newContext.name);
 
-                var blockController = contextController.blockControllers.Where(t => t.block == newBlock).First() as VFXBlockController;
+                var blockController = contextController.blockControllers.Where(t => t.model == newBlock).First() as VFXBlockController;
 
                 Assert.NotNull(blockController);
             }
@@ -259,15 +259,15 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(newBlock is AllType);
             m_ViewController.ApplyChanges();
 
-            Assert.AreEqual(contextController.blockControllers.Where(t => t.block == newBlock).Count(), 1);
+            Assert.AreEqual(contextController.blockControllers.Where(t => t.model == newBlock).Count(), 1);
 
-            var blockController = contextController.blockControllers.Where(t => t.block == newBlock).First();
+            var blockController = contextController.blockControllers.Where(t => t.model == newBlock).First();
 
             Assert.NotNull(blockController);
 
             Assert.NotZero(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).name == "aVector3").Count());
 
-            VFXSlot slot = blockController.block.inputSlots.First(t => t.name == "aVector3");
+            VFXSlot slot = blockController.model.inputSlots.First(t => t.name == "aVector3");
 
 
             var aVector3Controller = blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).name == "aVector3").First() as VFXContextDataInputAnchorController;
