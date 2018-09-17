@@ -646,7 +646,11 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #else
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
+            #endif
             #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
