@@ -9,6 +9,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class LayeredLitGUI : LitGUI
     {
+        //Be sure to start after last BaseUnlitGUI.Expendable
+        protected enum LayerExpendable : uint
+        {
+            ShowLayer1 = 1 << 16,
+            ShowLayer2 = 1 << 17,
+            ShowLayer3 = 1 << 18,
+            MaterialReferences = 1 << 19,
+            MainInput = 1 << 20,
+            Layer1Input = 1 << 21,
+            Layer2Input = 1 << 22,
+            Layer3Input = 1 << 23,
+            MainDetail = 1 << 24,
+            Layer1Detail = 1 << 25,
+            Layer2Detail = 1 << 26,
+            Layer3Detail = 1 << 27,
+            LayeringOption1 = 1 << 28,
+            LayeringOption2 = 1 << 29,
+            LayeringOption3 = 1 << 30
+        }
+
         public enum VertexColorMode
         {
             None,
@@ -141,12 +161,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
-        // UI
-        MaterialProperty showMaterialReferences = null;
-        const string kShowMaterialReferences = "_ShowMaterialReferences";
-        MaterialProperty[] showLayer = new MaterialProperty[kMaxLayerCount];
-        const string kShowLayer = "_ShowLayer";
-
         bool m_UseHeightBasedBlend;
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
@@ -167,13 +181,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
             heightTransition = FindProperty(kHeightTransition, props);
 
-            showMaterialReferences = FindProperty(kShowMaterialReferences, props);
-
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
                 // Density/opacity mode
                 opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
-                showLayer[i] = FindProperty(string.Format("{0}{1}", kShowLayer, i), props);
 
                 if (i != 0)
                 {
@@ -185,10 +196,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        protected override void FindEditorProperties(MaterialProperty[] props)
+        {
+            base.FindEditorProperties(props);
+            UpdateEditorExpended((int)layerCount.floatValue);
+        }
+
+        void UpdateEditorExpended(int layerNumber)
+        {
+            if (layerNumber == 4)
+            {
+                SetExpendedAreas((uint)LayerExpendable.ShowLayer3, true);
+            }
+            if (layerNumber == 3)
+            {
+                SetExpendedAreas((uint)LayerExpendable.ShowLayer2, true);
+            }
+            SetExpendedAreas((uint)LayerExpendable.ShowLayer1, true);
+        }
+
         int numLayer
         {
-            set { layerCount.floatValue = (float)value; }
             get { return (int)layerCount.floatValue; }
+            set
+            {
+                layerCount.floatValue = (float)value;
+                UpdateEditorExpended(value);
+            }
         }
 
         // This function is call by a script to help artists to ahve up to date material
@@ -311,11 +345,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             bool result = false;
 
-            showLayer[layerIndex].floatValue = EditorGUILayout.Foldout(showLayer[layerIndex].floatValue != 0.0f, styles.layerLabels[layerIndex], styles.layerLabelColors[layerIndex]) ? 1.0f : 0.0f;
-            if (showLayer[layerIndex].floatValue == 0.0f)
-                return false;
-            ;
+            int paramIndex = -1;
+            Array values = Enum.GetValues(typeof(LayerExpendable));
+            if (layerIndex > 0)
+            {
+                paramIndex = layerIndex - 1;
 
+                int startShowVal = Array.IndexOf(values, LayerExpendable.ShowLayer1);
+                if (!GetExpendedAreas((uint)values.GetValue(startShowVal + paramIndex)))
+                {
+                    return false;
+                }
+            }
+            
+            //showLayer[layerIndex].floatValue = EditorGUILayout.Foldout(showLayer[layerIndex].floatValue != 0.0f, styles.layerLabels[layerIndex], styles.layerLabelColors[layerIndex]) ? 1.0f : 0.0f;
+            
             Material material = m_MaterialEditor.target as Material;
 
             bool mainLayerInfluenceEnable = useMainLayerInfluence.floatValue > 0.0f;
@@ -323,156 +367,155 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Main layer does not have any options but height base blend.
             if (layerIndex > 0)
             {
-                EditorGUILayout.LabelField(styles.layeringOptionText, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-
-                int paramIndex = layerIndex - 1;
-
-                m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
-
-                if (mainLayerInfluenceEnable)
+                int startLayeringOptionValue = Array.IndexOf(values, LayerExpendable.LayeringOption1);
+                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)values.GetValue(startLayeringOptionValue + paramIndex), this, colorDot: s_Styles.layerColors[layerIndex]))
                 {
-                    m_MaterialEditor.ShaderProperty(inheritBaseColor[paramIndex], styles.inheritBaseColorText);
-                    m_MaterialEditor.ShaderProperty(inheritBaseNormal[paramIndex], styles.inheritBaseNormalText);
-                    // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
-                    // We always display it as it can be tricky to know when per pixel displacement is enabled or not
-                    m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
-                }
+                    if (header.expended)
+                    {
+                        m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
 
-                EditorGUI.indentLevel--;
+                        if (mainLayerInfluenceEnable)
+                        {
+                            m_MaterialEditor.ShaderProperty(inheritBaseColor[paramIndex], styles.inheritBaseColorText);
+                            m_MaterialEditor.ShaderProperty(inheritBaseNormal[paramIndex], styles.inheritBaseNormalText);
+                            // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
+                            // We always display it as it can be tricky to know when per pixel displacement is enabled or not
+                            m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
+                        }
+
+                    }
+                }
             }
-            else
+            else if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
             {
-                if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
+                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex] + " " + styles.layeringOptionText.text, (uint)LayerExpendable.MainInput, this, colorDot: s_Styles.layerColors[layerIndex]))
                 {
-                    EditorGUILayout.LabelField(styles.layeringOptionText, EditorStyles.boldLabel);
-                    EditorGUI.indentLevel++;
-
-                    m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
-
-                    EditorGUI.indentLevel--;
+                    if (header.expended)
+                        m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
                 }
             }
 
-            EditorGUILayout.Space();
-
-            DoLayerGUI(material, layerIndex, true, m_UseHeightBasedBlend);
-
-            if (layerIndex == 0)
-                EditorGUILayout.Space();
+            int startInputValue = Array.IndexOf(values, LayerExpendable.Layer1Input);
+            int startDetailValue = Array.IndexOf(values, LayerExpendable.Layer1Detail);
+            DoLayerGUI(material, layerIndex, true, m_UseHeightBasedBlend, s_Styles.layerLabels[layerIndex].text + " ", (uint)values.GetValue(startInputValue + paramIndex), (uint)values.GetValue(startDetailValue + paramIndex), colorDot: s_Styles.layerColors[layerIndex]);
 
             return result;
         }
 
         void DoLayeringInputGUI()
         {
-            EditorGUI.indentLevel++;
-            GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
-
-            EditorGUI.showMixedValue = layerCount.hasMixedValue;
-            EditorGUI.BeginChangeCheck();
-            int newLayerCount = EditorGUILayout.IntSlider(styles.layerCountText, (int)layerCount.floatValue, 2, 4);
-            if (EditorGUI.EndChangeCheck())
+            using (var header = new HeaderScope(styles.layersText.text, (uint)Expendable.Input, this))
             {
-                Material material = m_MaterialEditor.target as Material;
-                Undo.RecordObject(material, "Change layer count");
-                layerCount.floatValue = (float)newLayerCount;
+                if (header.expended)
+                {
+                    EditorGUI.showMixedValue = layerCount.hasMixedValue;
+                    EditorGUI.BeginChangeCheck();
+                    int newLayerCount = EditorGUILayout.IntSlider(styles.layerCountText, (int)layerCount.floatValue, 2, 4);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Material material = m_MaterialEditor.target as Material;
+                        Undo.RecordObject(material, "Change layer count");
+                        numLayer = newLayerCount;
+                    }
+
+                    m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
+
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(UVBlendMask, styles.UVBlendMaskText);
+                    UVBaseMapping uvBlendMask = (UVBaseMapping)UVBlendMask.floatValue;
+
+                    float X, Y, Z, W;
+                    X = (uvBlendMask == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+                    Y = (uvBlendMask == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+                    Z = (uvBlendMask == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+                    W = (uvBlendMask == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+                    UVMappingMaskBlendMask.colorValue = new Color(X, Y, Z, W);
+
+                    if (((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Planar) ||
+                        ((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Triplanar))
+                    {
+                        m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
+                    }
+                    m_MaterialEditor.TextureScaleOffsetProperty(layerMaskMap);
+                    EditorGUI.indentLevel--;
+
+                    m_MaterialEditor.ShaderProperty(vertexColorMode, styles.vertexColorModeText);
+
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;
+                    bool mainLayerModeInfluenceEnable = EditorGUILayout.Toggle(styles.useMainLayerInfluenceModeText, useMainLayerInfluence.floatValue > 0.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
+                    }
+
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
+                    m_UseHeightBasedBlend = EditorGUILayout.Toggle(styles.useHeightBasedBlendText, useHeightBasedBlend.floatValue > 0.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        useHeightBasedBlend.floatValue = m_UseHeightBasedBlend ? 1.0f : 0.0f;
+                    }
+
+                    if (m_UseHeightBasedBlend)
+                    {
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
+                        EditorGUI.indentLevel--;
+                    }
+
+                    m_MaterialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? styles.objectScaleAffectTileText2 : styles.objectScaleAffectTileText);
+                }
             }
-
-            m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
-
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(UVBlendMask, styles.UVBlendMaskText);
-            UVBaseMapping uvBlendMask = (UVBaseMapping)UVBlendMask.floatValue;
-
-            float X, Y, Z, W;
-            X = (uvBlendMask == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-            Y = (uvBlendMask == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-            Z = (uvBlendMask == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-            W = (uvBlendMask == UVBaseMapping.UV3) ? 1.0f : 0.0f;
-
-            UVMappingMaskBlendMask.colorValue = new Color(X, Y, Z, W);
-
-            if (((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Planar) ||
-                ((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Triplanar))
-            {
-                m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
-            }
-            m_MaterialEditor.TextureScaleOffsetProperty(layerMaskMap);
-            EditorGUI.indentLevel--;
-
-            m_MaterialEditor.ShaderProperty(vertexColorMode, styles.vertexColorModeText);
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;
-            bool mainLayerModeInfluenceEnable = EditorGUILayout.Toggle(styles.useMainLayerInfluenceModeText, useMainLayerInfluence.floatValue > 0.0f);
-            if (EditorGUI.EndChangeCheck())
-            {
-                useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
-            }
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
-            m_UseHeightBasedBlend = EditorGUILayout.Toggle(styles.useHeightBasedBlendText, useHeightBasedBlend.floatValue > 0.0f);
-            if (EditorGUI.EndChangeCheck())
-            {
-                useHeightBasedBlend.floatValue = m_UseHeightBasedBlend ? 1.0f : 0.0f;
-            }
-
-            if (m_UseHeightBasedBlend)
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
-                EditorGUI.indentLevel--;
-            }
-
-            m_MaterialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? styles.objectScaleAffectTileText2 : styles.objectScaleAffectTileText);
-            EditorGUI.indentLevel--;
         }
 
         bool DoMaterialReferencesGUI(AssetImporter materialImporter)
         {
-            showMaterialReferences.floatValue = EditorGUILayout.Foldout(showMaterialReferences.floatValue != 0.0f, styles.materialReferencesText, styles.layerLabelColors[0]) ? 1.0f : 0.0f;
-            if (showMaterialReferences.floatValue == 0.0f)
-                return false;
-
             bool layersChanged = false;
-            Material material = m_MaterialEditor.target as Material;
 
-            Color originalContentColor = GUI.contentColor;
-
-            for (int layerIndex = 0; layerIndex < numLayer; ++layerIndex)
+            using (var header = new HeaderScope(styles.materialReferencesText.text, (uint)LayerExpendable.MaterialReferences, this))
             {
-                EditorGUI.BeginChangeCheck();
-                GUI.contentColor = styles.layerColors[layerIndex];
-
-                m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.layerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
-                if (EditorGUI.EndChangeCheck())
+                if (header.expended)
                 {
-                    Undo.RecordObject(materialImporter, "Change layer material");
-                    SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, true);
-                    layersChanged = true;
-                }
+                    Material material = m_MaterialEditor.target as Material;
 
-                GUI.contentColor = originalContentColor;
+                    Color originalContentColor = GUI.contentColor;
 
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.Button(styles.syncAllButUVButtonText))
+                    for (int layerIndex = 0; layerIndex < numLayer; ++layerIndex)
                     {
-                        SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, true);
-                        layersChanged = true;
-                    }
-                    if (GUILayout.Button(styles.syncAllButtonText))
-                    {
-                        SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, false);
-                        layersChanged = true;
+                        EditorGUI.BeginChangeCheck();
+                        GUI.contentColor = styles.layerColors[layerIndex];
+
+                        m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.layerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(materialImporter, "Change layer material");
+                            SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, true);
+                            layersChanged = true;
+                        }
+
+                        GUI.contentColor = originalContentColor;
+
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.FlexibleSpace();
+                            if (GUILayout.Button(styles.syncAllButUVButtonText))
+                            {
+                                SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, true);
+                                layersChanged = true;
+                            }
+                            if (GUILayout.Button(styles.syncAllButtonText))
+                            {
+                                SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex, false);
+                                layersChanged = true;
+                            }
+                        }
+                        GUILayout.EndHorizontal();
                     }
                 }
-                GUILayout.EndHorizontal();
             }
-
+            
             return layersChanged;
         }
 
@@ -484,18 +527,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             DoLayeringInputGUI();
 
-            EditorGUILayout.Space();
-
             layerChanged |= DoMaterialReferencesGUI(materialImporter);
-
-            EditorGUILayout.Space();
 
             for (int i = 0; i < numLayer; i++)
             {
                 layerChanged |= DoLayerGUI(materialImporter, i);
             }
-
-            EditorGUILayout.Space();
 
             layerChanged |= GUI.changed;
             GUI.changed = false;
@@ -669,6 +706,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             FindBaseMaterialProperties(props);
             FindMaterialProperties(props);
+            FindEditorProperties(props);    //require MaterialPropertie to sync
 
             m_MaterialEditor = materialEditor;
             // We should always do this call at the beginning
@@ -682,11 +720,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
             {
-                BaseMaterialPropertiesGUI();
-                EditorGUILayout.Space();
-
+                using (var header = new HeaderScope(StylesBaseUnlit.optionText, (uint)Expendable.Base, this))
+                {
+                    if (header.expended)
+                        BaseMaterialPropertiesGUI();
+                }
+                MaterialTesselationPropertiesGUI();
                 VertexAnimationPropertiesGUI();
-                EditorGUILayout.Space();
             }
             if (EditorGUI.EndChangeCheck())
             {
@@ -745,13 +785,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             DoEmissionArea(material);
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
-            // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.EnableInstancingField();
-            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
-            EditorGUI.indentLevel--;
+            using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expendable.Advance, this))
+            {
+                if (header.expended)
+                {
+                    // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
+                    m_MaterialEditor.EnableInstancingField();
+                    m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+                }
+            }
 
             if (layerChanged || optionsChanged)
             {

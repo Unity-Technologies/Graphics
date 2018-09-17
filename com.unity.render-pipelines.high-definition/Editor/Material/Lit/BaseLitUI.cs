@@ -329,29 +329,69 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUI.indentLevel--;
+        }
 
+        protected virtual void MaterialTesselationPropertiesGUI()
+        {
             // Display tessellation option if it exist
             if (tessellationMode != null)
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField(StylesBaseLit.tessellationText, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-                TessellationModePopup();
-                m_MaterialEditor.ShaderProperty(tessellationFactor, StylesBaseLit.tessellationFactorText);
-                m_MaterialEditor.ShaderProperty(tessellationFactorMinDistance, StylesBaseLit.tessellationFactorMinDistanceText);
-                m_MaterialEditor.ShaderProperty(tessellationFactorMaxDistance, StylesBaseLit.tessellationFactorMaxDistanceText);
-                // clamp min distance to be below max distance
-                tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
-                m_MaterialEditor.ShaderProperty(tessellationFactorTriangleSize, StylesBaseLit.tessellationFactorTriangleSizeText);
-                if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong)
+                using (var header = new HeaderScope(StylesBaseLit.tessellationText.text, (uint)Expendable.Tesselation, this))
                 {
-                    m_MaterialEditor.ShaderProperty(tessellationShapeFactor, StylesBaseLit.tessellationShapeFactorText);
+                    if (header.expended)
+                    {
+                        TessellationModePopup();
+                        m_MaterialEditor.ShaderProperty(tessellationFactor, StylesBaseLit.tessellationFactorText);
+                        m_MaterialEditor.ShaderProperty(tessellationFactorMinDistance, StylesBaseLit.tessellationFactorMinDistanceText);
+                        m_MaterialEditor.ShaderProperty(tessellationFactorMaxDistance, StylesBaseLit.tessellationFactorMaxDistanceText);
+                        // clamp min distance to be below max distance
+                        tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
+                        m_MaterialEditor.ShaderProperty(tessellationFactorTriangleSize, StylesBaseLit.tessellationFactorTriangleSizeText);
+                        if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong)
+                        {
+                            m_MaterialEditor.ShaderProperty(tessellationShapeFactor, StylesBaseLit.tessellationShapeFactorText);
+                        }
+                        if (doubleSidedEnable.floatValue == 0.0)
+                        {
+                            m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, StylesBaseLit.tessellationBackFaceCullEpsilonText);
+                        }
+                    }
                 }
-                if (doubleSidedEnable.floatValue == 0.0)
+            }
+        }
+
+        //override for adding Tesselation
+        public override void ShaderPropertiesGUI(Material material)
+        {
+            // Use default labelWidth
+            EditorGUIUtility.labelWidth = 0f;
+
+            // Detect any changes to the material
+            EditorGUI.BeginChangeCheck();
+            {
+                using (var header = new HeaderScope(StylesBaseUnlit.optionText, (uint)Expendable.Base, this))
                 {
-                    m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, StylesBaseLit.tessellationBackFaceCullEpsilonText);
+                    if (header.expended)
+                        BaseMaterialPropertiesGUI();
                 }
-                EditorGUI.indentLevel--;
+                MaterialTesselationPropertiesGUI();
+                VertexAnimationPropertiesGUI();
+                MaterialPropertiesGUI(material);
+                DoEmissionArea(material);
+                using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expendable.Advance, this))
+                {
+                    if (header.expended)
+                    {
+                        m_MaterialEditor.EnableInstancingField();
+                        MaterialPropertiesAdvanceGUI(material);
+                    }
+                }
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                foreach (var obj in m_MaterialEditor.targets)
+                    SetupMaterialKeywordsAndPassInternal((Material)obj);
             }
         }
 
@@ -359,24 +399,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (windEnable == null)
                 return;
-
-            EditorGUILayout.LabelField(StylesBaseLit.vertexAnimation, EditorStyles.boldLabel);
-
-            EditorGUI.indentLevel++;
-
-            m_MaterialEditor.ShaderProperty(windEnable, StylesBaseLit.windText);
-            if (!windEnable.hasMixedValue && windEnable.floatValue > 0.0f)
+            
+            using (var header = new HeaderScope(StylesBaseLit.vertexAnimation, (uint)Expendable.VertexAnimation, this))
             {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(windInitialBend, StylesBaseLit.windInitialBendText);
-                m_MaterialEditor.ShaderProperty(windStiffness, StylesBaseLit.windStiffnessText);
-                m_MaterialEditor.ShaderProperty(windDrag, StylesBaseLit.windDragText);
-                m_MaterialEditor.ShaderProperty(windShiverDrag, StylesBaseLit.windShiverDragText);
-                m_MaterialEditor.ShaderProperty(windShiverDirectionality, StylesBaseLit.windShiverDirectionalityText);
-                EditorGUI.indentLevel--;
+                if (header.expended)
+                {
+                    m_MaterialEditor.ShaderProperty(windEnable, StylesBaseLit.windText);
+                    if (!windEnable.hasMixedValue && windEnable.floatValue > 0.0f)
+                    {
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(windInitialBend, StylesBaseLit.windInitialBendText);
+                        m_MaterialEditor.ShaderProperty(windStiffness, StylesBaseLit.windStiffnessText);
+                        m_MaterialEditor.ShaderProperty(windDrag, StylesBaseLit.windDragText);
+                        m_MaterialEditor.ShaderProperty(windShiverDrag, StylesBaseLit.windShiverDragText);
+                        m_MaterialEditor.ShaderProperty(windShiverDirectionality, StylesBaseLit.windShiverDirectionalityText);
+                        EditorGUI.indentLevel--;
+                    }
+                }
             }
-
-            EditorGUI.indentLevel--;
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change

@@ -105,6 +105,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             FindBaseMaterialProperties(props);
+            FindEditorProperties(props);
             FindMaterialProperties(props);
 
             m_MaterialEditor = materialEditor;
@@ -139,20 +140,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool enablePerPixelNormalChanged = false;
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
-            // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.EnableInstancingField();
-            if (m_MaterialEditor.IsInstancingEnabled())
+
+            using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expendable.Advance, this))
             {
-                EditorGUI.indentLevel++;
-                EditorGUI.BeginChangeCheck();
-                m_MaterialEditor.ShaderProperty(enableInstancedPerPixelNormal, styles.enableInstancedPerPixelNormal);
-                enablePerPixelNormalChanged = EditorGUI.EndChangeCheck();
-                EditorGUI.indentLevel--;
+                if (header.expended)
+                {
+                    // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
+                    m_MaterialEditor.EnableInstancingField();
+                    if (m_MaterialEditor.IsInstancingEnabled())
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUI.BeginChangeCheck();
+                        m_MaterialEditor.ShaderProperty(enableInstancedPerPixelNormal, styles.enableInstancedPerPixelNormal);
+                        enablePerPixelNormalChanged = EditorGUI.EndChangeCheck();
+                        EditorGUI.indentLevel--;
+                    }
+                }
             }
-            EditorGUI.indentLevel--;
 
             if (optionsChanged || enablePerPixelNormalChanged)
             {

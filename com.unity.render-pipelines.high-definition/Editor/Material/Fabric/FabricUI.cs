@@ -13,6 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent fabricTypeText = new GUIContent("Fabric Type", "");
             public static string InputsText = "Inputs";
             public static string emissiveLabelText = "Emissive Inputs";
+            public static string fabricLabelText = "Fabric Options";
 
             // Primary UV mapping
             public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
@@ -216,6 +217,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // protected MaterialProperty enableSpecularOcclusion = null;
         // protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
 
+        protected bool fabricOptionExpended = true;
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
@@ -349,107 +351,108 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void BaseInputGUI(Material material)
         {
-            // The set of inputs offered for customizing the material 
-            EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-
-            // The base color map and matching base color value
-            m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
-
-            // If no mask texture was provided, we display the smoothness value
-            if (maskMap.textureValue == null)
+            using (var header = new HeaderScope(Styles.InputsText, (uint)Expendable.Input, this))
             {
-                m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
-            }
-
-            // If we have a mask map, we do not use values but remapping fields instead
-            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSpecularText, maskMap);
-            if (maskMap.textureValue != null)
-            {
-                float remapMin = smoothnessRemapMin.floatValue;
-                float remapMax = smoothnessRemapMax.floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
+                if (header.expended)
                 {
-                    smoothnessRemapMin.floatValue = remapMin;
-                    smoothnessRemapMax.floatValue = remapMax;
-                }
+                    // The base color map and matching base color value
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
 
-                float aoMin = aoRemapMin.floatValue;
-                float aoMax = aoRemapMax.floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref aoMin, ref aoMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    aoRemapMin.floatValue = aoMin;
-                    aoRemapMax.floatValue = aoMax;
+                    // If no mask texture was provided, we display the smoothness value
+                    if (maskMap.textureValue == null)
+                    {
+                        m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
+                    }
+
+                    // If we have a mask map, we do not use values but remapping fields instead
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSpecularText, maskMap);
+                    if (maskMap.textureValue != null)
+                    {
+                        float remapMin = smoothnessRemapMin.floatValue;
+                        float remapMax = smoothnessRemapMax.floatValue;
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            smoothnessRemapMin.floatValue = remapMin;
+                            smoothnessRemapMax.floatValue = remapMax;
+                        }
+
+                        float aoMin = aoRemapMin.floatValue;
+                        float aoMax = aoRemapMax.floatValue;
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref aoMin, ref aoMax, 0.0f, 1.0f);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            aoRemapMin.floatValue = aoMin;
+                            aoRemapMax.floatValue = aoMax;
+                        }
+                    }
+
+                    // The specular color value (that affects the color of the specular lighting term)
+                    m_MaterialEditor.ShaderProperty(specularColor, Styles.specularColorText);
+                    // The primal normal map field
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
+
+                    // m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap);
+
+                    // The diffusion/transmission/subsurface gui
+                    ShaderSSSAndTransmissionInputGUI(material);
+
+                    // Anisotropy GUI
+                    ShaderAnisoInputGUI(material);
+
+                    // Define the UV mapping for the base textures
+                    BaseUVMappingInputGUI();
+
                 }
             }
-
-            // The primal normal map field
-            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
-
-            // The specular color value (that affects the color of the specular lighting term)
-            m_MaterialEditor.ShaderProperty(specularColor, Styles.specularColorText);
-
-            // m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap);
-
-            // The diffusion/transmission/subsurface gui
-            ShaderSSSAndTransmissionInputGUI(material);
-
-            // Anisotropy GUI
-            ShaderAnisoInputGUI(material);
-
-            // Define the UV mapping for the base textures
-            BaseUVMappingInputGUI();
-
-            EditorGUI.indentLevel--;
         }
 
         protected void DetailsInput(Material material)
         {
-            EditorGUILayout.LabelField(Styles.threadText, EditorStyles.boldLabel);
-
-            EditorGUI.indentLevel++;
-
-            m_MaterialEditor.TexturePropertySingleLine(Styles.threadMapText, threadMap);
-            if (material.GetTexture(kThreadMap))
+            using (var header = new HeaderScope(Styles.threadText, (uint)Expendable.Detail, this))
             {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(threadAOScale, Styles.threadAOScaleText);
-                m_MaterialEditor.ShaderProperty(threadNormalScale, Styles.threadNormalScaleText);
-                m_MaterialEditor.ShaderProperty(threadSmoothnessScale, Styles.threadSmoothnessScaleText);
-                EditorGUI.indentLevel--;
+                if (header.expended)
+                {
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.threadMapText, threadMap);
+                    if (material.GetTexture(kThreadMap))
+                    {
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(threadAOScale, Styles.threadAOScaleText);
+                        m_MaterialEditor.ShaderProperty(threadNormalScale, Styles.threadNormalScaleText);
+                        m_MaterialEditor.ShaderProperty(threadSmoothnessScale, Styles.threadSmoothnessScaleText);
+                        EditorGUI.indentLevel--;
+                    }
+
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.FuzzDetailText, fuzzDetailMap);
+                    if (material.GetTexture(kFuzzDetailMap))
+                    {
+                        m_MaterialEditor.ShaderProperty(fuzzDetailScale, Styles.FuzzDetailScale);
+                        m_MaterialEditor.ShaderProperty(fuzzDetailUVScale, Styles.FuzzDetailUVScale);
+                    }
+
+                    if (material.GetTexture(kThreadMap) || material.GetTexture(kFuzzDetailMap))
+                    {
+                        EditorGUI.indentLevel++;
+
+                        m_MaterialEditor.ShaderProperty(UVThread, Styles.UVThreadMappingText);
+
+                        // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
+                        float X, Y, Z, W;
+                        X = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV0) ? 1.0f : 0.0f;
+                        Y = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV1) ? 1.0f : 0.0f;
+                        Z = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV2) ? 1.0f : 0.0f;
+                        W = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV3) ? 1.0f : 0.0f;
+                        UVMappingMaskThread.colorValue = new Color(X, Y, Z, W);
+
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(linkDetailsWithBase, Styles.linkDetailsWithBaseText);
+                        EditorGUI.indentLevel--;
+                        m_MaterialEditor.TextureScaleOffsetProperty(threadMap);
+                    }
+                }
             }
-
-            m_MaterialEditor.TexturePropertySingleLine(Styles.FuzzDetailText, fuzzDetailMap);
-            if (material.GetTexture(kFuzzDetailMap))
-            {
-                m_MaterialEditor.ShaderProperty(fuzzDetailScale, Styles.FuzzDetailScale);
-                m_MaterialEditor.ShaderProperty(fuzzDetailUVScale, Styles.FuzzDetailUVScale);
-            }
-
-            if (material.GetTexture(kThreadMap) || material.GetTexture(kFuzzDetailMap))
-            {
-                EditorGUI.indentLevel++;
-
-                m_MaterialEditor.ShaderProperty(UVThread, Styles.UVThreadMappingText);
-
-                // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
-                float X, Y, Z, W;
-                X = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV0) ? 1.0f : 0.0f;
-                Y = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV1) ? 1.0f : 0.0f;
-                Z = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV2) ? 1.0f : 0.0f;
-                W = ((UVThreadMapping)UVThread.floatValue == UVThreadMapping.UV3) ? 1.0f : 0.0f;
-                UVMappingMaskThread.colorValue = new Color(X, Y, Z, W);
-
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(linkDetailsWithBase, Styles.linkDetailsWithBaseText);
-                EditorGUI.indentLevel--;
-                m_MaterialEditor.TextureScaleOffsetProperty(threadMap);
-            }
-            EditorGUI.indentLevel--;
         }
 
         protected void ShaderSSSAndTransmissionInputGUI(Material material)
@@ -540,33 +543,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
         }
+
         protected void EmissiveInputGUI(Material material)
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.emissiveLabelText, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-
-            if (material.GetTexture(kEmissiveColorMap))
+            using (var header = new HeaderScope(Styles.emissiveLabelText, (uint)Expendable.Emissive, this))
             {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVMappingEmissiveText);
-                UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
+                if (header.expended)
+                {
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
 
-                float X, Y, Z, W;
-                X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-                Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-                Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-                W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+                    if (material.GetTexture(kEmissiveColorMap))
+                    {
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVMappingEmissiveText);
+                        UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
 
-                UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
+                        float X, Y, Z, W;
+                        X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+                        Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+                        Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+                        W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+                        UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
 
 
-                m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
-                EditorGUI.indentLevel--;
+                        m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+                        EditorGUI.indentLevel--;
+                    }
+                }
             }
-
-            EditorGUI.indentLevel--;
         }
 
         protected void ShaderAnisoInputGUI(Material material)
@@ -583,29 +588,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void MaterialPropertiesGUI(Material material)
         {
-            GUILayout.Label("Fabric Options", EditorStyles.boldLabel);
-
-            // The generic type of the fabric (either cotton/wool or silk)
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(fabricType, Styles.fabricTypeText);
-            EditorGUI.indentLevel--;
+            using (var header = new HeaderScope(Styles.fabricLabelText, (uint)Expendable.Other, this))
+            {
+                if (header.expended)
+                {
+                    // The generic type of the fabric (either cotton/wool or silk)
+                    m_MaterialEditor.ShaderProperty(fabricType, Styles.fabricTypeText);
+                }
+            }
 
             // Base GUI
-            EditorGUI.indentLevel++;
             BaseInputGUI(material);
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
 
             // Emissive GUI
-            EditorGUI.indentLevel++;
             EmissiveInputGUI(material);
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
 
             // Details Input
-            EditorGUI.indentLevel++;
             DetailsInput(material);
-            EditorGUI.indentLevel--;
         }
 
         protected override void VertexAnimationPropertiesGUI()
