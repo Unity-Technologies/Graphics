@@ -525,7 +525,11 @@ Shader "HDRenderPipeline/LitTessellation"
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "ShaderPass/LitSharePass.hlsl"
+            #else
             #include "ShaderPass/LitVelocityPass.hlsl"
+            #endif
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
