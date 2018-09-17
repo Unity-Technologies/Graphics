@@ -353,11 +353,13 @@ namespace UnityEditor.VFX.UI
             infos.operators = nodes.OfType<VFXOperatorController>().ToArray();
             infos.parameters = nodes.OfType<VFXParameterNodeController>().ToArray();
 
+            infos.datas = infos.contexts.Select(t => t.model.GetData()).Where(t => t != null).ToArray();
+
             CopyOperatorsAndContexts(ref copyData, ref infos);
 
             CopyParameters(ref copyData,ref infos);
 
-            infos.datas = infos.contexts.Select(t => t.model.GetData()).Where(t => t != null).ToArray();
+            
 
             CopyGroupNodesAndStickyNotes(ref copyData, elements, ref infos);
 
@@ -502,6 +504,11 @@ namespace UnityEditor.VFX.UI
             NodeID id = CopyNode(ref context.node, controller.model, (NodeID)index);
 
             var blocks = controller.blockControllers;
+
+            if(controller.model.GetData() != null)
+                context.dataIndex = Array.IndexOf(infos.datas,controller.model.GetData());
+            else
+                context.dataIndex = -1;
             context.blocks = CopyBlocks(controller.blockControllers,index,ref infos);
 
             return id;
@@ -790,19 +797,25 @@ namespace UnityEditor.VFX.UI
             return newNode;
         }
 
+        static void PasteModelSettings(VFXModel model,Property[] settings,Type type)
+        {
+            var fields = GetFields(type);
+
+            for(int i = 0 ; i < settings.Length ; ++i)
+            {
+                string name = settings[i].name;
+                var field = fields.Find(t=>t.Name == name);
+                if(field != null)
+                    field.SetValue(model,settings[i].value.Get());
+            }
+        }
+
         static void PasteNode(VFXModel model,ref Node node,ref PasteInfo infos)
         {
             model.position = node.position + infos.pasteOffset;
 
-            var fields = GetFields(node.type);
+            PasteModelSettings(model,node.settings,model.GetType());
 
-            for(int i = 0 ; i < node.settings.Length ; ++i)
-            {
-                string name = node.settings[i].name;
-                var field = fields.Find(t=>t.Name == name);
-
-                field.SetValue(model,node.settings[i].value.Get());
-            }
             model.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
 
             var slotContainer = model as IVFXSlotContainer;
@@ -839,7 +852,6 @@ namespace UnityEditor.VFX.UI
             PasteInfo infos = new PasteInfo();
             infos.newControllers = new Dictionary<NodeID, VFXNodeController>();
 
-
             var graph = viewController.graph;
             infos.pasteOffset = (copyData.bounds.width > 0 && copyData.bounds.height > 0) ? center - copyData.bounds.center : Vector2.zero;
 
@@ -871,37 +883,39 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-                //TODO take stickyNote and groupNode in account if nothing else
-                /*else
+                else if (copyData.parameters != null && copyData.parameters.Length > 0 && copyData.parameters[0].nodes.Length > 0)
                 {
-                    VFXUI ui = allSerializedObjects.OfType<VFXUI>().First();
-
-                    if (ui != null)
+                    foreach (var existingSlotContainer in viewController.graph.children.Where(t => t is IVFXSlotContainer))
                     {
-                        if (ui.stickyNoteInfos != null && ui.stickyNoteInfos.Length > 0)
+                        if ((copyData.parameters[0].nodes[0].position + infos.pasteOffset - existingSlotContainer.position).sqrMagnitude < 1)
                         {
-                            foreach (var stickyNote in viewController.stickyNotes)
-                            {
-                                if ((ui.stickyNoteInfos[0].position.position + pasteOffset - stickyNote.position.position).sqrMagnitude < 1)
-                                {
-                                    foundSamePosition = true;
-                                    break;
-                                }
-                            }
-                        }
-                        else if (ui.groupInfos != null && ui.groupInfos.Length > 0)
-                        {
-                            foreach (var gn in viewController.groupNodes)
-                            {
-                                if ((ui.groupInfos[0].position.position + pasteOffset - gn.position.position).sqrMagnitude < 1)
-                                {
-                                    foundSamePosition = true;
-                                    break;
-                                }
-                            }
+                            foundSamePosition = true;
+                            break;
                         }
                     }
-                }*/
+                }
+                else if (copyData.stickyNotes != null && copyData.stickyNotes.Length > 0)
+                {
+                    foreach (var stickyNote in viewController.stickyNotes)
+                    {
+                        if ((copyData.stickyNotes[0].position.position + infos.pasteOffset - stickyNote.position.position).sqrMagnitude < 1)
+                        {
+                            foundSamePosition = true;
+                            break;
+                        }
+                    }
+                }
+                else if (copyData.groupNodes != null && copyData.groupNodes.Length > 0)
+                {
+                    foreach (var gn in viewController.groupNodes)
+                    {
+                        if ((copyData.groupNodes[0].infos.position.position + infos.pasteOffset - gn.position.position).sqrMagnitude < 1)
+                        {
+                            foundSamePosition = true;
+                            break;
+                        }
+                    }
+                }
 
                 if (foundSamePosition)
                 {
@@ -926,7 +940,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (infos.newContexts[i].Key != null)
                 {
-
                     VFXContextController controller = viewController.GetNodeController(infos.newContexts[i].Key, 0) as VFXContextController;
                     infos.newControllers[ContextFlag | (uint)i] = controller;
 
@@ -982,9 +995,7 @@ namespace UnityEditor.VFX.UI
                                             .ToArray();
 
                 }
-
                 ui.groupInfos = ui.groupInfos.Concat(newGroupInfos).ToArray();
-
             }
             if (copyData.stickyNotes != null && copyData.stickyNotes.Length > 0)
             {
@@ -1008,17 +1019,26 @@ namespace UnityEditor.VFX.UI
                         inputContext.LinkFrom(outputContext, flowEdge.input.flowIndex, flowEdge.output.flowIndex);
                 }
             }
-            /*
-            foreach (var dataAndContexts in copyData.dataAndContexts)
+            
+            for (int i = 0; i < infos.newContexts.Count; ++i)
             {
-                VFXData data = allSerializedObjects[dataAndContexts.dataIndex] as VFXData;
+                VFXNodeController nodeController = null;
+                infos.newControllers.TryGetValue(ContextFlag | (uint)i, out nodeController);
+                var contextController = nodeController as VFXContextController;
 
-                foreach (var contextIndex in dataAndContexts.contextsIndexes)
+                if ( contextController != null)
                 {
-                    VFXContext context = allSerializedObjects[contextIndex] as VFXContext;
-                    data.CopySettings(context.GetData());
+                    if( (contextController.flowInputAnchors.Count() == 0 || 
+                    contextController.flowInputAnchors.First().connections.Count() == 0 || 
+                    contextController.flowInputAnchors.First().connections.First().output.context.model.GetData() == null ) &&
+                    copyData.contexts[i].dataIndex >= 0)
+                    {
+                        var data = copyData.datas[copyData.contexts[i].dataIndex];
+
+                        PasteModelSettings(contextController.model,data.settings,contextController.model.GetType());
+                    }
                 }
-            }*/
+            }
 
             // Create all ui based on model
             viewController.LightApplyChanges();
