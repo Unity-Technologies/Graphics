@@ -288,5 +288,25 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
             Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 0);
         }
+
+        [Test]
+        public void SpaceConversion_Verify_Direction_Use_TransformDir()
+        {
+            var transformSpace = ScriptableObject.CreateInstance<ChangeSpace>();
+            transformSpace.SetOperandType(typeof(DirectionType));
+            transformSpace.SetSettingValue("m_targetSpace", VFXCoordinateSpace.World);
+            var expressions = CollectParentExpression(transformSpace.outputSlots[0].GetExpression()).ToArray();
+            Assert.IsTrue(expressions.Count(o => o is VFXExpressionTransformDirection) == 1);
+        }
+
+        [Test]
+        public void SpaceConversion_Verify_Vector_Use_TransformVec()
+        {
+            var transformSpace = ScriptableObject.CreateInstance<ChangeSpace>();
+            transformSpace.SetOperandType(typeof(Vector));
+            transformSpace.SetSettingValue("m_targetSpace", VFXCoordinateSpace.World);
+            var expressions = CollectParentExpression(transformSpace.outputSlots[0].GetExpression()).ToArray();
+            Assert.IsTrue(expressions.Count(o => o is VFXExpressionTransformVector) == 1);
+        }
     }
 }

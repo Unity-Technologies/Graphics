@@ -336,6 +336,10 @@ namespace UnityEditor.VFX
             {
                 input = new VFXExpressionTransformMatrix(matrix, input);
             }
+            else if (spaceType == SpaceableType.Vector)
+            {
+                input = new VFXExpressionTransformVector(matrix, input);
+            }
             else
             {
                 //Not a transformable subSlot

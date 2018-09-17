@@ -17,6 +17,7 @@ namespace UnityEditor.VFX
         Position,
         Direction,
         Matrix,
+        Vector
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Struct)]
@@ -254,7 +255,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct Vector
     {
-        [Tooltip("The vector."), VFXSpace(SpaceableType.Direction)]
+        [Tooltip("The vector."), VFXSpace(SpaceableType.Vector)]
         public Vector3 vector;
 
         public static implicit operator Vector(Vector3 v)
