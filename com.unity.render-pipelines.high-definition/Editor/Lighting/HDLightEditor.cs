@@ -674,7 +674,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
                 var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-                using (new SettingsDisableScope(hdPipeline.asset.renderPipelineSettings.supportLightLayers))
+                using (new EditorGUI.DisabledScope(!hdPipeline.asset.renderPipelineSettings.supportLightLayers))
                 {
                     m_AdditionalLightData.lightLayers.intValue = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)m_AdditionalLightData.lightLayers.intValue));
                 }

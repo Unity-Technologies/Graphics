@@ -1,23 +1,20 @@
 using System;
-using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering
 {
-    public class SettingsDisableScope : IDisposable
+    [Obsolete("Use EditorGUI.DisabledScope instead", true)]
+    public struct SettingsDisableScope : IDisposable
     {
-        bool enable;
+        EditorGUI.DisabledScope scope;
 
         public SettingsDisableScope(bool enable)
         {
-            this.enable = enable;
-            if (!enable)
-                GUI.enabled = false;
+            scope = new EditorGUI.DisabledScope(!enable);
         }
 
         public void Dispose()
         {
-            if (!enable)
-                GUI.enabled = true;
+            scope.Dispose();
         }
     }
 }
