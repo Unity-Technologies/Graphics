@@ -337,12 +337,6 @@ Shader "HDRenderPipeline/LayeredLit"
         [ToggleUI] _LinkDetailsWithBase2("LinkDetailsWithBase2", Float) = 1.0
         [ToggleUI] _LinkDetailsWithBase3("LinkDetailsWithBase3", Float) = 1.0
 
-        [HideInInspector] _ShowMaterialReferences("_ShowMaterialReferences", Float) = 0
-        [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
-        [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
-        [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
-        [HideInInspector] _ShowLayer3("_ShowLayer3", Float) = 0
-
         // Transparency
         [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
@@ -352,6 +346,15 @@ Shader "HDRenderPipeline/LayeredLit"
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
+
+        // this will let collapsable element of material be persistant
+        //this will also replace in a more concise way:
+        //- _ShowMaterialReferences
+        //- _ShowLayer0
+        //- _ShowLayer1
+        //- _ShowLayer2
+        //- _ShowLayer3
+        [HideInInspector] _EditorExpendedAreas("_EditorExpendedAreas", Float) = 0
     }
 
     HLSLINCLUDE

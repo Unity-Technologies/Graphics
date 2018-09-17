@@ -288,7 +288,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kRefractionModel = "_RefractionModel";
         protected MaterialProperty ssrefractionProjectionModel = null;
         protected const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
-
+        
         protected override bool showBlendModePopup
         {
             get { return refractionModel == null || refractionModel.floatValue == 0f; }
@@ -569,307 +569,312 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        protected void DoLayerGUI(Material material, int layerIndex, bool isLayeredLit, bool showHeightMap)
+        protected void DoLayerGUI(Material material, int layerIndex, bool isLayeredLit, bool showHeightMap, string layerPrefix = "", uint inputToggle = (uint)Expendable.Input, uint detailToggle = (uint)Expendable.Detail, Color colorDot = default(Color))
         {
-            EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
+            UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
+            float X, Y, Z, W;
 
-            EditorGUI.indentLevel++;
-
-            m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
-
-            if ((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitStandard ||
-                (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitAniso ||
-                (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitIridescence)
+            using (var header = new HeaderScope(layerPrefix + Styles.InputsText, inputToggle, this, colorDot: colorDot))
             {
-                m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
-            }
-
-            if (maskMap[layerIndex].textureValue == null)
-            {
-                m_MaterialEditor.ShaderProperty(smoothness[layerIndex], Styles.smoothnessText);
-            }
-            else
-            {
-                float remapMin = smoothnessRemapMin[layerIndex].floatValue;
-                float remapMax = smoothnessRemapMax[layerIndex].floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
+                if (header.expended)
                 {
-                    smoothnessRemapMin[layerIndex].floatValue = remapMin;
-                    smoothnessRemapMax[layerIndex].floatValue = remapMax;
-                }
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
 
-                float aoMin = aoRemapMin[layerIndex].floatValue;
-                float aoMax = aoRemapMax[layerIndex].floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref aoMin, ref aoMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    aoRemapMin[layerIndex].floatValue = aoMin;
-                    aoRemapMax[layerIndex].floatValue = aoMax;
-                }
-            }
-
-            m_MaterialEditor.TexturePropertySingleLine(((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
-
-            m_MaterialEditor.ShaderProperty(normalMapSpace[layerIndex], Styles.normalMapSpaceText);
-
-            // Triplanar only work with tangent space normal
-            if ((NormalMapSpace)normalMapSpace[layerIndex].floatValue == NormalMapSpace.ObjectSpace && ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Triplanar))
-            {
-                EditorGUILayout.HelpBox(Styles.normalMapSpaceWarning.text, MessageType.Error);
-            }
-
-            // We have two different property for object space and tangent space normal map to allow
-            // 1. to go back and forth
-            // 2. to avoid the warning that ask to fix the object normal map texture (normalOS are just linear RGB texture
-            if ((NormalMapSpace)normalMapSpace[layerIndex].floatValue == NormalMapSpace.TangentSpace)
-            {
-                m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap[layerIndex], normalScale[layerIndex]);
-                m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap[layerIndex]);
-            }
-            else
-            {
-                // No scaling in object space
-                m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapOSText, normalMapOS[layerIndex]);
-                m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[layerIndex]);
-            }
-
-            DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
-            if (displaceMode != DisplacementMode.None || showHeightMap)
-            {
-                EditorGUI.BeginChangeCheck();
-                m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[layerIndex]);
-                if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null && !displacementMode.hasMixedValue)
-                {
-                    EditorGUI.indentLevel++;
-                    if (displaceMode == DisplacementMode.Pixel)
+                    if ((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitStandard ||
+                        (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitAniso ||
+                        (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitIridescence)
                     {
-                        m_MaterialEditor.ShaderProperty(heightPoMAmplitude[layerIndex], Styles.heightMapAmplitudeText);
+                        m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
+                    }
+
+                    if (maskMap[layerIndex].textureValue == null)
+                    {
+                        m_MaterialEditor.ShaderProperty(smoothness[layerIndex], Styles.smoothnessText);
                     }
                     else
                     {
-                        m_MaterialEditor.ShaderProperty(heightParametrization[layerIndex], Styles.heightMapParametrization);
-                        if (!heightParametrization[layerIndex].hasMixedValue)
+                        float remapMin = smoothnessRemapMin[layerIndex].floatValue;
+                        float remapMax = smoothnessRemapMax[layerIndex].floatValue;
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            HeightmapParametrization parametrization = (HeightmapParametrization)heightParametrization[layerIndex].floatValue;
-                            if (parametrization == HeightmapParametrization.MinMax)
+                            smoothnessRemapMin[layerIndex].floatValue = remapMin;
+                            smoothnessRemapMax[layerIndex].floatValue = remapMax;
+                        }
+
+                        float aoMin = aoRemapMin[layerIndex].floatValue;
+                        float aoMax = aoRemapMax[layerIndex].floatValue;
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref aoMin, ref aoMax, 0.0f, 1.0f);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            aoRemapMin[layerIndex].floatValue = aoMin;
+                            aoRemapMax[layerIndex].floatValue = aoMax;
+                        }
+                    }
+
+                    m_MaterialEditor.TexturePropertySingleLine(((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
+
+                    m_MaterialEditor.ShaderProperty(normalMapSpace[layerIndex], Styles.normalMapSpaceText);
+
+                    // Triplanar only work with tangent space normal
+                    if ((NormalMapSpace)normalMapSpace[layerIndex].floatValue == NormalMapSpace.ObjectSpace && ((UVBaseMapping)UVBase[layerIndex].floatValue == UVBaseMapping.Triplanar))
+                    {
+                        EditorGUILayout.HelpBox(Styles.normalMapSpaceWarning.text, MessageType.Error);
+                    }
+
+                    // We have two different property for object space and tangent space normal map to allow
+                    // 1. to go back and forth
+                    // 2. to avoid the warning that ask to fix the object normal map texture (normalOS are just linear RGB texture
+                    if ((NormalMapSpace)normalMapSpace[layerIndex].floatValue == NormalMapSpace.TangentSpace)
+                    {
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap[layerIndex], normalScale[layerIndex]);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap[layerIndex]);
+                    }
+                    else
+                    {
+                        // No scaling in object space
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapOSText, normalMapOS[layerIndex]);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[layerIndex]);
+                    }
+
+                    DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
+                    if (displaceMode != DisplacementMode.None || showHeightMap)
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[layerIndex]);
+                        if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null && !displacementMode.hasMixedValue)
+                        {
+                            EditorGUI.indentLevel++;
+                            if (displaceMode == DisplacementMode.Pixel)
                             {
-                                m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
-                                m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
+                                m_MaterialEditor.ShaderProperty(heightPoMAmplitude[layerIndex], Styles.heightMapAmplitudeText);
                             }
                             else
                             {
-                                m_MaterialEditor.ShaderProperty(heightTessAmplitude[layerIndex], Styles.heightMapAmplitudeText);
-                                m_MaterialEditor.ShaderProperty(heightTessCenter[layerIndex], Styles.heightMapCenterText);
-                            }
+                                m_MaterialEditor.ShaderProperty(heightParametrization[layerIndex], Styles.heightMapParametrization);
+                                if (!heightParametrization[layerIndex].hasMixedValue)
+                                {
+                                    HeightmapParametrization parametrization = (HeightmapParametrization)heightParametrization[layerIndex].floatValue;
+                                    if (parametrization == HeightmapParametrization.MinMax)
+                                    {
+                                        m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
+                                        m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
+                                    }
+                                    else
+                                    {
+                                        m_MaterialEditor.ShaderProperty(heightTessAmplitude[layerIndex], Styles.heightMapAmplitudeText);
+                                        m_MaterialEditor.ShaderProperty(heightTessCenter[layerIndex], Styles.heightMapCenterText);
+                                    }
 
-                            m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], Styles.heightMapOffsetText);
+                                    m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], Styles.heightMapOffsetText);
+                                }
+                            }
+                            EditorGUI.indentLevel--;
+                        }
+                        // UI only updates intermediate values, this will update the values actually used by the shader.
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            UpdateDisplacement(layerIndex);
                         }
                     }
-                    EditorGUI.indentLevel--;
-                }
-                // UI only updates intermediate values, this will update the values actually used by the shader.
-                if (EditorGUI.EndChangeCheck())
-                {
-                    UpdateDisplacement(layerIndex);
+
+                    switch ((BaseLitGUI.MaterialId)materialID.floatValue)
+                    {
+                        case BaseLitGUI.MaterialId.LitSSS:
+                        case BaseLitGUI.MaterialId.LitTranslucent:
+                            ShaderSSSAndTransmissionInputGUI(material, layerIndex);
+                            break;
+                        case BaseLitGUI.MaterialId.LitStandard:
+                            // Nothing
+                            break;
+
+                        // Following mode are not supported by layered lit and will not be call by it
+                        // as the MaterialId enum don't define it
+                        case BaseLitGUI.MaterialId.LitAniso:
+                            ShaderAnisoInputGUI();
+                            break;
+                        case BaseLitGUI.MaterialId.LitSpecular:
+                            ShaderSpecularColorInputGUI(material);
+                            break;
+                        case BaseLitGUI.MaterialId.LitIridescence:
+                            ShaderIridescenceInputGUI();
+                            break;
+
+                        default:
+                            Debug.Assert(false, "Encountered an unsupported MaterialID.");
+                            break;
+                    }
+
+                    if (!isLayeredLit)
+                    {
+                        ShaderClearCoatInputGUI();
+                    }
+
+                    EditorGUILayout.Space();
+
+                    EditorGUI.BeginChangeCheck();
+                    m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
+                    uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
+
+                    X = (uvBaseMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+                    Y = (uvBaseMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+                    Z = (uvBaseMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+                    W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+                    UVMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
+
+                    if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+                    {
+                        m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
+                    }
+                    m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap[layerIndex]);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        // Precompute.
+                        InvTilingScale[layerIndex].floatValue = 2.0f / (Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.y));
+                        if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+                        {
+                            InvTilingScale[layerIndex].floatValue = InvTilingScale[layerIndex].floatValue / TexWorldScale[layerIndex].floatValue;
+                        }
+                    }
                 }
             }
-
-            switch ((BaseLitGUI.MaterialId)materialID.floatValue)
+            
+            using (var header = new HeaderScope(layerPrefix + Styles.detailText, detailToggle, this, colorDot: colorDot))
             {
-                case BaseLitGUI.MaterialId.LitSSS:
-                case BaseLitGUI.MaterialId.LitTranslucent:
-                    ShaderSSSAndTransmissionInputGUI(material, layerIndex);
-                    break;
-                case BaseLitGUI.MaterialId.LitStandard:
-                    // Nothing
-                    break;
-
-                // Following mode are not supported by layered lit and will not be call by it
-                // as the MaterialId enum don't define it
-                case BaseLitGUI.MaterialId.LitAniso:
-                    ShaderAnisoInputGUI();
-                    break;
-                case BaseLitGUI.MaterialId.LitSpecular:
-                    ShaderSpecularColorInputGUI(material);
-                    break;
-                case BaseLitGUI.MaterialId.LitIridescence:
-                    ShaderIridescenceInputGUI();
-                    break;
-
-                default:
-                    Debug.Assert(false, "Encountered an unsupported MaterialID.");
-                    break;
-            }
-
-            if (!isLayeredLit)
-            {
-                ShaderClearCoatInputGUI();
-            }
-
-            EditorGUILayout.Space();
-
-            EditorGUI.BeginChangeCheck();
-            m_MaterialEditor.ShaderProperty(UVBase[layerIndex], Styles.UVBaseMappingText);
-
-            UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
-
-            float X, Y, Z, W;
-            X = (uvBaseMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-            Y = (uvBaseMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-            Z = (uvBaseMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-            W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
-
-            UVMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
-
-            if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
-            {
-                m_MaterialEditor.ShaderProperty(TexWorldScale[layerIndex], Styles.texWorldScaleText);
-            }
-            m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap[layerIndex]);
-            if (EditorGUI.EndChangeCheck())
-            {
-                // Precompute.
-                InvTilingScale[layerIndex].floatValue = 2.0f / (Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[layerIndex].textureScaleAndOffset.y));
-                if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+                if (header.expended)
                 {
-                    InvTilingScale[layerIndex].floatValue = InvTilingScale[layerIndex].floatValue / TexWorldScale[layerIndex].floatValue;
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[layerIndex]);
+
+                    if (material.GetTexture(isLayeredLit ? kDetailMap + layerIndex : kDetailMap))
+                    {
+                        EditorGUI.indentLevel++;
+
+                        // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
+                        if (uvBaseMapping == UVBaseMapping.Planar)
+                        {
+                            EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Planar");
+                        }
+                        else if (uvBaseMapping == UVBaseMapping.Triplanar)
+                        {
+                            EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Triplanar");
+                        }
+                        else
+                        {
+                            m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
+                        }
+
+                        // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
+                        X = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+                        Y = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+                        Z = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
+                        W = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+                        UVDetailsMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
+
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(linkDetailsWithBase[layerIndex], Styles.linkDetailsWithBaseText);
+                        EditorGUI.indentLevel--;
+
+                        m_MaterialEditor.TextureScaleOffsetProperty(detailMap[layerIndex]);
+                        if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[layerIndex].floatValue != UVBase[layerIndex].floatValue))
+                        {
+                            if (material.GetTexture(kDetailMap + m_PropertySuffixes[layerIndex]))
+                                EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
+                        }
+                        m_MaterialEditor.ShaderProperty(detailAlbedoScale[layerIndex], Styles.detailAlbedoScaleText);
+                        m_MaterialEditor.ShaderProperty(detailNormalScale[layerIndex], Styles.detailNormalScaleText);
+                        m_MaterialEditor.ShaderProperty(detailSmoothnessScale[layerIndex], Styles.detailSmoothnessScaleText);
+                        EditorGUI.indentLevel--;
+                    }
                 }
             }
-
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.detailText, EditorStyles.boldLabel);
-
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[layerIndex]);
-
-            if (material.GetTexture(isLayeredLit ? kDetailMap + layerIndex : kDetailMap))
-            {
-                EditorGUI.indentLevel++;
-
-                // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
-                if (uvBaseMapping == UVBaseMapping.Planar)
-                {
-                    EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Planar");
-                }
-                else if (uvBaseMapping == UVBaseMapping.Triplanar)
-                {
-                    EditorGUILayout.LabelField(Styles.UVDetailMappingText.text + ": Triplanar");
-                }
-                else
-                {
-                    m_MaterialEditor.ShaderProperty(UVDetail[layerIndex], Styles.UVDetailMappingText);
-                }
-
-                // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
-                X = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-                Y = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-                Z = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
-                W = ((UVDetailMapping)UVDetail[layerIndex].floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-                UVDetailsMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
-
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(linkDetailsWithBase[layerIndex], Styles.linkDetailsWithBaseText);
-                EditorGUI.indentLevel--;
-
-                m_MaterialEditor.TextureScaleOffsetProperty(detailMap[layerIndex]);
-                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[layerIndex].floatValue != UVBase[layerIndex].floatValue))
-                {
-                    if (material.GetTexture(kDetailMap + m_PropertySuffixes[layerIndex]))
-                        EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
-                }
-                m_MaterialEditor.ShaderProperty(detailAlbedoScale[layerIndex], Styles.detailAlbedoScaleText);
-                m_MaterialEditor.ShaderProperty(detailNormalScale[layerIndex], Styles.detailNormalScaleText);
-                m_MaterialEditor.ShaderProperty(detailSmoothnessScale[layerIndex], Styles.detailSmoothnessScaleText);
-                EditorGUI.indentLevel--;
-            }
-            EditorGUI.indentLevel--;
 
             var surfaceTypeValue = (SurfaceType)surfaceType.floatValue;
             if (surfaceTypeValue == SurfaceType.Transparent
                 && refractionModel != null)
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField(StylesBaseUnlit.TransparencyInputsText, EditorStyles.boldLabel);
-                ++EditorGUI.indentLevel;
-
-                var isPrepass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0;
-                if (refractionModel != null
-                    // Refraction is not available for pre-refraction objects
-                    && !isPrepass)
+                using (var header = new HeaderScope(StylesBaseUnlit.TransparencyInputsText, (uint)Expendable.Transparency, this))
                 {
-                    m_MaterialEditor.ShaderProperty(refractionModel, Styles.refractionModelText);
-                    var mode = (ScreenSpaceLighting.RefractionModel)refractionModel.floatValue;
-                    if (mode != ScreenSpaceLighting.RefractionModel.None)
+                    if (header.expended)
                     {
-                        m_MaterialEditor.ShaderProperty(ssrefractionProjectionModel, Styles.refractionProjectionModelText);
-                        m_MaterialEditor.ShaderProperty(ior, Styles.refractionIorText);
+                        var isPrepass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0;
+                        if (refractionModel != null
+                            // Refraction is not available for pre-refraction objects
+                            && !isPrepass)
+                        {
+                            m_MaterialEditor.ShaderProperty(refractionModel, Styles.refractionModelText);
+                            var mode = (ScreenSpaceLighting.RefractionModel)refractionModel.floatValue;
+                            if (mode != ScreenSpaceLighting.RefractionModel.None)
+                            {
+                                m_MaterialEditor.ShaderProperty(ssrefractionProjectionModel, Styles.refractionProjectionModelText);
+                                m_MaterialEditor.ShaderProperty(ior, Styles.refractionIorText);
 
-                        blendMode.floatValue = (float)BlendMode.Alpha;
+                                blendMode.floatValue = (float)BlendMode.Alpha;
 
-                        if (thicknessMap[0].textureValue == null)
-                            m_MaterialEditor.ShaderProperty(thickness[0], Styles.refractionThicknessText);
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
+                                if (thicknessMap[0].textureValue == null)
+                                    m_MaterialEditor.ShaderProperty(thickness[0], Styles.refractionThicknessText);
+                                m_MaterialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
 
-                        ++EditorGUI.indentLevel;
-                        m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
-                        thicknessMultiplier.floatValue = Mathf.Max(thicknessMultiplier.floatValue, 0);
-                        --EditorGUI.indentLevel;
+                                ++EditorGUI.indentLevel;
+                                m_MaterialEditor.ShaderProperty(thicknessMultiplier, Styles.refractionThicknessMultiplierText);
+                                thicknessMultiplier.floatValue = Mathf.Max(thicknessMultiplier.floatValue, 0);
+                                --EditorGUI.indentLevel;
 
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
-                        ++EditorGUI.indentLevel;
-                        m_MaterialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
-                        atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
-                        --EditorGUI.indentLevel;
+                                m_MaterialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
+                                ++EditorGUI.indentLevel;
+                                m_MaterialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
+                                atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
+                                --EditorGUI.indentLevel;
+                            }
+                        }
+
+                        DoDistortionInputsGUI();
                     }
                 }
-
-                DoDistortionInputsGUI();
-
-                --EditorGUI.indentLevel;
             }
         }
 
         protected void DoEmissiveGUI(Material material)
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.emissiveLabelText, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
-            //if (enableSpecularOcclusion.floatValue > 0.0f)
+            using (var header = new HeaderScope(Styles.emissiveLabelText, (uint)Expendable.Emissive, this))
             {
-                //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
-            }
-            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-
-            if (material.GetTexture(kEmissiveColorMap))
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVBaseMappingText);
-                UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
-
-                float X, Y, Z, W;
-                X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-                Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-                Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-                W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
-
-                UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
-
-                if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
+                if (header.expended)
                 {
-                    m_MaterialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
+                    // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
+                    //if (enableSpecularOcclusion.floatValue > 0.0f)
+                    {
+                        //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
+                    }
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+
+                    if (material.GetTexture(kEmissiveColorMap))
+                    {
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVBaseMappingText);
+                        UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
+
+                        float X, Y, Z, W;
+                        X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+                        Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+                        Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+                        W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+                        UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
+
+                        if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
+                        {
+                            m_MaterialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
+                        }
+
+                        m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+                        EditorGUI.indentLevel--;
+                    }
+
+                    m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
                 }
-
-                m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
-                EditorGUI.indentLevel--;
             }
-
-            m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
-            EditorGUI.indentLevel--;
         }
 
         protected override void MaterialPropertiesGUI(Material material)
