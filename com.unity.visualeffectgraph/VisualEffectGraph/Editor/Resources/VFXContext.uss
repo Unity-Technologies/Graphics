@@ -172,9 +172,9 @@ VFXContextUI #header-space.spaceLocal
     image:resource("VFX/title-local");
 }
 
-VFXContextUI #header-space.spaceGlobal
+VFXContextUI #header-space.spaceWorld
 {
-    image:resource("VFX/title-global");
+    image:resource("VFX/title-world");
 }
 
 VFXContextUI #header-space.spaceCamera

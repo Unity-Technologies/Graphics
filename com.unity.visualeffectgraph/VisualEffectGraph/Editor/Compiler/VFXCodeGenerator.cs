@@ -485,7 +485,7 @@ namespace UnityEditor.VFX
             if (context.GetData() is ISpaceable)
             {
                 var spaceable = context.GetData() as ISpaceable;
-                globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXCoordinateSpace.Global ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
+                globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
 
             var perPassIncludeContent = new VFXShaderWriter();
