@@ -314,6 +314,10 @@ namespace UnityEditor.VFX
                 }
                 return JsonUtility.ToJson(gw);
             }
+            else if( obj is string)
+            {
+                return (string)obj;
+            }
             else
             {
                 return EditorJsonUtility.ToJson(obj);
@@ -418,6 +422,10 @@ namespace UnityEditor.VFX
 
                 gradient.SetKeys(colorKeys, alphaKeys);
                 return gradient;
+            }
+            else if( type == typeof(string))
+            {
+                return text;
             }
             else
             {
