@@ -266,13 +266,8 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        static Dictionary<Type, List<FieldInfo>> s_SerializableFieldByType = new Dictionary<Type, List<FieldInfo>>();
-
-        static void CopyModelSettings(ref Property[] properties, VFXModel model)
+        static List<FieldInfo> GetFields(Type type)
         {
-            // Copy all fields that are either VFXSettings or serialized by unity
-            Type type = model.GetType();
-
             List<FieldInfo> fields = null;
             if (!s_SerializableFieldByType.TryGetValue(type, out fields))
             {
@@ -297,6 +292,19 @@ namespace UnityEditor.VFX.UI
                 }
                 s_SerializableFieldByType[type] = fields;
             }
+
+            return fields;
+        }
+
+
+        static Dictionary<Type, List<FieldInfo>> s_SerializableFieldByType = new Dictionary<Type, List<FieldInfo>>();
+
+        static void CopyModelSettings(ref Property[] properties, VFXModel model)
+        {
+            // Copy all fields that are either VFXSettings or serialized by unity
+            Type type = model.GetType();
+
+            var fields = GetFields(type);
 
             properties = new Property[fields.Count()];
 
@@ -405,7 +413,7 @@ namespace UnityEditor.VFX.UI
 
             for(int i = 0; i < operators.Length; ++i)
             {
-                uint id = CopyNode(ref copyData.operators[i],operators[i].model,i);
+                uint id = CopyNode(ref copyData.operators[i],operators[i].model,(NodeID)i);
                 infos.modelIndices[operators[i]] = id;
             }
         }
@@ -464,7 +472,7 @@ namespace UnityEditor.VFX.UI
 
         static NodeID CopyContext(ref Context context,VFXContextController controller,int index, ref CopyInfo infos)
         {
-            NodeID id = CopyNode(ref context.node, controller.model, index);
+            NodeID id = CopyNode(ref context.node, controller.model, (NodeID)index);
 
             var blocks = controller.blockControllers;
             context.blocks = new Node[blocks.Count];
@@ -699,7 +707,7 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        static void PasteContext(Dictionary<uint, VFXNodeController> idToNodeControllers,ref Context context,uint index)
+        static void PasteContext(VFXViewController controller,ref Context context,uint index,ref PasteInfo infos)
         {
             Type type = context.node.type;
             if (type == null)
@@ -709,12 +717,49 @@ namespace UnityEditor.VFX.UI
                 return;
 
             newContext.position = context.node.position;
-            PasteNode(newContext, context.node);
+            PasteNode(newContext, ref context.node,ref infos);
+
+            foreach(var block in context.blocks)
+            {
+                var blk = block;
+                type = block.type;
+                if (type == null)
+                    return;
+                var newBlock = ScriptableObject.CreateInstance(type) as VFXBlock;
+                if (newBlock == null)
+                    return;
+
+                PasteNode(newBlock,ref blk,ref infos);
+                newContext.AddChild(newBlock);
+            }
+            controller.graph.AddChild(newContext);
         }
 
-        static void PasteNode(VFXModel model,ref Node context)
+        static void PasteNode(VFXModel model,ref Node node,ref PasteInfo infos)
         {
-            model.position = context.position + pasteOffset;
+            model.position = node.position + infos.pasteOffset;
+
+            var fields = GetFields(node.type);
+
+            for(int i = 0 ; i < node.settings.Length ; ++i)
+            {
+                string name = node.settings[i].name;
+                var field = fields.Find(t=>t.Name == name);
+
+                field.SetValue(model,node.settings[i].value.Get());
+            }
+            model.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+
+            var slotContainer = model as IVFXSlotContainer;
+            var inputSlots = slotContainer.inputSlots;
+            for(int i = 0 ; i < node.inputSlots.Length ; ++i)
+            {
+                if( inputSlots[i].name == node.inputSlots[i].name )
+                {
+                    inputSlots[i].value = node.inputSlots[i].value.Get();
+                }
+            }
+
         }
 
         struct PasteInfo
@@ -793,32 +838,44 @@ namespace UnityEditor.VFX.UI
 
                 if (foundSamePosition)
                 {
-                    pasteOffset += Vector2.one * 30;
+                    infos.pasteOffset += Vector2.one * 30;
                 }
                 else
                 {
                     break;
                 }
             }
-            Dictionary<uint, VFXNodeController> idToNodeControllers = new Dictionary<NodeID, VFXNodeController>();
 
             if (copyData.contexts != null)
             {
-                int cpt = 0;
+                uint cpt = 0;
                 foreach (var context in copyData.contexts)
                 {
                     ++cpt;
-                    PasteContext(idToNodeControllers, context);
+
+                    var ctx = context;
+                    PasteContext(viewController,ref ctx,cpt,ref infos);
                 }
             }
 
-            if (copyData.slotContainers != null)
+            if (copyData.operators != null)
             {
-                foreach (var slotContainer in copyData.slotContainers)
+                uint cpt = 0;
+                foreach (var operat in copyData.operators)
                 {
-                    var newSlotContainer = slotContainer;
-                    newSlotContainer.position += pasteOffset;
-                    ClearLinks(newSlotContainer as IVFXSlotContainer);
+                    ++cpt;
+                    Type type = operat.node.type;
+                    if (type == null)
+                        return;
+                    var newOperator = ScriptableObject.CreateInstance(type) as VFXOperator;
+                    if (newOperator == null)
+                        return;
+
+                    var ope = operat;
+                    PasteNode(newOperator,ref ope,ref infos);
+
+
+                    controller.graph.AddChild(newOperator);
                 }
             }
 
