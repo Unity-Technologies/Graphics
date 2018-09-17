@@ -197,7 +197,6 @@ namespace UnityEditor.VFX.UI
                         // only keep nodes and sticky notes that are copied because a element can not be in two groups at the same time.
                         if (info.contents != null)
                         {
-                            var groupInfo = data.groupNodes[i];
                             var contexts = infos.contexts;
                             var operators = infos.operators;
                             var parameters = infos.parameters;
@@ -206,8 +205,8 @@ namespace UnityEditor.VFX.UI
                             var nodeIndices = groupNode.nodes.OfType<VFXNodeController>().Where(t=>contexts.Contains(t) || operators.Contains(t) || parameters.Contains(t)).Select(t => modelIndices[t ]);
                             var stickNoteIndices = info.contents.Where(t => t.isStickyNote && stickyNodeIndexToCopiedIndex.ContainsKey(t.id)).Select(t => (uint)stickyNodeIndexToCopiedIndex[t.id]);
 
-                            groupInfo.contents = nodeIndices.Concat(stickNoteIndices).ToArray();
-                            groupInfo.stickNodeCount = stickNoteIndices.Count();
+                            data.groupNodes[i].contents = nodeIndices.Concat(stickNoteIndices).ToArray();
+                            data.groupNodes[i].stickNodeCount = stickNoteIndices.Count();
 
                         }
                     }
@@ -377,7 +376,7 @@ namespace UnityEditor.VFX.UI
             n.expandedOutput = controller.infos.expandedSlots.Select(t => t.path).ToArray();
 
             if (parameterIndex < (1 << 18) && nodeIndex < (1 << 11))
-                infos.modelIndices[controller] = (uint)parameterIndex | ParameterFlag | (((uint)nodeIndex) << 18);
+                infos.modelIndices[controller] = GetParameterNodeID((uint)parameterIndex, (uint)nodeIndex);
             else
                 infos.modelIndices[controller] = InvalidID;
             return n;
@@ -401,7 +400,7 @@ namespace UnityEditor.VFX.UI
                     min = p.hasRange ? p.model.m_Min : null,
                     max = p.hasRange ? p.model.m_Max : null,
                     tooltip = p.model.tooltip,
-                    nodes = c.Select((u, i) => CopyParameterNode(cpt, i, u, ref infosCpy)).ToArray()
+                    nodes = c.Select((u, i) => CopyParameterNode(cpt-1, i, u, ref infosCpy)).ToArray()
                 };
             }
             ).ToArray();
@@ -701,7 +700,7 @@ namespace UnityEditor.VFX.UI
                     VFXModel outputModel = outputController != null ? outputController.model : null;
                     if( inputModel != null && outputModel != null)
                     {
-                        VFXSlot outputSlot = FetchSlot(outputModel as IVFXSlotContainer, dataEdge.output.slotPath, true);
+                        VFXSlot outputSlot = FetchSlot(outputModel as IVFXSlotContainer, dataEdge.output.slotPath, false);
                         VFXSlot inputSlot = FetchSlot(inputModel as IVFXSlotContainer, dataEdge.input.slotPath, true);
 
                         inputSlot.Link(outputSlot);
@@ -941,10 +940,11 @@ namespace UnityEditor.VFX.UI
             }
             for (int i = 0; i < newParameters.Count; ++i)
             {
+                viewController.GetParameterController(newParameters[i].Key).ApplyChanges();
 
                 for (int j = 0; j < newParameters[i].Value.Count; j++)
                 {
-                    VFXBlockController nodeController = viewController.GetNodeController(newParameters[i].Key, newParameters[i].Value[j]) as VFXBlockController;
+                    var nodeController = viewController.GetNodeController(newParameters[i].Key, newParameters[i].Value[j]) as VFXParameterNodeController;
                     infos.newControllers[GetParameterNodeID((uint)i, (uint)j)] = nodeController;
                 }
             }
