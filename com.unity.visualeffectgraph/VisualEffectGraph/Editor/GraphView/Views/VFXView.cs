@@ -1461,7 +1461,7 @@ namespace UnityEditor.VFX.UI
 
         Rect GetElementsBounds(IEnumerable<GraphElement> elements)
         {
-            Rect[] elementBounds = elements.Select(t => contentViewContainer.WorldToLocal(t.worldBound)).ToArray();
+            Rect[] elementBounds = elements.Where(t=> !(t is VFXEdge)).Select(t => contentViewContainer.WorldToLocal(t.worldBound)).ToArray();
             if (elementBounds.Length < 1) return Rect.zero;
 
             Rect bounds = elementBounds[0];
