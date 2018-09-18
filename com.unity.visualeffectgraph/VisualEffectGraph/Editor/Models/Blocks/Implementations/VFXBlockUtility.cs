@@ -136,5 +136,39 @@ namespace UnityEditor.VFX.Block
 
             return res;
         }
+
+        public static bool ConvertToVariadicAttributeIfNeeded(string attribName,out string outAttribName, out VariadicChannelOptions outChannel)
+        {
+            var attrib = VFXAttribute.Find(attribName);
+
+            if (attrib.variadic == VFXVariadic.BelongsToVariadic)
+            {
+                char component = attrib.name.ToLower().Last();
+                VariadicChannelOptions channel;
+                switch (component)
+                {
+                    case 'x':
+                        channel = VariadicChannelOptions.X;
+                        break;
+                    case 'y':
+                        channel = VariadicChannelOptions.Y;
+                        break;
+                    case 'z':
+                        channel = VariadicChannelOptions.Z;
+                        break;
+                    default:
+                        throw new InvalidOperationException(string.Format("Cannot convert {0} to variadic version", attrib.name));
+                }
+
+                outAttribName = VFXAttribute.Find(attrib.name.Substring(0, attrib.name.Length - 1)).name; // Just to ensure the attribute can be found
+                outChannel = channel;
+
+                return true;
+            }
+
+            outAttribName = string.Empty;
+            outChannel = VariadicChannelOptions.X;
+            return false;
+        }
     }
 }
