@@ -1486,7 +1486,10 @@ namespace UnityEditor.VFX.UI
 #if OLD_COPY_PASTE
             return VFXCopyPaste.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
 #else
-            return VFXCopy.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
+            Profiler.BeginSample("VFXCopy.SerializeElements");
+            string result = VFXCopy.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
+            Profiler.EndSample();
+            return result;
 #endif
         }
 
@@ -1507,7 +1510,9 @@ namespace UnityEditor.VFX.UI
 #if OLD_COPY_PASTE
             VFXCopyPaste.UnserializeAndPasteElements(controller, pasteCenter, data, this);
 #else
+            Profiler.BeginSample("VFXPaste.VFXPaste.UnserializeAndPasteElements");
             VFXPaste.UnserializeAndPasteElements(controller, pasteCenter, data, this);
+            Profiler.EndSample();
 #endif
 
             pasteOffset += defaultPasteOffset;

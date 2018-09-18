@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using System.Reflection;
-
+using UnityObject = UnityEngine.Object;
 using NodeID = System.UInt32;
 
 namespace UnityEditor.VFX.UI
@@ -155,6 +155,8 @@ namespace UnityEditor.VFX.UI
             public VFXUI.StickyNoteInfo[] stickyNotes;
             public GroupNode[] groupNodes;
         }
+
+        static Dictionary<Type, List<FieldInfo>> s_SerializableFieldByType = new Dictionary<Type, List<FieldInfo>>();
         protected static List<FieldInfo> GetFields(Type type)
         {
             List<FieldInfo> fields = null;
@@ -175,25 +177,25 @@ namespace UnityEditor.VFX.UI
                                 continue;
                         }
 
-                        if (field.IsNotSerialized || !field.FieldType.IsSerializable)
+                        if (field.IsNotSerialized)
                             continue;
-                        /*
+
+                        if (!field.FieldType.IsSerializable && !typeof(UnityObject).IsAssignableFrom(field.FieldType)) // Skip field that are not serializable except for UnityObject that are anyway
+                            continue;
+
                         if (typeof(VFXModel).IsAssignableFrom(field.FieldType) || field.FieldType.IsGenericType && typeof(VFXModel).IsAssignableFrom(field.FieldType.GetGenericArguments()[0]))
-                            continue;*/
+                            continue;
 
                         fields.Add(field);
                     }
                     type = type.BaseType;
                 }
-                //TODO reactive to get cache
-                //s_SerializableFieldByType[type] = fields;
+                s_SerializableFieldByType[type] = fields;
             }
 
             return fields;
         }
 
-
-        static Dictionary<Type, List<FieldInfo>> s_SerializableFieldByType = new Dictionary<Type, List<FieldInfo>>();
         protected static IEnumerable<VFXSlot> AllSlots(IEnumerable<VFXSlot> slots)
         {
             foreach( var slot in slots)
@@ -215,6 +217,7 @@ namespace UnityEditor.VFX.UI
             }
             return InvalidID;
         }
+
         protected static NodeID GetParameterNodeID(uint parameterIndex, uint nodeIndex)
         {
             if (parameterIndex < (1 << 18) && nodeIndex < (1 << 11))
