@@ -26,10 +26,10 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	
 	#ifdef VFX_VARYING_NORMAL
 	float normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;
-	o.VFX_VARYING_NORMAL = normalFlip * TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz));
+	o.VFX_VARYING_NORMAL = normalFlip * normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));
 	#endif
 	#ifdef VFX_VARYING_TANGENT
-	o.VFX_VARYING_TANGENT = TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz));
+	o.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));
 	#endif
 	
 	[unroll]

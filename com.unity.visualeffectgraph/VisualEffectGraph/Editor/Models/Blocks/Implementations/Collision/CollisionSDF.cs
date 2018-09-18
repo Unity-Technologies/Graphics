@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Block
         public class InputProperties
         {
             public Texture3D DistanceField = VFXResources.defaultResources.signedDistanceField;
-            public Transform FieldTransform = Transform.defaultValue;
+            public OrientedBox FieldTransform = OrientedBox.defaultValue;
         }
 
         public override IEnumerable<VFXNamedExpression> parameters

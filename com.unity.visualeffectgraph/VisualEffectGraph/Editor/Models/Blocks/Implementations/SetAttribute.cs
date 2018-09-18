@@ -64,6 +64,23 @@ namespace UnityEditor.VFX.Block
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
+        public override void Sanitize()
+        {
+            string newAttrib;
+            VariadicChannelOptions channel;
+
+            // Changes attribute to variadic version
+            if (VFXBlockUtility.ConvertToVariadicAttributeIfNeeded(attribute, out newAttrib, out channel))
+            {
+                Debug.Log(string.Format("Sanitizing SetAttribute: Convert {0} to variadic attribute {1} with channel {2}", attribute, newAttrib, channel));
+                attribute = newAttrib;
+                channels = channel;
+                Invalidate(InvalidationCause.kSettingChanged);   
+            }
+
+            base.Sanitize();
+        }
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get
