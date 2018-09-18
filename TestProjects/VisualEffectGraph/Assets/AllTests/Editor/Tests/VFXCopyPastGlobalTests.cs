@@ -81,7 +81,9 @@ public class VFXCopyPastGlobalTests
         basicInitialize.AddChild(setPosition);
 
         var capacity = 2u;
-        (basicInitialize.GetData() as VFXDataParticle).capacity = capacity; //voluntary overflow in case of capacity is not correctly copied
+        //(basicInitialize.GetData() as VFXDataParticle).capacity = capacity; //voluntary overflow in case of capacity is not correctly copied
+
+        basicInitialize.SetSettingValue("capacity", 2u); // pass through regular way to change capacity to have initialize and data up to date
         var spawnerBurst = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
         spawnerBurst.inputSlots[0].value = 4.0f;
 
@@ -126,6 +128,14 @@ public class VFXCopyPastGlobalTests
             var to = allContext[4];
             to.LinkFrom(from);
         }
+
+        VFXBasicInitialize[] initializes = graph.children.OfType<VFXBasicInitialize>().ToArray();
+
+        Assert.AreEqual(2, initializes.Length);
+        Assert.AreEqual(2, (initializes[0].GetData() as VFXDataParticle).capacity);
+        Assert.AreEqual(2, (initializes[1].GetData() as VFXDataParticle).capacity);
+        Assert.AreEqual(2, initializes[0].GetType().GetField("capacity",System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(initializes[0]));
+        Assert.AreEqual(2, initializes[1].GetType().GetField("capacity", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(initializes[1]));
 
         graph.RecompileIfNeeded();
 

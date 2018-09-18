@@ -452,8 +452,11 @@ namespace UnityEditor.VFX.UI
                     copyData.contexts[i].dataIndex >= 0)
                     {
                         var data = copyData.datas[copyData.contexts[i].dataIndex];
-
-                        PasteModelSettings(contextController.model,data.settings,contextController.model.GetType());
+                        VFXData targetData = contextController.model.GetData();
+                        if( targetData != null)
+                        {
+                            PasteModelSettings(targetData, data.settings, targetData.GetType());
+                        }
                     }
                 }
             }
