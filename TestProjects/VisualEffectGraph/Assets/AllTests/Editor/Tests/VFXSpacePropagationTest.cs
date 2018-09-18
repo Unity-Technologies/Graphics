@@ -308,5 +308,25 @@ namespace UnityEditor.VFX.Test
             var expressions = CollectParentExpression(transformSpace.outputSlots[0].GetExpression()).ToArray();
             Assert.IsTrue(expressions.Count(o => o is VFXExpressionTransformVector) == 1);
         }
+
+        [Test]
+        public void SpaceConversion_Propagation_Of_Space_With_Different_Type()
+        {
+            var position = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            position.SetSettingValue("m_Type", (SerializableType)typeof(Position));
+
+            var vector = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            vector.SetSettingValue("m_Type", (SerializableType)typeof(Vector));
+
+            var direction = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            direction.SetSettingValue("m_Type", (SerializableType)typeof(DirectionType));
+
+            position.outputSlots[0].Link(vector.inputSlots[0]);
+            vector.outputSlots[0].Link(direction.inputSlots[0]);
+
+            Assert.AreEqual(VFXCoordinateSpace.Local, direction.outputSlots[0].space);
+            position.inputSlots[0].space = VFXCoordinateSpace.World;
+            Assert.AreEqual(VFXCoordinateSpace.World, direction.outputSlots[0].space);
+        }
     }
 }
