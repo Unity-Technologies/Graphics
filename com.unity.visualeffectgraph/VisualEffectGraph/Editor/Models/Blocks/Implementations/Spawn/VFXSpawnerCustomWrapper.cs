@@ -42,8 +42,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override sealed string name { get { return m_customType == null ? "null" : ObjectNames.NicifyVariableName(((Type)m_customType).Name); } }
-        public override sealed Type customBehavior { get { return m_customType; } }
+        public override sealed string name { get { return customBehavior == null ? "null" : ObjectNames.NicifyVariableName((customBehavior).Name); } }
+        public override sealed Type customBehavior { get { return (Type)m_customType; } }
         public override sealed VFXTaskType spawnerType { get { return VFXTaskType.CustomCallbackSpawner; } }
     }
 }
