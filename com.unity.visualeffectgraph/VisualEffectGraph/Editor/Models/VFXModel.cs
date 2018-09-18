@@ -310,7 +310,19 @@ namespace UnityEditor.VFX
 
         static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXCoordinateSpace space)
         {
-            var matrix = space == VFXCoordinateSpace.Local ? VFXBuiltInExpression.WorldToLocal : VFXBuiltInExpression.LocalToWorld;
+            VFXExpression matrix = null;
+            if (space == VFXCoordinateSpace.Local)
+            {
+                matrix = VFXBuiltInExpression.WorldToLocal;
+            }
+            else if (space == VFXCoordinateSpace.World)
+            {
+                matrix = VFXBuiltInExpression.LocalToWorld;
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot Convert to unknown space");
+            }
 
             if (spaceType == SpaceableType.Position)
             {
@@ -323,6 +335,10 @@ namespace UnityEditor.VFX
             else if (spaceType == SpaceableType.Matrix)
             {
                 input = new VFXExpressionTransformMatrix(matrix, input);
+            }
+            else if (spaceType == SpaceableType.Vector)
+            {
+                input = new VFXExpressionTransformVector(matrix, input);
             }
             else
             {

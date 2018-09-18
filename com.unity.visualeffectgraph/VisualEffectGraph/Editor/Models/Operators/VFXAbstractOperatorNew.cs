@@ -25,6 +25,7 @@ namespace UnityEditor.VFX
 
         public static readonly Dictionary<Type, Type[]> kTypeAffinity = new Dictionary<Type, Type[]>
         {
+            { typeof(Matrix4x4), new Type[] { } },
             { typeof(Vector4), new[] {typeof(Color), typeof(Vector3), typeof(Position), typeof(DirectionType), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
             { typeof(Color), new[] {typeof(Vector4), typeof(Vector3), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
             { typeof(Vector3), new[] {typeof(Position), typeof(DirectionType), typeof(Vector), typeof(Color), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
@@ -103,8 +104,9 @@ namespace UnityEditor.VFX
             allowOneDimensionType = 1 << 4,
             allowSignedInteger = 1 << 5,
             allowUnsignedInteger = 1 << 6,
+            allowSpaceable = 1 << 7,
             allowInteger = allowSignedInteger | allowUnsignedInteger,
-            allowVectorType = allowVector4Type | allowVector3Type | allowVector2Type,
+            allowVectorType = allowSpaceable | allowVector4Type | allowVector3Type | allowVector2Type,
 
             allowEverything = allowVectorType | allowOneDimensionType | allowInteger,
             allowEverythingExceptInteger = allowEverything & ~allowInteger,
@@ -113,6 +115,7 @@ namespace UnityEditor.VFX
             allowEverythingExceptOneDimension = allowEverything & ~allowOneDimensionType
         };
 
+        private static readonly Type[] kSpaceableType = new Type[] { typeof(Position), typeof(DirectionType), typeof(Vector) };
         private static readonly Type[] kVector4Type = new Type[] { typeof(Vector4) };
         private static readonly Type[] kVector3Type = new Type[] { typeof(Vector3) };
         private static readonly Type[] kVector2Type = new Type[] { typeof(Vector2) };
@@ -127,6 +130,10 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<Type> types = kExpectedTypeOrdering;
+
+                if ((typeFilter & ValidTypeRule.allowSpaceable) != ValidTypeRule.allowSpaceable)
+                    types = types.Except(kSpaceableType);
+
                 if ((typeFilter & ValidTypeRule.allowVectorType) != ValidTypeRule.allowVectorType)
                     types = types.Except(kVector4Type);
 
