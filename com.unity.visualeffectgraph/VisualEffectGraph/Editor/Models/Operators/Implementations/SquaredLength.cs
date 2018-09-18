@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public sealed override string name
+        protected override sealed string operatorName
         {
             get
             {

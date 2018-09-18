@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
             public float l;
         }
 
-        public sealed override string name
+        protected override sealed string operatorName
         {
             get
             {

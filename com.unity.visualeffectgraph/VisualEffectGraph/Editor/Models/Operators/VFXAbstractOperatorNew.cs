@@ -169,6 +169,41 @@ namespace UnityEditor.VFX
             return kExpectedTypeOrdering[minIndex];
         }
 
+
+        protected virtual string operatorName
+        {
+            get { return string.Empty; }
+        }
+
+        public override /*sealed*/ string libraryName
+        {
+            get
+            {
+                return operatorName;
+            }
+        }
+
+        public override /*sealed*/ string name
+        {
+            get
+            {
+                var r = operatorName;
+                if (outputSlots.Any())
+                {
+                    var refSlot = outputSlots[0];
+                    if (refSlot.spaceable)
+                    {
+                        r += string.Format(" ({0} - {1})", refSlot.property.type.UserFriendlyName(), refSlot.space);
+                    }
+                    else
+                    {
+                        r += string.Format(" ({0})", refSlot.property.type.UserFriendlyName());
+                    }
+                }
+                return r;
+            }
+        }
+
         protected virtual string expectedOutputName { get { return string.Empty; } }
 
         protected virtual VFXPropertyAttribute[] expectedOutputAttributes { get { return null; } }

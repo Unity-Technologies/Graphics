@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Arithmetic")]
     class Multiply : VFXOperatorNumericCascadedUnified
     {
-        public override sealed string name { get { return "Multiply"; } }
+        protected override sealed string operatorName { get { return "Multiply"; } }
 
         protected override sealed double defaultValueDouble { get { return 1.0; } }
 

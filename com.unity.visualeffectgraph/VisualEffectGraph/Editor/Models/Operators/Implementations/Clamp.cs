@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
             public float max = 1.0f;
         }
 
-        public override sealed string name { get { return "Clamp"; } }
+        protected override sealed string operatorName { get { return "Clamp"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {
