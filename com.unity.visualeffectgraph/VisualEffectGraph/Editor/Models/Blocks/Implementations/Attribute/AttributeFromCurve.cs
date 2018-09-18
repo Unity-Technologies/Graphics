@@ -123,6 +123,23 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public override void Sanitize()
+        {
+            string newAttrib;
+            VariadicChannelOptions channel;
+
+            // Changes attribute to variadic version
+            if (VFXBlockUtility.ConvertToVariadicAttributeIfNeeded(attribute, out newAttrib, out channel))
+            {
+                Debug.Log(string.Format("Sanitizing AttributeFromCurve: Convert {0} to variadic attribute {1} with channel {2}", attribute, newAttrib, channel));
+                attribute = newAttrib;
+                channels = channel;
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
+
+            base.Sanitize();
+        }
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get
