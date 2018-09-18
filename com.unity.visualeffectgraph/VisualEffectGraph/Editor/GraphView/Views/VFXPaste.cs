@@ -262,6 +262,12 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
+            if ((node.flags & Node.Flags.Collapsed) == Node.Flags.Collapsed)
+                model.collapsed = true;
+
+            if ((node.flags & Node.Flags.SuperCollapsed) == Node.Flags.SuperCollapsed)
+                model.superCollapsed = true;
+
             foreach (var slot in AllSlots(slotContainer.inputSlots))
             {
                 slot.collapsed = !node.expandedInputs.Contains(slot.path);
