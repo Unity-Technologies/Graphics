@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Block
             [Tooltip("The vector field used as a force for particles")]
             public Texture3D VectorField = VFXResources.defaultResources.vectorField;
             [Tooltip("The position, rotation and scale of the vectorfield")]
-            public Transform FieldTransform = Transform.defaultValue;
+            public OrientedBox FieldTransform = OrientedBox.defaultValue;
             [Tooltip("Intensity of the motion vectors")]
             public float Intensity;
             [Tooltip("The drag coefficient used to drive particles")]

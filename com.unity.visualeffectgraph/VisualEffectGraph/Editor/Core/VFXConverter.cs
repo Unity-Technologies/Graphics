@@ -68,6 +68,8 @@ namespace UnityEditor.VFX
             RegisterCustomConverter<Color, Vector2>(t => new Vector2(t.r, t.g));
             RegisterCustomConverter<Color, Vector3>(t => new Vector3(t.r, t.g, t.b));
             RegisterCustomConverter<Color, float>(t => t.a);
+            RegisterCustomConverter<Transform, OrientedBox>(MakeOrientedBoxFromTransform);
+            RegisterCustomConverter<Matrix4x4, OrientedBox>(t => MakeOrientedBoxFromTransform(MakeTransformFromMatrix4x4(t)));
         }
 
         static Transform MakeTransformFromMatrix4x4(Matrix4x4 mat)
@@ -77,6 +79,18 @@ namespace UnityEditor.VFX
                 position = mat.MultiplyPoint(Vector3.zero),
                 angles = mat.rotation.eulerAngles,
                 scale = mat.lossyScale
+            };
+
+            return result;
+        }
+
+        static OrientedBox MakeOrientedBoxFromTransform(Transform t)
+        {
+            var result = new OrientedBox
+            {
+                center = t.position,
+                angles = t.angles,
+                size = t.scale
             };
 
             return result;

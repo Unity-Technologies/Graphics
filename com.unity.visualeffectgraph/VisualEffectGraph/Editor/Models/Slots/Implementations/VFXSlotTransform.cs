@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
 
         protected override bool CanConvertFrom(Type type)
         {
-            return base.CanConvertFrom(type) || type == typeof(Matrix4x4);
+            return base.CanConvertFrom(type) || type == typeof(Matrix4x4) || type == typeof(Transform) || type == typeof(OrientedBox);
         }
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
