@@ -19,13 +19,8 @@ namespace UnityEditor.VFX.Operator
             public float l;
         }
 
-        protected override sealed string operatorName
-        {
-            get
-            {
-                return "Length";
-            }
-        }
+        public override string libraryName { get { return "Length"; } }
+        public override string name { get { return "Length"; } }
 
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 
