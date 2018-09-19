@@ -114,7 +114,7 @@ namespace UnityEditor.VFX
             if (index != -1)
                 return AllVariadicAttribute[index];
 
-            throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));
+            throw new ArgumentException(string.Format("Unable to find attribute expression : {0}", attributeName));
         }
 
         public string name;

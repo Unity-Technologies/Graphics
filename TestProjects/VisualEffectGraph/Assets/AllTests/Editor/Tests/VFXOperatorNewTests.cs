@@ -333,6 +333,7 @@ namespace UnityEditor.VFX.Test
             /* Heuristical function which is a bit expensive but expects the same result as kTypeAffinity */
             var inputType = new[]
             {
+                typeof(Matrix4x4),
                 typeof(Vector4),
                 typeof(Color),
                 typeof(Vector3),
@@ -386,7 +387,9 @@ namespace UnityEditor.VFX.Test
             foreach (var type in typeAffiny)
             {
                 dump.AppendFormat("{{ typeof({0}), new[] {{", type.Key.UserFriendlyName());
-                dump.Append(type.Value.Select(o => string.Format("typeof({0})", o.UserFriendlyName())).Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
+                var affinity = type.Value.Select(o => string.Format("typeof({0})", o.UserFriendlyName()));
+                if (affinity.Any())
+                    dump.Append(affinity.Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
                 dump.Append("} },");
                 dump.AppendLine();
             }

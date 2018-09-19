@@ -233,7 +233,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.TransformPos;
+                return VFXExpressionOperation.TransformVec;
             }
         }
 

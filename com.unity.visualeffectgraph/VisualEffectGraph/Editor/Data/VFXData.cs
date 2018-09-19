@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
     public enum VFXCoordinateSpace
     {
         Local = 0,
-        Global = 1,
+        World = 1,
     }
 
     // TODO Move this
