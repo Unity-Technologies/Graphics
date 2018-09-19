@@ -86,18 +86,23 @@ float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float ra
         float sampleStep = ((i + 1) * step + step * dither);
 
         // UVs for the current sample
-        float2 sampleUV = (startUV + rayUV * sampleStep) * _ScreenToTargetScale.xy;
+        float2 sampleUV = (startUV + rayUV * sampleStep);
         // Ray depth for this sample
         float raySampleDepth = startDepth + rayDepth * sampleStep;
 
-    #ifdef ENABLE_MSAA
         // Depth buffer depth for this sample
-        float sampleDepth = SAMPLE_TEXTURE2D_LOD(_CameraDepthValues, s_point_clamp_sampler, sampleUV, 0.0).y;
-    #else
-        // Depth buffer depth for this sample
-        float sampleDepth = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, s_point_clamp_sampler, sampleUV, 0.0).x;
-    #endif
-
+        float sampleDepth;
+        // Prevent sampling outside of the depth texture to avoid shadow artifacts
+        if (any(sampleUV > 1) || any(sampleUV < 0))
+            sampleDepth = 0;
+        else
+        {
+#ifdef ENABLE_MSAA
+            sampleDepth = SAMPLE_TEXTURE2D_LOD(_CameraDepthValues, s_point_clamp_sampler, sampleUV, 0.0).y;
+#else
+            sampleDepth = SampleCameraDepth(saturate(sampleUV));
+#endif
+        }
 
         bool Hit = false;
         float depthDiff = sampleDepth - raySampleDepth;
