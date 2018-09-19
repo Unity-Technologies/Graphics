@@ -16,7 +16,6 @@ public partial class PCache
     {
         Ascii,
         Binary,
-        None,
     }
 
     public PCache()
@@ -288,7 +287,7 @@ public partial class PCache
         if (header[0] != "pcache")
             throw new Exception("Invalid header : missing magic number");
 
-        Format format = Format.None;
+        Format format = (Format)int.MaxValue;
         data.elementCount = 0;
 
         data.properties = new List<PropertyDesc>();
@@ -473,9 +472,8 @@ public partial class PCache
         {
             case Format.Ascii: return "ascii";
             case Format.Binary: return "binary";
-            case Format.None: throw new InvalidOperationException("Format.None does not have a format string");
+            default: throw new InvalidOperationException("Invalid format");
         }
-        return null;
     }
 
     private static int GetPropertySize(string type)
