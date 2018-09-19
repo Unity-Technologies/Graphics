@@ -88,12 +88,12 @@ namespace UnityEditor.VFX.UI
     {
         VFXParameterController m_ParentController;
 
-        VFXParameter.Node m_Infos;
+        int m_Id;
 
         public VFXParameterNodeController(VFXParameterController controller, VFXParameter.Node infos, VFXViewController viewController) : base(controller.model, viewController)
         {
             m_ParentController = controller;
-            m_Infos = infos;
+            m_Id = infos.id;
         }
 
         protected override void ModelChanged(UnityEngine.Object obj)
@@ -108,7 +108,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXParameter.Node infos
         {
-            get { return m_Infos; }
+            get { return m_ParentController.model.GetNode(m_Id); }
         }
 
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
@@ -150,11 +150,11 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return !m_Infos.expanded;
+                return !infos.expanded;
             }
             set
             {
-                m_Infos.expanded = !value;
+                infos.expanded = !value;
                 model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
             }
         }
@@ -245,18 +245,18 @@ namespace UnityEditor.VFX.UI
 
         public override int id
         {
-            get { return m_Infos.id; }
+            get { return m_Id; }
         }
 
         public override Vector2 position
         {
             get
             {
-                return m_Infos.position;
+                return infos.position;
             }
             set
             {
-                m_Infos.position = value;
+                infos.position = value;
                 model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
             }
         }
@@ -275,9 +275,9 @@ namespace UnityEditor.VFX.UI
 
             op.position = position;
 
-            if (m_Infos.linkedSlots != null)
+            if (infos.linkedSlots != null)
             {
-                foreach (var link in m_Infos.linkedSlots.ToArray())
+                foreach (var link in infos.linkedSlots.ToArray())
                 {
                     var ancestors = new List<VFXSlot>();
                     ancestors.Add(link.outputSlot);

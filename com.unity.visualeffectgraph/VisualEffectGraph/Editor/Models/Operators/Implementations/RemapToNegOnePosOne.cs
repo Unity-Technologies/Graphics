@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Operator
             public float input = 0.5f;
         }
 
-        public override sealed string name { get { return "Remap [0..1] => [-1..1]"; } }
+        protected override sealed string operatorName { get { return "Remap [0..1] => [-1..1]"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
