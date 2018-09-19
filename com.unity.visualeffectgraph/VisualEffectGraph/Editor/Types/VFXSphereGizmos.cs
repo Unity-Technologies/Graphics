@@ -55,6 +55,10 @@ namespace UnityEditor.VFX
 
             DrawSphere(sphere, this, m_CenterProperty, m_RadiusProperty);
         }
+        public override Bounds OnGetSpacedGizmoBounds(Sphere value)
+        {
+            return new Bounds(value.center, Vector3.one * value.radius);
+        }
     }
     [VFXGizmo(typeof(ArcSphere))]
     class VFXArcSphereGizmo : VFXSpaceableGizmo<ArcSphere>
@@ -97,6 +101,11 @@ namespace UnityEditor.VFX
 
 
             ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
+        }
+
+        public override Bounds OnGetSpacedGizmoBounds(ArcSphere value)
+        {
+            return new Bounds(value.sphere.center,Vector3.one * value.sphere.radius);
         }
     }
 }

@@ -506,15 +506,28 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public Bounds GetGizmoBounds(VisualEffect component)
+        {
+            if (m_GizmoContext != null)
+            {
+                return VFXGizmoUtility.GetGizmoBounds(m_GizmoContext, component);
+            }
+
+            return new Bounds();
+        }
+
         VFXDataAnchorGizmoContext m_GizmoContext;
 
         public void DrawGizmo(VisualEffect component)
         {
-            if (m_GizmoContext == null)
+            if(VFXGizmoUtility.HasGizmo(portType))
             {
-                m_GizmoContext = new VFXDataAnchorGizmoContext(this);
+                if (m_GizmoContext == null)
+                {
+                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
+                }
+                VFXGizmoUtility.Draw(m_GizmoContext, component);
             }
-            VFXGizmoUtility.Draw(m_GizmoContext, component);
         }
     }
 
@@ -639,7 +652,6 @@ namespace UnityEditor.VFX.UI
         {
             get {return m_Controller.portType; }
         }
-
 
         List<object> stack = new List<object>();
         public override object value

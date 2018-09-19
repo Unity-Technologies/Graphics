@@ -10,7 +10,7 @@ using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 
-using Object = UnityEngine.Object;
+using UnityObject = UnityEngine.Object;
 using UnityEditorInternal;
 using System.Reflection;
 
@@ -69,6 +69,9 @@ public class VFXSlotContainerEditor : Editor
         }
     }
 
+
+    VFXNodeController m_CurrentController;
+
     void OnSceneGUI(SceneView sv)
     {
         try // make sure we don't break the whole scene
@@ -84,13 +87,27 @@ public class VFXSlotContainerEditor : Editor
                         var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
 
                         controller.DrawGizmos(view.attachedComponent);
+
+                        m_CurrentController = null;
                     }
                     else
                     {
-                        var controller = view.controller.GetNodeController(slotContainer, 0);
-                        if (controller != null)
-                            controller.DrawGizmos(view.attachedComponent);
+                        m_CurrentController = view.controller.GetNodeController(slotContainer, 0);
+                        if (m_CurrentController != null)
+                        {
+                            m_CurrentController.DrawGizmos(view.attachedComponent);
+
+                            if (m_CurrentController.GetGizmoableAnchors().Count > 0)
+                            {
+                                SceneViewOverlay.Window(new GUIContent("Choose Gizmo"), SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+                            }
+                        }
+                        
                     }
+                }
+                else
+                {
+                    m_CurrentController = null;
                 }
             }
         }
@@ -102,6 +119,43 @@ public class VFXSlotContainerEditor : Editor
         {
         }
     }
+
+    protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+    {
+        if (m_CurrentController == null)
+            return;
+
+        var gizmoableAnchors = m_CurrentController.GetGizmoableAnchors();
+        if (gizmoableAnchors.Count > 0)
+        {
+            int current = gizmoableAnchors.IndexOf(m_CurrentController.gizmoedAnchor);
+            EditorGUI.BeginChangeCheck();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Gizmos", GUILayout.Width(45));
+            GUI.enabled = gizmoableAnchors.Count > 1;
+            int result = EditorGUILayout.Popup(current, gizmoableAnchors.Select(t => t.name).ToArray(), GUILayout.Width(100));
+            GUI.enabled = true;
+            if (EditorGUI.EndChangeCheck() && result != current)
+            {
+                m_CurrentController.gizmoedAnchor = gizmoableAnchors[result];
+            }
+            if( GUILayout.Button("o"))
+            {
+                if (m_CurrentController != null && VFXViewWindow.currentWindow != null)
+                {
+                    var slotContainer = targets[0] as VFXModel;
+                    VFXView view = VFXViewWindow.currentWindow.graphView;
+                    if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
+                    {
+                        sceneView.Frame(m_CurrentController.gizmoedAnchor.GetGizmoBounds(view.attachedComponent),false);
+                    }
+                }
+
+            }
+            GUILayout.EndHorizontal();
+        }
+    }
+
 
     public override void OnInspectorGUI()
     {

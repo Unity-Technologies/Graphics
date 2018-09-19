@@ -35,6 +35,8 @@ namespace UnityEditor.VFX
         public abstract void RegisterEditableMembers(IContext context);
         public abstract void CallDrawGizmo(object value);
 
+        public abstract Bounds CallGetGizmoBounds(object obj);
+
         protected const float handleSize = 0.1f;
         protected const float arcHandleSizeMultiplier = 1.25f;
 
@@ -196,7 +198,19 @@ namespace UnityEditor.VFX
                 OnDrawGizmo((T)value);
         }
 
+        public override Bounds CallGetGizmoBounds(object value)
+        {
+            if( value is T)
+            {
+                return OnGetGizmoBounds((T)value);
+            }
+
+            return new Bounds();
+        }
+
         public abstract void OnDrawGizmo(T value);
+
+        public abstract Bounds OnGetGizmoBounds(T value);
     }
     public abstract class VFXSpaceableGizmo<T> : VFXGizmo<T>
     {
@@ -214,7 +228,22 @@ namespace UnityEditor.VFX
 
             Handles.matrix = oldMatrix;
         }
+        public override Bounds OnGetGizmoBounds(T value)
+        {
+            Bounds bounds = OnGetSpacedGizmoBounds(value);
+            if (currentSpace == VFXCoordinateSpace.Local)
+            {
+                if (component == null)
+                    return new Bounds();
+
+                return UnityEditorInternal.InternalEditorUtility.TransformBounds(bounds,component.transform);
+            }
+
+            return bounds;
+        }
 
         public abstract void OnDrawSpacedGizmo(T value);
+
+        public abstract Bounds OnGetSpacedGizmoBounds(T value);
     }
 }

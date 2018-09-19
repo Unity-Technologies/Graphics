@@ -244,11 +244,39 @@ namespace UnityEditor.VFX.UI
 
         public virtual void DrawGizmos(VisualEffect component)
         {
+            m_GizmoableAnchors.Clear();
             foreach (VFXDataAnchorController controller in inputPorts)
             {
-                if (controller.model != null && controller.model.IsMasterSlot())
-                    controller.DrawGizmo(component);
+                if (controller.model != null && controller.model.IsMasterSlot() && VFXGizmoUtility.HasGizmo(controller.portType))
+                {
+                    m_GizmoableAnchors.Add(controller);
+                }
+
             }
+
+            if( m_GizmoedAnchor == null)
+            {
+                m_GizmoedAnchor = m_GizmoableAnchors.FirstOrDefault();
+            }
+
+            if (m_GizmoedAnchor != null)
+            {
+                m_GizmoedAnchor.DrawGizmo(component);
+            }
+        }
+        VFXDataAnchorController m_GizmoedAnchor;
+        List<VFXDataAnchorController> m_GizmoableAnchors = new List<VFXDataAnchorController>();
+
+        public ReadOnlyCollection<VFXDataAnchorController> GetGizmoableAnchors()
+        {
+            return m_GizmoableAnchors.AsReadOnly();
+        }
+
+        public VFXDataAnchorController gizmoedAnchor
+        {
+            get { return m_GizmoedAnchor; }
+            set { m_GizmoedAnchor = value; }
+            
         }
 
         private VFXSettingController[] m_Settings;

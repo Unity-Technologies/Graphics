@@ -26,5 +26,16 @@ namespace UnityEditor.VFX
             PositionGizmo(line.start, m_StartProperty, true);
             PositionGizmo(line.end, m_EndProperty, true);
         }
+        public override Bounds OnGetSpacedGizmoBounds(Line value)
+        {
+            Vector3 center = (value.start + value.end) * 0.5f;
+
+            Vector3 size = value.end - value.start;
+            size.x = Mathf.Abs(size.x);
+            size.y = Mathf.Abs(size.y);
+            size.z = Mathf.Abs(size.z);
+
+            return new Bounds(center, size);
+        }
     }
 }

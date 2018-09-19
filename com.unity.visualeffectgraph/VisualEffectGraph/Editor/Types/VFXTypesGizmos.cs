@@ -23,6 +23,10 @@ namespace UnityEditor.VFX
                 m_Property.SetValue(position);
             }
         }
+        public override Bounds OnGetSpacedGizmoBounds(Position value)
+        {
+            return new Bounds(value.position, Vector3.one);
+        }
     }
     [VFXGizmo(typeof(DirectionType))]
     class VFXDirectionGizmo : VFXSpaceableGizmo<DirectionType>
@@ -57,6 +61,10 @@ namespace UnityEditor.VFX
         {
             Handles.DrawWireDisc(Vector3.zero, Vector3.forward, size * 10);
             Handles.DrawLine(Vector3.zero, position);
+        }
+        public override Bounds OnGetSpacedGizmoBounds(DirectionType value)
+        {
+            return new Bounds(Vector3.zero, Vector3.one);
         }
     }
     [VFXGizmo(typeof(Vector))]
@@ -99,6 +107,10 @@ namespace UnityEditor.VFX
             {
                 Handles.ArrowHandleCap(0, Vector3.zero, normalQuat, length, Event.current.type);
             }
+        }
+        public override Bounds OnGetSpacedGizmoBounds(Vector value)
+        {
+            return new Bounds(Vector3.zero, Vector3.one * value.vector.magnitude * 2);
         }
     }
 }

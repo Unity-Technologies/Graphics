@@ -34,6 +34,10 @@ namespace UnityEditor.VFX
 
             RotationGizmo(box.center, box.angles, m_AnglesProperty, true);
         }
+        public override Bounds OnGetSpacedGizmoBounds(OrientedBox value)
+        {
+            return new Bounds(value.center, value.size); //TODO take orientation in account
+        }
     }
 
     [VFXGizmo(typeof(AABox))]
@@ -154,6 +158,10 @@ namespace UnityEditor.VFX
             changed = gizmo.PositionGizmo(box.center, centerProperty, true) || changed;
 
             return changed;
+        }
+        public override Bounds OnGetSpacedGizmoBounds(AABox value)
+        {
+            return new Bounds(value.center, value.size);
         }
     }
 }
