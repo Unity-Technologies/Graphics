@@ -13,22 +13,22 @@ Pass
 	{
 		float4 pos : SV_POSITION;
 		float2 uv : TEXCOORD0;	
-		#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
+		#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
 		// x: alpha threshold
-		// y: alpha
-		nointerpolation float2 builtInInterpolants : TEXCOORD1;
+		// y: frame blending factor
+		// z: alpha
+		nointerpolation float3 builtInInterpolants : TEXCOORD1;
 		#endif
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-#define VFX_VARYING_ALPHA builtInInterpolants.y
+#define VFX_VARYING_ALPHA builtInInterpolants.z
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+#define VFX_VARYING_FRAMEBLEND builtInInterpolants.y
 #define VFX_VARYING_UV uv
 		
-${VFXBegin:VFXVertexAdditionalProcess}
-o.pos = VFXApplyShadowBias(o.pos);
-${VFXEnd}
+${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 
 // Needed for HDRP
 #define SHADERPASS SHADERPASS_SHADOWS

@@ -20,14 +20,20 @@ Pass
 		
 		${VFXHDRPLitDeclareVaryings}
 		
+		#if USE_FLIPBOOK_INTERPOLATION
+		float4 uv : TEXCOORD1;
+		#else
 		float2 uv : TEXCOORD1;	
+		#endif
 		float3 normal : TEXCOORD2;
 		#if USE_NORMAL_MAP
 		float4 tangent : TEXCOORD3;
 		#endif
-		#if USE_ALPHA_TEST
-		// x: alpha threshold
-		nointerpolation float builtInInterpolants : TEXCOORD4;
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
+		// x: inverse soft particles fade distance
+		// y: alpha threshold
+		// z: frame blending factor
+		nointerpolation float3 builtInInterpolants : TEXCOORD4;
 		#endif
 	};
 	
@@ -41,7 +47,9 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_UV uv
-#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_NORMAL normal
 #if USE_NORMAL_MAP
 #define VFX_VARYING_TANGENT tangent
