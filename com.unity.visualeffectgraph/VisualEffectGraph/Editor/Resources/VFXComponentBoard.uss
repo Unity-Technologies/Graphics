@@ -70,6 +70,8 @@ VFXComponentBoard, #component-container
 #header > #labelContainer > #subTitleLabel {
     font-size: 11;
     text-color: #606060;
+    word-wrap:true;
+
 }
 
 

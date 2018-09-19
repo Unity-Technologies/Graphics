@@ -12,30 +12,6 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-    class SelectionSetter : Manipulator
-    {
-        VFXView m_View;
-        public SelectionSetter(VFXView view)
-        {
-            m_View = view;
-        }
-
-        protected override void RegisterCallbacksOnTarget()
-        {
-            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
-        }
-
-        protected override void UnregisterCallbacksFromTarget()
-        {
-            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
-        }
-
-        void OnMouseUp(MouseUpEvent evt)
-        {
-            Selection.activeObject = m_View.controller.model;
-        }
-    }
-    
     class VFXView : GraphView, IDropTarget, IControlledElement<VFXViewController>
     {
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
@@ -232,19 +208,30 @@ namespace UnityEditor.VFX.UI
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
             m_Toolbar.Add(button);
+            button = new Button(() => { SelectAsset(); });
+            button.text = "Select Asset";
+            button.AddToClassList("toolbarItem");
+            m_Toolbar.Add(button);
 
-            Button toggleBlackboard = new Button(ToggleBlackboard);
+            VisualElement spacer = new VisualElement();
+            spacer.style.width = 10;
+            m_Toolbar.Add(spacer);
+
+            Toggle toggleBlackboard = new Toggle();
             toggleBlackboard.text = "Blackboard";
             toggleBlackboard.AddToClassList("toolbarItem");
+            toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
             m_Toolbar.Add(toggleBlackboard);
 
-            Button toggleComponentBoard = new Button(ToggleComponentBoard);
-            toggleComponentBoard.text = "Component board";
+            Toggle toggleComponentBoard = new Toggle();
+            toggleComponentBoard.text = "Target GameObject";
             toggleComponentBoard.AddToClassList("toolbarItem");
+            toggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(toggleComponentBoard);
 
 
-            VisualElement spacer = new VisualElement();
+
+            spacer = new VisualElement();
             spacer.style.flex = new Flex(1);
             m_Toolbar.Add(spacer);
 
@@ -286,11 +273,13 @@ namespace UnityEditor.VFX.UI
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
             if (blackboardVisible)
                 Add(m_Blackboard);
+            toggleBlackboard.value = blackboardVisible;
 
 
             bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, false);
             if (componentBoardVisible)
                 ShowComponentBoard();
+            toggleComponentBoard.value = componentBoardVisible;
 
             Add(m_Toolbar);
 
@@ -325,7 +314,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void ToggleBlackboard()
+        void ToggleBlackboard(ChangeEvent<bool> e)
         {
             if (m_Blackboard.parent == null)
             {
@@ -387,7 +376,7 @@ namespace UnityEditor.VFX.UI
             UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
-        void ToggleComponentBoard()
+        void ToggleComponentBoard(ChangeEvent<bool> e)
         {
             if (m_ComponentBoard == null || m_ComponentBoard.parent == null)
             {
@@ -1222,10 +1211,14 @@ namespace UnityEditor.VFX.UI
                 Selection.objects = blackBoardSelected;
                 return;
             }
+        }
 
+        void SelectAsset()
+        {
             if (Selection.activeObject != controller.model)
             {
                 Selection.activeObject = controller.model.asset;
+                EditorGUIUtility.PingObject(controller.model.asset);
             }
         }
 
