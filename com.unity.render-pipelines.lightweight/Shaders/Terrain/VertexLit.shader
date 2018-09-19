@@ -38,8 +38,8 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             
-            #include "LWRP/ShaderLibrary/Core.hlsl"
-            #include "LWRP/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
     
             float4 _MainTex_ST;
     
@@ -147,8 +147,8 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceUnlit.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
         
@@ -168,8 +168,8 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
             
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassMetaSimple.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceSimple.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/LightweightPassMetaSimple.hlsl"
 
             ENDHLSL
         }
