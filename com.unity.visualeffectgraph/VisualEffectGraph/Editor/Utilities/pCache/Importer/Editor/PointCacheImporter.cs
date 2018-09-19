@@ -48,12 +48,6 @@ namespace UnityEditor.VFXToolbox
             }
         }
 
-        /// <summary>
-        ///  Ugly shit to get correct bytelength of the fucking file header
-        /// </summary>
-        /// <param name="s"></param>
-        /// <param name="byteLength"></param>
-        /// <param name="lines"></param>
         public static void GetHeader(Stream s, out long byteLength, out List<string> lines)
         {
             byteLength = 0;
@@ -207,21 +201,9 @@ namespace UnityEditor.VFXToolbox
 
         private void FindBestSize(int count, out int width, out int height)
         {
-            int bestwidth = 1;
-            int bestreminder = 4096;
-            width = 32;
-            while (width <= 4096)
-            {
-                int r = width - (count % width);
-                if (r < bestreminder)
-                {
-                    bestreminder = r;
-                    bestwidth = width;
-                }
-                width *= 2;
-            }
-            width = bestwidth;
-            height = (count / width) + 1;
+            float r = Mathf.Sqrt(count);
+            width = (int)Mathf.Ceil(r);
+            height = width;
         }
     }
 }

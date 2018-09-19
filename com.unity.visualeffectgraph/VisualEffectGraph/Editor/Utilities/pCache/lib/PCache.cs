@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Globalization;
 
-public class PCache
+public partial class PCache
 {
     public List<PropertyDesc> properties;
     public List<List<object>> buckets;
@@ -46,7 +46,27 @@ public class PCache
         buckets.Add(new List<object>());
     }
 
-    public void AddVectorProperty(string name)
+    public void AddVector2Property(string name)
+    {
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".x",
+            ComponentIndex = 0,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".y",
+            ComponentIndex = 1,
+            ComponentName = name,
+            Type = "float"
+        }); 
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+    }
+
+    public void AddVector3Property(string name)
     {
         properties.Add(new PropertyDesc()
         {
@@ -68,6 +88,77 @@ public class PCache
             ComponentName = name,
             Type = "float"
         });
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+    }
+
+    public void AddVector4Property(string name)
+    {
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".x",
+            ComponentIndex = 0,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".y",
+            ComponentIndex = 1,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".z",
+            ComponentIndex = 2,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".w",
+            ComponentIndex = 3,
+            ComponentName = name,
+            Type = "float"
+        });
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+    }
+
+    public void AddColorProperty(string name)
+    {
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".r",
+            ComponentIndex = 0,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".g",
+            ComponentIndex = 1,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".b",
+            ComponentIndex = 2,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".a",
+            ComponentIndex = 3,
+            ComponentName = name,
+            Type = "float"
+        });
+        buckets.Add(new List<object>());
         buckets.Add(new List<object>());
         buckets.Add(new List<object>());
         buckets.Add(new List<object>());
@@ -103,7 +194,6 @@ public class PCache
     {
         FileStream outFile = File.Create(filename);
         BinaryWriter binaryWriter = new BinaryWriter(outFile);
-
         binaryWriter.Write(BuildHeaderString(format));
 
         if (format == Format.Binary)
@@ -173,16 +263,16 @@ public class PCache
     {
         StringBuilder b = new StringBuilder();
 
-        b.AppendLine("pcache");
-        b.AppendLine(string.Format("format {0} 1.0", GetFormatString(format)));
-        b.AppendLine("comment Exported with PCache.cs");
-        b.AppendLine(string.Format("elements {0}", elementCount));
+        b.Append("pcache\n");
+        b.Append(string.Format("format {0} 1.0\n", GetFormatString(format)));
+        b.Append("comment Exported with PCache.cs\n");
+        b.Append(string.Format("elements {0}\n", elementCount));
 
         foreach (var property in properties)
         {
-            b.AppendLine(string.Format("property {0} {1}", property.Type, property.Name));
+            b.Append(string.Format("property {0} {1}\n", property.Type, property.Name));
         }
-        b.AppendLine("end_header");
+        b.Append("end_header\n");
         return b.ToString().ToCharArray();
     }
 
@@ -336,6 +426,7 @@ public class PCache
             {
                 char c = sr.ReadChar();
                 byteLength++;
+
                 if (c == '\n' || c == '\r')
                 {
                     if (sb.Length > 0)
