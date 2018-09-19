@@ -110,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public float[] m_BoundingDistances = new float[1];
 
         private Dictionary<int, DecalSet> m_DecalSets = new Dictionary<int, DecalSet>();
-        private SortedList<int, List<DecalSet>> m_DecalSetsRenderList = new SortedList<int, List<DecalSet>>(); // list of decalset lists sorted by material draw order
+        private List<DecalSet> m_DecalSetsRenderList = new List<DecalSet>(); // list of visible decalsets sorted by material draw order
 
         // current camera
         private Camera m_Camera;
@@ -185,6 +185,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Material = material;              
                 InitializeMaterialValues();
             }
+
 
             private BoundingSphere GetDecalProjectBoundingSphere(Matrix4x4 decalToWorld)
             {
@@ -648,12 +649,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_DecalMesh == null)
                 m_DecalMesh = CoreUtils.CreateCubeMesh(kMin, kMax);
 
-            foreach (var pair in m_DecalSetsRenderList)
+            foreach (var decalSet in m_DecalSetsRenderList)
             {
-                foreach(var decalSet in pair.Value)
-                {
-                    decalSet.RenderIntoDBuffer(cmd);
-                }                
+                decalSet.RenderIntoDBuffer(cmd);
             }
         }
 
@@ -726,6 +724,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UpdateDecalDatasWithAtlasInfo();
         }
 
+     
         public void CreateDrawData()
         {
             m_DecalDatasCount = 0;
@@ -742,19 +741,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BaseColor = new Vector4[newDecalDatasSize];
             }
 
+            // add any visible decals according to material draw order, avoid using List.Sort() because it uses quicksort, which is an unstable sort.
             m_DecalSetsRenderList.Clear();
             foreach (var pair in m_DecalSets)
             {
                 if (pair.Value.CreateDrawData())
                 {
-                    int key = pair.Value.DrawOrder;
-                    List<DecalSet> decalSetList;
-                    if (!m_DecalSetsRenderList.TryGetValue(key, out decalSetList))
+                    int insertIndex = 0;
+                    while((insertIndex < m_DecalSetsRenderList.Count) && (pair.Value.DrawOrder >= m_DecalSetsRenderList[insertIndex].DrawOrder))
                     {
-                        decalSetList = new List<DecalSet>();
-                        m_DecalSetsRenderList.Add(key, decalSetList);
+                        insertIndex++;
                     }
-                    decalSetList.Add(pair.Value);
+                    m_DecalSetsRenderList.Insert(insertIndex, pair.Value);
                 }
             }
         }

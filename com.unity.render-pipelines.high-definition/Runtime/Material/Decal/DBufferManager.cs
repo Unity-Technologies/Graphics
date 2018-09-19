@@ -9,10 +9,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         RTHandleSystem.RTHandle m_HTile;
 
+        // because number of render targets is not passed explicitly to SetRenderTarget, but rather deduces it from array size
+        RenderTargetIdentifier[] m_RTIDs4;
+        RenderTargetIdentifier[] m_RTIDs3;
+
         public DBufferManager()
             : base(Decal.GetMaterialDBufferCount())
         {
             Debug.Assert(m_BufferCount <= 4);
+            m_RTIDs4 = new RenderTargetIdentifier[4];
+            m_RTIDs3 = new RenderTargetIdentifier[3];
         }
 
         public override void CreateBuffers()
@@ -43,7 +49,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // for alpha compositing, color is cleared to 0, alpha to 1
             // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 
-            RenderTargetIdentifier[] RTIDs = new RenderTargetIdentifier[rtCount4 ? 4 :3];
+            // to avoid temporary allocations, because number of render targets is not passed explicitly to SetRenderTarget, but rather deduces it from array size
+            RenderTargetIdentifier[] RTIDs = rtCount4 ? m_RTIDs4 : m_RTIDs3;
+
             // this clears the targets
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
             Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
