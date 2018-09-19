@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed camera motion vectors shader and associated matrices to update correctly for single-pass double-wide stereo rendering
 - Fixed light attenuation functions when range attenuation is disabled
 - Fixed shadow component algorithm fixup not dirtying the scene, so changes can be saved to disk.
+= Fixed GC leaks for decals
 
 ### Changed
 - Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
