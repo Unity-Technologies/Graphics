@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light attenuation functions when range attenuation is disabled
 - Fixed shadow component algorithm fixup not dirtying the scene, so changes can be saved to disk.
 = Fixed GC leaks for decals
+- Fixed contact shadow not affected by shadow dimmer
 
 ### Changed
 - Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
