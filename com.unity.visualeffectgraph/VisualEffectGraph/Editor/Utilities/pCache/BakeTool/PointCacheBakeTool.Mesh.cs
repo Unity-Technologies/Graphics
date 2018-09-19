@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Utilities
         public enum MeshBakeMode
         {
             Vertex,
-            Edge,
+            //Edge,
             Triangle
         }
 
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Utilities
         {
             Sequential,
             Random,
-            RandomPerUnit
+            //RandomPerUnit
         }
 
         Distribution m_Distribution = Distribution.Random;
@@ -29,42 +29,14 @@ namespace UnityEditor.VFX.Utilities
         bool m_ExportColors = false;
         bool m_UniformPrepass = true;
 
-        EasyMesh m_EasyMesh;
         Mesh m_Mesh;
         int m_OutputPointCount = 4096;
-        float m_OutputPointsPerUnit = 15.0f;
+        int m_Seed;
 
         void OnGUI_Mesh()
         {
             GUILayout.Label("Mesh Baking", EditorStyles.boldLabel);
             m_Mesh = (Mesh)EditorGUILayout.ObjectField(Contents.mesh, m_Mesh, typeof(Mesh), false);
-
-            if (m_Mesh != null && (m_EasyMesh == null || m_EasyMesh.mesh != m_Mesh))
-            {
-                m_EasyMesh = null;
-            }
-
-            if (m_EasyMesh == null)
-            {
-                if (GUILayout.Button("Get Statistics for Mesh"))
-                {
-                    bool bake = false;
-                    if (m_Mesh.vertexCount < 2048)
-                        bake = true;
-                    else
-                    {
-                        if (EditorUtility.DisplayDialog("EasyMesh", "This mesh contains a large amount of vertices and parsing geometry can take a long time, are you sure you want to continue?", "Yes", "No"))
-                        {
-                            bake = true;
-                        }
-                    }
-                    if (bake)
-                    {
-                        BakeMesh();
-                    }
-                }
-                return;
-            }
             m_MeshBakeMode = (MeshBakeMode)EditorGUILayout.EnumPopup(Contents.meshBakeMode, m_MeshBakeMode);
             m_Distribution = (Distribution)EditorGUILayout.EnumPopup(Contents.distribution, m_Distribution);
 
@@ -72,103 +44,182 @@ namespace UnityEditor.VFX.Utilities
             m_ExportColors = EditorGUILayout.Toggle("Export Colors", m_ExportColors);
             m_ExportUV = EditorGUILayout.Toggle("Export UVs", m_ExportUV);
 
-            if (m_Distribution != Distribution.RandomPerUnit)
-                m_OutputPointCount = EditorGUILayout.IntField("Point Count", m_OutputPointCount);
-            else
-                m_OutputPointsPerUnit = EditorGUILayout.FloatField("Points per unit", m_OutputPointsPerUnit);
+            m_OutputPointCount = EditorGUILayout.IntField("Point Count", m_OutputPointCount);
+            if (m_Distribution != Distribution.Sequential)
+                m_Seed = EditorGUILayout.IntField("Seed", m_Seed);
 
             m_OutputFormat = (PCache.Format)EditorGUILayout.EnumPopup("File Format", m_OutputFormat);
 
-            if (GUILayout.Button("Save to pCache file..."))
+            if (m_Mesh != null)
             {
-                string fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Mesh.name, "pcache", "Save PCache");
-                if (fileName != null)
+                if (GUILayout.Button("Save to pCache file..."))
                 {
-                    PCache file = new PCache();
-                    file.AddVector3Property("position");
-                    if (m_ExportNormals) file.AddVector3Property("normal");
-                    if (m_ExportColors) file.AddColorProperty("color");
-                    if (m_ExportUV) file.AddVector2Property("uv");
-
-                    List<Vector3> positions = new List<Vector3>();
-                    List<Vector3> normals = null;
-                    List<Vector4> colors = null;
-                    List<Vector2> uvs = null;
-                    if (m_ExportNormals) normals = new List<Vector3>();
-                    if (m_ExportColors) colors = new List<Vector4>();
-                    if (m_ExportUV) uvs = new List<Vector2>();
-                    try
+                    string fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Mesh.name, "pcache", "Save PCache");
+                    if (fileName != null)
                     {
-                        EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Capturing data...", 0.0f);
-                        GetData(m_EasyMesh, m_OutputPointCount, m_Distribution, m_MeshBakeMode, positions, normals, colors, uvs);
 
-                        EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Storing data arrays...", 0.5f);
-                        file.SetVector3Data("position", positions);
-                        if (m_ExportNormals) file.SetVector3Data("normal", normals);
-                        if (m_ExportColors) file.SetColorData("color", colors);
-                        if (m_ExportUV) file.SetVector2Data("uv", uvs);
-                        EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Saving pCache file", 1.0f);
-                        file.SaveToFile(fileName, m_OutputFormat);
-                        EditorUtility.ClearProgressBar();
+                        try
+                        {
+                            EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Capturing data...", 0.0f);
+                            var file = ComputePCacheFromMesh();
+                            EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Saving pCache file", 1.0f);
+                            file.SaveToFile(fileName, m_OutputFormat);
+                            EditorUtility.ClearProgressBar();
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogException(e);
+                            EditorUtility.ClearProgressBar();
+                        }
                     }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogException(e);
-                        EditorUtility.ClearProgressBar();
-                    }
+                }
+
+                EditorGUILayout.Space();
+
+                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    EditorGUILayout.LabelField("Mesh Statistics", EditorStyles.boldLabel);
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.IntField("Vertices", m_Mesh.vertexCount);
+                    EditorGUILayout.IntField("Triangles", m_Mesh.triangles.Length);
+                    EditorGUILayout.IntField("Sub Meshes", m_Mesh.subMeshCount);
+                    EditorGUI.indentLevel--;
                 }
             }
 
             EditorGUILayout.Space();
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+        }
+
+        class MeshData
+        {
+            public struct Vertex
             {
-                EditorGUILayout.LabelField("Mesh Statistics", EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-                EditorGUILayout.IntField("Points", m_EasyMesh.m_Points.Count);
-                EditorGUILayout.IntField("Vertices", m_EasyMesh.m_Vertices.Count);
-                EditorGUILayout.IntField("Edges", m_EasyMesh.m_Edges.Count);
-                EditorGUILayout.IntField("Triangles", m_EasyMesh.m_Primitives.Count);
-                EditorGUILayout.IntField("Meshes", m_EasyMesh.m_NumMeshes);
-                EditorGUI.indentLevel--;
+                public Vector3 position;
+                public Color color;
+                public Vector3 normal;
+                public Vector4 tangent;
+                public Vector4[] uvs;
+            };
+
+            public struct Triangle
+            {
+                public int a, b, c;
+            };
+
+            public Vertex[] vertices;
+            public Triangle[] triangles;
+        }
+
+        static MeshData ComputeDataCache(Mesh input)
+        {
+            var positions = input.vertices;
+            var normals = input.normals;
+            var tangents = input.tangents;
+            var colors = input.colors;
+            var uvs = new List<Vector4[]>();
+
+            normals = normals.Length == input.vertexCount ? normals : null;
+            tangents = tangents.Length == input.vertexCount ? tangents : null;
+            colors = colors.Length == input.vertexCount ? colors : null;
+
+            for (int i = 0; i < 8; ++i)
+            {
+                var uv = new List<Vector4>();
+                input.GetUVs(i, uv);
+                if (uv.Count == input.vertexCount)
+                {
+                    uvs.Add(uv.ToArray());
+                }
+                else
+                {
+                    break;
+                }
             }
 
-            EditorGUILayout.Space();
+            var meshData = new MeshData();
+            meshData.vertices = new MeshData.Vertex[input.vertexCount];
+            for (int i = 0; i < input.vertexCount; ++i)
+            {
+                meshData.vertices[i] = new MeshData.Vertex()
+                {
+                    position = positions[i],
+                    color = colors != null ? colors[i] : Color.white,
+                    normal = normals != null ? normals[i] : Vector3.up,
+                    tangent = tangents != null ? tangents[i] : Vector4.one,
+                    uvs = Enumerable.Range(0, uvs.Count).Select(c => uvs[c][i]).ToArray()
+                };
+            }
+
+            meshData.triangles = new MeshData.Triangle[input.triangles.Length / 3];
+            var triangles = input.triangles;
+            for (int i = 0; i < meshData.triangles.Length; ++i)
+            {
+                meshData.triangles[i] = new MeshData.Triangle()
+                {
+                    a = triangles[i * 3 + 0],
+                    b = triangles[i * 3 + 1],
+                    c = triangles[i * 3 + 2],
+                };
+            }
+            return meshData;
         }
+
+        abstract class Picker
+        {
+            public abstract MeshData.Vertex GetNext();
+
+            protected Picker (MeshData data)
+            {
+                m_cacheData = data;
+            }
+            protected MeshData m_cacheData;
+        }
+
+        abstract class RandomPicker : Picker
+        {
+            protected RandomPicker(MeshData data, int seed) : base(data)
+            {
+                m_Rand = new System.Random(seed);
+            }
+
+            protected float GetNextRandFloat()
+            {
+                return (float)m_Rand.NextDouble(); //[0; 1[
+            }
+
+            protected System.Random m_Rand;
+        }
+
+        class RandomPickerVertex : RandomPicker
+        {
+            public RandomPickerVertex(MeshData data, int seed) : base(data, seed)
+            {
+
+            }
+
+            public override sealed MeshData.Vertex GetNext()
+            {
+                int randomIndex = m_Rand.Next(0, m_cacheData.vertices.Length);
+                return m_cacheData.vertices[randomIndex];
+            }
+        }
+
+        PCache ComputePCacheFromMesh()
+        {
+            var file = new PCache();
+            file.AddVector3Property("position");
+            if (m_ExportNormals) file.AddVector3Property("normal");
+            if (m_ExportColors) file.AddColorProperty("color");
+            if (m_ExportUV) file.AddVector2Property("uv");
+
+            var meshCache = ComputeDataCache(m_Mesh);
+
+            return file;
+        }
+
 
         float[] m_EdgeLength;
         float[] m_TriangleArea;
-
-        void BakeMesh()
-        {
-            m_EasyMesh = new EasyMesh(m_Mesh, null);
-            EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Gathering Edge Statistics", 0.5f);
-
-            // Pre-bake edge statistics
-            int edgeCount = m_EasyMesh.m_Edges.Count;
-            m_EdgeLength = new float[edgeCount];
-
-            int i = 0;
-            foreach (var edge in m_EasyMesh.m_Edges)
-            {
-                m_EdgeLength[i] = edge.Length();
-                i++;
-            }
-
-            EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Gathering Triangle Statistics", 1.0f);
-
-            // Pre-bake triangle statistics
-            int triangleCount = m_EasyMesh.m_Primitives.Count;
-            m_TriangleArea = new float[triangleCount];
-
-            i = 0;
-            foreach (var triangle in m_EasyMesh.m_Primitives)
-            {
-                m_TriangleArea[i] = triangle.Area();
-                i++;
-            }
-
-            EditorUtility.ClearProgressBar();
-        }
 
         void GetVertexData(EasyMesh.Vertex v, List<Vector3> positions, List<Vector3> normals = null, List<Vector4> colors = null, List<Vector2> uvs = null)
         {
@@ -221,6 +272,7 @@ namespace UnityEditor.VFX.Utilities
                 uvs.Add(BLerp(p.A.UV, p.B.UV, p.C.UV, position));
         }
 
+        /*
         void GetData(EasyMesh m, int count, Distribution distribution, MeshBakeMode bakeMode, List<Vector3> positions, List<Vector3> normals = null, List<Vector4> colors = null, List<Vector2> uvs = null)
         {
             int total = count;
@@ -230,7 +282,7 @@ namespace UnityEditor.VFX.Utilities
                 switch (bakeMode)
                 {
                     case MeshBakeMode.Vertex: total = m.m_Vertices.Count; break;
-                    case MeshBakeMode.Edge: total = m.m_Edges.Count; break;
+                    //case MeshBakeMode.Edge: total = m.m_Edges.Count; break;
                     case MeshBakeMode.Triangle: total = m.m_Primitives.Count; break;
                 }
 
@@ -256,7 +308,7 @@ namespace UnityEditor.VFX.Utilities
                     switch (bakeMode)
                     {
                         case MeshBakeMode.Vertex: GetVertexData(m.m_Vertices[index % m.m_Vertices.Count], positions, normals, colors, uvs); break;
-                        case MeshBakeMode.Edge: GetEdgeData(m.m_Edges[index % m.m_Edges.Count], Random.Range(0.0f, 1.0f), positions, normals, colors, uvs); break;
+                        //case MeshBakeMode.Edge: GetEdgeData(m.m_Edges[index % m.m_Edges.Count], Random.Range(0.0f, 1.0f), positions, normals, colors, uvs); break;
                         case MeshBakeMode.Triangle: GetFaceData(m.m_Primitives[index % m.m_Primitives.Count], new Vector2(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f)), positions, normals, colors, uvs); break;
                     }
                 }
@@ -284,6 +336,7 @@ namespace UnityEditor.VFX.Utilities
                 }
             }
         }
+        */
 
         static partial class Contents
         {
