@@ -213,7 +213,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
         // Transparent have no contact shadow information
 #ifndef _SURFACE_TYPE_TRANSPARENT
-        shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
+        shadow = min(shadow, lerp(1.0, GetContactShadow(lightLoopContext, lightData.contactShadowIndex), lightData.shadowDimmer));;
 #endif
     }
 
