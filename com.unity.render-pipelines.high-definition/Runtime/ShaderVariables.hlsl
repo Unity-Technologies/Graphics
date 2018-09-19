@@ -302,6 +302,18 @@ CBUFFER_END
 
 #endif // USING_STEREO_MATRICES
 
+// Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
+// Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
+float SampleCameraDepth(uint2 pixelCoords)
+{
+    return LOAD_TEXTURE2D_LOD(_CameraDepthTexture, pixelCoords, 0).r;
+}
+
+float SampleCameraDepth(float2 uv)
+{
+    return SampleCameraDepth(uint2(uv * _ScreenSize.xy));
+}
+
 float4x4 OptimizeProjectionMatrix(float4x4 M)
 {
     // Matrix format (x = non-constant value).
