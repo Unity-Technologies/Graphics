@@ -16,3 +16,6 @@ MonoBehaviour:
     type: 2}
   DefaultTerrainMaterial: {fileID: 2100000, guid: 594ea882c5a793440b60ff72d896021e,
     type: 2}
+  AutodeskInteractiveShader: {fileID: 4800000, guid: 0e9d5a909a1f7e84882a534d0d11e49f, type: 3}
+  AutodeskInteractiveTransparentShader: {fileID: 4800000, guid: 5c81372d981403744adbdda4433c9c11, type: 3}
+  AutodeskInteractiveMaskedShader: {fileID: 4800000, guid: 80aa867ac363ac043847b06ad71604cd, type: 3}
