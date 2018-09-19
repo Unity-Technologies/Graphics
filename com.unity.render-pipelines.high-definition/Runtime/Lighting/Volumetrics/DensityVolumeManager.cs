@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public VolumeTextureAtlas volumeAtlas = null;
+        public Texture3DAtlas volumeAtlas = null;
         private bool atlasNeedsRefresh = false;
 
         //TODO: hardcoded size....:-(
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             volumes = new List<DensityVolume>();
 
-            volumeAtlas = new VolumeTextureAtlas(TextureFormat.Alpha8, volumeTextureSize);
+            volumeAtlas = new Texture3DAtlas(TextureFormat.Alpha8, volumeTextureSize);
 
             volumeAtlas.OnAtlasUpdated += AtlasUpdated;
         }
@@ -81,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 VolumeAtlasRefresh();
             }
 
-            volumeAtlas.GenerateVolumeAtlas(cmd);
+            volumeAtlas.GenerateAtlas(cmd);
 
             return volumes.ToArray();
         }

@@ -558,7 +558,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Compose the matrix which allows us to compute the world space view direction.
                 Matrix4x4 transform   = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, hdCamera.viewMatrix, false);
 
-                Texture3D volumeAtlas = DensityVolumeManager.manager.volumeAtlas.volumeAtlas;
+                Texture3D volumeAtlas = DensityVolumeManager.manager.volumeAtlas.GetAtlas();
                 Vector4 volumeAtlasDimensions = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
                 if (volumeAtlas != null)
