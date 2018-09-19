@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Operator
             public Vector3 x = Vector3.one;
         }
 
-        public override sealed string name { get { return "Normalize"; } }
+        protected override sealed string operatorName { get { return "Normalize"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

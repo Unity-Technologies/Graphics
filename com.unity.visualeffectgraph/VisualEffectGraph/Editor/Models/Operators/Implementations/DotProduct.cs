@@ -19,7 +19,8 @@ namespace UnityEditor.VFX.Operator
             public float d;
         }
 
-        public override sealed string name { get { return "DotProduct"; } }
+        public override string libraryName { get { return "Dot Product"; } }
+        public override string name { get { return "Dot Product"; } }
 
         protected sealed override ValidTypeRule typeFilter
         {

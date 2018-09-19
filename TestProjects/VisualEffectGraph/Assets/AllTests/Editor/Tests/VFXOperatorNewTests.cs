@@ -804,5 +804,74 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(e.y, r.y);
             Assert.AreEqual(e.z, r.z);
         }
+
+
+        private static Type[] k_Completly_free_operator = new[] { typeof(Operator.Subtract), typeof(Operator.Add), typeof(Operator.Multiply), typeof(Operator.Divide) };
+        [Test]
+        public void Compute_Output_Type_All_Combinaison_And_Compare_With_Reference([ValueSource("k_Completly_free_operator")]Type concernedOperator)
+        {
+            var inputOrdering = VFXOperatorDynamicOperand.kExpectedTypeOrdering.Reverse().ToArray();
+
+            var mapOfCombinaison = new Type[inputOrdering.Length, inputOrdering.Length];
+            var obj = ScriptableObject.CreateInstance(concernedOperator);
+            var op = obj as VFXOperatorNumericCascadedUnified;
+            for (int i = 0; i < inputOrdering.Length; ++i)
+            {
+                for (int j = 0; j < inputOrdering.Length; ++j)
+                {
+                    op.SetOperandType(0, inputOrdering[i]);
+                    op.SetOperandType(1, inputOrdering[j]);
+                    mapOfCombinaison[i, j] = op.outputSlots[0].property.type;
+                }
+            }
+
+
+            Func<IEnumerable<Type>, string> dumpArray = delegate (IEnumerable<Type> input)
+            {
+                return input.Select(o => o == null ? string.Empty : o.UserFriendlyName())
+                            .Select((o, index) =>
+                            {
+                                var r = o;
+                                if (index != input.Count() - 1)
+                                    for (var i = 0; i < 4 - o.Length / 4; ++i) r += "\t";
+                                return r;
+                            })
+                            .Aggregate((a, b) => a + "|\t" + b);
+            };
+
+            Func<Type[,], string> dumpRectangular = delegate (Type[,] intput)
+            {
+                var dump = "\n";
+                dump += dumpArray(Enumerable.Repeat<Type>(null, 1).Concat(inputOrdering).ToArray());
+                dump += "\n";
+                for (int i = 0; i < inputOrdering.Length; i++)
+                {
+                    var current = mapOfCombinaison.Cast<Type>()
+                                            .Skip(inputOrdering.Length * i)
+                                            .Take(inputOrdering.Length)
+                                            .Reverse();
+                    dump += dumpArray(Enumerable.Repeat<Type>(inputOrdering[i], 1).Concat(current));
+                    dump += "\n";
+                }
+                return dump;
+            };
+
+            var reference = new Type[, ] //If this change, be careful with compatibility of visual effect
+            {
+                {typeof(int),typeof(uint),typeof(float),typeof(Vector2),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
+                {typeof(uint),typeof(uint),typeof(float),typeof(Vector2),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
+                {typeof(float),typeof(float),typeof(float),typeof(Vector2),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
+                {typeof(Vector2),typeof(Vector2),typeof(Vector2),typeof(Vector2),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
+                {typeof(Vector3),typeof(Vector3),typeof(Vector3),typeof(Vector3),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
+                {typeof(DirectionType),typeof(DirectionType),typeof(DirectionType),typeof(DirectionType),typeof(DirectionType),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
+                {typeof(Vector),typeof(Vector),typeof(Vector),typeof(Vector),typeof(Vector),typeof(Vector),typeof(Vector),typeof(Position),typeof(Vector4)},
+                {typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Vector4)},
+                {typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4)},
+            };
+
+            var referenceDump = dumpRectangular(reference);
+            var currentDump = dumpRectangular(mapOfCombinaison);
+            Assert.AreEqual(referenceDump, currentDump);
+        }
     }
 }

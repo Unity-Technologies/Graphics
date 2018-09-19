@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Operator
             public float d;
         }
 
-        public override sealed string name { get { return "Distance"; } }
+        protected override sealed string operatorName { get { return "Distance"; } }
 
         protected override ValidTypeRule typeFilter
         {
