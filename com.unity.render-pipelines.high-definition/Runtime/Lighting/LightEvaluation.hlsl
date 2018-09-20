@@ -1,6 +1,4 @@
 // This files include various function uses to evaluate lights
-// To use deferred directional shadow with cascaded shadow map,
-// it is required to define USE_DEFERRED_DIRECTIONAL_SHADOWS before including this files
 
 //-----------------------------------------------------------------------------
 // Directional Light evaluation helper
@@ -221,7 +219,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 }
 
 // Environment map share function
-#include "Reflection/VolumeProjection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 
 void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData lightData, int influenceShapeType, inout float3 R, inout float weight)
 {
