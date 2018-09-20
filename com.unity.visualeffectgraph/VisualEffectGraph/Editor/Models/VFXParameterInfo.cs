@@ -123,7 +123,7 @@ namespace UnityEditor.VFX
 
                 info.path = path + "_" + field.Name;
 
-                var tooltip = field.GetCustomAttributes(typeof(TooltipAttribute),true).First() as TooltipAttribute;
+                var tooltip = field.GetCustomAttributes(typeof(TooltipAttribute),true).FirstOrDefault() as TooltipAttribute;
                 if( tooltip != null)
                 {
                     info.tooltip = tooltip.tooltip;
