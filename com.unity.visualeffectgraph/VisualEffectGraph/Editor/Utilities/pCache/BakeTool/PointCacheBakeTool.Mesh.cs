@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace UnityEditor.VFX.Utilities
 {
@@ -60,9 +61,9 @@ namespace UnityEditor.VFX.Utilities
 
                         try
                         {
-                            EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Capturing data...", 0.0f);
+                            EditorUtility.DisplayProgressBar("pCache bake tool", "Capturing data...", 0.0f);
                             var file = ComputePCacheFromMesh();
-                            EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Saving pCache file", 1.0f);
+                            EditorUtility.DisplayProgressBar("pCache bake tool", "Saving pCache file", 1.0f);
                             file.SaveToFile(fileName, m_OutputFormat);
                             EditorUtility.ClearProgressBar();
                         }
@@ -99,6 +100,43 @@ namespace UnityEditor.VFX.Utilities
                 public Vector3 normal;
                 public Vector4 tangent;
                 public Vector4[] uvs;
+
+                public static Vertex operator +(Vertex a, Vertex b)
+                {
+                    if (a.uvs.Length != b.uvs.Length)
+                        throw new InvalidOperationException("Adding compatible vertex");
+
+                    var r = new Vertex()
+                    {
+                        position = a.position + b.position,
+                        color = a.color + b.color,
+                        normal = a.normal + b.normal,
+                        tangent = a.tangent + b.tangent,
+                        uvs = new Vector4[a.uvs.Length]
+                    };
+
+                    for (int i = 0; i < a.uvs.Length; ++i)
+                        r.uvs[i] = a.uvs[i] + b.uvs[i];
+
+                    return r;
+                }
+
+                public static Vertex operator *(float a, Vertex b)
+                {
+                    var r = new Vertex()
+                    {
+                        position = a * b.position,
+                        color = a * b.color,
+                        normal = a * b.normal,
+                        tangent = a * b.tangent,
+                        uvs = new Vector4[b.uvs.Length]
+                    };
+
+                    for (int i = 0; i < b.uvs.Length; ++i)
+                        r.uvs[i] = a * b.uvs[i];
+
+                    return r;
+                }
             };
 
             public struct Triangle
@@ -172,6 +210,29 @@ namespace UnityEditor.VFX.Utilities
             {
                 m_cacheData = data;
             }
+
+            //See http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf (p24) uniform distribution from two numbers in triangle generating barycentric coordinate
+            protected readonly static  Vector2 center_of_sampling = new Vector2(4.0f / 9.0f, 3.0f / 4.0f);
+            protected MeshData.Vertex Interpolate(MeshData.Triangle triangle, Vector2 p)
+            {
+                return Interpolate(m_cacheData.vertices[triangle.a], m_cacheData.vertices[triangle.a], m_cacheData.vertices[triangle.a], p);
+            }
+
+            protected static MeshData.Vertex Interpolate(MeshData.Vertex A, MeshData.Vertex B, MeshData.Vertex C, Vector2 p)
+            {
+                float s = p.x;
+                float t = Mathf.Sqrt(p.y);
+                float a = 1.0f - t;
+                float b = (1 - s) * t;
+                float c = s * t;
+
+                var r = a * A + b * B + c * C;
+                r.normal = r.normal.normalized;
+                var tangent = new Vector3(r.tangent.x, r.tangent.y, r.tangent.z).normalized;
+                r.tangent = new Vector4(tangent.x, tangent.y, tangent.z, r.tangent.w > 0.0f ? 1.0f : -1.0f);
+                return r;
+            }
+
             protected MeshData m_cacheData;
         }
 
@@ -194,7 +255,6 @@ namespace UnityEditor.VFX.Utilities
         {
             public RandomPickerVertex(MeshData data, int seed) : base(data, seed)
             {
-
             }
 
             public override sealed MeshData.Vertex GetNext()
@@ -204,139 +264,121 @@ namespace UnityEditor.VFX.Utilities
             }
         }
 
+        class SequentialPickerVertex : Picker
+        {
+            private uint m_Index = 0;
+            public SequentialPickerVertex(MeshData data) : base(data)
+            {
+            }
+
+            public override sealed MeshData.Vertex GetNext()
+            {
+                var r = m_cacheData.vertices[m_Index];
+                m_Index++;
+                if (m_Index > m_cacheData.vertices.Length)
+                    m_Index = 0;
+                return r;
+            }
+        }
+
+        class RandomPickerTriangle : RandomPicker
+        {
+            public RandomPickerTriangle(MeshData data, int seed) : base(data, seed)
+            {
+            }
+
+            public override sealed MeshData.Vertex GetNext()
+            {
+                var index = m_Rand.Next(0, m_cacheData.triangles.Length);
+                var rand = new Vector2(GetNextRandFloat(), GetNextRandFloat());
+                return Interpolate(m_cacheData.triangles[index], rand);
+            }
+        }
+
+        class SequentialPickerTriangle : Picker
+        {
+            private uint m_Index = 0;
+            public SequentialPickerTriangle(MeshData data) : base(data)
+            {
+            }
+
+            public override sealed MeshData.Vertex GetNext()
+            {
+                var t = m_cacheData.triangles[m_Index];
+                m_Index++;
+                if (m_Index > m_cacheData.triangles.Length)
+                    m_Index = 0;
+                return Interpolate(t, center_of_sampling);
+            }
+        }
+
         PCache ComputePCacheFromMesh()
         {
+            var meshCache = ComputeDataCache(m_Mesh);
+
+            Picker picker = null;
+            if (m_Distribution == Distribution.Sequential)
+            {
+                if (m_MeshBakeMode == MeshBakeMode.Vertex)
+                {
+                    picker = new SequentialPickerVertex(meshCache);
+                }
+                else if (m_MeshBakeMode == MeshBakeMode.Triangle)
+                {
+                    picker = new SequentialPickerTriangle(meshCache);
+                }
+            }
+            else if (m_Distribution == Distribution.Random)
+            {
+                if (m_MeshBakeMode == MeshBakeMode.Vertex)
+                {
+                    picker = new RandomPickerVertex(meshCache, m_Seed);
+                }
+                else if (m_MeshBakeMode == MeshBakeMode.Triangle)
+                {
+                    picker = new RandomPickerTriangle(meshCache, m_Seed);
+                }
+            }
+            if (picker == null)
+                throw new InvalidOperationException("Unable to find picker");
+
+
+
+
+            var positions = new List<Vector3>();
+            var normals = m_ExportNormals ? new List<Vector3>() : null;
+            var colors = m_ExportColors ? new List<Vector4>() : null;
+            var uvs = m_ExportUV ? new List<Vector4>() : null;
+
+            for (int i = 0; i < m_OutputPointCount; ++i)
+            {
+                var cancel = EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Sampling data...", (float)i/(float)m_OutputPointCount);
+                if (cancel)
+                {
+                    return null;
+                }
+
+                var vertex = picker.GetNext();
+                positions.Add(vertex.position);
+                if (m_ExportNormals) normals.Add(vertex.normal);
+                if (m_ExportColors) colors.Add(vertex.color);
+                if (m_ExportUV) uvs.Add(vertex.uvs.Any() ? vertex.uvs[0] : Vector4.zero);
+            }
+
             var file = new PCache();
             file.AddVector3Property("position");
             if (m_ExportNormals) file.AddVector3Property("normal");
             if (m_ExportColors) file.AddColorProperty("color");
             if (m_ExportUV) file.AddVector2Property("uv");
 
-            var meshCache = ComputeDataCache(m_Mesh);
+            EditorUtility.DisplayProgressBar("pCache bake tool", "Generating pCache...", 0.0f);
+            file.SetVector3Data("position", positions);
+            file.SetColorData("color", colors);
+            file.SetColorData("uv", uvs);
 
+            EditorUtility.ClearProgressBar();
             return file;
         }
-
-
-        float[] m_EdgeLength;
-        float[] m_TriangleArea;
-
-        void GetVertexData(EasyMesh.Vertex v, List<Vector3> positions, List<Vector3> normals = null, List<Vector4> colors = null, List<Vector2> uvs = null)
-        {
-            positions.Add(v.Position);
-
-            if (normals != null)
-                normals.Add(v.Normal);
-
-            if (colors != null)
-                colors.Add(v.Color);
-
-            if (uvs != null)
-                uvs.Add(v.UV);
-        }
-
-        void GetEdgeData(EasyMesh.Edge e, float position, List<Vector3> positions, List<Vector3> normals = null, List<Vector4> colors = null, List<Vector2> uvs = null)
-        {
-            positions.Add(Vector3.Lerp(e.A.Position, e.B.Position, position));
-
-            if (normals != null)
-                normals.Add(Vector3.Lerp(e.A.Normal, e.B.Normal, position).normalized);
-
-            if (colors != null)
-                colors.Add(Color.Lerp(e.A.Color, e.B.Color, position));
-
-            if (uvs != null)
-                uvs.Add(Vector2.Lerp(e.A.UV, e.B.UV, position));
-        }
-
-        // Barycentric interpolation
-        Vector4 BLerp(Vector4 A, Vector4 B, Vector4 C, Vector2 position)
-        {
-            float x = position.x;
-            float y = position.y;
-            float sqrtx = Mathf.Sqrt(x);
-            return (1 - sqrtx) * A + sqrtx * (1 - y) * B + sqrtx * y * C;
-        }
-
-        void GetFaceData(EasyMesh.Primitive p, Vector2 position, List<Vector3> positions, List<Vector3> normals = null, List<Vector4> colors = null, List<Vector2> uvs = null)
-        {
-            positions.Add(BLerp(p.A.Position, p.B.Position, p.C.Position, position));
-
-            if (normals != null)
-                normals.Add(BLerp(p.A.Normal, p.B.Normal, p.C.Normal, position).normalized);
-
-            if (colors != null)
-                colors.Add(BLerp(p.A.Color, p.B.Color, p.C.Color, position));
-
-            if (uvs != null)
-                uvs.Add(BLerp(p.A.UV, p.B.UV, p.C.UV, position));
-        }
-
-        /*
-        void GetData(EasyMesh m, int count, Distribution distribution, MeshBakeMode bakeMode, List<Vector3> positions, List<Vector3> normals = null, List<Vector4> colors = null, List<Vector2> uvs = null)
-        {
-            int total = count;
-
-            if (distribution != Distribution.Random)
-            {
-                switch (bakeMode)
-                {
-                    case MeshBakeMode.Vertex: total = m.m_Vertices.Count; break;
-                    //case MeshBakeMode.Edge: total = m.m_Edges.Count; break;
-                    case MeshBakeMode.Triangle: total = m.m_Primitives.Count; break;
-                }
-
-                if (total < count || distribution == Distribution.RandomPerUnit)
-                    count = total;
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                int index = 0;
-                switch (distribution)
-                {
-                    case Distribution.Sequential: index = i; break;
-                    case Distribution.Random:
-                        index = Random.Range(0, count);
-                        break;
-                    case Distribution.RandomPerUnit:
-                        index = i;
-                        break;
-                }
-                if (distribution != Distribution.RandomPerUnit)
-                {
-                    switch (bakeMode)
-                    {
-                        case MeshBakeMode.Vertex: GetVertexData(m.m_Vertices[index % m.m_Vertices.Count], positions, normals, colors, uvs); break;
-                        //case MeshBakeMode.Edge: GetEdgeData(m.m_Edges[index % m.m_Edges.Count], Random.Range(0.0f, 1.0f), positions, normals, colors, uvs); break;
-                        case MeshBakeMode.Triangle: GetFaceData(m.m_Primitives[index % m.m_Primitives.Count], new Vector2(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f)), positions, normals, colors, uvs); break;
-                    }
-                }
-                else
-                {
-                    switch (bakeMode)
-                    {
-                        case MeshBakeMode.Vertex: GetVertexData(m.m_Vertices[index % m.m_Vertices.Count], positions, normals, colors, uvs); break;
-                        case MeshBakeMode.Edge:
-                            float l = m_EdgeLength[i] * m_OutputPointsPerUnit;
-                            int ctl = (int)Mathf.Floor(l) + (Random.Range(0.0f, 1.0f) > (l % 1.0f) ? 1 : 0);
-
-                            for (int ll = 0; ll < ctl; ll++)
-                                GetEdgeData(m.m_Edges[index % m.m_Edges.Count], Random.Range(0.0f, 1.0f), positions, normals, colors, uvs);
-                            break;
-
-                        case MeshBakeMode.Triangle:
-                            float a = Mathf.Sqrt(m_TriangleArea[i]) * m_OutputPointsPerUnit;
-                            int cta = (int)Mathf.Floor(a) + (Random.Range(0.0f, 1.0f) > (a % 1.0f) ? 1 : 0);
-
-                            for (int ll = 0; ll < cta; ll++)
-                                GetFaceData(m.m_Primitives[index % m.m_Primitives.Count], new Vector2(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f)), positions, normals, colors, uvs);
-                            break;
-                    }
-                }
-            }
-        }
-        */
 
         static partial class Contents
         {
