@@ -3,9 +3,14 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    // Currently PreIntegratedFGD only have GGX, if we add another case convert it to a textureArray (like LTCArea)
     public partial class PreIntegratedFGD
     {
+        [GenerateHLSL]
+        public enum FGDTexture
+        {
+            Resolution = 64
+        }
+
         static PreIntegratedFGD s_Instance;
 
         public static PreIntegratedFGD instance
@@ -49,25 +54,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_refCounting[(int)index] == 0)
             {
                 var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                int res  = (int)FGDTexture.Resolution;
+
                 switch(index)
                 {
                     case FGDIndex.FGD_GGXAndDisneyDiffuse:
                         m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_GGXDisneyDiffuse);
-                        m_PreIntegratedFGD[(int)index] = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
                         m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
                         m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
                         m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
-                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_GGXDisneyDiffuse");
+                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_GGXDisneyDiffuse");
                         m_PreIntegratedFGD[(int)index].Create();
                         break;
 
                     case FGDIndex.FGD_CharlieAndFabricLambert:
                         m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_CharlieFabricLambert);
-                        m_PreIntegratedFGD[(int)index] = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
                         m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
                         m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
                         m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
-                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_CharlieFabricLambert");
+                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_CharlieFabricLambert");
                         m_PreIntegratedFGD[(int)index].Create();
                         break;
 

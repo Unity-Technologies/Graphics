@@ -78,13 +78,12 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_Ward"
             {
                 float   NdotV    = ClampNdotV(dot(N, V));
                 float4  acc      = float4(0.0, 0.0, 0.0, 0.0);
-                float2  randNum  = InitRandom(V.xy * 0.5 + 0.5);  // Add some jittering on Hammersley2d
 
-                float3x3    localToWorld = GetLocalFrame(N);
+                float3x3 localToWorld = GetLocalFrame(N);
 
-                for ( uint i = 0; i < sampleCount; ++i )
+                for (uint i = 0; i < sampleCount; ++i)
                 {
-                    float2  u = frac(randNum + Hammersley2d( i, sampleCount ));
+                    float2  u = Hammersley2d(i, sampleCount);
 
                     float   VdotH;
                     float   NdotL;
@@ -100,7 +99,7 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_Ward"
                         // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
                         // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} + F0 * Integral{(BSDF / F) * <N,L> dw}=
                         // (1 - F0) * x + F0 * y = lerp(x, y, F0)
-                        acc.x += weightOverPdf * pow( 1 - VdotH, 5 );
+                        acc.x += weightOverPdf * pow(1 - VdotH, 5);
                         acc.y += weightOverPdf;
                     }
                 }

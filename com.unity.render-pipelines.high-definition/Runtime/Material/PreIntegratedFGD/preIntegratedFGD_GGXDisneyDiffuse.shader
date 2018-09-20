@@ -16,6 +16,7 @@ Shader "Hidden/HDRenderPipeline/preIntegratedFGD_GGXDisneyDiffuse"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "../../ShaderVariables.hlsl"
+            #include "PreIntegratedFGD.cs.hlsl"
 
             struct Attributes
             {
@@ -40,14 +41,21 @@ Shader "Hidden/HDRenderPipeline/preIntegratedFGD_GGXDisneyDiffuse"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                // These coordinate sampling must match the decoding in GetPreIntegratedDFG in lit.hlsl, i.e here we use perceptualRoughness, must be the same in shader
-                float NdotV                 = input.texCoord.x;
-                float perceptualRoughness   = input.texCoord.y;
-                float3 V                    = float3(sqrt(1 - NdotV * NdotV), 0, NdotV);
-                float3 N                    = float3(0.0, 0.0, 1.0);
+                // We want the LUT to contain the entire [0, 1] range, without losing half a texel at each side.
+                float2 coordLUT = RemapHalfTexelCoordTo01(input.texCoord, FGDTEXTURE_RESOLUTION);
+
+                // The FGD texture is parametrized as follows:
+                // X = sqrt(dot(N, V))
+                // Y = perceptualRoughness
+                // These coordinate sampling must match the decoding in GetPreIntegratedDFG in Lit.hlsl,
+                // i.e here we use perceptualRoughness, must be the same in shader
+                // Note: with this angular parametrization, the LUT is almost perfectly linear,
+                // except for the grazing angle when (NdotV -> 0).
+                float NdotV = coordLUT.x * coordLUT.x;
+                float perceptualRoughness = coordLUT.y;
 
                 // Pre integrate GGX with smithJoint visibility as well as DisneyDiffuse
-                float4 preFGD = IntegrateGGXAndDisneyDiffuseFGD(V, N, PerceptualRoughnessToRoughness(perceptualRoughness));
+                float4 preFGD = IntegrateGGXAndDisneyDiffuseFGD(NdotV, PerceptualRoughnessToRoughness(perceptualRoughness));
 
                 return float4(preFGD.xyz, 1.0);
             }

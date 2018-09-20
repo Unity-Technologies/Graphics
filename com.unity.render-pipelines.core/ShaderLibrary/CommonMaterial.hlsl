@@ -36,6 +36,7 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
     return (1.0 - perceptualSmoothness);
 }
 
+// WARNING: this has been deprecated, and should not be used!
 // Using roughness values of 0 leads to INFs and NANs. The only sensible place to use the roughness
 // value of 0 is IBL, so we do not modify the perceptual roughness which is used to select the MIP map level.
 // Note: making the constant too small results in aliasing.
@@ -59,6 +60,7 @@ void ConvertRoughnessToAnisotropy(real roughnessT, real roughnessB, out real ani
     anisotropy = ((roughnessT - roughnessB) / max(roughnessT + roughnessB, 0.0001));
 }
 
+// WARNING: this has been deprecated, and should not be used!
 // Same as ConvertAnisotropyToRoughness but
 // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
 void ConvertAnisotropyToClampRoughness(real perceptualRoughness, real anisotropy, out real roughnessT, out real roughnessB)

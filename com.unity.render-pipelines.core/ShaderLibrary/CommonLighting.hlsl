@@ -286,7 +286,7 @@ real ComputeWrappedDiffuseLighting(real NdotL, real w)
 // Ref: "Crafting a Next-Gen Material Pipeline for The Order: 1886".
 float ClampNdotV(float NdotV)
 {
-    return max(NdotV, 0.0001);
+    return max(NdotV, 0.0001); // Approximately 0.0057 degree bias
 }
 
 // return usual BSDF angle

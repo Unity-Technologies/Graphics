@@ -139,7 +139,7 @@ void SampleGGXDir(real2   u,
                   bool     VeqN = false)
 {
     // GGX NDF sampling
-    real cosTheta = sqrt((1.0 - u.x) / (1.0 + (roughness * roughness - 1.0) * u.x));
+    real cosTheta = sqrt(SafeDiv(1.0 - u.x, 1.0 + (roughness * roughness - 1.0) * u.x));
     real phi      = TWO_PI * u.y;
 
     real3 localH = SphericalToCartesian(phi, cosTheta);
@@ -168,6 +168,7 @@ void SampleGGXDir(real2   u,
 }
 
 // Ref: "A Simpler and Exact Sampling Routine for the GGX Distribution of Visible Normals".
+// Note: this code will most likely fail if roughness is 0.
 void SampleVisibleAnisoGGXDir(real2 u, real3 V, real3x3 localToWorld,
                               real roughnessT, real roughnessB,
                               out real3 L,
@@ -186,6 +187,7 @@ void SampleVisibleAnisoGGXDir(real2 u, real3 V, real3x3 localToWorld,
     }
     else
     {
+        // TODO: this code is tacky. We should make it cleaner.
         viewToLocal[2] = normalize(real3(roughnessT * localV.x, roughnessB * localV.y, localV.z));
         viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(viewToLocal[2], real3(0, 0, 1))) : real3(1, 0, 0);
         viewToLocal[1] = cross(viewToLocal[0], viewToLocal[2]);
@@ -340,18 +342,21 @@ void ImportanceSampleAnisoGGX(real2   u,
 
 #if !defined SHADER_API_GLES
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
-real4 IntegrateGGXAndDisneyDiffuseFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
+real4 IntegrateGGXAndDisneyDiffuseFGD(real NdotV, real roughness, uint sampleCount = 4096)
 {
-    real NdotV     = ClampNdotV(dot(N, V));
-    real4 acc      = real4(0.0, 0.0, 0.0, 0.0);
-    // Add some jittering on Hammersley2d
-    real2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
+    // Note that our LUT covers the full [0, 1] range.
+    // Therefore, we don't really want to clamp NdotV here (else the lerp slope is wrong).
+    // However, if NdotV is 0, the integral is 0, so that's not what we want, either.
+    // Our runtime NdotV bias is quite large, so we use a smaller one here instead.
+    NdotV     = max(NdotV, FLT_EPS);
+    real3 V   = real3(sqrt(1 - NdotV * NdotV), 0, NdotV);
+    real4 acc = real4(0.0, 0.0, 0.0, 0.0);
 
-    real3x3 localToWorld = GetLocalFrame(N);
+    real3x3 localToWorld = k_identity3x3;
 
     for (uint i = 0; i < sampleCount; ++i)
     {
-        real2 u = frac(randNum + Hammersley2d(i, sampleCount));
+        real2 u = Hammersley2d(i, sampleCount);
 
         real VdotH;
         real NdotL;
@@ -574,8 +579,6 @@ real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
 {
     real3x3 localToWorld = GetLocalFrame(N);
 
-    real2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
-
     real3 lightInt = real3(0.0, 0.0, 0.0);
     real  cbsdfInt = 0.0;
 
@@ -594,7 +597,7 @@ real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
     // Perform light importance sampling.
     for (uint i = 0; i < sampleCount; i++)
     {
-        real2 s = frac(randNum + Hammersley2d(i, sampleCount));
+        real2 s = Hammersley2d(i, sampleCount);
 
         // Sample a row from the marginal distribution.
         uint y = BinarySearchRow(0, s.x, marginalRowDensities, height - 1);

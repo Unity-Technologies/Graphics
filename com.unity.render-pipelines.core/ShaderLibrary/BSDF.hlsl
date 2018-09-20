@@ -151,7 +151,10 @@ real D_GGXNoPI(real NdotH, real roughness)
 {
     real a2 = Sq(roughness);
     real s = (NdotH * a2 - NdotH) * NdotH + 1.0;
-    return a2 / (s * s);
+
+    // If roughness is 0, returns (NdotH == 1 ? 1 : 0).
+    // That is, it returns 1 for perfect mirror reflection, and 0 otherwise.
+    return SafeDiv(a2, s * s);
 }
 
 real D_GGX(real NdotH, real roughness)
@@ -200,7 +203,7 @@ real V_SmithJointGGX(real NdotL, real NdotV, real roughness, real partLambdaV)
     real lambdaV = NdotL * partLambdaV;
     real lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
-    // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l));
+    // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l))
     return 0.5 / (lambdaV + lambdaL);
 }
 
@@ -222,7 +225,10 @@ real DV_SmithJointGGX(real NdotH, real NdotL, real NdotV, real roughness, real p
     real2 D = real2(a2, s * s);            // Fraction without the multiplier (1/Pi)
     real2 G = real2(1, lambdaV + lambdaL); // Fraction without the multiplier (1/2)
 
-    return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
+    // This function is only used for direct lighting.
+    // If roughness is 0, the probability of hitting a punctual or directional light is also 0.
+    // Therefore, we return 0. The most efficient way to do it is with a max().
+    return INV_PI * 0.5 * (D.x * G.x) / max(D.y * G.y, FLT_MIN);
 }
 
 real DV_SmithJointGGX(real NdotH, real NdotL, real NdotV, real roughness)
@@ -266,7 +272,9 @@ real D_GGXAnisoNoPI(real TdotH, real BdotH, real NdotH, real roughnessT, real ro
     real3 v = real3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
     real  s = dot(v, v);
 
-    return a2 * Sq(a2 / s);
+    // If roughness is 0, returns (NdotH == 1 ? 1 : 0).
+    // That is, it returns 1 for perfect mirror reflection, and 0 otherwise.
+    return SafeDiv(a2 * a2 * a2, s * s);
 }
 
 real D_GGXAniso(real TdotH, real BdotH, real NdotH, real roughnessT, real roughnessB)
@@ -297,8 +305,8 @@ real V_SmithJointGGXAniso(real TdotV, real BdotV, real NdotV, real TdotL, real B
 
 // Inline D_GGXAniso() * V_SmithJointGGXAniso() together for better code generation.
 real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH, real NdotV,
-    real TdotL, real BdotL, real NdotL,
-    real roughnessT, real roughnessB, real partLambdaV)
+                           real TdotL, real BdotL, real NdotL,
+                           real roughnessT, real roughnessB, real partLambdaV)
 {
     real a2 = roughnessT * roughnessB;
     real3 v = real3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
@@ -310,17 +318,21 @@ real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH, real NdotV,
     real2 D = real2(a2 * a2 * a2, s * s);  // Fraction without the multiplier (1/Pi)
     real2 G = real2(1, lambdaV + lambdaL); // Fraction without the multiplier (1/2)
 
-    return (INV_PI * 0.5) * (D.x * G.x) / (D.y * G.y);
+    // This function is only used for direct lighting.
+    // If roughness is 0, the probability of hitting a punctual or directional light is also 0.
+    // Therefore, we return 0. The most efficient way to do it is with a max().
+    return (INV_PI * 0.5) * (D.x * G.x) / max(D.y * G.y, FLT_MIN);
 }
 
 real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH,
-    real TdotV, real BdotV, real NdotV,
-    real TdotL, real BdotL, real NdotL,
-    real roughnessT, real roughnessB)
+                           real TdotV, real BdotV, real NdotV,
+                           real TdotL, real BdotL, real NdotL,
+                           real roughnessT, real roughnessB)
 {
     real partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
-    return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
-        roughnessT, roughnessB, partLambdaV);
+    return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV,
+                                 TdotL, BdotL, NdotL,
+                                 roughnessT, roughnessB, partLambdaV);
 }
 
 //-----------------------------------------------------------------------------

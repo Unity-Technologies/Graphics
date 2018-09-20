@@ -405,7 +405,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
     // perceptualRoughness is not clamped, and is meant to be used for IBL.
     // perceptualRoughness can be modify by FillMaterialClearCoatData, so ConvertAnisotropyToClampRoughness must be call after
-    ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+    ConvertAnisotropyToRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
@@ -802,7 +802,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
     // perceptualRoughness is not clamped, and is meant to be used for IBL.
     // perceptualRoughness can be modify by FillMaterialClearCoatData, so ConvertAnisotropyToClampRoughness must be call after
-    ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+    ConvertAnisotropyToRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
 
     ApplyDebugToBSDFData(bsdfData);
 
@@ -991,7 +991,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Area light
     // UVs for sampling the LUTs
     float theta = FastACosPos(NdotV); // For Area light - UVs for sampling the LUTs
-    float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
+    float2 uv = Remap01ToHalfTexelCoord(float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI), LTC_LUT_SIZE);
 
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
@@ -1201,7 +1201,24 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 L = -lightData.forward;
     float3 N = bsdfData.normalWS;
+    float3 R = reflect(-V, N); // Not always the same as preLightData.iblR
+
+    // Fake a highlight of the sun disk by modifying the light vector.
+    float t = AngleAttenuation(dot(L, R), lightData.angleScale, lightData.angleOffset);
+
+    // This will be quite inaccurate for large disk radii. Would be better to use SLerp().
+    L = NLerp(L, R, t);
+
     float NdotL = dot(N, L);
+
+    // We must clamp here, otherwise our disk light hack for smooth surfaces does not work.
+    // Explanation: for a perfectly smooth surface, lighting is only reflected if (NdotL = NdotV).
+    // This implies that (NdotH = 1).
+    // Due to the floating point arithmetic (see the math above and also GetBSDFAngle()),
+    // we will never arrive at this exact number, so no lighting will be reflected.
+    // If we increase the roughness somewhat, the trick still works.
+    bsdfData.roughnessT = max(bsdfData.roughnessT, 1.0 / (255 * 255));
+    bsdfData.roughnessB = max(bsdfData.roughnessB, 1.0 / (255 * 255));
 
     float3 transmittance = float3(0.0, 0.0, 0.0);
     if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
