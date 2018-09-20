@@ -142,6 +142,8 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 #include "StackLit/StackLit.hlsl"
 #elif defined(UNITY_MATERIAL_FABRIC)
 #include "Fabric/Fabric.hlsl"
+#elif defined(UNITY_MATERIAL_AXF)
+#include "AxF/AxF.hlsl"
 #endif
 
 //-----------------------------------------------------------------------------

@@ -23,8 +23,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // For area lighting - We pack all texture inside a texture array to reduce the number of resource required
         Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA, 1: m_LtcDisneyDiffuseMatrix - RGBA
 
-        const int k_LtcLUTMatrixDim = 3; // size of the matrix (3x3)
-        const int k_LtcLUTResolution = 64;
+        public const int k_LtcLUTMatrixDim = 3; // size of the matrix (3x3)
+        public const int k_LtcLUTResolution = 64;
 
         LTCAreaLight()
         {
@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Load LUT with one scalar in alpha of a tex2D
-        void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, float[] LUTScalar)
+        public static void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, float[] LUTScalar)
         {
             const int count = k_LtcLUTResolution * k_LtcLUTResolution;
             Color[] pixels = new Color[count];
@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Load LUT with 3x3 matrix in RGBA of a tex2D (some part are zero)
-        void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, double[,] LUTTransformInv)
+        public static void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, double[,] LUTTransformInv)
         {
             const int count = k_LtcLUTResolution * k_LtcLUTResolution;
             Color[] pixels = new Color[count];

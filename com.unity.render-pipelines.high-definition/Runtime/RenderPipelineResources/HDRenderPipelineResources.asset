@@ -47,7 +47,6 @@ MonoBehaviour:
   volumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a, type: 3}
   volumetricLightingCS: {fileID: 7200000, guid: b4901a10df2d1e24282725e9fbc77c97, type: 3}
   subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1, type: 3}
-  subsurfaceScattering: {fileID: 4800000, guid: 867b36db983aa0548889a66f8d685ff6, type: 3}
   combineLighting: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
   cameraMotionVectors: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9, type: 3}
   copyStencilBuffer: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec, type: 3}
@@ -65,6 +64,8 @@ MonoBehaviour:
   gradientSky: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
   preIntegratedFGD_GGXDisneyDiffuse: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
   preIntegratedFGD_CharlieFabricLambert: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
+  preIntegratedFGD_Ward: {fileID: 4800000, guid: d279c46a545b0af4f9f0c4fa82cd489e, type: 3}
+  preIntegratedFGD_CookTorrance: {fileID: 4800000, guid: a6402c19b020b4a4fb7073aaa2e26aba, type: 3}
   encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
   cubeToPanoShader: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
   blitCubeTextureFace: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163, type: 3}
