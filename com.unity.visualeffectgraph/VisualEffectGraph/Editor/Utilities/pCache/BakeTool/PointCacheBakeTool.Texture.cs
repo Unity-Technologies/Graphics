@@ -63,6 +63,16 @@ namespace UnityEditor.VFX.Utilities
                         file.SaveToFile(fileName, m_OutputFormat);
                     }
                 }
+
+                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    EditorGUILayout.LabelField("Texture Statistics", EditorStyles.boldLabel);
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.IntField("Width", m_Texture.width);
+                    EditorGUILayout.IntField("Height", m_Texture.height);
+                    EditorGUILayout.IntField("Pixels count", m_Texture.width * m_Texture.height);
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 
