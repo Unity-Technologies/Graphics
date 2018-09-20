@@ -63,9 +63,14 @@ namespace UnityEditor.VFX.Utilities
                         {
                             EditorUtility.DisplayProgressBar("pCache bake tool", "Capturing data...", 0.0f);
                             var file = ComputePCacheFromMesh();
-                            EditorUtility.DisplayProgressBar("pCache bake tool", "Saving pCache file", 1.0f);
-                            file.SaveToFile(fileName, m_OutputFormat);
-                            EditorUtility.ClearProgressBar();
+                            if (file != null)
+                            {
+                                EditorUtility.DisplayProgressBar("pCache bake tool", "Saving pCache file", 1.0f);
+                                file.SaveToFile(fileName, m_OutputFormat);
+                                EditorUtility.ClearProgressBar();
+
+                                AssetDatabase.ImportAsset(fileName, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+                            }
                         }
                         catch (System.Exception e)
                         {
@@ -215,7 +220,7 @@ namespace UnityEditor.VFX.Utilities
             protected readonly static  Vector2 center_of_sampling = new Vector2(4.0f / 9.0f, 3.0f / 4.0f);
             protected MeshData.Vertex Interpolate(MeshData.Triangle triangle, Vector2 p)
             {
-                return Interpolate(m_cacheData.vertices[triangle.a], m_cacheData.vertices[triangle.a], m_cacheData.vertices[triangle.a], p);
+                return Interpolate(m_cacheData.vertices[triangle.a], m_cacheData.vertices[triangle.b], m_cacheData.vertices[triangle.c], p);
             }
 
             protected static MeshData.Vertex Interpolate(MeshData.Vertex A, MeshData.Vertex B, MeshData.Vertex C, Vector2 p)
@@ -275,7 +280,7 @@ namespace UnityEditor.VFX.Utilities
             {
                 var r = m_cacheData.vertices[m_Index];
                 m_Index++;
-                if (m_Index > m_cacheData.vertices.Length)
+                if (m_Index >= m_cacheData.vertices.Length)
                     m_Index = 0;
                 return r;
             }
@@ -306,7 +311,7 @@ namespace UnityEditor.VFX.Utilities
             {
                 var t = m_cacheData.triangles[m_Index];
                 m_Index++;
-                if (m_Index > m_cacheData.triangles.Length)
+                if (m_Index >= m_cacheData.triangles.Length)
                     m_Index = 0;
                 return Interpolate(t, center_of_sampling);
             }
@@ -342,9 +347,6 @@ namespace UnityEditor.VFX.Utilities
             if (picker == null)
                 throw new InvalidOperationException("Unable to find picker");
 
-
-
-
             var positions = new List<Vector3>();
             var normals = m_ExportNormals ? new List<Vector3>() : null;
             var colors = m_ExportColors ? new List<Vector4>() : null;
@@ -352,10 +354,13 @@ namespace UnityEditor.VFX.Utilities
 
             for (int i = 0; i < m_OutputPointCount; ++i)
             {
-                var cancel = EditorUtility.DisplayCancelableProgressBar("pCache bake tool", "Sampling data...", (float)i/(float)m_OutputPointCount);
-                if (cancel)
+                if (i % 64 == 0)
                 {
-                    return null;
+                    var cancel = EditorUtility.DisplayCancelableProgressBar("pCache bake tool", string.Format("Sampling data... {0}/{1}", i, m_OutputPointCount), (float)i / (float)m_OutputPointCount);
+                    if (cancel)
+                    {
+                        return null;
+                    }
                 }
 
                 var vertex = picker.GetNext();
@@ -373,8 +378,9 @@ namespace UnityEditor.VFX.Utilities
 
             EditorUtility.DisplayProgressBar("pCache bake tool", "Generating pCache...", 0.0f);
             file.SetVector3Data("position", positions);
-            file.SetColorData("color", colors);
-            file.SetColorData("uv", uvs);
+            if (m_ExportNormals) file.SetVector3Data("normal", normals);
+            if (m_ExportColors) file.SetColorData("color", colors);
+            if (m_ExportUV) file.SetVector4Data("uv", uvs);
 
             EditorUtility.ClearProgressBar();
             return file;
