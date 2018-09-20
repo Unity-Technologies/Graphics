@@ -249,6 +249,7 @@ namespace UnityEditor.VFX
 
         void OnEditEnd()
         {
+            m_GizmoedParameter = null;
             m_GizmoDisplayed = false;
         }
 
@@ -261,30 +262,36 @@ namespace UnityEditor.VFX
 
         Dictionary<VisualEffect, ContextAndGizmo> m_ContextsPerComponent = new Dictionary<VisualEffect, ContextAndGizmo>();
 
+        ContextAndGizmo GetGizmo()
+        {
+            ContextAndGizmo context;
+            if (!m_ContextsPerComponent.TryGetValue((VisualEffect)target, out context))
+            {
+                context.context = new GizmoContext(new SerializedObject(target), m_GizmoedParameter);
+                context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
+                m_ContextsPerComponent.Add((VisualEffect)target, context);
+            }
+            else
+            {
+                var prevType = context.context.portType;
+                context.context.SetParameter(m_GizmoedParameter);
+                if (context.context.portType != prevType)
+                {
+                    context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
+                    m_ContextsPerComponent[(VisualEffect)target] = context;
+                }
+            }
+
+            return context;
+        }
+
         new void OnSceneGUI()
         {
             base.OnSceneGUI();
 
             if (m_GizmoDisplayed && m_GizmoedParameter != null)
             {
-                ContextAndGizmo context;
-                //Scene GUI is called every frame for each component in the selection so keep a context and gizmo instance per component
-                if (!m_ContextsPerComponent.TryGetValue((VisualEffect)target, out context))
-                {
-                    context.context = new GizmoContext(new SerializedObject(target), m_GizmoedParameter);
-                    context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
-                    m_ContextsPerComponent.Add((VisualEffect)target, context);
-                }
-                else
-                {
-                    var prevType = context.context.portType;
-                    context.context.SetParameter(m_GizmoedParameter);
-                    if (context.context.portType != prevType)
-                    {
-                        context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
-                        m_ContextsPerComponent[(VisualEffect)target] = context;
-                    }
-                }
+                ContextAndGizmo context = GetGizmo();
 
                 VFXGizmoUtility.Draw(context.context, (VisualEffect)target, context.gizmo);
             }
@@ -582,9 +589,35 @@ namespace UnityEditor.VFX
             VFXParameter m_Parameter;
         }
 
-        protected override void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+
+        bool HasFrameBounds()
         {
-            base.SceneViewGUICallback(target, sceneView);
+            return targets.Length == 1;
+        }
+
+        //Callback used by scene view on 'F' shortcut.
+        Bounds OnGetFrameBounds()
+        {
+            return GetWorldBoundsOfTarget(targets[0]);
+        }
+
+        internal override Bounds GetWorldBoundsOfTarget(UnityObject targetObject)
+        {
+            if (m_GizmoDisplayed && m_GizmoedParameter != null)
+            {
+                ContextAndGizmo context = GetGizmo();
+
+                Bounds result = VFXGizmoUtility.GetGizmoBounds(context.context, (VisualEffect)target, context.gizmo);
+
+                return result;
+            }
+
+            return base.GetWorldBoundsOfTarget(targetObject);
+        }
+
+        protected override void SceneViewGUICallback(UnityObject tar, SceneView sceneView)
+        {
+            base.SceneViewGUICallback(tar, sceneView);
             if (m_GizmoableParameters.Count > 0)
             {
                 int current = m_GizmoableParameters.IndexOf(m_GizmoedParameter);
@@ -594,10 +627,29 @@ namespace UnityEditor.VFX
                 int result = EditorGUILayout.Popup(current, m_GizmoableParameters.Select(t => t.exposedName).ToArray(), GUILayout.Width(163));
                 if (EditorGUI.EndChangeCheck() && result != current)
                 {
-                    m_GizmoDisplayed = true;
                     m_GizmoedParameter = m_GizmoableParameters[result];
+                    if (!m_GizmoDisplayed)
+                    {
+                        m_GizmoDisplayed = true;
+                        EditMode.ChangeEditMode(EditMode.SceneViewEditMode.Collider, this);
+                    }
                     Repaint();
                 }
+
+                GUI.enabled = m_GizmoedParameter != null;
+                if (GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
+                {
+                    if (m_GizmoDisplayed && m_GizmoedParameter != null)
+                    {
+                        ContextAndGizmo context = GetGizmo();
+
+                        context.gizmo.currentSpace = context.context.space;
+                        context.gizmo.component = (VisualEffect)target;
+                        Bounds bounds = context.gizmo.CallGetGizmoBounds(context.context.value);
+                        sceneView.Frame(bounds, false);
+                    }
+                }
+                GUI.enabled = true;
                 GUILayout.EndHorizontal();
             }
         }

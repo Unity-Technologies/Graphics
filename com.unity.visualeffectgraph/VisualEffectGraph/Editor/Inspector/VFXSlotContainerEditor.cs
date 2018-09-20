@@ -139,7 +139,7 @@ public class VFXSlotContainerEditor : Editor
                 m_CurrentController.gizmoedAnchor = gizmoableAnchors[result];
             }
             var slotContainer = targets[0] as VFXModel;
-            bool hasvfxViewOpened = VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.graphView.controller != null && VFXViewWindow.currentWindow.graphView.controller.graph != slotContainer.GetGraph();
+            bool hasvfxViewOpened = VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.graphView.controller != null && VFXViewWindow.currentWindow.graphView.controller.graph == slotContainer.GetGraph();
 
             if (m_CurrentController.gizmoedAnchor.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null ))
             {
@@ -147,8 +147,6 @@ public class VFXSlotContainerEditor : Editor
             }
             else
             {
-
-
                 if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
                 {
                     if (m_CurrentController != null && VFXViewWindow.currentWindow != null)
@@ -182,7 +180,7 @@ public class VFXSlotContainerEditor : Editor
         }
     }
 
-    protected class Contents
+    public class Contents
     {
         public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
         public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
@@ -191,7 +189,7 @@ public class VFXSlotContainerEditor : Editor
         public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
     }
 
-    protected class Styles
+    public class Styles
     {
         public static GUIStyle header;
         public static GUIStyle cell;
