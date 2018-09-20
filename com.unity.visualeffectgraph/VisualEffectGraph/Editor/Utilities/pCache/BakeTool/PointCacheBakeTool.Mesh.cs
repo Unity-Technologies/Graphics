@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Utilities
         {
             Sequential,
             Random,
-            //RandomPerUnit
+            RandomUniformArea
         }
 
         Distribution m_Distribution = Distribution.Random;
@@ -38,8 +38,9 @@ namespace UnityEditor.VFX.Utilities
         {
             GUILayout.Label("Mesh Baking", EditorStyles.boldLabel);
             m_Mesh = (Mesh)EditorGUILayout.ObjectField(Contents.mesh, m_Mesh, typeof(Mesh), false);
-            m_MeshBakeMode = (MeshBakeMode)EditorGUILayout.EnumPopup(Contents.meshBakeMode, m_MeshBakeMode);
             m_Distribution = (Distribution)EditorGUILayout.EnumPopup(Contents.distribution, m_Distribution);
+            if (m_Distribution != Distribution.RandomUniformArea)
+                m_MeshBakeMode = (MeshBakeMode)EditorGUILayout.EnumPopup(Contents.meshBakeMode, m_MeshBakeMode);
 
             m_ExportNormals = EditorGUILayout.Toggle("Export Normals", m_ExportNormals);
             m_ExportColors = EditorGUILayout.Toggle("Export Colors", m_ExportColors);
@@ -58,7 +59,6 @@ namespace UnityEditor.VFX.Utilities
                     string fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Mesh.name, "pcache", "Save PCache");
                     if (fileName != null)
                     {
-
                         try
                         {
                             EditorUtility.DisplayProgressBar("pCache bake tool", "Capturing data...", 0.0f);
@@ -300,6 +300,68 @@ namespace UnityEditor.VFX.Utilities
             }
         }
 
+        class RandomPickerUniformArea : RandomPicker
+        {
+            private double[] m_accumulatedAreaTriangles;
+
+            private double ComputeTriangleArea(MeshData.Triangle t)
+            {
+                var A = m_cacheData.vertices[t.a].position;
+                var B = m_cacheData.vertices[t.b].position;
+                var C = m_cacheData.vertices[t.c].position;
+                return 0.5f * Vector3.Cross(B - A, C - A).magnitude;
+            }
+
+            public RandomPickerUniformArea(MeshData data, int seed) : base(data, seed)
+            {
+                m_accumulatedAreaTriangles = new double[data.triangles.Length];
+                m_accumulatedAreaTriangles[0] = ComputeTriangleArea(data.triangles[0]);
+                for (int i = 1; i < data.triangles.Length; ++i)
+                {
+                    m_accumulatedAreaTriangles[i] = m_accumulatedAreaTriangles[i - 1] + ComputeTriangleArea(data.triangles[i]);
+                }
+            }
+
+            private uint FindIndexOfArea(double area)
+            {
+                uint min = 0;
+                uint max = (uint)m_accumulatedAreaTriangles.Length - 1;
+                uint mid = max >> 1;
+                while (max >= min)
+                {
+                    if (    m_accumulatedAreaTriangles[mid] >= area &&
+                            (mid == m_accumulatedAreaTriangles.Length - 1 || area < m_accumulatedAreaTriangles[mid+1]))
+                    {
+                        return mid;
+                    }
+                    else if (m_accumulatedAreaTriangles[mid] > area)
+                    {
+                        max = mid - 1;
+                    }
+                    else
+                    {
+                        min = mid + 1;
+                    }
+                    mid = (min + max) >> 1;
+                }
+                throw new InvalidOperationException("Cannot FindIndexOfArea");
+            }
+
+            public override sealed MeshData.Vertex GetNext()
+            {
+                var areaPosition = m_Rand.NextDouble() * m_accumulatedAreaTriangles.Last();
+                uint areaIndex = FindIndexOfArea(areaPosition);
+
+                var triangle = 0;
+                for (; triangle < m_cacheData.triangles.Length; ++triangle)
+                    if (m_accumulatedAreaTriangles[triangle] >= areaPosition)
+                        break;
+
+                var rand = new Vector2(GetNextRandFloat(), GetNextRandFloat());
+                return Interpolate(m_cacheData.triangles[triangle], rand);
+            }
+        }
+
         class SequentialPickerTriangle : Picker
         {
             private uint m_Index = 0;
@@ -343,6 +405,10 @@ namespace UnityEditor.VFX.Utilities
                 {
                     picker = new RandomPickerTriangle(meshCache, m_Seed);
                 }
+            }
+            else if (m_Distribution == Distribution.RandomUniformArea)
+            {
+                picker = new RandomPickerUniformArea(meshCache, m_Seed);
             }
             if (picker == null)
                 throw new InvalidOperationException("Unable to find picker");
