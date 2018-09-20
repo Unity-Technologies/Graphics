@@ -123,5 +123,3 @@ namespace UnityEditor.VFX.Utilities
         }
     }
 }
-
-
