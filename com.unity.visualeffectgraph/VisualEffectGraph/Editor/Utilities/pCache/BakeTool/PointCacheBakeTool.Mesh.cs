@@ -10,7 +10,6 @@ namespace UnityEditor.VFX.Utilities
         public enum MeshBakeMode
         {
             Vertex,
-            //Edge,
             Triangle
         }
 
@@ -21,7 +20,7 @@ namespace UnityEditor.VFX.Utilities
             RandomUniformArea
         }
 
-        Distribution m_Distribution = Distribution.Random;
+        Distribution m_Distribution = Distribution.RandomUniformArea;
         MeshBakeMode m_MeshBakeMode = MeshBakeMode.Triangle;
         PCache.Format m_OutputFormat = PCache.Format.Ascii;
 
@@ -32,7 +31,7 @@ namespace UnityEditor.VFX.Utilities
 
         Mesh m_Mesh;
         int m_OutputPointCount = 4096;
-        int m_Seed;
+        int m_SeedMesh;
 
         void OnGUI_Mesh()
         {
@@ -48,7 +47,7 @@ namespace UnityEditor.VFX.Utilities
 
             m_OutputPointCount = EditorGUILayout.IntField("Point Count", m_OutputPointCount);
             if (m_Distribution != Distribution.Sequential)
-                m_Seed = EditorGUILayout.IntField("Seed", m_Seed);
+                m_SeedMesh = EditorGUILayout.IntField("Seed", m_SeedMesh);
 
             m_OutputFormat = (PCache.Format)EditorGUILayout.EnumPopup("File Format", m_OutputFormat);
 
@@ -67,19 +66,16 @@ namespace UnityEditor.VFX.Utilities
                             {
                                 EditorUtility.DisplayProgressBar("pCache bake tool", "Saving pCache file", 1.0f);
                                 file.SaveToFile(fileName, m_OutputFormat);
-                                EditorUtility.ClearProgressBar();
-
                                 AssetDatabase.ImportAsset(fileName, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
                             }
                         }
                         catch (System.Exception e)
                         {
                             Debug.LogException(e);
-                            EditorUtility.ClearProgressBar();
                         }
+                        EditorUtility.ClearProgressBar();
                     }
                 }
-
                 EditorGUILayout.Space();
 
                 using (new GUILayout.VerticalScope(EditorStyles.helpBox))
@@ -399,16 +395,16 @@ namespace UnityEditor.VFX.Utilities
             {
                 if (m_MeshBakeMode == MeshBakeMode.Vertex)
                 {
-                    picker = new RandomPickerVertex(meshCache, m_Seed);
+                    picker = new RandomPickerVertex(meshCache, m_SeedMesh);
                 }
                 else if (m_MeshBakeMode == MeshBakeMode.Triangle)
                 {
-                    picker = new RandomPickerTriangle(meshCache, m_Seed);
+                    picker = new RandomPickerTriangle(meshCache, m_SeedMesh);
                 }
             }
             else if (m_Distribution == Distribution.RandomUniformArea)
             {
-                picker = new RandomPickerUniformArea(meshCache, m_Seed);
+                picker = new RandomPickerUniformArea(meshCache, m_SeedMesh);
             }
             if (picker == null)
                 throw new InvalidOperationException("Unable to find picker");
