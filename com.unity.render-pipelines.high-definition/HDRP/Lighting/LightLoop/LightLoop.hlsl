@@ -97,6 +97,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         {
             LightData lightData = FetchLight(lightStart, i);
 
+            UNITY_BRANCH if (lightData.customData > 0u) { continue; }
+
             DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }

@@ -79,6 +79,7 @@ struct LightData
     float angleOffset;
     int cookieIndex;
     int lightType;
+    uint customData;
     float3 right;
     float3 up;
     float3 forward;

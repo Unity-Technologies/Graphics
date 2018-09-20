@@ -72,6 +72,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int cookieIndex; // -1 if unused
         public GPULightType lightType;
 
+        public HDLightCustomFlags.LightCustomData customData;
+
         public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
         public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
         public Vector3 forward;

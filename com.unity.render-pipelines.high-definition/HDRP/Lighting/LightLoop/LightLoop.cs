@@ -930,6 +930,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.lightType = gpuLightType;
 
+            {
+                 var customFlags = light.light.GetComponent<HDLightCustomFlags>();
+                 lightData.customData = (customFlags != null)
+                    ? customFlags.GetLightCustomData()
+                    : new HDLightCustomFlags.LightCustomData { featureFlags = 0u };
+            }
+
             lightData.positionRWS = light.light.transform.position;
 
             bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
