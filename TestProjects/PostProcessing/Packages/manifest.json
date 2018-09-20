@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "com.unity.postprocessing": "2.0.12-preview",
+        "com.unity.postprocessing": "2.0.13-preview",
         "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
         "com.unity.textmeshpro": "1.2.4"
     },
