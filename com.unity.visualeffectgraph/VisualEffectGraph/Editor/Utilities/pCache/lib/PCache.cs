@@ -193,6 +193,7 @@ public partial class PCache
     {
         FileStream outFile = File.Create(filename);
         BinaryWriter binaryWriter = new BinaryWriter(outFile);
+
         binaryWriter.Write(BuildHeaderString(format));
 
         if (format == Format.Binary)
@@ -262,16 +263,16 @@ public partial class PCache
     {
         StringBuilder b = new StringBuilder();
 
-        b.Append("pcache\n");
-        b.Append(string.Format("format {0} 1.0\n", GetFormatString(format)));
-        b.Append("comment Exported with PCache.cs\n");
-        b.Append(string.Format("elements {0}\n", elementCount));
+        b.AppendLine("pcache");
+        b.AppendLine(string.Format("format {0} 1.0", GetFormatString(format)));
+        b.AppendLine("comment Exported with PCache.cs");
+        b.AppendLine(string.Format("elements {0}", elementCount));
 
         foreach (var property in properties)
         {
-            b.Append(string.Format("property {0} {1}\n", property.Type, property.Name));
+            b.AppendLine(string.Format("property {0} {1}", property.Type, property.Name));
         }
-        b.Append("end_header\n");
+        b.AppendLine("end_header");
         return b.ToString().ToCharArray();
     }
 
