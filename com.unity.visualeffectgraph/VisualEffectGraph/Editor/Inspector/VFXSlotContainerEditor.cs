@@ -69,8 +69,7 @@ public class VFXSlotContainerEditor : Editor
         }
     }
 
-
-    VFXNodeController m_CurrentController;
+    IGizmoController m_CurrentController;
 
     void OnSceneGUI(SceneView sv)
     {
@@ -86,23 +85,21 @@ public class VFXSlotContainerEditor : Editor
                     {
                         var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
 
+                        m_CurrentController = controller;
                         controller.DrawGizmos(view.attachedComponent);
-
-                        m_CurrentController = null;
                     }
                     else
                     {
                         m_CurrentController = view.controller.GetNodeController(slotContainer, 0);
-                        if (m_CurrentController != null)
-                        {
-                            m_CurrentController.DrawGizmos(view.attachedComponent);
+                    }
+                    if (m_CurrentController != null)
+                    {
+                        m_CurrentController.DrawGizmos(view.attachedComponent);
 
-                            if (m_CurrentController.GetGizmoableAnchors().Count > 0)
-                            {
-                                SceneViewOverlay.Window(new GUIContent("Choose Gizmo"), SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
-                            }
+                        if (m_CurrentController.gizmoables.Count > 0)
+                        {
+                            SceneViewOverlay.Window(new GUIContent("Choose Gizmo"), SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
                         }
-                        
                     }
                 }
                 else
@@ -125,10 +122,10 @@ public class VFXSlotContainerEditor : Editor
         if (m_CurrentController == null)
             return;
 
-        var gizmoableAnchors = m_CurrentController.GetGizmoableAnchors();
+        var gizmoableAnchors = m_CurrentController.gizmoables;
         if (gizmoableAnchors.Count > 0)
         {
-            int current = gizmoableAnchors.IndexOf(m_CurrentController.gizmoedAnchor);
+            int current = gizmoableAnchors.IndexOf(m_CurrentController.currentGizmoable);
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginHorizontal();
             GUI.enabled = gizmoableAnchors.Count > 1;
@@ -136,14 +133,19 @@ public class VFXSlotContainerEditor : Editor
             GUI.enabled = true;
             if (EditorGUI.EndChangeCheck() && result != current)
             {
-                m_CurrentController.gizmoedAnchor = gizmoableAnchors[result];
+                m_CurrentController.currentGizmoable = gizmoableAnchors[result];
             }
             var slotContainer = targets[0] as VFXModel;
             bool hasvfxViewOpened = VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.graphView.controller != null && VFXViewWindow.currentWindow.graphView.controller.graph == slotContainer.GetGraph();
 
-            if (m_CurrentController.gizmoedAnchor.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null ))
+
+            if( m_CurrentController.gizmoIndeterminate)
             {
-                GUILayout.Label(Contents.gizmoWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
+                GUILayout.Label(Contents.gizmoIndeterminateWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
+            }
+            else if (m_CurrentController.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null ))
+            {
+                GUILayout.Label(Contents.gizmoLocalWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
             }
             else
             {
@@ -154,7 +156,7 @@ public class VFXSlotContainerEditor : Editor
                         VFXView view = VFXViewWindow.currentWindow.graphView;
                         if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                         {
-                            sceneView.Frame(m_CurrentController.gizmoedAnchor.GetGizmoBounds(view.attachedComponent), false);
+                            sceneView.Frame(m_CurrentController.GetGizmoBounds(view.attachedComponent), false);
                         }
                     }
 
@@ -185,7 +187,8 @@ public class VFXSlotContainerEditor : Editor
         public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
         public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
         public static GUIContent mode = EditorGUIUtility.TrTextContent("Mode");
-        public static GUIContent gizmoWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(EditorResources.iconsPath + "console.warnicon.sml.png") as Texture2D, "Local values require a target GameObject to display");
+        public static GUIContent gizmoLocalWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(EditorResources.iconsPath + "console.warnicon.sml.png") as Texture2D, "Local values require a target GameObject to display");
+        public static GUIContent gizmoIndeterminateWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(EditorResources.iconsPath + "console.warnicon.sml.png") as Texture2D, "The gizmo value is indeterminate.");
         public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
     }
 

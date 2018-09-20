@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
         Direction direction { get; }
     }
 
-    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider
+    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IGizmoable
     {
         private VFXNodeController m_SourceNode;
 
@@ -527,6 +527,20 @@ namespace UnityEditor.VFX.UI
                     m_GizmoContext = new VFXDataAnchorGizmoContext(this);
                 }
                 return VFXGizmoUtility.NeedsComponent(m_GizmoContext);
+            }
+        }
+
+        public bool gizmoIndeterminate
+        {
+            get
+            {
+                if (!VFXGizmoUtility.HasGizmo(portType))
+                    return false;
+                if (m_GizmoContext == null)
+                {
+                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
+                }
+                return m_GizmoContext.IsIndeterminate();
             }
         }
 
