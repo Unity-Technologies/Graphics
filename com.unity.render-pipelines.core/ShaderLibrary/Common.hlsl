@@ -443,6 +443,24 @@ TEMPLATE_3_REAL(Remap01, x, rcpLength, startTimesRcpLength, return saturate(x * 
 // [start, end] -> [1, 0] : (end - x) / (end - start) = (end * rcpLength) - x * rcpLength
 TEMPLATE_3_REAL(Remap10, x, rcpLength, endTimesRcpLength, return saturate(endTimesRcpLength - x * rcpLength))
 
+// Remap: [0.5 / size, 1 - 0.5 / size] -> [0, 1]
+real2 RemapHalfTexelCoordTo01(real2 coord, real2 size)
+{
+    const real2 rcpLen              = size * rcp(size - 1);
+    const real2 startTimesRcpLength = 0.5 * rcp(size - 1);
+
+    return Remap01(coord, rcpLen, startTimesRcpLength);
+}
+
+// Remap: [0, 1] -> [0.5 / size, 1 - 0.5 / size]
+real2 Remap01ToHalfTexelCoord(real2 coord, real2 size)
+{
+    const real2 start = 0.5 * rcp(size);
+    const real2 len   = 1 - rcp(size);
+
+    return coord * len + start;
+}
+
 // smoothstep that assumes that 'x' lies within the [0, 1] interval.
 real Smoothstep01(real x)
 {
@@ -459,6 +477,11 @@ real Smootherstep(real a, real b, real t)
     real r = rcp(b - a);
     real x = Remap01(t, r, a * r);
     return Smootherstep01(x);
+}
+
+float3 NLerp(float3 A, float3 B, float t)
+{
+    return normalize(lerp(A, B, t));
 }
 
 real Pow4(real x)

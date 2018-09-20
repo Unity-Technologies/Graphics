@@ -69,6 +69,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool
         public float diffuseScale;
         public float specularScale;
+        public float angleScale;  // Sun disk
+        public float angleOffset; // Sun disk
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]

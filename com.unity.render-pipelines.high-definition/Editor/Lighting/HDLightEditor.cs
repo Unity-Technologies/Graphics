@@ -69,6 +69,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty lightUnit;
             public SerializedProperty displayAreaLightEmissiveMesh;
             public SerializedProperty lightLayers;
+            public SerializedProperty sunDiskSize;
+            public SerializedProperty sunHaloSize;
 
             // Editor stuff
             public SerializedProperty useOldInspector;
@@ -163,7 +165,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     volumetricDimmer = o.Find(x => x.volumetricDimmer),
                     lightUnit = o.Find(x => x.lightUnit),
                     displayAreaLightEmissiveMesh = o.Find(x => x.displayAreaLightEmissiveMesh),
-                    lightLayers = o.Find(x => x.lightLayers),                    
+                    lightLayers = o.Find(x => x.lightLayers),
                     fadeDistance = o.Find(x => x.fadeDistance),
                     affectDiffuse = o.Find(x => x.affectDiffuse),
                     affectSpecular = o.Find(x => x.affectSpecular),
@@ -176,6 +178,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     shapeRadius = o.Find(x => x.shapeRadius),
                     maxSmoothness = o.Find(x => x.maxSmoothness),
                     applyRangeAttenuation = o.Find(x => x.applyRangeAttenuation),
+                    sunDiskSize = o.Find(x => x.sunDiskSize),
+                    sunHaloSize = o.Find(x => x.sunHaloSize),
 
                     // Editor stuff
                     useOldInspector = o.Find(x => x.useOldInspector),
@@ -211,7 +215,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (hdLightData != null)
                         hdLightData.UpdateAreaLightEmissiveMesh();
             };
-            
+
             // If the light is disabled in the editor we force the light upgrade from his inspector
             foreach (var additionalLightData in m_AdditionalLightDatas)
                 additionalLightData.UpgradeLight();
@@ -433,6 +437,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightShape.Directional:
                     settings.lightType.enumValueIndex = (int)LightType.Directional;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Punctual;
+
+                    // Sun disk.
+                    EditorGUILayout.Slider(m_AdditionalLightData.sunDiskSize, 0f, 45f, s_Styles.sunDiskSize);
+                    EditorGUILayout.Slider(m_AdditionalLightData.sunHaloSize, 0f, 1f, s_Styles.sunHaloSize);
                     break;
 
                 case LightShape.Point:
@@ -871,7 +879,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         Handles.DrawLine(src.gameObject.transform.position, hit.point);
                         Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
                     }
-                    
+
                     Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                     using (new Handles.DrawingScope(Color.red))
                     {

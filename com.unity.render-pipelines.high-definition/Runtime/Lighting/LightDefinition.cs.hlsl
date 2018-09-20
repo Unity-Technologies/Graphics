@@ -66,6 +66,8 @@ struct DirectionalLightData
     int nonLightmappedOnly;
     float diffuseScale;
     float specularScale;
+    float angleScale;
+    float angleOffset;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
