@@ -169,6 +169,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        static internal bool NeedsComponent(Context context)
+        {
+            GizmoContext gizmo;
+            if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
+            {
+                gizmo.gizmo.currentSpace = context.space;
+                return gizmo.gizmo.needsComponent;
+            }
+            return false;
+        }
+
         static internal Bounds GetGizmoBounds(Context context, VisualEffect component)
         {
             GizmoContext gizmo;

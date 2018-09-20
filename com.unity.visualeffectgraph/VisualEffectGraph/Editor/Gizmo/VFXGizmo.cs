@@ -188,6 +188,8 @@ namespace UnityEditor.VFX
             using (new Handles.DrawingScope(matrix))
                 Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
         }
+
+        public virtual bool needsComponent { get { return false; } }
     }
 
     public abstract class VFXGizmo<T> : VFXGizmo
@@ -240,6 +242,11 @@ namespace UnityEditor.VFX
             }
 
             return bounds;
+        }
+
+        public override bool needsComponent
+        {
+            get { return currentSpace == VFXCoordinateSpace.Local; }
         }
 
         public abstract void OnDrawSpacedGizmo(T value);

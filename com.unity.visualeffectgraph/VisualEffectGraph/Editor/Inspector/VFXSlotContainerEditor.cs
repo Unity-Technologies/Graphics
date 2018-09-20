@@ -131,7 +131,6 @@ public class VFXSlotContainerEditor : Editor
             int current = gizmoableAnchors.IndexOf(m_CurrentController.gizmoedAnchor);
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Gizmos", GUILayout.Width(45));
             GUI.enabled = gizmoableAnchors.Count > 1;
             int result = EditorGUILayout.Popup(current, gizmoableAnchors.Select(t => t.name).ToArray(), GUILayout.Width(100));
             GUI.enabled = true;
@@ -139,18 +138,29 @@ public class VFXSlotContainerEditor : Editor
             {
                 m_CurrentController.gizmoedAnchor = gizmoableAnchors[result];
             }
-            if( GUILayout.Button("o"))
-            {
-                if (m_CurrentController != null && VFXViewWindow.currentWindow != null)
-                {
-                    var slotContainer = targets[0] as VFXModel;
-                    VFXView view = VFXViewWindow.currentWindow.graphView;
-                    if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
-                    {
-                        sceneView.Frame(m_CurrentController.gizmoedAnchor.GetGizmoBounds(view.attachedComponent),false);
-                    }
-                }
+            var slotContainer = targets[0] as VFXModel;
+            bool hasvfxViewOpened = VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.graphView.controller != null && VFXViewWindow.currentWindow.graphView.controller.graph != slotContainer.GetGraph();
 
+            if (m_CurrentController.gizmoedAnchor.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null ))
+            {
+                GUILayout.Label(Contents.gizmoWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
+            }
+            else
+            {
+
+
+                if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
+                {
+                    if (m_CurrentController != null && VFXViewWindow.currentWindow != null)
+                    {
+                        VFXView view = VFXViewWindow.currentWindow.graphView;
+                        if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
+                        {
+                            sceneView.Frame(m_CurrentController.gizmoedAnchor.GetGizmoBounds(view.attachedComponent), false);
+                        }
+                    }
+
+                }
             }
             GUILayout.EndHorizontal();
         }
@@ -177,6 +187,8 @@ public class VFXSlotContainerEditor : Editor
         public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
         public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
         public static GUIContent mode = EditorGUIUtility.TrTextContent("Mode");
+        public static GUIContent gizmoWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(EditorResources.iconsPath + "console.warnicon.sml.png") as Texture2D, "Local values require a target GameObject to display");
+        public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
     }
 
     protected class Styles
@@ -184,8 +196,20 @@ public class VFXSlotContainerEditor : Editor
         public static GUIStyle header;
         public static GUIStyle cell;
         public static GUIStyle foldout;
+        public static GUIStyle warningStyle;
+        public static GUIStyle frameButtonStyle;
         static Styles()
         {
+            warningStyle = new GUIStyle(); // margin are steup so that the warning takes the same space as the frame button
+            warningStyle.margin.top = 1;
+            warningStyle.margin.bottom = 1;
+            warningStyle.margin.left = 2;
+            warningStyle.margin.right = 1;
+
+            frameButtonStyle = new GUIStyle();
+            frameButtonStyle.normal.background = EditorGUIUtility.Load(EditorResources.iconsPath + "d_ViewToolZoom.png") as Texture2D;
+            frameButtonStyle.active.background = EditorGUIUtility.Load(EditorResources.iconsPath + "d_ViewToolZoom On.png") as Texture2D;
+
             header = new GUIStyle(EditorStyles.toolbarButton);
             header.fontStyle = FontStyle.Bold;
             header.alignment = TextAnchor.MiddleLeft;

@@ -516,6 +516,20 @@ namespace UnityEditor.VFX.UI
             return new Bounds();
         }
 
+        public bool gizmoNeedsComponent
+        {
+            get
+            {
+                if (!VFXGizmoUtility.HasGizmo(portType))
+                    return false;
+                if (m_GizmoContext == null)
+                {
+                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
+                }
+                return VFXGizmoUtility.NeedsComponent(m_GizmoContext);
+            }
+        }
+
         VFXDataAnchorGizmoContext m_GizmoContext;
 
         public void DrawGizmo(VisualEffect component)
