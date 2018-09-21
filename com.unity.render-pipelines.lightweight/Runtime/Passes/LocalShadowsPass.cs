@@ -6,26 +6,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class LocalShadowsPass : ScriptableRenderPass
     {
-        private static class LocalShadowConstantBuffer
+        private static class AdditionalShadowsConstantBuffer
         {
-            public static int _LocalWorldToShadowAtlas;
-            public static int _LocalShadowStrength;
-            public static int _LocalShadowOffset0;
-            public static int _LocalShadowOffset1;
-            public static int _LocalShadowOffset2;
-            public static int _LocalShadowOffset3;
-            public static int _LocalShadowmapSize;
+            public static int _AdditionalLightsWorldToShadow;
+            public static int _AdditionalShadowStrength;
+            public static int _AdditionalShadowOffset0;
+            public static int _AdditionalShadowOffset1;
+            public static int _AdditionalShadowOffset2;
+            public static int _AdditionalShadowOffset3;
+            public static int _AdditionalShadowmapSize;
         }
 
         const int k_ShadowmapBufferBits = 16;
-        RenderTexture m_LocalShadowmapTexture;
-        RenderTextureFormat m_LocalShadowmapFormat;
+        RenderTexture m_AdditionalLightsShadowmapTexture;
+        RenderTextureFormat m_AdditionalShadowmapFormat;
 
-        Matrix4x4[] m_LocalShadowMatrices;
-        ShadowSliceData[] m_LocalLightSlices;
-        float[] m_LocalShadowStrength;
+        Matrix4x4[] m_AdditionalLightShadowMatrices;
+        ShadowSliceData[] m_AdditionalLightSlices;
+        float[] m_AdditionalLightsShadowStrength;
 
-        const string k_RenderLocalShadows = "Render Local Shadows";
+        const string k_RenderAdditionalLightShadows = "Render Additional Shadows";
 
 
         private RenderTargetHandle destination { get; set; }
@@ -34,78 +34,78 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             RegisterShaderPassName("ShadowCaster");
 
-            m_LocalShadowMatrices = new Matrix4x4[0];
-            m_LocalLightSlices = new ShadowSliceData[0];
-            m_LocalShadowStrength = new float[0];
+            m_AdditionalLightShadowMatrices = new Matrix4x4[0];
+            m_AdditionalLightSlices = new ShadowSliceData[0];
+            m_AdditionalLightsShadowStrength = new float[0];
 
-            LocalShadowConstantBuffer._LocalWorldToShadowAtlas = Shader.PropertyToID("_LocalWorldToShadowAtlas");
-            LocalShadowConstantBuffer._LocalShadowStrength = Shader.PropertyToID("_LocalShadowStrength");
-            LocalShadowConstantBuffer._LocalShadowOffset0 = Shader.PropertyToID("_LocalShadowOffset0");
-            LocalShadowConstantBuffer._LocalShadowOffset1 = Shader.PropertyToID("_LocalShadowOffset1");
-            LocalShadowConstantBuffer._LocalShadowOffset2 = Shader.PropertyToID("_LocalShadowOffset2");
-            LocalShadowConstantBuffer._LocalShadowOffset3 = Shader.PropertyToID("_LocalShadowOffset3");
-            LocalShadowConstantBuffer._LocalShadowmapSize = Shader.PropertyToID("_LocalShadowmapSize");
+            AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow = Shader.PropertyToID("_AdditionalLightsWorldToShadow");
+            AdditionalShadowsConstantBuffer._AdditionalShadowStrength = Shader.PropertyToID("_AdditionalShadowStrength");
+            AdditionalShadowsConstantBuffer._AdditionalShadowOffset0 = Shader.PropertyToID("_AdditionalShadowOffset0");
+            AdditionalShadowsConstantBuffer._AdditionalShadowOffset1 = Shader.PropertyToID("_AdditionalShadowOffset1");
+            AdditionalShadowsConstantBuffer._AdditionalShadowOffset2 = Shader.PropertyToID("_AdditionalShadowOffset2");
+            AdditionalShadowsConstantBuffer._AdditionalShadowOffset3 = Shader.PropertyToID("_AdditionalShadowOffset3");
+            AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
 
-            m_LocalShadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+            m_AdditionalShadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
                 ? RenderTextureFormat.Shadowmap
                 : RenderTextureFormat.Depth;
         }
 
-        public void Setup(RenderTargetHandle destination, int maxVisibleLocalLights)
+        public void Setup(RenderTargetHandle destination, int maxVisibleAdditinalLights)
         {
             this.destination = destination;
 
-            if (m_LocalShadowMatrices.Length != maxVisibleLocalLights)
+            if (m_AdditionalLightShadowMatrices.Length != maxVisibleAdditinalLights)
             {
-                m_LocalShadowMatrices = new Matrix4x4[maxVisibleLocalLights];
-                m_LocalLightSlices = new ShadowSliceData[maxVisibleLocalLights];
-                m_LocalShadowStrength = new float[maxVisibleLocalLights];
+                m_AdditionalLightShadowMatrices = new Matrix4x4[maxVisibleAdditinalLights];
+                m_AdditionalLightSlices = new ShadowSliceData[maxVisibleAdditinalLights];
+                m_AdditionalLightsShadowStrength = new float[maxVisibleAdditinalLights];
             }
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderingData.shadowData.renderLocalShadows)
+            if (renderingData.shadowData.supportsAdditionalLightShadows)
             {
                 Clear();
-                RenderLocalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
+                RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
             }
         }
 
         public override void FrameCleanup(CommandBuffer cmd)
         {
-            if (m_LocalShadowmapTexture)
+            if (m_AdditionalLightsShadowmapTexture)
             {
-                RenderTexture.ReleaseTemporary(m_LocalShadowmapTexture);
-                m_LocalShadowmapTexture = null;
+                RenderTexture.ReleaseTemporary(m_AdditionalLightsShadowmapTexture);
+                m_AdditionalLightsShadowmapTexture = null;
             }
         }
 
         void Clear()
         {
-            m_LocalShadowmapTexture = null;
+            m_AdditionalLightsShadowmapTexture = null;
 
-            for (int i = 0; i < m_LocalShadowMatrices.Length; ++i)
-                m_LocalShadowMatrices[i] = Matrix4x4.identity;
+            for (int i = 0; i < m_AdditionalLightShadowMatrices.Length; ++i)
+                m_AdditionalLightShadowMatrices[i] = Matrix4x4.identity;
 
-            for (int i = 0; i < m_LocalLightSlices.Length; ++i)
-                m_LocalLightSlices[i].Clear();
+            for (int i = 0; i < m_AdditionalLightSlices.Length; ++i)
+                m_AdditionalLightSlices[i].Clear();
 
-            for (int i = 0; i < m_LocalShadowStrength.Length; ++i)
-                m_LocalShadowStrength[i] = 0.0f;
+            for (int i = 0; i < m_AdditionalLightsShadowStrength.Length; ++i)
+                m_AdditionalLightsShadowStrength[i] = 0.0f;
         }
 
-        void RenderLocalShadowmapAtlas(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData, ref ShadowData shadowData)
+        void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData, ref ShadowData shadowData)
         {
-            List<int> localLightIndices = lightData.visibleLocalLightIndices;
+            List<int> additionalLightIndices = lightData.additionalLightIndices;
             List<VisibleLight> visibleLights = lightData.visibleLights;
 
             int shadowCastingLightsCount = 0;
-            int localLightsCount = localLightIndices.Count;
-            for (int i = 0; i < localLightsCount; ++i)
+            int additionalLightsCount = additionalLightIndices.Count;
+            for (int i = 0; i < additionalLightsCount; ++i)
             {
-                VisibleLight shadowLight = visibleLights[localLightIndices[i]];
+                VisibleLight shadowLight = visibleLights[additionalLightIndices[i]];
 
                 if (shadowLight.lightType == LightType.Spot && shadowLight.light.shadows != LightShadows.None)
                     shadowCastingLightsCount++;
@@ -117,26 +117,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Matrix4x4 view, proj;
             Bounds bounds;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderLocalShadows);
-            using (new ProfilingSample(cmd, k_RenderLocalShadows))
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderAdditionalLightShadows);
+            using (new ProfilingSample(cmd, k_RenderAdditionalLightShadows))
             {
                 // TODO: Add support to point light shadows. We make a simplification here that only works
                 // for spot lights and with max spot shadows per pass.
-                int atlasWidth = shadowData.localShadowAtlasWidth;
-                int atlasHeight = shadowData.localShadowAtlasHeight;
+                int atlasWidth = shadowData.additionalLightsShadowmapWidth;
+                int atlasHeight = shadowData.additionalLightsShadowmapHeight;
                 int sliceResolution = LightweightShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, shadowCastingLightsCount);
 
-                m_LocalShadowmapTexture = RenderTexture.GetTemporary(shadowData.localShadowAtlasWidth,
-                    shadowData.localShadowAtlasHeight, k_ShadowmapBufferBits, m_LocalShadowmapFormat);
-                m_LocalShadowmapTexture.filterMode = FilterMode.Bilinear;
-                m_LocalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
+                m_AdditionalLightsShadowmapTexture = RenderTexture.GetTemporary(shadowData.additionalLightsShadowmapWidth,
+                    shadowData.additionalLightsShadowmapHeight, k_ShadowmapBufferBits, m_AdditionalShadowmapFormat);
+                m_AdditionalLightsShadowmapTexture.filterMode = FilterMode.Bilinear;
+                m_AdditionalLightsShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
 
-                SetRenderTarget(cmd, m_LocalShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                SetRenderTarget(cmd, m_AdditionalLightsShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                     ClearFlag.Depth, Color.black, TextureDimension.Tex2D);
 
-                for (int i = 0; i < localLightsCount; ++i)
+                for (int i = 0; i < additionalLightsCount; ++i)
                 {
-                    int shadowLightIndex = localLightIndices[i];
+                    int shadowLightIndex = additionalLightIndices[i];
                     VisibleLight shadowLight = visibleLights[shadowLightIndex];
                     Light light = shadowLight.light;
 
@@ -158,48 +158,48 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         Debug.Assert(shadowCastingLightsCount <= 4 && shadowLight.lightType == LightType.Spot);
 
                         // TODO: We need to pass bias and scale list to shader to be able to support multiple
-                        // shadow casting local lights.
-                        m_LocalLightSlices[i].offsetX = (i % 2) * sliceResolution;
-                        m_LocalLightSlices[i].offsetY = (i / 2) * sliceResolution;
-                        m_LocalLightSlices[i].resolution = sliceResolution;
-                        m_LocalLightSlices[i].shadowTransform = shadowTransform;
+                        // shadow casting additional lights.
+                        m_AdditionalLightSlices[i].offsetX = (i % 2) * sliceResolution;
+                        m_AdditionalLightSlices[i].offsetY = (i / 2) * sliceResolution;
+                        m_AdditionalLightSlices[i].resolution = sliceResolution;
+                        m_AdditionalLightSlices[i].shadowTransform = shadowTransform;
 
-                        m_LocalShadowStrength[i] = light.shadowStrength;
+                        m_AdditionalLightsShadowStrength[i] = light.shadowStrength;
 
                         if (shadowCastingLightsCount > 1)
-                            LightweightShadowUtils.ApplySliceTransform(ref m_LocalLightSlices[i], atlasWidth, atlasHeight);
+                            LightweightShadowUtils.ApplySliceTransform(ref m_AdditionalLightSlices[i], atlasWidth, atlasHeight);
 
                         var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
                         LightweightShadowUtils.SetupShadowCasterConstants(cmd, ref shadowLight, proj, sliceResolution);
-                        LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_LocalLightSlices[i], ref settings, proj, view);
+                        LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_AdditionalLightSlices[i], ref settings, proj, view);
                     }
                 }
 
-                SetupLocalLightsShadowReceiverConstants(cmd, ref shadowData);
+                SetupAdditionalLightsShadowReceiverConstants(cmd, ref shadowData);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        void SetupLocalLightsShadowReceiverConstants(CommandBuffer cmd, ref ShadowData shadowData)
+        void SetupAdditionalLightsShadowReceiverConstants(CommandBuffer cmd, ref ShadowData shadowData)
         {
-            for (int i = 0; i < m_LocalLightSlices.Length; ++i)
-                m_LocalShadowMatrices[i] = m_LocalLightSlices[i].shadowTransform;
+            for (int i = 0; i < m_AdditionalLightSlices.Length; ++i)
+                m_AdditionalLightShadowMatrices[i] = m_AdditionalLightSlices[i].shadowTransform;
 
-            float invShadowAtlasWidth = 1.0f / shadowData.localShadowAtlasWidth;
-            float invShadowAtlasHeight = 1.0f / shadowData.localShadowAtlasHeight;
+            float invShadowAtlasWidth = 1.0f / shadowData.additionalLightsShadowmapWidth;
+            float invShadowAtlasHeight = 1.0f / shadowData.additionalLightsShadowmapHeight;
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
 
-            cmd.SetGlobalTexture(destination.id, m_LocalShadowmapTexture);
-            cmd.SetGlobalMatrixArray(LocalShadowConstantBuffer._LocalWorldToShadowAtlas, m_LocalShadowMatrices);
-            cmd.SetGlobalFloatArray(LocalShadowConstantBuffer._LocalShadowStrength, m_LocalShadowStrength);
-            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset0, new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset1, new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset2, new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset3, new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
-                shadowData.localShadowAtlasWidth, shadowData.localShadowAtlasHeight));
+            cmd.SetGlobalTexture(destination.id, m_AdditionalLightsShadowmapTexture);
+            cmd.SetGlobalMatrixArray(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow, m_AdditionalLightShadowMatrices);
+            cmd.SetGlobalFloatArray(AdditionalShadowsConstantBuffer._AdditionalShadowStrength, m_AdditionalLightsShadowStrength);
+            cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset0, new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+            cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset1, new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+            cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset2, new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
+            cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset3, new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
+            cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
+                shadowData.additionalLightsShadowmapWidth, shadowData.additionalLightsShadowmapHeight));
         }
     }
 }

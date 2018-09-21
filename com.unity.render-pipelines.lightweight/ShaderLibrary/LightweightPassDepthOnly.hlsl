@@ -3,35 +3,35 @@
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 
-struct VertexInput
+struct Attributes
 {
     float4 position     : POSITION;
     float2 texcoord     : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-struct VertexOutput
+struct Varyings
 {
     float2 uv           : TEXCOORD0;
-    float4 clipPos      : SV_POSITION;
+    float4 positionCS   : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-VertexOutput DepthOnlyVertex(VertexInput v)
+Varyings DepthOnlyVertex(Attributes input)
 {
-    VertexOutput o = (VertexOutput)0;
-    UNITY_SETUP_INSTANCE_ID(v);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+    Varyings output = (Varyings)0;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
-    o.clipPos = TransformObjectToHClip(v.position.xyz);
-    return o;
+    output.uv = TRANSFORM_TEX(input.texcoord, _MainTex);
+    output.positionCS = TransformObjectToHClip(input.position.xyz);
+    return output;
 }
 
-half4 DepthOnlyFragment(VertexOutput IN) : SV_TARGET
+half4 DepthOnlyFragment(Varyings input) : SV_TARGET
 {
-    Alpha(SampleAlbedoAlpha(IN.uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).a, _Color, _Cutoff);
+    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).a, _Color, _Cutoff);
     return 0;
 }
 #endif

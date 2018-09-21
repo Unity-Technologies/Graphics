@@ -73,29 +73,24 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
                 // Vertex attributes
                 output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
                 output.LightmapUV = input.UV1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-                float3 PositionWS = TransformObjectToWorld(input.PositionOS);
-                output.PositionCS = TransformObjectToHClip(input.PositionOS);
+                VertexPosition vertexPosition = GetVertexPosition(input.PositionOS.xyz);
                 output.Color = input.Color;
+                output.PositionCS = vertexPosition.hclipSpace;
                 
                 // Shadow Coords
-            #if SHADOWS_SCREEN
-                output.ShadowCoords = ComputeShadowCoord(output.PositionCS);
-            #else
-                output.ShadowCoords = TransformWorldToShadowCoord(PositionWS);
-            #endif
+                output.ShadowCoords = GetShadowCoord(vertexPosition);
+
                 // Vertex Lighting
-                
-                float3 NormalWS = input.NormalOS;
+                half3 NormalWS = input.NormalOS;
                 Light mainLight = GetMainLight();
-                half3 attenuatedLightColor = mainLight.color * mainLight.attenuation;
+                half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
                 half3 diffuseColor = LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
             #ifdef _ADDITIONAL_LIGHTS
-                int pixelLightCount = GetPixelLightCount();
+                int pixelLightCount = GetAdditionalLightsCount();
                 for (int i = 0; i < pixelLightCount; ++i)
                 {
-                    Light light = GetLight(i, worldPos);
-                    light.attenuation *= LocalLightRealtimeShadowAttenuation(light.index, PositionWS);
-                    half3 attenuatedLightColor = light.color * light.attenuation;
+                    Light light = GetAdditionalLight(i, vertexPosition.worldSpace);
+                    half3 attenuatedLightColor = light.color * light.distanceAttenuation;
                     diffuseColor += LightingLambert(attenuatedLightColor, light.direction, NormalWS);
                 }
             #endif
@@ -113,7 +108,7 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
             {
                 half3 bakedGI = SampleLightmap(input.LightmapUV, half3(0.0, 1.0, 0.0));
                 
-                half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadowAttenuation(input.ShadowCoords) + bakedGI;
+                half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
                 half4 color = 1.0;

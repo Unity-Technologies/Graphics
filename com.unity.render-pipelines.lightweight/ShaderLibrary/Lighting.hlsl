@@ -48,12 +48,24 @@ struct LightInput
 // Abstraction over Light shading data.
 struct Light
 {
-    int     index;
     half3   direction;
     half3   color;
-    half    attenuation;
-    half    subtractiveModeAttenuation;
+    half    distanceAttenuation;
+    half    shadowAttenuation;
 };
+
+int GetPerObjectLightIndex(half i)
+{
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+    return _AdditionalLightsBuffer[unity_LightIndicesOffsetAndCount.x + i];
+#else
+    // The following code is more optimal than indexing unity_4LightIndices0.
+    // Conditional moves are branch free even on mali-400
+    half i_rem = (i < 2.0h) ? i : i - 2.0h;
+    half2 lightIndex2 = (i < 2.0h) ? unity_4LightIndices0.xy : unity_4LightIndices0.zw;
+    return (i_rem < 1.0h) ? lightIndex2.x : lightIndex2.y;
+#endif
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //                        Attenuation Functions                               /
@@ -86,7 +98,7 @@ half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
     return lightAtten * smoothFactor;
 }
 
-half SpotAttenuation(half3 spotDirection, half3 lightDirection, half2 spotAttenuation)
+half AngleAttenuation(half3 spotDirection, half3 lightDirection, half2 spotAttenuation)
 {
     // Spot Attenuation with a linear falloff can be defined as
     // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
@@ -109,7 +121,7 @@ half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 
     directionAndAttenuation.xyz = half3(posToLightVec * rsqrt(distanceSqr));
     directionAndAttenuation.w = DistanceAttenuation(distanceSqr, lightInput.distanceAndSpotAttenuation.xy);
-    directionAndAttenuation.w *= SpotAttenuation(lightInput.spotDirection.xyz, directionAndAttenuation.xyz, lightInput.distanceAndSpotAttenuation.zw);
+    directionAndAttenuation.w *= AngleAttenuation(lightInput.spotDirection.xyz, directionAndAttenuation.xyz, lightInput.distanceAndSpotAttenuation.zw);
     return directionAndAttenuation;
 }
 
@@ -120,57 +132,56 @@ half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 Light GetMainLight()
 {
     Light light;
-    light.index = 0;
     light.direction = _MainLightPosition.xyz;
-    light.attenuation = 1.0;
-    light.subtractiveModeAttenuation = _MainLightPosition.w;
+    light.distanceAttenuation = _MainLightPosition.w;
+    light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
     return light;
 }
 
-Light GetLight(half i, float3 positionWS)
+Light GetMainLight(float4 shadowCoord)
 {
-    LightInput lightInput;
+    Light light = GetMainLight();
+    light.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
+    return light;
+}
 
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    int lightIndex = _LightIndexBuffer[unity_LightIndicesOffsetAndCount.x + i];
-#else
-    // The following code is more optimal than indexing unity_4LightIndices0.
-    // Conditional moves are branch free even on mali-400
-    half i_rem = (i < 2.0h) ? i : i - 2.0h;
-    half2 lightIndex2 = (i < 2.0h) ? unity_4LightIndices0.xy : unity_4LightIndices0.zw;
-    int lightIndex = (i_rem < 1.0h) ? lightIndex2.x : lightIndex2.y;
-#endif
+Light GetAdditionalLight(half i, float3 positionWS)
+{
+    int perObjectLightIndex = GetPerObjectLightIndex(i);
 
     // The following code will turn into a branching madhouse on platforms that don't support
     // dynamic indexing. Ideally we need to configure light data at a cluster of
     // objects granularity level. We will only be able to do that when scriptable culling kicks in.
     // TODO: Use StructuredBuffer on PC/Console and profile access speed on mobile that support it.
-    float4 positionAndSubtractiveLightMode = _AdditionalLightPosition[lightIndex];
-    lightInput.position = float4(positionAndSubtractiveLightMode.xyz, 1.);
-    lightInput.color = _AdditionalLightColor[lightIndex].rgb;
-    lightInput.distanceAndSpotAttenuation = _AdditionalLightAttenuation[lightIndex];
-    lightInput.spotDirection = _AdditionalLightSpotDir[lightIndex];
+    // Abstraction over Light input constants
+    float3 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex].xyz;
+    half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
+    half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
 
-    half4 directionAndRealtimeAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
+    float3 lightVector = lightPositionWS - positionWS;
+    float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
+
+    half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
+    half attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy);
+    attenuation *= AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
 
     Light light;
-    light.index = lightIndex;
-    light.direction = directionAndRealtimeAttenuation.xyz;
-    light.attenuation = directionAndRealtimeAttenuation.w;
-    light.subtractiveModeAttenuation = positionAndSubtractiveLightMode.w;
-    light.color = lightInput.color;
+    light.direction = lightDirection;
+    light.distanceAttenuation = attenuation;
+    light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
+    light.color = _AdditionalLightsColor[perObjectLightIndex].rgb;
 
     return light;
 }
 
-half GetPixelLightCount()
+half GetAdditionalLightsCount()
 {
     // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
     // in the culling. This way we could do the loop branch with an uniform
     // This would be helpful to support baking exceeding lights in SH as well
-    return min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
+    return min(_AdditionalLightsCount.x, unity_LightIndicesOffsetAndCount.y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -415,10 +426,10 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
 
     // 1) Gives good estimate of illumination as if light would've been shadowed during the bake.
     // We only subtract the main direction light. This is accounted in the contribution term below.
-    half shadowStrength = _ShadowData.x;
+    half shadowStrength = GetMainLightShadowStrength();
     half contributionTerm = saturate(dot(mainLight.direction, normalWS));
     half3 lambert = mainLight.color * contributionTerm;
-    half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.attenuation);
+    half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.shadowAttenuation);
     half3 subtractedLightmap = bakedGI - estimatedLightContributionMaskedByInverseOfShadow;
 
     // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
@@ -444,17 +455,6 @@ void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedG
 {
 #if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
-#endif
-
-#if defined(LIGHTMAP_ON)
-    #if defined(_MIXED_LIGHTING_SHADOWMASK)
-        // TODO:
-    #elif defined(_MIXED_LIGHTING_SUBTRACTIVE)
-        // Subtractive Light mode has direct light contribution baked into lightmap for mixed lights.
-        // We need to remove direct realtime contribution from mixed lights
-        // subtractiveModeBakedOcclusion is set 0.0 if this light occlusion was baked in the lightmap, 1.0 otherwise.
-        light.attenuation *= light.subtractiveModeAttenuation;
-    #endif
 #endif
 }
 
@@ -485,21 +485,19 @@ half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDi
 
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
 {
-    return LightingPhysicallyBased(brdfData, light.color, light.direction, light.attenuation, normalWS, viewDirectionWS);
+    return LightingPhysicallyBased(brdfData, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS);
 }
 
 half3 VertexLighting(float3 positionWS, half3 normalWS)
 {
     half3 vertexLightColor = half3(0.0, 0.0, 0.0);
 
-#if defined(_VERTEX_LIGHTS)
-    int vertexLightStart = _AdditionalLightCount.x;
-    int vertexLightEnd = min(_AdditionalLightCount.y, unity_LightIndicesOffsetAndCount.y);
-    for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
+    int pixelLightCount = GetAdditionalLightsCount();
+    for (int i = 0; i < pixelLightCount; ++i)
     {
-        Light light = GetLight(lightIter, positionWS);
-
-        half3 lightColor = light.color * light.attenuation;
+        Light light = GetAdditionalLight(i, positionWS);
+        half3 lightColor = light.color * light.distanceAttenuation;
         vertexLightColor += LightingLambert(lightColor, light.direction, normalWS);
     }
 #endif
@@ -517,52 +515,54 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
-    Light mainLight = GetMainLight();
-    mainLight.attenuation = MainLightRealtimeShadowAttenuation(inputData.shadowCoord);
-
+    Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
-#ifdef _ADDITIONAL_LIGHTS
-    int pixelLightCount = GetPixelLightCount();
+#ifdef _ADDITIONAL_LIGHTS_PIXEL
+    int pixelLightCount = GetAdditionalLightsCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        Light light = GetLight(i, inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(light.index, inputData.positionWS);
+        Light light = GetAdditionalLight(i, inputData.positionWS);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
 
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
     color += inputData.vertexLighting * brdfData.diffuse;
+#endif
+
     color += emission;
     return half4(color, alpha);
 }
 
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
-    Light mainLight = GetMainLight();
-    mainLight.attenuation = MainLightRealtimeShadowAttenuation(inputData.shadowCoord);
+    Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
-    half3 attenuatedLightColor = mainLight.color * mainLight.attenuation;
+    half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
     half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
 
-#ifdef _ADDITIONAL_LIGHTS
-    int pixelLightCount = GetPixelLightCount();
+#ifdef _ADDITIONAL_LIGHTS_PIXEL
+    int pixelLightCount = GetAdditionalLightsCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        Light light = GetLight(i, inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(light.index, inputData.positionWS);
-        half3 attenuatedLightColor = light.color * light.attenuation;
+        Light light = GetAdditionalLight(i, inputData.positionWS);
+        half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
     }
 #endif
 
-    half3 fullDiffuse = diffuseColor + inputData.vertexLighting;
-    half3 finalColor = fullDiffuse * diffuse + emission;
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
+    diffuseColor += inputData.vertexLighting;
+#endif
+
+    half3 finalColor = diffuseColor * diffuse + emission;
 
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;

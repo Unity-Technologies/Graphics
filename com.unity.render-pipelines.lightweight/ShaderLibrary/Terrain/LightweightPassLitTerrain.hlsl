@@ -71,7 +71,7 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 #endif
 
     input.viewDirectionWS = FragmentViewDirWS(viewDir);
-#ifdef _SHADOWS_ENABLED
+#ifdef _MAIN_LIGHT_SHADOWS
     input.shadowCoord = IN.shadowCoord;
 #else
     input.shadowCoord = float4(0, 0, 0, 0);
@@ -168,8 +168,7 @@ VertexOutput SplatmapVert(VertexInput v)
     UNITY_SETUP_INSTANCE_ID(v);
     TerrainInstancing(v.vertex, v.normal, v.texcoord);
 
-    float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
-    float4 clipPos = TransformWorldToHClip(positionWS);
+    VertexPosition vertexPosition = GetVertexPosition(v.vertex.xyz);
 
     o.uvMainAndLM.xy = v.texcoord;
     o.uvMainAndLM.zw = v.texcoord * unity_LightmapST.xy + unity_LightmapST.zw;
@@ -180,30 +179,26 @@ VertexOutput SplatmapVert(VertexInput v)
     o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
 #endif
 
-    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - positionWS.xyz);
+    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - vertexPosition.worldSpace);
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normal), 1.0);
-    OutputTangentToWorld(vertexTangent, v.normal, o.tangent.xyz, o.binormal.xyz, o.normal.xyz);
+    VertexTBN vertexTBN = GetVertexTBN(v.normal, vertexTangent);
 
-    o.normal.w = viewDir.x;
-    o.tangent.w = viewDir.y;
-    o.binormal.w = viewDir.z;
+    o.normal = half4(vertexTBN.normalWS, viewDir.x);
+    o.tangent = half4(vertexTBN.tangentWS, viewDir.y);
+    o.binormal = half4(vertexTBN.binormalWS, viewDir.z);
 #else
     o.normal = TransformObjectToWorldNormal(v.normal);
     o.viewDir = viewDir;
 #endif
-    o.fogFactorAndVertexLight.x = ComputeFogFactor(clipPos.z);
-    o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
-    o.positionWS = positionWS;
-    o.clipPos = clipPos;
+    o.fogFactorAndVertexLight.x = ComputeFogFactor(vertexPosition.hclipSpace.z);
+    o.fogFactorAndVertexLight.yzw = VertexLighting(vertexPosition.worldSpace, o.normal.xyz);
+    o.positionWS = vertexPosition.worldSpace;
+    o.clipPos = vertexPosition.hclipSpace;
 
-#ifdef _SHADOWS_ENABLED
-    #if SHADOWS_SCREEN
-        o.shadowCoord = ComputeShadowCoord(o.clipPos);
-    #else
-        o.shadowCoord = TransformWorldToShadowCoord(positionWS);
-    #endif
+#ifdef _MAIN_LIGHT_SHADOWS
+    o.shadowCoord = GetShadowCoord(vertexPosition);
 #endif
 
     return o;

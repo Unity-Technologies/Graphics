@@ -69,33 +69,34 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
 
                 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Particles.hlsl"
 
-                VertexOutputLit vertParticleUnlit(appdata_particles v)
+                VaryingsParticle vertParticleUnlit(AttributesParticle input)
                 {
-                    VertexOutputLit o = (VertexOutputLit)0;
+                    VaryingsParticle output = (VaryingsParticle)0;
+                    VertexPosition vertexPosition = GetVertexPosition(input.vertex.xyz);
 
                     // position ws is used to compute eye depth in vertFading
-                    o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz);
-                    o.posWS.w = ComputeFogFactor(o.clipPos.z);
-                    o.clipPos = TransformWorldToHClip(o.posWS.xyz);
-                    o.color = v.color;
+                    output.posWS.xyz = vertexPosition.worldSpace;
+                    output.posWS.w = ComputeFogFactor(vertexPosition.hclipSpace.z);
+                    output.clipPos = vertexPosition.hclipSpace;
+                    output.color = input.color;
 
                     // TODO: Instancing
-                    //vertColor(o.color);
-                    vertTexcoord(v, o);
-                    vertFading(o, o.posWS, o.clipPos);
+                    //vertColor(output.color);
+                    vertTexcoord(input, output);
+                    vertFading(output, vertexPosition.worldSpace, vertexPosition.hclipSpace);
 
-                    return o;
+                    return output;
                 }
 
-                half4 fragParticleUnlit(VertexOutputLit IN) : SV_Target
+                half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
                 {
-                    half4 albedo = SampleAlbedo(IN, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
+                    half4 albedo = SampleAlbedo(input, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
                     half3 diffuse = AlphaModulate(albedo.rgb, albedo.a);
                     half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
-                    half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+                    half3 emission = SampleEmission(input, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
 
                     half3 result = diffuse + emission;
-                    half fogFactor = IN.posWS.w;
+                    half fogFactor = input.posWS.w;
                     ApplyFogColor(result, half3(0, 0, 0), fogFactor);
                     return half4(result, alpha);
                 }

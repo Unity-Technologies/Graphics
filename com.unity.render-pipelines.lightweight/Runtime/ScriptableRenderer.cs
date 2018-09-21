@@ -8,26 +8,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public sealed class ScriptableRenderer
     {
-        // Lights are culled per-object. In platforms that don't use StructuredBuffer
-        // the engine will set 4 light indices in the following constant unity_4LightIndices0
-        // Additionally the engine set unity_4LightIndices1 but LWRP doesn't use that.
-        const int k_MaxConstantLocalLights = 4;
+        // When there is no support to StruturedBuffer lights data is setup in a constants data
+        // we also limit the amount of lights that can be shaded per object to simplify shading
+        // in these low end platforms (GLES 2.0 and GLES 3.0)
 
-        // LWRP uses a fixed constant buffer to hold light data. This must match the value of
-        // MAX_VISIBLE_LIGHTS 16 in Input.hlsl
-        const int k_MaxVisibleLocalLights = 16;
+        // Amount of Lights that can be shaded per object (in the for loop in the shader)
+        // This uses unity_4LightIndices0 to store 4 per-object light indices
+        const int k_MaxPerObjectAdditionalLightsNoStructuredBuffer = 4;
 
-        const int k_MaxVertexLights = 4;
-        public int maxSupportedLocalLightsPerPass
-        {
-            get
-            {
-                return useComputeBufferForPerObjectLightIndices ? k_MaxVisibleLocalLights : k_MaxConstantLocalLights;
-            }
-        }
+        // Light data is stored in a constant buffer (uniform array)
+        // This value has to match MAX_VISIBLE_LIGHTS in Input.hlsl
+        const int k_MaxVisibleAdditionalLightsNoStructuredBuffer = 16;
 
-        // TODO: Profile performance of using ComputeBuffer on mobiles that support it
-        public static bool useComputeBufferForPerObjectLightIndices
+        // Point and Spot Lights are stored in a StructuredBuffer.
+        // We shade the amount of light per-object as requested in the pipeline asset and
+        // we can store a great deal of lights in our global light buffer
+        const int k_MaxVisibleAdditioanlLightsStructuredBuffer = 4096;
+
+        public static bool useStructuredBufferForLights
         {
             get
             {
@@ -41,9 +39,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        public int maxVisibleLocalLights { get { return k_MaxVisibleLocalLights; } }
+        public int maxPerObjectAdditionalLights
+        {
+            get
+            {
+                return useStructuredBufferForLights ?
+                    8 : k_MaxPerObjectAdditionalLightsNoStructuredBuffer;
+            }
+        }
 
-        public int maxSupportedVertexLights { get { return k_MaxVertexLights; } }
+        public int maxVisibleAdditionalLights
+        {
+            get
+            {
+                return useStructuredBufferForLights ?
+                    k_MaxVisibleAdditioanlLightsStructuredBuffer :
+                    k_MaxVisibleAdditionalLightsNoStructuredBuffer;
+            }
+        }
 
         public PostProcessRenderContext postProcessingContext { get; private set; }
 
@@ -157,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void SetupPerObjectLightIndices(ref CullResults cullResults, ref LightData lightData)
         {
-            if (lightData.totalAdditionalLightsCount == 0)
+            if (lightData.additionalLightsCount == 0)
                 return;
 
             List<VisibleLight> visibleLights = lightData.visibleLights;
@@ -168,7 +181,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Disable all directional lights from the perobject light indices
             // Pipeline handles them globally.
-            for (int i = 0; i < visibleLights.Count && localLightsCount < maxVisibleLocalLights; ++i)
+            for (int i = 0; i < visibleLights.Count && localLightsCount < lightData.additionalLightIndices.Count; ++i)
             {    
                 VisibleLight light = visibleLights[i];
                 if (light.lightType == LightType.Directional)
@@ -191,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // if not using a compute buffer, engine will set indices in 2 vec4 constants
             // unity_4LightIndices0 and unity_4LightIndices1
-            if (useComputeBufferForPerObjectLightIndices)
+            if (useStructuredBufferForLights)
             {
                 int lightIndicesCount = cullResults.GetLightIndicesCount();
                 if (lightIndicesCount > 0)
@@ -293,12 +306,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return clearFlag;
         }
 
-        public static RendererConfiguration GetRendererConfiguration(int localLightsCount)
+        public static RendererConfiguration GetRendererConfiguration(int additionalLightsCount)
         {
             RendererConfiguration configuration = RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-            if (localLightsCount > 0)
+            if (additionalLightsCount > 0)
             {
-                if (useComputeBufferForPerObjectLightIndices)
+                if (useStructuredBufferForLights)
                     configuration |= RendererConfiguration.ProvideLightIndices;
                 else
                     configuration |= RendererConfiguration.PerObjectLightIndices8;

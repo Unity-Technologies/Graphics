@@ -51,17 +51,18 @@ Shader "LightweightPipeline/Standard Unlit"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceUnlit.hlsl"
 
-            struct VertexInput
+            struct Attributes
             {
-                float4 vertex       : POSITION;
-                float2 uv           : TEXCOORD0;
-                float2 lightmapUV   : TEXCOORD1;
-                float3 normal       : NORMAL;
+                float4 positionOS       : POSITION;
+                float2 uv               : TEXCOORD0;
+                float2 lightmapUV       : TEXCOORD1;
+                float3 normalOS         : NORMAL;
+                float4 tangentOS        : TANGENT;
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            struct VertexOutput
+            struct Varyings
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
 #if _SAMPLE_GI
@@ -78,31 +79,37 @@ Shader "LightweightPipeline/Standard Unlit"
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
-            VertexOutput vert(VertexInput v)
+            Varyings vert(Attributes input)
             {
-                VertexOutput o = (VertexOutput)0;
+                Varyings output = (Varyings)0;
 
-                UNITY_SETUP_INSTANCE_ID(v);
-                UNITY_TRANSFER_INSTANCE_ID(v, o);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-                o.vertex = TransformObjectToHClip(v.vertex.xyz);
-                o.uv0AndFogCoord.xy = TRANSFORM_TEX(v.uv, _MainTex);
-                o.uv0AndFogCoord.z = ComputeFogFactor(o.vertex.z);
+                VertexPosition vertexPosition = GetVertexPosition(input.positionOS.xyz);
+                output.vertex = vertexPosition.hclipSpace;
+                output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _MainTex);
+                output.uv0AndFogCoord.z = ComputeFogFactor(vertexPosition.hclipSpace.z);
 
 #if _SAMPLE_GI
-                OUTPUT_NORMAL(v, o);
-                OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
-                OUTPUT_SH(o.normal, o.vertexSH);
+                VertexTBN vertexTBN = GetVertexTBN(input.normalOS, input.tangentOS);
+                output.normal = vertexTBN.normalWS;
+#ifdef _NORMALMAP
+                output.tangent = vertexTBN.tangentWS;
+                output.binormal = vertexTBN.binormalWS;
 #endif
-                return o;
+                OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+                OUTPUT_SH(output.normal, output.vertexSH);
+#endif
+                return output;
             }
 
-            half4 frag(VertexOutput IN) : SV_Target
+            half4 frag(Varyings input) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(IN);
+                UNITY_SETUP_INSTANCE_ID(input);
 
-                half2 uv = IN.uv0AndFogCoord.xy;
+                half2 uv = input.uv0AndFogCoord.xy;
                 half4 texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 half3 color = texColor.rgb * _Color.rgb;
                 half alpha = texColor.a * _Color.a;
@@ -115,13 +122,13 @@ Shader "LightweightPipeline/Standard Unlit"
 
 #if _SAMPLE_GI
     #if _NORMALMAP
-                half3 normalWS = TangentToWorldNormal(surfaceData.normalTS, IN.tangent, IN.binormal, IN.normal);
+                half3 normalWS = TangentToWorldNormal(surfaceData.normalTS, input.tangent, input.binormal, input.normal);
     #else
-                half3 normalWS = normalize(IN.normal);
+                half3 normalWS = normalize(input.normal);
     #endif
-                color *= SAMPLE_GI(IN.lightmapUV, IN.vertexSH, normalWS);
+                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
 #endif
-                ApplyFog(color, IN.uv0AndFogCoord.z);
+                ApplyFog(color, input.uv0AndFogCoord.z);
 
                 return half4(color, alpha);
             }

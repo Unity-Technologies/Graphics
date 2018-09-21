@@ -7,57 +7,57 @@
 float4 _ShadowBias;
 float3 _LightDirection;
 
-struct VertexInput
+struct Attributes
 {
-    float4 position     : POSITION;
-    float3 normal       : NORMAL;
+    float4 positionOS   : POSITION;
+    float3 normalOS     : NORMAL;
     float2 texcoord     : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-struct VertexOutput
+struct Varyings
 {
     float2 uv           : TEXCOORD0;
-    float4 clipPos      : SV_POSITION;
+    float4 positionCS   : SV_POSITION;
 };
 
-float4 GetShadowPositionHClip(VertexInput v)
+float4 GetShadowPositionHClip(Attributes input)
 {
-    float3 positionWS = TransformObjectToWorld(v.position.xyz);
-    float3 normalWS = TransformObjectToWorldDir(v.normal);
+    float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+    float3 normalWS = TransformObjectToWorldDir(input.normalOS);
 
     float invNdotL = 1.0 - saturate(dot(_LightDirection, normalWS));
     float scale = invNdotL * _ShadowBias.y;
 
     // normal bias is negative since we want to apply an inset normal offset
     positionWS = normalWS * scale.xxx + positionWS;
-    float4 clipPos = TransformWorldToHClip(positionWS);
+    float4 positionCS = TransformWorldToHClip(positionWS);
 
     // _ShadowBias.x sign depens on if platform has reversed z buffer
-    clipPos.z += _ShadowBias.x;
+    positionCS.z += _ShadowBias.x;
 
 #if UNITY_REVERSED_Z
-    clipPos.z = min(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
+    positionCS.z = min(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
 #else
-    clipPos.z = max(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
+    positionCS.z = max(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
 #endif
 
-    return clipPos;
+    return positionCS;
 }
 
-VertexOutput ShadowPassVertex(VertexInput v)
+Varyings ShadowPassVertex(Attributes input)
 {
-    VertexOutput o;
-    UNITY_SETUP_INSTANCE_ID(v);
+    Varyings output;
+    UNITY_SETUP_INSTANCE_ID(input);
 
-    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
-    o.clipPos = GetShadowPositionHClip(v);
-    return o;
+    output.uv = TRANSFORM_TEX(input.texcoord, _MainTex);
+    output.positionCS = GetShadowPositionHClip(input);
+    return output;
 }
 
-half4 ShadowPassFragment(VertexOutput IN) : SV_TARGET
+half4 ShadowPassFragment(Varyings input) : SV_TARGET
 {
-    Alpha(SampleAlbedoAlpha(IN.uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).a, _Color, _Cutoff);
+    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).a, _Color, _Cutoff);
     return 0;
 }
 

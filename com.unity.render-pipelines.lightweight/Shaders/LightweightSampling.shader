@@ -8,29 +8,29 @@ Shader "Hidden/LightweightPipeline/Sampling"
     HLSLINCLUDE
     #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 
-    struct VertexInput
+    struct Attributes
     {
-        float4 vertex   : POSITION;
-        float2 texcoord : TEXCOORD0;
+        float4 positionOS   : POSITION;
+        float2 texcoord     : TEXCOORD0;
         UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
-    struct Interpolators
+    struct Varyings
     {
-        float4  pos      : SV_POSITION;
-        float2  texcoord : TEXCOORD0;
+        float4  positionCS  : SV_POSITION;
+        float2  uv          : TEXCOORD0;
         UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
-    Interpolators Vertex(VertexInput i)
+    Varyings Vertex(Attributes input)
     {
-        Interpolators o;
-        UNITY_SETUP_INSTANCE_ID(i);
-        UNITY_TRANSFER_INSTANCE_ID(i, o);
+        Varyings output;
+        UNITY_SETUP_INSTANCE_ID(input);
+        UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-        o.pos = TransformObjectToHClip(i.vertex.xyz);
-        o.texcoord.xy = i.texcoord;
-        return o;
+        output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+        output.uv = input.texcoord;
+        return output;
     }
 
     half4 DownsampleBox4Tap(TEXTURE2D_ARGS(tex, samplerTex), float2 uv, float2 texelSize, float amount)
@@ -74,9 +74,9 @@ Shader "Hidden/LightweightPipeline/Sampling"
 
             float _SampleOffset;
 
-            half4 FragBoxDownsample(Interpolators i) : SV_Target
+            half4 FragBoxDownsample(Varyings input) : SV_Target
             {
-                half4 col = DownsampleBox4Tap(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), i.texcoord, _MainTex_TexelSize.xy, _SampleOffset);
+                half4 col = DownsampleBox4Tap(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), input.uv, _MainTex_TexelSize.xy, _SampleOffset);
                 return half4(col.rgb, 1);
             }
             ENDHLSL

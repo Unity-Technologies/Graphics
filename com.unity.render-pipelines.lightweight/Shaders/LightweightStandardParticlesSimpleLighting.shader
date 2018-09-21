@@ -86,38 +86,44 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Particles.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
 
-            VertexOutputLit ParticlesLitVertex(appdata_particles v)
+            VaryingsParticle ParticlesLitVertex(AttributesParticle input)
             {
-                VertexOutputLit o;
+                VaryingsParticle output;
 
-                OUTPUT_NORMAL(v, o);
+                VertexPosition vertexPosition = GetVertexPosition(input.vertex.xyz);
+                VertexTBN vertexTBN = GetVertexTBN(input.normal, input.tangent);
+                output.normal = vertexTBN.normalWS;
+#ifdef _NORMALMAP
+                output.tangent = vertexTBN.tangentWS;
+                output.binormal = vertexTBN.binormalWS;
+#endif
 
-                o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz).xyz;
-                o.posWS.w = ComputeFogFactor(o.clipPos.z);
-                o.clipPos = TransformWorldToHClip(o.posWS.xyz);
-                o.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - o.posWS.xyz);
-                o.viewDirShininess.w = _Shininess * 128.0h;
-                o.color = v.color;
+                output.posWS.xyz = vertexPosition.worldSpace.xyz;
+                output.posWS.w = ComputeFogFactor(vertexPosition.hclipSpace.z);
+                output.clipPos = vertexPosition.hclipSpace;
+                output.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - vertexPosition.worldSpace);
+                output.viewDirShininess.w = _Shininess * 128.0h;
+                output.color = input.color;
 
                 // TODO: Instancing
-                // vertColor(o.color);
-                vertTexcoord(v, o);
-                vertFading(o, o.posWS, o.clipPos);
-                return o;
+                // vertColor(output.color);
+                vertTexcoord(input, output);
+                vertFading(output, vertexPosition.worldSpace, vertexPosition.hclipSpace);
+                return output;
             }
 
-            half4 ParticlesLitFragment(VertexOutputLit IN) : SV_Target
+            half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
             {
-                half4 albedo = SampleAlbedo(IN, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
+                half4 albedo = SampleAlbedo(input, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
                 half3 diffuse = AlphaModulate(albedo.rgb, albedo.a);
                 half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
-                half3 normalTS = SampleNormalTS(IN, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
-                half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
-                half4 specularGloss = SampleSpecularGloss(IN, albedo.a, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
-                half shininess = IN.viewDirShininess.w;
+                half3 normalTS = SampleNormalTS(input, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+                half3 emission = SampleEmission(input, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+                half4 specularGloss = SampleSpecularGloss(input, albedo.a, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
+                half shininess = input.viewDirShininess.w;
 
                 InputData inputData;
-                InitializeInputData(IN, normalTS, inputData);
+                InitializeInputData(input, normalTS, inputData);
 
                 half4 color = LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
 

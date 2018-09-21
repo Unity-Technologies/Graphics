@@ -48,24 +48,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (renderingData.cameraData.msaaSamples > 1)
             {
-                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthNoMsaa);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
                 if (renderingData.cameraData.msaaSamples == 4)
                 {
-                    cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
-                    cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
                 }
                 else
                 {
-                    cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
-                    cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
                 }
                 cmd.Blit(depthSurface, copyDepthSurface, depthCopyMaterial);
             }
             else
             {
-                cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthNoMsaa);
-                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
-                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
                 ScriptableRenderer.CopyTexture(cmd, depthSurface, copyDepthSurface, depthCopyMaterial);
             }
             context.ExecuteCommandBuffer(cmd);

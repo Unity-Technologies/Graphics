@@ -8,48 +8,48 @@
 #define MAX_SHADOW_CASCADES 4
 
 #ifndef SHADOWS_SCREEN
-#if defined(_SHADOWS_ENABLED) && defined(_SHADOWS_CASCADE) && !defined(SHADER_API_GLES)
+#if defined(_MAIN_LIGHT_SHADOWS) && defined(_MAIN_LIGHT_SHADOWS_CASCADE) && !defined(SHADER_API_GLES)
 #define SHADOWS_SCREEN 1
 #else
 #define SHADOWS_SCREEN 0
 #endif
 #endif
 
-SCREENSPACE_TEXTURE(_ScreenSpaceShadowMapTexture);
-SAMPLER(sampler_ScreenSpaceShadowMapTexture);
+SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
+SAMPLER(sampler_ScreenSpaceShadowmapTexture);
 
-TEXTURE2D_SHADOW(_DirectionalShadowmapTexture);
-SAMPLER_CMP(sampler_DirectionalShadowmapTexture);
+TEXTURE2D_SHADOW(_MainLightShadowmapTexture);
+SAMPLER_CMP(sampler_MainLightShadowmapTexture);
 
-TEXTURE2D_SHADOW(_LocalShadowmapTexture);
-SAMPLER_CMP(sampler_LocalShadowmapTexture);
+TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
+SAMPLER_CMP(sampler_AdditionalLightsShadowmapTexture);
 
-CBUFFER_START(_DirectionalShadowBuffer)
+CBUFFER_START(_MainLightShadowBuffer)
 // Last cascade is initialized with a no-op matrix. It always transforms
-// shadow coord to half(0, 0, NEAR_PLANE). We use this trick to avoid
+// shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
-float4x4    _WorldToShadow[MAX_SHADOW_CASCADES + 1];
-float4      _DirShadowSplitSpheres0;
-float4      _DirShadowSplitSpheres1;
-float4      _DirShadowSplitSpheres2;
-float4      _DirShadowSplitSpheres3;
-float4      _DirShadowSplitSphereRadii;
-half4       _ShadowOffset0;
-half4       _ShadowOffset1;
-half4       _ShadowOffset2;
-half4       _ShadowOffset3;
-half4       _ShadowData;    // (x: shadowStrength)
-float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+float4x4    _MainLightWorldToShadow[MAX_SHADOW_CASCADES + 1];
+float4      _CascadeShadowSplitSpheres0;
+float4      _CascadeShadowSplitSpheres1;
+float4      _CascadeShadowSplitSpheres2;
+float4      _CascadeShadowSplitSpheres3;
+float4      _CascadeShadowSplitSphereRadii;
+half4       _MainLightShadowOffset0;
+half4       _MainLightShadowOffset1;
+half4       _MainLightShadowOffset2;
+half4       _MainLightShadowOffset3;
+half4       _MainLightShadowData;    // (x: shadowStrength)
+float4      _MainLightShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 CBUFFER_END
 
-CBUFFER_START(_LocalShadowBuffer)
-float4x4    _LocalWorldToShadowAtlas[MAX_VISIBLE_LIGHTS];
-half        _LocalShadowStrength[MAX_VISIBLE_LIGHTS];
-half4       _LocalShadowOffset0;
-half4       _LocalShadowOffset1;
-half4       _LocalShadowOffset2;
-half4       _LocalShadowOffset3;
-float4      _LocalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+CBUFFER_START(_AdditionalLightsShadowBuffer)
+float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];
+half        _AdditionalShadowStrength[MAX_VISIBLE_LIGHTS];
+half4       _AdditionalShadowOffset0;
+half4       _AdditionalShadowOffset1;
+half4       _AdditionalShadowOffset2;
+half4       _AdditionalShadowOffset3;
+float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 CBUFFER_END
 
 #if UNITY_REVERSED_Z
@@ -70,36 +70,36 @@ struct ShadowSamplingData
 ShadowSamplingData GetMainLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
-    shadowSamplingData.shadowOffset0 = _ShadowOffset0;
-    shadowSamplingData.shadowOffset1 = _ShadowOffset1;
-    shadowSamplingData.shadowOffset2 = _ShadowOffset2;
-    shadowSamplingData.shadowOffset3 = _ShadowOffset3;
-    shadowSamplingData.shadowmapSize = _ShadowmapSize;
+    shadowSamplingData.shadowOffset0 = _MainLightShadowOffset0;
+    shadowSamplingData.shadowOffset1 = _MainLightShadowOffset1;
+    shadowSamplingData.shadowOffset2 = _MainLightShadowOffset2;
+    shadowSamplingData.shadowOffset3 = _MainLightShadowOffset3;
+    shadowSamplingData.shadowmapSize = _MainLightShadowmapSize;
     return shadowSamplingData;
 }
 
-ShadowSamplingData GetLocalLightShadowSamplingData()
+ShadowSamplingData GetAdditionalLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
-    shadowSamplingData.shadowOffset0 = _LocalShadowOffset0;
-    shadowSamplingData.shadowOffset1 = _LocalShadowOffset1;
-    shadowSamplingData.shadowOffset2 = _LocalShadowOffset2;
-    shadowSamplingData.shadowOffset3 = _LocalShadowOffset3;
-    shadowSamplingData.shadowmapSize = _LocalShadowmapSize;
+    shadowSamplingData.shadowOffset0 = _AdditionalShadowOffset0;
+    shadowSamplingData.shadowOffset1 = _AdditionalShadowOffset1;
+    shadowSamplingData.shadowOffset2 = _AdditionalShadowOffset2;
+    shadowSamplingData.shadowOffset3 = _AdditionalShadowOffset3;
+    shadowSamplingData.shadowmapSize = _AdditionalShadowmapSize;
     return shadowSamplingData;
 }
 
 half GetMainLightShadowStrength()
 {
-    return _ShadowData.x;
+    return _MainLightShadowData.x;
 }
 
-half GetLocalLightShadowStrenth(int lightIndex)
+half GetAdditionalLightShadowStrenth(int lightIndex)
 {
-    return _LocalShadowStrength[lightIndex];
+    return _AdditionalShadowStrength[lightIndex];
 }
 
-half SampleScreenSpaceShadowMap(float4 shadowCoord)
+half SampleScreenSpaceShadowmap(float4 shadowCoord)
 {
     shadowCoord.xy /= shadowCoord.w;
 
@@ -107,9 +107,9 @@ half SampleScreenSpaceShadowMap(float4 shadowCoord)
     shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowMapTexture, sampler_ScreenSpaceShadowMapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
+    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
 #else
-    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMapTexture, sampler_ScreenSpaceShadowMapTexture, shadowCoord.xy).x;
+    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
 #endif
 
     return attenuation;
@@ -160,13 +160,13 @@ real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sample
 
 half ComputeCascadeIndex(float3 positionWS)
 {
-    float3 fromCenter0 = positionWS - _DirShadowSplitSpheres0.xyz;
-    float3 fromCenter1 = positionWS - _DirShadowSplitSpheres1.xyz;
-    float3 fromCenter2 = positionWS - _DirShadowSplitSpheres2.xyz;
-    float3 fromCenter3 = positionWS - _DirShadowSplitSpheres3.xyz;
+    float3 fromCenter0 = positionWS - _CascadeShadowSplitSpheres0.xyz;
+    float3 fromCenter1 = positionWS - _CascadeShadowSplitSpheres1.xyz;
+    float3 fromCenter2 = positionWS - _CascadeShadowSplitSpheres2.xyz;
+    float3 fromCenter3 = positionWS - _CascadeShadowSplitSpheres3.xyz;
     float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
 
-    half4 weights = half4(distances2 < _DirShadowSplitSphereRadii);
+    half4 weights = half4(distances2 < _CascadeShadowSplitSphereRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
 
     return 4 - dot(weights, half4(4, 3, 2, 1));
@@ -174,44 +174,47 @@ half ComputeCascadeIndex(float3 positionWS)
 
 float4 TransformWorldToShadowCoord(float3 positionWS)
 {
-#ifdef _SHADOWS_CASCADE
+#ifdef _MAIN_LIGHT_SHADOWS_CASCADE
     half cascadeIndex = ComputeCascadeIndex(positionWS);
-    return mul(_WorldToShadow[cascadeIndex], float4(positionWS, 1.0));
+    return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 #else
-    return mul(_WorldToShadow[0], float4(positionWS, 1.0));
+    return mul(_MainLightWorldToShadow[0], float4(positionWS, 1.0));
 #endif
 }
 
-float4 ComputeShadowCoord(float4 clipPos)
+half MainLightRealtimeShadow(float4 shadowCoord)
 {
-    // TODO: This might have to be corrected for double-wide and texture arrays
-    return ComputeScreenPos(clipPos);
-}
-
-half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
-{
-#if !defined(_SHADOWS_ENABLED) || defined(_RECEIVE_SHADOWS_OFF)
+#if !defined(_MAIN_LIGHT_SHADOWS) || defined(_RECEIVE_SHADOWS_OFF)
     return 1.0h;
 #endif
 
 #if SHADOWS_SCREEN
-    return SampleScreenSpaceShadowMap(shadowCoord);
+    return SampleScreenSpaceShadowmap(shadowCoord);
 #else
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half shadowStrength = GetMainLightShadowStrength();
-    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_DirectionalShadowmapTexture, sampler_DirectionalShadowmapTexture), shadowSamplingData, shadowStrength, false);
+    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowSamplingData, shadowStrength, false);
 #endif
 }
 
-half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
+half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 {
-#if !defined(_LOCAL_SHADOWS_ENABLED) || defined(_RECEIVE_SHADOWS_OFF)
+#if !defined(_ADDITIONAL_LIGHT_SHADOWS) || defined(_RECEIVE_SHADOWS_OFF)
     return 1.0h;
 #else
-    float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));
-    ShadowSamplingData shadowSamplingData = GetLocalLightShadowSamplingData();
-    half shadowStrength = GetLocalLightShadowStrenth(lightIndex);
-    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowmapTexture, sampler_LocalShadowmapTexture), shadowSamplingData, shadowStrength, true);
+    float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[lightIndex], float4(positionWS, 1.0));
+    ShadowSamplingData shadowSamplingData = GetAdditionalLightShadowSamplingData();
+    half shadowStrength = GetAdditionalLightShadowStrenth(lightIndex);
+    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowSamplingData, shadowStrength, true);
+#endif
+}
+
+float4 GetShadowCoord(VertexPosition vertexPosition)
+{
+#if SHADOWS_SCREEN
+    return ComputeScreenPos(vertexPosition.hclipSpace);
+#else
+    return TransformWorldToShadowCoord(vertexPosition.worldSpace);
 #endif
 }
 

@@ -74,32 +74,39 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/ParticlesPBR.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
 
-            VertexOutputLit ParticlesLitVertex(appdata_particles v)
+            VaryingsParticle ParticlesLitVertex(AttributesParticle input)
             {
-                VertexOutputLit o;
-                OUTPUT_NORMAL(v, o);
+                VaryingsParticle output;
+                VertexPosition vertexPosition = GetVertexPosition(input.vertex.xyz);
+                VertexTBN vertexTBN = GetVertexTBN(input.normal, input.tangent);
 
-                o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz).xyz;
-                o.posWS.w = ComputeFogFactor(o.clipPos.z);
-                o.clipPos = TransformWorldToHClip(o.posWS.xyz);
-                o.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - o.posWS.xyz);
-                o.viewDirShininess.w = 0.0;
-                o.color = v.color;
+                output.normal = vertexTBN.normalWS;
+#ifdef _NORMAL_MAP
+                output.tangent = vertexTBN.tangentWS;
+                output.binormal = vertexTBN.binormalWS;
+#endif
+
+                output.posWS.xyz = vertexPosition.worldSpace;
+                output.posWS.w = ComputeFogFactor(vertexPosition.hclipSpace.z);
+                output.clipPos = vertexPosition.hclipSpace;
+                output.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - vertexPosition.worldSpace);
+                output.viewDirShininess.w = 0.0;
+                output.color = input.color;
 
                 // TODO: Instancing
-                // vertColor(v.color);
-                vertTexcoord(v, o);
-                vertFading(o, o.posWS, o.clipPos);
-                return o;
+                // vertColor(output.color);
+                vertTexcoord(input, output);
+                vertFading(output, vertexPosition.worldSpace, vertexPosition.hclipSpace);
+                return output;
             }
 
-            half4 ParticlesLitFragment(VertexOutputLit IN) : SV_Target
+            half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
             {
                 SurfaceData surfaceData;
-                InitializeSurfaceData(IN, surfaceData);
+                InitializeSurfaceData(input, surfaceData);
 
                 InputData inputData;
-                InitializeInputData(IN, surfaceData.normalTS, inputData);
+                InitializeInputData(input, surfaceData.normalTS, inputData);
 
                 half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo,
                     surfaceData.metallic, half3(0, 0, 0), surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);

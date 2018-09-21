@@ -16,12 +16,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sorting of opaque objects disables front-to-back sorting flag when camera settings allow that and the GPU has hidden surface removal.
 - Custom Light Explorer for LWRP, compared to builtin only reflection probes have changed, removed projection and added resolution.
 - Vertex Lit shader for detail meshes on terrain, this is hidden by default but will override the usage in the terrain system.
+- [Shader API] `GetMainLight` and `GetAdditionalLight` functions can now compute shadow attenuation and store it in the new `shadowAttenuation` field in `LightData` struct.
+- [Shader API] Added `VertexPosition` struct that contains vertex position in difference spaces (world, view, hclip).
+- [Shader API] Added `GetVertexPosition` function to get an initialized `VertexPosition`.
+- [Shader API] Added `GetPerObjectLightIndex` function to return the per-object index given a for-loop index.
+- [Shader API] Added `GetShadowCoord` function that takes a `VertexPosition` as input.
+- Autodesk interactive shaders.
 ### Changed
 - The `RenderingData` struct is now read-only.
 - `ScriptableRenderer`always perform a Clear before calling `IRendererSetup::Setup.` 
 - `ScriptableRenderPass::Execute` no longer takes `CullResults` as input. Instead, use `RenderingData`as input, since that references `CullResults`.
 - `IRendererSetup_Setup` no longer takes `ScriptableRenderContext` and `CullResults` as input.
 - Removed setting shader inclue path via old API, use package shader include paths
+- Reorganized LWRP asset settings to be more clear.
+- Vertex lighting now controls if additional lights should be shaded per-vertex or per-pixel.
+- Renamed all `Local Lights` nomenclature to `Additional Lights`.
+- Changed shader naming to conform to our SRP shader code convention.
+- [Shader API] Renamed `SpotAttenuation` function to `AngleAttenuation`.
+- [Shader API] Renamed `_SHADOWS_ENABLED` keyword to `_MAIN_LIGHT_SHADOWS`
+- [Shader API] Renamed `_SHADOWS_CASCADE` keyword to `_MAIN_LIGHT_SHADOWS_CASCADE`
+- [Shader API] Renamed `_VERTEX_LIGHTS` and `_ADDITIONAL_LIGHTS` keywords to
+`_ADDITIONAL_LIGHTS_VERTEX` and `_ADDITIONAL_LIGHTS_PIXEL` respectively.
+- [Shader API] Renamed `_LOCAL_SHADOWS_ENABLED` to `_ADDITIONAL_LIGHT_SHADOWS`
+- [Shader API] Renamed `GetLight` function to `GetAdditionalLight`.
+- [Shader API] Renamed `GetPixelLightCount` function to `GetAdditionalLightsCount`.
+- [Shader API] Renamed `attenuation` to `distanceAttenuation` in `LightData`.
+- [Shader API] Renamed `GetLocalLightShadowStrength` function to `GetAdditionalLightShadowStrength`.
+- [Shader API] Renamed `SampleScreenSpaceShadowMap` functions to `SampleScreenSpaceShadowmap`.
+- [Shader API] Renamed `MainLightRealtimeShadowAttenuation` function to `MainLightRealtimeShadow`.
+- [Shader API] Renamed light constants from `Directional` and `Local` to `MainLight` and `AdditionalLights`.
+- [Shader API] Renamed `GetLocalLightShadowSamplingData` function to `GetAdditionalLightShadowSamplingData`.
+- [Shader API] Removed OUTPUT_NORMAL macro.
+- [Shader API] Removed `lightIndex` and `substractiveAttenuation` from `LightData`.
+- [Shader API] Removed `ComputeShadowCoord` function. `GetShadowCoord` is provided instead.
 
 ### Fixed
 - If you have more than 16 lights in a scene, LWRP no longer causes random glitches while rendering lights.

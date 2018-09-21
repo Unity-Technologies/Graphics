@@ -53,6 +53,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         UnityBuiltinDefault
     }
 
+    public enum LightRenderingMode
+    {
+        Disabled,
+        PerPixel,
+        PerVertex,
+    }
+
     public class LightweightPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         public static readonly string s_SearchPathProject = "Assets";
@@ -61,34 +68,53 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         Shader m_DefaultShader;
 
         // Default values set when a new LightweightPipeline asset is created
-        [SerializeField] int k_AssetVersion = 3;
-        [SerializeField] int m_MaxPixelLights = 4;
-        [SerializeField] bool m_SupportsVertexLight = false;
+        [SerializeField] int k_AssetVersion = 4;
+        
+        // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
         [SerializeField] bool m_RequireSoftParticles = false;
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
+
+        // Quality settings
         [SerializeField] bool m_SupportsHDR = false;
         [SerializeField] MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] float m_RenderScale = 1.0f;
-        [SerializeField] bool m_SupportsDynamicBatching = true;
+        // TODO: Shader Quality Tiers
 
-        [SerializeField] bool m_DirectionalShadowsSupported = true;
-        [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._2048;
+        // Main directional light Settings
+        [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
+        [SerializeField] bool m_MainLightShadowsSupported = true;
+        [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
+        
+        // Additional lights settings
+        [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
+        [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
+        [SerializeField] bool m_AdditionalLightShadowsSupported = false;
+        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._512;
+
+        // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
         [SerializeField] ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
         [SerializeField] float m_Cascade2Split = 0.25f;
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
-        [SerializeField] bool m_LocalShadowsSupported = true;
-        [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._512;
         [SerializeField] bool m_SoftShadowsSupported = false;
 
-        [SerializeField] LightweightPipelineResources m_ResourcesAsset;
+        // Advanced settings
+        [SerializeField] bool m_SupportsDynamicBatching = true;
+        [SerializeField] bool m_MixedLightingSupported = true;
+        // TODO: Render Pipeline Batcher
+        
         [SerializeField] XRGraphicsConfig m_SavedXRConfig = XRGraphicsConfig.s_DefaultXRConfig;
 
-        // Deprecated
-        [SerializeField] ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
+        // Deprecated settings
+        [SerializeField] ShadowType m_ShadowType;
+        [SerializeField] bool m_LocalShadowsSupported;
+        [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution;
+        [SerializeField] int m_MaxPixelLights;
+        [SerializeField] ShadowResolution m_ShadowAtlasResolution;
 
+        [SerializeField] LightweightPipelineResources m_ResourcesAsset;
 #if UNITY_EDITOR
         [NonSerialized]
         LightweightPipelineEditorResources m_EditorResourcesAsset;
@@ -210,11 +236,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_MaxPixelLights; }
         }
 
-        public bool supportsVertexLight
-        {
-            get { return m_SupportsVertexLight; }
-        }
-
         public bool supportsCameraDepthTexture
         {
             get { return m_RequireDepthTexture; }
@@ -252,19 +273,39 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             set { m_RenderScale = value; }
         }
 
-        public bool supportsDynamicBatching
+        public LightRenderingMode mainLightRenderingMode
         {
-            get { return m_SupportsDynamicBatching; }
+            get { return m_MainLightRenderingMode; }
         }
 
-        public bool supportsDirectionalShadows
+        public bool supportsMainLightShadows
         {
-            get { return m_DirectionalShadowsSupported; }
+            get { return m_MainLightShadowsSupported; }
         }
 
-        public int directionalShadowAtlasResolution
+        public int mainLightShadowmapResolution
         {
-            get { return (int)m_ShadowAtlasResolution; }
+            get { return (int)m_MainLightShadowmapResolution; }
+        }
+
+        public LightRenderingMode additionalLightsRenderingMode
+        {
+            get { return m_AdditionalLightsRenderingMode; }
+        }
+
+        public int maxAdditionalLightsCount
+        {
+            get { return m_AdditionalLightsPerObjectLimit; }
+        }
+
+        public bool supportsAdditionalLightShadows
+        {
+            get { return m_AdditionalLightShadowsSupported; }
+        }
+
+        public int additionalLightsShadowmapResolution
+        {
+            get { return (int)m_AdditionalLightsShadowmapResolution; }
         }
 
         public float shadowDistance
@@ -299,18 +340,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_Cascade4Split; }
         }
 
-        public bool supportsLocalShadows
-        {
-            get { return m_LocalShadowsSupported; }
-        }
-
-        public int localShadowAtlasResolution
-        {
-            get { return (int)m_LocalShadowsAtlasResolution; }
-        }
         public bool supportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
+        }
+
+        public bool supportsDynamicBatching
+        {
+            get { return m_SupportsDynamicBatching; }
+        }
+
+        public bool supportsMixedLighting
+        {
+            get { return m_MixedLightingSupported; }
         }
 
         public override Material GetDefaultMaterial()
@@ -318,6 +360,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return GetMaterial(DefaultMaterialType.Standard);
         }
 
+        #if UNITY_EDITOR
         public override Shader GetAutodeskInteractiveShader()
         {
             return editorResources.AutodeskInteractiveShader;
@@ -332,6 +375,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             return editorResources.AutodeskInteractiveMaskedShader;
         }
+        #endif
 
         public override Material GetDefaultParticleMaterial()
         {
@@ -411,6 +455,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 k_AssetVersion = 3;
                 m_SoftShadowsSupported = (m_ShadowType == ShadowType.SOFT_SHADOWS);
+            }
+
+            if (k_AssetVersion < 4)
+            {
+                k_AssetVersion = 4;
+                m_AdditionalLightShadowsSupported = m_LocalShadowsSupported;
+                m_AdditionalLightsShadowmapResolution = m_LocalShadowsAtlasResolution;
+                m_AdditionalLightsPerObjectLimit = m_MaxPixelLights;
+                m_MainLightShadowmapResolution = m_ShadowAtlasResolution;
             }
         }
     }

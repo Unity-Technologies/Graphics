@@ -16,13 +16,12 @@ ${ZWrite}
 
 	// -------------------------------------
     // Lightweight Pipeline keywords
-    #pragma multi_compile _ _ADDITIONAL_LIGHTS
-    #pragma multi_compile _ _VERTEX_LIGHTS
-    #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
-    #pragma multi_compile _ _SHADOWS_ENABLED
-    #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+    #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+    #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+    #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS_PIXEL
+    #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
     #pragma multi_compile _ _SHADOWS_SOFT
-    #pragma multi_compile _ _SHADOWS_CASCADE
+    #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
     
 	// -------------------------------------
     // Unity defined keywords
@@ -78,9 +77,9 @@ ${VertexShaderDescriptionInputs}
 		// Vertex shader outputs defined by graph
 ${VertexShaderOutputs}
 		float3 lwWNormal = TransformObjectToWorldNormal(v.normal);
-		float3 lwWorldPos = TransformObjectToWorld(v.vertex.xyz);
-		float4 clipPos = TransformWorldToHClip(lwWorldPos);
 
+        VertexPosition vertexPosition = GetVertexPosition(v.vertex.xyz);
+        
  		// We either sample GI from lightmap or SH.
 	    // Lightmap UV and vertex SH coefficients use the same interpolator ("float2 lightmapUV" for lightmap or "half3 vertexSH" for SH)
         // see DECLARE_LIGHTMAP_OR_SH macro.
@@ -88,17 +87,13 @@ ${VertexShaderOutputs}
 	    OUTPUT_LIGHTMAP_UV(v.texcoord1, unity_LightmapST, o.lightmapUV);
 	    OUTPUT_SH(lwWNormal, o.vertexSH);
 
-	    half3 vertexLight = VertexLighting(lwWorldPos, lwWNormal);
-	    half fogFactor = ComputeFogFactor(clipPos.z);
+	    half3 vertexLight = VertexLighting(vertexPosition.worldSpace, lwWNormal);
+	    half fogFactor = ComputeFogFactor(vertexPosition.hclipSpace.z);
 	    o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
-	    o.clipPos = clipPos;
+	    o.clipPos = vertexPosition.hclipSpace;
 
-	#ifdef _SHADOWS_ENABLED
-	#if SHADOWS_SCREEN
-		o.shadowCoord = ComputeShadowCoord(clipPos);
-	#else
-		o.shadowCoord = TransformWorldToShadowCoord(lwWorldPos);
-	#endif
+	#ifdef _MAIN_LIGHT_SHADOWS
+		o.shadowCoord = GetShadowCoord(vertexPosition);
 	#endif
 		return o;
 	}
