@@ -13,8 +13,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty enableSubsurfaceScattering;
         public SerializedProperty enableTransmission;
         public SerializedProperty enableAtmosphericScattering;
-        public SerializedProperty enableVolumetric;
-        public SerializedProperty enableLightLayers;        
+        public SerializedProperty enableVolumetrics;
+        public SerializedProperty enableReprojectionForVolumetrics;
+        public SerializedProperty enableLightLayers;
 
         public SerializedProperty diffuseGlobalDimmer;
         public SerializedProperty specularGlobalDimmer;
@@ -56,7 +57,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             enableSubsurfaceScattering = root.Find((FrameSettings d) => d.enableSubsurfaceScattering);
             enableTransmission = root.Find((FrameSettings d) => d.enableTransmission);
             enableAtmosphericScattering = root.Find((FrameSettings d) => d.enableAtmosphericScattering);
-            enableVolumetric = root.Find((FrameSettings d) => d.enableVolumetrics);
+            enableVolumetrics = root.Find((FrameSettings d) => d.enableVolumetrics);
+            enableReprojectionForVolumetrics = root.Find((FrameSettings d) => d.enableReprojectionForVolumetrics);
             enableLightLayers = root.Find((FrameSettings d) => d.enableLightLayers);
             diffuseGlobalDimmer = root.Find((FrameSettings d) => d.diffuseGlobalDimmer);
             specularGlobalDimmer = root.Find((FrameSettings d) => d.specularGlobalDimmer);

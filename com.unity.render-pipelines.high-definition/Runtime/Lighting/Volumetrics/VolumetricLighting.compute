@@ -431,6 +431,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     // only on the direction and the length of the interval.
     // SampleSH9() evaluates the 3-band SH in a given direction.
     // The probe is already pre-convolved with the phase function.
+    // Note: anisotropic, no jittering.
     float3 probeInScatteredRadiance = SampleSH9(_AmbientProbeCoeffs, ray.centerDirWS);
 
     float3 totalRadiance = 0;
@@ -557,9 +558,22 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         _VBufferLightingFeedback[voxelCoord] = float4(blendedRadiance, centerTransmInt);
 
-        // Extrapolate the influence of the phase function on the results of the current frame.
-        // Use max() to prevent division by 0.
-        float3 phaseCurrFrame = lighting.radianceComplete * rcp(max(lighting.radianceNoPhase, FLT_MIN));
+        // Estimate the influence of the phase function on the results of the current frame.
+        float3 phaseCurrFrame;
+
+        phaseCurrFrame.r = SafeDiv(lighting.radianceComplete.r, lighting.radianceNoPhase.r);
+        phaseCurrFrame.g = SafeDiv(lighting.radianceComplete.g, lighting.radianceNoPhase.g);
+        phaseCurrFrame.b = SafeDiv(lighting.radianceComplete.b, lighting.radianceNoPhase.b);
+
+        // Warning: in general, this does not work!
+        // For a voxel with a single light, 'phaseCurrFrame' is monochromatic, and since
+        // we don't jitter anisotropy, its value does not change from frame to frame
+        // for a static camera/scene. This is fine.
+        // If you have two lights per voxel, we compute:
+        // phaseCurrFrame = (phaseA * lightingA + phaseB * lightingB) / (lightingA + lightingB).
+        // 'phaseA' and 'phaseB' are still (different) constants for a static camera/scene.
+        // 'lightingA' and 'lightingB' are jittered, so they change from frame to frame.
+        // Therefore, 'phaseCurrFrame' becomes temporarily unstable and can cause flickering in practice. :-(
         blendedRadiance *= phaseCurrFrame;
 
     #else // ENABLE_REPROJECTION
@@ -629,6 +643,11 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
 #else
     float2 jitterCoord = centerCoord;
 #endif
+
+    // Short explanation regarding centered position and directions.
+    // They are useful for 2 things.
+    // 1. To avoid flickering, anything which has anything to do with anisotropy should not be jittered.
+    // 2. For correct accumulation, reprojection should always be performed from the center of the voxel.
 
     // TODO: avoid 2x matrix multiplications by precomputing the world-space offset on the Z=1 plane.
     // Compute the (voxel-centered in the screen space) ray direction s.t. its ViewSpace(rayDirWS).z = 1.

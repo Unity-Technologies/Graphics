@@ -143,7 +143,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(p.enableSubsurfaceScattering, _.GetContent("Enable Subsurface Scattering"));
             EditorGUILayout.PropertyField(p.enableTransmission, _.GetContent("Enable Transmission"));
             EditorGUILayout.PropertyField(p.enableAtmosphericScattering, _.GetContent("Enable Atmospheric Scattering"));
-            EditorGUILayout.PropertyField(p.enableVolumetric, _.GetContent("    Enable Volumetric"));
+            EditorGUILayout.PropertyField(p.enableVolumetrics, _.GetContent("    Enable Volumetrics"));
+            EditorGUILayout.PropertyField(p.enableReprojectionForVolumetrics, _.GetContent("    Enable Reprojection For Volumetrics"));
             EditorGUILayout.PropertyField(p.enableLightLayers, _.GetContent("Enable LightLayers"));
         }
     }
