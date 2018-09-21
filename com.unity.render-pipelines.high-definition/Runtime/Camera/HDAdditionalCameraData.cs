@@ -196,6 +196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // We need to detect name change in the editor and update debug windows accordingly
 #if UNITY_EDITOR
+            // Caution: Object.name generate 48B of garbage at each frame here !
             if (m_camera.name != m_CameraRegisterName)
             {
                 UnRegisterDebug();

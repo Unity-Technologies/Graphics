@@ -34,6 +34,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(d.maxSpotLightShadows, _.GetContent("Max Spot Light Shadows"));
             EditorGUILayout.PropertyField(d.maxDirectionalLightShadows, _.GetContent("Max Directional Light Shadows"));
             --EditorGUI.indentLevel;
+            
+            EditorGUILayout.Space();
 
             // Clamp negative values
             d.shadowAtlasHeight.intValue = Mathf.Max(0, d.shadowAtlasHeight.intValue);

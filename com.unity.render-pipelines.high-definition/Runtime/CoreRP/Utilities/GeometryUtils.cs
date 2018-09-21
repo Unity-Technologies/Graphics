@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             Frustum frustum = new Frustum();
 
+            // Caution: these two new[] generate 272B of garbage at each frame here !
             frustum.planes  = new Plane[6];
             frustum.corners = new Vector3[8];
 

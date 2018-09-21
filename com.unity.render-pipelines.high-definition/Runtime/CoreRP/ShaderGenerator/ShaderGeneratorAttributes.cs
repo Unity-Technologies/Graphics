@@ -50,4 +50,17 @@ namespace UnityEngine.Experimental.Rendering
             this.sRGBDisplay = sRGBDisplay;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class HLSLArray : System.Attribute
+    {
+        public int  arraySize;
+        public Type elementType;
+
+        public HLSLArray(int arraySize, Type elementType)
+        {
+            this.arraySize = arraySize;
+            this.elementType = elementType;
+        }
+    }
 }

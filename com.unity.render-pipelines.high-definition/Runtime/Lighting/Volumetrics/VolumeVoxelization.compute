@@ -2,6 +2,8 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
+// #define USE_CORE_SHADOW_SYSTEM
+
 #pragma kernel VolumeVoxelizationBruteforceMQ VolumeVoxelization=VolumeVoxelizationBruteforceMQ VL_PRESET_MQ LIGHTLOOP_SINGLE_PASS
 #pragma kernel VolumeVoxelizationClusteredMQ  VolumeVoxelization=VolumeVoxelizationClusteredMQ  VL_PRESET_MQ LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 #pragma kernel VolumeVoxelizationBruteforceHQ VolumeVoxelization=VolumeVoxelizationBruteforceHQ VL_PRESET_HQ LIGHTLOOP_SINGLE_PASS

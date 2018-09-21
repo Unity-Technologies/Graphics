@@ -25,6 +25,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         ),
                     CED.space,
                     CED.Select(
+                        (s, d, o) => s.hdShadowInitParams,
+                        (s, d, o) => d.hdShadowInitParams,
+                        HDShadowInitParametersUI.SectionAtlas
+                    ),
+                    CED.space,
+                    CED.Select(
                         (s, d, o) => s.decalSettings,
                         (s, d, o) => d.decalSettings,
                         GlobalDecalSettingsUI.Inspector
@@ -42,6 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         GlobalLightLoopSettingsUI lightLoopSettings = new GlobalLightLoopSettingsUI();
         GlobalDecalSettingsUI decalSettings = new GlobalDecalSettingsUI();
         ShadowInitParametersUI shadowInitParams = new ShadowInitParametersUI();
+        HDShadowInitParametersUI hdShadowInitParams = new HDShadowInitParametersUI();
 
         public RenderPipelineSettingsUI()
             : base(0)

@@ -82,6 +82,7 @@ real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOf
     real fetchesWeights[4];
     real2 fetchesUV[4];
 
+
     SampleShadow_ComputeSamples_Tent_3x3(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
     for (int i = 0; i < 4; i++)
     {

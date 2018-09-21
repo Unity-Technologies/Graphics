@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering
             vpinv = invview * invproj;
         }
 
-        public static Matrix4x4 ExtractSpotLightMatrix(VisibleLight vl, float guardAngle, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
+        public static Matrix4x4 ExtractSpotLightMatrix(VisibleLight vl, float guardAngle, float aspectRatio, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
         {
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
@@ -159,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering
             float zfar = vl.range;
             float znear = vl.light.shadowNearPlane >= nearmin ? vl.light.shadowNearPlane : nearmin;
             float fov = vl.spotAngle + guardAngle;
-            proj = Matrix4x4.Perspective(fov, 1.0f, znear, zfar);
+            proj = Matrix4x4.Perspective(fov, aspectRatio, znear, zfar);
             // and the compound (deviceProj will potentially inverse-Z)
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);

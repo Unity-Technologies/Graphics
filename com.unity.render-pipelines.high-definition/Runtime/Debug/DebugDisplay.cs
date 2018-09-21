@@ -668,6 +668,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 });
             }
 
+            list.Add(new DebugUI.FloatField
+            {
+                displayName = "Global Shadow Scale Factor",
+                getter = () => lightingDebugSettings.shadowResolutionScaleFactor,
+                setter = (v) => lightingDebugSettings.shadowResolutionScaleFactor = v,
+                min = () => 0.01f,
+                max = () => 4.0f,
+            });
+
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Min Value", getter = () => lightingDebugSettings.shadowMinValue, setter = value => lightingDebugSettings.shadowMinValue = value });
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Max Value", getter = () => lightingDebugSettings.shadowMaxValue, setter = value => lightingDebugSettings.shadowMaxValue = value });
 

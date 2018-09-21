@@ -64,7 +64,12 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         uint  payloadOffset;
         real  fade;
         int cascadeCount;
-        int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, lightData.shadowIndex, positionWS, payloadOffset, fade, cascadeCount);
+        int shadowSplitIndex = 0;
+#ifndef USE_CORE_SHADOW_SYSTEM
+        shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, lightData.shadowIndex, positionWS, fade, cascadeCount);
+#else
+        shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, lightData.shadowIndex, positionWS, payloadOffset, fade, cascadeCount);
+#endif
         // we have a fade caclulation for each cascade but we must lerp with shadow mask only for the last one
         // if shadowSplitIndex is -1 it mean we are outside cascade and should return 1.0 to use shadowmask: saturate(-shadowSplitIndex) return 0 for >= 0 and 1 for -1
         fade = ((shadowSplitIndex + 1) == cascadeCount) ? fade : saturate(-shadowSplitIndex);
@@ -191,9 +196,12 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
     UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
-        // TODO: make projector lights cast shadows.
         // Note:the case of NdotL < 0 can appear with isThinModeTransmission, in this case we need to flip the shadow bias
+#ifndef USE_CORE_SHADOW_SYSTEM
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, lightData.lightType == GPULIGHTTYPE_POINT, lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
+#else
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
+#endif
 
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)

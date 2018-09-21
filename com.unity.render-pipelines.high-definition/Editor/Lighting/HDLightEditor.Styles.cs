@@ -70,6 +70,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent edgeToleranceNormal = new GUIContent("Edge Tolerance Normal");
             public readonly GUIContent edgeTolerance = new GUIContent("Edge Tolerance");
 
+            // Shadow filter settings
+            public readonly GUIContent shadowSoftness = new GUIContent("Shadow Softness", "Size of the penumbra");
+            public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Sample count used to determine the size of the blocker");
+            public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count");
+
             public Styles()
             {
                 shapeNames = Enum.GetNames(typeof(LightShape))

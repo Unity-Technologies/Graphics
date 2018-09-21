@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using System.Runtime.CompilerServices;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -74,24 +75,26 @@ namespace UnityEditor.Experimental.Rendering
 
         class ShaderFieldInfo : ICloneable
         {
-            public ShaderFieldInfo(PrimitiveType type, string name, int rows, int cols)
+            public ShaderFieldInfo(PrimitiveType type, string name, int rows, int cols, int arraySize)
             {
                 this.type = type;
                 this.name = originalName = name;
                 this.rows = rows;
                 this.cols = cols;
+                this.arraySize = arraySize;
                 this.comment = "";
                 swizzleOffset = 0;
                 packed = false;
                 accessor = new Accessor(type, name, rows, cols);
             }
 
-            public ShaderFieldInfo(PrimitiveType type, string name, int rows, int cols, string comment)
+            public ShaderFieldInfo(PrimitiveType type, string name, int rows, int cols, int arraySize, string comment)
             {
                 this.type = type;
                 this.name = originalName = name;
                 this.rows = rows;
                 this.cols = cols;
+                this.arraySize = arraySize;
                 this.comment = comment;
                 swizzleOffset = 0;
                 packed = false;
@@ -105,7 +108,8 @@ namespace UnityEditor.Experimental.Rendering
 
             public string DeclString()
             {
-                return PrimitiveToString(type, rows, cols) + " " + name;
+                string arrayText = (arraySize > 0) ? "[" + arraySize + "]" : "";
+                return PrimitiveToString(type, rows, cols) + " " + name + arrayText;
             }
 
             public override string ToString()
@@ -120,12 +124,12 @@ namespace UnityEditor.Experimental.Rendering
 
             public int elementCount
             {
-                get { return rows * cols; }
+                get { return rows * cols * Mathf.Max(arraySize, 1); }
             }
 
             public object Clone()
             {
-                ShaderFieldInfo info = new ShaderFieldInfo(type, name, rows, cols, comment);
+                ShaderFieldInfo info = new ShaderFieldInfo(type, name, rows, cols, arraySize, comment);
                 info.swizzleOffset = swizzleOffset;
                 info.packed = packed;
                 info.accessor = accessor;
@@ -138,6 +142,7 @@ namespace UnityEditor.Experimental.Rendering
             public readonly string comment;
             public int rows;
             public int cols;
+            public int arraySize;
             public int swizzleOffset;
             public bool packed;
             public Accessor accessor;
@@ -181,14 +186,14 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        void EmitPrimitiveType(PrimitiveType type, int elements, string name, string comment, List<ShaderFieldInfo> fields)
+        void EmitPrimitiveType(PrimitiveType type, int elements, int arraySize, string name, string comment, List<ShaderFieldInfo> fields)
         {
-            fields.Add(new ShaderFieldInfo(type, name, elements, 1, comment));
+            fields.Add(new ShaderFieldInfo(type, name, elements, 1, arraySize, comment));
         }
 
-        void EmitMatrixType(PrimitiveType type, int rows, int cols, string name, string comment, List<ShaderFieldInfo> fields)
+        void EmitMatrixType(PrimitiveType type, int rows, int cols, int arraySize, string name, string comment, List<ShaderFieldInfo> fields)
         {
-            fields.Add(new ShaderFieldInfo(type, name, rows, cols, comment));
+            fields.Add(new ShaderFieldInfo(type, name, rows, cols, arraySize, comment));
         }
 
         bool ExtractComplex(FieldInfo field, List<ShaderFieldInfo> shaderFields)
@@ -247,7 +252,7 @@ namespace UnityEditor.Experimental.Rendering
                     Error(mismatchErrorMsg);
                     return false;
                 }
-                EmitPrimitiveType(PrimitiveType.Float, floatFields.Count, field.Name, comment, shaderFields);
+                EmitPrimitiveType(PrimitiveType.Float, floatFields.Count, 0, field.Name, comment, shaderFields);
             }
             else if (intFields.Count > 0)
             {
@@ -256,7 +261,7 @@ namespace UnityEditor.Experimental.Rendering
                     Error(mismatchErrorMsg);
                     return false;
                 }
-                EmitPrimitiveType(PrimitiveType.Int, intFields.Count, field.Name, "", shaderFields);
+                EmitPrimitiveType(PrimitiveType.Int, intFields.Count, 0, field.Name, "", shaderFields);
             }
             else if (uintFields.Count > 0)
             {
@@ -265,7 +270,7 @@ namespace UnityEditor.Experimental.Rendering
                     Error(mismatchErrorMsg);
                     return false;
                 }
-                EmitPrimitiveType(PrimitiveType.UInt, uintFields.Count, field.Name, "", shaderFields);
+                EmitPrimitiveType(PrimitiveType.UInt, uintFields.Count, 0, field.Name, "", shaderFields);
             }
             else if (boolFields.Count > 0)
             {
@@ -274,7 +279,7 @@ namespace UnityEditor.Experimental.Rendering
                     Error(mismatchErrorMsg);
                     return false;
                 }
-                EmitPrimitiveType(PrimitiveType.Bool, boolFields.Count, field.Name, "", shaderFields);
+                EmitPrimitiveType(PrimitiveType.Bool, boolFields.Count, 0, field.Name, "", shaderFields);
             }
             else
             {
@@ -404,10 +409,14 @@ namespace UnityEditor.Experimental.Rendering
                 string accessorName = shaderField.originalName;
                 accessorName = "Get" + char.ToUpper(accessorName[0]) + accessorName.Substring(1);
 
-                shaderText += shaderField.typeString + " " + accessorName + "(" + type.Name + " value)\n";
+                if (shaderField.arraySize > 0)
+                    shaderText += shaderField.typeString + " " + accessorName + "(" + type.Name + " value, int index)\n";
+                else
+                    shaderText += shaderField.typeString + " " + accessorName + "(" + type.Name + " value)\n";
                 shaderText += "{\n";
 
                 string swizzle = "";
+                string arrayAccess = "";
 
                 // @TODO:  support matrix type packing?
                 if (shaderField.cols == 1) // @TEMP
@@ -419,10 +428,15 @@ namespace UnityEditor.Experimental.Rendering
                     }
                 }
 
+                if (shaderField.arraySize > 0)
+                {
+                    arrayAccess = "[index]";
+                }
+
                 shaderText +=
                             //"\t"
                             "    " // unity convention use space instead of tab...
-                            + "return value." + acc.name + swizzle + ";\n";
+                            + "return value." + acc.name + swizzle + arrayAccess + ";\n";
                 shaderText += "}\n";
             }
 
@@ -570,9 +584,33 @@ namespace UnityEditor.Experimental.Rendering
 
             foreach (var field in fields)
             {
+                // Support array get getting array type
+                Type fieldType = field.FieldType;
+                int arraySize = -1;
+
+                if (Attribute.IsDefined(field, typeof(FixedBufferAttribute)))
+                {
+                    var arrayInfos = (field.GetCustomAttributes(typeof(HLSLArray), false) as HLSLArray[]);
+                    if (arrayInfos.Length != 0)
+                    {
+                        arraySize = arrayInfos[0].arraySize;
+                        fieldType = arrayInfos[0].elementType;
+                    }
+                    else
+                    {
+                        // We just ignore every array type not marked with the HLSLArray attribute
+                        continue;
+                    }
+                }
+                else if (Attribute.IsDefined(field, typeof(HLSLArray)))
+                {
+                    Error("Invalid HLSLArray target: '" + field.FieldType + "'" + ", this attribute can only be used on fixed array");
+                    return false;
+                }
+
                 if (field.IsStatic)
                 {
-                    if (field.FieldType.IsPrimitive)
+                    if (fieldType.IsPrimitive)
                     {
                         // Unity convention is to start static of constant with k_ or s_, remove this part
                         string name = InsertUnderscore(field.Name);
@@ -620,37 +658,37 @@ namespace UnityEditor.Experimental.Rendering
                         string defineName = ("DEBUGVIEW_" + className + "_" + name).ToUpper();
                         m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
 
-                        m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, field.FieldType, isDirection, sRGBDisplay));
+                        m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, fieldType, isDirection, sRGBDisplay));
                     }
                 }
 
-                if (field.FieldType.IsPrimitive)
+                if (fieldType.IsPrimitive)
                 {
-                    if (field.FieldType == typeof(float))
-                        EmitPrimitiveType(PrimitiveType.Float, 1, field.Name, "", m_ShaderFields);
-                    else if (field.FieldType == typeof(int))
-                        EmitPrimitiveType(PrimitiveType.Int, 1, field.Name, "", m_ShaderFields);
-                    else if (field.FieldType == typeof(uint))
-                        EmitPrimitiveType(PrimitiveType.UInt, 1, field.Name, "", m_ShaderFields);
-                    else if (field.FieldType == typeof(bool))
-                        EmitPrimitiveType(PrimitiveType.Bool, 1, field.Name, "", m_ShaderFields);
+                    if (fieldType == typeof(float))
+                        EmitPrimitiveType(PrimitiveType.Float, 1, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(int))
+                        EmitPrimitiveType(PrimitiveType.Int, 1, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(uint))
+                        EmitPrimitiveType(PrimitiveType.UInt, 1, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(bool))
+                        EmitPrimitiveType(PrimitiveType.Bool, 1, arraySize, field.Name, "", m_ShaderFields);
                     else
                     {
-                        Error("unsupported field type '" + field.FieldType + "'");
+                        Error("unsupported field type '" + fieldType + "'");
                         return false;
                     }
                 }
                 else
                 {
                     // handle special types, otherwise try parsing the struct
-                    if (field.FieldType == typeof(Vector2))
-                        EmitPrimitiveType(PrimitiveType.Float, 2, field.Name, "", m_ShaderFields);
-                    else if (field.FieldType == typeof(Vector3))
-                        EmitPrimitiveType(PrimitiveType.Float, 3, field.Name, "", m_ShaderFields);
-                    else if (field.FieldType == typeof(Vector4))
-                        EmitPrimitiveType(PrimitiveType.Float, 4, field.Name, "", m_ShaderFields);
-                    else if (field.FieldType == typeof(Matrix4x4))
-                        EmitMatrixType(PrimitiveType.Float, 4, 4, field.Name, "", m_ShaderFields);
+                    if (fieldType == typeof(Vector2))
+                        EmitPrimitiveType(PrimitiveType.Float, 2, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(Vector3))
+                        EmitPrimitiveType(PrimitiveType.Float, 3, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(Vector4))
+                        EmitPrimitiveType(PrimitiveType.Float, 4, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(Matrix4x4))
+                        EmitMatrixType(PrimitiveType.Float, 4, 4, arraySize, field.Name, "", m_ShaderFields);
                     else if (!ExtractComplex(field, m_ShaderFields))
                     {
                         // Error reporting done in ExtractComplex()
