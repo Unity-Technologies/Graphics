@@ -131,6 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         {
             UpdateAllPlanarReflectionProbeBounds();
 
+            // Caution: new CullingGroup generate 32B of garbage at each frame here !
             var cullingGroup = new CullingGroup();
             cullingGroup.targetCamera = camera;
             cullingGroup.SetBoundingSpheres(m_PlanarReflectionProbeBoundsArray);

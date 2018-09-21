@@ -4,6 +4,7 @@ using UnityEditor.Build;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -23,6 +24,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected ShaderKeyword m_Decals3RT;
         protected ShaderKeyword m_Decals4RT;
         protected ShaderKeyword m_LightLayers;
+        protected ShaderKeyword m_PunctualLow;
+        protected ShaderKeyword m_PunctualMedium;
+        protected ShaderKeyword m_PunctualHigh;
+        protected ShaderKeyword m_DirectionalLow;
+        protected ShaderKeyword m_DirectionalMedium;
+        protected ShaderKeyword m_DirectionalHigh;
+        
+        Dictionary<HDShadowQuality, ShaderKeyword> m_PunctualShadowVariants;
+        Dictionary<HDShadowQuality, ShaderKeyword> m_DirectionalShadowVariants;
 
         public BaseShaderPreprocessor()
         {
@@ -35,6 +45,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_Decals3RT = new ShaderKeyword("DECALS_3RT");
             m_Decals4RT = new ShaderKeyword("DECALS_4RT");
             m_LightLayers = new ShaderKeyword("LIGHT_LAYERS");
+            m_PunctualLow = new ShaderKeyword("PUNCTUAL_SHADOW_LOW");
+            m_PunctualMedium = new ShaderKeyword("PUNCTUAL_SHADOW_MEDIUM");
+            m_PunctualHigh = new ShaderKeyword("PUNCTUAL_SHADOW_HIGH");
+            m_DirectionalLow = new ShaderKeyword("DIRECTIONAL_SHADOW_LOW");
+            m_DirectionalMedium = new ShaderKeyword("DIRECTIONAL_SHADOW_MEDIUM");
+            m_DirectionalHigh = new ShaderKeyword("DIRECTIONAL_SHADOW_HIGH");
+            
+            m_PunctualShadowVariants = new Dictionary<HDShadowQuality, ShaderKeyword>
+            {
+                {HDShadowQuality.Low, m_PunctualLow},
+                {HDShadowQuality.Medium, m_PunctualMedium},
+                {HDShadowQuality.High, m_PunctualHigh},
+            };
+            m_DirectionalShadowVariants = new Dictionary<HDShadowQuality, ShaderKeyword>
+            {
+                {HDShadowQuality.Low, m_DirectionalLow},
+                {HDShadowQuality.Medium, m_DirectionalMedium},
+                {HDShadowQuality.High, m_DirectionalHigh},
+            };
         }
 
         public virtual void AddStripperFuncs(Dictionary<string, VariantStrippingFunc> stripperFuncs) {}
@@ -53,6 +82,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // -
         protected bool CommonShaderStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            // Strip every useless shadow configs
+            var shadowInitParams = hdrpAsset.renderPipelineSettings.hdShadowInitParams;
+            foreach (var punctualShadowVariant in m_PunctualShadowVariants)
+            {
+                if (punctualShadowVariant.Key != shadowInitParams.punctualShadowQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(punctualShadowVariant.Value))
+                        return true;
+            }
+            foreach (var directionalShadowVariant in m_DirectionalShadowVariants)
+            {
+                if (directionalShadowVariant.Key != shadowInitParams.directionalShadowQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(directionalShadowVariant.Value))
+                        return true;
+            }
+
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             if (isSceneSelectionPass)
                 return true;

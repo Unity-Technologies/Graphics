@@ -380,7 +380,7 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         float spotAngle = lights[sr.index].spotAngle;
                         float guardAngle = ShadowUtils.CalcGuardAnglePerspective(spotAngle, ce.current.viewport.width,  GetFilterWidthInTexels(sr, asd), asd.normalBiasMax, 180.0f - spotAngle);
-                        vp = ShadowUtils.ExtractSpotLightMatrix(lights[sr.index], guardAngle, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData);
+                        vp = ShadowUtils.ExtractSpotLightMatrix(lights[sr.index], guardAngle, 1.0f, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData);
                     }
                     else if (sr.shadowType == GPUShadowType.Directional)
                     {
@@ -444,7 +444,7 @@ namespace UnityEngine.Experimental.Rendering
                     sd.PackShadowType(sr.shadowType, sanitizedAlgo);
                     sd.payloadOffset = originalPayloadCount;
                     entries.AddUnchecked(sd);
-
+                    
                     if (multiFace)
                     {
                         entries[multiFaceIdx] = sd;

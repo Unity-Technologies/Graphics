@@ -76,6 +76,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (dispatch8Rect.width > 0 && dispatch8Rect.height > 0)
                 {
                     var r = dispatch8Rect;
+                    // Caution: passing parameters to SetComputeIntParams() via params generate 48B several times at each frame here !
                     cmd.SetComputeIntParams(m_Shader, _RectOffset, (int)r.x, (int)r.y);
                     cmd.DispatchCompute(m_Shader, kernel8, (int)Mathf.Max(r.width / 8, 1), (int)Mathf.Max(r.height / 8, 1), 1);
                 }
@@ -83,6 +84,7 @@ namespace UnityEngine.Experimental.Rendering
                 for (int i = 0, c = dispatch1RectCount; i < c; ++i)
                 {
                     var r = dispatch1Rects[i];
+                    // Caution: passing parameters to SetComputeIntParams() via params generate 48B several times at each frame here !
                     cmd.SetComputeIntParams(m_Shader, _RectOffset, (int)r.x, (int)r.y);
                     cmd.DispatchCompute(m_Shader, kernel1, (int)Mathf.Max(r.width, 1), (int)Mathf.Max(r.height, 1), 1);
                 }

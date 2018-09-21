@@ -18,7 +18,11 @@
 
 #include "../Lighting/LightDefinition.cs.hlsl"
 
-#include "LightLoop/Shadow.hlsl"
+#ifndef USE_CORE_SHADOW_SYSTEM
+# include "LightLoop/HDShadow.hlsl"
+#else
+# include "LightLoop/Shadow.hlsl"
+#endif
 
 #if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
 #include "../Lighting/LightLoop/LightLoopDef.hlsl"

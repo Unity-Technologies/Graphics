@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -37,6 +38,11 @@ MonoBehaviour:
     enableDistortion: 1
     enablePostprocess: 1
     enableStereo: 1
+    xrGraphicsConfig:
+      renderScale: 0
+      viewportScale: 0
+      useOcclusionMesh: 0
+      occlusionMaskScale: 0
     enableAsyncCompute: 0
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
@@ -63,9 +69,13 @@ MonoBehaviour:
     supportMSAA: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
-    supportStereo: 0
     supportRuntimeDebugDisplay: 1
     supportDitheringCrossFade: 1
+    xrConfig:
+      renderScale: 1
+      viewportScale: 1
+      useOcclusionMesh: 1
+      occlusionMaskScale: 1
     lightLoopSettings:
       cookieSize: 128
       cookieTexArraySize: 16
@@ -84,9 +94,17 @@ MonoBehaviour:
     shadowInitParams:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
+      shadowMap16Bit: 0
       maxPointLightShadows: 6
       maxSpotLightShadows: 12
       maxDirectionalLightShadows: 1
+    hdShadowInitParams:
+      shadowAtlasWidth: 4096
+      shadowAtlasHeight: 4096
+      maxShadowRequests: 128
+      shadowMapsDepthBits: 32
+      punctualShadowQuality: 2
+      directionalShadowQuality: 2
     decalSettings:
       drawDistance: 1000
       atlasWidth: 4096
