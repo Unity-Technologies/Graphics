@@ -208,7 +208,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 SetExpendedAreas((uint)LayerExpendable.ShowLayer3, true);
             }
-            if (layerNumber == 3)
+            if (layerNumber >= 3)
             {
                 SetExpendedAreas((uint)LayerExpendable.ShowLayer2, true);
             }
@@ -388,7 +388,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
             {
-                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex] + " " + styles.layeringOptionText.text, (uint)LayerExpendable.MainInput, this, colorDot: s_Styles.layerColors[layerIndex]))
+                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)LayerExpendable.MainInput, this, colorDot: s_Styles.layerColors[layerIndex]))
                 {
                     if (header.expended)
                         m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
