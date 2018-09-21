@@ -113,6 +113,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public ScriptableRenderer(LightweightPipelineAsset pipelineAsset)
         {
+            if (pipelineAsset == null)
+                throw new ArgumentNullException("pipelineAsset");
+
             m_Materials = new[]
             {
                 CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader"),
@@ -145,13 +148,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             DisposePasses(ref context);
         }
 
-        public Material GetMaterial(MaterialHandles handle)
+        public Material GetMaterial(MaterialHandle handle)
         {
             int handleID = (int)handle;
             if (handleID >= m_Materials.Length)
             {
                 Debug.LogError(string.Format("Material {0} is not registered.",
-                    Enum.GetName(typeof(MaterialHandles), handleID)));
+                    Enum.GetName(typeof(MaterialHandle), handleID)));
                 return null;
             }
 
@@ -244,7 +247,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void RenderObjectsWithError(ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
         {
-            Material errorMaterial = GetMaterial(MaterialHandles.Error);
+            Material errorMaterial = GetMaterial(MaterialHandle.Error);
             if (errorMaterial != null)
             {
                 DrawRendererSettings errorSettings = new DrawRendererSettings(camera, m_LegacyShaderPassNames[0]);
@@ -294,6 +297,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public static ClearFlag GetCameraClearFlag(Camera camera)
         {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
             ClearFlag clearFlag = ClearFlag.None;
             CameraClearFlags cameraClearFlags = camera.clearFlags;
             if (cameraClearFlags != CameraClearFlags.Nothing)
@@ -322,11 +328,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public static void RenderFullscreenQuad(CommandBuffer cmd, Material material, MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+
             cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
         }
 
         public static void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
         {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+
             // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
             //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
             //    cmd.CopyTexture(source, dest);

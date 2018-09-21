@@ -91,7 +91,12 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
                 VaryingsParticle output;
 
                 VertexPosition vertexPosition = GetVertexPosition(input.vertex.xyz);
-                VertexTBN vertexTBN = GetVertexTBN(input.normal, input.tangent);
+                VertexTBN vertexTBN = GetVertexTBN(input.normal
+#if defined(_NORMALMAP)
+                    , input.tangent
+#endif
+                );
+
                 output.normal = vertexTBN.normalWS;
 #ifdef _NORMALMAP
                 output.tangent = vertexTBN.tangentWS;

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -33,6 +34,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (renderer == null)
+                throw new ArgumentNullException("renderer");
+            
             CommandBuffer cmd = CommandBufferPool.Get(k_OpaquePostProcessTag);
 
             RenderTargetIdentifier source = colorAttachmentHandle.Identifier();

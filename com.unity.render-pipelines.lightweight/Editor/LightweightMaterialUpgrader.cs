@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -5,8 +6,12 @@ using UnityEngine.Experimental.Rendering.LightweightPipeline;
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
-    public class LightweightMaterialUpgrader
+    public sealed class LightweightMaterialUpgrader
     {
+        private LightweightMaterialUpgrader()
+        {
+        }
+
         [MenuItem("Edit/Render Pipeline/Upgrade Project Materials to LightWeight Materials", priority = CoreUtils.editMenuPriority2)]
         private static void UpgradeProjectMaterials()
         {
@@ -224,6 +229,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         public static void UpdateStandardMaterialKeywords(Material material)
         {
+            if (material == null)
+                throw new ArgumentNullException("material");
+
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));
@@ -231,6 +239,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public static void UpdateStandardSpecularMaterialKeywords(Material material)
         {
+            if (material == null)
+                throw new ArgumentNullException("material");
+
             material.SetFloat("_WorkflowMode", 0.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
@@ -239,7 +250,11 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public StandardUpgrader(string oldShaderName)
         {
-            string standardShaderPath = LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PBS);
+            if (oldShaderName == null)
+                throw new ArgumentNullException("oldShaderName");
+
+            string standardShaderPath = LightweightShaderUtils.GetShaderPath(ShaderPathID.PhysicallyBased);
+
             if (oldShaderName.Contains("Specular"))
                 RenameShader(oldShaderName, standardShaderPath, UpdateStandardSpecularMaterialKeywords);
             else
@@ -247,11 +262,15 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         }
     }
 
-    public class StandardSimpleLightingUpgrader : MaterialUpgrader
+    internal class StandardSimpleLightingUpgrader : MaterialUpgrader
     {
         public StandardSimpleLightingUpgrader(string oldShaderName, UpgradeParams upgradeParams)
         {
-            RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_SIMPLE_LIGHTING), UpdateMaterialKeywords);
+            if (oldShaderName == null)
+                throw new ArgumentNullException("oldShaderName");
+
+            RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.SimpleLit), UpdateMaterialKeywords);
+
             SetFloat("_Surface", (float)upgradeParams.surfaceType);
             SetFloat("_Blend", (float)upgradeParams.blendMode);
             SetFloat("_AlphaClip", upgradeParams.alphaClip ? 1 : 0);
@@ -268,6 +287,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public static void UpdateMaterialKeywords(Material material)
         {
+            if (material == null)
+                throw new ArgumentNullException("material");
+
             material.shaderKeywords = null;
             LightweightShaderGUI.SetupMaterialBlendMode(material);
             UpdateMaterialSpecularSource(material);
@@ -305,7 +327,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         public TerrainUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_TERRAIN));
+            RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.TerrainPhysicallyBased));
         }
     }
 
@@ -313,10 +335,13 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         public ParticleUpgrader(string oldShaderName)
         {
+            if (oldShaderName == null)
+                throw new ArgumentNullException("oldShaderName");
+
             if (oldShaderName.Contains("Unlit"))
-                RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PARTICLES_UNLIT));
+                RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.ParticlesUnlit));
             else
-                RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PARTICLES_LIT));
+                RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.ParticlesPhysicallyBased));
         }
     }
 }

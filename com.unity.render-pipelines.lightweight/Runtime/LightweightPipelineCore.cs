@@ -94,18 +94,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
     }
 
-    public sealed partial class LightweightPipeline
+    public sealed partial class LightweightRenderPipeline
     {
         static ShaderFeatures s_ShaderFeatures;
 
-        public static ShaderFeatures GetSupportedShaderFeatures()
+        public static ShaderFeatures supportedShaderFeatures
         {
-            return s_ShaderFeatures;
-        }
-
-        void SortCameras(Camera[] cameras)
-        {
-            Array.Sort(cameras, (lhs, rhs) => (int)(lhs.depth - rhs.depth));
+            get { return s_ShaderFeatures; }
         }
 
         public static void SetSupportedShaderFeatures(LightweightPipelineAsset pipelineAsset)
@@ -138,8 +133,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
         public static bool IsStereoEnabled(Camera camera)
         {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             return XRGraphicsConfig.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+        }
+
+        void SortCameras(Camera[] cameras)
+        {
+            Array.Sort(cameras, (lhs, rhs) => (int)(lhs.depth - rhs.depth));
         }
     }
 }
