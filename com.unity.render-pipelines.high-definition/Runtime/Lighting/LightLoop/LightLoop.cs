@@ -446,7 +446,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_PerTileLogBaseTweak = null;
         static ComputeBuffer s_GlobalLightListAtomic = null;
 
-        const bool useNewShadowSystem = true;
+        static bool useNewShadowSystem = true;
 
         public enum ClusterPrepassSource : int
         {

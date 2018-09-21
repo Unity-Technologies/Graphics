@@ -60,6 +60,11 @@
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant25      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant25      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=25
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant26      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant26      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=26
 
+#ifdef DEBUG_DISPLAY
+    // Don't care about this warning in debug
+#   pragma warning( disable : 4714 ) // sum of temp registers and indexable temp registers times 256 threads exceeds the recommended total 16384.  Performance may be reduced at kernel
+#endif
+
 // #define USE_CORE_SHADOW_SYSTEM
 
 #define LIGHTLOOP_TILE_PASS 1
