@@ -122,32 +122,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty  m_SVBRDF_HeightMapMaxMM;
 
         // Regular maps
-        static string               m_diffuseColorMapText = "_SVBRDF_DiffuseColorMap";
-        protected MaterialProperty  m_diffuseColorMap = null;
-        static string               m_specularColorMapText = "_SVBRDF_SpecularColorMap";
-        protected MaterialProperty  m_specularColorMap = null;
+        static string               m_DiffuseColorMapText = "_SVBRDF_DiffuseColorMap";
+        protected MaterialProperty  m_DiffuseColorMap = null;
+        static string               m_SpecularColorMapText = "_SVBRDF_SpecularColorMap";
+        protected MaterialProperty  m_SpecularColorMap = null;
 
-        static string               m_specularLobeMapText = "_SVBRDF_SpecularLobeMap";
-        protected MaterialProperty  m_specularLobeMap = null;
-        static string               m_specularLobeMapScaleText = "_SVBRDF_SpecularLobeMapScale";
-        protected MaterialProperty  m_specularLobeMapScale;
+        static string               m_SpecularLobeMapText = "_SVBRDF_SpecularLobeMap";
+        protected MaterialProperty  m_SpecularLobeMap = null;
+        static string               m_SpecularLobeMapScaleText = "_SVBRDF_SpecularLobeMapScale";
+        protected MaterialProperty  m_SpecularLobeMapScale;
 
-        static string               m_fresnelMapText = "_SVBRDF_FresnelMap";
-        protected MaterialProperty  m_fresnelMap = null;
-        static string               m_normalMapText = "_SVBRDF_NormalMap";
-        protected MaterialProperty  m_normalMap = null;
+        static string               m_FresnelMapText = "_SVBRDF_FresnelMap";
+        protected MaterialProperty  m_FresnelMap = null;
+        static string               m_NormalMapText = "_SVBRDF_NormalMap";
+        protected MaterialProperty  m_NormalMap = null;
 
         // Alpha
-        static string               m_alphaMapText = "_SVBRDF_AlphaMap";
-        protected MaterialProperty  m_alphaMap = null;
+        static string               m_AlphaMapText = "_SVBRDF_AlphaMap";
+        protected MaterialProperty  m_AlphaMap = null;
 
         // Displacement
-        static string               m_heightMapText = "_SVBRDF_HeightMap";
-        protected MaterialProperty  m_heightMap = null;
+        static string               m_HeightMapText = "_SVBRDF_HeightMap";
+        protected MaterialProperty  m_HeightMap = null;
 
         // Anisotropy
-        static string               m_anisoRotationMapText = "_SVBRDF_AnisoRotationMap";
-        protected MaterialProperty  m_anisoRotationMap = null;
+        static string               m_AnisoRotationMapText = "_SVBRDF_AnisoRotationMap";
+        protected MaterialProperty  m_AnisoRotationMap = null;
 
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,19 +182,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Clearcoat
-        static string               m_clearcoatColorMapText = "_SVBRDF_ClearcoatColorMap";
-        protected MaterialProperty  m_clearcoatColorMap = null;
-        static string               m_clearcoatNormalMapText = "_ClearcoatNormalMap";
-        protected MaterialProperty  m_clearcoatNormalMap = null;
-        static string               m_clearcoatIORMapText = "_SVBRDF_ClearcoatIORMap";
-        protected MaterialProperty  m_clearcoatIORMap = null;
-
-
-        MaterialProperty    m_debug_prop0;
-        MaterialProperty    m_debug_prop1;
-        MaterialProperty    m_debug_prop2;
-        MaterialProperty    m_debug_prop3;
-        MaterialProperty    m_debug_prop4;
+        static string               m_ClearcoatColorMapText = "_SVBRDF_ClearcoatColorMap";
+        protected MaterialProperty  m_ClearcoatColorMap = null;
+        static string               m_ClearcoatNormalMapText = "_ClearcoatNormalMap";
+        protected MaterialProperty  m_ClearcoatNormalMap = null;
+        static string               m_ClearcoatIORMapText = "_SVBRDF_ClearcoatIORMap";
+        protected MaterialProperty  m_ClearcoatIORMap = null;
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
@@ -212,21 +205,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_SVBRDF_HeightMapMaxMM = FindProperty(m_SVBRDF_HeightMapMaxMMText, props);
 
             // Regular maps
-            m_diffuseColorMap = FindProperty(m_diffuseColorMapText, props);
-            m_specularColorMap = FindProperty(m_specularColorMapText, props);
-            m_specularLobeMap = FindProperty(m_specularLobeMapText, props);
-            m_specularLobeMapScale = FindProperty(m_specularLobeMapScaleText, props);
-            m_fresnelMap = FindProperty(m_fresnelMapText, props);
-            m_normalMap = FindProperty(m_normalMapText, props);
+            m_DiffuseColorMap = FindProperty(m_DiffuseColorMapText, props);
+            m_SpecularColorMap = FindProperty(m_SpecularColorMapText, props);
+            m_SpecularLobeMap = FindProperty(m_SpecularLobeMapText, props);
+            m_SpecularLobeMapScale = FindProperty(m_SpecularLobeMapScaleText, props);
+            m_FresnelMap = FindProperty(m_FresnelMapText, props);
+            m_NormalMap = FindProperty(m_NormalMapText, props);
 
             // Alpha
-            m_alphaMap = FindProperty(m_alphaMapText, props);
+            m_AlphaMap = FindProperty(m_AlphaMapText, props);
 
             // Displacement
-            m_heightMap = FindProperty(m_heightMapText, props);
+            m_HeightMap = FindProperty(m_HeightMapText, props);
 
             // Anisotropy
-            m_anisoRotationMap = FindProperty(m_anisoRotationMapText, props);
+            m_AnisoRotationMap = FindProperty(m_AnisoRotationMapText, props);
 
 
             //////////////////////////////////////////////////////////////////////////
@@ -247,29 +240,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             //////////////////////////////////////////////////////////////////////////
             // Clearcoat
-            m_clearcoatColorMap = FindProperty(m_clearcoatColorMapText, props);
-            m_clearcoatNormalMap = FindProperty(m_clearcoatNormalMapText, props);
-            m_clearcoatIORMap = FindProperty(m_clearcoatIORMapText, props);
-
-
-            m_debug_prop0 = FindProperty("_DEBUG_anisotropyAngle", props);
-            m_debug_prop1 = FindProperty("_DEBUG_anisotropicRoughessX", props);
-            m_debug_prop2 = FindProperty("_DEBUG_anisotropicRoughessY", props);
-            m_debug_prop3 = FindProperty("_DEBUG_clearcoatIOR", props);
+            m_ClearcoatColorMap = FindProperty(m_ClearcoatColorMapText, props);
+            m_ClearcoatNormalMap = FindProperty(m_ClearcoatNormalMapText, props);
+            m_ClearcoatIORMap = FindProperty(m_ClearcoatIORMapText, props);
         }
 
         protected unsafe override void MaterialPropertiesGUI(Material _material)
         {
-            m_debug_prop0.floatValue = EditorGUILayout.FloatField("Anisotropy Angle", m_debug_prop0.floatValue * 180.0f / Mathf.PI) * Mathf.PI / 180.0f;
-            m_debug_prop1.floatValue = EditorGUILayout.FloatField("Anisotropic Roughness X", m_debug_prop1.floatValue);
-            m_debug_prop2.floatValue = EditorGUILayout.FloatField("Anisotropic Roughness Y", m_debug_prop2.floatValue);
-            m_debug_prop3.floatValue = EditorGUILayout.FloatField("Clearcoat IOR", m_debug_prop3.floatValue);
-//m_MaterialEditor.ShaderProperty( m_debug_prop0,  );
-//m_MaterialEditor.ShaderProperty( m_debug_prop1, "Anisotropy Roughness X" );
-//m_MaterialEditor.ShaderProperty( m_debug_prop2, "Anisotropy Roughness Y" );
-//m_MaterialEditor.ShaderProperty( m_debug_prop3, "Clearcoat IOR" );
-
-
             EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
 
             m_MaterialEditor.ShaderProperty(m_MaterialTilingU, "Material Tiling U");
@@ -315,22 +292,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
 
                     // Regular maps
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.diffuseColorMapText, m_diffuseColorMap);
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorMapText, m_specularColorMap);
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.specularLobeMapText, m_specularLobeMap);
-                    m_specularLobeMapScale.floatValue = EditorGUILayout.FloatField(Styles.specularLobeMapScaleText, m_specularLobeMapScale.floatValue);
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.fresnelMapText, m_fresnelMap);
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, m_normalMap);
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.diffuseColorMapText, m_DiffuseColorMap);
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorMapText, m_SpecularColorMap);
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.specularLobeMapText, m_SpecularLobeMap);
+                    m_SpecularLobeMapScale.floatValue = EditorGUILayout.FloatField(Styles.specularLobeMapScaleText, m_SpecularLobeMapScale.floatValue);
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.fresnelMapText, m_FresnelMap);
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, m_NormalMap);
 
                     // Alpha
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.alphaMapText, m_alphaMap);
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.alphaMapText, m_AlphaMap);
 
                     // Displacement
                     bool    useDisplacementMap = EditorGUILayout.Toggle("Enable Displacement Map", (flags & 8) != 0);
                     if (useDisplacementMap)
                     {
                         ++EditorGUI.indentLevel;
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, m_heightMap);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, m_HeightMap);
                         m_MaterialEditor.ShaderProperty(m_SVBRDF_HeightMapMaxMM, "Max Displacement (mm)");
                         --EditorGUI.indentLevel;
                     }
@@ -340,7 +317,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (isAnisotropic)
                     {
                         ++EditorGUI.indentLevel;
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.anisoRotationMapText, m_anisoRotationMap);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.anisoRotationMapText, m_AnisoRotationMap);
                         --EditorGUI.indentLevel;
                     }
 
@@ -350,13 +327,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (hasClearcoat)
                     {
                         ++EditorGUI.indentLevel;
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_clearcoatColorMap);
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_clearcoatNormalMap);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_ClearcoatColorMap);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
                         clearcoatUsesRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatUsesRefraction);
                         if (clearcoatUsesRefraction)
                         {
                             ++EditorGUI.indentLevel;
-                            m_MaterialEditor.TexturePropertySingleLine(Styles.clearcoatIORMapText, m_clearcoatIORMap);
+                            m_MaterialEditor.TexturePropertySingleLine(Styles.clearcoatIORMapText, m_ClearcoatIORMap);
                             --EditorGUI.indentLevel;
                         }
                         --EditorGUI.indentLevel;
@@ -405,16 +382,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_CarPaint2_BRDFColorMapScale.floatValue = EditorGUILayout.FloatField(Styles.BRDFColorMapScaleText, m_CarPaint2_BRDFColorMapScale.floatValue);
 
                     m_MaterialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap);
-//EditorGUILayout.LabelField( "Texture Dimension = " + m_CarPaint_BTFFlakesMap_sRGB.textureDimension );
-//EditorGUILayout.LabelField( "Texture Format = " + m_CarPaint_BTFFlakesMap_sRGB.textureValue. );
+                    //EditorGUILayout.LabelField( "Texture Dimension = " + m_CarPaint_BTFFlakesMap_sRGB.textureDimension );
+                    //EditorGUILayout.LabelField( "Texture Format = " + m_CarPaint_BTFFlakesMap_sRGB.textureValue. );
                     m_CarPaint2_BTFFlakeMapScale.floatValue = EditorGUILayout.FloatField(Styles.BTFFlakesMapScaleText, m_CarPaint2_BTFFlakeMapScale.floatValue);
                     m_CarPaint2_FlakeTiling.floatValue = EditorGUILayout.FloatField(Styles.FlakesTilingText, m_CarPaint2_FlakeTiling.floatValue);
 
                     m_MaterialEditor.TexturePropertySingleLine(Styles.thetaFI_sliceLUTMapText, m_CarPaint2_FlakeThetaFISliceLUTMap);
 
-// m_CarPaint_maxThetaI = FindProperty( m_CarPaint_maxThetaIText, props );
-// m_CarPaint_numThetaF = FindProperty( m_CarPaint_numThetaFText, props );
-// m_CarPaint_numThetaI = FindProperty( m_CarPaint_numThetaIText, props );
+                    // m_CarPaint_maxThetaI = FindProperty( m_CarPaint_maxThetaIText, props );
+                    // m_CarPaint_numThetaF = FindProperty( m_CarPaint_numThetaFText, props );
+                    // m_CarPaint_numThetaI = FindProperty( m_CarPaint_numThetaIText, props );
 
 
                     // Clearcoat
@@ -423,12 +400,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (hasClearcoat)
                     {
                         ++EditorGUI.indentLevel;
-//                        m_MaterialEditor.TexturePropertySingleLine( Styles.clearcoatColorMapText, m_clearcoatColorMap );
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_clearcoatNormalMap);
+//                        m_MaterialEditor.TexturePropertySingleLine( Styles.clearcoatColorMapText, m_ClearcoatColorMap );
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
 //                        if ( clearcoatUsesRefraction ) {
                         {
                             ++EditorGUI.indentLevel;
-//                            m_MaterialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_clearcoatIORMap );
+//                            m_MaterialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_ClearcoatIORMap );
                             m_CarPaint2_ClearcoatIOR.floatValue = EditorGUILayout.FloatField(Styles.CarPaintIORText, m_CarPaint2_ClearcoatIOR.floatValue);
                             --EditorGUI.indentLevel;
                         }
@@ -475,8 +452,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             SetupBaseUnlitKeywords(_material);
             SetupBaseUnlitMaterialPass(_material);
-
-//          CoreUtils.SetKeyword(_material, "_EMISSIVE_COLOR_MAP", _material.GetTexture(kEmissiveColorMap));
 
             AxfBrdfType   BRDFType = (AxfBrdfType)_material.GetFloat(m_AxF_BRDFTypeText);
 

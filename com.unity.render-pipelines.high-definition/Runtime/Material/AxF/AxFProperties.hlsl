@@ -5,15 +5,6 @@
 // ===========================================================================
 //
 
-//TEXTURE2D(_DistortionVectorMap);
-//SAMPLER(sampler_DistortionVectorMap);
-
-//TEXTURE2D(_EmissiveColorMap);
-//SAMPLER(sampler_EmissiveColorMap);
-
-TEXTURE2D(_BaseColorMap);
-SAMPLER(sampler_BaseColorMap);
-
 
 //////////////////////////////////////////////////////////////////////////////
 // SVBRDF
@@ -109,36 +100,8 @@ CBUFFER_START(UnityPerMaterial)
 
     //////////////////////////////////////////////////////////////////////////////
 
-float   _DEBUG_anisotropyAngle;
-float   _DEBUG_anisotropicRoughessX;
-float   _DEBUG_anisotropicRoughessY;
-float   _DEBUG_clearcoatIOR;
-
-
-
-
-
-
-float4 _BaseColor;
-float4 _BaseColorMap_ST;
-float4 _BaseColorMap_TexelSize;
-float4 _BaseColorMap_MipInfo;
-
-//float3 _EmissiveColor;
-//float4 _EmissiveColorMap_ST;
-//float _EmissiveIntensity;
-//float _AlbedoAffectEmissive;
-
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
-
-//float _DistortionScale;
-//float _DistortionVectorScale;
-//float _DistortionVectorBias;
-//float _DistortionBlurScale;
-//float _DistortionBlurRemapMin;
-//float _DistortionBlurRemapMax;
-
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.
