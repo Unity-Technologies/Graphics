@@ -8,6 +8,10 @@
 #define SHADOW_USE_SAMPLE_BIASING               0   // Enable per sample biasing for wide multi-tap PCF filters. Incompatible with SHADOW_USE_ONLY_VIEW_BASED_BIASING.
 #define SHADOW_USE_DEPTH_BIAS                   0   // Enable clip space z biasing
 
+#if SHADOW_OPTIMIZE_REGISTER_USAGE == 1
+#   pragma warning( disable : 3557 ) // loop only executes for 1 iteration(s)
+#endif
+
 # include "../../Shadows/HDShadowContext.hlsl"
 
 float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L)
