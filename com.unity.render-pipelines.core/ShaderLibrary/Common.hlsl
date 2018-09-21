@@ -796,7 +796,7 @@ PositionInputs GetPositionInput_Stereo(float2 positionSS, float2 invScreenSize, 
 #endif
     posInput.positionNDC *= invScreenSize;
 
-#if UNITY_SINGLE_PASS_STEREO
+#if defined(UNITY_SINGLE_PASS_STEREO)
     posInput.positionNDC.x = posInput.positionNDC.x - eye;
 #endif
 

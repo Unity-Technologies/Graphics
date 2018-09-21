@@ -9,7 +9,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty renderPipelineResources;
         public SerializedProperty diffusionProfileSettings;
         public SerializedProperty allowShaderVariantStripping;
-
         public SerializedRenderPipelineSettings renderPipelineSettings;
         public SerializedFrameSettings defaultFrameSettings;
 

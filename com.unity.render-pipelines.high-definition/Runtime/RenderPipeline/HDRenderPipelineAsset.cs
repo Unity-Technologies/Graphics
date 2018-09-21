@@ -7,7 +7,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         [HideInInspector]
         const int currentVersion = 1;
-
         // Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
 #pragma warning disable 414
         [SerializeField]

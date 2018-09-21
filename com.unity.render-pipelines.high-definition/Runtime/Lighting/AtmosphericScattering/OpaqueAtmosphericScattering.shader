@@ -36,7 +36,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 
         inline float4 AtmosphericScatteringCompute(Varyings input, float depth)
         {
-            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+            PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
             if (depth == UNITY_RAW_FAR_CLIP_VALUE)
             {
@@ -44,7 +44,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
                 // So in order to have a valid position (for example for height fog) we just consider that the sky is a sphere centered on camera with a radius of 5km (arbitrarily chosen value!)
                 // And recompute the position on the sphere with the current camera direction.
                 float3 viewDirection = -GetWorldSpaceNormalizeViewDir(posInput.positionWS) * 5000.0f;
-                posInput.positionWS = GetPrimaryCameraPosition() + viewDirection;
+                posInput.positionWS = GetCurrentViewPosition() + viewDirection;
             }
 
             return EvaluateAtmosphericScattering(posInput);
@@ -58,7 +58,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 
         float4 FragMSAA(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
         {
-            int2 msTex = int2(input.texcoord.xy * _ScreenSize.xy);
+            int2 msTex = int2(TexCoordStereoOffset(input.texcoord.xy * _ScreenSize.xy));
             float depth = _DepthTextureMS.Load(msTex, sampleIndex).x;
             return AtmosphericScatteringCompute(input, depth);
         }

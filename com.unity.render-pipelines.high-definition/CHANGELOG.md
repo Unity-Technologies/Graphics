@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 = Fixed GC leaks for decals
 - Fixed contact shadow not affected by shadow dimmer
 - Fixed GGX that works correctly for the roughness value of 0 (mean specular highlgiht will disappeard for perfect mirror, we rely on maxSmoothness instead to always have a highlight even on mirror surface)
+- Add stereo support to ShaderPassForward.hlsl. Forward rendering now seems passable in limited test scenes with camera-relative rendering disabled.
+- Add stereo support to ProceduralSky.shader and OpaqueAtmosphericScattering.shader.
 
 ### Changed
 - Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
@@ -53,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimization: The objects that are rendered in the Motion Vector Pass are not rendered in the prepass anymore
 - Removed setting shader inclue path via old API, use package shader include paths
 - The default value of 'maxSmoothness' for punctual lights has been changed to 0.99
+- Modified deferred compute and vert/frag shaders for first steps towards stereo support
 
 ## [3.3.0-preview]
 

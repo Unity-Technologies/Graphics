@@ -137,7 +137,7 @@ float3 GetPrimaryCameraPosition()
 // Could be e.g. the position of a primary camera or a shadow-casting light.
 float3 GetCurrentViewPosition()
 {
-#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
+#if (defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)) && (!UNITY_SINGLE_PASS_STEREO) // Can't use camera position when rendering stereo
     return GetPrimaryCameraPosition();
 #else
     // This is a generic solution.
@@ -262,4 +262,11 @@ float4 SampleSkyTexture(float3 texCoord, float lod)
     return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, s_trilinear_clamp_sampler, texCoord, lod);
 }
 
+float2 TexCoordStereoOffset(float2 texCoord)
+{
+#if defined(UNITY_SINGLE_PASS_STEREO)
+    return texCoord + float2(unity_StereoEyeIndex * _ScreenSize.x, 0.0);
+#endif
+    return texCoord;
+}
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
