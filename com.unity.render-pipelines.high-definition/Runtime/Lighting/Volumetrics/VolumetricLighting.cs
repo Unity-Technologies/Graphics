@@ -644,7 +644,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
                 bool highQuality        = preset == VolumetricLightingPreset.High;
                 bool enableClustered    = hdCamera.frameSettings.lightLoopSettings.enableTileAndCluster;
-                bool enableReprojection = Application.isPlaying && hdCamera.camera.cameraType == CameraType.Game;
+                bool enableReprojection = Application.isPlaying && hdCamera.camera.cameraType == CameraType.Game &&
+                                          hdCamera.frameSettings.enableReprojectionForVolumetrics;
 
                 int kernel;
 
