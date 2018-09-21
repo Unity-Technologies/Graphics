@@ -280,6 +280,16 @@ namespace  UnityEditor.VFX.UI
         {
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+        }
+
+        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenu.MenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Delete", (a) => GetFirstAncestorOfType<VFXView>().DeleteElements(new GraphElement[] { this }), DropdownMenu.MenuAction.AlwaysEnabled);
+
+            evt.StopPropagation();
         }
 
         Controller IControlledElement.controller

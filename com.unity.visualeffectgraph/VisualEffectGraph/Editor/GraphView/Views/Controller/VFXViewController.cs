@@ -1546,6 +1546,17 @@ namespace UnityEditor.VFX.UI
 
             return false;
         }
+        public void RemoveCategory(string name)
+        {
+            int index = graph.UIInfos.categories.FindIndex(t => t.name == name);
+
+            if( index > -1)
+            {
+                var parametersToRemove = RemoveCategory(index);
+
+                Remove(parametersToRemove.Cast<Controller>());
+            }
+        }
 
         public IEnumerable<VFXParameterController> RemoveCategory(int category)
         {
