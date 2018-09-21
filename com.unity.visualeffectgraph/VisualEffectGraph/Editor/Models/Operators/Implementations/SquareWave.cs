@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Operator
             public float max = 1.0f;
         }
 
-        public override sealed string name { get { return "Square Wave"; } }
+        protected override sealed string operatorName { get { return "Square Wave"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {

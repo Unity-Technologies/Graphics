@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.5f;
         }
 
-        public override sealed string name { get { return "Round"; } }
+        protected override sealed string operatorName { get { return "Round"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

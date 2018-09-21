@@ -399,16 +399,7 @@ namespace UnityEditor.VFX.UI
             VFXViewController viewController = controller.viewController;
             if (view == null) return;
 
-            /*
-            Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
-
-            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
-
-            VFXViewController viewController = controller.sourceNode.viewController;
-            VFXNodeController newNode = viewController.AddNode(tPos, desc, null);*/
-
             var newNodeController = view.AddNode(d, mPos);
-            //TODO manage if the newNode should be in a groupNode
 
             if (newNodeController == null)
                 return;

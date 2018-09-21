@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.0f;
         }
 
-        public override sealed string name { get { return "Cosine"; } }
+        protected override sealed string operatorName { get { return "Cosine"; } }
 
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 

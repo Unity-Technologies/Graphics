@@ -6,7 +6,7 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Clamp")]
     class Maximum : VFXOperatorNumericCascadedUnified
     {
-        public override sealed string name { get { return "Maximum"; } }
+        protected override sealed string operatorName { get { return "Maximum"; } }
 
         protected override sealed double defaultValueDouble { get { return 0.0; } }
         protected override sealed float identityValueFloat { get { return float.MinValue; } }

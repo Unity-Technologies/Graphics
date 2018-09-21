@@ -190,6 +190,12 @@ namespace UnityEditor.VFX
             }
         }
 
+
+        public Node GetNode(int id)
+        {
+            return m_Nodes.FirstOrDefault(t => t.id == id);
+        }
+
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             base.OnInvalidate(model, cause);
