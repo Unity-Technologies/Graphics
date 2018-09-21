@@ -49,7 +49,7 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
             velocity.y = -velocity.y;
 #endif
 
-            velocity.x = velocity.x * _TextureWidthScaling; // _TextureWidthScaling = 0.5 for SinglePassDoubleWide (stereo) and 1.0 otherwise
+            velocity.x = velocity.x * _TextureWidthScaling.y; // _TextureWidthScaling = (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
 
             // Convert velocity from Clip space (-1..1) to NDC 0..1 space
             // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.

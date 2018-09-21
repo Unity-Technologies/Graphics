@@ -32,10 +32,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public PostProcessRenderContext postprocessRenderContext;
 
-        public Matrix4x4[] viewMatrixStereo;
-        public Matrix4x4[] projMatrixStereo;
-        public Vector4 centerEyeTranslationOffset;
-        public float textureWidthScaling; // 0.5 for SinglePassDoubleWide (stereo) and 1.0 otherwise
+        public Matrix4x4[]  viewMatrixStereo;
+        public Matrix4x4[]  projMatrixStereo;
+        public Vector4      centerEyeTranslationOffset;
+        public Vector4      textureWidthScaling; // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
+        public uint         numEyes; // 2+ when rendering stereo, 1 otherwise
 
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
@@ -212,10 +213,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ActualHeight = camera.pixelHeight;
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
-            textureWidthScaling = 1.0f; 
+            textureWidthScaling = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+
+            numEyes = m_frameSettings.enableStereo ? (uint)2 : (uint)1; // TODO VR: Generalize this when support for >2 eyes comes out with XR SDK
+
             if (m_frameSettings.enableStereo)
             {
-                textureWidthScaling = 0.5f; 
+                textureWidthScaling = new Vector4(2.0f, 0.5f, 0.0f, 0.0f); 
                 for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {
                     // For VR, TAA proj matrices don't need to be jittered
@@ -290,6 +294,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
+
+            if (!m_frameSettings.enableStereo)
+            {
+                // TODO VR: Current solution for compute shaders grabs matrices from
+                // stereo matrices even when not rendering stereo in order to reduce shader variants.
+                // After native fix for compute shader keywords is completed, qualify this with stereoEnabled.
+                viewMatrixStereo[0] = viewMatrix;
+                projMatrixStereo[0] = projMatrix;
+            }
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -603,6 +616,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._SinTime,        new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct)));
             cmd.SetGlobalVector(HDShaderIDs._CosTime,        new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct)));
             cmd.SetGlobalInt(HDShaderIDs._FrameCount,        (int)frameCount);
+
+
+            // TODO VR: Current solution for compute shaders grabs matrices from
+            // stereo matrices even when not rendering stereo in order to reduce shader variants.
+            // After native fix for compute shader keywords is completed, qualify this with stereoEnabled.
+            SetupGlobalStereoParams(cmd);
         }
 
         public void SetupGlobalStereoParams(CommandBuffer cmd)
@@ -632,7 +651,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvProjMatrixStereo, invProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._PrevViewProjMatrixStereo, prevViewProjMatrixStereo);
-            cmd.SetGlobalFloat(HDShaderIDs._TextureWidthScaling, textureWidthScaling);
+            cmd.SetGlobalVector(HDShaderIDs._TextureWidthScaling, textureWidthScaling);
         }
 
         public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)

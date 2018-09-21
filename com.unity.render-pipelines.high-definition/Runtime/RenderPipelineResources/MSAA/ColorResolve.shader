@@ -31,26 +31,26 @@ Shader "Hidden/HDRenderPipeline/ColorResolve"
 
         float4 Frag1X(Varyings input) : SV_Target
         {
-            int2 pixelCoords = int2(input.texcoord);
+            int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
             return _ColorTextureMS.Load(pixelCoords, 0);
         }
 
         float4 Frag2X(Varyings input) : SV_Target
         {
-            int2 pixelCoords = int2(input.texcoord);
+            int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
             return FastTonemapInvert((FastTonemap(_ColorTextureMS.Load(pixelCoords, 0)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 1))) * 0.5f);
         }
 
         float4 Frag4X(Varyings input) : SV_Target
         {
-            int2 pixelCoords = int2(input.texcoord);
+            int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
             return FastTonemapInvert((FastTonemap(_ColorTextureMS.Load(pixelCoords, 0)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 1))
                             + FastTonemap(_ColorTextureMS.Load(pixelCoords, 2)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 3))) * 0.25f);
         }
 
         float4 Frag8X(Varyings input) : SV_Target
         {
-            int2 pixelCoords = int2(input.texcoord);
+            int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
             return FastTonemapInvert((FastTonemap(_ColorTextureMS.Load(pixelCoords, 0)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 1))
                             + FastTonemap(_ColorTextureMS.Load(pixelCoords, 2)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 3))
                             + FastTonemap(_ColorTextureMS.Load(pixelCoords, 4)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 5))
