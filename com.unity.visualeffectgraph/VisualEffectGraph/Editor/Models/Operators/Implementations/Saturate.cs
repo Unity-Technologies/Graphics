@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Operator
             public float input = 0.0f;
         }
 
-        public override sealed string name { get { return "Saturate"; } }
+        protected override sealed string operatorName { get { return "Saturate"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

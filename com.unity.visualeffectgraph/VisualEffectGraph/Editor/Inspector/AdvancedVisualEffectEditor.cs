@@ -135,6 +135,7 @@ namespace UnityEditor.VFX
 
         public override void OnInspectorGUI()
         {
+            m_GizmoableParameters.Clear();
             base.OnInspectorGUI();
         }
 
@@ -197,9 +198,11 @@ namespace UnityEditor.VFX
 
         VFXParameter m_GizmoedParameter;
 
+        List<VFXParameter> m_GizmoableParameters = new List<VFXParameter>();
+
         protected override void EmptyLineControl(string name, string tooltip, int depth)
         {
-            if (depth != 1  || !m_GizmoDisplayed)
+            if (depth != 1 )
             {
                 base.EmptyLineControl(name, tooltip, depth);
                 return;
@@ -216,6 +219,12 @@ namespace UnityEditor.VFX
             if (m_EditJustStarted && m_GizmoedParameter == null)
             {
                 m_GizmoedParameter = parameter;
+            }
+            m_GizmoableParameters.Add(parameter);
+            if (!m_GizmoDisplayed)
+            {
+                base.EmptyLineControl(name, tooltip, depth);
+                return;
             }
 
             GUILayout.BeginHorizontal();
@@ -572,5 +581,25 @@ namespace UnityEditor.VFX
 
             VFXParameter m_Parameter;
         }
+
+        protected override void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+        {
+            base.SceneViewGUICallback(target, sceneView);
+            if (m_GizmoableParameters.Count > 0)
+            {
+                int current = m_GizmoableParameters.IndexOf(m_GizmoedParameter);
+                EditorGUI.BeginChangeCheck();
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Gizmos",GUILayout.Width(45));
+                int result = EditorGUILayout.Popup(current, m_GizmoableParameters.Select(t => t.exposedName).ToArray(), GUILayout.Width(163));
+                if (EditorGUI.EndChangeCheck() && result != current)
+                {
+                    m_GizmoDisplayed = true;
+                    m_GizmoedParameter = m_GizmoableParameters[result];
+                    Repaint();
+                }
+                GUILayout.EndHorizontal();
+            }
+        }
+        }
     }
-}

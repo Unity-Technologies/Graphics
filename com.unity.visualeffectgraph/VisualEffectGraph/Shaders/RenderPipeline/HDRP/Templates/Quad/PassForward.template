@@ -32,16 +32,13 @@ Pass
 		// z: frame blending factor
 		nointerpolation float3 builtInInterpolants : TEXCOORD2;
 		#endif
-		#if USE_SOFT_PARTICLE
-		float4 projPos : TEXCOORD3;		
-		#endif
 		
-		nointerpolation float3 normal : TEXCOORD4;
+		nointerpolation float3 normal : TEXCOORD3;
 		#if USE_NORMAL_MAP || USE_NORMAL_BENDING
-		nointerpolation float3 tangent : TEXCOORD5;
+		nointerpolation float3 tangent : TEXCOORD4;
 		#endif
 		#if USE_NORMAL_BENDING
-		float2 bentFactors : TEXCOORD6;
+		float2 bentFactors : TEXCOORD5;
 		#endif
 	};
 	
@@ -49,7 +46,6 @@ ${VFXHDRPLitVaryingsMacros}
 	
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-#define VFX_VARYING_POSSS projPos
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z

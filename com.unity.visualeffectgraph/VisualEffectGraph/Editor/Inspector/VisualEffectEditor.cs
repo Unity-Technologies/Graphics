@@ -323,7 +323,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+        protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
 
@@ -363,7 +363,7 @@ namespace UnityEditor.VFX
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Contents.playRate, GUILayout.Width(44));
-            playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(138));
+            playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
             effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
 
             var eventType = Event.current.type;
@@ -677,7 +677,7 @@ namespace UnityEditor.VFX
             public static readonly GUIContent openEditor = EditorGUIUtility.TrTextContent("Edit");
             public static readonly GUIContent setRandomSeed = EditorGUIUtility.TrTextContent("Reseed");
             public static readonly GUIContent setPlayRate = EditorGUIUtility.TrTextContent("Set");
-            public static readonly GUIContent playRate = EditorGUIUtility.TrTextContent("PlayRate");
+            public static readonly GUIContent playRate = EditorGUIUtility.TrTextContent("Rate");
 
             static readonly GUIContent[] m_Icons;
 

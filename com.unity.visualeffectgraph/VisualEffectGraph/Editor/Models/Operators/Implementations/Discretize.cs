@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Operator
             public float b = 1.0f;
         }
 
-        public override sealed string name { get { return "Discretize"; } }
+        protected override sealed string operatorName { get { return "Discretize"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {

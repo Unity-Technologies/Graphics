@@ -51,26 +51,24 @@ namespace UnityEditor.VFX.UI
         {
             if( e.character == '\n')
             {
-                if( isDelayed && hasChangeDelayed)
-                {
-                    NotifyValueChanged();
-                    hasChangeDelayed = false;
-                }
+                DelayedNotifyValueChange();
                 UpdateGUI(true);
             }
-                
-
-            
         }
 
         void OnFocusLost(BlurEvent e)
+        {
+            DelayedNotifyValueChange();
+            UpdateGUI(true);
+        }
+
+        protected void DelayedNotifyValueChange()
         {
             if (isDelayed && hasChangeDelayed)
             {
                 hasChangeDelayed = false;
                 NotifyValueChanged();
             }
-            UpdateGUI(true);
         }
 
         protected override bool HasFocus()
@@ -162,6 +160,8 @@ namespace UnityEditor.VFX.UI
         protected override INotifyValueChanged<long> CreateSimpleField(out TextValueField<long> textField)
         {
             var field =  new VFXLabeledField<LongField, long>(m_Label);
+
+            field.onValueDragFinished = t=>DelayedNotifyValueChange();
             textField = field.control;
             return field;
         }
@@ -225,6 +225,7 @@ namespace UnityEditor.VFX.UI
         {
             var field = new VFXLabeledField<IntegerField, int>(m_Label);
             textField = field.control;
+            field.onValueDragFinished = t=>DelayedNotifyValueChange();
             return field;
         }
 
@@ -265,6 +266,7 @@ namespace UnityEditor.VFX.UI
         protected override INotifyValueChanged<float> CreateSimpleField(out TextValueField<float> textField)
         {
             var field = new VFXLabeledField<FloatField, float>(m_Label);
+            field.onValueDragFinished = t=>DelayedNotifyValueChange();
             textField = field.control;
             return field;
         }

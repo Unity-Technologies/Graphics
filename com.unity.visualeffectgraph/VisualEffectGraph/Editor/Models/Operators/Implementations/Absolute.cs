@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0;
         }
 
-        public override sealed string name { get { return "Absolute"; } }
+        protected override sealed string operatorName { get { return "Absolute"; } }
 
         protected override sealed ValidTypeRule typeFilter
         {
