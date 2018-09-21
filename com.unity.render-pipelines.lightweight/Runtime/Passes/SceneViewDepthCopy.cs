@@ -21,9 +21,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get(k_CopyDepthToCameraTag);
             CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
-            cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthNoMsaa);
-            cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
-            cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
+            cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
             cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, renderer.GetMaterial(MaterialHandles.DepthCopy));
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

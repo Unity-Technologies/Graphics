@@ -8,7 +8,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         // Note: Screenspace shadow resolve is only performed when shadow cascades are enabled
         // Shadow cascades require cascade index and shadowCoord to be computed on pixel.
-        #define _SHADOWS_CASCADE
+        #define _MAIN_LIGHT_SHADOWS_CASCADE
 
         #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
@@ -27,45 +27,45 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         SAMPLER(sampler_CameraDepthTexture);
 
-        struct VertexInput
+        struct Attributes
         {
-            float4 vertex   : POSITION;
+            float4 positionOS   : POSITION;
             float2 texcoord : TEXCOORD0;
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
-        struct Interpolators
+        struct Varyings
         {
-            half4  pos      : SV_POSITION;
-            half4  texcoord : TEXCOORD0;
+            half4  positionCS   : SV_POSITION;
+            half4  uv           : TEXCOORD0;
             UNITY_VERTEX_OUTPUT_STEREO
         };
 
-        Interpolators Vertex(VertexInput i)
+        Varyings Vertex(Attributes input)
         {
-            Interpolators o;
-            UNITY_SETUP_INSTANCE_ID(i);
-            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+            Varyings output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-            o.pos = TransformObjectToHClip(i.vertex.xyz);
+            output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
 
-            float4 projPos = o.pos * 0.5;
+            float4 projPos = output.positionCS * 0.5;
             projPos.xy = projPos.xy + projPos.w;
 
-            o.texcoord.xy = UnityStereoTransformScreenSpaceTex(i.texcoord);
-            o.texcoord.zw = projPos.xy;
+            output.uv.xy = UnityStereoTransformScreenSpaceTex(input.texcoord);
+            output.uv.zw = projPos.xy;
 
-            return o;
+            return output;
         }
 
-        half4 Fragment(Interpolators i) : SV_Target
+        half4 Fragment(Varyings input) : SV_Target
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-            float deviceDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, i.texcoord.xy, unity_StereoEyeIndex).r;
+            float deviceDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv.xy, unity_StereoEyeIndex).r;
 #else
-            float deviceDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.texcoord.xy);
+            float deviceDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv.xy);
 #endif
 
 #if UNITY_REVERSED_Z
@@ -73,7 +73,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 #endif
             deviceDepth = 2 * deviceDepth - 1; //NOTE: Currently must massage depth before computing CS position.
 
-            float3 vpos = ComputeViewSpacePosition(i.texcoord.zw, deviceDepth, unity_CameraInvProjection);
+            float3 vpos = ComputeViewSpacePosition(input.uv.zw, deviceDepth, unity_CameraInvProjection);
             float3 wpos = mul(unity_CameraToWorld, float4(vpos, 1)).xyz;
 
             //Fetch shadow coordinates for cascade.
@@ -82,7 +82,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
             ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
             half shadowStrength = GetMainLightShadowStrength();
-            return SampleShadowmap(coords, TEXTURE2D_PARAM(_DirectionalShadowmapTexture, sampler_DirectionalShadowmapTexture), shadowSamplingData, shadowStrength, false);
+            return SampleShadowmap(coords, TEXTURE2D_PARAM(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowSamplingData, shadowStrength, false);
         }
 
         ENDHLSL

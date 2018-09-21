@@ -6,8 +6,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     internal class DefaultRendererSetup : IRendererSetup
     {
         private DepthOnlyPass m_DepthOnlyPass;
-        private DirectionalShadowsPass m_DirectionalShadowPass;
-        private LocalShadowsPass m_LocalShadowPass;
+        private DirectionalShadowsPass m_MainLightShadowCasterPass;
+        private LocalShadowsPass m_AdditionalLightsShadowCasterPass;
         private SetupForwardRenderingPass m_SetupForwardRenderingPass;
         private ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
         private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
@@ -32,8 +32,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetHandle DepthAttachment;
         private RenderTargetHandle DepthTexture;
         private RenderTargetHandle OpaqueColor;
-        private RenderTargetHandle DirectionalShadowmap;
-        private RenderTargetHandle LocalShadowmap;
+        private RenderTargetHandle MainLightShadowmap;
+        private RenderTargetHandle AdditionalLightsShadowmap;
         private RenderTargetHandle ScreenSpaceShadowmap;
 
         [NonSerialized]
@@ -45,8 +45,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
 
             m_DepthOnlyPass = new DepthOnlyPass();
-            m_DirectionalShadowPass = new DirectionalShadowsPass();
-            m_LocalShadowPass = new LocalShadowsPass();
+            m_MainLightShadowCasterPass = new DirectionalShadowsPass();
+            m_AdditionalLightsShadowCasterPass = new LocalShadowsPass();
             m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass();
             m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
@@ -72,9 +72,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             DepthAttachment.Init("_CameraDepthAttachment");
             DepthTexture.Init("_CameraDepthTexture");
             OpaqueColor.Init("_CameraOpaqueTexture");
-            DirectionalShadowmap.Init("_DirectionalShadowmapTexture");
-            LocalShadowmap.Init("_LocalShadowmapTexture");
-            ScreenSpaceShadowmap.Init("_ScreenSpaceShadowMapTexture");
+            MainLightShadowmap.Init("_MainLightShadowmapTexture");
+            AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
+            ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
 
             m_Initialized = true;
         }
@@ -96,16 +96,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // For now VR requires a depth prepass until we figure out how to properly resolve texture2DMS in stereo
             requiresDepthPrepass |= renderingData.cameraData.isStereoEnabled;
 
-            if (renderingData.shadowData.renderDirectionalShadows)
+            if (renderingData.shadowData.supportsMainLightShadows)
             {
-                m_DirectionalShadowPass.Setup(DirectionalShadowmap);
-                renderer.EnqueuePass(m_DirectionalShadowPass);
+                m_MainLightShadowCasterPass.Setup(MainLightShadowmap);
+                renderer.EnqueuePass(m_MainLightShadowCasterPass);
             }
 
-            if (renderingData.shadowData.renderLocalShadows)
+            if (renderingData.shadowData.supportsAdditionalLightShadows)
             {
-                m_LocalShadowPass.Setup(LocalShadowmap, renderer.maxVisibleLocalLights);
-                renderer.EnqueuePass(m_LocalShadowPass);
+                m_AdditionalLightsShadowCasterPass.Setup(AdditionalLightsShadowmap, renderer.maxVisibleAdditionalLights);
+                renderer.EnqueuePass(m_AdditionalLightsShadowCasterPass);
             }
 
             renderer.EnqueuePass(m_SetupForwardRenderingPass);
@@ -119,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     renderer.EnqueuePass(pass.GetPassToEnqueue(m_DepthOnlyPass.descriptor, DepthTexture));
             }
 
-            if (renderingData.shadowData.renderDirectionalShadows &&
+            if (renderingData.shadowData.supportsMainLightShadows &&
                 renderingData.shadowData.requiresScreenSpaceShadowResolve)
             {
                 m_ScreenSpaceShadowResolvePass.Setup(baseDescriptor, ScreenSpaceShadowmap);
@@ -144,9 +144,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (renderingData.cameraData.isStereoEnabled)
                 renderer.EnqueuePass(m_BeginXrRenderingPass);
 
-            RendererConfiguration rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.totalAdditionalLightsCount);
+            RendererConfiguration rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
 
-            m_SetupLightweightConstants.Setup(renderer.maxVisibleLocalLights, renderer.perObjectLightIndices);
+            m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
             renderer.EnqueuePass(m_SetupLightweightConstants);
 
             m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, rendererConfiguration);

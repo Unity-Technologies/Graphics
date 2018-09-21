@@ -1,20 +1,21 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     [Flags]
     public enum ShaderFeatures
     {
-        AdditionalLights    = (1 << 0),
-        VertexLights        = (1 << 1),
-        DirectionalShadows  = (1 << 2),
-        LocalShadows        = (1 << 3),
-        SoftShadows         = (1 << 4),
+        MainLight               = (1 << 0),
+        MainLightShadows        = (1 << 1),
+        AdditionalLights        = (1 << 2),
+        AdditionalLightShadows  = (1 << 3),
+        VertexLighting          = (1 << 4),
+        SoftShadows             = (1 << 5),
+        MixedLighting           = (1 << 6),
     }
+
     public enum MixedLightingSetup
     {
         None,
@@ -33,11 +34,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public struct LightData
     {
-        public int pixelAdditionalLightsCount;
-        public int totalAdditionalLightsCount;
+        public int additionalLightsCount;
+        public bool shadeAdditionalLightsPerVertex;
         public int mainLightIndex;
         public List<VisibleLight> visibleLights;
-        public List<int> visibleLocalLightIndices;
+        public List<int> additionalLightIndices;
+        public bool supportsMixedLighting;
     }
 
     public struct CameraData
@@ -50,7 +52,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool isOffscreenRender;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
-        public bool requiresSoftParticles;
         public bool requiresOpaqueTexture;
         public Downsampling opaqueTextureDownsampling;
 
@@ -65,32 +66,32 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public struct ShadowData
     {
-        public bool renderDirectionalShadows;
+        public bool supportsMainLightShadows;
         public bool requiresScreenSpaceShadowResolve;
-        public int directionalShadowAtlasWidth;
-        public int directionalShadowAtlasHeight;
-        public int directionalLightCascadeCount;
-        public Vector3 directionalLightCascades;
-        public bool renderLocalShadows;
-        public int localShadowAtlasWidth;
-        public int localShadowAtlasHeight;
+        public int mainLightShadowmapWidth;
+        public int mainLightShadowmapHeight;
+        public int mainLightShadowCascadesCount;
+        public Vector3 mainLightShadowCascadesSplit;
+        public bool supportsAdditionalLightShadows;
+        public int additionalLightsShadowmapWidth;
+        public int additionalLightsShadowmapHeight;
         public bool supportsSoftShadows;
-        public int bufferBitCount;
+        public int shadowmapDepthBufferBits;
     }
 
-    public static class LightweightKeywordStrings
+    public static class ShaderKeywordStrings
     {
-        public static readonly string AdditionalLights = "_ADDITIONAL_LIGHTS";
-        public static readonly string VertexLights = "_VERTEX_LIGHTS";
-        public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE";
-        public static readonly string DirectionalShadows = "_SHADOWS_ENABLED";
-        public static readonly string LocalShadows = "_LOCAL_SHADOWS_ENABLED";
+        public static readonly string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
+        public static readonly string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";
+        public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
+        public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS_PIXEL";
+        public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
-        public static readonly string CascadeShadows = "_SHADOWS_CASCADE";
+        public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE";
+
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
-        public static readonly string SoftParticles = "SOFTPARTICLES_ON";
     }
 
     public sealed partial class LightweightPipeline
@@ -107,26 +108,33 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Array.Sort(cameras, (lhs, rhs) => (int)(lhs.depth - rhs.depth));
         }
 
-        static void SetSupportedShaderFeatures(LightweightPipelineAsset pipelineAsset)
+        public static void SetSupportedShaderFeatures(LightweightPipelineAsset pipelineAsset)
         {
-            s_ShaderFeatures = 0U;
+            s_ShaderFeatures = ShaderFeatures.MainLight;
 
-            // Strip variants based on selected pipeline features
-            if (pipelineAsset.maxPixelLights > 1 || pipelineAsset.supportsVertexLight)
+            if (pipelineAsset.supportsMainLightShadows)
+                s_ShaderFeatures |= ShaderFeatures.MainLightShadows;
+
+            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
+            {
+                s_ShaderFeatures |= ShaderFeatures.AdditionalLights;
+                s_ShaderFeatures |= ShaderFeatures.VertexLighting;
+            }
+            else if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
+            {
                 s_ShaderFeatures |= ShaderFeatures.AdditionalLights;
 
-            if (pipelineAsset.supportsVertexLight)
-                s_ShaderFeatures |= ShaderFeatures.VertexLights;
-
-            if (pipelineAsset.supportsDirectionalShadows)
-                s_ShaderFeatures |= ShaderFeatures.DirectionalShadows;
-
-            if (pipelineAsset.supportsLocalShadows)
-                s_ShaderFeatures |= ShaderFeatures.LocalShadows;
-
-            bool anyShadows = pipelineAsset.supportsDirectionalShadows || pipelineAsset.supportsLocalShadows;
+                if (pipelineAsset.supportsAdditionalLightShadows)
+                    s_ShaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+            }
+            
+            bool anyShadows = pipelineAsset.supportsMainLightShadows ||
+                              CoreUtils.HasFlag(s_ShaderFeatures, ShaderFeatures.AdditionalLightShadows);
             if (pipelineAsset.supportsSoftShadows && anyShadows)
                 s_ShaderFeatures |= ShaderFeatures.SoftShadows;
+
+            if (pipelineAsset.supportsMixedLighting)
+                s_ShaderFeatures |= ShaderFeatures.MixedLighting;
         }
         public static bool IsStereoEnabled(Camera camera)
         {

@@ -35,7 +35,6 @@ ${Graph}
         // Interpolators defined by graph
 ${VertexOutputStruct}
         UNITY_VERTEX_INPUT_INSTANCE_ID
-        UNITY_VERTEX_OUTPUT_STEREO
 	};
 
     // x: global clip space bias, y: normal world space bias
@@ -47,7 +46,6 @@ ${VertexOutputStruct}
 	    VertexOutput o;
 	    UNITY_SETUP_INSTANCE_ID(v);
         UNITY_TRANSFER_INSTANCE_ID(v, o);
-        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
         // Vertex transformations performed by graph
 ${VertexShader}

@@ -21,7 +21,7 @@ SubShader
 		#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
 		#pragma multi_compile _ LIGHTMAP_ON
 		#pragma multi_compile _ _LIGHT_PROBES_ON
-		#pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
+		#pragma multi_compile _ _HARD_SHADOWS _SHADOWS_SOFT _HARD_SHADOWS_CASCADES _SHADOWS_SOFT_CASCADES
 		#pragma multi_compile _ _VERTEX_LIGHTS
 		#pragma multi_compile_fog
 		#pragma multi_compile_instancing

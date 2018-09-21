@@ -125,7 +125,7 @@ TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 #endif
 
 // Vertex shader input
-struct appdata_particles
+struct AttributesParticle
 {
     float4 vertex : POSITION;
     float3 normal : NORMAL;
@@ -141,11 +141,11 @@ struct appdata_particles
 #endif
 };
 
-struct VertexOutputLit
+struct VaryingsParticle
 {
     half4 color                     : COLOR;
     float2 texcoord                 : TEXCOORD0;
-#if _NORMALMAP
+#ifdef _NORMALMAP
     half3 tangent                   : TEXCOORD1;
     half3 binormal                  : TEXCOORD2;
     half3 normal                    : TEXCOORD3;
@@ -164,20 +164,20 @@ struct VertexOutputLit
     float4 clipPos                  : SV_POSITION;
 };
 
-half4 readTexture(TEXTURE2D_ARGS(_Texture, sampler_Texture), VertexOutputLit IN)
+half4 readTexture(TEXTURE2D_ARGS(_Texture, sampler_Texture), VaryingsParticle input)
 {
-    half4 color = SAMPLE_TEXTURE2D(_Texture, sampler_Texture, IN.texcoord);
+    half4 color = SAMPLE_TEXTURE2D(_Texture, sampler_Texture, input.texcoord);
 #ifdef _FLIPBOOK_BLENDING
-    half4 color2 = SAMPLE_TEXTURE2D(_Texture, sampler_Texture, IN.texcoord2AndBlend.xy);
+    half4 color2 = SAMPLE_TEXTURE2D(_Texture, sampler_Texture, input.texcoord2AndBlend.xy);
     color = lerp(color, color2, IN.texcoord2AndBlend.z);
 #endif
     return color;
 }
 
-half3 SampleNormalTS(VertexOutputLit IN, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), half scale = 1.0h)
+half3 SampleNormalTS(VaryingsParticle input, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), half scale = 1.0h)
 {
 #if defined(_NORMALMAP)
-    half4 n = readTexture(TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), IN);
+    half4 n = readTexture(TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), input);
     #if BUMP_SCALE_NOT_SUPPORTED
         return UnpackNormal(n);
     #else
@@ -188,32 +188,32 @@ half3 SampleNormalTS(VertexOutputLit IN, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap
 #endif
 }
 
-half3 SampleEmission(VertexOutputLit IN, half3 emissionColor, TEXTURE2D_ARGS(emissionMap, sampler_emissionMap))
+half3 SampleEmission(VaryingsParticle input, half3 emissionColor, TEXTURE2D_ARGS(emissionMap, sampler_emissionMap))
 {
 #if defined(_EMISSION)
-    return readTexture(TEXTURE2D_PARAM(emissionMap, sampler_emissionMap), IN).rgb * emissionColor.rgb;
+    return readTexture(TEXTURE2D_PARAM(emissionMap, sampler_emissionMap), input).rgb * emissionColor.rgb;
 #else
     return half3(0.0h, 0.0h, 0.0h);
 #endif
 }
 
-half4 SampleAlbedo(VertexOutputLit IN, TEXTURE2D_ARGS(albedoMap, sampler_albedoMap))
+half4 SampleAlbedo(VaryingsParticle input, TEXTURE2D_ARGS(albedoMap, sampler_albedoMap))
 {
-    half4 albedo = readTexture(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), IN) * _Color;
+    half4 albedo = readTexture(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), input) * _Color;
 
     // No distortion Support
-    fragColorMode(IN);
-    fragSoftParticles(IN);
-    fragCameraFading(IN);
+    fragColorMode(input);
+    fragSoftParticles(input);
+    fragCameraFading(input);
 
     return albedo;
 }
 
-half4 SampleSpecularGloss(VertexOutputLit IN, half alpha, half4 specColor, TEXTURE2D_ARGS(specGlossMap, sampler_specGlossMap))
+half4 SampleSpecularGloss(VaryingsParticle input, half alpha, half4 specColor, TEXTURE2D_ARGS(specGlossMap, sampler_specGlossMap))
 {
     half4 specularGloss = half4(0.0h, 0.0h, 0.0h, 1.0h);
 #ifdef _SPECGLOSSMAP
-    specularGloss = readTexture(TEXTURE2D_PARAM(specGlossMap, sampler_specGlossMap), IN);
+    specularGloss = readTexture(TEXTURE2D_PARAM(specGlossMap, sampler_specGlossMap), input);
 #elif defined(_SPECULAR_COLOR)
     specularGloss = specColor;
 #endif
@@ -245,21 +245,21 @@ half3 AlphaModulate(half3 albedo, half alpha)
 #endif
 }
 
-void InitializeInputData(VertexOutputLit IN, half3 normalTS, out InputData input)
+void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
 {
-    input.positionWS = IN.posWS.xyz;
+    output.positionWS = input.posWS.xyz;
 
 #if _NORMALMAP
-    input.normalWS = TangentToWorldNormal(normalTS, IN.tangent, IN.binormal, IN.normal);
+    output.normalWS = TangentToWorldNormal(normalTS, input.tangent, input.binormal, input.normal);
 #else
-    input.normalWS = FragmentNormalWS(IN.normal);
+    output.normalWS = FragmentNormalWS(input.normal);
 #endif
 
-    input.viewDirectionWS = FragmentViewDirWS(IN.viewDirShininess.xyz);
-    input.shadowCoord = float4(0, 0, 0, 0);
-    input.fogCoord = (half)IN.posWS.w;
-    input.vertexLighting = half3(0.0h, 0.0h, 0.0h);
-    input.bakedGI = half3(0.0h, 0.0h, 0.0h);
+    output.viewDirectionWS = FragmentViewDirWS(input.viewDirShininess.xyz);
+    output.shadowCoord = float4(0, 0, 0, 0);
+    output.fogCoord = (half)input.posWS.w;
+    output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
+    output.bakedGI = half3(0.0h, 0.0h, 0.0h);
 }
 
 #endif // LIGHTWEIGHT_PARTICLES_INCLUDED

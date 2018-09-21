@@ -18,29 +18,29 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static int _MainLightPosition;
             public static int _MainLightColor;
 
-            public static int _AdditionalLightCount;
-            public static int _AdditionalLightPosition;
-            public static int _AdditionalLightColor;
-            public static int _AdditionalLightAttenuation;
-            public static int _AdditionalLightSpotDir;
+            public static int _AdditionalLightsCount;
+            public static int _AdditionalLightsPosition;
+            public static int _AdditionalLightsColor;
+            public static int _AdditionalLightsAttenuation;
+            public static int _AdditionalLightsSpotDir;
 
-            public static int _LightIndexBuffer;
+            public static int _AdditionalLightsBuffer;
         }
 
         const string k_SetupLightConstants = "Setup Light Constants";
         MixedLightingSetup m_MixedLightingSetup;
 
-        Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+        Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
         Vector4 k_DefaultLightColor = Color.black;
         Vector4 k_DefaultLightAttenuation = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
         Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
 
-        Vector4[] m_LightPositions;
-        Vector4[] m_LightColors;
-        Vector4[] m_LightAttenuations;
-        Vector4[] m_LightSpotDirections;
+        Vector4[] m_AdditionalLightPositions;
+        Vector4[] m_AdditionalLightColors;
+        Vector4[] m_AdditionalLightAttenuations;
+        Vector4[] m_AdditionalLightSpotDirections;
 
-        private int maxVisibleLocalLights { get; set; }
+        private int maxVisibleAdditionalLights { get; set; }
         private ComputeBuffer perObjectLightIndices { get; set; }
 
         /// <summary>
@@ -50,35 +50,35 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
-            LightConstantBuffer._AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
-            LightConstantBuffer._AdditionalLightPosition = Shader.PropertyToID("_AdditionalLightPosition");
-            LightConstantBuffer._AdditionalLightColor = Shader.PropertyToID("_AdditionalLightColor");
-            LightConstantBuffer._AdditionalLightAttenuation = Shader.PropertyToID("_AdditionalLightAttenuation");
-            LightConstantBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
-            LightConstantBuffer._LightIndexBuffer = Shader.PropertyToID("_LightIndexBuffer");
+            LightConstantBuffer._AdditionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
+            LightConstantBuffer._AdditionalLightsPosition = Shader.PropertyToID("_AdditionalLightsPosition");
+            LightConstantBuffer._AdditionalLightsColor = Shader.PropertyToID("_AdditionalLightsColor");
+            LightConstantBuffer._AdditionalLightsAttenuation = Shader.PropertyToID("_AdditionalLightsAttenuation");
+            LightConstantBuffer._AdditionalLightsSpotDir = Shader.PropertyToID("_AdditionalLightsSpotDir");
+            LightConstantBuffer._AdditionalLightsBuffer = Shader.PropertyToID("_AdditionalLightsBuffer");
 
-            m_LightPositions = new Vector4[0];
-            m_LightColors = new Vector4[0];
-            m_LightAttenuations = new Vector4[0];
-            m_LightSpotDirections = new Vector4[0];
+            m_AdditionalLightPositions = new Vector4[0];
+            m_AdditionalLightColors = new Vector4[0];
+            m_AdditionalLightAttenuations = new Vector4[0];
+            m_AdditionalLightSpotDirections = new Vector4[0];
         }
 
         /// <summary>
         /// Configure the pass
         /// </summary>
-        /// <param name="maxVisibleLocalLights">Maximum number of allowed visible local lights</param>
+        /// <param name="maxVisibleAdditionalLights">Maximum number of visible additional lights</param>
         /// <param name="perObjectLightIndices">Buffer holding per object light indicies</param>
-        public void Setup(int maxVisibleLocalLights, ComputeBuffer perObjectLightIndices)
+        public void Setup(int maxVisibleAdditionalLights, ComputeBuffer perObjectLightIndices)
         {
-            this.maxVisibleLocalLights = maxVisibleLocalLights;
+            this.maxVisibleAdditionalLights = maxVisibleAdditionalLights;
             this.perObjectLightIndices = perObjectLightIndices;
 
-            if (m_LightColors.Length != maxVisibleLocalLights)
+            if (m_AdditionalLightColors.Length != maxVisibleAdditionalLights)
             {
-                m_LightPositions = new Vector4[maxVisibleLocalLights];
-                m_LightColors = new Vector4[maxVisibleLocalLights];
-                m_LightAttenuations = new Vector4[maxVisibleLocalLights];
-                m_LightSpotDirections = new Vector4[maxVisibleLocalLights];
+                m_AdditionalLightPositions = new Vector4[maxVisibleAdditionalLights];
+                m_AdditionalLightColors = new Vector4[maxVisibleAdditionalLights];
+                m_AdditionalLightAttenuations = new Vector4[maxVisibleAdditionalLights];
+                m_AdditionalLightSpotDirections = new Vector4[maxVisibleAdditionalLights];
             }
         }
 
@@ -89,8 +89,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightAttenuation = k_DefaultLightAttenuation;
             lightSpotDir = k_DefaultLightSpotDirection;
 
-            float subtractiveMixedLighting = 0.0f;
-
             // When no lights are visible, main light will be set to -1.
             // In this case we initialize it to default values and return
             if (lightIndex < 0)
@@ -100,12 +98,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (lightData.lightType == LightType.Directional)
             {
                 Vector4 dir = -lightData.localToWorld.GetColumn(2);
-                lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
+                lightPos = new Vector4(dir.x, dir.y, dir.z, k_DefaultLightAttenuation.w);
             }
             else
             {
                 Vector4 pos = lightData.localToWorld.GetColumn(3);
-                lightPos = new Vector4(pos.x, pos.y, pos.z, 0.0f);
+                lightPos = new Vector4(pos.x, pos.y, pos.z, k_DefaultLightAttenuation.w);
             }
 
             // VisibleLight.finalColor already returns color in active color space
@@ -138,7 +136,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // On other devices: Use the smoothing factor that matches the GI.
                 lightAttenuation.x = Application.isMobilePlatform ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
-                subtractiveMixedLighting = 1.0f;
             }
 
             if (lightData.lightType == LightType.Spot)
@@ -176,24 +173,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_MixedLightingSetup == MixedLightingSetup.None && lightData.light.shadows != LightShadows.None)
                 {
                     m_MixedLightingSetup = MixedLightingSetup.Subtractive;
-                    subtractiveMixedLighting = 0.0f;
+
+                    // In subtractive light mode, main light direct contribution is baked on lightmap
+                    // In this case we setup light position w component as 0.0f so we can remove it's contribution
+                    // from realtime light computation
+                    if (lightData.lightType == LightType.Directional)
+                        lightPos.w = 0.0f;
                 }
             }
-
-            // Use the w component of the light position to indicate subtractive mixed light mode.
-            // The only directional light is the main light, and the rest are punctual lights.
-            // The main light will always have w = 0 and the additional lights have w = 1.
-            lightPos.w = subtractiveMixedLighting;
         }
 
         void SetupShaderLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
             // Clear to default all light constant data
-            for (int i = 0; i < maxVisibleLocalLights; ++i)
-                InitializeLightConstants(lightData.visibleLights, -1, out m_LightPositions[i],
-                    out m_LightColors[i],
-                    out m_LightAttenuations[i],
-                    out m_LightSpotDirections[i]);
+            for (int i = 0; i < maxVisibleAdditionalLights; ++i)
+                InitializeLightConstants(lightData.visibleLights, -1, out m_AdditionalLightPositions[i],
+                    out m_AdditionalLightColors[i],
+                    out m_AdditionalLightAttenuations[i],
+                    out m_AdditionalLightSpotDirections[i]);
 
             m_MixedLightingSetup = MixedLightingSetup.None;
 
@@ -215,80 +212,75 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
             List<VisibleLight> lights = lightData.visibleLights;
-            if (lightData.totalAdditionalLightsCount > 0)
+            if (lightData.additionalLightsCount > 0)
             {
-                int localLightsCount = 0;
-                for (int i = 0; i < lights.Count && localLightsCount < maxVisibleLocalLights; ++i)
+                int additionalLightsCount = 0;
+                for (int i = 0; i < lights.Count && additionalLightsCount < maxVisibleAdditionalLights; ++i)
                 {
                     VisibleLight light = lights[i];
                     if (light.lightType != LightType.Directional)
                     {
-                        InitializeLightConstants(lights, i, out m_LightPositions[localLightsCount],
-                            out m_LightColors[localLightsCount],
-                            out m_LightAttenuations[localLightsCount],
-                            out m_LightSpotDirections[localLightsCount]);
-                        localLightsCount++;
+                        InitializeLightConstants(lights, i, out m_AdditionalLightPositions[additionalLightsCount],
+                            out m_AdditionalLightColors[additionalLightsCount],
+                            out m_AdditionalLightAttenuations[additionalLightsCount],
+                            out m_AdditionalLightSpotDirections[additionalLightsCount]);
+                        additionalLightsCount++;
                     }
                 }
 
-                cmd.SetGlobalVector(LightConstantBuffer._AdditionalLightCount, new Vector4(lightData.pixelAdditionalLightsCount,
-                    lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
+                cmd.SetGlobalVector(LightConstantBuffer._AdditionalLightsCount, new Vector4(lightData.additionalLightsCount,
+                    0.0f, 0.0f, 0.0f));
 
                 // if not using a compute buffer, engine will set indices in 2 vec4 constants
                 // unity_4LightIndices0 and unity_4LightIndices1
                 if (perObjectLightIndices != null)
-                    cmd.SetGlobalBuffer(LightConstantBuffer._LightIndexBuffer, perObjectLightIndices);
+                    cmd.SetGlobalBuffer(LightConstantBuffer._AdditionalLightsBuffer, perObjectLightIndices);
             }
             else
             {
-                cmd.SetGlobalVector(LightConstantBuffer._AdditionalLightCount, Vector4.zero);
+                cmd.SetGlobalVector(LightConstantBuffer._AdditionalLightsCount, Vector4.zero);
             }
 
-            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightPosition, m_LightPositions);
-            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightColor, m_LightColors);
-            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightAttenuation, m_LightAttenuations);
-            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightSpotDir, m_LightSpotDirections);
+            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightsPosition, m_AdditionalLightPositions);
+            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightsColor, m_AdditionalLightColors);
+            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightsAttenuation, m_AdditionalLightAttenuations);
+            cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightsSpotDir, m_AdditionalLightSpotDirections);
         }
 
         void SetShaderKeywords(CommandBuffer cmd, ref CameraData cameraData, ref LightData lightData, ref ShadowData shadowData)
         {
-            int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
-
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.AdditionalLights, lightData.totalAdditionalLightsCount > 0);
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.MixedLightingSubtractive, m_MixedLightingSetup == MixedLightingSetup.Subtractive);
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.VertexLights, vertexLightsCount > 0);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex, lightData.additionalLightsCount > 0 && lightData.shadeAdditionalLightsPerVertex);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel, lightData.additionalLightsCount > 0 && !lightData.shadeAdditionalLightsPerVertex);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.Subtractive);
 
             List<VisibleLight> visibleLights = lightData.visibleLights;
 
             // If shadows were resolved in screen space we don't sample shadowmap in lit shader. In that case we just set softDirectionalShadows to false.
-            bool softDirectionalShadows = shadowData.renderDirectionalShadows && !shadowData.requiresScreenSpaceShadowResolve &&
+            bool softMainLightShadows = shadowData.supportsMainLightShadows && !shadowData.requiresScreenSpaceShadowResolve &&
                 shadowData.supportsSoftShadows && lightData.mainLightIndex != -1 &&
                 visibleLights[lightData.mainLightIndex].light.shadows == LightShadows.Soft;
 
-            bool softLocalShadows = false;
-            if (shadowData.renderLocalShadows && shadowData.supportsSoftShadows)
+            bool softAdditionalLightShadows = false;
+            if (shadowData.supportsAdditionalLightShadows && shadowData.supportsSoftShadows)
             {
-                List<int> visibleLocalLightIndices = lightData.visibleLocalLightIndices;
-                for (int i = 0; i < visibleLocalLightIndices.Count; ++i)
+                List<int> visibleAdditionalLightIndices = lightData.additionalLightIndices;
+                for (int i = 0; i < visibleAdditionalLightIndices.Count; ++i)
                 {
-                    if (visibleLights[visibleLocalLightIndices[i]].light.shadows == LightShadows.Soft)
+                    if (visibleLights[visibleAdditionalLightIndices[i]].light.shadows == LightShadows.Soft)
                     {
-                        softLocalShadows = true;
+                        softAdditionalLightShadows = true;
                         break;
                     }
                 }
             }
 
-            // Currently shadow filtering keyword is shared between local and directional shadows.
-            bool hasSoftShadows = softDirectionalShadows || softLocalShadows;
+            // Currently shadow filtering keyword is shared between additional and directional shadows.
+            bool hasSoftShadows = softMainLightShadows || softAdditionalLightShadows;
 
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.DirectionalShadows, shadowData.renderDirectionalShadows);
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.LocalShadows, shadowData.renderLocalShadows);
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.SoftShadows, hasSoftShadows);
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.CascadeShadows, shadowData.directionalLightCascadeCount > 1);
-
-            // TODO: Remove this. legacy particles support will be removed from Unity in 2018.3. This should be a shader_feature instead with prop exposed in the Standard particles shader.
-            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.SoftParticles, cameraData.requiresSoftParticles);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, shadowData.supportsMainLightShadows);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shadowData.supportsAdditionalLightShadows);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadows);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
         }
         
         /// <inheritdoc/>

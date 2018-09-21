@@ -17,12 +17,49 @@
 #define BUMP_SCALE_NOT_SUPPORTED !SHADER_HINT_NICE_QUALITY
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-#ifdef _NORMALMAP
-    #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent.xyz, OUT.binormal.xyz, OUT.normal.xyz)
-#else
-    #define OUTPUT_NORMAL(IN, OUT) OUT.normal = TransformObjectToWorldNormal(IN.normal)
-#endif
+struct VertexPosition
+{
+    float3 worldSpace;
+    float3 viewSpace;
+    float4 hclipSpace;
+};
+
+struct VertexTBN
+{
+    real3 tangentWS;
+    real3 binormalWS;
+    real3 normalWS;
+};
+
+VertexPosition GetVertexPosition(float3 positionOS)
+{
+    VertexPosition vertexPos;
+    vertexPos.worldSpace = TransformObjectToWorld(positionOS);
+    vertexPos.viewSpace = TransformWorldToView(vertexPos.worldSpace);
+    vertexPos.hclipSpace = TransformWorldToHClip(vertexPos.worldSpace);
+    return vertexPos;
+}
+
+VertexTBN GetVertexTBN(float3 normalOS)
+{
+    VertexTBN tbn;
+    tbn.tangentWS = real3(1.0, 0.0, 0.0);
+    tbn.binormalWS = real3(0.0, 1.0, 0.0);
+    tbn.normalWS = TransformObjectToWorldNormal(normalOS);
+    return tbn;
+}
+
+VertexTBN GetVertexTBN(float3 normalOS, float4 tangentOS)
+{
+    VertexTBN tbn;
+
+    // mikkts space compliant. only normalize when extracting normal at frag.
+    real sign = tangentOS.w * GetOddNegativeScale();
+    tbn.normalWS = TransformObjectToWorldNormal(normalOS);
+    tbn.tangentWS = TransformObjectToWorldDir(tangentOS.xyz);
+    tbn.binormalWS = cross(tbn.normalWS, tbn.tangentWS) * sign;
+    return tbn;
+}
 
 #if UNITY_REVERSED_Z
     #if SHADER_API_OPENGL || SHADER_API_GLES || SHADER_API_GLES3
@@ -56,6 +93,11 @@
 #define UNITY_READ_FRAMEBUFFER_INPUT(idx, v2fvertexname) _UnityFBInput##idx.Load(uint3(v2fvertexname.xy, 0))
 #endif
 
+float3 GetCameraPositionWS()
+{
+    return _WorldSpaceCameraPos;
+}
+
 float4 GetScaledScreenParams()
 {
     return _ScaledScreenParams;
@@ -87,16 +129,7 @@ half3 UnpackNormalScale(half4 packedNormal, half bumpScale)
 #endif
 }
 
-void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tangentWS, out half3 binormalWS, out half3 normalWS)
-{
-    // mikkts space compliant. only normalize when extracting normal at frag.
-    half sign = vertexTangent.w * GetOddNegativeScale();
-    normalWS = TransformObjectToWorldNormal(vertexNormal);
-    tangentWS = TransformObjectToWorldDir(vertexTangent.xyz);
-    binormalWS = cross(normalWS, tangentWS) * sign;
-}
-
-half3 FragmentNormalWS(half3 normal)
+real3 FragmentNormalWS(real3 normal)
 {
 #if !SHADER_HINT_NICE_QUALITY
     // World normal is already normalized in vertex. Small acceptable error to save ALU.
@@ -106,7 +139,7 @@ half3 FragmentNormalWS(half3 normal)
 #endif
 }
 
-half3 FragmentViewDirWS(half3 viewDir)
+real3 FragmentViewDirWS(real3 viewDir)
 {
 #if !SHADER_HINT_NICE_QUALITY
     // View direction is already normalized in vertex. Small acceptable error to save ALU.
@@ -116,7 +149,7 @@ half3 FragmentViewDirWS(half3 viewDir)
 #endif
 }
 
-half3 VertexViewDirWS(half3 viewDir)
+real3 VertexViewDirWS(real3 viewDir)
 {
 #if !SHADER_HINT_NICE_QUALITY
     // Normalize in vertex and avoid renormalizing it in frag to save ALU.
@@ -126,9 +159,9 @@ half3 VertexViewDirWS(half3 viewDir)
 #endif
 }
 
-half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, half3 normal)
+real3 TangentToWorldNormal(real3 normalTangent, real3 tangent, real3 binormal, real3 normal)
 {
-    half3x3 tangentToWorld = half3x3(tangent, binormal, normal);
+    real3x3 tangentToWorld = real3x3(tangent, binormal, normal);
     return FragmentNormalWS(mul(normalTangent, tangentToWorld));
 }
 
@@ -141,24 +174,24 @@ float4 ComputeScreenPos(float4 positionCS)
     return o;
 }
 
-half ComputeFogFactor(float z)
+real ComputeFogFactor(float z)
 {
     float clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(z);
 
 #if defined(FOG_LINEAR)
     // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
     float fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);
-    return half(fogFactor);
+    return real(fogFactor);
 #elif defined(FOG_EXP) || defined(FOG_EXP2)
     // factor = exp(-(density*z)^2)
     // -density * z computed at vertex
-    return half(unity_FogParams.x * clipZ_01);
+    return real(unity_FogParams.x * clipZ_01);
 #else
     return 0.0h;
 #endif
 }
 
-void ApplyFogColor(inout half3 color, half3 fogColor, half fogFactor)
+void ApplyFogColor(inout real3 color, real3 fogColor, real fogFactor)
 {
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
 #if defined(FOG_EXP)
@@ -174,7 +207,7 @@ void ApplyFogColor(inout half3 color, half3 fogColor, half fogFactor)
 #endif
 }
 
-void ApplyFog(inout half3 color, half fogFactor)
+void ApplyFog(inout real3 color, real fogFactor)
 {
     ApplyFogColor(color, unity_FogColor.rgb, fogFactor);
 }
