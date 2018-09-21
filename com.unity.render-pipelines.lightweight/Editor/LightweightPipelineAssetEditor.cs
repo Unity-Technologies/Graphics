@@ -238,10 +238,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, m_ShadowDistanceProp.floatValue));
                 CoreEditorUtils.DrawPopup(Styles.shadowCascadesText, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
 
-                ShadowCascades cascades = (ShadowCascades)m_ShadowCascadesProp.intValue;
-                if (cascades == ShadowCascades.FOUR_CASCADES)
+                ShadowCascadesOption cascades = (ShadowCascadesOption)m_ShadowCascadesProp.intValue;
+                if (cascades == ShadowCascadesOption.FourCascades)
                     CoreEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
-                else if (cascades == ShadowCascades.TWO_CASCADES)
+                else if (cascades == ShadowCascadesOption.TwoCascades)
                     CoreEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
 
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);

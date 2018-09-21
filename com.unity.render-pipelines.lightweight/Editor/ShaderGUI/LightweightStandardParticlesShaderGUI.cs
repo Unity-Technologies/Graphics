@@ -136,6 +136,9 @@ namespace UnityEditor
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
+            if (materialEditor == null)
+                throw new ArgumentNullException("materialEditor");
+
             FindProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
             m_MaterialEditor = materialEditor;
             Material material = materialEditor.target as Material;
@@ -200,6 +203,15 @@ namespace UnityEditor
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
+            if (material == null)
+                throw new ArgumentNullException("material");
+
+            if (material == null)
+                throw new ArgumentNullException("oldShader");
+
+            if (newShader == null)
+                throw new ArgumentNullException("newShader");
+
             // Sync the lighting flag for the unlit shader
             if (newShader.name.Contains("Unlit"))
                 material.SetFloat("_LightingEnabled", 0.0f);
@@ -480,7 +492,7 @@ namespace UnityEditor
                 if (!rendererStreams.SequenceEqual(streams))
                     Warnings += "  " + renderer.name + "\n";
             }
-            if (Warnings != "")
+            if (string.IsNullOrEmpty(Warnings))
             {
                 EditorGUILayout.HelpBox("The following Particle System Renderers are using this material with incorrect Vertex Streams:\n" + Warnings + "Use the Apply to Systems button to fix this", MessageType.Warning, true);
             }

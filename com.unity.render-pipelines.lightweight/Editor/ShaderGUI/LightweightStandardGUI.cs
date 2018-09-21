@@ -93,6 +93,9 @@ namespace UnityEditor
 
         public override void MaterialChanged(Material material)
         {
+            if (material == null)
+                throw new ArgumentNullException("material");
+
             material.shaderKeywords = null;
             SetupMaterialBlendMode(material);
             SetMaterialKeywords(material);
@@ -100,6 +103,9 @@ namespace UnityEditor
 
         public override void ShaderPropertiesGUI(Material material)
         {
+            if (material == null)
+                throw new ArgumentNullException("material");
+
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
 
@@ -114,18 +120,18 @@ namespace UnityEditor
                 DoMetallicSpecularArea();
                 DoNormalArea();
 
-                m_MaterialEditor.TexturePropertySingleLine(Styles.occlusionText, occlusionMap, occlusionMap.textureValue != null ? occlusionStrength : null);
+                materialEditor.TexturePropertySingleLine(Styles.occlusionText, occlusionMap, occlusionMap.textureValue != null ? occlusionStrength : null);
 
                 DoEmissionArea(material);
                 EditorGUI.BeginChangeCheck();
-                m_MaterialEditor.TextureScaleOffsetProperty(albedoMap);
+                materialEditor.TextureScaleOffsetProperty(albedoMap);
                 if (EditorGUI.EndChangeCheck())
                     emissionMap.textureScaleAndOffset = albedoMap.textureScaleAndOffset; // Apply the main texture scale and offset to the emission texture as well, for Enlighten's sake
 
                 EditorGUILayout.Space();
 
-                m_MaterialEditor.ShaderProperty(highlights, Styles.highlightsText);
-                m_MaterialEditor.ShaderProperty(reflections, Styles.reflectionsText);
+                materialEditor.ShaderProperty(highlights, Styles.highlightsText);
+                materialEditor.ShaderProperty(reflections, Styles.reflectionsText);
             }
             if (EditorGUI.EndChangeCheck())
             {
@@ -138,6 +144,9 @@ namespace UnityEditor
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
+            if (material == null)
+                throw new ArgumentNullException("material");
+
             // _Emission property is lost after assigning Standard shader to the material
             // thus transfer it before assigning the new shader
             if (material.HasProperty("_Emission"))
@@ -190,26 +199,26 @@ namespace UnityEditor
 
         void DoAlbedoArea()
         {
-            m_MaterialEditor.TexturePropertySingleLine(Styles.albedoText, albedoMap, albedoColor);
+            materialEditor.TexturePropertySingleLine(Styles.albedoText, albedoMap, albedoColor);
         }
 
         void DoNormalArea()
         {
-            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap, bumpMap.textureValue != null ? bumpScale : null);
+            materialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap, bumpMap.textureValue != null ? bumpScale : null);
             if (bumpScale.floatValue != 1 && UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(EditorUserBuildSettings.activeBuildTarget))
-                if (m_MaterialEditor.HelpBoxWithButton(Styles.bumpScaleNotSupported, Styles.fixNow))
+                if (materialEditor.HelpBoxWithButton(Styles.bumpScaleNotSupported, Styles.fixNow))
                     bumpScale.floatValue = 1;
         }
 
         void DoEmissionArea(Material material)
         {
             // Emission for GI?
-            if (m_MaterialEditor.EmissionEnabledProperty())
+            if (materialEditor.EmissionEnabledProperty())
             {
                 bool hadEmissionTexture = emissionMap.textureValue != null;
 
                 // Texture and HDR color controls
-                m_MaterialEditor.TexturePropertyWithHDRColor(Styles.emissionText, emissionMap, emissionColorForRendering, false);
+                materialEditor.TexturePropertyWithHDRColor(Styles.emissionText, emissionMap, emissionColorForRendering, false);
 
                 // If texture was assigned and color was black set color to white
                 float brightness = emissionColorForRendering.colorValue.maxColorComponent;
@@ -231,14 +240,14 @@ namespace UnityEditor
             {
                 hasGlossMap = metallicGlossMap.textureValue != null;
                 metallicSpecSmoothnessChannelName = Styles.metallicSmoothnessChannelNames;
-                m_MaterialEditor.TexturePropertySingleLine(Styles.metallicMapText, metallicGlossMap,
+                materialEditor.TexturePropertySingleLine(Styles.metallicMapText, metallicGlossMap,
                     hasGlossMap ? null : metallic);
             }
             else
             {
                 hasGlossMap = specGlossMap.textureValue != null;
                 metallicSpecSmoothnessChannelName = Styles.specularSmoothnessChannelNames;
-                m_MaterialEditor.TexturePropertySingleLine(Styles.specularMapText, specGlossMap,
+                materialEditor.TexturePropertySingleLine(Styles.specularMapText, specGlossMap,
                     hasGlossMap ? null : specColor);
             }
 
@@ -251,7 +260,7 @@ namespace UnityEditor
             }
 
             int indentation = 2; // align with labels of texture properties
-            m_MaterialEditor.ShaderProperty(showSmoothnessScale ? smoothnessScale : smoothness, showSmoothnessScale ? Styles.smoothnessScaleText : Styles.smoothnessText, indentation);
+            materialEditor.ShaderProperty(showSmoothnessScale ? smoothnessScale : smoothness, showSmoothnessScale ? Styles.smoothnessScaleText : Styles.smoothnessText, indentation);
 
             int prevIndentLevel = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 3;

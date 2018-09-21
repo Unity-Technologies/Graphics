@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Inspector window for the Unlit shader now displays correctly.
 - Reduced GC pressure by removing several per-frame memory allocations.
 - The tooltip for the the camera __MSAA__ property now appears correctly.
+- Fixed multiple C# code analysis rule violations.
 
 ## [3.3.0-preview]
 ### Added

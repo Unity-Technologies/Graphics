@@ -2,22 +2,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public enum ShaderPathID
     {
-        STANDARD_PBS = 0,
-        STANDARD_SIMPLE_LIGHTING,
-        STANDARD_UNLIT,
-        STANDARD_TERRAIN,
-        STANDARD_PARTICLES_LIT,
-        STANDARD_PARTICLES_UNLIT,
+        PhysicallyBased,
+        SimpleLit,
+        Unlit,
+        TerrainPhysicallyBased,
+        ParticlesPhysicallyBased,
+        ParticlesUnlit,
 
-        HIDDEN_BLIT,
-        HIDDEN_DEPTH_COPY,
-
-        SHADER_PATH_COUNT
+        Count
     }
 
     public static class LightweightShaderUtils
     {
-        private static readonly string[] m_ShaderPaths  =
+        static readonly string[] s_ShaderPaths  =
         {
             "LightweightPipeline/Standard (Physically Based)",
             "LightweightPipeline/Standard (Simple Lighting)",
@@ -32,13 +29,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static string GetShaderPath(ShaderPathID id)
         {
             int index = (int)id;
-            if (index < 0 && index >= (int)ShaderPathID.SHADER_PATH_COUNT)
+            if (index < 0 && index >= (int)ShaderPathID.Count)
             {
                 Debug.LogError("Trying to access lightweight shader path out of bounds");
                 return "";
             }
 
-            return m_ShaderPaths[index];
+            return s_ShaderPaths[index];
         }
     }
 }

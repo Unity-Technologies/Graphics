@@ -103,14 +103,14 @@ float4 GetScaledScreenParams()
     return _ScaledScreenParams;
 }
 
-void AlphaDiscard(half alpha, half cutoff, half offset = 0.0h)
+void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 {
 #ifdef _ALPHATEST_ON
     clip(alpha - cutoff + offset);
 #endif
 }
 
-half3 UnpackNormal(half4 packedNormal)
+real3 UnpackNormal(real4 packedNormal)
 {
 #if defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGBNoScale(packedNormal);
@@ -120,7 +120,7 @@ half3 UnpackNormal(half4 packedNormal)
 #endif
 }
 
-half3 UnpackNormalScale(half4 packedNormal, half bumpScale)
+real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 {
 #if defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGB(packedNormal, bumpScale);

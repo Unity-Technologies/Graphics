@@ -66,6 +66,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (renderer == null)
+                throw new ArgumentNullException("renderer");
+            
             if (renderingData.shadowData.supportsAdditionalLightShadows)
             {
                 Clear();
@@ -75,6 +78,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override void FrameCleanup(CommandBuffer cmd)
         {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+            
             if (m_AdditionalLightsShadowmapTexture)
             {
                 RenderTexture.ReleaseTemporary(m_AdditionalLightsShadowmapTexture);

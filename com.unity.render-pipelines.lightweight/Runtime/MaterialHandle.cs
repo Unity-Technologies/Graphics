@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public enum MaterialHandles
+    public enum MaterialHandle
     {
         Error,
         DepthCopy,

@@ -35,10 +35,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
     public struct UpgradeParams
     {
-        public UpgradeSurfaceType surfaceType;
-        public UpgradeBlendMode blendMode;
-        public bool alphaClip;
-        public SpecularSource specularSource;
-        public GlossinessSource glosinessSource;
+        public UpgradeSurfaceType surfaceType { get; set; }
+        public UpgradeBlendMode blendMode { get; set; }
+        public bool alphaClip { get; set; }
+        public SpecularSource specularSource { get; set; }
+        public GlossinessSource glosinessSource { get; set; }
     }
 }
