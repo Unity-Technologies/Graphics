@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
 {
     public class ShaderGenerationTest
     {
-        static readonly string s_Path = Path.Combine(Path.Combine(Path.Combine(DefaultShaderIncludes.GetRepositoryPath(), "Testing"), "IntegrationTests"), "Graphs");
+        static readonly string s_Path = Path.Combine(Path.Combine(Path.Combine("" /*DefaultShaderIncludes.GetRepositoryPath()*/, "Testing"), "IntegrationTests"), "Graphs");
 
         public struct TestInfo
         {
@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
 
             Assert.IsNotNull(graph.masterNode, "No master node in graph.");
 
-            var rootPath = Path.Combine(Path.Combine(DefaultShaderIncludes.GetRepositoryPath(), "Testing"), "IntegrationTests");
+            var rootPath = Path.Combine(Path.Combine("" /*DefaultShaderIncludes.GetRepositoryPath()*/, "Testing"), "IntegrationTests");
             var shaderTemplatePath = Path.Combine(rootPath, ".ShaderTemplates");
             var textTemplateFilePath = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", testInfo.name, "shader"));
 

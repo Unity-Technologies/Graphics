@@ -4,19 +4,60 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.4.0-preview]
+## [4.0.0-preview] - 2019-09-21
 ### Added
 - When you have enabled Gizmos, they now appear correctly in the Game view.
 - Added requiresDepthPrepass field to RenderingData struct to tell if the runtime platform requires a depth prepass to generate a camera depth texture.
 - The `RenderingData` struct now holds a reference to `CullResults`.
 - When __HDR__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
 - When __MSAA__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
+<<<<<<< HEAD
+=======
+- Enabled instancing on the terrain shader.
+- Sorting of opaque objects now respects camera opaqueSortMode setting.
+- Sorting of opaque objects disables front-to-back sorting flag when camera settings allow that and the GPU has hidden surface removal.
+- Custom Light Explorer for LWRP, compared to builtin only reflection probes have changed, removed projection and added resolution.
+- Vertex Lit shader for detail meshes on terrain, this is hidden by default but will override the usage in the terrain system.
+- [Shader API] `GetMainLight` and `GetAdditionalLight` functions can now compute shadow attenuation and store it in the new `shadowAttenuation` field in `LightData` struct.
+- [Shader API] Added `VertexPosition` struct that contains vertex position in difference spaces (world, view, hclip).
+- [Shader API] Added `GetVertexPosition` function to get an initialized `VertexPosition`.
+- [Shader API] Added `GetPerObjectLightIndex` function to return the per-object index given a for-loop index.
+- [Shader API] Added `GetShadowCoord` function that takes a `VertexPosition` as input.
+- Autodesk interactive shaders.
+>>>>>>> 231b56420aef195378f644e8fae79614ccec380e
 ### Changed
 - The `RenderingData` struct is now read-only.
 - `ScriptableRenderer`always perform a Clear before calling `IRendererSetup::Setup.` 
 - `ScriptableRenderPass::Execute` no longer takes `CullResults` as input. Instead, use `RenderingData`as input, since that references `CullResults`.
 - `IRendererSetup_Setup` no longer takes `ScriptableRenderContext` and `CullResults` as input.
+<<<<<<< HEAD
+=======
+- Removed setting shader inclue path via old API, use package shader include paths
+- Reorganized LWRP asset settings to be more clear.
+- Vertex lighting now controls if additional lights should be shaded per-vertex or per-pixel.
+- Renamed all `Local Lights` nomenclature to `Additional Lights`.
+- Changed shader naming to conform to our SRP shader code convention.
+- [Shader API] Renamed `SpotAttenuation` function to `AngleAttenuation`.
+- [Shader API] Renamed `_SHADOWS_ENABLED` keyword to `_MAIN_LIGHT_SHADOWS`
+- [Shader API] Renamed `_SHADOWS_CASCADE` keyword to `_MAIN_LIGHT_SHADOWS_CASCADE`
+- [Shader API] Renamed `_VERTEX_LIGHTS` and `_ADDITIONAL_LIGHTS` keywords to
+`_ADDITIONAL_LIGHTS_VERTEX` and `_ADDITIONAL_LIGHTS_PIXEL` respectively.
+- [Shader API] Renamed `_LOCAL_SHADOWS_ENABLED` to `_ADDITIONAL_LIGHT_SHADOWS`
+- [Shader API] Renamed `GetLight` function to `GetAdditionalLight`.
+- [Shader API] Renamed `GetPixelLightCount` function to `GetAdditionalLightsCount`.
+- [Shader API] Renamed `attenuation` to `distanceAttenuation` in `LightData`.
+- [Shader API] Renamed `GetLocalLightShadowStrength` function to `GetAdditionalLightShadowStrength`.
+- [Shader API] Renamed `SampleScreenSpaceShadowMap` functions to `SampleScreenSpaceShadowmap`.
+- [Shader API] Renamed `MainLightRealtimeShadowAttenuation` function to `MainLightRealtimeShadow`.
+- [Shader API] Renamed light constants from `Directional` and `Local` to `MainLight` and `AdditionalLights`.
+- [Shader API] Renamed `GetLocalLightShadowSamplingData` function to `GetAdditionalLightShadowSamplingData`.
+- [Shader API] Removed OUTPUT_NORMAL macro.
+- [Shader API] Removed `lightIndex` and `substractiveAttenuation` from `LightData`.
+- [Shader API] Removed `ComputeShadowCoord` function. `GetShadowCoord` is provided instead.
+
+>>>>>>> 231b56420aef195378f644e8fae79614ccec380e
 ### Fixed
+- If you have more than 16 lights in a scene, LWRP no longer causes random glitches while rendering lights.
 - The Unlit shader now samples Global Illumination correctly.
 - The Inspector window for the Unlit shader now displays correctly.
 - Reduced GC pressure by removing several per-frame memory allocations.
@@ -32,6 +73,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - UNITY_MATRIX_I_VP is now defined.
 - Renamed LightweightForwardRenderer to ScriptableRenderer.
 - Moved all light constants to _LightBuffer CBUFFER. Now _PerCamera CBUFFER contains all other per camera constants.
+<<<<<<< HEAD
+=======
+- Change real-time attenuation to inverse square.
+- Change attenuation for baked GI to inverse square, to match real-time attenuation.
+- Small optimization in light attenuation shader code.
+>>>>>>> 231b56420aef195378f644e8fae79614ccec380e
 
 ### Fixed
 - Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.

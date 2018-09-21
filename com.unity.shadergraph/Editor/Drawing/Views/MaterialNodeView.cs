@@ -263,10 +263,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ShowGeneratedCode()
         {
-            var graph = (AbstractMaterialGraph)node.owner;
+            string name = GetFirstAncestorOfType<GraphEditorView>().assetName;
 
-            string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}.shader", SanitizeName(graph.name), SanitizeName(node.name), node.guid);
-
+            string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}.shader", SanitizeName(name), SanitizeName(node.name), node.guid);
             if (GraphUtil.WriteToFile(path, ConvertToShader()))
                 GraphUtil.OpenFile(path);
         }
