@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly AbstractMaterialGraph m_Graph;
 
         IShaderProperty m_Property;
-        Toggle m_ExposedToggle;
+        Toggle m_ExposedToogle;
         TextField m_ReferenceNameField;
 
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
@@ -31,14 +31,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_Property = property;
 
-            m_ExposedToggle = new Toggle();
-            m_ExposedToggle.OnToggleChanged(evt =>
+            m_ExposedToogle = new Toggle();
+            m_ExposedToogle.OnToggleChanged(evt =>
             {
                 property.generatePropertyBlock = evt.newValue;
                 DirtyNodes(ModificationScope.Graph);
             });
-            m_ExposedToggle.value = property.generatePropertyBlock;
-            AddRow("Exposed", m_ExposedToggle);
+            m_ExposedToogle.value = property.generatePropertyBlock;
+            AddRow("Exposed", m_ExposedToogle);
 
             m_ReferenceNameField = new TextField(512, false, false, ' ');
             m_ReferenceNameField.AddStyleSheetPath("Styles/PropertyNameReferenceField");

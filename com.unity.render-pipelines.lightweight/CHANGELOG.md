@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `RenderingData` struct now holds a reference to `CullResults`.
 - When __HDR__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
 - When __MSAA__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
-<<<<<<< HEAD
-=======
 - Enabled instancing on the terrain shader.
 - Sorting of opaque objects now respects camera opaqueSortMode setting.
 - Sorting of opaque objects disables front-to-back sorting flag when camera settings allow that and the GPU has hidden surface removal.
@@ -24,14 +22,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - [Shader API] Added `GetPerObjectLightIndex` function to return the per-object index given a for-loop index.
 - [Shader API] Added `GetShadowCoord` function that takes a `VertexPosition` as input.
 - Autodesk interactive shaders.
->>>>>>> 231b56420aef195378f644e8fae79614ccec380e
 ### Changed
 - The `RenderingData` struct is now read-only.
 - `ScriptableRenderer`always perform a Clear before calling `IRendererSetup::Setup.` 
 - `ScriptableRenderPass::Execute` no longer takes `CullResults` as input. Instead, use `RenderingData`as input, since that references `CullResults`.
 - `IRendererSetup_Setup` no longer takes `ScriptableRenderContext` and `CullResults` as input.
-<<<<<<< HEAD
-=======
 - Removed setting shader inclue path via old API, use package shader include paths
 - Reorganized LWRP asset settings to be more clear.
 - Vertex lighting now controls if additional lights should be shaded per-vertex or per-pixel.
@@ -55,7 +50,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - [Shader API] Removed `lightIndex` and `substractiveAttenuation` from `LightData`.
 - [Shader API] Removed `ComputeShadowCoord` function. `GetShadowCoord` is provided instead.
 
->>>>>>> 231b56420aef195378f644e8fae79614ccec380e
 ### Fixed
 - If you have more than 16 lights in a scene, LWRP no longer causes random glitches while rendering lights.
 - The Unlit shader now samples Global Illumination correctly.
@@ -73,12 +67,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - UNITY_MATRIX_I_VP is now defined.
 - Renamed LightweightForwardRenderer to ScriptableRenderer.
 - Moved all light constants to _LightBuffer CBUFFER. Now _PerCamera CBUFFER contains all other per camera constants.
-<<<<<<< HEAD
-=======
 - Change real-time attenuation to inverse square.
 - Change attenuation for baked GI to inverse square, to match real-time attenuation.
 - Small optimization in light attenuation shader code.
->>>>>>> 231b56420aef195378f644e8fae79614ccec380e
 
 ### Fixed
 - Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.

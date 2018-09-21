@@ -2,6 +2,13 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
+    /// <summary>
+    /// Render all transparent forward objects into the given color and depth target 
+    ///
+    /// You can use this pass to render objects that have a material and/or shader
+    /// with the pass names LightweightForward or SRPDefaultUnlit. The pass only renders
+    /// objects in the rendering queue range of Transparent objects.
+    /// </summary>
     public class RenderTransparentForwardPass : ScriptableRenderPass
     {
         const string k_RenderTransparentsTag = "Render Transparents";
@@ -24,6 +31,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             };
         }
 
+        /// <summary>
+        /// Configure the pass before execution
+        /// </summary>
+        /// <param name="baseDescriptor">Current target descriptor</param>
+        /// <param name="colorAttachmentHandle">Color attachment to render into</param>
+        /// <param name="depthAttachmentHandle">Depth attachment to render into</param>
+        /// <param name="configuration">Specific render configuration</param>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle colorAttachmentHandle,
@@ -36,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             rendererConfiguration = configuration;
         }
 
+        /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderTransparentsTag);

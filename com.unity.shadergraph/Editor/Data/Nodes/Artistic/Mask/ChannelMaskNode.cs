@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(), NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<DynamicVectorMaterialSlot>(InputSlotId).concreteValueType), argIn, NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<DynamicVectorMaterialSlot>(OutputSlotId).concreteValueType), argOut);
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             ValidateChannelCount();
             string inputValue = GetSlotValue(InputSlotId, generationMode);
