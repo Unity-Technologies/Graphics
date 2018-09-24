@@ -80,11 +80,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
 
-                var materialOptions = ShaderGenerator.GetMaterialOptions(unlitMasterNode.surfaceType, unlitMasterNode.alphaMode, unlitMasterNode.twoSided.isOn);
+                var materialTags = ShaderGenerator.BuildMaterialTags(unlitMasterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
-                materialOptions.GetTags(tagsBuilder);
+                materialTags.GetTags(tagsBuilder);
                 subShader.AppendLines(tagsBuilder.ToString());
 
+                var materialOptions = ShaderGenerator.GetMaterialOptions(unlitMasterNode.surfaceType, unlitMasterNode.alphaMode, unlitMasterNode.twoSided.isOn);
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         forwardTemplate,
                         unlitMasterNode,

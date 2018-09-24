@@ -15,6 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "Depth prepass",
             LightMode = "DepthForwardOnly",
             TemplateName = "HDUnlitPassForward.template",
+            MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ZWriteOverride = "ZWrite On",
             Includes = new List<string>()
@@ -37,6 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "Forward Unlit",
             LightMode = "ForwardOnly",
             TemplateName = "HDUnlitPassForward.template",
+            MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_FORWARD_UNLIT",
             ExtraDefines = new List<string>()
             {
@@ -63,6 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "META",
             LightMode = "Meta",
             TemplateName = "HDUnlitPassForward.template",
+            MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
             CullOverride = "Cull Off",
             Includes = new List<string>()
@@ -95,6 +98,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "Distortion",
             LightMode = "DistortionVectors",
             TemplateName = "HDUnlitPassForward.template",
+            MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_DISTORTION",
             BlendOverride = "Blend One One, One One",   // [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
             BlendOpOverride = "BlendOp Add, Add",       // Add, [_DistortionBlurBlendOp]
@@ -182,7 +186,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
             // use standard shader pass generation
-            return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, materialOptions, activeFields, result, sourceAssetDependencyPaths);
+            bool vertexActive = masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId);
+            return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, materialOptions, activeFields, result, sourceAssetDependencyPaths, vertexActive);
         }
 
         public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
@@ -190,7 +195,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (sourceAssetDependencyPaths != null)
             {
                 // HDUnlitSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("292c6a3c80161fa4cb49a9d11d35cbe9"));
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("a32a2cf536cae8e478ca1bbb7b9c493b"));
                 // HDSubShaderUtilities.cs
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
@@ -201,14 +206,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn);
-
+                // Options still need to be added to master node - pre-refraction, sort priority...
+                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, false, false, 0);
                 // Add tags at the SubShader level
                 {
                     var tagsVisitor = new ShaderStringBuilder();
-                    materialOptions.GetTags(tagsVisitor);
+                    materialTags.GetTags(tagsVisitor);
                     subShader.AddShaderChunk(tagsVisitor.ToString(), false);
                 }
+
+                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, false);
 
                 // generate the necessary shader passes
 //                bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);

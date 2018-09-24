@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - A new node `Texture 2D LOD` has been added for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot.
 - Added `Texel Size` node, which allows you to get the special texture properties of a Texture 2D Asset via the `{texturename}_TexelSize` variable. Based on input from the Texture 2D Asset, the node outputs the width and height of the texel size in Vector1 format.
 - Added `Rotate About Axis` node. This allows you to rotate a 3D vector space around an axis. For the rotation, you can specify an amount of degrees or a radian value.
+- Unpacking normal maps in object space.
+- Unpacking derivative maps option on sample texture nodes.
+- Added Uint type for instancing support.
+- Added HDR option for color material slots.
+- Added definitions used by new HD Lit Master node.
+- Added a popup control for a string list.
+- Added conversion type (position/direction) to TransformNode.
 
 ### Changed
 - The settings for master nodes now live in a small window that you can toggle on and off. Here, you can change various rendering settings for your shader.
@@ -39,6 +46,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `Polygon` node now calculates radius based on apothem.
 - `Normal Strength` node now calculates Z value more accurately.
 - You can now connect Sub Graphs to vertex shader slots. If a node in the Sub Graph specifies a shader stage, that specific Sub Graph node is locked to that stage. When an instance of a Sub Graph node is connected to a slot that specifies a shader stage, all slots on that instance are locked to the stage.
+- Separated material options and tags.
+- Master node settings are now recreated when a topological modification occurs.
 
 ### Fixed
 - Vector 1 nodes now evaluate correctly. ([#334](https://github.com/Unity-Technologies/ShaderGraph/issues/334) and [#337](https://github.com/Unity-Technologies/ShaderGraph/issues/337))
@@ -63,3 +72,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sub Graphs now use the correct generation mode when they generate preview shaders.
 - The `CodeFunctionNode` API now generates correct function headers when you use `DynamicMatrix` type slots.
 - Texture type input slots now set correct default values for 'Normal' texture type.
+- SpaceMaterialSlot now reads correct slot.
+

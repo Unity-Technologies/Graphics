@@ -16,6 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "GBuffer",
             LightMode = "GBuffer",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_GBUFFER",
             StencilOverride = new List<string>()
             {
@@ -70,6 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "GBufferWithPrepass",
             LightMode = "GBufferWithPrepass",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_GBUFFER",
             StencilOverride = new List<string>()
             {
@@ -123,6 +125,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "META",
             LightMode = "Meta",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
             CullOverride = "Cull Off",
             Includes = new List<string>()
@@ -161,6 +164,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "ShadowCaster",
             LightMode = "ShadowCaster",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_SHADOWS",
             ColorMaskOverride = "ColorMask 0",
             ExtraDefines = new List<string>()
@@ -192,6 +196,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "DepthOnly",
             LightMode = "DepthOnly",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ColorMaskOverride = "ColorMask 0",
             Includes = new List<string>()
@@ -219,6 +224,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "Motion Vectors",
             LightMode = "MotionVectors",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_VELOCITY",
             Includes = new List<string>()
             {
@@ -255,6 +261,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "Distortion",
             LightMode = "DistortionVectors",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_DISTORTION",
             BlendOverride = "Blend One One, One One",   // [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
             BlendOpOverride = "BlendOp Add, Add",       // Add, [_DistortionBlurBlendOp]
@@ -285,6 +292,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "TransparentDepthPrepass",
             LightMode = "TransparentDepthPrepass",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ColorMaskOverride = "ColorMask 0",
             ExtraDefines = new List<string>()
@@ -316,6 +324,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "TransparentBackface",
             LightMode = "TransparentBackface",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_FORWARD",
             CullOverride = "Cull Front",
             ExtraDefines = new List<string>()
@@ -360,6 +369,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "Forward",
             LightMode = "Forward",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_FORWARD",
             ExtraDefines = new List<string>()
             {
@@ -414,6 +424,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "TransparentDepthPostpass",
             LightMode = "TransparentDepthPostpass",
             TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ColorMaskOverride = "ColorMask 0",
             ExtraDefines = new List<string>()
@@ -519,7 +530,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
             // use standard shader pass generation
-            return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, materialOptions, activeFields, result, sourceAssetDependencyPaths);
+            bool vertexActive = masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId);
+            return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, materialOptions, activeFields, result, sourceAssetDependencyPaths, vertexActive);
         }
 
         public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
@@ -527,7 +539,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (sourceAssetDependencyPaths != null)
             {
                 // HDPBRSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("c4e8610eb7ce19747bb637c68acc55cd"));
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("8a6369cac4d1faf45b8715adbd364f13"));
                 // HDSubShaderUtilities.cs
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
@@ -538,14 +550,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn);
+                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, false, false, 0);
 
                 // Add tags at the SubShader level
                 {
                     var tagsVisitor = new ShaderStringBuilder();
-                    materialOptions.GetTags(tagsVisitor);
+                    materialTags.GetTags(tagsVisitor);
                     subShader.AddShaderChunk(tagsVisitor.ToString(), false);
                 }
+
+                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, false);
 
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
