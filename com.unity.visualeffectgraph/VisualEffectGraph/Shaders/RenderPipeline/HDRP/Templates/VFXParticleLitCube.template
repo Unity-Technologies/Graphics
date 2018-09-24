@@ -1,4 +1,4 @@
-Shader "Hidden/VFX/ParticleCubes"
+Shader "Hidden/VFX/ParticleLitCubes"
 {
 	SubShader
 	{	
