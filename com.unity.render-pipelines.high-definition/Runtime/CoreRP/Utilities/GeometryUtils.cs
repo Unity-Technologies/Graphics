@@ -4,18 +4,12 @@ namespace UnityEngine.Experimental.Rendering
 {
     public struct Frustum
     {
-        public Plane[]   planes;  // Left, right, top, bottom, near, far
+        public Plane[] planes;  // Left, right, top, bottom, near, far
         public Vector3[] corners; // Positions of the 8 corners
 
         // The frustum will be camera-relative if given a camera-relative VP matrix.
-        public static Frustum Create(Matrix4x4 viewProjMatrix, bool depth_0_1, bool reverseZ)
+        public static void Create(Frustum frustum, Matrix4x4 viewProjMatrix, bool depth_0_1, bool reverseZ)
         {
-            Frustum frustum = new Frustum();
-
-            // Caution: these two new[] generate 272B of garbage at each frame here !
-            frustum.planes  = new Plane[6];
-            frustum.corners = new Vector3[8];
-
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustum.planes);
 
             float nd = -1.0f;
@@ -50,8 +44,6 @@ namespace UnityEngine.Experimental.Rendering
             frustum.corners[5] = invViewProjMatrix.MultiplyPoint(new Vector3(1, -1, nd));
             frustum.corners[6] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, nd));
             frustum.corners[7] = invViewProjMatrix.MultiplyPoint(new Vector3(1,  1, nd));
-
-            return frustum;
         }
     } // struct Frustum
 

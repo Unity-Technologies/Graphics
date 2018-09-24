@@ -38,6 +38,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4      textureWidthScaling; // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
         public uint         numEyes; // 2+ when rendering stereo, 1 otherwise
 
+        Matrix4x4[] viewProjStereo;
+        Matrix4x4[] invViewStereo;
+        Matrix4x4[] invProjStereo;
+        Matrix4x4[] invViewProjStereo;
+
+
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
         {
@@ -165,11 +171,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDCamera(Camera cam)
         {
             camera = cam;
+
             frustum = new Frustum();
+            frustum.planes = new Plane[6];
+            frustum.corners = new Vector3[8];
+
             frustumPlaneEquations = new Vector4[6];
 
             viewMatrixStereo = new Matrix4x4[2];
             projMatrixStereo = new Matrix4x4[2];
+
+            viewProjStereo = new Matrix4x4[2];
+            invViewStereo = new Matrix4x4[2];
+            invProjStereo = new Matrix4x4[2];
+            invViewProjStereo = new Matrix4x4[2];
 
             postprocessRenderContext = new PostProcessRenderContext();
 
@@ -336,7 +351,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float orthoWidth  = orthoHeight * camera.aspect;
             unity_OrthoParams = new Vector4(orthoWidth, orthoHeight, 0, camera.orthographic ? 1 : 0);
 
-            frustum = Frustum.Create(viewProjMatrix, depth_0_1, reverseZ);
+            Frustum.Create(frustum, viewProjMatrix, depth_0_1, reverseZ);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
@@ -459,7 +474,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var stereoCombinedProjMatrix = cullingParams.cullStereoProj;
             projMatrix = GL.GetGPUProjectionMatrix(stereoCombinedProjMatrix, true);
 
-            frustum = Frustum.Create(viewProjMatrix, true, true);
+            Frustum.Create(frustum, viewProjMatrix, true, true);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
@@ -626,11 +641,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void SetupGlobalStereoParams(CommandBuffer cmd)
         {
-            var viewProjStereo = new Matrix4x4[2];
-            var invViewStereo = new Matrix4x4[2];
-            var invProjStereo = new Matrix4x4[2];
-            var invViewProjStereo = new Matrix4x4[2];
-
             for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
             {
                 var proj = projMatrixStereo[eyeIndex];

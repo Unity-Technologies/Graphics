@@ -83,6 +83,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             volumeAtlas.GenerateAtlas(cmd);
 
+            // GC.Alloc
+            // List`1.ToArray()
             return volumes.ToArray();
         }
 

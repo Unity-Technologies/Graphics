@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             High,
             Count
         } // enum VolumetricLightingPreset
-
+       
         public struct VBufferParameters
         {
             public Vector4 resolution;
@@ -145,6 +145,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // and contains arbitrary data. Therefore, we must initialize it before use.
         Vector3Int m_PreviousResolutionOfHistoryBuffer = Vector3Int.zero;
 
+        Vector4[] m_PackedCoeffs;
+        ZonalHarmonicsL2 m_PhaseZH;
+        Vector2[] m_xySeq;
+        Vector4 m_xySeqOffset;
+        // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
+        // Each of them is the centroid of the interval of length 2/14.
+        // They've been rearranged in a sequence of pairs {small, large}, s.t. (small + large) = 1.
+        // That way, the running average position is close to 0.5.
+        // | 6 | 2 | 4 | 1 | 5 | 3 | 7 |
+        // |   |   |   | o |   |   |   |
+        // |   | o |   | x |   |   |   |
+        // |   | x |   | x |   | o |   |
+        // |   | x | o | x |   | x |   |
+        // |   | x | x | x | o | x |   |
+        // | o | x | x | x | x | x |   |
+        // | x | x | x | x | x | x | o |
+        // | x | x | x | x | x | x | x |
+        float[] m_zSeq = { 7.0f / 14.0f, 3.0f / 14.0f, 11.0f / 14.0f, 5.0f / 14.0f, 9.0f / 14.0f, 1.0f / 14.0f, 13.0f / 14.0f };
+
+
         public void Build(HDRenderPipelineAsset asset)
         {
             m_SupportVolumetrics = asset.renderPipelineSettings.supportVolumetrics;
@@ -157,6 +177,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_VolumeVoxelizationCS = asset.renderPipelineResources.volumeVoxelizationCS;
             m_VolumetricLightingCS = asset.renderPipelineResources.volumetricLightingCS;
+
+            m_PackedCoeffs = new Vector4[7];
+            m_PhaseZH = new ZonalHarmonicsL2();
+            m_PhaseZH.coeffs = new float[3];
+
+            m_xySeq = new Vector2[7];
+            m_xySeqOffset = new Vector4();
 
             CreateBuffers();
         }
@@ -412,10 +439,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(RenderSettings.ambientProbe);
                                  probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, dimmer);
-            ZonalHarmonicsL2     phaseZH = ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(anisotropy);
-            SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, phaseZH));
+            ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(m_PhaseZH, anisotropy);
+            SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, m_PhaseZH));
 
-            cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, SphericalHarmonicMath.PackCoefficients(finalSH));
+            SphericalHarmonicMath.PackCoefficients(m_PackedCoeffs, finalSH);
+            cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, m_PackedCoeffs);
         }
 
         float CornetteShanksPhasePartConstant(float anisotropy)
@@ -595,9 +623,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The returned {x, y} coordinates (and all spheres) are all within the (-0.5, 0.5)^2 range.
         // The pattern has been rotated by 15 degrees to maximize the resolution along X and Y:
         // https://www.desmos.com/calculator/kcpfvltz7c
-        static Vector2[] GetHexagonalClosePackedSpheres7()
+        static void GetHexagonalClosePackedSpheres7(Vector2[] coords)
         {
-            Vector2[] coords = new Vector2[7];
 
             float r = 0.17054068870105443882f;
             float d = 2 * r;
@@ -626,8 +653,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 coords[i].x = coord.x * cos15 - coord.y * sin15;
                 coords[i].y = coord.x * sin15 + coord.y * cos15;
             }
-
-            return coords;
         }
 
         public void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex)
@@ -682,28 +707,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Compose the matrix which allows us to compute the world space view direction.
                 Matrix4x4 transform   = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, hdCamera.viewMatrix, false);
 
-                Vector2[] xySeq = GetHexagonalClosePackedSpheres7();
-
-                // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
-                // Each of them is the centroid of the interval of length 2/14.
-                // They've been rearranged in a sequence of pairs {small, large}, s.t. (small + large) = 1.
-                // That way, the running average position is close to 0.5.
-                // | 6 | 2 | 4 | 1 | 5 | 3 | 7 |
-                // |   |   |   | o |   |   |   |
-                // |   | o |   | x |   |   |   |
-                // |   | x |   | x |   | o |   |
-                // |   | x | o | x |   | x |   |
-                // |   | x | x | x | o | x |   |
-                // | o | x | x | x | x | x |   |
-                // | x | x | x | x | x | x | o |
-                // | x | x | x | x | x | x | x |
-                float[] zSeq = {7.0f / 14.0f, 3.0f / 14.0f, 11.0f / 14.0f, 5.0f / 14.0f, 9.0f / 14.0f, 1.0f / 14.0f, 13.0f / 14.0f};
+                GetHexagonalClosePackedSpheres7(m_xySeq);
 
                 int sampleIndex = (int)frameIndex % 7;
 
                 // TODO: should we somehow reorder offsets in Z based on the offset in XY? S.t. the samples more evenly cover the domain.
                 // Currently, we assume that they are completely uncorrelated, but maybe we should correlate them somehow.
-                Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex], frameIndex);
+                m_xySeqOffset.Set(m_xySeq[sampleIndex].x, m_xySeq[sampleIndex].y, m_zSeq[sampleIndex], frameIndex);
+
 
                 // Get the interpolated anisotropy value.
                 var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
@@ -711,7 +722,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: set 'm_VolumetricLightingPreset'.
                 // TODO: set the constant buffer data only once.
                 cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
-                cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
+                cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     m_xySeqOffset);
                 cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(fog.anisotropy));
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,          m_DensityBufferHandle);  // Read
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, m_LightingBufferHandle); // Write

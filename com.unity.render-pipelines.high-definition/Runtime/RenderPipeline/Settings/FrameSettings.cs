@@ -51,6 +51,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool enableMSAA = false;
 
+        // GC.Alloc
+        // FrameSettings..ctor() 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
         public void CopyTo(FrameSettings frameSettings)
