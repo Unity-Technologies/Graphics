@@ -42,7 +42,6 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
-        [Timeout(1000 * 10)]
         public IEnumerator CreateAssetAndComponentSpawner()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
@@ -94,7 +93,6 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
-        [Timeout(1000 * 10)]
         public IEnumerator CreateEventStartAndStop()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
@@ -211,7 +209,6 @@ namespace UnityEditor.VFX.Test
         */
 
         [UnityTest]
-        [Timeout(1000 * 10)]
         public IEnumerator CreateCustomSpawnerAndComponent()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
@@ -274,7 +271,6 @@ namespace UnityEditor.VFX.Test
 
         /*
         [UnityTest]
-        [Timeout(1000 * 10)]
         public IEnumerator CreateCustomSpawnerLinkedWithSourceAttribute()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
