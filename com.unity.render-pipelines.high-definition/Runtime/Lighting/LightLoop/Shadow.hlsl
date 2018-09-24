@@ -72,7 +72,6 @@ float3 GetDirectionalShadowClosestSample( ShadowContext shadowContext, real3 pos
 
 #endif
 
-
 // example of overriding punctual lights
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist )
@@ -122,6 +121,7 @@ float GetPunctualShadowClosestDistance( ShadowContext shadowContext, SamplerStat
 }
 
 #endif
+
 
 // cleanup the defines
 #undef SHADOW_DISPATCH_DIR_TEX

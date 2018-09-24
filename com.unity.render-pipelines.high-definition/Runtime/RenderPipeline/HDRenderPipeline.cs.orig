@@ -1174,9 +1174,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
                         m_VolumetricLightingSystem.VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
 
-						SetMicroShadowingSettings(cmd);                        
-						
-						// Might float this higher if we enable stereo w/ deferred
+<<<<<<< HEAD
+                        SetMicroShadowingSettings(cmd);
+
+                        RenderDeferredLighting(hdCamera, cmd);
+
+=======
+>>>>>>> master
+                        // Might float this higher if we enable stereo w/ deferred
                         StartStereoRendering(cmd, renderContext, hdCamera);
 
                         RenderDeferredLighting(hdCamera, cmd);
