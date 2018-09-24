@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Implement smoothness fade for SSR
 - Added support for AxF shader (X-rite format - require special AxF importer from Unity not part of HDRP)
 - Added control for sundisc on directional light (hack)
+- Added a new HD Lit Master node that implements Lit shader support for Shader Graph
 - Added Micro shadowing support (hack)
 
 ### Fixed
@@ -57,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed setting shader inclue path via old API, use package shader include paths
 - The default value of 'maxSmoothness' for punctual lights has been changed to 0.99
 - Modified deferred compute and vert/frag shaders for first steps towards stereo support
+- Moved material specific Shader Graph files into corresponding material folders.
 
 ## [3.3.0-preview]
 

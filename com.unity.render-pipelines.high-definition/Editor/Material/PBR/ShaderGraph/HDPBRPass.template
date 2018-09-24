@@ -11,6 +11,7 @@ Pass
         $splice(Culling)
         $splice(ZTest)
         $splice(ZWrite)
+        $splice(ZClip)
         $splice(Stencil)
         $splice(ColorMask)
     //-------------------------------------------------------------------------------------
