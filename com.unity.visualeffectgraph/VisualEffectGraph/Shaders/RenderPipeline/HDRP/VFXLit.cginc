@@ -2,19 +2,19 @@
 
 
 #ifdef DEBUG_DISPLAY
-#include "HDRP/Debug/DebugDisplay.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 #ifndef SHADERPASS
 #error SHADERPASS must be defined (at) this point
 #endif
 
 #if (SHADERPASS != SHADERPASS_FORWARD)
-#include "HDRP/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 #else
-#include "HDRP/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 #endif
 
-#include "HDRP/Material/BuiltinUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 
 float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
 {

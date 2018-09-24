@@ -2,8 +2,8 @@
 // HDRP Shader Includes                                     //
 //////////////////////////////////////////////////////////////
 
-#include "CoreRP/ShaderLibrary/common.hlsl"
-#include "HDRP/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
 
 //////////////////////////////////////////////////////////////
 // BASE CHECKS                                              //
