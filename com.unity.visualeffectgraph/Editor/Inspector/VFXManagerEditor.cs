@@ -41,7 +41,7 @@ public class VFXManagerEditor : Editor
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Default"))
         {
-            pathProperty.stringValue = "Packages/com.unity.visualeffectgraph/VisualEffectGraph/Shaders/RenderPipeline/HDRP";
+            pathProperty.stringValue = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP";
         }
         if (GUILayout.Button("Reveal"))
         {
@@ -76,23 +76,23 @@ public class VFXManagerEditor : Editor
         var pathProperty = obj.FindProperty("m_RenderPipeSettingsPath");
         if (string.IsNullOrEmpty(pathProperty.stringValue))
         {
-            pathProperty.stringValue = "Packages/com.unity.visualeffectgraph/VisualEffectGraph/Shaders/RenderPipeline/HDRP";
+            pathProperty.stringValue = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP";
         }
 
         var indirectShaderProperty = obj.FindProperty("m_IndirectShader");
         if (indirectShaderProperty.objectReferenceValue == null)
         {
-            indirectShaderProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/VisualEffectGraph/Shaders/VFXFillIndirectArgs.compute");
+            indirectShaderProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
         }
         var copyShaderProperty = obj.FindProperty("m_CopyBufferShader");
         if (copyShaderProperty.objectReferenceValue == null)
         {
-            copyShaderProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/VisualEffectGraph/Shaders/VFXCopyBuffer.compute");
+            copyShaderProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
         }
         var sortProperty = obj.FindProperty("m_SortShader");
         if (sortProperty.objectReferenceValue == null)
         {
-            sortProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/VisualEffectGraph/Shaders/Sort.compute");
+            sortProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
         }
 
         obj.ApplyModifiedPropertiesWithoutUndo();

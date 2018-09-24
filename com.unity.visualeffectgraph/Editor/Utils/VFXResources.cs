@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
         private static VFXResources s_Instance;
 
         private const string defaultFileName = "Editor/VFXDefaultResources.asset";
-        private static string defaultPath { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/"; } } // Change this to a getter once we handle package mode paths
+        private static string defaultPath { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/"; } } // Change this to a getter once we handle package mode paths
 
         private static T SafeLoadAssetAtPath<T>(string assetPath) where T : Object
         {

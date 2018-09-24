@@ -21,7 +21,7 @@ namespace UnityEditor
             {
                 if (m_TemplatePath == null)
                 {
-                    m_TemplatePath = VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/Editor/Templates/";
+                    m_TemplatePath = VisualEffectGraphPackageInfo.assetPackagePath + "Packages/com.unity.visualeffectgraph/Editor/Templates/";
                 }
                 return m_TemplatePath;
             }

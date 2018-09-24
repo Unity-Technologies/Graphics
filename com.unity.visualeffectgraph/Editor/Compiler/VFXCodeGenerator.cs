@@ -288,7 +288,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                var includeBuilder = GetFlattenedTemplateContent(VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/"+includePath, includes, defines);
+                var includeBuilder = GetFlattenedTemplateContent(VisualEffectGraphPackageInfo.assetPackagePath + "/"+includePath, includes, defines);
                 ReplaceMultiline(templateContent, groups[0].Value, includeBuilder);
             }
 
@@ -455,11 +455,11 @@ namespace UnityEditor.VFX
             //< Final composition
             var renderPipePath = UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath;
             var renderPipeShaderIncludePath = renderPipePath;
-            if(renderPipeShaderIncludePath.StartsWith(VisualEffectGraphPackageInfo.assetPackagePath))
+            /*if(renderPipeShaderIncludePath.StartsWith(VisualEffectGraphPackageInfo.assetPackagePath))
             {
                 renderPipeShaderIncludePath = renderPipeShaderIncludePath.Substring(VisualEffectGraphPackageInfo.assetPackagePath.Length);
-            }
-            string renderPipeCommon = "VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc";
+            }*/
+            string renderPipeCommon = "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc";
             string renderPipePasses = null;
 
             if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
@@ -490,7 +490,7 @@ namespace UnityEditor.VFX
 
             var perPassIncludeContent = new VFXShaderWriter();
             perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
-            perPassIncludeContent.WriteLine("#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"");
+            perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"");
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();
