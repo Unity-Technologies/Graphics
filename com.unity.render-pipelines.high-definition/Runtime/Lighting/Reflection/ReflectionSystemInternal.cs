@@ -15,6 +15,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         HashSet<HDAdditionalReflectionData> m_AdditionalDataReflectionProbe_RequestRealtimeRender;
         HDAdditionalReflectionData[] m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray;
 
+        // GC.Alloc
+        // HashSet`1.IntersectWith()
+        // HashSet`1.UnionWith()
         HashSet<PlanarReflectionProbe> m_PlanarReflectionProbes;
         HashSet<PlanarReflectionProbe> m_PlanarReflectionProbe_DirtyBounds;
         HashSet<PlanarReflectionProbe> m_PlanarReflectionProbe_RequestRealtimeRender;
@@ -131,8 +134,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         {
             UpdateAllPlanarReflectionProbeBounds();
 
+            // GC.Alloc
             // Caution: new CullingGroup generate 32B of garbage at each frame here !
-            var cullingGroup = new CullingGroup();
+            // cullingGroup gets .Dispose() called on it later, not clear why this leaks
+            var cullingGroup = new CullingGroup();            
             cullingGroup.targetCamera = camera;
             cullingGroup.SetBoundingSpheres(m_PlanarReflectionProbeBoundsArray);
             cullingGroup.SetBoundingSphereCount(Mathf.Min(m_PlanarReflectionProbeBounds.Count, m_PlanarReflectionProbeBoundsArray.Length));

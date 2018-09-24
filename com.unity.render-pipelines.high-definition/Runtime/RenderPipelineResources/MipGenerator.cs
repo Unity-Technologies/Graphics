@@ -16,6 +16,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_ColorDownsampleKernelCopyMip0;
         int m_ColorGaussianKernel;
 
+        int[] m_SrcOffset;
+        int[] m_DstOffset;
+
         public MipGenerator(HDRenderPipelineAsset asset)
         {
             m_DepthPyramidCS = asset.renderPipelineResources.depthPyramidCS;
@@ -25,6 +28,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ColorDownsampleKernel = m_ColorPyramidCS.FindKernel("KColorDownsample");
             m_ColorDownsampleKernelCopyMip0 = m_ColorPyramidCS.FindKernel("KColorDownsampleCopyMip0");
             m_ColorGaussianKernel = m_ColorPyramidCS.FindKernel("KColorGaussian");
+            m_SrcOffset = new int[4];
+            m_DstOffset = new int[4];
         }
 
         public void Release()
@@ -51,8 +56,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Vector2Int srcOffset = info.mipLevelOffsets[i - 1];
                 Vector2Int srcLimit  = srcOffset + srcSize - Vector2Int.one;
 
-                cmd.SetComputeIntParams(   cs,         HDShaderIDs._SrcOffsetAndLimit, new int[4] {srcOffset.x, srcOffset.y, srcLimit.x, srcLimit.y});
-                cmd.SetComputeIntParams(   cs,         HDShaderIDs._DstOffset,         new int[4] {dstOffset.x, dstOffset.y, 0, 0});
+                m_SrcOffset[0] = srcOffset.x;
+                m_SrcOffset[1] = srcOffset.y;
+                m_SrcOffset[2] = srcLimit.x;
+                m_SrcOffset[3] = srcLimit.y;
+
+                m_DstOffset[0] = dstOffset.x;
+                m_DstOffset[1] = dstOffset.y;
+                m_DstOffset[2] = 0;
+                m_DstOffset[3] = 0;
+
+                cmd.SetComputeIntParams(   cs,         HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
+                cmd.SetComputeIntParams(   cs,         HDShaderIDs._DstOffset,         m_DstOffset);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain,     texture);
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), 1);
