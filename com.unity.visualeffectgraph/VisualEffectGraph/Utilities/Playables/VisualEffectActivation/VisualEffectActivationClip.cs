@@ -17,7 +17,7 @@ public class VisualEffectActivationClip : PlayableAsset, ITimelineClipAsset
     public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
     {
         var playable = ScriptPlayable<VisualEffectActivationBehaviour>.Create(graph, activationBehavior);
-        VisualEffectActivationBehaviour clone = playable.GetBehaviour();
+        /*VisualEffectActivationBehaviour clone =*/ playable.GetBehaviour();
         return playable;
     }
 }
