@@ -153,7 +153,6 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
-        [Timeout(1000 * 10)]
         public IEnumerator CreateComponentAndCheckDimensionConstraint()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
