@@ -2710,8 +2710,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, sLabel, CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
             {
-                var camera = hdCamera.camera;
-
                 // Compute path
                 if (m_FrameSettings.lightLoopSettings.enableTileAndCluster && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation)
                 {
