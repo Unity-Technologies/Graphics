@@ -41,7 +41,6 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
-        [Timeout(1000 * 10)]
         public IEnumerator CreateAssetAndComponentTotalTime()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
