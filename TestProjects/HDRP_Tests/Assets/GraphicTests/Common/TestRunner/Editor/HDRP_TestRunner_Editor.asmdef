@@ -1,10 +1,20 @@
 {
     "name": "HDRP_TestRunner_Editor",
-    "references": [],
+    "references": [
+        "HDRP_TestRunner",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.Postprocessing.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "UnityEngine.TestTools.Graphics"
+    ],
     "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
 }

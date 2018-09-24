@@ -125,8 +125,10 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _DecalBlend: 0.5
+    - _DecalBlend: 0.75
     - _DecalMeshDepthBias: 0
+    - _DecalStencilRef: 8
+    - _DecalStencilWriteMask: 8
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1

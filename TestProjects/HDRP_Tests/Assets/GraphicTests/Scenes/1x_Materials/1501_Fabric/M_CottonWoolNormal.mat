@@ -219,8 +219,8 @@ Material:
     - _Thickness: 1
     - _ThicknessMultiplier: 1
     - _ThreadAOScale: 0.5
-    - _ThreadNormalScale: 1
-    - _ThreadSmoothnessScale: 1
+    - _ThreadNormalScale: 0.5
+    - _ThreadSmoothnessScale: 0.5
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
