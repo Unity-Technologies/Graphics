@@ -24,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 report.summary.platform == BuildTarget.StandaloneLinux64 ||
                 report.summary.platform == BuildTarget.StandaloneLinuxUniversal ||
                 report.summary.platform == BuildTarget.StandaloneOSX ||
+                report.summary.platform == BuildTarget.WSAPlayer ||
                 report.summary.platform == BuildTarget.XboxOne ||
                 report.summary.platform == BuildTarget.PS4 ||
                 report.summary.platform == BuildTarget.Switch)

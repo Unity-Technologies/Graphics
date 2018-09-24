@@ -32,8 +32,7 @@ namespace UnityEditor.TestTools.Graphics
                 case BuildTarget.WebGL:
                     return RuntimePlatform.WebGLPlayer;
                 case BuildTarget.WSAPlayer:
-                    throw new NotImplementedException(
-                        "Don't know how to determine the target UWP architecture from the build settings");
+                    return RuntimePlatform.WSAPlayerX64;
                 case BuildTarget.StandaloneWindows:
                 case BuildTarget.StandaloneWindows64:
                     return RuntimePlatform.WindowsPlayer;

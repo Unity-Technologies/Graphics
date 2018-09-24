@@ -221,8 +221,6 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     case BuildTarget.iOS:
                     case BuildTarget.Android:
-                    case BuildTarget.WSAPlayer:
-                        // Note: We return true on purpose even if Windows Store Apps are running on Desktop.
                         return true;
                     default:
                         return false;
