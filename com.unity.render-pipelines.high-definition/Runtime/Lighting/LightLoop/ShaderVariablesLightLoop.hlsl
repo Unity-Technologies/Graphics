@@ -10,6 +10,8 @@
     int  _EnvLightSkyEnabled;         // TODO: make it a bool
     int _DirectionalShadowIndex;
 
+    float _MicroShadowOpacity;
+
     uint _NumTileFtplX;
     uint _NumTileFtplY;
 

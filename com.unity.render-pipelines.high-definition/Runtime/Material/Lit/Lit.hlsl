@@ -1229,7 +1229,12 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 color;
     float attenuation;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, N, L, color, attenuation);
+#ifdef LIGHT_LAYERS
+    float AOForMicroshadowing = bsdfData.ambientOcclusion;
+#else
+    float AOForMicroshadowing = bsdfData.specularOcclusion;
+#endif
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, N, L, AOForMicroshadowing, color, attenuation);
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
