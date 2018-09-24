@@ -274,7 +274,10 @@ float InitContactShadow(PositionInputs posInput)
 {
     // For now we only support one contact shadow
     // Contactshadow is store in Green Channel of _DeferredShadowTexture
-    return LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).y;
+    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+    // We use this property to have a neutral value for contact shadows that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+    // We store inverse contact shadow so neutral is white. So either we sample inside or outside the texture it return 1 in case of neutral
+    return 1.0 - LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).y;
 }
 
 float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowIndex)

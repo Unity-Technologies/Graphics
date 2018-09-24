@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default value of 'maxSmoothness' for punctual lights has been changed to 0.99
 - Modified deferred compute and vert/frag shaders for first steps towards stereo support
 - Moved material specific Shader Graph files into corresponding material folders.
+- Hide environment lighting settings when enabling HDRP (Settings are control from sceneSettings)
 
 ## [3.3.0-preview]
 

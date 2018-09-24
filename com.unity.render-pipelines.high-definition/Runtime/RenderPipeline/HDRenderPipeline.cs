@@ -436,7 +436,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsMotionVectors = true,
                 rendererSupportsReceiveShadows = false,
                 rendererSupportsReflectionProbes = true,
-                rendererSupportsRendererPriority = true
+                rendererSupportsRendererPriority = true,
+                rendererOverridesEnvironmentLighting = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);

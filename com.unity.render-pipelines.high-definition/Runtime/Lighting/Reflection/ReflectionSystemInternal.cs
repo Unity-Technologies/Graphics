@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             m_PlanarReflectionProbesArray = new PlanarReflectionProbe[parameters.maxActivePlanarReflectionProbe];
             m_PlanarReflectionProbeBoundsArray = new BoundingSphere[parameters.maxActivePlanarReflectionProbe];
             m_PlanarReflectionProbe_RealtimeUpdate_WorkArray = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbePerCamera];
-            m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray = new HDAdditionalReflectionData[parameters.maxPlanarReflectionProbePerCamera]; ;
+            m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray = new HDAdditionalReflectionData[parameters.maxActiveReflectionProbe]; ;
 
             // Persistent collections
             m_AdditionalDataReflectionProbes = new HashSet<HDAdditionalReflectionData>();
