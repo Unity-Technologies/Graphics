@@ -73,4 +73,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `CodeFunctionNode` API now generates correct function headers when you use `DynamicMatrix` type slots.
 - Texture type input slots now set correct default values for 'Normal' texture type.
 - SpaceMaterialSlot now reads correct slot.
+- Slider node control now functions correctly.
 - Shader Graphs no longer display an error message intended for Sub Graphs when you delete properties.
