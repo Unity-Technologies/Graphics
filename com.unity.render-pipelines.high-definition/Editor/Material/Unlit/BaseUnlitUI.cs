@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected static class StylesBaseUnlit
         {
             public static string TransparencyInputsText = "Transparency Inputs";
-            public static string optionText = "Surface options";
+            public static string optionText = "Surface Options";
             public static string surfaceTypeText = "Surface Type";
             public static string blendModeText = "Blend Mode";
 
