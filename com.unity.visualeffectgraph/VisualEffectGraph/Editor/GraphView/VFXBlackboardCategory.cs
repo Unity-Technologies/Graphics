@@ -334,7 +334,11 @@ namespace UnityEditor.VFX.UI
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target == this)
+            {
                 evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenu.MenuAction.AlwaysEnabled);
+
+                evt.menu.AppendAction("Delete", (a) => GetFirstAncestorOfType<VFXView>().controller.RemoveCategory(m_TitleLabel.text), DropdownMenu.MenuAction.AlwaysEnabled);
+            }
         }
 
         public void SyncParameters(HashSet<VFXParameterController> controllers)

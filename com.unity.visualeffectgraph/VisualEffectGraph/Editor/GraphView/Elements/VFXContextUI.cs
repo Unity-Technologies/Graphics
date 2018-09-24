@@ -56,7 +56,6 @@ namespace UnityEditor.VFX.UI
         {
             base.SelfChange();
 
-
             Profiler.BeginSample("VFXContextUI.CreateBlockProvider");
             if (m_BlockProvider == null)
             {
@@ -66,6 +65,15 @@ namespace UnityEditor.VFX.UI
                     });
             }
             Profiler.EndSample();
+
+            if(inputContainer.childCount == 0 && !hasSettings)
+            {
+                mainContainer.AddToClassList("empty");
+            }
+            else
+            {
+                mainContainer.RemoveFromClassList("empty");
+            }
 
             m_HeaderIcon.image = GetIconForVFXType(controller.model.inputType);
             m_HeaderIcon.visible = m_HeaderIcon.image.value != null;
@@ -194,8 +202,6 @@ namespace UnityEditor.VFX.UI
 
             this.mainContainer.clippingOptions = ClippingOptions.NoClipping;
 
-            //mainContainer.Q("contents").clippingOptions = ClippingOptions.ClipAndCacheContents;
-
             m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
             m_FlowOutputConnectorContainer = this.Q("flow-outputs");
@@ -241,10 +247,10 @@ namespace UnityEditor.VFX.UI
         public override bool HitTest(Vector2 localPoint)
         {
             // needed so that if we click on a block we won't select the context as well.
-            if (m_BlockContainer.ContainsPoint(this.ChangeCoordinatesTo(m_BlockContainer, localPoint)))
+            /*if (m_NoBlock.parent ==  null && m_BlockContainer.ContainsPoint(this.ChangeCoordinatesTo(m_BlockContainer, localPoint)))
             {
                 return false;
-            }
+            }*/
             return ContainsPoint(localPoint);
         }
 
@@ -472,6 +478,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var kv in blocksUIs)
                 {
+                    kv.Value.RemoveFromClassList("first");
                     m_BlockContainer.Remove(kv.Value);
                 }
                 if (blockControllers.Count() > 0 || !m_CanHaveBlocks)
@@ -482,18 +489,25 @@ namespace UnityEditor.VFX.UI
                 {
                     m_BlockContainer.Add(m_NoBlock);
                 }
-                foreach (var blockController in blockControllers)
+                if(blockControllers.Count > 0)
                 {
-                    VFXBlockUI blockUI;
-                    if (blocksUIs.TryGetValue(blockController, out blockUI))
+                    foreach (var blockController in blockControllers)
                     {
-                        m_BlockContainer.Add(blockUI);
+                        VFXBlockUI blockUI;
+                        if (blocksUIs.TryGetValue(blockController, out blockUI))
+                        {
+                            m_BlockContainer.Add(blockUI);
+                        }
+                        else
+                        {
+                            InstantiateBlock(blockController);
+                        }
                     }
-                    else
-                    {
-                        InstantiateBlock(blockController);
-                    }
+                    VFXBlockUI firstBlock = m_BlockContainer.Query<VFXBlockUI>();
+                    firstBlock.AddToClassList("first");
                 }
+
+                
             }
             Profiler.EndSample();
         }
@@ -634,7 +648,7 @@ namespace UnityEditor.VFX.UI
             if (desc == null)
                 return false;
 
-            if (!(desc.model is VFXContext))
+            if (!(desc.model is VFXAbstractParticleOutput))
                 return false;
 
             return (desc.model as VFXContext).contextType == VFXContextType.kOutput;
@@ -717,6 +731,9 @@ namespace UnityEditor.VFX.UI
                 viewController.CreateLink(anchor, output);
             }
 
+            // Apply the change so that it won't unlink the blocks links
+            controller.ApplyChanges();
+
             viewController.RemoveElement(controller);
         }
 
@@ -731,9 +748,9 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if( evt.target is VFXContextUI && controller.model.contextType == VFXContextType.kOutput )
+            if( evt.target is VFXContextUI && controller.model is VFXAbstractParticleOutput )
             {
-                evt.menu.InsertAction(0, "Convert Context", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.InsertAction(0, "Convert Output", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
             }
         }
     }

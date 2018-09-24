@@ -3,7 +3,7 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Arithmetic")]
     class Power : VFXOperatorNumericCascadedUnified
     {
-        public override sealed string name { get { return "Power"; } }
+        protected override sealed string operatorName { get { return "Power"; } }
         protected override sealed double defaultValueDouble { get { return 1.0; } }
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 

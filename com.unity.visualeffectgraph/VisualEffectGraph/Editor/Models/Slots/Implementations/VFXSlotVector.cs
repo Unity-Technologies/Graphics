@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     {
         sealed protected override bool CanConvertFrom(Type type)
         {
-            return base.CanConvertFrom(type) || type == typeof(Vector3);
+            return base.CanConvertFrom(type) || type == typeof(Vector3) || type == typeof(Position) || type == typeof(DirectionType);
         }
 
         sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)

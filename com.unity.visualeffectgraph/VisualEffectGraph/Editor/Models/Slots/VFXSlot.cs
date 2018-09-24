@@ -387,9 +387,23 @@ namespace UnityEditor.VFX
         }
 
         public static void CopyLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
-        {
+        {           
             CopyValue(dst, src, notify);
             CopyLinks(dst, src, notify);
+            CopySpace(dst, src, notify);
+        }
+
+        public static void CopySpace(VFXSlot dst, VFXSlot src, bool notify)
+        {
+            if (dst.IsMasterSlot() && dst.spaceable && src.spaceable)
+            {
+                if (dst.space != src.space)
+                {
+                    dst.GetMasterData().m_Space = src.space;
+                    if (notify)
+                        dst.Invalidate(InvalidationCause.kSpaceChanged);
+                }
+            } 
         }
 
         public static void CopyValue(VFXSlot dst, VFXSlot src, bool notify)
@@ -432,7 +446,10 @@ namespace UnityEditor.VFX
                 ++index;
             }
 
-            if (src.property.type == dst.property.type && src.GetNbChildren() == dst.GetNbChildren())
+            var copySubLinks = (src.property.type == dst.property.type) ||
+                (src.property.type == typeof(Transform) && dst.property.type == typeof(OrientedBox)); // This is bad but needed to keep sublinks when changing transform to orientedbox
+
+            if (copySubLinks && src.GetNbChildren() == dst.GetNbChildren())
             {
                 int nbSubSlots = src.GetNbChildren();
                 for (int i = 0; i < nbSubSlots; ++i)

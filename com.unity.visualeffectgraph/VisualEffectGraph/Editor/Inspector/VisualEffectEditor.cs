@@ -16,6 +16,21 @@ using UnityObject = UnityEngine.Object;
 using System.Reflection;
 namespace UnityEditor.VFX
 {
+    class FakeObject : ScriptableObject
+    {
+        public float aFloat;
+        public Vector2 aVector2;
+        public Vector3 aVector3;
+        public Vector4 aVector4;
+        public UnityObject anObject;
+        public AnimationCurve anAnimationCurve;
+        public Gradient aGradient;
+        public int anInt;
+        public long anUInt;
+        public bool aBool;
+    }
+
+
     public static class VisualEffectControl
     {
         public static void ControlStop(this VisualEffect effect)
@@ -62,8 +77,23 @@ namespace UnityEditor.VFX
         SerializedProperty m_RandomSeed;
         SerializedProperty m_VFXPropertySheet;
 
+        static FakeObject s_FakeObjectCache;
+        static SerializedObject s_FakeObjectSerializedCache;
+
+        static List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
+
+
+        static public void RepaintAllEditors()
+        {
+            foreach(var ed in s_AllEditors)
+            {
+                ed.Repaint();
+            }
+        }
+
         protected void OnEnable()
         {
+            s_AllEditors.Add(this);
             m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
             m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
             m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
@@ -78,11 +108,74 @@ namespace UnityEditor.VFX
                 effect.pause = false;
                 effect.playRate = 1.0f;
             }
+            s_AllEditors.Remove(this);
         }
 
         protected const float overrideWidth = 16;
 
-        void DisplayProperty(VFXParameterInfo parameter, SerializedProperty overrideProperty, SerializedProperty property)
+        SerializedProperty GetFakeProperty(ref VFXParameterInfo parameter)
+        {
+            if (parameter.defaultValue == null)
+                return null;
+            object defaultValue = parameter.defaultValue.Get();
+            if (defaultValue == null)
+                return null;
+
+            if( defaultValue is float)
+            {
+                s_FakeObjectCache.aFloat = (float)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("aFloat");
+            }
+            else if (defaultValue is Vector2)
+            {
+                s_FakeObjectCache.aVector2 = (Vector2)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("aVector2");
+            }
+            else if (defaultValue is Vector3)
+            {
+                s_FakeObjectCache.aVector3 = (Vector3)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("aVector3");
+            }
+            else if (defaultValue is Vector4)
+            {
+                s_FakeObjectCache.aVector4 = (Vector4)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("aVector4");
+            }
+            else if (defaultValue is Gradient)
+            {
+                s_FakeObjectCache.aGradient = (Gradient)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("aGradient");
+            }
+            else if (defaultValue is AnimationCurve)
+            {
+                s_FakeObjectCache.anAnimationCurve = (AnimationCurve)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("anAnimationCurve");
+            }
+            else if (defaultValue is UnityObject)
+            {
+                s_FakeObjectCache.anObject = (UnityObject)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("anObject");
+            }
+            else if (defaultValue is int)
+            {
+                s_FakeObjectCache.anInt = (int)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("anInt");
+            }
+            else if (defaultValue is uint)
+            {
+                s_FakeObjectCache.anUInt = (uint)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("anUInt");
+            }
+            else if (defaultValue is bool)
+            {
+                s_FakeObjectCache.aBool = (bool)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("aBool");
+            }
+
+            return null;
+        }
+
+        void DisplayProperty(ref VFXParameterInfo parameter, SerializedProperty overrideProperty, SerializedProperty property)
         {
             EditorGUILayout.BeginHorizontal();
 
@@ -95,45 +188,142 @@ namespace UnityEditor.VFX
                 overrideProperty.boolValue = result;
             }
 
-            EditorGUI.BeginChangeCheck();
-            if (parameter.min != Mathf.NegativeInfinity && parameter.max != Mathf.Infinity)
-            {
-                if (property.propertyType == SerializedPropertyType.Float)
-                    EditorGUILayout.Slider(property, parameter.min, parameter.max, nameContent);
-                else
-                    EditorGUILayout.IntSlider(property, (int)parameter.min, (int)parameter.max, nameContent);
-            }
-            else if (parameter.realType == typeof(Color).Name)
-            {
-                Vector4 vVal = property.vector4Value;
-                Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
-                c = EditorGUILayout.ColorField(nameContent, c, true, true, true);
+            SerializedProperty originalProperty = property;
 
-                if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
-                    property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
-            }
-            else if (property.propertyType == SerializedPropertyType.Vector4)
+            if (!overrideProperty.boolValue)
             {
-                var oldVal = property.vector4Value;
-                var newVal = EditorGUILayout.Vector4Field(nameContent, oldVal);
-                if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
+                property = GetFakeProperty(ref parameter);
+                if (property != null)
+                    s_FakeObjectSerializedCache.Update();
+            }
+
+            if (property != null)
+            {
+                EditorGUI.BeginChangeCheck();
+                if (parameter.min != Mathf.NegativeInfinity && parameter.max != Mathf.Infinity)
                 {
-                    property.vector4Value = newVal;
+                    if (property.propertyType == SerializedPropertyType.Float)
+                        EditorGUILayout.Slider(property, parameter.min, parameter.max, nameContent);
+                    else
+                        EditorGUILayout.IntSlider(property, (int)parameter.min, (int)parameter.max, nameContent);
+                }
+                else if (parameter.realType == typeof(Color).Name)
+                {
+                    Vector4 vVal = property.vector4Value;
+                    Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
+                    c = EditorGUILayout.ColorField(nameContent, c, true, true, true);
+
+                    if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
+                        property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
+                }
+                else if (property.propertyType == SerializedPropertyType.Vector4)
+                {
+                    var oldVal = property.vector4Value;
+                    var newVal = EditorGUILayout.Vector4Field(nameContent, oldVal);
+                    if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
+                    {
+                        property.vector4Value = newVal;
+                    }
+                }
+                else if(property.propertyType == SerializedPropertyType.ObjectReference)
+                {
+                    Type objTyp = typeof(UnityObject);
+                    if( !string.IsNullOrEmpty(parameter.realType))
+                    {
+                        if (parameter.realType.StartsWith("Texture") || parameter.realType.StartsWith("Cubemap"))
+                        {
+                            objTyp = typeof(Texture);
+                        }
+                        else if (parameter.realType == "Mesh")
+                        {
+                            objTyp = typeof(Mesh);
+                        }
+                    }
+                    Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.objectField, null);
+                    EditorGUI.ObjectField(r, property, objTyp, nameContent);
+                }
+                else
+                {
+                    EditorGUILayout.PropertyField(property, nameContent, true);
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (overrideProperty.boolValue == false)
+                    {
+                        if (originalProperty.propertyType == property.propertyType)
+                        {
+                            SetObjectValue(originalProperty, GetObjectValue(property));
+                        }
+                        overrideProperty.boolValue = true;
+                    }
                 }
             }
-            else
-            {
-                EditorGUILayout.PropertyField(property, nameContent, true);
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                overrideProperty.boolValue = true;
-            }
 
+            serializedObject.ApplyModifiedProperties();
             EditorGUILayout.EndHorizontal();
         }
 
-        private void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+        protected static object GetObjectValue(SerializedProperty prop)
+        {
+            switch (prop.propertyType)
+            {
+                case SerializedPropertyType.Float:
+                    return prop.floatValue;
+                case SerializedPropertyType.Vector3:
+                    return prop.vector3Value;
+                case SerializedPropertyType.Vector2:
+                    return prop.vector2Value;
+                case SerializedPropertyType.Vector4:
+                    return prop.vector4Value;
+                case SerializedPropertyType.ObjectReference:
+                    return prop.objectReferenceValue;
+                case SerializedPropertyType.Integer:
+                    return prop.intValue;
+                case SerializedPropertyType.Boolean:
+                    return prop.boolValue;
+                case SerializedPropertyType.Gradient:
+                    return prop.gradientValue;
+                case SerializedPropertyType.AnimationCurve:
+                    return prop.animationCurveValue;
+            }
+            return null;
+        }
+
+        protected static void SetObjectValue(SerializedProperty prop, object value)
+        {
+            switch (prop.propertyType)
+            {
+                case SerializedPropertyType.Float:
+                    prop.floatValue = (float)value;
+                    return;
+                case SerializedPropertyType.Vector3:
+                    prop.vector3Value = (Vector3)value;
+                    return;
+                case SerializedPropertyType.Vector2:
+                    prop.vector2Value = (Vector2)value;
+                    return;
+                case SerializedPropertyType.Vector4:
+                    prop.vector4Value = (Vector4)value;
+                    return;
+                case SerializedPropertyType.ObjectReference:
+                    prop.objectReferenceValue = (UnityEngine.Object)value;
+                    return;
+                case SerializedPropertyType.Integer:
+                    prop.intValue = (int)value;
+                    return;
+                case SerializedPropertyType.Boolean:
+                    prop.boolValue = (bool)value;
+                    return;
+                case SerializedPropertyType.Gradient:
+                    prop.gradientValue = (Gradient)value;
+                    return;
+                case SerializedPropertyType.AnimationCurve:
+                    prop.animationCurveValue = (AnimationCurve)value;
+                    return;
+            }
+        }
+
+        protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
 
@@ -173,7 +363,7 @@ namespace UnityEditor.VFX
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Contents.playRate, GUILayout.Width(44));
-            playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(138));
+            playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
             effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
 
             var eventType = Event.current.type;
@@ -344,6 +534,11 @@ namespace UnityEditor.VFX
 
         protected virtual void DrawParameters()
         {
+            if (s_FakeObjectCache == null)
+            {
+                s_FakeObjectCache = ScriptableObject.CreateInstance<FakeObject>();
+                s_FakeObjectSerializedCache = new SerializedObject(s_FakeObjectCache);
+            }
             var component = (VisualEffect)target;
             if (m_graph == null || m_asset != component.visualEffectAsset)
             {
@@ -375,9 +570,11 @@ namespace UnityEditor.VFX
 
                     bool ignoreUntilNextCat = false;
 
-                    foreach (var parameter in m_graph.m_ParameterInfo)
+                    foreach (var param in m_graph.m_ParameterInfo)
                     {
                         --currentCount;
+
+                        var parameter = param;
 
                         if (parameter.descendantCount > 0)
                         {
@@ -453,7 +650,7 @@ namespace UnityEditor.VFX
                                     GUI.color = AnimationMode.animatedPropertyColor;
                                 }
 
-                                DisplayProperty(parameter, overrideProperty, property);
+                                DisplayProperty(ref parameter, overrideProperty, property);
 
                                 if (animated)
                                 {
@@ -480,7 +677,7 @@ namespace UnityEditor.VFX
             public static readonly GUIContent openEditor = EditorGUIUtility.TrTextContent("Edit");
             public static readonly GUIContent setRandomSeed = EditorGUIUtility.TrTextContent("Reseed");
             public static readonly GUIContent setPlayRate = EditorGUIUtility.TrTextContent("Set");
-            public static readonly GUIContent playRate = EditorGUIUtility.TrTextContent("PlayRate");
+            public static readonly GUIContent playRate = EditorGUIUtility.TrTextContent("Rate");
 
             static readonly GUIContent[] m_Icons;
 

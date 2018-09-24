@@ -94,6 +94,8 @@ namespace UnityEditor.VFX.UI
             m_SuperCollapsedButton = this.Q("super-collapse-button");
             m_SuperCollapsedButton.AddManipulator(new Clickable(OnToggleSuperCollapse));
 
+            this.AddManipulator(new SuperCollapser());
+
             m_Pill = this.Q("pill");
         }
 

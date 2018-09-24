@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 1.0f;
         }
 
-        public override sealed string name { get { return "Reciprocal (1/x)"; } }
+        protected override sealed string operatorName { get { return "Reciprocal (1/x)"; } }
 
         protected override double defaultValueDouble
         {

@@ -12,10 +12,10 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-#if !USE_SHADER_AS_SUBASSET
+
     public class VFXCacheManager : EditorWindow
     {
-        //[MenuItem("VFX Editor/Build All VFXs")]
+        [MenuItem("Edit/Visual Effects//Rebuild All Visual Effect Graphs", priority = 320)]
         public static void Build()
         {
             var vfxAssets = new List<VisualEffectAsset>();
@@ -32,7 +32,9 @@ namespace UnityEditor.VFX
 
             foreach (var vfxAsset in vfxAssets)
             {
-                Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+                if (VFXViewPreference.advancedLogs)
+                    Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+
                 VFXExpression.ClearCache();
                 vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
                 vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
@@ -40,7 +42,6 @@ namespace UnityEditor.VFX
             AssetDatabase.SaveAssets();
         }
     }
-#endif
 
     public class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
@@ -161,14 +162,53 @@ namespace UnityEditor.VFX
         public void BuildParameterInfo()
         {
             m_ParameterInfo = VFXParameterInfo.BuildParameterInfo(this);
+            VisualEffectEditor.RepaintAllEditors();
         }
+
 
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
         }
 
-        public string Backup()
+        //Temporary : Use reflection to access to StoreObjectsToByteArray (doesn't break previous behavior if editor isn't up to date)
+        //TODO : Clean this when major version is released
+        private static Func<ScriptableObject[], CompressionLevel, object> GetStoreObjectsFunction()
+        {
+            var advancedMethod = typeof(VFXMemorySerializer).GetMethod("StoreObjectsToByteArray", BindingFlags.Public | BindingFlags.Static);
+            if (advancedMethod != null)
+            {
+                return delegate (ScriptableObject[] objects, CompressionLevel level)
+                {
+                    return advancedMethod.Invoke(null, new object[] { objects, level }) as byte[];
+                };
+            }
+
+            return delegate (ScriptableObject[] objects, CompressionLevel level)
+            {
+                return VFXMemorySerializer.StoreObjects(objects) as object;
+            };
+        }
+        private static Func<object, bool, ScriptableObject[]> GetExtractObjectsFunction()
+        {
+            var advancedMethod = typeof(VFXMemorySerializer).GetMethod("ExtractObjects", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]), typeof(bool) }, null);
+            if (advancedMethod != null)
+            {
+                return delegate (object objects, bool asCopy)
+                {
+                    return advancedMethod.Invoke(null, new object[] { objects as byte[], asCopy }) as ScriptableObject[];
+                };
+            }
+
+            return delegate (object objects, bool asCopy)
+            {
+                return VFXMemorySerializer.ExtractObjects(objects as string, asCopy);
+            };
+        }
+        private static readonly Func<ScriptableObject[], CompressionLevel, object> k_fnStoreObjects = GetStoreObjectsFunction();
+        private static readonly Func<object, bool, ScriptableObject[]> k_fnExtractObjects = GetExtractObjectsFunction();
+
+        public object Backup()
         {
             Profiler.BeginSample("VFXGraph.Backup");
             var dependencies = new HashSet<ScriptableObject>();
@@ -176,18 +216,17 @@ namespace UnityEditor.VFX
             dependencies.Add(this);
             CollectDependencies(dependencies);
 
-
-            var result = VFXMemorySerializer.StoreObjects(dependencies.Cast<ScriptableObject>().ToArray());
+            var result = k_fnStoreObjects(dependencies.Cast<ScriptableObject>().ToArray(), CompressionLevel.Fastest);
 
             Profiler.EndSample();
 
             return result;
         }
 
-        public void Restore(string str)
+        public void Restore(object str)
         {
             Profiler.BeginSample("VFXGraph.Restore");
-            var scriptableObject = VFXMemorySerializer.ExtractObjects(str, false);
+            var scriptableObject = k_fnExtractObjects(str, false);
 
             Profiler.BeginSample("VFXGraph.Restore SendUnknownChange");
             foreach (var model in scriptableObject.OfType<VFXModel>())
@@ -298,7 +337,7 @@ namespace UnityEditor.VFX
             m_saved = false;
             base.OnInvalidate(model, cause);
 
-            if (model is VFXParameter)
+            if (model is VFXParameter || model is VFXSlot && (model as VFXSlot).owner is VFXParameter)
             {
                 BuildParameterInfo();
             }

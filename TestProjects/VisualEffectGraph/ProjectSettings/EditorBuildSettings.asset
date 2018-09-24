@@ -42,6 +42,9 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/11_Space.unity
     guid: 8f02c61a617e0b142bad3216ae358921
   - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/11_SpaceBis.unity
+    guid: efe91acbbd0143e448b4fb64ede27d45
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/12_LocalTransformations.unity
     guid: 0dc03e6162787ab44850cd91de701789
   - enabled: 1

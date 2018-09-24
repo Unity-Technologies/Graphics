@@ -13,12 +13,7 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return true; } }
-
-        public override void OnEnable()
-        {
-            uvMode = UVMode.Simple;
-            base.OnEnable();
-        }
+        public override CullMode defaultCullMode { get { return CullMode.Back; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -40,8 +35,8 @@ namespace UnityEditor.VFX
                 foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                     yield return size;
 
-                //if (usesFlipbook)
-                //    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
+                if (usesFlipbook)
+                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
 
@@ -72,17 +67,6 @@ namespace UnityEditor.VFX
             }
 
             return mapper;
-        }
-
-        protected override IEnumerable<string> filteredOutSettings
-        {
-            get
-            {
-                foreach (var setting in base.filteredOutSettings)
-                    yield return setting;
-
-                yield return "uvMode";
-            }
         }
     }
 }

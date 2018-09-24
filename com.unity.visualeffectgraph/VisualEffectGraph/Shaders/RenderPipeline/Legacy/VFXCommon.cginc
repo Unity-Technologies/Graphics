@@ -44,14 +44,9 @@ float4x4 VFXGetViewToWorldMatrix()
     return UNITY_MATRIX_I_V;
 }
 
-float4 VFXGetPOSSS(float4 posCS)
-{
-    return ComputeScreenPos(posCS);
-}
-
 float VFXSampleDepth(float4 posSS)
 {
-    return SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(posSS));
+    return _CameraDepthTexture.Load(int3(posSS.xd, 0)).r;
 }
 
 float VFXLinearEyeDepth(float depth)

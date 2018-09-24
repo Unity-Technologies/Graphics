@@ -9,6 +9,7 @@ namespace UnityEditor.VFX
     {
         private static bool m_Loaded = false;
         private static bool m_DisplayExperimentalOperator = false;
+        private static bool m_AllowShaderExternalization = false;
         private static bool m_DisplayExtraDebugInfo = false;
         private static bool m_ForceEditionCompilation = false;
         private static bool m_AdvancedLogs = false;
@@ -52,6 +53,7 @@ namespace UnityEditor.VFX
         public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
         public const string extraDebugInfoKey = "VFX.ExtraDebugInfo";
         public const string forceEditionCompilationKey = "VFX.ForceEditionCompilation";
+        public const string allowShaderExternalizationKey = "VFX.allowShaderExternalization";
         public const string advancedLogsKey = "VFX.AdvancedLogs";
 
         private static void LoadIfNeeded()
@@ -61,6 +63,7 @@ namespace UnityEditor.VFX
                 m_DisplayExperimentalOperator = EditorPrefs.GetBool(experimentalOperatorKey, false);
                 m_DisplayExtraDebugInfo = EditorPrefs.GetBool(extraDebugInfoKey, false);
                 m_ForceEditionCompilation = EditorPrefs.GetBool(forceEditionCompilationKey, false);
+                m_AllowShaderExternalization = EditorPrefs.GetBool(allowShaderExternalizationKey, false);
                 m_AdvancedLogs = EditorPrefs.GetBool(advancedLogsKey, false);
                 m_Loaded = true;
             }
@@ -86,8 +89,9 @@ namespace UnityEditor.VFX
                 {
                     LoadIfNeeded();
                     m_DisplayExperimentalOperator = EditorGUILayout.Toggle("Experimental Operators/Blocks", m_DisplayExperimentalOperator);
-                    m_DisplayExtraDebugInfo = EditorGUILayout.Toggle("Show Additional DebugInfo", m_DisplayExtraDebugInfo);
+                    m_DisplayExtraDebugInfo = EditorGUILayout.Toggle("Show Additional Debug info", m_DisplayExtraDebugInfo);
                     m_AdvancedLogs = EditorGUILayout.Toggle("Verbose Mode for compilation", m_AdvancedLogs);
+            m_AllowShaderExternalization = EditorGUILayout.Toggle("Experimental shader externalization", m_AllowShaderExternalization);
 
                     bool oldForceEditionCompilation = m_ForceEditionCompilation;
                     m_ForceEditionCompilation = EditorGUILayout.Toggle("Force Compilation in Edition Mode", m_ForceEditionCompilation);
@@ -114,6 +118,7 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetBool(extraDebugInfoKey, m_DisplayExtraDebugInfo);
                         EditorPrefs.SetBool(forceEditionCompilationKey, m_ForceEditionCompilation);
                         EditorPrefs.SetBool(advancedLogsKey, m_AdvancedLogs);
+                        EditorPrefs.SetBool(allowShaderExternalizationKey, m_AllowShaderExternalization);
                     }
                 }
 
@@ -130,7 +135,7 @@ namespace UnityEditor.VFX
 
         public static void PreferencesGUI()
         {
-           
+
         }
     }
 }

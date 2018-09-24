@@ -34,37 +34,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Generates an in-place depth pyramid
-        // Returns the number of generated mips
         // TODO: Mip-mapping depth is problematic for precision at lower mips, generate a packed atlas instead
-        public int RenderMinDepthPyramid(CommandBuffer cmd, Vector2Int size, RenderTexture texture)
+        public void RenderMinDepthPyramid(CommandBuffer cmd, RenderTexture texture, HDUtils.PackedMipChainInfo info)
         {
-            var cs = m_DepthPyramidCS;
+            var cs     = m_DepthPyramidCS;
             int kernel = m_DepthDownsampleKernel;
-            int srcMipLevel  = 0;
-            int srcMipWidth  = size.x;
-            int srcMipHeight = size.y;
 
             // TODO: Do it 1x MIP at a time for now. In the future, do 4x MIPs per pass, or even use a single pass.
             // Note: Gather() doesn't take a LOD parameter and we cannot bind an SRV of a MIP level,
             // and we don't support Min samplers either. So we are forced to perform 4x loads.
-            while (srcMipWidth >= 2 || srcMipHeight >= 2)
+            for (int i = 1; i < info.mipLevelCount; i++)
             {
-                int dstMipWidth  = Mathf.Max(1, srcMipWidth  >> 1);
-                int dstMipHeight = Mathf.Max(1, srcMipHeight >> 1);
+                Vector2Int dstSize   = info.mipLevelSizes[i];
+                Vector2Int dstOffset = info.mipLevelOffsets[i];
+                Vector2Int srcSize   = info.mipLevelSizes[i - 1];
+                Vector2Int srcOffset = info.mipLevelOffsets[i - 1];
+                Vector2Int srcLimit  = srcOffset + srcSize - Vector2Int.one;
 
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Size, new Vector4(srcMipWidth, srcMipHeight, 0f, 0f));
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Source, texture, srcMipLevel);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Destination, texture, srcMipLevel + 1);
-                cmd.DispatchCompute(cs, kernel, (dstMipWidth + 7) / 8, (dstMipHeight + 7) / 8, 1);
+                cmd.SetComputeIntParams(   cs,         HDShaderIDs._SrcOffsetAndLimit, new int[4] {srcOffset.x, srcOffset.y, srcLimit.x, srcLimit.y});
+                cmd.SetComputeIntParams(   cs,         HDShaderIDs._DstOffset,         new int[4] {dstOffset.x, dstOffset.y, 0, 0});
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain,     texture);
 
-                srcMipLevel++;
-                srcMipWidth  = srcMipWidth  >> 1;
-                srcMipHeight = srcMipHeight >> 1;
+                cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), 1);
             }
-
-            return srcMipLevel - 1;
         }
-        
+
         // Generates the gaussian pyramid of source into destination
         // We can't do it in place as the color pyramid has to be read while writing to the color
         // buffer in some cases (e.g. refraction, distortion)
@@ -102,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int dstMipWidth  = Mathf.Max(1, srcMipWidth  >> 1);
                 int dstMipHeight = Mathf.Max(1, srcMipHeight >> 1);
-                
+
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Size, new Vector4(srcMipWidth, srcMipHeight, 0f, 0f));
 
                 // First dispatch also copies src to dst mip0

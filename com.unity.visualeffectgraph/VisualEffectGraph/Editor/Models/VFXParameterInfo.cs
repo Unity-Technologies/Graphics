@@ -21,6 +21,7 @@ namespace UnityEditor.VFX
             this.realType = realType;
             path = null;
             tooltip = null;
+            defaultValue = null;
             min = Mathf.NegativeInfinity;
             max = Mathf.Infinity;
             descendantCount = 0;
@@ -34,6 +35,7 @@ namespace UnityEditor.VFX
         public string sheetType;
 
         public string realType;
+        public VFXSerializableObject defaultValue;
 
         public float min;
         public float max;
@@ -90,12 +92,13 @@ namespace UnityEditor.VFX
                         paramInfo.min = min;
                         paramInfo.max = max;
                     }
+                    paramInfo.defaultValue = new VFXSerializableObject(parameter.type,parameter.value);
 
                     paramInfo.descendantCount = 0;
                 }
                 else
                 {
-                    paramInfo.descendantCount = RecurseBuildParameterInfo(subList, parameter.type, parameter.exposedName);
+                    paramInfo.descendantCount = RecurseBuildParameterInfo(subList, parameter.type, parameter.exposedName, parameter.value);
                 }
 
 
@@ -105,7 +108,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        static int RecurseBuildParameterInfo(List<VFXParameterInfo> infos, System.Type type, string path)
+        static int RecurseBuildParameterInfo(List<VFXParameterInfo> infos, System.Type type, string path, object obj)
         {
             if (!type.IsValueType) return 0;
 
@@ -116,10 +119,11 @@ namespace UnityEditor.VFX
             foreach (var field in fields)
             {
                 var info = new VFXParameterInfo(field.Name, field.FieldType.Name);
+                var subObj = field.GetValue(obj);
 
                 info.path = path + "_" + field.Name;
 
-                var tooltip = field.GetCustomAttributes(typeof(TooltipAttribute),true).First() as TooltipAttribute;
+                var tooltip = field.GetCustomAttributes(typeof(TooltipAttribute),true).FirstOrDefault() as TooltipAttribute;
                 if( tooltip != null)
                 {
                     info.tooltip = tooltip.tooltip;
@@ -137,12 +141,13 @@ namespace UnityEditor.VFX
                         info.max = attr.max;
                     }
                     info.descendantCount = 0;
+                    info.defaultValue = new VFXSerializableObject(field.FieldType, subObj);
                 }
                 else
                 {
                     if (field.FieldType == typeof(VFXCoordinateSpace)) // For space
                         continue;
-                    info.descendantCount = RecurseBuildParameterInfo(subList, field.FieldType, info.path);
+                    info.descendantCount = RecurseBuildParameterInfo(subList, field.FieldType, info.path, subObj);
                 }
                 infos.Add(info);
                 infos.AddRange(subList);

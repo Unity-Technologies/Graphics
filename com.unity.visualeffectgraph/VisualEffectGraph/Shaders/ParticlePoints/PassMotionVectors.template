@@ -19,12 +19,9 @@ Pass
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
 		nointerpolation float3 builtInInterpolants : TEXCOORD0;
 		#endif
-		#if USE_SOFT_PARTICLE
-		float4 projPos : TEXCOORD1;		
-		#endif
 		
-		float4 previousPos : TEXCOORD2;
-		float4 currentPos : TEXCOORD3;
+		float4 previousPos : TEXCOORD1;
+		float4 currentPos : TEXCOORD2;
 	};
 	
 	struct ps_output
@@ -34,7 +31,6 @@ Pass
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-#define VFX_VARYING_POSSS projPos
 #define VFX_VARYING_ALPHA builtInInterpolants.z
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y

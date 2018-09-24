@@ -1,16 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 #endif
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEditor.Experimental.Rendering;
-using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
-using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -118,8 +113,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 QualitySettings.antiAliasing = m_PipelineSettings.msaaSampleCount;
 
             Shader.globalRenderPipeline = "LightweightPipeline";
-
-            Lightmapping.SetDelegate(lightsDelegate);
         }
 
         public override void Dispose()
@@ -133,8 +126,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #endif
 
             m_Renderer.Dispose();
-
-            Lightmapping.ResetDelegate();
         }
 
         public interface IBeforeCameraRender
@@ -251,11 +242,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cameraData.isOffscreenRender = camera.targetTexture != null && !cameraData.isSceneViewCamera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
 
-            // TODO: There's currently an issue in engine side that breaks MSAA with texture2DArray.
-            // for now we force msaa disabled when using texture2DArray. This fixes VR multiple and single pass instanced modes.
-            if (cameraData.isStereoEnabled && XRGraphicsConfig.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
-                cameraData.msaaSamples = 1;
-
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
 
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
@@ -294,13 +280,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             cameraData.requiresDepthTexture |= cameraData.postProcessEnabled;
-
-            var commonOpaqueFlags = SortFlags.CommonOpaque;
-            var noFrontToBackOpaqueFlags = SortFlags.SortingLayer | SortFlags.RenderQueue | SortFlags.OptimizeStateChanges | SortFlags.CanvasOrder;
-            bool hasHSRGPU = SystemInfo.hasHiddenSurfaceRemovalOnGPU;
-            bool canSkipFrontToBackSorting = (camera.opaqueSortMode == OpaqueSortMode.Default && hasHSRGPU) || camera.opaqueSortMode == OpaqueSortMode.NoDistanceSort;
-
-            cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
         }
 
         static void InitializeRenderingData(PipelineSettings settings, ref CameraData cameraData, ref CullResults cullResults,
@@ -441,40 +420,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
         }
-
-        public static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
-        {
-            LightDataGI lightData = new LightDataGI();
-
-            for (int i = 0; i < requests.Length; i++)
-            {
-                Light light = requests[i];
-                switch (light.type)
-                {
-                    case LightType.Directional:
-                        DirectionalLight directionalLight = new DirectionalLight();
-                        LightmapperUtils.Extract(light, ref directionalLight); lightData.Init(ref directionalLight);
-                        break;
-                    case LightType.Point:
-                        PointLight pointLight = new PointLight();
-                        LightmapperUtils.Extract(light, ref pointLight); lightData.Init(ref pointLight);
-                        break;
-                    case LightType.Spot:
-                        SpotLight spotLight = new SpotLight();
-                        LightmapperUtils.Extract(light, ref spotLight); lightData.Init(ref spotLight);
-                        break;
-                    case LightType.Area:
-                        RectangleLight rectangleLight = new RectangleLight();
-                        LightmapperUtils.Extract(light, ref rectangleLight); lightData.Init(ref rectangleLight);
-                        break;
-                    default:
-                        lightData.InitNoBake(light.GetInstanceID());
-                        break;
-                }
-
-                lightData.falloff = FalloffType.InverseSquared;
-                lightsOutput[i] = lightData;
-            }
-        };
     }
 }

@@ -84,7 +84,7 @@ namespace UnityEditor.VFX.UI
 
         class SerializedState
         {
-            public string serializedGraph;
+            public object serializedGraph;
             public Dictionary<VFXSlot, object> slotDeltas;
         }
 

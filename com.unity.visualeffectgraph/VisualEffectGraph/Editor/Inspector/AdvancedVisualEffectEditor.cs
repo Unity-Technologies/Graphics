@@ -135,6 +135,7 @@ namespace UnityEditor.VFX
 
         public override void OnInspectorGUI()
         {
+            m_GizmoableParameters.Clear();
             base.OnInspectorGUI();
         }
 
@@ -197,9 +198,11 @@ namespace UnityEditor.VFX
 
         VFXParameter m_GizmoedParameter;
 
+        List<VFXParameter> m_GizmoableParameters = new List<VFXParameter>();
+
         protected override void EmptyLineControl(string name, string tooltip, int depth)
         {
-            if (depth != 1  || !m_GizmoDisplayed)
+            if (depth != 1 )
             {
                 base.EmptyLineControl(name, tooltip, depth);
                 return;
@@ -216,6 +219,12 @@ namespace UnityEditor.VFX
             if (m_EditJustStarted && m_GizmoedParameter == null)
             {
                 m_GizmoedParameter = parameter;
+            }
+            m_GizmoableParameters.Add(parameter);
+            if (!m_GizmoDisplayed)
+            {
+                base.EmptyLineControl(name, tooltip, depth);
+                return;
             }
 
             GUILayout.BeginHorizontal();
@@ -456,66 +465,6 @@ namespace UnityEditor.VFX
                 return true;
             }
 
-            object GetObjectValue(SerializedProperty prop)
-            {
-                switch (prop.propertyType)
-                {
-                    case SerializedPropertyType.Float:
-                        return prop.floatValue;
-                    case SerializedPropertyType.Vector3:
-                        return prop.vector3Value;
-                    case SerializedPropertyType.Vector2:
-                        return prop.vector2Value;
-                    case SerializedPropertyType.Vector4:
-                        return prop.vector4Value;
-                    //case SerializedPropertyType.ObjectReference:
-                    //    return prop.objectReferenceValue;
-                    case SerializedPropertyType.Integer:
-                        return prop.intValue;
-                    case SerializedPropertyType.Boolean:
-                        return prop.boolValue;
-                        //case SerializedPropertyType.Gradient:
-                        //    return prop.gradientValue;
-                        //case SerializedPropertyType.AnimationCurve:
-                        //    return prop.animationCurveValue;
-                }
-                return null;
-            }
-
-            void SetObjectValue(SerializedProperty prop, object value)
-            {
-                switch (prop.propertyType)
-                {
-                    case SerializedPropertyType.Float:
-                        prop.floatValue = (float)value;
-                        return;
-                    case SerializedPropertyType.Vector3:
-                        prop.vector3Value = (Vector3)value;
-                        return;
-                    case SerializedPropertyType.Vector2:
-                        prop.vector2Value = (Vector2)value;
-                        return;
-                    case SerializedPropertyType.Vector4:
-                        prop.vector4Value = (Vector4)value;
-                        return;
-                    //case SerializedPropertyType.ObjectReference:
-                    //    prop.objectReferenceValue = (UnityEngine.Object)value;
-                    //    return;
-                    case SerializedPropertyType.Integer:
-                        prop.intValue = (int)value;
-                        return;
-                    case SerializedPropertyType.Boolean:
-                        prop.boolValue = (bool)value;
-                        return;
-                        //case SerializedPropertyType.Gradient:
-                        //    prop.gradientValue = (Gradient)value;
-                        //    return;
-                        //case SerializedPropertyType.AnimationCurve:
-                        //    prop.animationCurveValue = (AnimationCurve)value;
-                        //    return;
-                }
-            }
-
             public void SetParameter(VFXParameter parameter)
             {
                 if (parameter != m_Parameter)
@@ -632,5 +581,25 @@ namespace UnityEditor.VFX
 
             VFXParameter m_Parameter;
         }
+
+        protected override void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+        {
+            base.SceneViewGUICallback(target, sceneView);
+            if (m_GizmoableParameters.Count > 0)
+            {
+                int current = m_GizmoableParameters.IndexOf(m_GizmoedParameter);
+                EditorGUI.BeginChangeCheck();
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Gizmos",GUILayout.Width(45));
+                int result = EditorGUILayout.Popup(current, m_GizmoableParameters.Select(t => t.exposedName).ToArray(), GUILayout.Width(163));
+                if (EditorGUI.EndChangeCheck() && result != current)
+                {
+                    m_GizmoDisplayed = true;
+                    m_GizmoedParameter = m_GizmoableParameters[result];
+                    Repaint();
+                }
+                GUILayout.EndHorizontal();
+            }
+        }
+        }
     }
-}

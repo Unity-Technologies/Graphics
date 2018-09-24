@@ -29,9 +29,6 @@ Pass
 		// y: alpha threshold
 		nointerpolation float2 builtInInterpolants : TEXCOORD1;
 		#endif
-		#if USE_SOFT_PARTICLE
-		float4 projPos : TEXCOORD2;		
-		#endif
 		
 		float3 offsets : TEXCOORD3;
 		nointerpolation float3 rotX : TEXCOORD4;
@@ -51,7 +48,6 @@ ${VFXHDRPLitVaryingsMacros}
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-#define VFX_VARYING_POSSS projPos
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_OFFSETS offsets

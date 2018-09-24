@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.Test
         }
 
         #pragma warning disable 0414
-        static private string[] variableOperators = { "Add", "DotProduct", "Clamp" };
+        static private string[] variableOperators = { "Add", "Dot Product", "Clamp" };
 
         #pragma warning restore 0414
 

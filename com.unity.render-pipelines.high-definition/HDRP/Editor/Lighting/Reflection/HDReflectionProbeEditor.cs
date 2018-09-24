@@ -3,7 +3,6 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using System.Linq;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -53,8 +52,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal override HDProbe GetTarget(Object editorTarget)
         {
-            HDReflectionProbeEditor e = s_ReflectionProbeEditors[(ReflectionProbe)editorTarget];
-            return (HDProbe)e.m_AdditionalDataSerializedObject.targetObjects.First(a => ((HDAdditionalReflectionData)a).reflectionProbe == editorTarget);
+            return (HDProbe)s_ReflectionProbeEditors[(ReflectionProbe)editorTarget].m_AdditionalDataSerializedObject.targetObject;
         }
 
         protected override void Draw(HDProbeUI s, SerializedHDProbe serialized, Editor owner)

@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public Position r;
+            public Position r = Position.defaultValue;
         }
 
         public override string name

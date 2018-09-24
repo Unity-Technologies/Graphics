@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public override sealed string name { get { return "Squared Distance"; } }
+        protected override sealed string operatorName { get { return "Squared Distance"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

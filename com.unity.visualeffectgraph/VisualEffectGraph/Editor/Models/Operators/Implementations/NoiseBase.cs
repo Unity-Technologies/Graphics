@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public float o;
+            public float o = 0.0f;
         }
 
         public enum DimensionCount

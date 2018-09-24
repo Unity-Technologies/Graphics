@@ -280,6 +280,16 @@ namespace  UnityEditor.VFX.UI
         {
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+        }
+
+        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenu.MenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Delete", (a) => GetFirstAncestorOfType<VFXView>().DeleteElements(new GraphElement[] { this }), DropdownMenu.MenuAction.AlwaysEnabled);
+
+            evt.StopPropagation();
         }
 
         Controller IControlledElement.controller
@@ -478,6 +488,9 @@ namespace  UnityEditor.VFX.UI
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+            RegisterCallback<KeyDownEvent>(OnKeyDown);
+
+            focusIndex = 0;
 
 
             m_DragIndicator = new VisualElement();
@@ -498,6 +511,30 @@ namespace  UnityEditor.VFX.UI
             subTitle = "Parameters";
 
             resizer.RemoveFromHierarchy();
+        }
+
+
+        void OnKeyDown(KeyDownEvent e)
+        {
+            if( e.keyCode == KeyCode.F2)
+            {
+                var graphView = GetFirstAncestorOfType<VFXView>();
+
+                var field = graphView.selection.OfType<VFXBlackboardField>().FirstOrDefault();
+                if( field != null)
+                {
+                    field.OpenTextEditor();
+                }
+                else
+                {
+                    var category = graphView.selection.OfType< VFXBlackboardCategory>().FirstOrDefault();
+
+                    if( category != null)
+                    {
+                        category.OpenTextEditor();
+                    }
+                }
+            }
         }
 
         private void SetDragIndicatorVisible(bool visible)

@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Arithmetic")]
     class Step : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
-        public override sealed string name { get { return "Step"; } }
+        protected override sealed string operatorName { get { return "Step"; } }
 
         public class InputProperties
         {

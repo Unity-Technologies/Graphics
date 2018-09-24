@@ -49,9 +49,9 @@
 {
     background-image:resource("vfx/spacelocal");
 }
-.spaceGlobal
+.spaceWorld
 {
-    background-image:resource("vfx/spaceglobal");
+    background-image:resource("vfx/spaceworld");
 }
 
 .propertyrm > FloatField
