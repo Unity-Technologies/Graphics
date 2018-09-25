@@ -230,6 +230,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return probeTransform.TransformPoint(offset);
         }
 
+        internal Vector3 extends
+        {
+            get
+            {
+                switch (shape)
+                {
+                    default:
+                    case InfluenceShape.Box:
+                        return boxSize * 0.5f;
+                    case InfluenceShape.Sphere:
+                        return sphereRadius * Vector3.one;
+                }
+            }
+        }
+
+        internal EnvShapeType envShape
+        {
+            get
+            {
+                switch (shape)
+                {
+                    default:
+                    case InfluenceShape.Box:
+                        return EnvShapeType.Box;
+                    case InfluenceShape.Sphere:
+                        return EnvShapeType.Sphere;
+                }
+            }
+        }
+
         internal void MigrateOffsetSphere()
         {
             if (shape == InfluenceShape.Sphere)

@@ -29,6 +29,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbeRefreshMode m_RefreshMode = ReflectionProbeRefreshMode.OnAwake;
         
         RenderTexture m_RealtimeTexture = null;
+        [SerializeField]
+        Texture m_CustomTexture;
+        [SerializeField]
+        Texture m_BakedTexture;
 
         /// <summary>Light layer to use by this probe.</summary>
         public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
@@ -51,20 +55,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier { get { return m_Multiplier; } set { m_Multiplier = value; } }
-
         /// <summary>Weight for blending amongst probes (non PBR parameter).</summary>
         public float weight { get { return m_Weight; } set { m_Weight = value; } }
-
+        
+        /// <summary>Get the Custom Texture used</summary>
+        public virtual Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }
+        /// <summary>Get the backed acquired Texture</summary>
+        public virtual Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; } }
         /// <summary>Get the realtime acquired Render Texture</summary>
         public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
-
+        /// <summary>Get the currently used Texture</summary>
+        public Texture currentTexture
+        {
+            get
+            {
+                switch (mode)
+                {
+                    default:
+                    case ReflectionProbeMode.Baked:
+                        return bakedTexture;
+                    case ReflectionProbeMode.Custom:
+                        return customTexture;
+                    case ReflectionProbeMode.Realtime:
+                        return realtimeTexture;
+                }
+            }
+        }
+        
         /// <summary>The capture mode.</summary>
         public virtual ReflectionProbeMode mode
         {
             get { return m_Mode; }
             set { m_Mode = value; }
         }
-
         /// <summary>Refreshing rate of the capture for Realtime capture mode.</summary>
         public virtual ReflectionProbeRefreshMode refreshMode
         {
@@ -72,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RefreshMode = value; }
         }
 
+        /// <summary>Is the projection at infinite? Value could be changed by Proxy mode.</summary>
         public bool infiniteProjection
         {
             get
@@ -82,6 +106,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set
             {
                 m_InfiniteProjection = value;
+            }
+        }
+
+        internal Matrix4x4 influenceToWorld
+        {
+            get
+            {
+                var tr = transform;
+                var influencePosition = influenceVolume.GetWorldPosition(tr);
+                return Matrix4x4.TRS(
+                    influencePosition,
+                    tr.rotation,
+                    Vector3.one
+                    );
+            }
+        }
+        internal Vector3 influenceExtents
+        {
+            get
+            {
+                switch (influenceVolume.shape)
+                {
+                    default:
+                    case InfluenceShape.Box:
+                        return influenceVolume.boxSize * 0.5f;
+                    case InfluenceShape.Sphere:
+                        return influenceVolume.sphereRadius * Vector3.one;
+                }
+            }
+        }
+        internal Matrix4x4 proxyToWorld
+        {
+            get
+            {
+                return proxyVolume != null
+                    ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
+                    : influenceToWorld;
+            }
+        }
+        public virtual Vector3 proxyExtents
+        {
+            get
+            {
+                return proxyVolume != null
+                    ? proxyVolume.proxyVolume.extents
+                    : influenceExtents;
+            }
+        }
+        internal virtual Vector3 capturePosition
+        {
+            get
+            {
+                return transform.position; //at the moment capture position is at probe position
             }
         }
 

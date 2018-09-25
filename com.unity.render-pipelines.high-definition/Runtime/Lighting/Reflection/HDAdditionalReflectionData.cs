@@ -181,6 +181,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Version = (int)Version.MergeEditors;
             needMigrateToMergeEditors = false;
         }
+        
+        public override Texture customTexture { get { return reflectionProbe.customBakedTexture; } set { reflectionProbe.customBakedTexture = value; } }
+        public override Texture bakedTexture { get { return reflectionProbe.bakedTexture; } set { reflectionProbe.bakedTexture = value; } }
 
         public override ReflectionProbeMode mode
         {
@@ -194,7 +197,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-
         public override ReflectionProbeRefreshMode refreshMode
         {
             set
