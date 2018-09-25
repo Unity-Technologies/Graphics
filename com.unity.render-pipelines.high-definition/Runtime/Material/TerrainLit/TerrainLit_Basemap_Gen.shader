@@ -13,8 +13,8 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
 
         #define USE_LEGACY_UNITY_MATRIX_VARIABLES
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "../../ShaderVariables.hlsl"
-        #include "../Material.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
         #pragma shader_feature _TERRAIN_8_LAYERS
         #pragma shader_feature _TERRAIN_BLEND_HEIGHT

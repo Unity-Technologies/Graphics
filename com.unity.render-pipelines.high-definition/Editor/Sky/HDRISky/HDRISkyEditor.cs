@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false);
             var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.integrateHdriSky);
+            m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
             readBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
 

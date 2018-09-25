@@ -50,7 +50,7 @@ TEXTURE2D(_GBufferTexture0);
 //-----------------------------------------------------------------------------
 
 // Needed for MATERIAL_FEATURE_MASK_FLAGS.
-#include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
 // Vertically Layered BSDF : "vlayering"
 

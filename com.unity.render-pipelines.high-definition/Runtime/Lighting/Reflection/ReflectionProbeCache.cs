@@ -29,9 +29,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public ReflectionProbeCache(HDRenderPipelineAsset hdAsset, IBLFilterGGX iblFilter, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
         {
-            m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.blitCubeTextureFace);
+            m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
-            m_CubeToPano = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.cubeToPanoShader);
+            m_CubeToPano = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.cubeToPanoPS);
 
             // BC6H requires CPP feature not yet available
             probeFormat = TextureFormat.RGBAHalf;

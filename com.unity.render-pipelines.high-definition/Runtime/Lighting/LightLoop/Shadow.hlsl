@@ -9,7 +9,7 @@
 #define SHADOW_USE_SAMPLE_BIASING               0   // Enable per sample biasing for wide multi-tap PCF filters. Incompatible with SHADOW_USE_ONLY_VIEW_BASED_BIASING.
 #define SHADOW_USE_DEPTH_BIAS                   0   // Enable clip space z biasing
 
-#include "ShadowContext.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/ShadowContext.hlsl"
 
 // This is an example of how to override the default dynamic resource dispatcher
 // by hardcoding the resources used and calling the shadow sampling routines that take an explicit texture and sampler.

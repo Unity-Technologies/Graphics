@@ -2,7 +2,7 @@
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 
-#include "../Lit/LitData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
 
 #define LAYERS_HEIGHTMAP_ENABLE (defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || (_LAYER_COUNT > 2 && defined(_HEIGHTMAP2)) || (_LAYER_COUNT > 3 && defined(_HEIGHTMAP3)))
 
@@ -137,7 +137,7 @@
 #ifdef _BENTNORMALMAP0
 #define _BENTNORMALMAP_IDX
 #endif
-#include "../Lit/LitDataIndividualLayer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataIndividualLayer.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
@@ -171,7 +171,7 @@
 #ifdef _BENTNORMALMAP1
 #define _BENTNORMALMAP_IDX
 #endif
-#include "../Lit/LitDataIndividualLayer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataIndividualLayer.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
@@ -205,7 +205,7 @@
 #ifdef _BENTNORMALMAP2
 #define _BENTNORMALMAP_IDX
 #endif
-#include "../Lit/LitDataIndividualLayer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataIndividualLayer.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
@@ -239,7 +239,7 @@
 #ifdef _BENTNORMALMAP3
 #define _BENTNORMALMAP_IDX
 #endif
-#include "../Lit/LitDataIndividualLayer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataIndividualLayer.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
@@ -637,7 +637,7 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
 }
 
 #include "LayeredLitDataDisplacement.hlsl"
-#include "../Lit/LitBuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -784,4 +784,4 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 
-#include "../Lit/LitDataMeshModification.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataMeshModification.hlsl"

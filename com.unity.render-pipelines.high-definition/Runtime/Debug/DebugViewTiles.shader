@@ -32,8 +32,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "../ShaderVariables.hlsl"
-            #include "../Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl" // This include Material.hlsl
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
             //-------------------------------------------------------------------------------------
