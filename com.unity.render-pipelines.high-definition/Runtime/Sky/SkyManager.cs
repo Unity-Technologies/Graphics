@@ -198,9 +198,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BakingSkyRenderingContext = new SkyRenderingContext(iblFilterGGX, (int)hdAsset.renderPipelineSettings.lightLoopSettings.skyReflectionSize, false);
             m_SkyRenderingContext = new SkyRenderingContext(iblFilterGGX, (int)hdAsset.renderPipelineSettings.lightLoopSettings.skyReflectionSize, true);
 
-            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.skyboxCubemap);
-            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.blitCubemap);
-            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.opaqueAtmosphericScattering);
+            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.skyboxCubemapPS);
+            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.blitCubemapPS);
+            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.opaqueAtmosphericScatteringPS);
 
             m_LightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
             m_LightingOverrideLayerMask = hdAsset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;

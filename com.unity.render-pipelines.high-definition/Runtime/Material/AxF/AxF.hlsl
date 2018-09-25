@@ -2,7 +2,7 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in AxF.cs which generates AxF.cs.hlsl
-#include "AxF.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.cs.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 

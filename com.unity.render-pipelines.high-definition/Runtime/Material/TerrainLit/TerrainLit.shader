@@ -80,8 +80,8 @@ Shader "HDRenderPipeline/TerrainLit"
     //-------------------------------------------------------------------------------------
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "../../ShaderPass/FragInputs.hlsl"
-    #include "../../ShaderPass/ShaderPass.cs.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -138,14 +138,14 @@ Shader "HDRenderPipeline/TerrainLit"
             #pragma multi_compile _ LIGHT_LAYERS
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "../../ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #ifdef DEBUG_DISPLAY
-            #include "../../Debug/DebugDisplay.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
             #endif
-            #include "../../Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "TerrainLitSharePass.hlsl"
             #include "TerrainLitData.hlsl"
-            #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
         }
@@ -166,11 +166,11 @@ Shader "HDRenderPipeline/TerrainLit"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "TerrainLitSharePass.hlsl"
             #include "TerrainLitData.hlsl"
-            #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
         }
@@ -192,11 +192,11 @@ Shader "HDRenderPipeline/TerrainLit"
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Material/Material.hlsl"
-            #include "../Lit/ShaderPass/LitDepthPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "TerrainLitData.hlsl"
-            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
         }
@@ -217,17 +217,17 @@ Shader "HDRenderPipeline/TerrainLit"
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
             #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
-            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #else
-            #include "../Lit/ShaderPass/LitDepthPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #endif
 
             #include "TerrainLitData.hlsl"
-            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
         }
@@ -268,7 +268,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
             #pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
 
-            // #include "../../Lighting/Forward.hlsl"
+            // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Lighting/Forward.hlsl"
             //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
@@ -278,14 +278,14 @@ Shader "HDRenderPipeline/TerrainLit"
             #ifndef _SURFACE_TYPE_TRANSPARENT
                 #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
             #endif
-            #include "../../ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #ifdef DEBUG_DISPLAY
-            #include "../../Debug/DebugDisplay.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
             #endif
-            #include "../../Lighting/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
             #include "TerrainLitSharePass.hlsl"
             #include "TerrainLitData.hlsl"
-            #include "../../ShaderPass/ShaderPassForward.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
         }

@@ -13,9 +13,9 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "../../ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Decal.hlsl"
-        #include "../NormalBuffer.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
         RW_TEXTURE2D(float4, _NormalBuffer);
 

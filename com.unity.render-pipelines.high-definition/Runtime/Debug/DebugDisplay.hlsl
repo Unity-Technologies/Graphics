@@ -2,11 +2,11 @@
 #define UNITY_DEBUG_DISPLAY_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
-#include "DebugDisplay.cs.hlsl"
-#include "MaterialDebug.cs.hlsl"
-#include "LightingDebug.cs.hlsl"
-#include "MipMapDebug.cs.hlsl"
-#include "ColorPickerDebug.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/MaterialDebug.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/LightingDebug.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/MipMapDebug.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/ColorPickerDebug.cs.hlsl"
 
 CBUFFER_START(UnityDebugDisplay)
 // Set of parameters available when switching to debug shader mode

@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/Sky/GradientSky"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
-	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderVariables.hlsl"
+	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
     float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
     

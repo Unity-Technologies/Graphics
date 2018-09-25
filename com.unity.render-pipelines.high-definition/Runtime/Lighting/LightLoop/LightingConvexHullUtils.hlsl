@@ -1,7 +1,7 @@
 #ifndef __LIGHTINGCONVEXHULLUTILS_H__
 #define __LIGHTINGCONVEXHULLUTILS_H__
 
-#include "LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
 float3 GetHullVertex(const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int p)
 {

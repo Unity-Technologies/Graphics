@@ -12,7 +12,7 @@
 #   pragma warning( disable : 3557 ) // loop only executes for 1 iteration(s)
 #endif
 
-# include "../../Shadows/HDShadowContext.hlsl"
+# include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowContext.hlsl"
 
 float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L)
 {

@@ -80,8 +80,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CameraDepthValuesBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false, name: "DepthValuesBuffer");
 
                 // Create the required resolve materials
-                m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.depthValues);
-                m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.colorResolve);
+                m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
+                m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
             }
 
             // If we are in the forward only mode 

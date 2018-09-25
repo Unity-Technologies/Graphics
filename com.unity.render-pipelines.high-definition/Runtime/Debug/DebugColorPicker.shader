@@ -19,9 +19,9 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-            #include "../ShaderVariables.hlsl"
-            #include "../Debug/DebugDisplay.cs.hlsl"
-            #include "../Debug/DebugDisplay.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
             TEXTURE2D(_DebugColorPickerTexture);
             SAMPLER(sampler_DebugColorPickerTexture);

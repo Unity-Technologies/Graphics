@@ -1,4 +1,4 @@
-#include "LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
@@ -162,7 +162,7 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 
 #elif defined(USE_CLUSTERED_LIGHTLIST)
 
-#include "ClusteredUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClusteredUtils.hlsl"
 
 uint GetTileSize()
 {

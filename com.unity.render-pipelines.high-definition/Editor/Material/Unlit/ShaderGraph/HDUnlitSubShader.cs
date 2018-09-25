@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZWriteOverride = "ZWrite On",
             Includes = new List<string>()
             {
-                "#include \"Runtime/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/ShaderPass/ShaderPassForwardUnlit.hlsl\"",
+                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -70,7 +70,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CullOverride = "Cull Off",
             Includes = new List<string>()
             {
-                "#include \"Runtime/ShaderPass/ShaderPassLightTransport.hlsl\"",
+                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -106,7 +106,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZWriteOverride = "ZWrite Off",
             Includes = new List<string>()
             {
-                "#include \"Runtime/ShaderPass/ShaderPassDistortion.hlsl\"",
+                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
