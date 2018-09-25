@@ -214,7 +214,10 @@ namespace UnityEditor.VFX
         {
             return Path.GetFullPath(path)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                .ToLowerInvariant();
+                #if ! UNITY_STANDALONE_LINUX
+                .ToLowerInvariant()
+                #endif
+                ;
         }
 
         static IEnumerable<Match> GetUniqueMatches(string regexStr, string src)
