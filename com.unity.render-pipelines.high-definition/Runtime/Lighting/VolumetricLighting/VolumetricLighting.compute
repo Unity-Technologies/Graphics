@@ -14,6 +14,9 @@
 #pragma kernel VolumetricLightingClusteredHQ        VolumetricLighting=VolumetricLightingClusteredHQ        VL_PRESET_HQ ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 #pragma kernel VolumetricLightingClusteredReprojHQ  VolumetricLighting=VolumetricLightingClusteredReprojHQ  VL_PRESET_HQ ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 
+// Don't want contact shadows. This is the only way that works. :-(
+#define _SURFACE_TYPE_TRANSPARENT
+
 #ifdef VL_PRESET_MQ
     // E.g. for 1080p: (1920/8)x(1080/8)x(64)  =  2,073,600 voxels
     #define VBUFFER_TILE_SIZE 8
@@ -133,6 +136,12 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
         float t = t0 + tOffset;
         posInput.positionWS = GetPointAtDistance(ray, t);
 
+        // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
+        context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionWS, 0,
+                                                              _DirectionalLightDatas[_DirectionalShadowIndex].shadowIndex,
+                                                             -_DirectionalLightDatas[_DirectionalShadowIndex].forward,
+                                                              posInput.positionSS);
+
         for (uint i = 0; i < _DirectionalLightCount; ++i)
         {
             // Fetch the light.
@@ -141,9 +150,9 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
 
             float3 color; float attenuation;
             light.contactShadowIndex = -1; // Disable shadow contact if any
-            // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
             // AO for microshadowing is set to 1 as we don't want to microshadow volumetrics.
-            EvaluateLight_Directional(context, posInput, light, unused, 0.0f, L, 1.0f,
+            // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
+            EvaluateLight_Directional(context, posInput, light, unused, 0.0, L, 1.0,
                                       color, attenuation);
 
             // Important:
