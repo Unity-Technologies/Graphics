@@ -9,7 +9,7 @@ ${VFXBegin:VFXHDRPLitVaryingsMacros}
 #endif
 
 #if HDRP_NEEDS_WORLDPOS
-#define VFX_VARYING_POSRWS posRWS
+#define VFX_VARYING_POSWS posRWS
 #endif
 
 #define VFX_VARYING_SMOOTHNESS materialProperties.x
@@ -104,12 +104,9 @@ ${VFXLoadParameter:{baseColor}}
 o.VFX_VARYING_COLOR = baseColor;
 #endif
 #endif
-#ifdef VFX_VARYING_POSRWS
+#ifdef VFX_VARYING_POSWS
 #if HDRP_NEEDS_WORLDPOS
-o.VFX_VARYING_POSRWS = TransformPositionVFXToWorld(vPos);
-#if VFX_WORLD_SPACE
-o.VFX_VARYING_POSRWS = GetCameraRelativePositionWS(o.VFX_VARYING_POSRWS);
-#endif
+o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 #endif
 #endif
 ${VFXEnd}

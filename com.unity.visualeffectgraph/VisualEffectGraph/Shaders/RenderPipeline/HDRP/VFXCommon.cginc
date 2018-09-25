@@ -1,6 +1,11 @@
 #include "CoreRP/ShaderLibrary/common.hlsl"
 #include "HDRP/ShaderVariables.hlsl"
 #include "HDRP/ShaderPass/ShaderPass.cs.hlsl"
+#include "HDRP/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+
+#if IS_TRANSPARENT_PARTICLE
+#define USE_FOG 1
+#endif
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
@@ -68,4 +73,17 @@ float VFXLinearEyeDepth(float depth)
 float4 VFXApplyShadowBias(float4 posCS)
 {
     return posCS;
+}
+
+float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
+{
+#if IS_TRANSPARENT_PARTICLE
+#if VFX_WORLD_SPACE
+	posWS = GetCameraRelativePositionWS(posWS);
+#endif 
+	PositionInputs posInput = GetPositionInput(posCS.xy, _ScreenSize.zw, posCS.z, posCS.w, posWS, uint2(0,0));
+	float4 fog = EvaluateAtmosphericScattering(posInput);
+	color.rgb *= fog.rgb;
+#endif
+	return color;
 }

@@ -64,7 +64,8 @@ ${VFXEnd}
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}	
 		
 	#pragma fragment frag
-	void frag(ps_input i, out float4 outColor : SV_Target0
+	void frag(ps_input i
+	, out float4 outColor : SV_Target0
 #if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 #endif

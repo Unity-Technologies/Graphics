@@ -19,9 +19,12 @@
 float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
 {
 	float3 posRWS = (float3)0;
-	#ifdef VFX_VARYING_POSRWS
-    posRWS = i.VFX_VARYING_POSRWS;
+	#ifdef VFX_VARYING_POSWS
+    posRWS = i.VFX_VARYING_POSWS;
 	#endif
+	#if VFX_WORLD_SPACE
+	posRWS = GetCameraRelativePositionWS(posRWS);
+	#endif 
 	return posRWS;
 }
 
