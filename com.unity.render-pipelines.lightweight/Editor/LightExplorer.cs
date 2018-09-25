@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 
 namespace UnityEditor
 {
-	[LightingExplorerExtensionAttribute(typeof(LightweightPipelineAsset))]
+	[LightingExplorerExtensionAttribute(typeof(LightweightRenderPipelineAsset))]
 	public class LightExplorer : DefaultLightingExplorerExtension
 	{
 		private static class Styles

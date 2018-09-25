@@ -521,7 +521,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
-#ifdef _ADDITIONAL_LIGHTS_PIXEL
+#ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = GetAdditionalLightsCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
@@ -547,7 +547,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
     half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
 
-#ifdef _ADDITIONAL_LIGHTS_PIXEL
+#ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = GetAdditionalLightsCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
