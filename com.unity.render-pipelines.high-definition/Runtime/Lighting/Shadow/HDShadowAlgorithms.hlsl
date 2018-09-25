@@ -90,19 +90,19 @@ real3 EvalShadow_GetTexcoordsAtlas(HDShadowData sd, real2 shadowMapSize, real2 o
     return EvalShadow_GetTexcoordsAtlas(sd, shadowMapSize, offset, positionWS, ndc, perspProj);
 }
 
-real2 EvalShadow_GetTexcoordsAtlas(HDShadowData sd, real2 shadowMapSize, real2 offset, real2 shadowmapSize, real2 shadowmapSizeRcp, real3 positionWS, out real2 closestSampleNDC, bool perspProj)
+real2 EvalShadow_GetTexcoordsAtlas(HDShadowData sd, real2 offset, real2 shadowMapSize, real2 shadowMapSizeRcp, real3 positionWS, out real2 closestSampleNDC, bool perspProj)
 {
     real4 posCS = EvalShadow_WorldToShadow(sd, positionWS, perspProj);
     real2 posNDC = perspProj ? (posCS.xy / posCS.w) : posCS.xy;
     // calc TCs
     real2 posTC = posNDC * 0.5 + 0.5;
-    closestSampleNDC = (floor(posTC * shadowmapSize) + 0.5) * shadowmapSizeRcp * 2.0 - 1.0.xx;
+    closestSampleNDC = (floor(posTC * shadowMapSize) + 0.5) * shadowMapSizeRcp * 2.0 - 1.0.xx;
     return posTC * shadowMapSize * _ShadowAtlasSize.zw + offset;
 }
 
-uint2 EvalShadow_GetIntTexcoordsAtlas(HDShadowData sd, real2 shadowMapSize, real2 offset, real2 shadowmapSize, real2 shadowmapSizeRcp, real2 atlasSize, real3 positionWS, out real2 closestSampleNDC, bool perspProj)
+uint2 EvalShadow_GetIntTexcoordsAtlas(HDShadowData sd, real2 offset, real2 shadowMapSize, real2 shadowMapSizeRcp, real2 atlasSize, real3 positionWS, out real2 closestSampleNDC, bool perspProj)
 {
-    real2 texCoords = EvalShadow_GetTexcoordsAtlas(sd, shadowMapSize, offset, shadowmapSize, shadowmapSizeRcp, positionWS, closestSampleNDC, perspProj);
+    real2 texCoords = EvalShadow_GetTexcoordsAtlas(sd, offset, shadowMapSize, shadowMapSizeRcp, positionWS, closestSampleNDC, perspProj);
     return uint2(texCoords * atlasSize.xy);
 }
 
@@ -371,7 +371,7 @@ real EvalShadow_hash12(real2 pos)
 real EvalShadow_SampleClosestDistance_Punctual(HDShadowData sd, Texture2D tex, SamplerState sampl, real3 positionWS, real3 L, real3 lightPositionWS)
 {
     real4 closestNDC = { 0,0,0,1 };
-    real2 texelIdx = EvalShadow_GetTexcoordsAtlas(sd, sd.shadowMapSize.xy, sd.atlasOffset, sd.shadowMapSize.xy, sd.shadowMapSize.zw, positionWS, closestNDC.xy, true);
+    real2 texelIdx = EvalShadow_GetTexcoordsAtlas(sd, sd.atlasOffset, sd.shadowMapSize.xy, sd.shadowMapSize.zw, positionWS, closestNDC.xy, true);
 
     // sample the shadow map
     closestNDC.z = SAMPLE_TEXTURE2D_LOD(tex, sampl, texelIdx, 0).x;

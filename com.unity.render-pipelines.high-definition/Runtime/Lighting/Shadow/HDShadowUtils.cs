@@ -40,6 +40,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Vector4 lightDir;
 
+            // There is no aspect ratio for non pyramid spot lights
+            if (shape != SpotLightShape.Pyramid)
+                aspectRatio = 1.0f;
+
             float guardAngle = ShadowUtils.CalcGuardAnglePerspective(visibleLight.light.spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(lightType), normalBiasMax, 180.0f - visibleLight.light.spotAngle);
             ShadowUtils.ExtractSpotLightMatrix(visibleLight, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
 
