@@ -8,10 +8,10 @@ struct VaryingsToPS
 
 struct PackedVaryingsToPS
 {
-    PackedVaryingsMeshToPS vmesh;
 #ifdef VARYINGS_NEED_PASS
     PackedVaryingsPassToPS vpass;
 #endif
+    PackedVaryingsMeshToPS vmesh;
 };
 
 PackedVaryingsToPS PackVaryingsToPS(VaryingsToPS input)

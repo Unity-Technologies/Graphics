@@ -797,6 +797,8 @@ MonoBehaviour:
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
+  sunDiskSize: 1
+  sunHaloSize: 0.1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -815,6 +817,9 @@ MonoBehaviour:
   displayLightIntensity: 600
   displayAreaLightEmissiveMesh: 0
   lightLayers: 1
+  shadowSoftness: 0.5
+  blockerSampleCount: 24
+  filterSampleCount: 32
 --- !u!108 &917837884
 Light:
   m_ObjectHideFlags: 0
@@ -979,7 +984,7 @@ MonoBehaviour:
   contactShadows: 0
   viewBiasMin: 0.2
   viewBiasMax: 100
-  viewBiasScale: 1
+  viewBiasScale: 6.41
   normalBiasMin: 0.5
   normalBiasMax: 0.5
   normalBiasScale: 1
@@ -998,13 +1003,15 @@ MonoBehaviour:
   - 0.2
   - 0.2
   shadowAlgorithm: 0
-  shadowVariant: 2
+  shadowVariant: 3
   shadowPrecision: 0
   shadowData:
-    format: 0
+    format: 3
     data: 000000000000803f
   shadowDatas:
   - format: 0
+    data: 000000000000803f
+  - format: 3
     data: 000000000000803f
 --- !u!114 &1044727069
 MonoBehaviour:
@@ -1028,12 +1035,14 @@ MonoBehaviour:
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
+  sunDiskSize: 1
+  sunHaloSize: 0.1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   nonLightmappedOnly: 0
   lightTypeExtent: 0
-  spotLightShape: 1
+  spotLightShape: 2
   shapeWidth: 0.5
   shapeHeight: 2
   aspectRatio: 0.4
@@ -1043,9 +1052,12 @@ MonoBehaviour:
   useOldInspector: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
-  displayLightIntensity: 1000
+  displayLightIntensity: 300
   displayAreaLightEmissiveMesh: 0
   lightLayers: 1
+  shadowSoftness: 0.5
+  blockerSampleCount: 24
+  filterSampleCount: 32
 --- !u!108 &1044727070
 Light:
   m_ObjectHideFlags: 0
@@ -1057,9 +1069,9 @@ Light:
   serializedVersion: 8
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 79.57747
+  m_Intensity: 23.873241
   m_Range: 30
-  m_SpotAngle: 10
+  m_SpotAngle: 16
   m_CookieSize: 10
   m_Shadows:
     m_Type: 1
@@ -1805,6 +1817,8 @@ MonoBehaviour:
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
+  sunDiskSize: 1
+  sunHaloSize: 0.1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -1823,6 +1837,9 @@ MonoBehaviour:
   displayLightIntensity: 600
   displayAreaLightEmissiveMesh: 0
   lightLayers: 1
+  shadowSoftness: 0.5
+  blockerSampleCount: 24
+  filterSampleCount: 32
 --- !u!108 &1716383784
 Light:
   m_ObjectHideFlags: 0
