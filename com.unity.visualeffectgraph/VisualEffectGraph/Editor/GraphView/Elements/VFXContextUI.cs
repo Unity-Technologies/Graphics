@@ -719,7 +719,6 @@ namespace UnityEditor.VFX.UI
             foreach( var anchor in newContextController.inputPorts)
             {
                 string path = anchor.path;
-                Debug.Log(path);
                 var myAnchor = controller.inputPorts.FirstOrDefault(t => t.path == path);
 
                 if (myAnchor == null || !myAnchor.HasLink())
