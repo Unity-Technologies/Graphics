@@ -396,6 +396,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     if (windEnable != null)
                     {
+                        // Hide wind option. Wind is deprecated and will be remove in the future. Use shader graph instead
+                        /*
                         m_MaterialEditor.ShaderProperty(windEnable, StylesBaseLit.windText);
                         if (!windEnable.hasMixedValue && windEnable.floatValue > 0.0f)
                         {
@@ -407,6 +409,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             m_MaterialEditor.ShaderProperty(windShiverDirectionality, StylesBaseLit.windShiverDirectionalityText);
                             EditorGUI.indentLevel--;
                         }
+                        */
                     }
 
                     if (enableMotionVectorForVertexAnimation != null)
