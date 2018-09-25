@@ -105,7 +105,7 @@ MonoBehaviour:
       shadowAtlasHeight: 4096
       maxShadowRequests: 128
       shadowMapsDepthBits: 32
-      useDynamicViewportRescale: 1
+      useDynamicViewportRescale: 0
       punctualShadowQuality: 0
       directionalShadowQuality: 0
     decalSettings:

@@ -306,8 +306,14 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
             // Recompute transmittance using the thickness value computed from the shadow map.
 
             // Compute the distance from the light to the back face of the object along the light direction.
+#ifndef USE_CORE_SHADOW_SYSTEM
+            float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
+                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS,
+                                                                            lightData.lightType == GPULIGHTTYPE_POINT);
+#else
             float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
                                                                             posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS);
+#endif
 
             // Our subsurface scattering models use the semi-infinite planar slab assumption.
             // Therefore, we need to find the thickness along the normal.
