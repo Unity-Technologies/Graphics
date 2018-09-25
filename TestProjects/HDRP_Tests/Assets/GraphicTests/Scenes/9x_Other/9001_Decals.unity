@@ -50,7 +50,6 @@ LightmapSettings:
     m_BounceScale: 1
     m_IndirectOutputScale: 1
     m_AlbedoBoost: 1
-    m_TemporalCoherenceThreshold: 1
     m_EnvironmentLightingMode: 0
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
@@ -164,6 +163,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &110250902
 GameObject:
   m_ObjectHideFlags: 0
@@ -214,7 +214,8 @@ MonoBehaviour:
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
-  m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_Size: {x: 0.8333333, y: 0.4, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &136133827
 GameObject:
   m_ObjectHideFlags: 0
@@ -266,6 +267,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &196288473
 GameObject:
   m_ObjectHideFlags: 0
@@ -316,7 +318,8 @@ MonoBehaviour:
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
-  m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_Size: {x: 0.8333333, y: 0.4, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &296064738
 GameObject:
   m_ObjectHideFlags: 0
@@ -404,6 +407,8 @@ MonoBehaviour:
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 2
+  sunDiskSize: 1
+  sunHaloSize: 0.1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -422,6 +427,9 @@ MonoBehaviour:
   displayLightIntensity: 1
   displayAreaLightEmissiveMesh: 0
   lightLayers: 1
+  shadowSoftness: 0.5
+  blockerSampleCount: 24
+  filterSampleCount: 32
 --- !u!108 &296064741
 Light:
   m_ObjectHideFlags: 0
@@ -804,6 +812,8 @@ MonoBehaviour:
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 2
+  sunDiskSize: 1
+  sunHaloSize: 0.1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -822,6 +832,9 @@ MonoBehaviour:
   displayLightIntensity: 1
   displayAreaLightEmissiveMesh: 0
   lightLayers: 1
+  shadowSoftness: 0.5
+  blockerSampleCount: 24
+  filterSampleCount: 32
 --- !u!108 &384391182
 Light:
   m_ObjectHideFlags: 0
@@ -1146,6 +1159,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &578096841
 GameObject:
   m_ObjectHideFlags: 0
@@ -1196,7 +1210,8 @@ MonoBehaviour:
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
-  m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_Size: {x: 0.8333333, y: 0.4, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &579433324
 GameObject:
   m_ObjectHideFlags: 0
@@ -1248,6 +1263,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &634394204
 GameObject:
   m_ObjectHideFlags: 0
@@ -1299,6 +1315,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &670286505
 GameObject:
   m_ObjectHideFlags: 0
@@ -1350,6 +1367,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &719923510
 GameObject:
   m_ObjectHideFlags: 0
@@ -1695,7 +1713,8 @@ MonoBehaviour:
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
-  m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_Size: {x: 0.8333333, y: 0.4, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &836353759
 GameObject:
   m_ObjectHideFlags: 0
@@ -1957,6 +1976,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &893842369
 GameObject:
   m_ObjectHideFlags: 0
@@ -2228,7 +2248,8 @@ MonoBehaviour:
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
-  m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_Size: {x: 0.8333333, y: 0.4, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &938463391
 GameObject:
   m_ObjectHideFlags: 0
@@ -3216,6 +3237,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &1234513410
 GameObject:
   m_ObjectHideFlags: 0
@@ -3267,6 +3289,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &1285983877
 GameObject:
   m_ObjectHideFlags: 0
@@ -3435,6 +3458,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &1390467587
 GameObject:
   m_ObjectHideFlags: 0
@@ -3708,6 +3732,8 @@ MonoBehaviour:
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 2
+  sunDiskSize: 1
+  sunHaloSize: 0.1
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -3726,6 +3752,9 @@ MonoBehaviour:
   displayLightIntensity: 1
   displayAreaLightEmissiveMesh: 0
   lightLayers: 1
+  shadowSoftness: 0.5
+  blockerSampleCount: 24
+  filterSampleCount: 32
 --- !u!108 &1442353287
 Light:
   m_ObjectHideFlags: 0
@@ -4031,6 +4060,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &1708486506
 GameObject:
   m_ObjectHideFlags: 0
@@ -4210,6 +4240,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &1762936944
 GameObject:
   m_ObjectHideFlags: 0
@@ -4370,6 +4401,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &1968355458
 GameObject:
   m_ObjectHideFlags: 0
@@ -4514,6 +4546,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &2006409709
 GameObject:
   m_ObjectHideFlags: 0
@@ -4826,6 +4859,7 @@ MonoBehaviour:
   m_AffectsTransparency: 0
   m_Offset: {x: 0, y: 0, z: 0}
   m_Size: {x: 0.8333333, y: 0.1, z: 0.8333333}
+  m_IsCropModeEnabled: 0
 --- !u!1 &2085834128
 GameObject:
   m_ObjectHideFlags: 0

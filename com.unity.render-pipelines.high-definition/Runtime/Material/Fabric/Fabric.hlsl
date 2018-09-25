@@ -293,8 +293,11 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 #ifdef HAS_LIGHTLOOP
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 
+// Here we need to make sure 
+#define USE_DIFFUSE_LAMBERT_BRDF
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
+#undef USE_DIFFUSE_LAMBERT_BRDF
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
@@ -459,10 +462,6 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-    // Save ALU by applying light and cookie colors only once.
-    lighting.diffuse  *= color;
-    lighting.specular *= color;
-
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION))
     {
         float  NdotV = ClampNdotV(preLightData.NdotV);
@@ -470,6 +469,11 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
     }
+    
+
+    // Save ALU by applying light and cookie colors only once.
+    lighting.diffuse  *= color;
+    lighting.specular *= color;
 
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
