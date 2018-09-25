@@ -17,11 +17,11 @@
 #define BUMP_SCALE_NOT_SUPPORTED !SHADER_HINT_NICE_QUALITY
 #endif
 
-struct VertexPosition
+struct VertexPositionInputs
 {
-    float3 worldSpace;
-    float3 viewSpace;
-    float4 hclipSpace;
+    float3 positionWS; // World space position
+    float3 positionVS; // View space position
+    float4 positionCS; // Homogeneous clip space position
 };
 
 struct VertexTBN
@@ -31,13 +31,13 @@ struct VertexTBN
     real3 normalWS;
 };
 
-VertexPosition GetVertexPosition(float3 positionOS)
+VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
-    VertexPosition vertexPos;
-    vertexPos.worldSpace = TransformObjectToWorld(positionOS);
-    vertexPos.viewSpace = TransformWorldToView(vertexPos.worldSpace);
-    vertexPos.hclipSpace = TransformWorldToHClip(vertexPos.worldSpace);
-    return vertexPos;
+    VertexPositionInputs input;
+    input.positionWS = TransformObjectToWorld(positionOS);
+    input.positionVS = TransformWorldToView(input.positionWS);
+    input.positionCS = TransformWorldToHClip(input.positionWS);
+    return input;
 }
 
 VertexTBN GetVertexTBN(float3 normalOS)

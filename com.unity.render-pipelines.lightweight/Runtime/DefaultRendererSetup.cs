@@ -6,8 +6,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     internal class DefaultRendererSetup : IRendererSetup
     {
         private DepthOnlyPass m_DepthOnlyPass;
-        private DirectionalShadowsPass m_MainLightShadowCasterPass;
-        private LocalShadowsPass m_AdditionalLightsShadowCasterPass;
+        private MainLightShadowCasterPass m_MainLightShadowCasterPass;
+        private AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         private SetupForwardRenderingPass m_SetupForwardRenderingPass;
         private ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
         private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
@@ -45,8 +45,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
 
             m_DepthOnlyPass = new DepthOnlyPass();
-            m_MainLightShadowCasterPass = new DirectionalShadowsPass();
-            m_AdditionalLightsShadowCasterPass = new LocalShadowsPass();
+            m_MainLightShadowCasterPass = new MainLightShadowCasterPass();
+            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass();
             m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass();
             m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();

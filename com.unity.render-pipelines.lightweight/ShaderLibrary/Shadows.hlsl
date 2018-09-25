@@ -209,12 +209,12 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 #endif
 }
 
-float4 GetShadowCoord(VertexPosition vertexPosition)
+float4 GetShadowCoord(VertexPositionInputs vertexInput)
 {
 #if SHADOWS_SCREEN
-    return ComputeScreenPos(vertexPosition.hclipSpace);
+    return ComputeScreenPos(vertexInput.positionCS);
 #else
-    return TransformWorldToShadowCoord(vertexPosition.worldSpace);
+    return TransformWorldToShadowCoord(vertexInput.positionWS);
 #endif
 }
 

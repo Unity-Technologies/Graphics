@@ -18,7 +18,7 @@ ${ZWrite}
     // Lightweight Pipeline keywords
     #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
     #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
-    #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS_PIXEL
+    #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
     #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
     #pragma multi_compile _ _SHADOWS_SOFT
     #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
@@ -78,7 +78,7 @@ ${VertexShaderDescriptionInputs}
 ${VertexShaderOutputs}
 		float3 lwWNormal = TransformObjectToWorldNormal(v.normal);
 
-        VertexPosition vertexPosition = GetVertexPosition(v.vertex.xyz);
+        VertexPositionInputs vertexInput = GetVertexPositionInputs(v.vertex.xyz);
         
  		// We either sample GI from lightmap or SH.
 	    // Lightmap UV and vertex SH coefficients use the same interpolator ("float2 lightmapUV" for lightmap or "half3 vertexSH" for SH)
@@ -87,13 +87,13 @@ ${VertexShaderOutputs}
 	    OUTPUT_LIGHTMAP_UV(v.texcoord1, unity_LightmapST, o.lightmapUV);
 	    OUTPUT_SH(lwWNormal, o.vertexSH);
 
-	    half3 vertexLight = VertexLighting(vertexPosition.worldSpace, lwWNormal);
-	    half fogFactor = ComputeFogFactor(vertexPosition.hclipSpace.z);
+	    half3 vertexLight = VertexLighting(vertexInput.positionWS, lwWNormal);
+	    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 	    o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
-	    o.clipPos = vertexPosition.hclipSpace;
+	    o.clipPos = vertexInput.positionCS;
 
 	#ifdef _MAIN_LIGHT_SHADOWS
-		o.shadowCoord = GetShadowCoord(vertexPosition);
+		o.shadowCoord = GetShadowCoord(vertexInput);
 	#endif
 		return o;
 	}

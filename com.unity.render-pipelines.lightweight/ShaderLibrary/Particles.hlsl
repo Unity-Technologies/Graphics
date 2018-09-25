@@ -1,9 +1,9 @@
 #ifndef LIGHTWEIGHT_PARTICLES_INCLUDED
 #define LIGHTWEIGHT_PARTICLES_INCLUDED
 
-#include "Core.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-#include "InputSurfaceCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
 float4 _SoftParticleFadeParams;
@@ -262,4 +262,4 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.bakedGI = half3(0.0h, 0.0h, 0.0h);
 }
 
-#endif // LIGHTWEIGHT_PARTICLES_INCLUDED
+#endif

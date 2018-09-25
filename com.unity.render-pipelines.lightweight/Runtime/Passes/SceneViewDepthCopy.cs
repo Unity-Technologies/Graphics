@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, renderer.GetMaterial(MaterialHandle.DepthCopy));
+            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, renderer.GetMaterial(MaterialHandle.CopyDepth));
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

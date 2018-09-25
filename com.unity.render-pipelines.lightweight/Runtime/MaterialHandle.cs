@@ -3,7 +3,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public enum MaterialHandle
     {
         Error,
-        DepthCopy,
+        CopyDepth,
         Sampling,
         Blit,
         ScreenSpaceShadow,

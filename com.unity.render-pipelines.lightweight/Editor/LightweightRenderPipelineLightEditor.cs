@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering.LightweightPipeline;
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
     [CanEditMultipleObjects]
-    [CustomEditorForRenderPipeline(typeof(Light), typeof(LightweightPipelineAsset))]
+    [CustomEditorForRenderPipeline(typeof(Light), typeof(LightweightRenderPipelineAsset))]
     internal class LightweightRenderPipelineLightEditor : LightEditor
     {
         AnimBool m_AnimSpotOptions = new AnimBool();
