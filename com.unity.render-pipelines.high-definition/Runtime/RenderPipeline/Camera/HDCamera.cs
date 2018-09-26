@@ -43,7 +43,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Matrix4x4[] invProjStereo;
         Matrix4x4[] invViewProjStereo;
 
-
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
         {
@@ -234,7 +233,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_frameSettings.enableStereo)
             {
-                textureWidthScaling = new Vector4(2.0f, 0.5f, 0.0f, 0.0f); 
+                textureWidthScaling = new Vector4(2.0f, 0.5f, 0.0f, 0.0f);
                 for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {
                     // For VR, TAA proj matrices don't need to be jittered

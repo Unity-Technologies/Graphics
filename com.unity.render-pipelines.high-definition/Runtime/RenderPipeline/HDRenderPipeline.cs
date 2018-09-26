@@ -342,10 +342,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
             m_SharedRTManager.InitSharedBuffers(m_GbufferManager, m_Asset.renderPipelineSettings, m_Asset.renderPipelineResources);
-            
+
             m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: false, name: "CameraColor");
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, name: "CameraSSSDiffuseLighting");
-            m_CameraColorBufferMipChain = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, name: "CameraColorBufferMipChain"); 
+            m_CameraColorBufferMipChain = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, name: "CameraColorBufferMipChain");
 
             if (settings.supportSSAO)
             {
@@ -641,7 +641,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Set up UnityPerView CBuffer.
                 hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
-                
+
                 cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier, new Vector4(VolumeManager.instance.stack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity, 0, 0, 0));
 
                 PushGlobalRTHandle(
@@ -816,7 +816,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Asset.UpdateDirtyFrameSettings();
 
             // GC.Alloc
-            // Array.InternalArray__iEnumerable_GetEnumerator 
+            // Array.InternalArray__iEnumerable_GetEnumerator
             foreach (var camera in cameras)
             {
                 if (camera == null)
@@ -925,6 +925,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
                     {
                         VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
+                    }
+
+                    if (additionalCameraData != null && additionalCameraData.hasCustomRender)
+                    {
+                        // Flush pending command buffer.
+                        renderContext.ExecuteCommandBuffer(cmd);
+                        CommandBufferPool.Release(cmd);
+
+                        // Execute custom render
+                        additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
+
+                        renderContext.Submit();
+                        continue;
                     }
 
                     // Do anything we need to do upon a new frame.
@@ -1125,7 +1138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // Overwrite camera properties set during the shadow pass with the original camera properties.
                             renderContext.SetupCameraProperties(camera, hdCamera.frameSettings.enableStereo);
-                            hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);                            
+                            hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
                         }
 
                         using (new ProfilingSample(cmd, "Screen space shadows", CustomSamplerId.ScreenSpaceShadows.GetSampler()))
@@ -1175,8 +1188,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
                         m_VolumetricLightingSystem.VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
 
-						SetMicroShadowingSettings(cmd);                        
-						
+						SetMicroShadowingSettings(cmd);
+
 						// Might float this higher if we enable stereo w/ deferred
                         StartStereoRendering(cmd, renderContext, hdCamera);
 
@@ -1755,7 +1768,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The RenderForward pass will render the appropriate pass depends on the engine settings. In case of forward only rendering, both "Forward" pass and "ForwardOnly" pass
             // material will be render for both transparent and opaque. In case of deferred, both path are used for transparent but only "ForwardOnly" is use for opaque.
             // (Thus why "Forward" and "ForwardOnly" are exclusive, else they will render two times"
-            
+
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
             {
                 m_ForwardPassProfileName = k_ForwardPassDebugName[(int)pass];
