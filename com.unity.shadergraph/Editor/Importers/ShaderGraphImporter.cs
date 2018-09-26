@@ -11,7 +11,7 @@ using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(18, ShaderGraphExtension)]
+    [ScriptedImporter(19, ShaderGraphExtension)]
     public class ShaderGraphImporter : ScriptedImporter
     {
         public const string ShaderGraphExtension = "shadergraph";
