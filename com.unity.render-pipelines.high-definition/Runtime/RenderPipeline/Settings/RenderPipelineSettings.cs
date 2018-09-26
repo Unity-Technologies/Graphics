@@ -44,7 +44,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public XRGraphicsConfig xrConfig = XRGraphicsConfig.s_DefaultXRConfig;
 
         public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
-        public ShadowInitParameters     shadowInitParams = new ShadowInitParameters();
         public HDShadowInitParameters   hdShadowInitParams = new HDShadowInitParameters();
         public GlobalDecalSettings      decalSettings = new GlobalDecalSettings();
     }

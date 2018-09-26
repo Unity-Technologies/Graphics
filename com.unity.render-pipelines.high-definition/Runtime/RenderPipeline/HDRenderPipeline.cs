@@ -170,18 +170,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_LastTime, m_Time;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
-        public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
         public int GetDecalAtlasMipCount()
         {
             int highestDim = Math.Max(renderPipelineSettings.decalSettings.atlasWidth, renderPipelineSettings.decalSettings.atlasHeight);
             return (int)Math.Log(highestDim, 2);
         }
 
-        public int GetShadowSliceCount(uint atlasIndex) { return m_LightLoop.GetShadowSliceCount(atlasIndex); }
-
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly LightLoop m_LightLoop = new LightLoop();
-        readonly ShadowSettings m_ShadowSettings = new ShadowSettings();
         readonly VolumetricLightingSystem m_VolumetricLightingSystem = new VolumetricLightingSystem();
 
         // Debugging
@@ -287,7 +283,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_IBLFilterGGX = new IBLFilterGGX(asset.renderPipelineResources, m_MipGenerator);
 
-            m_LightLoop.Build(asset, m_ShadowSettings, m_IBLFilterGGX);
+            m_LightLoop.Build(asset, m_IBLFilterGGX);
 
             m_SkyManager.Build(asset, m_IBLFilterGGX);
 
@@ -706,11 +702,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void UpdateShadowSettings(HDCamera hdCamera)
         {
             var shadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
-
-            m_ShadowSettings.maxShadowDistance = shadowSettings.maxShadowDistance;
-            //m_ShadowSettings.directionalLightNearPlaneOffset = commonSettings.shadowNearPlaneOffset;
-
-            m_ShadowSettings.enabled = hdCamera.frameSettings.enableShadow;
         }
 
         public void SetMicroShadowingSettings(CommandBuffer cmd)
@@ -1018,7 +1009,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool enableBakeShadowMask;
                     using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
                     {
-                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, m_ShadowSettings, m_CullResults, m_ReflectionProbeCullResults, densityVolumes, m_DebugDisplaySettings);
+                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, m_CullResults, m_ReflectionProbeCullResults, densityVolumes, m_DebugDisplaySettings);
                     }
                     // Configure all the keywords
                     ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);

@@ -65,14 +65,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // TODO: Would be nice to clean this up at some point
     public static class HDShaderIDs
     {
-        // TODO: remove these ids from the old shadow system
-        public static readonly int _ShadowDatasExp = Shader.PropertyToID("_ShadowDatasExp");
-        public static readonly int _ShadowPayloads = Shader.PropertyToID("_ShadowPayloads");
-        // public static readonly int _ShadowmapExp_VSM_0 = Shader.PropertyToID("_ShadowmapExp_VSM_0");
-        // public static readonly int _ShadowmapExp_VSM_1 = Shader.PropertyToID("_ShadowmapExp_VSM_1");
-        // public static readonly int _ShadowmapExp_VSM_2 = Shader.PropertyToID("_ShadowmapExp_VSM_2");
-        public static readonly int _ShadowmapExp_PCF = Shader.PropertyToID("_ShadowmapExp_PCF");
-
         public static readonly int _ZClip = Shader.PropertyToID("_ZClip");
         
         public static readonly int _HDShadowDatas = Shader.PropertyToID("_HDShadowDatas");
