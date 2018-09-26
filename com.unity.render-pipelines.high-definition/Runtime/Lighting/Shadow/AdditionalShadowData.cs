@@ -162,8 +162,6 @@ namespace UnityEngine.Experimental.Rendering
     [UnityEditor.CanEditMultipleObjects]
     public class AdditionalShadowDataEditor : UnityEditor.Editor
     {
-        static ShadowRegistry m_ShadowRegistry;
-
 #pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
         UnityEditor.SerializedProperty m_ShadowAlgorithm;
         UnityEditor.SerializedProperty m_ShadowVariant;
@@ -173,8 +171,6 @@ namespace UnityEngine.Experimental.Rendering
         UnityEditor.SerializedProperty m_ShadowCascadeCount;
         UnityEditor.SerializedProperty m_ShadowCascadeRatios;
         UnityEditor.SerializedProperty m_ShadowCascadeBorders;
-
-        public static void SetRegistry(ShadowRegistry registry) { m_ShadowRegistry = registry; }
 
         void OnEnable()
         {
@@ -191,16 +187,12 @@ namespace UnityEngine.Experimental.Rendering
         {
             base.OnInspectorGUI();
 
-            if (m_ShadowRegistry == null)
-                return;
-
             AdditionalShadowData asd = (AdditionalShadowData)target;
             if (asd == null)
                 return;
 
             UnityEditor.EditorGUI.BeginChangeCheck();
 
-            m_ShadowRegistry.Draw(asd.gameObject.GetComponent<Light>());
             serializedObject.Update();
 
             // cascade code
@@ -210,7 +202,7 @@ namespace UnityEngine.Experimental.Rendering
                 UnityEditor.EditorGUILayout.PropertyField(m_ShadowCascadeCount);
                 if (UnityEditor.EditorGUI.EndChangeCheck())
                 {
-                    const int kMaxCascades = (int)ShadowAtlas.k_MaxCascadesInShader;  // depending on where you look this is either 32 or 4, so we're limiting it to 4 for now
+                    const int kMaxCascades = 4;
                     int newcnt = m_ShadowCascadeCount.intValue <= 0 ? 1 : (m_ShadowCascadeCount.intValue > kMaxCascades ? kMaxCascades : m_ShadowCascadeCount.intValue);
                     m_ShadowCascadeCount.intValue = newcnt;
                     m_ShadowCascadeRatios.arraySize = newcnt - 1;

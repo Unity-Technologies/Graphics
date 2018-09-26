@@ -210,8 +210,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.edgeTolerance = shadowRequest.edgeTolerance;
 
             data.shadowFilterParams0.x = shadowRequest.shadowSoftness;
-            data.shadowFilterParams0.y = ShadowUtils.Asfloat(shadowRequest.blockerSampleCount);
-            data.shadowFilterParams0.z = ShadowUtils.Asfloat(shadowRequest.filterSampleCount);
+            data.shadowFilterParams0.y = HDShadowUtils.Asfloat(shadowRequest.blockerSampleCount);
+            data.shadowFilterParams0.z = HDShadowUtils.Asfloat(shadowRequest.filterSampleCount);
             data.shadowFilterParams0.w = 0;
 
             return data;

@@ -42,12 +42,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
             real  alpha;
             int cascadeCount;
 
-// TODO: Remove once new shadow system works
-#ifndef USE_CORE_SHADOW_SYSTEM
             int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, shadowIdx, positionWS, alpha, cascadeCount);
-#else
-            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, shadowIdx, positionWS, payloadOffset, alpha, cascadeCount);
-#endif
             if (shadowSplitIndex >= 0)
             {
                 diffuseLighting = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex+1], alpha) * shadow;
@@ -82,20 +77,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     {
         UNITY_BRANCH if(_DirectionalShadowIndex != -1)
         {
-#ifndef USE_CORE_SHADOW_SYSTEM
-            context.shadowValue = GetDirectionalShadowAttenuation(
-                context.shadowContext, posInput.positionWS, GetShadowNormalBias(bsdfData),
-                _DirectionalLightDatas[_DirectionalShadowIndex].shadowIndex,
-                -_DirectionalLightDatas[_DirectionalShadowIndex].forward,
-                posInput.positionSS
-            );
-#else
             context.shadowValue = GetDirectionalShadowAttenuation(
                 context.shadowContext, posInput.positionWS, GetShadowNormalBias(bsdfData),
                 _DirectionalLightDatas[_DirectionalShadowIndex].shadowIndex,
                 -_DirectionalLightDatas[_DirectionalShadowIndex].forward
             );
-#endif
         }
         else
         {
