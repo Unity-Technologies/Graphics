@@ -441,12 +441,7 @@ namespace UnityEditor.VFX.UI
             // If linking to a new parameter, copy the slot value
             if (direction == Direction.Input && controller.model != null) //model will be null for upcomming which won't have a value
             {
-                if (newNodeController is VFXParameterNodeController)
-                {
-                    var parameter = (newNodeController as VFXParameterNodeController).parentController.model;
-                    CopyValueToParameter(parameter);
-                }
-                else if (newNodeController is VFXOperatorController)
+                if (newNodeController is VFXOperatorController)
                 {
                     var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
                     if (inlineOperator != null)
