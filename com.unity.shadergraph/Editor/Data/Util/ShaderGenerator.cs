@@ -829,7 +829,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                pixelShaderSurfaceRemap.AppendLine("return surf.PreviewOutput;");
+                pixelShaderSurfaceRemap.AppendLine("return all(isfinite(surf.PreviewOutput)) ? surf.PreviewOutput : float4(1.0f, 0.0f, 1.0f, 1.0f);");
             }
 
             // -------------------------------------

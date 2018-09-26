@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added definitions used by new HD Lit Master node.
 - Added a popup control for a string list.
 - Added conversion type (position/direction) to TransformNode.
+- In your preview for nodes that are not master nodes, pixels now display as pink if they are not finite.
 
 ### Changed
 - The settings for master nodes now live in a small window that you can toggle on and off. Here, you can change various rendering settings for your shader.
