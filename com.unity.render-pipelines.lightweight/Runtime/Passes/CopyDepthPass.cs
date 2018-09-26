@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
@@ -16,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
 
-        const string k_DepthCopyTag = "Depth Copy";
+        const string k_DepthCopyTag = "Copy Depth";
 
         /// <summary>
         /// Configure the pass with the source and destination to execute on.
@@ -32,10 +33,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (renderer == null)
+                throw new ArgumentNullException("renderer");
+            
             CommandBuffer cmd = CommandBufferPool.Get(k_DepthCopyTag);
             RenderTargetIdentifier depthSurface = source.Identifier();
             RenderTargetIdentifier copyDepthSurface = destination.Identifier();
-            Material depthCopyMaterial = renderer.GetMaterial(MaterialHandles.DepthCopy);
+            Material depthCopyMaterial = renderer.GetMaterial(MaterialHandle.CopyDepth);
 
             RenderTextureDescriptor descriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
             descriptor.colorFormat = RenderTextureFormat.Depth;
@@ -75,6 +79,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+            
             if (destination != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(destination.id);

@@ -19,12 +19,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         ),
                     CED.space,
                     CED.Select(
-                        (s, d, o) => s.shadowInitParams,
-                        (s, d, o) => d.shadowInitParams,
-                        ShadowInitParametersUI.SectionAtlas
-                        ),
-                    CED.space,
-                    CED.Select(
                         (s, d, o) => s.hdShadowInitParams,
                         (s, d, o) => d.hdShadowInitParams,
                         HDShadowInitParametersUI.SectionAtlas
@@ -47,7 +41,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         GlobalLightLoopSettingsUI lightLoopSettings = new GlobalLightLoopSettingsUI();
         GlobalDecalSettingsUI decalSettings = new GlobalDecalSettingsUI();
-        ShadowInitParametersUI shadowInitParams = new ShadowInitParametersUI();
         HDShadowInitParametersUI hdShadowInitParams = new HDShadowInitParametersUI();
 
         public RenderPipelineSettingsUI()
@@ -58,7 +51,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void Reset(SerializedRenderPipelineSettings data, UnityAction repaint)
         {
             lightLoopSettings.Reset(data.lightLoopSettings, repaint);
-            shadowInitParams.Reset(data.shadowInitParams, repaint);
+            hdShadowInitParams.Reset(data.hdShadowInitParams, repaint);
             decalSettings.Reset(data.decalSettings, repaint);
             base.Reset(data, repaint);
         }
@@ -66,7 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void Update()
         {
             lightLoopSettings.Update();
-            shadowInitParams.Update();
+            hdShadowInitParams.Update();
             decalSettings.Update();
             base.Update();
         }

@@ -50,7 +50,7 @@ TEXTURE2D(_GBufferTexture0);
 //-----------------------------------------------------------------------------
 
 // Needed for MATERIAL_FEATURE_MASK_FLAGS.
-#include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
 // Vertically Layered BSDF : "vlayering"
 
@@ -2287,7 +2287,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // color and attenuation are outputted  by EvaluateLight:
     float3 color;
     float attenuation;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, color, attenuation);
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, bsdfData.ambientOcclusion, color, attenuation);
 
     float intensity = max(0, attenuation); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 

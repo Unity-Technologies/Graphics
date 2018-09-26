@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
@@ -16,6 +17,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (renderer == null)
+                throw new ArgumentNullException("renderer");
+            
             // Restore Render target for additional editor rendering.
             // Note: Scene view camera always perform depth prepass
             CommandBuffer cmd = CommandBufferPool.Get(k_CopyDepthToCameraTag);
@@ -24,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, renderer.GetMaterial(MaterialHandles.DepthCopy));
+            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, renderer.GetMaterial(MaterialHandle.CopyDepth));
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

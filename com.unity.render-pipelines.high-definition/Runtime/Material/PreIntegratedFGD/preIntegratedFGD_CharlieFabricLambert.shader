@@ -15,7 +15,7 @@ Shader "Hidden/HDRenderPipeline/preIntegratedFGD_CharlieFabricLambert"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
-            #include "../../ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
             // ----------------------------------------------------------------------------
             // Importance Sampling

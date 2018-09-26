@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
     public class LightWeightUnlitSubShader : IUnlitSubShader
     {
-        static NeededCoordinateSpace m_PixelCoordinateSpace = NeededCoordinateSpace.World;
+        static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;
 
         struct Pass
         {
@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         };
 
-        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
 
-            var masterNode = inMasterNode as UnlitMasterNode;
+            var unlitMasterNode = masterNode as UnlitMasterNode;
             var pass = m_UnlitPass;
             var subShader = new ShaderStringBuilder();
             subShader.AppendLine("SubShader");
@@ -80,21 +80,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
 
-                var materialOptions = ShaderGenerator.GetMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn);
+                var materialTags = ShaderGenerator.BuildMaterialTags(unlitMasterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
-                materialOptions.GetTags(tagsBuilder);
+                materialTags.GetTags(tagsBuilder);
                 subShader.AppendLines(tagsBuilder.ToString());
 
+                var materialOptions = ShaderGenerator.GetMaterialOptions(unlitMasterNode.surfaceType, unlitMasterNode.alphaMode, unlitMasterNode.twoSided.isOn);
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         forwardTemplate,
-                        masterNode,
+                        unlitMasterNode,
                         pass,
                         mode,
                         materialOptions));
 
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         extraTemplate,
-                        masterNode,
+                        unlitMasterNode,
                         m_DepthShadowPass,
                         mode,
                         materialOptions));
@@ -105,7 +106,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
-            return renderPipelineAsset is LightweightPipelineAsset;
+            return renderPipelineAsset is LightweightRenderPipelineAsset;
         }
 
         static string GetTemplatePath(string templateName)
@@ -172,11 +173,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var surfaceRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);
 
             var modelRequiements = ShaderGraphRequirements.none;
-            modelRequiements.requiresNormal |= m_PixelCoordinateSpace;
-            modelRequiements.requiresTangent |= m_PixelCoordinateSpace;
-            modelRequiements.requiresBitangent |= m_PixelCoordinateSpace;
-            modelRequiements.requiresPosition |= m_PixelCoordinateSpace;
-            modelRequiements.requiresViewDir |= m_PixelCoordinateSpace;
+            modelRequiements.requiresNormal |= k_PixelCoordinateSpace;
+            modelRequiements.requiresTangent |= k_PixelCoordinateSpace;
+            modelRequiements.requiresBitangent |= k_PixelCoordinateSpace;
+            modelRequiements.requiresPosition |= k_PixelCoordinateSpace;
+            modelRequiements.requiresViewDir |= k_PixelCoordinateSpace;
             modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
 
             // ----------------------------------------------------- //

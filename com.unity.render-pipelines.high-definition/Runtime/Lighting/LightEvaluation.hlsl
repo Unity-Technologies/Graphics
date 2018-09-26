@@ -27,7 +27,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 // Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                DirectionalLightData lightData, BuiltinData builtinData,
-                               float3 N, float3 L,
+                               float3 N, float3 L, float AOForMicroshadowing,
                                out float3 color, out float attenuation)
 {
     float3 positionWS = posInput.positionWS;
@@ -52,7 +52,8 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #endif
 
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
-    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
+    float NdotL = dot(N, L);
+    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (NdotL >= 0.0))
     {
         shadow = lightLoopContext.shadowValue;
 
@@ -65,11 +66,9 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         real  fade;
         int cascadeCount;
         int shadowSplitIndex = 0;
-#ifndef USE_CORE_SHADOW_SYSTEM
+
         shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, lightData.shadowIndex, positionWS, fade, cascadeCount);
-#else
-        shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, lightData.shadowIndex, positionWS, payloadOffset, fade, cascadeCount);
-#endif
+
         // we have a fade caclulation for each cascade but we must lerp with shadow mask only for the last one
         // if shadowSplitIndex is -1 it mean we are outside cascade and should return 1.0 to use shadowmask: saturate(-shadowSplitIndex) return 0 for >= 0 and 1 for -1
         fade = ((shadowSplitIndex + 1) == cascadeCount) ? fade : saturate(-shadowSplitIndex);
@@ -89,6 +88,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #ifndef _SURFACE_TYPE_TRANSPARENT
         shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
 #endif
+        shadow *= GetMicroshadowing(NdotL, AOForMicroshadowing, _MicroShadowOpacity);
     }
 
     attenuation *= shadow;
@@ -197,11 +197,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
         // Note:the case of NdotL < 0 can appear with isThinModeTransmission, in this case we need to flip the shadow bias
-#ifndef USE_CORE_SHADOW_SYSTEM
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, lightData.lightType == GPULIGHTTYPE_POINT, lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
-#else
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
-#endif
 
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
@@ -304,8 +300,14 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
             // Recompute transmittance using the thickness value computed from the shadow map.
 
             // Compute the distance from the light to the back face of the object along the light direction.
+#ifndef USE_CORE_SHADOW_SYSTEM
+            float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
+                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS,
+                                                                            lightData.lightType == GPULIGHTTYPE_POINT);
+#else
             float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
                                                                             posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS);
+#endif
 
             // Our subsurface scattering models use the semi-infinite planar slab assumption.
             // Therefore, we need to find the thickness along the normal.

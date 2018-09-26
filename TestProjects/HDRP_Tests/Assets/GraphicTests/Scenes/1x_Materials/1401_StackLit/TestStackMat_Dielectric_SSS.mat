@@ -232,7 +232,7 @@ Material:
     - _EmissiveColorMapUV: 0
     - _EmissiveColorMapUVLocal: 0
     - _EmissiveColorMode: 1
-    - _EmissiveShow: 1
+    - _EmissiveShow: 0
     - _EnableAnisotropy: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableCoat: 0
@@ -301,7 +301,7 @@ Material:
     - _PreRefractionPass: 0
     - _RefractionModel: 0
     - _SSRefractionProjectionModel: 0
-    - _SSSShow: 1
+    - _SSSShow: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 1
@@ -323,7 +323,7 @@ Material:
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
     - _SpecularAntiAliasingScreenSpaceVariance: 0.1
-    - _SpecularAntiAliasingShow: 1
+    - _SpecularAntiAliasingShow: 0
     - _SpecularAntiAliasingThreshold: 0.2
     - _SrcBlend: 1
     - _StandardShow: 1
@@ -351,7 +351,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _ThicknessUseMap: 0
     - _TransmissionEnable: 1
-    - _TransmissionShow: 1
+    - _TransmissionShow: 0
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0

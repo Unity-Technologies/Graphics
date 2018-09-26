@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     [FormerName("UnityEditor.ShaderGraph.LightWeightPBRSubShader")]
     public class LightWeightPBRSubShader : IPBRSubShader
     {
-        static NeededCoordinateSpace m_PixelCoordinateSpace = NeededCoordinateSpace.World;
+        static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;
 
         struct Pass
         {
@@ -76,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             }
         };
 
-        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -98,29 +98,30 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
 
-            var masterNode = inMasterNode as PBRMasterNode;
-            var pass = masterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular;
+            var pbrMasterNode = masterNode as PBRMasterNode;
+            var pass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular;
             var subShader = new ShaderStringBuilder();
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
             {
                 subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
 
-                var materialOptions = ShaderGenerator.GetMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn);
+                var materialTags = ShaderGenerator.BuildMaterialTags(pbrMasterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
-                materialOptions.GetTags(tagsBuilder);
+                materialTags.GetTags(tagsBuilder);
                 subShader.AppendLines(tagsBuilder.ToString());
 
+                var materialOptions = ShaderGenerator.GetMaterialOptions(pbrMasterNode.surfaceType, pbrMasterNode.alphaMode, pbrMasterNode.twoSided.isOn);
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         forwardTemplate,
-                        masterNode,
+                        pbrMasterNode,
                         pass,
                         mode,
                         materialOptions));
 
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         extraTemplate,
-                        masterNode,
+                        pbrMasterNode,
                         m_DepthShadowPass,
                         mode,
                         materialOptions));
@@ -131,7 +132,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
-            return renderPipelineAsset is LightweightPipelineAsset;
+            return renderPipelineAsset is LightweightRenderPipelineAsset;
         }
 
         static string GetTemplatePath(string templateName)
@@ -200,11 +201,11 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             var surfaceRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);
 
             var modelRequiements = ShaderGraphRequirements.none;
-            modelRequiements.requiresNormal |= m_PixelCoordinateSpace;
-            modelRequiements.requiresTangent |= m_PixelCoordinateSpace;
-            modelRequiements.requiresBitangent |= m_PixelCoordinateSpace;
-            modelRequiements.requiresPosition |= m_PixelCoordinateSpace;
-            modelRequiements.requiresViewDir |= m_PixelCoordinateSpace;
+            modelRequiements.requiresNormal |= k_PixelCoordinateSpace;
+            modelRequiements.requiresTangent |= k_PixelCoordinateSpace;
+            modelRequiements.requiresBitangent |= k_PixelCoordinateSpace;
+            modelRequiements.requiresPosition |= k_PixelCoordinateSpace;
+            modelRequiements.requiresViewDir |= k_PixelCoordinateSpace;
             modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
 
             // ----------------------------------------------------- //

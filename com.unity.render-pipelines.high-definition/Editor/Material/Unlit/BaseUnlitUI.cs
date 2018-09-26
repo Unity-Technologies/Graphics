@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected static class StylesBaseUnlit
         {
             public static string TransparencyInputsText = "Transparency Inputs";
-            public static string optionText = "Surface options";
+            public static string optionText = "Surface Options";
             public static string surfaceTypeText = "Surface Type";
             public static string blendModeText = "Blend Mode";
 
@@ -649,45 +649,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (material.HasProperty(kTransparentDepthPrepassEnable))
             {
                 bool depthWriteEnable = (material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
-                if (depthWriteEnable)
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, true);
-                }
-                else
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, false);
-                }
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, depthWriteEnable);
             }
 
             if (material.HasProperty(kTransparentDepthPostpassEnable))
             {
                 bool depthWriteEnable = (material.GetFloat(kTransparentDepthPostpassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
-                if (depthWriteEnable)
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, true);
-                }
-                else
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, false);
-                }
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, depthWriteEnable);
             }
 
             if (material.HasProperty(kTransparentBackfaceEnable))
             {
                 bool backFaceEnable = (material.GetFloat(kTransparentBackfaceEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
-                if (backFaceEnable)
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, true);
-                }
-                else
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, false);
-                }
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, backFaceEnable);
             }
 
             if (material.HasProperty(kEnableMotionVectorForVertexAnimation))
             {
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, material.GetFloat(kEnableMotionVectorForVertexAnimation) > 0.0f);
+            }
+            else
+            {
+                // In case we have an HDRP material that inherits from this UI but does not have an _EnableMotionVectorForVertexAnimation property, we need to set it to false (default behavior)
+                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
             }
         }
 

@@ -117,6 +117,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture   m_preIntegratedFGD_Ward = null;
         RenderTexture   m_preIntegratedFGD_CookTorrance = null;
 
+        private bool m_precomputedFGDTablesAreInit = false;
+
         public static readonly int _PreIntegratedFGD_Ward = Shader.PropertyToID("_PreIntegratedFGD_Ward");
         public static readonly int _PreIntegratedFGD_CookTorrance = Shader.PropertyToID("_PreIntegratedFGD_CookTorrance");
         public static readonly int _AxFLtcData = Shader.PropertyToID("_AxFLtcData");
@@ -128,11 +130,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
 
             // Create Materials
-            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_Ward);
+            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.preIntegratedFGD_WardPS);
             if (m_preIntegratedFGDMaterial_Ward == null)
                 throw new Exception("Failed to create material for Ward BRDF pre-integration!");
 
-            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_CookTorrance);
+            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.preIntegratedFGD_CookTorrancePS);
             if (m_preIntegratedFGDMaterial_CookTorrance == null)
                 throw new Exception("Failed to create material for Cook-Torrance BRDF pre-integration!");
 
@@ -179,6 +181,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_preIntegratedFGD_Ward = null;
             m_preIntegratedFGDMaterial_Ward = null;
             m_preIntegratedFGDMaterial_CookTorrance = null;
+            m_precomputedFGDTablesAreInit = false;
 
             // LTC data
             CoreUtils.Destroy(m_LtcData);
@@ -186,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void RenderInit(CommandBuffer cmd)
         {
-            if (m_preIntegratedFGDMaterial_Ward == null || m_preIntegratedFGDMaterial_CookTorrance == null)
+            if (m_precomputedFGDTablesAreInit || m_preIntegratedFGDMaterial_Ward == null || m_preIntegratedFGDMaterial_CookTorrance == null)
             {
                 return;
             }
@@ -196,6 +199,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_Ward, new RenderTargetIdentifier(m_preIntegratedFGD_Ward));
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_CookTorrance, new RenderTargetIdentifier(m_preIntegratedFGD_CookTorrance));
             }
+
+            m_precomputedFGDTablesAreInit = true;
         }
 
         public override void Bind()

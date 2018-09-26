@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering.LightweightPipeline;
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
-    [CustomEditorForRenderPipeline(typeof(Camera), typeof(LightweightPipelineAsset))]
+    [CustomEditorForRenderPipeline(typeof(Camera), typeof(LightweightRenderPipelineAsset))]
     [CanEditMultipleObjects]
     internal class LightweightRenderPipelineCameraEditor : CameraEditor
     {
@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         static readonly int[] s_RenderingPathValues = {0};
         static Styles s_Styles;
-        LightweightPipelineAsset m_LightweightPipeline;
+        LightweightRenderPipelineAsset m_LightweightRenderPipeline;
 
         readonly AnimBool m_ShowBGColorAnim = new AnimBool();
         readonly AnimBool m_ShowOrthoAnim = new AnimBool();
@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public new void OnEnable()
         {
-            m_LightweightPipeline = GraphicsSettings.renderPipelineAsset as LightweightPipelineAsset;
+            m_LightweightRenderPipeline = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
 
             settings.OnEnable();
             UpdateAnimationValues(true);
@@ -66,7 +66,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             m_ShowOrthoAnim.valueChanged.RemoveListener(Repaint);
             m_ShowTargetEyeAnim.valueChanged.RemoveListener(Repaint);
 
-            m_LightweightPipeline = null;
+            m_LightweightRenderPipeline = null;
         }
 
         public override void OnInspectorGUI()
@@ -118,11 +118,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         void DrawHDR()
         {
-            bool disabled = settings.HDR.boolValue && !m_LightweightPipeline.supportsHDR;
-            using (new EditorGUI.DisabledScope(disabled))
-            {
-                settings.DrawHDR();
-            }
+            bool disabled = settings.HDR.boolValue && !m_LightweightRenderPipeline.supportsHDR;
+            settings.DrawHDR();
 
             if (disabled)
                 EditorGUILayout.HelpBox(s_Styles.hdrDisabledWarning, MessageType.Info);
@@ -135,7 +132,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (!settings.targetTexture.hasMultipleDifferentValues)
             {
                 var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
-                int pipelineSamplesCount = m_LightweightPipeline.msaaSampleCount;
+                int pipelineSamplesCount = m_LightweightRenderPipeline.msaaSampleCount;
 
                 if (texture && texture.antiAliasing > pipelineSamplesCount)
                 {
@@ -150,11 +147,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         void DrawMSAA()
         {
-            bool disabled = settings.allowMSAA.boolValue && m_LightweightPipeline.msaaSampleCount <= 1;
-            using (new EditorGUI.DisabledScope(disabled))
-            {
-                settings.DrawMSAA();
-            }
+            bool disabled = settings.allowMSAA.boolValue && m_LightweightRenderPipeline.msaaSampleCount <= 1;
+            settings.DrawMSAA();
 
             if (disabled)
                 EditorGUILayout.HelpBox(s_Styles.mssaDisabledWarning, MessageType.Info);

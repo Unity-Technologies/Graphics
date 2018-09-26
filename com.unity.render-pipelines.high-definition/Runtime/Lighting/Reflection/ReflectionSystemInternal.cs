@@ -15,6 +15,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         HashSet<HDAdditionalReflectionData> m_AdditionalDataReflectionProbe_RequestRealtimeRender;
         HDAdditionalReflectionData[] m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray;
 
+        // GC.Alloc
+        // HashSet`1.IntersectWith()
+        // HashSet`1.UnionWith()
         HashSet<PlanarReflectionProbe> m_PlanarReflectionProbes;
         HashSet<PlanarReflectionProbe> m_PlanarReflectionProbe_DirtyBounds;
         HashSet<PlanarReflectionProbe> m_PlanarReflectionProbe_RequestRealtimeRender;
@@ -37,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             m_PlanarReflectionProbesArray = new PlanarReflectionProbe[parameters.maxActivePlanarReflectionProbe];
             m_PlanarReflectionProbeBoundsArray = new BoundingSphere[parameters.maxActivePlanarReflectionProbe];
             m_PlanarReflectionProbe_RealtimeUpdate_WorkArray = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbePerCamera];
-            m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray = new HDAdditionalReflectionData[parameters.maxPlanarReflectionProbePerCamera]; ;
+            m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray = new HDAdditionalReflectionData[parameters.maxActiveReflectionProbe]; ;
 
             // Persistent collections
             m_AdditionalDataReflectionProbes = new HashSet<HDAdditionalReflectionData>();
@@ -131,8 +134,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         {
             UpdateAllPlanarReflectionProbeBounds();
 
+            // GC.Alloc
             // Caution: new CullingGroup generate 32B of garbage at each frame here !
-            var cullingGroup = new CullingGroup();
+            // cullingGroup gets .Dispose() called on it later, not clear why this leaks
+            var cullingGroup = new CullingGroup();            
             cullingGroup.targetCamera = camera;
             cullingGroup.SetBoundingSpheres(m_PlanarReflectionProbeBoundsArray);
             cullingGroup.SetBoundingSphereCount(Mathf.Min(m_PlanarReflectionProbeBounds.Count, m_PlanarReflectionProbeBoundsArray.Length));
@@ -470,7 +475,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             clearFlags = CameraClearFlags.Nothing;
             backgroundColor = Color.white;
 
-            capturePosition = additional.transform.position; //at the moment capture position is at probe position
+            capturePosition = additional.capturePosition;
             captureRotation = Quaternion.identity;
 
             worldToCamera = GeometryUtils.CalculateWorldToCameraMatrixRHS(capturePosition, captureRotation);
@@ -496,7 +501,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             clearFlags = CameraClearFlags.Nothing;
             backgroundColor = Color.white;
 
-            capturePosition = probe.transform.TransformPoint(probe.captureLocalPosition);
+            capturePosition = probe.capturePosition;
             captureRotation = Quaternion.LookRotation((Vector3)probe.influenceToWorld.GetColumn(3) - capturePosition, probe.transform.up);
 
             worldToCamera = GeometryUtils.CalculateWorldToCameraMatrixRHS(capturePosition, captureRotation);

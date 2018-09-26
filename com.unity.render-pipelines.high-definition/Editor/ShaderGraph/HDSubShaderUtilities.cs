@@ -12,30 +12,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         internal struct AttributesMesh
         {
-            [Semantic("POSITION")]              Vector3 positionOS;
-            [Semantic("NORMAL")][Optional]      Vector3 normalOS;
-            [Semantic("TANGENT")][Optional]     Vector4 tangentOS;       // Stores bi-tangent sign in w
-            [Semantic("TEXCOORD0")][Optional]   Vector2 uv0;
-            [Semantic("TEXCOORD1")][Optional]   Vector2 uv1;
-            [Semantic("TEXCOORD2")][Optional]   Vector2 uv2;
-            [Semantic("TEXCOORD3")][Optional]   Vector2 uv3;
-            [Semantic("COLOR")][Optional]       Vector4 color;
+            [Semantic("POSITION")]                  Vector3 positionOS;
+            [Semantic("NORMAL")][Optional]          Vector3 normalOS;
+            [Semantic("TANGENT")][Optional]         Vector4 tangentOS;       // Stores bi-tangent sign in w
+            [Semantic("TEXCOORD0")][Optional]       Vector2 uv0;
+            [Semantic("TEXCOORD1")][Optional]       Vector2 uv1;
+            [Semantic("TEXCOORD2")][Optional]       Vector2 uv2;
+            [Semantic("TEXCOORD3")][Optional]       Vector2 uv3;
+            [Semantic("COLOR")][Optional]           Vector4 color;
+            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("INSTANCING_ON")] uint instanceID;
         };
 
         [InterpolatorPack]
         internal struct VaryingsMeshToPS
         {
-            [Semantic("SV_Position")]           Vector4 positionCS;
-            [Optional]                          Vector3 positionRWS;
-            [Optional]                          Vector3 normalWS;
-            [Optional]                          Vector4 tangentWS;      // w contain mirror sign
-            [Optional]                          Vector2 texCoord0;
-            [Optional]                          Vector2 texCoord1;
-            [Optional]                          Vector2 texCoord2;
-            [Optional]                          Vector2 texCoord3;
-            [Optional]                          Vector4 color;
-            [Optional][Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("SHADER_STAGE_FRAGMENT")]
-            bool cullFace;
+            [Semantic("SV_Position")]                                               Vector4 positionCS;
+            [Optional]                                                              Vector3 positionRWS;
+            [Optional]                                                              Vector3 normalWS;
+            [Optional]                                                              Vector4 tangentWS;      // w contain mirror sign
+            [Optional]                                                              Vector2 texCoord0;
+            [Optional]                                                              Vector2 texCoord1;
+            [Optional]                                                              Vector2 texCoord2;
+            [Optional]                                                              Vector2 texCoord3;
+            [Optional]                                                              Vector4 color;
+            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("INSTANCING_ON")]     uint instanceID;
+            [Optional][Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("SHADER_STAGE_FRAGMENT")] bool cullFace;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
             {
@@ -47,6 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("VaryingsMeshToPS.texCoord2",        "VaryingsMeshToDS.texCoord2"),
                 new Dependency("VaryingsMeshToPS.texCoord3",        "VaryingsMeshToDS.texCoord3"),
                 new Dependency("VaryingsMeshToPS.color",            "VaryingsMeshToDS.color"),
+                new Dependency("VaryingsMeshToPS.instanceID",       "VaryingsMeshToDS.instanceID"),
             };
 
             public static Dependency[] standardDependencies = new Dependency[]
@@ -59,6 +61,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("VaryingsMeshToPS.texCoord2",        "AttributesMesh.uv2"),
                 new Dependency("VaryingsMeshToPS.texCoord3",        "AttributesMesh.uv3"),
                 new Dependency("VaryingsMeshToPS.color",            "AttributesMesh.color"),
+                new Dependency("VaryingsMeshToPS.instanceID",       "AttributesMesh.instanceID"),
             };
         };
 
@@ -73,15 +76,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional]      Vector2 texCoord2;
             [Optional]      Vector2 texCoord3;
             [Optional]      Vector4 color;
+            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("INSTANCING_ON")] uint instanceID;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
             {
-                new Dependency("VaryingsMeshToDS.tangentWS",        "VaryingsMeshToPS.tangentWS"),
-                new Dependency("VaryingsMeshToDS.texCoord0",        "VaryingsMeshToPS.texCoord0"),
-                new Dependency("VaryingsMeshToDS.texCoord1",        "VaryingsMeshToPS.texCoord1"),
-                new Dependency("VaryingsMeshToDS.texCoord2",        "VaryingsMeshToPS.texCoord2"),
-                new Dependency("VaryingsMeshToDS.texCoord3",        "VaryingsMeshToPS.texCoord3"),
-                new Dependency("VaryingsMeshToDS.color",            "VaryingsMeshToPS.color"),
+                new Dependency("VaryingsMeshToDS.tangentWS",     "VaryingsMeshToPS.tangentWS"),
+                new Dependency("VaryingsMeshToDS.texCoord0",     "VaryingsMeshToPS.texCoord0"),
+                new Dependency("VaryingsMeshToDS.texCoord1",     "VaryingsMeshToPS.texCoord1"),
+                new Dependency("VaryingsMeshToDS.texCoord2",     "VaryingsMeshToPS.texCoord2"),
+                new Dependency("VaryingsMeshToDS.texCoord3",     "VaryingsMeshToPS.texCoord3"),
+                new Dependency("VaryingsMeshToDS.color",         "VaryingsMeshToPS.color"),
+                new Dependency("VaryingsMeshToDS.instanceID",    "VaryingsMeshToPS.instanceID"),
             };
         };
 
@@ -451,6 +456,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
     };
 
+    public delegate void OnGeneratePassDelegate(IMasterNode masterNode, ref Pass pass);
     public struct Pass
     {
         public string Name;
@@ -458,6 +464,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public string ShaderPassName;
         public List<string> Includes;
         public string TemplateName;
+        public string MaterialName;
         public List<string> ExtraDefines;
         public List<int> VertexShaderSlots;         // These control what slots are used by the pass vertex shader
         public List<int> PixelShaderSlots;          // These control what slots are used by the pass pixel shader
@@ -470,17 +477,37 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public List<string> StencilOverride;
         public List<string> RequiredFields;         // feeds into the dependency analysis
         public ShaderGraphRequirements requirements;
-    };
+        public bool UseInPreview;
+
+        // All these lists could probably be hashed to aid lookups.
+        public bool VertexShaderUsesSlot(int slotId)
+        {
+            return VertexShaderSlots.Contains(slotId);
+        }
+        public bool PixelShaderUsesSlot(int slotId)
+        {
+            return PixelShaderSlots.Contains(slotId);
+        }
+        public void OnGeneratePass(IMasterNode masterNode)
+        {
+            if (OnGeneratePassImpl != null)
+            {
+                OnGeneratePassImpl(masterNode, ref this);
+            }
+        }
+        public OnGeneratePassDelegate OnGeneratePassImpl;
+    }
 
     public static class HDSubShaderUtilities
     {
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
         {
-            string templatePath = Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
-            string templateLocation = Path.Combine(templatePath, pass.TemplateName);
+            string templatePath = Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor/Material");
+            string templateLocation = Path.Combine(Path.Combine(Path.Combine(templatePath, pass.MaterialName), "ShaderGraph"), pass.TemplateName);
             if (!File.Exists(templateLocation))
             {
                 // TODO: produce error here
+                Debug.LogError("Template not found: " + templateLocation);
                 return false;
             }
 
@@ -548,8 +575,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderStringBuilder vertexGraphOutputs = new ShaderStringBuilder();
 
             // check for vertex animation -- enables HAVE_VERTEX_MODIFICATION
-            bool vertexActive = false;
-            if (masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId))
+            if (vertexActive)
             {
                 vertexActive = true;
                 activeFields.Add("features.modifyMesh");
@@ -578,9 +604,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var cullCode = new ShaderStringBuilder();
             var zTestCode = new ShaderStringBuilder();
             var zWriteCode = new ShaderStringBuilder();
+            var zClipCode = new ShaderStringBuilder();
             var stencilCode = new ShaderStringBuilder();
             var colorMaskCode = new ShaderStringBuilder();
-            HDSubShaderUtilities.BuildRenderStatesFromPassAndMaterialOptions(pass, materialOptions, blendCode, cullCode, zTestCode, zWriteCode, stencilCode, colorMaskCode);
+            HDSubShaderUtilities.BuildRenderStatesFromPassAndMaterialOptions(pass, materialOptions, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
 
@@ -622,7 +649,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 if (graphRequirements.requiresDepthTexture)
                     defines.AddShaderChunk("#define REQUIRE_DEPTH_TEXTURE");
-
                 defines.AddGenerator(interpolatorDefines);
             }
 
@@ -689,6 +715,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             namedFragments.Add("Culling", cullCode.ToString());
             namedFragments.Add("ZTest", zTestCode.ToString());
             namedFragments.Add("ZWrite", zWriteCode.ToString());
+            namedFragments.Add("ZClip", zClipCode.ToString());
             namedFragments.Add("Stencil", stencilCode.ToString());
             namedFragments.Add("ColorMask", colorMaskCode.ToString());
             namedFragments.Add("LOD", materialOptions.lod.ToString());
@@ -696,9 +723,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // this is the format string for building the 'C# qualified assembly type names' for $buildType() commands
             string buildTypeAssemblyNameFormat = "UnityEditor.Experimental.Rendering.HDPipeline.HDRPShaderStructs+{0}, " + typeof(HDSubShaderUtilities).Assembly.FullName.ToString();
 
+            string sharedTemplatePath = Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
             // process the template to generate the shader code for this pass
             ShaderSpliceUtil.TemplatePreprocessor templatePreprocessor =
-                new ShaderSpliceUtil.TemplatePreprocessor(activeFields, namedFragments, debugOutput, templatePath, sourceAssetDependencyPaths, buildTypeAssemblyNameFormat);
+                new ShaderSpliceUtil.TemplatePreprocessor(activeFields, namedFragments, debugOutput, sharedTemplatePath, sourceAssetDependencyPaths, buildTypeAssemblyNameFormat);
 
             templatePreprocessor.ProcessTemplateFile(templateLocation);
 
@@ -731,6 +759,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderStringBuilder cullCode,
             ShaderStringBuilder zTestCode,
             ShaderStringBuilder zWriteCode,
+            ShaderStringBuilder zClipCode,
             ShaderStringBuilder stencilCode,
             ShaderStringBuilder colorMaskCode)
         {
@@ -775,6 +804,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 materialOptions.GetDepthWrite(zWriteCode);
             }
 
+            // No point in an override for this.
+            materialOptions.GetDepthClip(zClipCode);
+
             if (pass.ColorMaskOverride != null)
             {
                 colorMaskCode.AppendLine(pass.ColorMaskOverride);
@@ -797,7 +829,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static SurfaceMaterialOptions BuildMaterialOptions(SurfaceType surfaceType, AlphaMode alphaMode, bool twoSided)
+        public static SurfaceMaterialTags BuildMaterialTags(SurfaceType surfaceType, bool alphaTest, bool preRefraction, int sortPriority)
+        {
+            SurfaceMaterialTags materialTags = new SurfaceMaterialTags();
+
+            if (surfaceType == SurfaceType.Opaque)
+            {
+                if (alphaTest)
+                {
+                    materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.AlphaTest;
+                    materialTags.renderType = SurfaceMaterialTags.RenderType.TransparentCutout;
+                }
+                else
+                {
+                    materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.Geometry;
+                    materialTags.renderType = SurfaceMaterialTags.RenderType.Opaque;
+                }
+            }
+            else
+            {
+                materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.Transparent;
+                materialTags.renderQueueOffset = sortPriority;
+                if (preRefraction)
+                {
+                    materialTags.renderQueueOffset -= HDRenderQueue.Priority.Transparent - HDRenderQueue.Priority.PreRefraction;
+                }
+                materialTags.renderType = SurfaceMaterialTags.RenderType.Transparent;
+            }
+
+            return materialTags;
+        }
+
+        public static SurfaceMaterialOptions BuildMaterialOptions(SurfaceType surfaceType,
+                                                                  AlphaMode alphaMode,
+                                                                  bool twoSided,
+                                                                  bool refraction)
         {
             SurfaceMaterialOptions materialOptions = new SurfaceMaterialOptions();
             if (surfaceType == SurfaceType.Opaque)
@@ -806,31 +872,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
                 materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                 materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.On;
-                materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Geometry;
-                materialOptions.renderType = SurfaceMaterialOptions.RenderType.Opaque;
             }
             else
             {
-                switch (alphaMode)
+                if (refraction)
                 {
-                    case AlphaMode.Alpha:
-                        materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
-                        materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
-                        materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                        materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                        materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                        materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
-                        break;
-                    case AlphaMode.Additive:
-                        materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
-                        materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
-                        materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                        materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                        materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                        materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
-                        break;
-                        // TODO: other blend modes
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                 }
+                else
+                {
+                    switch (alphaMode)
+                    {
+                        case AlphaMode.Alpha:
+                            materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            break;
+                        case AlphaMode.Additive:
+                            materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
+                            break;
+                        case AlphaMode.Premultiply:
+                            materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            break;
+                        // This isn't supported in HDRP.
+                        case AlphaMode.Multiply:
+                            materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            break;
+                    }
+                }
+                materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
             }
 
             materialOptions.cullMode = twoSided ? SurfaceMaterialOptions.CullMode.Off : SurfaceMaterialOptions.CullMode.Back;

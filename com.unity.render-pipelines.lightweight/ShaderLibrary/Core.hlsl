@@ -17,11 +17,11 @@
 #define BUMP_SCALE_NOT_SUPPORTED !SHADER_HINT_NICE_QUALITY
 #endif
 
-struct VertexPosition
+struct VertexPositionInputs
 {
-    float3 worldSpace;
-    float3 viewSpace;
-    float4 hclipSpace;
+    float3 positionWS; // World space position
+    float3 positionVS; // View space position
+    float4 positionCS; // Homogeneous clip space position
 };
 
 struct VertexTBN
@@ -31,13 +31,13 @@ struct VertexTBN
     real3 normalWS;
 };
 
-VertexPosition GetVertexPosition(float3 positionOS)
+VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
-    VertexPosition vertexPos;
-    vertexPos.worldSpace = TransformObjectToWorld(positionOS);
-    vertexPos.viewSpace = TransformWorldToView(vertexPos.worldSpace);
-    vertexPos.hclipSpace = TransformWorldToHClip(vertexPos.worldSpace);
-    return vertexPos;
+    VertexPositionInputs input;
+    input.positionWS = TransformObjectToWorld(positionOS);
+    input.positionVS = TransformWorldToView(input.positionWS);
+    input.positionCS = TransformWorldToHClip(input.positionWS);
+    return input;
 }
 
 VertexTBN GetVertexTBN(float3 normalOS)
@@ -103,14 +103,14 @@ float4 GetScaledScreenParams()
     return _ScaledScreenParams;
 }
 
-void AlphaDiscard(half alpha, half cutoff, half offset = 0.0h)
+void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 {
 #ifdef _ALPHATEST_ON
     clip(alpha - cutoff + offset);
 #endif
 }
 
-half3 UnpackNormal(half4 packedNormal)
+real3 UnpackNormal(real4 packedNormal)
 {
 #if defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGBNoScale(packedNormal);
@@ -120,7 +120,7 @@ half3 UnpackNormal(half4 packedNormal)
 #endif
 }
 
-half3 UnpackNormalScale(half4 packedNormal, half bumpScale)
+real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 {
 #if defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGB(packedNormal, bumpScale);

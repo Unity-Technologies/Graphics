@@ -10,6 +10,8 @@
     int  _EnvLightSkyEnabled;         // TODO: make it a bool
     int _DirectionalShadowIndex;
 
+    float _MicroShadowOpacity;
+
     uint _NumTileFtplX;
     uint _NumTileFtplY;
 
@@ -38,7 +40,6 @@
 #else
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/CoreRP/Shadow/ShadowBase.cs.hlsl"
 
     StructuredBuffer<uint>  g_vLightListGlobal;      // don't support Buffer yet in unity
 

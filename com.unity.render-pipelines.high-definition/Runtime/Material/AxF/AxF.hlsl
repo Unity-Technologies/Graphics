@@ -2,7 +2,7 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in AxF.cs which generates AxF.cs.hlsl
-#include "AxF.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.cs.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
@@ -1032,7 +1032,8 @@ DirectLighting  EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // color and attenuation are outputted  by EvaluateLight:
     float3  color;
     float   attenuation = 0;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, normalWS, lightWS, color, attenuation);
+    // We pass 1.0f for AOForMicroshadowing as we don't have either specular or ambient occlusion
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, normalWS, lightWS, 1.0f, color, attenuation);
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 

@@ -38,20 +38,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!m_ComputeGgxIblSampleDataCS)
             {
-                m_ComputeGgxIblSampleDataCS     = m_RenderPipelineResources.computeGgxIblSampleData;
+                m_ComputeGgxIblSampleDataCS     = m_RenderPipelineResources.shaders.computeGgxIblSampleDataCS;
                 m_ComputeGgxIblSampleDataKernel = m_ComputeGgxIblSampleDataCS.FindKernel("ComputeGgxIblSampleData");
             }
 
             if (!m_BuildProbabilityTablesCS)
             {
-                m_BuildProbabilityTablesCS   = m_RenderPipelineResources.buildProbabilityTables;
+                m_BuildProbabilityTablesCS   = m_RenderPipelineResources.shaders.buildProbabilityTablesCS;
                 m_ConditionalDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
                 m_MarginalRowDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeMarginalRowDensities");
             }
 
             if (!m_GgxConvolveMaterial)
             {
-                m_GgxConvolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelineResources.GGXConvolve);
+                m_GgxConvolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelineResources.shaders.GGXConvolvePS);
             }
 
             if (!m_GgxIblSampleData)

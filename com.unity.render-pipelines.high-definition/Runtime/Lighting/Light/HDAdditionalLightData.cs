@@ -207,8 +207,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Must return the first executed shadow request
         public int UpdateShadowRequest(Camera camera, HDShadowInitParameters initParameters, HDShadowManager manager, VisibleLight visibleLight, CullResults cullResults, int lightIndex, out int shadowRequestCount)
         {
-            int     firstShadowRequestIndex = -1;
-            Vector3 cameraPos = camera.transform.position;
+            int                 firstShadowRequestIndex = -1;
+            Vector3             cameraPos = camera.transform.position;
+            HDShadowSettings    shadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
             shadowRequestCount = 0;
 
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
@@ -225,17 +226,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Vector2 viewportSize = new Vector2(m_ShadowData.shadowResolution, m_ShadowData.shadowResolution);
 
-            if (initParameters.useDynamicViewportRescale)
+            if (initParameters.useDynamicViewportRescale && m_Light.type != LightType.Directional)
             {
                 // resize viewport size by the normalized size of the light on screen
-                viewportSize *= visibleLight.screenRect.size.magnitude / Mathf.Sqrt(2);
+                // When we will have access to the non screen clamped bounding sphere light size, we could use it to scale the shadow map resolution
+                // For the moment, this will be enough
+                viewportSize *= Mathf.Lerp(64f / viewportSize.x, 1f, visibleLight.range / (cameraPos - transform.position).magnitude);
+                viewportSize = Vector2.Max(new Vector2(64f, 64f) / viewportSize, viewportSize);
 
                 // Prevent flickering caused by the floating size of the viewport
                 viewportSize.x = Mathf.Round(viewportSize.x);
                 viewportSize.y = Mathf.Round(viewportSize.y);
-
-                viewportSize = Vector2.Max(viewportSize, new Vector2(32, 32));
             }
+
+            viewportSize = Vector2.Max(viewportSize, new Vector2(16, 16));
 
             for (int requestIndex = 0; requestIndex < shadowRequests.Length; requestIndex++)
             {
@@ -252,14 +256,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         HDShadowUtils.ExtractSpotLightData(m_Light.type, spotLightShape, aspectRatio, shapeWidth, shapeHeight, visibleLight, viewportSize, m_ShadowData.normalBiasMax, out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.splitData);
                         break;
                     case LightType.Directional:
-                        float[] cascadeRatios;
-                        float[] cascadeBorders;
-                        int     cascadeCount;
                         Vector4 cullingSphere;
                         float   nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
                         
-                        m_ShadowData.GetShadowCascades(out cascadeCount, out cascadeRatios, out cascadeBorders);
-                        HDShadowUtils.ExtractDirectionalLightData(visibleLight, viewportSize, (uint)requestIndex, m_ShadowData.cascadeCount, cascadeRatios, nearPlaneOffset, cullResults, lightIndex, out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.splitData);
+                        HDShadowUtils.ExtractDirectionalLightData(visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount, shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex, out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.splitData);
 
                         cullingSphere = shadowRequest.splitData.cullingSphere;
 
@@ -271,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cullingSphere.z -= cameraPos.z;
                         }
 
-                        manager.UpdateCascade(requestIndex, cullingSphere, cascadeBorders[requestIndex]);
+                        manager.UpdateCascade(requestIndex, cullingSphere, shadowSettings.cascadeShadowBorders[requestIndex]);
                         break;
                     case LightType.Area:
                         HDShadowUtils.ExtractAreaLightData(visibleLight, lightTypeExtent, out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.splitData);

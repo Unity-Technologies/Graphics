@@ -1,4 +1,4 @@
-#include "../Lit/LitDataDisplacement.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataDisplacement.hlsl"
 
 // Return the maximum amplitude use by all enabled heightmap
 // use for tessellation culling and per pixel displacement

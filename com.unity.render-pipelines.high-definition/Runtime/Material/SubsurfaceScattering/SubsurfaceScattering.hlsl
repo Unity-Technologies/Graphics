@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-#include "../DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
-#include "../DiffusionProfile/DiffusionProfile.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/DiffusionProfile/DiffusionProfile.hlsl"
 
 // ----------------------------------------------------------------------------
 // helper functions

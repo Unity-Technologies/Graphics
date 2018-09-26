@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void Build()
         {
             var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            m_GradientSkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.gradientSky);
+            m_GradientSkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.gradientSkyPS);
         }
 
         public override void Cleanup()

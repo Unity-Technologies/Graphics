@@ -161,6 +161,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // GC.Alloc
+        // VolumeParameter`.op_Equality()
         public bool UpdateEnvironment(SkyUpdateContext skyContext, HDCamera camera, Light sunLight, bool updateRequired, CommandBuffer cmd)
         {
             bool result = false;

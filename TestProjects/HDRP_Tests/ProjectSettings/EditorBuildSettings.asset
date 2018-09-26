@@ -57,6 +57,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_SubSurfaceScattering.unity
     guid: 201c29a239df4c74ea9e1ab47082abea
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1302_SSS_MaxRadius.unity
+    guid: 0277520b19264c24eac3041bd22ae564
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1303_SSS_Pre-Post.unity
+    guid: 6f2bc3028f3daba46ab0447a3e25ebc6
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1401_StackLit.unity
     guid: 695dac9017b946a49a338d466a6d50ff
   - enabled: 1
@@ -81,6 +87,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2005_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2006_Spot_Angle_Distance.unity
+    guid: c39638d0d6bfcf644b4b6966af6fc876
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2101_GI_Metapass.unity
+    guid: 8747b43f8bcf2b44cbc3ece373da65a9
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
     guid: d485acf0535eb4b42a9a3847f4a8274a
   - enabled: 1
@@ -92,6 +104,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2204_ReflectionProbes_Lights.unity
     guid: 21d198bbbf9143d40b227ad2fe71706f
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2205_ReflectionProbes_influence.unity
+    guid: 423802799a6e57644a5d581a894f4646
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2206_LightLoopCullWOblique.unity
+    guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2206_PlanarReflectionVFace.unity
     guid: d4d352e2cbfbfac4686e77b69fe84ec0
@@ -105,6 +123,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2301_Shadow_Mask.unity
     guid: 1029947770f955b4290bbdd8b641f7f1
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2302_Shadow_Mask_Distance_Mode.unity
+    guid: e52f701bbdb7827468e3548d1fd05590
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2303_Shadow_Mask_Directional_OcclusionProbes.unity
+    guid: 72c3210b185a33041ba0b13a57b1a3ea
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
     guid: 3f6529c22f7d2ca46814b2e7afd04ef9
   - enabled: 1
@@ -114,17 +138,26 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2601_ColorTemp.unity
     guid: 34a3a4a7a56d3014dad3114e6b523742
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
+    guid: 21522d96110c8dd41ab353d89fd740c3
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9001_Decals.unity
     guid: a27cb5a638892574f99eb333bb3c7722
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9002_MeshDecals.unity
-    guid: 9240007d5241e1f46844cc434c083274
+    guid: d27cf5628eba05c479941957559088d1
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9003_Decals-ReorientedNormals.unity
+    guid: accc96ed8662d3b4ebc3be051aada793
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9004_Decals-Settings.unity
     guid: ead63a11c9b9ca84a9419d8625393156
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9005_Decals-stress-test.unity
     guid: 0e963f94367e3fe4a8c36b77f2e12a8b
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9101_Density-volumes.unity
+    guid: 340fc0a32de5178478b13cfa2dd928f6
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9201_Camera-relative-rendering.unity
     guid: b15afca992049604dbb5071c393dd355

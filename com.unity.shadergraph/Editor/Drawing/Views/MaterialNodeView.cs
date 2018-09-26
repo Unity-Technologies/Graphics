@@ -281,6 +281,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             return graph.GetShader(node, GenerationMode.ForReals, node.name).shader;
         }
 
+        void RecreateSettings()
+        {
+            var settings = node as IHasSettings;
+            if (settings != null)
+            {
+                m_Settings.RemoveFromHierarchy();
+
+                m_Settings = settings.CreateSettingsElement();
+                m_NodeSettingsView.Add(m_Settings);
+            }
+        }
+
         void UpdateSettingsExpandedState()
         {
             m_ShowSettings = !m_ShowSettings;
@@ -346,6 +358,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
+                RecreateSettings();
+
                 var slots = node.GetSlots<MaterialSlot>().ToList();
 
                 var inputPorts = inputContainer.Children().OfType<ShaderPort>().ToList();
