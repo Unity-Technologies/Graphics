@@ -75,3 +75,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - SpaceMaterialSlot now reads correct slot.
 - Slider node control now functions correctly.
 - Shader Graphs no longer display an error message intended for Sub Graphs when you delete properties.
+- Fixed an issue where Show Generated Code could fail when external editor was not set.
