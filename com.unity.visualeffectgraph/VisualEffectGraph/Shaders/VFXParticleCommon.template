@@ -23,6 +23,10 @@ ${VFXLoadParameter:{uvBias}}
 o.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;
 #endif
 
+#if defined(VFX_VARYING_POSWS)
+o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
+#endif
+
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadSize}

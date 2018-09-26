@@ -27,9 +27,6 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	vPos += axisY * (o.VFX_VARYING_UV.y * uSize * scale);
 	vPos -= axisZ * uSize;
 	
-	#ifdef VFX_VARYING_POSWS
-	o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
-	#endif
 	#ifdef VFX_VARYING_SPHERECENTER
 	o.VFX_VARYING_SPHERECENTER = TransformPositionVFXToWorld(position);
 	#endif
