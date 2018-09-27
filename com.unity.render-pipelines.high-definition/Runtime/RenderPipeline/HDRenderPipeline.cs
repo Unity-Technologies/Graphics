@@ -1060,9 +1060,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Add stereo occlusion mask
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd);
 
-                    // If objects velocity if enabled, this will render the rest of objects into the target buffers (in addition to the velocity buffer)
-                    RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
-
                     // Now that all depths have been rendered, resolve the depth buffer
                     m_SharedRTManager.ResolveSharedRT(cmd, hdCamera);
 
@@ -1109,6 +1106,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: In the future we will render object velocity at the same time as depth prepass (we need C++ modification for this)
                     // Once the C++ change is here we will first render all object without motion vector then motion vector object
                     // We can't currently render object velocity after depth prepass because if there is no depth prepass we can have motion vector write that should have been rejected
+
+                    // If objects velocity if enabled, this will render the rest of objects into the target buffers (in addition to the velocity buffer)
+                    RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
+
                     RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
                     StopStereoRendering(cmd, renderContext, hdCamera);
@@ -1538,7 +1539,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Combination of both depth prepass + motion vector pass provide the full depth buffer
 
             // In order to avoid rendering objects twice (once in the depth pre-pass and once in the motion vector pass, when the motion vector pass is enabled). We exclude the objects that have motion vectors.
-            bool excludeMotion = hdCamera.frameSettings.enableObjectMotionVectors;
+            // TODO: Currently disable, require a C++ PR
+            bool excludeMotion = false; // hdCamera.frameSettings.enableObjectMotionVectors;
 
             if (hdCamera.frameSettings.enableForwardRenderingOnly)
             {
