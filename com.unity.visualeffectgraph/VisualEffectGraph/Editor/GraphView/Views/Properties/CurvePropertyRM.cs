@@ -4,7 +4,8 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
 using Object = UnityEngine.Object;
-using Type = System.Type;
+using System.Reflection;
+using System.Linq;
 
 using MyCurveField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UI.VFXCurveField, UnityEngine.AnimationCurve>;
 
@@ -17,15 +18,65 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        /*
+         public override void SetValueWithoutNotify(AnimationCurve newValue)
+        {
+            m_ValueNull = newValue == null;
+            if (!m_ValueNull)
+            {
+                m_Value.keys = newValue.keys;
+                m_Value.preWrapMode = newValue.preWrapMode;
+                m_Value.postWrapMode = newValue.postWrapMode;
+            }
+            else
+            {
+                m_Value.keys = new Keyframe[0];
+                m_Value.preWrapMode = WrapMode.Once;
+                m_Value.postWrapMode = WrapMode.Once;
+            }
+            m_TextureDirty = true;
+            CurveEditorWindow.curve = m_Value;
+
+            IncrementVersion(VersionChangeType.Repaint);
+
+            m_Content?.IncrementVersion(VersionChangeType.Repaint);
+        }
+         * */
+
+
+        static FieldInfo s_m_ValueNull = typeof(CurveField).GetField("m_ValueNull",BindingFlags.NonPublic|BindingFlags.FlattenHierarchy|BindingFlags.Instance);
+        static FieldInfo s_m_Value = typeof(CurveField).GetField("m_Value", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
+        static FieldInfo s_m_TextureDirty = typeof(CurveField).GetField("m_TextureDirty", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
+        static FieldInfo s_m_Content = typeof(CurveField).GetField("m_Content", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
+
         public override void SetValueWithoutNotify(AnimationCurve newValue)
         {
-            base.SetValueWithoutNotify(newValue);
+            s_m_ValueNull.SetValue(this, newValue == null);
+
+            AnimationCurve mValue = (AnimationCurve)s_m_Value.GetValue(this);
+            if (newValue != null)
+            {
+                mValue.keys = newValue.keys;
+                mValue.preWrapMode = newValue.preWrapMode;
+                mValue.postWrapMode = newValue.postWrapMode;
+            }
+            else
+            {
+                mValue.keys = new Keyframe[0];
+                mValue.preWrapMode = WrapMode.Once;
+                mValue.postWrapMode = WrapMode.Once;
+            }
+
+            s_m_TextureDirty.SetValue(this, true);
 
             if (value != null && CurveEditorWindow.visible && Object.ReferenceEquals(CurveEditorWindow.curve, m_Value))
             {
                 CurveEditorWindow.curve = m_Value;
                 CurveEditorWindow.instance.Repaint();
             }
+            MarkDirtyRepaint();
+
+            ((VisualElement)s_m_Content.GetValue(this))?.MarkDirtyRepaint();
         }
     }
     class CurvePropertyRM : PropertyRM<AnimationCurve>
