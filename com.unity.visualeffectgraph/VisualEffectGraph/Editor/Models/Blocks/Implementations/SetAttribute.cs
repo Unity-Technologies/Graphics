@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.Block
                 Debug.Log(string.Format("Sanitizing SetAttribute: Convert {0} to variadic attribute {1} with channel {2}", attribute, newAttrib, channel));
                 attribute = newAttrib;
                 channels = channel;
-                Invalidate(InvalidationCause.kSettingChanged);   
+                Invalidate(InvalidationCause.kSettingChanged);
             }
 
             base.Sanitize();
@@ -185,8 +185,27 @@ namespace UnityEditor.VFX.Block
 
                 if (Source == ValueSource.Source)
                 {
+                    VFXExpression sourceExpression = null;
                     var attrib = VFXAttribute.Find(attribute);
-                    yield return new VFXNamedExpression(new VFXAttributeExpression(attrib, VFXAttributeLocation.Source), "Value");
+                    if (attrib.variadic == VFXVariadic.True)
+                    {
+                        var currentChannels = channels.ToString().Select(c => char.ToUpper(c));
+                        var currentChannelsExpression = currentChannels.Select(o =>
+                        {
+                            var subAttrib = VFXAttribute.Find(attribute + o);
+                            return new VFXAttributeExpression(subAttrib, VFXAttributeLocation.Source);
+                        }).ToArray();
+
+                        if (currentChannelsExpression.Length == 1)
+                            sourceExpression = currentChannelsExpression[0];
+                        else
+                            sourceExpression = new VFXExpressionCombine(currentChannelsExpression);
+                    }
+                    else
+                    {
+                        sourceExpression = new VFXAttributeExpression(attrib, VFXAttributeLocation.Source);
+                    }
+                    yield return new VFXNamedExpression(sourceExpression, "Value");
                 }
             }
         }
