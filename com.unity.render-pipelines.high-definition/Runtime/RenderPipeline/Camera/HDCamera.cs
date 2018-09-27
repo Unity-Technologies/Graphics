@@ -38,6 +38,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4      textureWidthScaling; // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
         public uint         numEyes; // 2+ when rendering stereo, 1 otherwise
 
+        public bool         colorPyramidIsValid;
+
         Matrix4x4[] viewProjStereo;
         Matrix4x4[] invViewStereo;
         Matrix4x4[] invProjStereo;
@@ -188,6 +190,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             postprocessRenderContext = new PostProcessRenderContext();
 
             m_AdditionalCameraData = null; // Init in Update
+
+            colorPyramidIsValid = false;
 
             Reset();
         }

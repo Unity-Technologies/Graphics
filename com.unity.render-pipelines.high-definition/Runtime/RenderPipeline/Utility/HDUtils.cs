@@ -373,10 +373,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector2Int[] mipLevelSizes;
             public Vector2Int[] mipLevelOffsets;
 
+            private bool        m_OffsetBufferWillNeedUpdate;
+
             public void Allocate()
             {
                 mipLevelOffsets = new Vector2Int[15];
                 mipLevelSizes   = new Vector2Int[15];
+                m_OffsetBufferWillNeedUpdate = true;
             }
 
             // We pack all MIP levels into the top MIP level to avoid the Pow2 MIP chain restriction.
@@ -425,6 +428,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 } while ((mipSize.x > 1) || (mipSize.y > 1));
 
                 mipLevelCount = mipLevel + 1;
+                m_OffsetBufferWillNeedUpdate = true;
+            }
+
+            public ComputeBuffer GetOffsetBufferData(ComputeBuffer mipLevelOffsetsBuffer)
+            {
+
+                if (m_OffsetBufferWillNeedUpdate)
+                {
+                    mipLevelOffsetsBuffer.SetData(mipLevelOffsets);
+                    m_OffsetBufferWillNeedUpdate = false;
+                }
+
+                return mipLevelOffsetsBuffer;
             }
         }
 
