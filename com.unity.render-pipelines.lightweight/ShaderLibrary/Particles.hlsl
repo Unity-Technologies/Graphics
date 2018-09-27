@@ -147,7 +147,7 @@ struct VaryingsParticle
     float2 texcoord                 : TEXCOORD0;
 #ifdef _NORMALMAP
     half3 tangent                   : TEXCOORD1;
-    half3 binormal                  : TEXCOORD2;
+    half3 bitangent                  : TEXCOORD2;
     half3 normal                    : TEXCOORD3;
 #else
     half3 normal                    : TEXCOORD1;
@@ -247,15 +247,21 @@ half3 AlphaModulate(half3 albedo, half alpha)
 
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
 {
+    half3 viewDirWS = input.viewDirShininess.xyz;
+#if SHADER_HINT_NICE_QUALITY
+    viewDirWS = SafeNormalize(viewDirWS);
+#endif
+
     output.positionWS = input.posWS.xyz;
 
 #if _NORMALMAP
-    output.normalWS = TangentToWorldNormal(normalTS, input.tangent, input.binormal, input.normal);
+    output.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
 #else
-    output.normalWS = FragmentNormalWS(input.normal);
+    output.normalWS = input.normal;
 #endif
+    output.normalWS = NormalizeNormalPerPixel(output.normalWS);
 
-    output.viewDirectionWS = FragmentViewDirWS(input.viewDirShininess.xyz);
+    output.viewDirectionWS = viewDirWS;
     output.shadowCoord = float4(0, 0, 0, 0);
     output.fogCoord = (half)input.posWS.w;
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);

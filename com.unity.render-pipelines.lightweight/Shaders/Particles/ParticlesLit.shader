@@ -78,24 +78,26 @@ Shader "Lightweight Render Pipeline/Particles/Lit"
             {
                 VaryingsParticle output;
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
-                VertexTBN vertexTBN = GetVertexTBN(input.normal
+                VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal
 #if defined(_NORMALMAP)
                     , input.tangent
 #endif
                 );
+                half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+#if !SHADER_HINT_NICE_QUALITY
+                viewDirWS = SafeNormalize(viewDirWS);
+#endif
 
-
-                output.normal = vertexTBN.normalWS;
+                output.normal = normalInput.normalWS;
 #ifdef _NORMAL_MAP
-                output.tangent = vertexTBN.tangentWS;
-                output.binormal = vertexTBN.binormalWS;
+                output.tangent = normalInput.tangentWS;
+                output.bitangent = normalInput.bitangentWS;
 #endif
 
                 output.posWS.xyz = vertexInput.positionWS;
                 output.posWS.w = ComputeFogFactor(vertexInput.positionCS.z);
                 output.clipPos = vertexInput.positionCS;
-                output.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - vertexInput.positionWS);
-                output.viewDirShininess.w = 0.0;
+                output.viewDirShininess = half4(viewDirWS, 0.0);
                 output.color = input.color;
 
                 // TODO: Instancing
@@ -115,7 +117,7 @@ Shader "Lightweight Render Pipeline/Particles/Lit"
 
                 half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo,
                     surfaceData.metallic, half3(0, 0, 0), surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-                ApplyFog(color.rgb, inputData.fogCoord);
+                color.rgb = MixFog(color.rgb, inputData.fogCoord);
                 return color;
             }
 

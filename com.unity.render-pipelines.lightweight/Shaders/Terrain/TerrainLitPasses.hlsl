@@ -38,7 +38,7 @@ struct VertexOutput
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
     half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    half4 binormal                  : TEXCOORD5;    // xyz: binormal, w: viewDir.z
+    half4 bitangent                  : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
 #else
     half3 normal                    : TEXCOORD3;
     half3 viewDir                   : TEXCOORD4;
@@ -57,20 +57,26 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
     input.positionWS = IN.positionWS;
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half3 viewDir = half3(IN.normal.w, IN.tangent.w, IN.binormal.w);
-    input.normalWS = TangentToWorldNormal(normalTS, IN.tangent.xyz, IN.binormal.xyz, IN.normal.xyz);
+    half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
+    input.normalWS = TransformTangentToWorld(normalTS, half3x3(IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
 #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half3 viewDir = IN.viewDir;
+    half3 viewDirWS = IN.viewDir;
     float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
     half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
     half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
-    input.normalWS = TangentToWorldNormal(normalTS, tangentWS, cross(normalWS, tangentWS), normalWS);
+    input.normalWS = TransformTangentToWorld(normalTS, half3x3(tangentWS, cross(normalWS, tangentWS), normalWS));
 #else
-    half3 viewDir = IN.viewDir;
-    input.normalWS = FragmentNormalWS(IN.normal);
+    half3 viewDirWS = IN.viewDir;
+    input.normalWS = IN.normal;
 #endif
 
-    input.viewDirectionWS = FragmentViewDirWS(viewDir);
+#if SHADER_HINT_NICE_QUALITY
+    viewDirWS = SafeNormalize(viewDirWS);
+#endif
+
+    input.normalWS = NormalizeNormalPerPixel(input.normalWS);
+
+    input.viewDirectionWS = viewDirWS;
 #ifdef _MAIN_LIGHT_SHADOWS
     input.shadowCoord = IN.shadowCoord;
 #else
@@ -123,9 +129,9 @@ void SplatmapFinalColor(inout half4 color, half fogCoord)
 {
     color.rgb *= color.a;
     #ifdef TERRAIN_SPLAT_ADDPASS
-        ApplyFogColor(color.rgb, half3(0,0,0), fogCoord);
+        color.rgb = MixFogColor(color.rgb, half3(0,0,0), fogCoord);
     #else
-        ApplyFog(color.rgb, fogCoord);
+        color.rgb = MixFog(color.rgb, fogCoord);
     #endif
 }
 
@@ -179,18 +185,21 @@ VertexOutput SplatmapVert(VertexInput v)
     o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
 #endif
 
-    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - vertexInput.positionWS);
+    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+#if !SHADER_HINT_NICE_QUALITY
+    viewDirWS = SafeNormalize(viewDirWS);
+#endif
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normal), 1.0);
-    VertexTBN vertexTBN = GetVertexTBN(v.normal, vertexTangent);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(v.normal, vertexTangent);
 
-    o.normal = half4(vertexTBN.normalWS, viewDir.x);
-    o.tangent = half4(vertexTBN.tangentWS, viewDir.y);
-    o.binormal = half4(vertexTBN.binormalWS, viewDir.z);
+    o.normal = half4(normalInput.normalWS, viewDirWS.x);
+    o.tangent = half4(normalInput.tangentWS, viewDirWS.y);
+    o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
     o.normal = TransformObjectToWorldNormal(v.normal);
-    o.viewDir = viewDir;
+    o.viewDir = viewDirWS;
 #endif
     o.fogFactorAndVertexLight.x = ComputeFogFactor(vertexInput.positionCS.z);
     o.fogFactorAndVertexLight.yzw = VertexLighting(vertexInput.positionWS, o.normal.xyz);

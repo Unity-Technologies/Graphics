@@ -62,9 +62,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
-        static readonly string s_SearchPathProject = "Assets";
-        static readonly string s_SearchPathPackage = "Packages/com.unity.render-pipelines.lightweight";
-
         Shader m_DefaultShader;
 
         // Default values set when a new LightweightRenderPipeline asset is created
@@ -117,6 +114,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #if UNITY_EDITOR
         [NonSerialized]
         LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
+
+        static readonly string s_SearchPathProject = "Assets";
+        static readonly string s_SearchPathPackage = "Packages/com.unity.render-pipelines.lightweight";
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
         internal class CreateLightweightPipelineAsset : EndNameEditAction

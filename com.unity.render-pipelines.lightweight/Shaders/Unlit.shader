@@ -70,7 +70,7 @@ Shader "Lightweight Render Pipeline/Unlit"
                 half3 normal                    : TEXCOORD2;
     #if _NORMALMAP
                 half3 tangent                   : TEXCOORD3;
-                half3 binormal                  : TEXCOORD4;
+                half3 bitangent                  : TEXCOORD4;
     #endif
 #endif
                 float4 vertex : SV_POSITION;
@@ -93,11 +93,11 @@ Shader "Lightweight Render Pipeline/Unlit"
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
 
 #if _SAMPLE_GI
-                VertexTBN vertexTBN = GetVertexTBN(input.normalOS, input.tangentOS);
-                output.normal = vertexTBN.normalWS;
+                VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+                output.normal = normalInput.normalWS;
 #ifdef _NORMALMAP
-                output.tangent = vertexTBN.tangentWS;
-                output.binormal = vertexTBN.binormalWS;
+                output.tangent = normalInput.tangentWS;
+                output.bitangent = normalInput.bitangentWS;
 #endif
                 OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
                 OUTPUT_SH(output.normal, output.vertexSH);
@@ -122,13 +122,15 @@ Shader "Lightweight Render Pipeline/Unlit"
 
 #if _SAMPLE_GI
     #if _NORMALMAP
-                half3 normalWS = TangentToWorldNormal(surfaceData.normalTS, input.tangent, input.binormal, input.normal);
+                half3 normalWS = TransformTangentToWorld(surfaceData.normalTS,
+                    half3x3(input.tangent, input.bitangent, input.normal));
     #else
-                half3 normalWS = normalize(input.normal);
+                half3 normalWS = input.normal;
     #endif
+                normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
 #endif
-                ApplyFog(color, input.uv0AndFogCoord.z);
+                color = MixFog(color, input.uv0AndFogCoord.z);
 
                 return half4(color, alpha);
             }
