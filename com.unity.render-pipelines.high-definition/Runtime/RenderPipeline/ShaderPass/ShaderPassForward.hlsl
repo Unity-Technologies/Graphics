@@ -71,7 +71,28 @@ void Frag(PackedVaryingsToPS packedInput,
     ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
     #endif
 
-    if (_DebugLightingMode != DEBUGLIGHTINGMODE_NONE || _DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    // Same code in ShaderPassForwardUnlit.shader
+    if (_DebugViewMaterial != 0)
+    {
+        float3 result = float3(1.0, 0.0, 1.0);
+
+        bool needLinearToSRGB = false;
+
+        GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
+        GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
+        GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
+        GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
+        GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
+
+        // TEMP!
+        // For now, the final blit in the backbuffer performs an sRGB write
+        // So in the meantime we apply the inverse transform to linear data to compensate.
+        if (!needLinearToSRGB)
+            result = SRGBToLinear(max(0, result));
+
+        outColor = float4(result, 1.0);
+    }
+    else
 #endif
     {
 #ifdef _SURFACE_TYPE_TRANSPARENT
@@ -104,29 +125,5 @@ void Frag(PackedVaryingsToPS packedInput,
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;
-#endif
-
-#ifdef DEBUG_DISPLAY
-    // Same code in ShaderPassForwardUnlit.shader
-    if (_DebugViewMaterial != 0)
-    {
-        float3 result = float3(1.0, 0.0, 1.0);
-
-        bool needLinearToSRGB = false;
-
-        GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
-        GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
-        GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
-        GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
-        GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
-
-        // TEMP!
-        // For now, the final blit in the backbuffer performs an sRGB write
-        // So in the meantime we apply the inverse transform to linear data to compensate.
-        if (!needLinearToSRGB)
-            result = SRGBToLinear(max(0, result));
-
-        outColor = float4(result, 1.0);
-    }
 #endif
 }
