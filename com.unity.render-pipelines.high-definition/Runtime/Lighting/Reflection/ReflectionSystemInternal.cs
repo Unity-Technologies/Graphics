@@ -133,11 +133,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         public void PrepareCull(Camera camera, ReflectionProbeCullResults results)
         {
             UpdateAllPlanarReflectionProbeBounds();
-
-            // GC.Alloc
-            // Caution: new CullingGroup generate 32B of garbage at each frame here !
-            // cullingGroup gets .Dispose() called on it later, not clear why this leaks
-            var cullingGroup = new CullingGroup();            
+           
+            var cullingGroup = CullingGroupManager.instance.Alloc();            
             cullingGroup.targetCamera = camera;
             cullingGroup.SetBoundingSpheres(m_PlanarReflectionProbeBoundsArray);
             cullingGroup.SetBoundingSphereCount(Mathf.Min(m_PlanarReflectionProbeBounds.Count, m_PlanarReflectionProbeBoundsArray.Length));
