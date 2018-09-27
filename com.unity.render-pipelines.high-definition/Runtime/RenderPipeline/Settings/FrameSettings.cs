@@ -144,7 +144,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
             aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors && renderPipelineSettings.supportMotionVectors;
-            aggregate.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors && renderPipelineSettings.supportMotionVectors;
+            // Object motion vector are disabled if motion vector are disabled
+            aggregate.enableObjectMotionVectors = srcFrameSettings.enableObjectMotionVectors && aggregate.enableMotionVectors;
             aggregate.enableDecals = srcFrameSettings.enableDecals && renderPipelineSettings.supportDecals;
             aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
             aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
@@ -242,7 +243,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Transparent Prepass", getter = () => frameSettings.enableTransparentPrepass, setter = value => frameSettings.enableTransparentPrepass = value },
                         new DebugUI.BoolField { displayName = "Enable Transparent Postpass", getter = () => frameSettings.enableTransparentPostpass, setter = value => frameSettings.enableTransparentPostpass = value },
                         new DebugUI.BoolField { displayName = "Enable Motion Vectors", getter = () => frameSettings.enableMotionVectors, setter = value => frameSettings.enableMotionVectors = value },
-                        new DebugUI.BoolField { displayName = "Enable Object Motion Vectors", getter = () => frameSettings.enableObjectMotionVectors, setter = value => frameSettings.enableObjectMotionVectors = value },
+                        new DebugUI.BoolField { displayName = "  Enable Object Motion Vectors", getter = () => frameSettings.enableObjectMotionVectors, setter = value => frameSettings.enableObjectMotionVectors = value },
                         new DebugUI.BoolField { displayName = "Enable DBuffer", getter = () => frameSettings.enableDecals, setter = value => frameSettings.enableDecals = value },
                         new DebugUI.BoolField { displayName = "Enable Rough Refraction", getter = () => frameSettings.enableRoughRefraction, setter = value => frameSettings.enableRoughRefraction = value },
                         new DebugUI.BoolField { displayName = "Enable Distortion", getter = () => frameSettings.enableDistortion, setter = value => frameSettings.enableDistortion = value },

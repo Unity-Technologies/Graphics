@@ -1536,8 +1536,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // as they will not use the result of lighting anyway. However take care of effect that will try to filter normal buffer.
             // TODO: maybe we can use a stencil to tag when Forward unlit touch normal buffer
 
+            // Additional guidelines when motion vector are enabled
+            // To save drawcall we don't render in prepass the object that have object motion vector. We use the excludeMotion filter option of DrawRenderer to know that (only C++ can know if an object have object motion vector).
+            // Thus during this prepass we will exclude all object that have object motion vector, mean that during the velocity pass they will also output normal buffer (like a regular prepass) if needed.
+            // Combination of both depth prepass + motion vector pass provide the full depth buffer
+
             // In order to avoid rendering objects twice (once in the depth pre-pass and once in the motion vector pass, when the motion vector pass is enabled). We exclude the objects that have motion vectors.
-            bool excludeMotion = hdCamera.frameSettings.enableMotionVectors;
+            bool excludeMotion = hdCamera.frameSettings.enableObjectMotionVectors;
 
             if (hdCamera.frameSettings.enableForwardRenderingOnly)
             {
@@ -1546,15 +1551,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
 
                     // Full forward: Output normal buffer for both forward and forwardOnly
-                    if(excludeMotion)
-                    {
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, RendererConfiguration.PerObjectMotionVectors, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector : excludeMotion);
+                    // Exclude object that render velocity (if motion vector are enabled)
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector : excludeMotion);
                 }
-                    else
-                    {
-                        RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
-                    }
-            }
             }
             // If we enable DBuffer, we need a full depth prepass
             else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || m_DbufferManager.enableDecals)
@@ -1564,19 +1563,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
 
                     // First deferred material
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector: excludeMotion);
 
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
 
                     // Then forward only material that output normal buffer
-                    if(excludeMotion)
-                    {
-                        RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, RendererConfiguration.PerObjectMotionVectors, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector : excludeMotion);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector: excludeMotion);
                 }
-                    else
-                    {
-                        RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
-                    }                }
             }
             else // Deferred with partial depth prepass
             {
@@ -1586,19 +1579,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // First deferred alpha tested materials. Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
                     var renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange, excludeMotionVector : excludeMotion);
 
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
 
                     // Then forward only material that output normal buffer
-                    if(excludeMotion)
-                    {
-                        RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, RendererConfiguration.PerObjectMotionVectors, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector : excludeMotion);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector : excludeMotion);
                 }
-                    else
-                    {
-                        RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
-                    }                }
             }
         }
 
@@ -1917,7 +1904,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderObjectsVelocity(CullResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            if (!hdCamera.frameSettings.enableMotionVectors || !hdCamera.frameSettings.enableObjectMotionVectors)
+            if (!hdCamera.frameSettings.enableObjectMotionVectors)
                 return;
 
             using (new ProfilingSample(cmd, "Objects Velocity", CustomSamplerId.ObjectsVelocity.GetSampler()))

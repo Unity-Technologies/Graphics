@@ -105,6 +105,9 @@ Shader "HDRenderPipeline/AxF"
 
         // this will let collapsable element of material be persistant
         [HideInInspector] _EditorExpendedAreas("_EditorExpendedAreas", Float) = 0
+
+        // This is required by motion vector pass to be able to disable the pass by default
+        [HideInInspector] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0
     }
 
     HLSLINCLUDE
@@ -201,6 +204,38 @@ Shader "HDRenderPipeline/AxF"
             #include "ShaderPass/AxFDepthPass.hlsl"
             #include "AxFData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Motion Vectors"
+            Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
+
+            // If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity
+            Stencil
+            {
+                WriteMask [_StencilWriteMaskMV]
+                Ref [_StencilRefMV]
+                Comp Always
+                Pass Replace
+            }
+
+            Cull[_CullMode]
+
+            ZWrite On
+
+            HLSLPROGRAM
+            #define WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_MSAA_DEPTH
+            
+            #define SHADERPASS SHADERPASS_VELOCITY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "ShaderPass/AxFSharePass.hlsl"
+            #include "AxFData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
         }

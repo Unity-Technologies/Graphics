@@ -286,6 +286,9 @@ Shader "HDRenderPipeline/StackLit"
 
         // this will let collapsable element of material be persistant
         [HideInInspector] _EditorExpendedAreas("_EditorExpendedAreas", Float) = 0
+
+        // This is required by motion vector pass to be able to disable the pass by default
+        [HideInInspector] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0
     }
 
     HLSLINCLUDE
