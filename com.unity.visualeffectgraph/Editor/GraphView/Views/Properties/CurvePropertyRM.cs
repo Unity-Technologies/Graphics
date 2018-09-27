@@ -1,18 +1,33 @@
-using System.Collections.Generic;
-using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
-using UnityEditor.VFX;
-using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using MyCurveField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.CurveField, UnityEngine.AnimationCurve>;
+using MyCurveField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UI.VFXCurveField, UnityEngine.AnimationCurve>;
 
 namespace UnityEditor.VFX.UI
 {
+    // temporary override until the fix goes to trunk
+    class VFXCurveField : CurveField
+    {
+        public VFXCurveField():base()
+        {
+        }
+
+        public override void SetValueWithoutNotify(AnimationCurve newValue)
+        {
+            base.SetValueWithoutNotify(newValue);
+
+            if (value != null && CurveEditorWindow.visible && Object.ReferenceEquals(CurveEditorWindow.curve, m_Value))
+            {
+                CurveEditorWindow.curve = m_Value;
+                CurveEditorWindow.instance.Repaint();
+            }
+        }
+    }
     class CurvePropertyRM : PropertyRM<AnimationCurve>
     {
         public CurvePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)

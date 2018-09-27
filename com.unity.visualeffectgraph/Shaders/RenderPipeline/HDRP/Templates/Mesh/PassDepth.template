@@ -20,7 +20,7 @@ Pass
 		// z: alpha
 		// w: smoothness
 		nointerpolation float4 builtInInterpolants : TEXCOORD1;
-		//#endif
+		#endif
 		#ifdef WRITE_NORMAL_BUFFER
 		float4 normal : TEXCOORD2; // normal scale is stored in w
 		#if HDRP_USE_NORMAL_MAP
