@@ -303,9 +303,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // let the culling group code do some of the heavy lifting for global draw distance
                 m_BoundingDistances[0] = DecalSystem.instance.DrawDistance;
                 m_NumResults = 0;
-                m_CullingGroup = new CullingGroup();
-                // GC.Alloc
-                // m_CullingGroup gets .Dispose() called on it later, not clear why this leaks
+                m_CullingGroup = CullingGroupManager.instance.Alloc();
                 m_CullingGroup.targetCamera = instance.CurrentCamera;
                 m_CullingGroup.SetDistanceReferencePoint(m_CullingGroup.targetCamera.transform.position);
                 m_CullingGroup.SetBoundingDistances(m_BoundingDistances);
@@ -460,7 +458,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    m_CullingGroup.Dispose();
+                    CullingGroupManager.instance.Free(m_CullingGroup);
                     m_CullingGroup = null;
                 }
             }
@@ -504,6 +502,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
+                }
+            }
+
+            public void Cleanup()
+            {
+                if(m_CullingGroup != null)
+                {
+                    CullingGroupManager.instance.Free(m_CullingGroup);
                 }
             }
 
@@ -763,6 +769,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Atlas != null)
                 m_Atlas.Release();
+            foreach (var pair in m_DecalSets)
+            {
+                pair.Value.Cleanup();
+            }
             CoreUtils.Destroy(m_DecalMesh);
             // set to null so that they get recreated
             m_DecalMesh = null;
