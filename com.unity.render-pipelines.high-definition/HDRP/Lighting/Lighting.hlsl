@@ -30,7 +30,11 @@
 #ifndef UNITY_MATERIAL_VOLUMETRIC
     // LightLoop use evaluation BSDF function for light type define in Material.hlsl
     #if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
-    #include "../Lighting/LightLoop/LightLoop.hlsl"
+        #if USE_SIMPLE_LIGHTLOOP
+            #include "../Lighting/LightLoop/SimpleLightLoop.hlsl"
+        #else
+            #include "../Lighting/LightLoop/LightLoop.hlsl"
+        #endif
     #endif
 #endif
 

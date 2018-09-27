@@ -14,6 +14,7 @@ namespace UnityEditor.VFX
             Standard,
             SpecularColor,
             Translucent,
+            SimpleLit,
         }
 
         [Flags]
@@ -38,6 +39,7 @@ namespace UnityEditor.VFX
             "StandardProperties",
             "SpecularColorProperties",
             "TranslucentProperties",
+            "SimpleLitProperties",
         };
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting")]
@@ -72,6 +74,21 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool doubleSided = false;
+        
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool enableShadows = true;
+        
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool enableSpecular = true;
+        
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool enableTransmission = true;
+        
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool enableCookie = true;
+        
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool enableEnvLight = true;
 
         protected virtual bool allowTextures { get { return true; }}
 
@@ -96,6 +113,10 @@ namespace UnityEditor.VFX
         {
             [Range(0, 1)]
             public float thickness = 1.0f;
+        }
+
+        public class SimpleLitProperties
+        {
         }
 
         public class BaseColorMapProperties
@@ -190,7 +211,7 @@ namespace UnityEditor.VFX
                     yield return slotExpressions.First(o => o.name == "thickness");
                     yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfile), "diffusionProfile");
                     break;
-
+                
                 default: break;
             }
 
@@ -241,6 +262,20 @@ namespace UnityEditor.VFX
                         if (multiplyThicknessWithAlpha)
                             yield return "HDRP_MULTIPLY_THICKNESS_WITH_ALPHA";
                         break;
+                
+                    case MaterialType.SimpleLit:
+                        yield return "USE_SIMPLE_LIGHTLOOP";
+                        if (enableShadows)
+                            yield return "HDRP_ENABLE_SHADOWS";
+                        if (enableSpecular)
+                            yield return "HDRP_ENABLE_SPECULAR";
+                        if (enableTransmission)
+                            yield return "HDRP_ENABLE_TRANSMISSION";
+                        if (enableCookie)
+                            yield return "HDRP_ENABLE_COOKIE";
+                        if (enableEnvLight)
+                            yield return "HDRP_ENABLE_ENV_LIGHT";
+                        break;
 
                     default: break;
                 }
@@ -290,6 +325,14 @@ namespace UnityEditor.VFX
                 {
                     yield return "diffusionProfile";
                     yield return "multiplyThicknessWithAlpha";
+                }
+
+                if (materialType != MaterialType.SimpleLit)
+                {
+                    yield return "enableShadows";
+                    yield return "enableSpecular";
+                    yield return "enableTransmission";
+                    yield return "enableCookie";
                 }
 
                 if (!allowTextures)
