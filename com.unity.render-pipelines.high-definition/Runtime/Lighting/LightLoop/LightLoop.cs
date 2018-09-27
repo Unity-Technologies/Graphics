@@ -2746,6 +2746,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ReflectionProbe currentLegacyProbe = cullResults.visibleReflectionProbes[probeIdx].probe;
                     HDAdditionalReflectionData currentHDProbe = currentLegacyProbe.GetComponent<HDAdditionalReflectionData>();
 
+                    if (!currentHDProbe)
+                        continue;
+
                     MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
                     Mesh targetMesh = null;
                     if (currentHDProbe.influenceVolume.shape == InfluenceShape.Sphere)
