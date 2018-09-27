@@ -90,3 +90,13 @@ Toggle.toolbarItem:checked:hover:active
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button act on.png");
 }
+
+VFXSystemBorder.graphElement
+{
+    start-color:#17AB6A;
+    middle-color:#BF9220;
+    end-color:#C24F30;
+    border-left-width: 6;
+    border-left: 6;
+    opacity:0.25;
+}

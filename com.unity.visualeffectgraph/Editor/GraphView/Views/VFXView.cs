@@ -477,6 +477,9 @@ namespace UnityEditor.VFX.UI
 
             Profiler.EndSample();
             m_InControllerChanged = false;
+
+            UpdateSystems();
+
             if (m_UpdateUIBounds)
             {
                 UpdateUIBounds();
@@ -1505,6 +1508,64 @@ namespace UnityEditor.VFX.UI
                     (e) => { return DropdownMenu.MenuAction.StatusFlags.Normal; });
                 hasMenu = true;
                 evt.menu.AppendSeparator();
+            }
+        }
+
+
+        List<VFXSystemBorder> m_Systems = new List<VFXSystemBorder>();
+
+        public void UpdateSystems()
+        {
+            VFXContext[] contexts = controller.graph.children.OfType<VFXContext>().ToArray();
+
+            HashSet<VFXContext> initializes = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kInit).ToArray());
+
+            List<HashSet<VFXContext>> systems = new List<HashSet<VFXContext>>();
+
+            while(initializes.Count > 0)
+            {
+                VFXContext initialize = initializes.First();
+                initializes.Remove(initialize);
+
+                HashSet<VFXContext> system = new HashSet<VFXContext>();
+
+                system.Add(initialize);
+
+                var allChildren = initialize.outputFlowSlot.SelectMany(t => t.link.Select(u => u.context));
+                while(allChildren.Count() > 0)
+                {
+                    foreach (var child in allChildren)
+                    {
+                        initializes.Remove(child);
+                        system.Add(child);
+                    }
+
+                    allChildren = allChildren.SelectMany(t => t.outputFlowSlot.SelectMany(u => u.link.Select(v => v.context))
+                                                            .Concat(t.inputFlowSlot.SelectMany(u=>u.link.Select(v=>v.context).Where(v=>v.contextType != VFXContextType.kSpawner && v.contextType != VFXContextType.kSpawnerGPU) )))
+                                                            .Except(system);
+                }
+
+                systems.Add(system);
+            }
+
+            while(m_Systems.Count() < systems.Count())
+            {
+                VFXSystemBorder border = new VFXSystemBorder();
+                border.layer = -400;
+                m_Systems.Add(border);
+                AddElement(border);
+            }
+
+            while(m_Systems.Count() > systems.Count())
+            {
+                VFXSystemBorder border = m_Systems.Last();
+                m_Systems.RemoveAt(m_Systems.Count - 1);
+                border.RemoveFromHierarchy();
+            }
+
+            for(int i = 0; i < systems.Count(); ++i)
+            {
+                m_Systems[i].contexts = systems[i].Select(t=>rootNodes[controller.GetNodeController(t, 0)]).Cast<VFXContextUI>().ToArray();
             }
         }
 

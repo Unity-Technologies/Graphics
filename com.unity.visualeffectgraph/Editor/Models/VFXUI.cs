@@ -85,8 +85,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        [System.Serializable]
+        public class SystemInfo : UIInfo
+        {
+            public VFXContext[] contexts;
+        }
+
         public GroupInfo[] groupInfos;
         public StickyNoteInfo[] stickyNoteInfos;
+        public List<SystemInfo> systemInfos;
 
         [Serializable]
         public struct CategoryInfo

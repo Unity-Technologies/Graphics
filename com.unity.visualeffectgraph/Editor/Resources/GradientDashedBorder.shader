@@ -1,4 +1,4 @@
-Shader "Hidden/VFX/GradientBorder"
+Shader "Hidden/VFX/GradientDashedBorder"
 {
     Properties
     {
@@ -8,6 +8,7 @@ Shader "Hidden/VFX/GradientBorder"
         _Size("Size",Vector) = (100,100,0,0)
         _ColorStart("ColorStart",Color) = (1,1,0,1)
         _ColorEnd("ColorEnd", Color) = (0,1,1,1)
+        _ColorMiddle("ColorMiddle", Color) = (0,1,1,1)
     }
     SubShader
     {
@@ -48,6 +49,7 @@ Shader "Hidden/VFX/GradientBorder"
             float2 _Size;
             fixed4 _ColorStart;
             fixed4 _ColorEnd;
+            fixed4 _ColorMiddle;
 
             uniform float4x4 unity_GUIClipTextureMatrix;
             sampler2D _GUIClipTexture;
@@ -73,18 +75,9 @@ Shader "Hidden/VFX/GradientBorder"
                 return o;
             }
 
-
-            const int dash = 10;
-            const int dbl_dash = dash * 2;
-
             fixed4 frag(v2f i) : SV_Target
             {
-                /*
-                float d = i.distance / (_Size.x * 2 + _Size.y * 2);
-                return fixed4(d, d, d,1);
-                */
-
-                if (fmod(i.distance,dbl_dash) > dash)
+                if (fmod(i.distance + 10,20) > 10)
                     discard;
 
                 float pixelScale = 1.0f/abs(ddx(i.pos.x));
@@ -105,7 +98,12 @@ Shader "Hidden/VFX/GradientBorder"
 
                 //float height = 0.5 + i.pos.y / i.height * 0.5; // height expressed in size.y
 
-                fixed4 color = lerp(_ColorStart, _ColorEnd,i.height);
+                fixed4 color;
+                if (i.height > 0.5f)
+                    color = lerp(_ColorMiddle,_ColorEnd , (i.height - 0.5f) * 2);
+                else
+                    color = lerp(_ColorStart, _ColorMiddle, i.height * 2);
+                
                 return float4(color.rgb,color.a*saturate(borderDist)*clipA);
             }
             ENDCG

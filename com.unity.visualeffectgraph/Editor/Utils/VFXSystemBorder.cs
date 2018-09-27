@@ -3,25 +3,82 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEditor.Experimental.UIElements.GraphView;
 using System;
 
 using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXContextBorderFactory : UxmlFactory<VFXContextBorder>
+    public class VFXSystemBorderFactory : UxmlFactory<VFXContextBorder>
     {}
 
-    [InitializeOnLoad]
-    public class VFXContextBorder : VisualElement, IDisposable
+    class VFXSystemBorder : GraphElement, IDisposable
     {
         Material m_Mat;
 
         static Mesh s_Mesh;
 
-        public VFXContextBorder()
+        public VFXSystemBorder()
         {
             RecreateResources();
+        }
+
+        void OnContextChanged(GeometryChangedEvent e)
+        {
+            RecomputeBounds();
+        }
+
+
+        public void RecomputeBounds()
+        {
+            Rect rect = Rect.zero;
+
+            foreach (var context in m_Contexts)
+            {
+                if (rect == Rect.zero)
+                {
+                    rect = context.localBound;
+                }
+                else
+                {
+                    rect = RectUtils.Encompass(rect, context.GetPosition());
+                }
+            }
+
+            if (float.IsNaN(rect.xMin) || float.IsNaN(rect.yMin) || float.IsNaN(rect.width) || float.IsNaN(rect.height))
+                rect = Rect.zero;
+
+            rect = RectUtils.Inflate(rect, 30, 30, 30, 30);
+            SetPosition(rect);
+        }
+
+        VFXContextUI[] m_Contexts;
+        public VFXContextUI[] contexts
+        {
+            get
+            {
+                return m_Contexts;
+            }
+            set
+            {
+                if( m_Contexts != null)
+                {
+                    foreach (var context in m_Contexts )
+                    {
+                        context.UnregisterCallback<GeometryChangedEvent>(OnContextChanged);
+                    }
+                }
+                m_Contexts = value;
+                if (m_Contexts != null)
+                {
+                    foreach (var context in m_Contexts)
+                    {
+                        context.RegisterCallback<GeometryChangedEvent>(OnContextChanged);
+                    }
+                }
+                RecomputeBounds();
+            }
         }
 
         void RecreateResources()
@@ -100,7 +157,7 @@ namespace UnityEditor.VFX.UI
                 s_Mesh.SetIndices(indices, MeshTopology.Quads, 0);
             }
 
-            m_Mat = new Material(Shader.Find("Hidden/VFX/GradientBorder"));
+            m_Mat = new Material(Shader.Find("Hidden/VFX/GradientDashedBorder"));
         }
 
         void IDisposable.Dispose()
@@ -132,6 +189,18 @@ namespace UnityEditor.VFX.UI
                 m_EndColor = value;
             }
         }
+        StyleValue<Color> m_MiddleColor;
+        public Color middleColor
+        {
+            get
+            {
+                return m_MiddleColor.GetSpecifiedValueOrDefault(Color.black);
+            }
+            set
+            {
+                m_MiddleColor = value;
+            }
+        }
 
         protected override void OnStyleResolved(ICustomStyle styles)
         {
@@ -139,6 +208,7 @@ namespace UnityEditor.VFX.UI
 
             styles.ApplyCustomProperty("start-color", ref m_StartColor);
             styles.ApplyCustomProperty("end-color", ref m_EndColor);
+            styles.ApplyCustomProperty("middle-color", ref m_MiddleColor);
         }
 
         protected override void DoRepaint(IStylePainter sp)
@@ -156,8 +226,20 @@ namespace UnityEditor.VFX.UI
                 m_Mat.SetFloat("_Border", realBorder < 1.75f ?  1.75f / view.scale : style.borderLeftWidth.value);
                 m_Mat.SetFloat("_Radius", radius);
 
-                m_Mat.SetColor("_ColorStart", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? startColor.gamma : startColor);
-                m_Mat.SetColor("_ColorEnd", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? endColor.gamma : endColor);
+
+                float opacity = style.opacity;
+
+
+                Color start = (QualitySettings.activeColorSpace == ColorSpace.Linear) ? startColor.gamma : startColor;
+                start.a *= opacity;
+                m_Mat.SetColor("_ColorStart", start);
+                Color end = (QualitySettings.activeColorSpace == ColorSpace.Linear) ? endColor.gamma : endColor;
+                end.a *= opacity;
+                m_Mat.SetColor("_ColorEnd", end);
+
+                Color middle = (QualitySettings.activeColorSpace == ColorSpace.Linear) ? middleColor.gamma : middleColor;
+                middle.a *= opacity;
+                m_Mat.SetColor("_ColorMiddle", middle);
 
                 m_Mat.SetPass(0);
 
