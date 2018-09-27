@@ -25,7 +25,7 @@ struct Varyings
 #ifdef _NORMALMAP
     half4 normalWS                  : TEXCOORD3;    // xyz: normal, w: viewDir.x
     half4 tangentWS                 : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    half4 binormalWS                : TEXCOORD5;    // xyz: binormal, w: viewDir.z
+    half4 bitangentWS                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
 #else
     half3 normalWS                  : TEXCOORD3;
     half3 viewDirWS                 : TEXCOORD4;
@@ -51,14 +51,21 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #endif
 
 #ifdef _NORMALMAP
-    half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.binormalWS.w);
-    inputData.normalWS = TangentToWorldNormal(normalTS, input.tangentWS.xyz, input.binormalWS.xyz, input.normalWS.xyz);
+    half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
+    inputData.normalWS = TransformTangentToWorld(normalTS,
+        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
 #else
     half3 viewDirWS = input.viewDirWS;
-    inputData.normalWS = FragmentNormalWS(input.normalWS);
+    inputData.normalWS = input.normalWS;
 #endif
 
-    inputData.viewDirectionWS = FragmentViewDirWS(viewDirWS);
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+
+#if SHADER_HINT_NICE_QUALITY
+    viewDirWS = SafeNormalize(viewDirWS);
+#endif
+
+    inputData.viewDirectionWS = viewDirWS;
 #if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
     inputData.shadowCoord = input.shadowCoord;
 #else
@@ -83,20 +90,25 @@ Varyings LitPassVertex(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    VertexTBN vertexTBN = GetVertexTBN(input.normalOS, input.tangentOS);
-    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - vertexInput.positionWS);
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, vertexTBN.normalWS);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+
+#if !SHADER_HINT_NICE_QUALITY
+    viewDirWS = SafeNormalize(viewDirWS);
+#endif
+
+    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _MainTex);
 
 #ifdef _NORMALMAP
-    output.normalWS = half4(vertexTBN.normalWS, viewDir.x);
-    output.tangentWS = half4(vertexTBN.tangentWS, viewDir.y);
-    output.binormalWS = half4(vertexTBN.binormalWS, viewDir.z);
+    output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
+    output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
+    output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normalWS = vertexTBN.normalWS;
-    output.viewDirWS = viewDir;
+    output.normalWS = normalInput.normalWS;
+    output.viewDirWS = viewDirWS;
 #endif
     
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
@@ -130,7 +142,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
-    ApplyFog(color.rgb, inputData.fogCoord);
+    color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 }
 
