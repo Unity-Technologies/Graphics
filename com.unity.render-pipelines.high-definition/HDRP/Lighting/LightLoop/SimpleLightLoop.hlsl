@@ -136,10 +136,6 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
             }
         }
     }
-
-        PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting,
-                        diffuseLighting, specularLighting);
-    return;
     
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...
@@ -152,7 +148,7 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
 
 #if HDRP_ENABLE_ENV_LIGHT
     // First loop iteration
-    if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION))
+    if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY))
     {
         float reflectionHierarchyWeight = 0.0; // Max: 1.0
         float refractionHierarchyWeight = 0.0; // Max: 1.0
@@ -172,23 +168,6 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
         //  2. Environment Reflection / Refraction
         //  3. Sky Reflection / Refraction
 
-        EnvLightData envLightData;
-        if (envLightCount > 0)
-        {
-            envLightData = FetchEnvLight(envLightStart, 0);
-        }
-        else
-        {
-            envLightData = InitSkyEnvLightData(0);
-        }
-
-        if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
-        {
-            IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
-                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
-            AccumulateIndirectLighting(lighting, aggregateLighting);
-        }
-
         // Reflection probes are sorted by volume (in the increasing order).
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
         {
@@ -197,7 +176,12 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
             // Note: In case of IBL we are sorted from smaller to bigger projected solid angle bounds. We are not sorted by type so we can't do a 'while' approach like for area light.
             for (i = 0; i < envLightCount && reflectionHierarchyWeight < 1.0; ++i)
             {
-                EVALUATE_BSDF_ENV(FetchEnvLight(envLightStart, i), REFLECTION, reflection);
+                EnvLightData envLightData = FetchEnvLight(envLightStart, i);
+                if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers))
+                {
+                    IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
+                    AccumulateIndirectLighting(lighting, aggregateLighting);
+                }
             }
         }
 
@@ -213,15 +197,8 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
             // Only apply the sky if we haven't yet accumulated enough IBL lighting.
             if (reflectionHierarchyWeight < 1.0)
             {
-                EVALUATE_BSDF_ENV_SKY(envLightSky, REFLECTION, reflection);
-            }
-
-            if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
-            {
-                if (refractionHierarchyWeight < 1.0)
-                {
-                    EVALUATE_BSDF_ENV_SKY(envLightSky, REFRACTION, refraction);
-                }
+                IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, envLightSky.influenceShapeType, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
+                AccumulateIndirectLighting(lighting, aggregateLighting);
             }
         }
     }
