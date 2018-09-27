@@ -1,11 +1,7 @@
-#ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
-#define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
+#ifndef UNITY_SPACE_TRANSFORMS_INCLUDED
+#define UNITY_SPACE_TRANSFORMS_INCLUDED
 
-float4x4 GetWorldToViewMatrix()
-{
-    return UNITY_MATRIX_V;
-}
-
+// Return the PreTranslated ObjectToWorld Matrix (i.e matrix with _WorldSpaceCameraPos apply to it if we use camera relative rendering)
 float4x4 GetObjectToWorldMatrix()
 {
     return UNITY_MATRIX_M;
@@ -16,20 +12,26 @@ float4x4 GetWorldToObjectMatrix()
     return UNITY_MATRIX_I_M;
 }
 
+float4x4 GetWorldToViewMatrix()
+{
+    return UNITY_MATRIX_V;
+}
+
 // Transform to homogenous clip space
 float4x4 GetWorldToHClipMatrix()
 {
     return UNITY_MATRIX_VP;
 }
 
+// Transform to homogenous clip space
+float4x4 GetViewToHClipMatrix()
+{
+    return UNITY_MATRIX_P;
+}
+
 real GetOddNegativeScale()
 {
     return unity_WorldTransformParams.w;
-}
-
-float3 TransformWorldToView(float3 positionWS)
-{
-    return mul(GetWorldToViewMatrix(), float4(positionWS, 1.0)).xyz;
 }
 
 float3 TransformObjectToWorld(float3 positionOS)
@@ -40,6 +42,30 @@ float3 TransformObjectToWorld(float3 positionOS)
 float3 TransformWorldToObject(float3 positionWS)
 {
     return mul(GetWorldToObjectMatrix(), float4(positionWS, 1.0)).xyz;
+}
+
+float3 TransformWorldToView(float3 positionWS)
+{
+    return mul(GetWorldToViewMatrix(), float4(positionWS, 1.0)).xyz;
+}
+
+// Transforms position from object space to homogenous space
+float4 TransformObjectToHClip(float3 positionOS)
+{
+    // More efficient than computing M*VP matrix product
+    return mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0)));
+}
+
+// Tranforms position from world space to homogenous space
+float4 TransformWorldToHClip(float3 positionWS)
+{
+    return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
+}
+
+// Tranforms position from view space to homogenous space
+float4 TransformWViewToHClip(float3 positionVS)
+{
+    return mul(GetViewToHClipMatrix(), float4(positionVS, 1.0));
 }
 
 real3 TransformObjectToWorldDir(real3 dirOS)
@@ -54,6 +80,17 @@ real3 TransformWorldToObjectDir(real3 dirWS)
     return normalize(mul((real3x3)GetWorldToObjectMatrix(), dirWS));
 }
 
+real3 TransformWorldToViewDir(real3 dirWS)
+{
+    return mul((real3x3)GetWorldToViewMatrix(), dirWS).xyz;
+}
+
+// Tranforms vector from world space to homogenous space
+real3 TransformWorldToHClipDir(real3 directionWS)
+{
+    return mul((real3x3)GetWorldToHClipMatrix(), directionWS);
+}
+
 // Transforms normal from object to world space
 real3 TransformObjectToWorldNormal(real3 normalOS)
 {
@@ -63,19 +100,6 @@ real3 TransformObjectToWorldNormal(real3 normalOS)
     // Normal need to be multiply by inverse transpose
     return normalize(mul(normalOS, (real3x3)GetWorldToObjectMatrix()));
 #endif
-}
-
-// Transforms position from object space to homogenous space
-float4 TransformObjectToHClip(float3 positionOS)
-{
-    // More efficient than computing M*VP matrix product
-    return mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0)));
-}
-
-// Tranforms position from world space to homogenous space
-float4 TransformWorldToHClip(float3 positionWS)
-{
-    return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
 real3x3 CreateWorldToTangent(real3 normal, real3 tangent, real flipSign)
@@ -110,4 +134,4 @@ real3 TransformObjectToTangent(real3 dirOS, real3x3 worldToTangent)
     return mul(worldToTangent, TransformObjectToWorldDir(dirOS));
 }
 
-#endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
+#endif
