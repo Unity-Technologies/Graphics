@@ -1464,7 +1464,6 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNodeInGroupNode(DropdownMenu.MenuAction e)
         {
-            Debug.Log("CreateMenuPosition" + e.eventInfo.mousePosition);
             //The targeted groupnode will be determined by a PickAll later
             VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
         }
