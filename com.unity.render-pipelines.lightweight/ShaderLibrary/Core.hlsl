@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-#include "Input.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Input.hlsl"
 
 #if !defined(SHADER_HINT_NICE_QUALITY)
 #ifdef SHADER_API_MOBILE
@@ -24,10 +24,10 @@ struct VertexPositionInputs
     float4 positionCS; // Homogeneous clip space position
 };
 
-struct VertexTBN
+struct VertexNormalInputs
 {
     real3 tangentWS;
-    real3 binormalWS;
+    real3 bitangentWS;
     real3 normalWS;
 };
 
@@ -40,24 +40,24 @@ VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
     return input;
 }
 
-VertexTBN GetVertexTBN(float3 normalOS)
+VertexNormalInputs GetVertexNormalInputs(float3 normalOS)
 {
-    VertexTBN tbn;
+    VertexNormalInputs tbn;
     tbn.tangentWS = real3(1.0, 0.0, 0.0);
-    tbn.binormalWS = real3(0.0, 1.0, 0.0);
+    tbn.bitangentWS = real3(0.0, 1.0, 0.0);
     tbn.normalWS = TransformObjectToWorldNormal(normalOS);
     return tbn;
 }
 
-VertexTBN GetVertexTBN(float3 normalOS, float4 tangentOS)
+VertexNormalInputs GetVertexNormalInputs(float3 normalOS, float4 tangentOS)
 {
-    VertexTBN tbn;
+    VertexNormalInputs tbn;
 
     // mikkts space compliant. only normalize when extracting normal at frag.
     real sign = tangentOS.w * GetOddNegativeScale();
     tbn.normalWS = TransformObjectToWorldNormal(normalOS);
     tbn.tangentWS = TransformObjectToWorldDir(tangentOS.xyz);
-    tbn.binormalWS = cross(tbn.normalWS, tbn.tangentWS) * sign;
+    tbn.bitangentWS = cross(tbn.normalWS, tbn.tangentWS) * sign;
     return tbn;
 }
 
@@ -76,21 +76,6 @@ VertexTBN GetVertexTBN(float3 normalOS, float4 tangentOS)
 #else
     //Opengl => z clip range is [-near, far] -> should remap in theory but dont do it in practice to save some perf (range is close enough)
     #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) (coord)
-#endif
-
-// TODO: Really need a better define for iOS Metal than the framebuffer fetch one, that's also enabled on android and webgl (???)
-#if defined(SHADER_API_VULKAN) || (defined(SHADER_API_METAL) && defined(UNITY_FRAMEBUFFER_FETCH_AVAILABLE))
-    // Renderpass inputs: Vulkan/Metal subpass input
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(idx) cbuffer hlslcc_SubpassInput_f_##idx { float4 hlslcc_fbinput_##idx; }
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(idx) cbuffer hlslcc_SubpassInput_h_##idx { half4 hlslcc_fbinput_##idx; }
-
-#define UNITY_READ_FRAMEBUFFER_INPUT(idx, v2fname) hlslcc_fbinput_##idx
-#else
-    // Renderpass inputs: General fallback path
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(idx) TEXTURE2D_FLOAT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(idx) TEXTURE2D_HALF(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-
-#define UNITY_READ_FRAMEBUFFER_INPUT(idx, v2fvertexname) _UnityFBInput##idx.Load(uint3(v2fvertexname.xy, 0))
 #endif
 
 float3 GetCameraPositionWS()
@@ -129,7 +114,7 @@ real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 #endif
 }
 
-real3 FragmentNormalWS(real3 normal)
+real3 NormalizeNormalPerPixel(real3 normal)
 {
 #if !SHADER_HINT_NICE_QUALITY
     // World normal is already normalized in vertex. Small acceptable error to save ALU.
@@ -137,32 +122,6 @@ real3 FragmentNormalWS(real3 normal)
 #else
     return normalize(normal);
 #endif
-}
-
-real3 FragmentViewDirWS(real3 viewDir)
-{
-#if !SHADER_HINT_NICE_QUALITY
-    // View direction is already normalized in vertex. Small acceptable error to save ALU.
-    return viewDir;
-#else
-    return SafeNormalize(viewDir);
-#endif
-}
-
-real3 VertexViewDirWS(real3 viewDir)
-{
-#if !SHADER_HINT_NICE_QUALITY
-    // Normalize in vertex and avoid renormalizing it in frag to save ALU.
-    return SafeNormalize(viewDir);
-#else
-    return viewDir;
-#endif
-}
-
-real3 TangentToWorldNormal(real3 normalTangent, real3 tangent, real3 binormal, real3 normal)
-{
-    real3x3 tangentToWorld = real3x3(tangent, binormal, normal);
-    return FragmentNormalWS(mul(normalTangent, tangentToWorld));
 }
 
 // TODO: A similar function should be already available in SRP lib on master. Use that instead
@@ -191,7 +150,7 @@ real ComputeFogFactor(float z)
 #endif
 }
 
-void ApplyFogColor(inout real3 color, real3 fogColor, real fogFactor)
+half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
 {
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
 #if defined(FOG_EXP)
@@ -203,13 +162,15 @@ void ApplyFogColor(inout real3 color, real3 fogColor, real fogFactor)
     // fogFactor = density*z compute at vertex
     fogFactor = saturate(exp2(-fogFactor*fogFactor));
 #endif
-    color = lerp(fogColor, color, fogFactor);
+    fragColor = lerp(fogColor, fragColor, fogFactor);
 #endif
+
+    return fragColor;
 }
 
-void ApplyFog(inout real3 color, real fogFactor)
+half3 MixFog(real3 fragColor, real fogFactor)
 {
-    ApplyFogColor(color, unity_FogColor.rgb, fogFactor);
+    return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
 }
 
 // Stereo-related bits

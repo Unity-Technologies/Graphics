@@ -40,10 +40,14 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 {
     inputData.positionWS = input.posWSShininess.xyz;
 
-    half3 viewDir = input.viewDir;
-    inputData.normalWS = FragmentNormalWS(input.normal);
+    half3 viewDirWS = input.viewDir;
+#if SHADER_HINT_NICE_QUALITY
+    viewDirWS = SafeNormalize(viewDirWS);
+#endif
 
-    inputData.viewDirectionWS = FragmentViewDirWS(viewDir);
+    inputData.normalWS = NormalizeNormalPerPixel(input.normal);
+
+    inputData.viewDirectionWS = viewDirWS;
 #ifdef _MAIN_LIGHT_SHADOWS
     inputData.shadowCoord = input.shadowCoord;
 #else
@@ -63,7 +67,12 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     vertData.posWSShininess.w = 32;
     vertData.clipPos = vertexInput.positionCS;
 
-    vertData.viewDir = VertexViewDirWS(GetCameraPositionWS() - vertexInput.positionWS);
+    vertData.viewDir = GetCameraPositionWS() - vertexInput.positionWS;
+
+#if !SHADER_QUALITY_NICE_HINT
+    vertData.viewDir = SafeNormalize(vertData.viewDir);
+#endif
+
     vertData.normal = TransformObjectToWorldNormal(input.normal);
 
     // We either sample GI from lightmap or SH.
@@ -148,7 +157,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     InitializeInputData(input, inputData);
 
     half4 color = LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
-    ApplyFog(color.rgb, inputData.fogCoord);
+    color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 };
 

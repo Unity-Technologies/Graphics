@@ -97,7 +97,7 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
 
                     half3 result = diffuse + emission;
                     half fogFactor = input.posWS.w;
-                    ApplyFogColor(result, half3(0, 0, 0), fogFactor);
+                    result = MixFogColor(result, half3(0, 0, 0), fogFactor);
                     return half4(result, alpha);
                 }
                 ENDHLSL

@@ -126,7 +126,7 @@ ${PixelShaderSurfaceRemap}
 		inputData.positionWS = WorldSpacePosition;
 
 #ifdef _NORMALMAP
-	    inputData.normalWS = TangentToWorldNormal(Normal, WorldSpaceTangent, WorldSpaceBiTangent, WorldSpaceNormal);
+	    inputData.normalWS = normalize(TransformTangentToWorld(Normal, half3x3(WorldSpaceTangent, WorldSpaceBiTangent, WorldSpaceNormal)));
 #else
     #if !SHADER_HINT_NICE_QUALITY
         inputData.normalWS = WorldSpaceNormal;
@@ -159,7 +159,7 @@ ${PixelShaderSurfaceRemap}
 			Alpha);
 
 		// Computes fog factor per-vertex
-    	ApplyFog(color.rgb, IN.fogFactorAndVertexLight.x);
+    	color.rgb = MixFog(color.rgb, IN.fogFactorAndVertexLight.x);
 
 #if _AlphaClip
 		clip(Alpha - AlphaClipThreshold);

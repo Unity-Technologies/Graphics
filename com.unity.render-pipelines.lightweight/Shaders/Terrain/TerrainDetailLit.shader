@@ -114,7 +114,7 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
                 half4 color = 1.0;
                 color.rgb = input.Color.rgb * tex.rgb * lighting;
     
-                ApplyFog(color.rgb, input.LightingFog.w);
+                color.rgb = MixFog(color.rgb, input.LightingFog.w);
     
                 return color;
             }
