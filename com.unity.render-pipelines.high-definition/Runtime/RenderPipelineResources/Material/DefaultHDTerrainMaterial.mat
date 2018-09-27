@@ -15,7 +15,8 @@ Material:
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2000
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -28,6 +29,7 @@ Material:
     - _EditorExpendedAreas: 0
     - _EnableHeightBlend: 0
     - _EnableInstancedPerPixelNormal: 1
+    - _EnableMotionVectorForVertexAnimation: 0
     - _HeightTransition: 0
     - _StencilRef: 2
     - _StencilRefMV: 128

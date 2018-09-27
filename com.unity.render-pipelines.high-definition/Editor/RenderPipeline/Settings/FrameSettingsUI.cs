@@ -95,7 +95,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(p.enableTransparentPrepass, _.GetContent("Enable Transparent Prepass"));
             EditorGUILayout.PropertyField(p.enableTransparentPostpass, _.GetContent("Enable Transparent Postpass"));
             EditorGUILayout.PropertyField(p.enableMotionVectors, _.GetContent("Enable Motion Vectors"));
-            EditorGUILayout.PropertyField(p.enableObjectMotionVectors, _.GetContent("Enable Object Motion Vectors"));
+            if (p.enableMotionVectors.boolValue)
+            {
+                EditorGUILayout.PropertyField(p.enableObjectMotionVectors, _.GetContent("  Enable Object Motion Vectors"));
+            }
             EditorGUILayout.PropertyField(p.enableDecals, _.GetContent("Enable Decals"));
             EditorGUILayout.PropertyField(p.enableRoughRefraction, _.GetContent("Enable Rough Refraction"));
             EditorGUILayout.PropertyField(p.enableDistortion, _.GetContent("Enable Distortion"));
