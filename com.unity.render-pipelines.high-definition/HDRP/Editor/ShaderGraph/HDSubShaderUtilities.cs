@@ -496,6 +496,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // graph requirements describe what the graph itself requires
             var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);   // TODO: is ShaderStageCapability.Fragment correct?
             var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
+            var graphRequirements = pixelRequirements.Union(vertexRequirements);
 
             // Function Registry tracks functions to remove duplicates, it wraps a string builder that stores the combined function string
             ShaderStringBuilder graphNodeFunctions = new ShaderStringBuilder();
@@ -619,6 +620,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     foreach (var define in pass.ExtraDefines)
                         defines.AddShaderChunk(define);
                 }
+                if (graphRequirements.requiresDepthTexture)
+                    defines.AddShaderChunk("#define REQUIRE_DEPTH_TEXTURE");
+
                 defines.AddGenerator(interpolatorDefines);
             }
 

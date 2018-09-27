@@ -37,13 +37,8 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public sealed override string name
-        {
-            get
-            {
-                return "Squared Length";
-            }
-        }
+        public override string libraryName { get { return "Squared Length"; } }
+        public override string name { get { return "Squared Length"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

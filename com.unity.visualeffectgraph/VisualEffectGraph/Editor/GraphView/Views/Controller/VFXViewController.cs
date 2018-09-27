@@ -144,10 +144,18 @@ namespace UnityEditor.VFX.UI
                     Debug.LogError("Removing a non existent notification" + target.name);
                 #endif
                 notifieds.Remove(action);
+
+                if( m_CurrentlyNotified == target )
+                {
+                    m_CurrentActions.Remove(action);
+                }
             }
         }
 
         bool m_InNotify = false;
+
+        ScriptableObject m_CurrentlyNotified; //this and the next list are used when in case a notification removes a following modification
+        List<Action> m_CurrentActions = new List<Action>();
 
         public void NotifyUpdate()
         {
@@ -177,14 +185,22 @@ namespace UnityEditor.VFX.UI
                     Profiler.BeginSample("VFXViewController.Notify:" + obj.GetType().Name);
                     if (m_Notified.TryGetValue(obj, out notifieds))
                     {
-                        foreach (var notified in notifieds.ToArray())
+                        m_CurrentlyNotified = obj;
+                        m_CurrentActions.Clear();
+                        m_CurrentActions.AddRange(notifieds);
+                        m_CurrentActions.Reverse();
+                        while(m_CurrentActions.Count > 0)
                         {
-                            notified();
+                            var action = m_CurrentActions[m_CurrentActions.Count - 1];
+                            action();
                             cpt++;
+                            m_CurrentActions.RemoveAt(m_CurrentActions.Count - 1);
                         }
                     }
                     Profiler.EndSample();
                 }
+                m_CurrentlyNotified = null;
+                
                 objs.Clear();
             }
             /*
@@ -512,7 +528,7 @@ namespace UnityEditor.VFX.UI
             var contextControllers = contexts;
             foreach (var outController in contextControllers.ToArray())
             {
-                var output = outController.context;
+                var output = outController.model;
                 for (int slotIndex = 0; slotIndex < output.inputFlowSlot.Length; ++slotIndex)
                 {
                     var inputFlowSlot = output.inputFlowSlot[slotIndex];
@@ -634,7 +650,7 @@ namespace UnityEditor.VFX.UI
             if (element is VFXContextController)
             {
                 VFXContextController contextController = ((VFXContextController)element);
-                VFXContext context = contextController.context;
+                VFXContext context = contextController.model;
                 contextController.NodeGoingToBeRemoved();
 
                 // Remove connections from context
@@ -1174,20 +1190,23 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        public void AddVFXParameter(Vector2 pos, VFXParameterController parameterController, VFXGroupNodeController groupNode)
+        public VFXNodeController AddVFXParameter(Vector2 pos, VFXParameterController parameterController, VFXGroupNodeController groupNode)
         {
             int id = parameterController.model.AddNode(pos);
 
             LightApplyChanges();
 
+            var nodeController = GetRootNodeController(parameterController.model, id);
+
             if (groupNode != null)
             {
-                var nodeController = GetRootNodeController(parameterController.model, id);
                 if (nodeController != null)
                 {
                     groupNode.AddNode(nodeController);
                 }
             }
+
+            return nodeController;
         }
 
         public void Clear()
@@ -1526,6 +1545,17 @@ namespace UnityEditor.VFX.UI
             }
 
             return false;
+        }
+        public void RemoveCategory(string name)
+        {
+            int index = graph.UIInfos.categories.FindIndex(t => t.name == name);
+
+            if( index > -1)
+            {
+                var parametersToRemove = RemoveCategory(index);
+
+                Remove(parametersToRemove.Cast<Controller>());
+            }
         }
 
         public IEnumerable<VFXParameterController> RemoveCategory(int category)

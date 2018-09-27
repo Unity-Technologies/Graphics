@@ -96,15 +96,18 @@ namespace UnityEditor.VFX
             }
 
             // Debug log
-            var builder = new StringBuilder();
-            builder.AppendLine("ATTRIBUTE LAYOUT");
-            builder.Append(string.Format("NbBuckets:{0} ( ", m_BucketSizes.Count));
-            foreach (int size in m_BucketSizes)
-                builder.Append(size + " ");
-            builder.AppendLine(")");
-            foreach (var kvp in m_AttributeLayout)
-                builder.AppendLine(string.Format("Attrib:{0} type:{1} bucket:{2} offset:{3}", kvp.Key.name, kvp.Key.type, kvp.Value.bucket, kvp.Value.offset));
-            Debug.Log(builder.ToString());
+            if (VFXViewPreference.advancedLogs)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine("ATTRIBUTE LAYOUT");
+                builder.Append(string.Format("NbBuckets:{0} ( ", m_BucketSizes.Count));
+                foreach (int size in m_BucketSizes)
+                    builder.Append(size + " ");
+                builder.AppendLine(")");
+                foreach (var kvp in m_AttributeLayout)
+                    builder.AppendLine(string.Format("Attrib:{0} type:{1} bucket:{2} offset:{3}", kvp.Key.name, kvp.Key.type, kvp.Value.bucket, kvp.Value.offset));
+                Debug.Log(builder.ToString());
+            }
         }
 
         public string GetCodeOffset(VFXAttribute attrib, string index)

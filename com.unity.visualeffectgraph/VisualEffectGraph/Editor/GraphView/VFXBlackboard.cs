@@ -41,6 +41,7 @@ namespace  UnityEditor.VFX.UI
         PropertyRM m_MinProperty;
         PropertyRM m_MaxProperty;
         List<PropertyRM> m_SubProperties;
+        StringPropertyRM m_TooltipProperty;
 
         IEnumerable<PropertyRM> allProperties
         {
@@ -54,6 +55,8 @@ namespace  UnityEditor.VFX.UI
                     result = result.Concat(Enumerable.Repeat(m_Property, 1));
                 if (m_SubProperties != null)
                     result = result.Concat(m_SubProperties);
+                if (m_TooltipProperty != null)
+                    result = result.Concat(Enumerable.Repeat<PropertyRM>(m_TooltipProperty, 1));
                 if (m_RangeProperty != null)
                     result = result.Concat(Enumerable.Repeat<PropertyRM>(m_RangeProperty, 1));
                 if (m_MinProperty != null)
@@ -173,6 +176,15 @@ namespace  UnityEditor.VFX.UI
                     {
                         CreateSubProperties(ref insertIndex, fieldpath);
                     }
+                    if(m_TooltipProperty == null)
+                    {
+                        m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
+                    }
+                    Insert(insertIndex++, m_TooltipProperty);
+                }
+                else
+                {
+                    m_TooltipProperty = null;
                 }
             }
             else
@@ -268,6 +280,16 @@ namespace  UnityEditor.VFX.UI
         {
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+        }
+
+        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenu.MenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Delete", (a) => GetFirstAncestorOfType<VFXView>().DeleteElements(new GraphElement[] { this }), DropdownMenu.MenuAction.AlwaysEnabled);
+
+            evt.StopPropagation();
         }
 
         Controller IControlledElement.controller
@@ -466,6 +488,9 @@ namespace  UnityEditor.VFX.UI
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+            RegisterCallback<KeyDownEvent>(OnKeyDown);
+
+            focusIndex = 0;
 
 
             m_DragIndicator = new VisualElement();
@@ -486,6 +511,30 @@ namespace  UnityEditor.VFX.UI
             subTitle = "Parameters";
 
             resizer.RemoveFromHierarchy();
+        }
+
+
+        void OnKeyDown(KeyDownEvent e)
+        {
+            if( e.keyCode == KeyCode.F2)
+            {
+                var graphView = GetFirstAncestorOfType<VFXView>();
+
+                var field = graphView.selection.OfType<VFXBlackboardField>().FirstOrDefault();
+                if( field != null)
+                {
+                    field.OpenTextEditor();
+                }
+                else
+                {
+                    var category = graphView.selection.OfType< VFXBlackboardCategory>().FirstOrDefault();
+
+                    if( category != null)
+                    {
+                        category.OpenTextEditor();
+                    }
+                }
+            }
         }
 
         private void SetDragIndicatorVisible(bool visible)

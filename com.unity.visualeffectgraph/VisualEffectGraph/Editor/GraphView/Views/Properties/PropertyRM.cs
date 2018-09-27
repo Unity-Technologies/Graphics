@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
@@ -125,6 +126,9 @@ namespace UnityEditor.VFX.UI
                 UpdateIndeterminate();
             }
         }
+        public bool isDelayed { get; set; }
+
+        protected bool hasChangeDelayed { get; set; }
 
 
         public virtual bool IsCompatible(IPropertyRMProvider provider)
@@ -269,6 +273,7 @@ namespace UnityEditor.VFX.UI
 
             m_IconClickable = new Clickable(OnExpand);
 
+            isDelayed = VFXPropertyAttribute.IsDelayed(m_Provider.attributes);
 
             if (VFXPropertyAttribute.IsAngle(provider.attributes))
                 SetMultiplier(Mathf.PI / 180.0f);
@@ -305,6 +310,11 @@ namespace UnityEditor.VFX.UI
 
         void OnCatchMouse(MouseDownEvent e)
         {
+            var node = GetFirstAncestorOfType<VFXNodeUI>();
+            if( node != null)
+            {
+                node.OnSelectionMouseDown(e);
+            }
             e.StopPropagation();
         }
 
@@ -409,6 +419,7 @@ namespace UnityEditor.VFX.UI
             object value = GetValue();
             value = FilterValue(value);
             m_Provider.value = value;
+            hasChangeDelayed = false;
         }
 
         void OnExpand()
@@ -493,7 +504,10 @@ namespace UnityEditor.VFX.UI
             if (!newValue.Equals(m_Value))
             {
                 m_Value = newValue;
-                NotifyValueChanged();
+                if (!isDelayed)
+                    NotifyValueChanged();
+                else
+                    hasChangeDelayed = true;
             }
         }
 
@@ -535,6 +549,7 @@ namespace UnityEditor.VFX.UI
         public SimpleUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Field = CreateField();
+            isDelayed = VFXPropertyAttribute.IsDelayed(m_Provider.attributes);
 
             VisualElement fieldElement = m_Field as VisualElement;
             fieldElement.AddToClassList("fieldContainer");
@@ -555,7 +570,10 @@ namespace UnityEditor.VFX.UI
                 if (!newValue.Equals(m_Value))
                 {
                     m_Value = newValue;
-                    NotifyValueChanged();
+                    if (!isDelayed)
+                        NotifyValueChanged();
+                    else
+                        hasChangeDelayed = true;
                 }
                 else
                 {

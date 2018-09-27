@@ -6,6 +6,103 @@ using System;
 
 namespace UnityEditor.VFX.UIElements
 {
+    //Copied from mousefield dragger but add notifications needed for delayed fields
+    public class VFXFieldMouseDragger<T>
+    {
+
+        Action m_OnDragFinished;
+        public VFXFieldMouseDragger(IValueField<T> drivenField,Action onDragFinished = null)
+        {
+            m_DrivenField = drivenField;
+            m_DragElement = null;
+            m_DragHotZone = new Rect(0, 0, -1, -1);
+            m_OnDragFinished = onDragFinished;
+            dragging = false;
+        }
+
+        IValueField<T> m_DrivenField;
+        VisualElement m_DragElement;
+        Rect m_DragHotZone;
+
+        public bool dragging;
+        public T startValue;
+
+        public void SetDragZone(VisualElement dragElement)
+        {
+            SetDragZone(dragElement, new Rect(0, 0, -1, -1));
+        }
+
+        public void SetDragZone(VisualElement dragElement, Rect hotZone)
+        {
+            if (m_DragElement != null)
+            {
+                m_DragElement.UnregisterCallback<MouseDownEvent>(UpdateValueOnMouseDown);
+                m_DragElement.UnregisterCallback<MouseMoveEvent>(UpdateValueOnMouseMove);
+                m_DragElement.UnregisterCallback<MouseUpEvent>(UpdateValueOnMouseUp);
+                m_DragElement.UnregisterCallback<KeyDownEvent>(UpdateValueOnKeyDown);
+            }
+
+            m_DragElement = dragElement;
+            m_DragHotZone = hotZone;
+
+            if (m_DragElement != null)
+            {
+                dragging = false;
+                m_DragElement.RegisterCallback<MouseDownEvent>(UpdateValueOnMouseDown);
+                m_DragElement.RegisterCallback<MouseMoveEvent>(UpdateValueOnMouseMove);
+                m_DragElement.RegisterCallback<MouseUpEvent>(UpdateValueOnMouseUp);
+                m_DragElement.RegisterCallback<KeyDownEvent>(UpdateValueOnKeyDown);
+            }
+        }
+
+        void UpdateValueOnMouseDown(MouseDownEvent evt)
+        {
+            if (evt.button == 0 && (m_DragHotZone.width < 0 || m_DragHotZone.height < 0 || m_DragHotZone.Contains(m_DragElement.WorldToLocal(evt.mousePosition))))
+            {
+                m_DragElement.CaptureMouse();
+
+                // Make sure no other elements can capture the mouse!
+                evt.StopPropagation();
+
+                dragging = true;
+                startValue = m_DrivenField.value;
+
+                EditorGUIUtility.SetWantsMouseJumping(1);
+            }
+        }
+
+        void UpdateValueOnMouseMove(MouseMoveEvent evt)
+        {
+            if (dragging)
+            {
+                DeltaSpeed s = evt.shiftKey ? DeltaSpeed.Fast : (evt.altKey ? DeltaSpeed.Slow : DeltaSpeed.Normal);
+                m_DrivenField.ApplyInputDeviceDelta(evt.mouseDelta, s, startValue);
+            }
+        }
+
+        void UpdateValueOnMouseUp(MouseUpEvent evt)
+        {
+            if (dragging)
+            {
+                dragging = false;
+                MouseCaptureController.ReleaseMouse();
+                EditorGUIUtility.SetWantsMouseJumping(0);
+                if (m_OnDragFinished != null)
+                    m_OnDragFinished();
+            }
+        }
+
+        void UpdateValueOnKeyDown(KeyDownEvent evt)
+        {
+            if (dragging && evt.keyCode == KeyCode.Escape)
+            {
+                dragging = false;
+                m_DrivenField.value = startValue;
+                MouseCaptureController.ReleaseMouse();
+                EditorGUIUtility.SetWantsMouseJumping(0);
+            }
+        }
+    }
     class VFXLabeledField<T, U> : VisualElement, INotifyValueChanged<U> where T : VisualElement, INotifyValueChanged<U>, new()
     {
         protected Label m_Label;
@@ -64,26 +161,32 @@ namespace UnityEditor.VFX.UIElements
         void SetupLabel()
         {
             if (typeof(IValueField<U>).IsAssignableFrom(typeof(T)))
+            {
                 if (typeof(U) == typeof(float))
                 {
-                    var dragger = new FieldMouseDragger<float>((IValueField<float>)m_Control);
+                    var dragger = new VFXFieldMouseDragger<float>((IValueField<float>)m_Control, ()=> onValueDragFinished(this));
                     dragger.SetDragZone(m_Label);
+                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
                 else if (typeof(U) == typeof(double))
                 {
-                    var dragger = new FieldMouseDragger<double>((IValueField<double>)m_Control);
+                    var dragger = new VFXFieldMouseDragger<double>((IValueField<double>)m_Control, () => onValueDragFinished(this));
                     dragger.SetDragZone(m_Label);
+                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
                 else if (typeof(U) == typeof(long))
                 {
-                    var dragger = new FieldMouseDragger<long>((IValueField<long> )m_Control);
+                    var dragger = new VFXFieldMouseDragger<long>((IValueField<long>)m_Control, () => onValueDragFinished(this));
                     dragger.SetDragZone(m_Label);
+                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
                 else if (typeof(U) == typeof(int))
                 {
-                    var dragger = new FieldMouseDragger<int>((IValueField<int> )m_Control);
+                    var dragger = new VFXFieldMouseDragger<int>((IValueField<int>)m_Control, () => onValueDragFinished(this));
                     dragger.SetDragZone(m_Label);
+                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
+            }
 
             m_IndeterminateLabel = new Label()
             {
@@ -92,6 +195,8 @@ namespace UnityEditor.VFX.UIElements
             };
             m_IndeterminateLabel.SetEnabled(false);
         }
+
+        public Action<VFXLabeledField<T, U>> onValueDragFinished;
 
         void CreateControl()
         {

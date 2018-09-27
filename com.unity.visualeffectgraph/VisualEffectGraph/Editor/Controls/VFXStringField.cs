@@ -10,9 +10,16 @@ namespace UnityEditor.VFX.UIElements
     {
         protected TextField m_TextField;
 
+
+
+        public TextField textfield
+        {
+            get { return m_TextField; }
+        }
+
         void CreateTextField()
         {
-            m_TextField = new TextField(30, false, false, '*');
+            m_TextField = new TextField(-1, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTextChanged);
             m_TextField.value = "";

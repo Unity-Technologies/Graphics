@@ -49,9 +49,9 @@
 {
     background-image:resource("vfx/spacelocal");
 }
-.spaceGlobal
+.spaceWorld
 {
-    background-image:resource("vfx/spaceglobal");
+    background-image:resource("vfx/spaceworld");
 }
 
 .propertyrm > FloatField
@@ -98,18 +98,16 @@
     height:16;
 }
 
-BoolPropertyRM Toogle
+BoolPropertyRM > Toggle
 {
-    margin-top:-4;
-    maring-left:2;
-    width:17;
-    height:17;
-    border-color:#F00;
-
-    border-left-width:2;
-    border-right-width:2;
-    border-top-width:2;
-    border-bottom-width:2;
+    padding-top:0;
+    padding-bottom:0;
+    padding-left:0;
+    padding-right:0;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
 }
 
 .propertyrm  .maincontainer
@@ -193,6 +191,14 @@ CurvePropertyRM
     min-width:100;
 }
 
+StringPropertyRM VFXStringField TextField
+{
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+}
+
 Matrix4x4PropertyRM.propertyrm > .fieldContainer
 {
     height:-1;
@@ -215,4 +221,45 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
 .propertyrm .sliderField #indeterminate
 {
     flex:0 0 auto;
+}
+
+/** Temporary copy of CurveField styles for VFXCurveField**/
+
+VFXCurveField {
+    min-height: 18;
+    margin-left: 4;
+    margin-top: 2;
+    margin-right: 4;
+    margin-bottom: 2;
+    background-color:rgb(86,86,86);
+    curve-color: #00ff00;
+}
+
+VFXCurveField > CurveFieldContent{
+    position:absolute;
+    left:1;
+    right:1;
+    bottom:1;
+    top:1;
+    overflow:hidden;
+}
+
+VFXCurveField > #border
+{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    top:0;
+    -unity-slice-left: 3;
+    -unity-slice-top: 3;
+    -unity-slice-right: 3;
+    -unity-slice-bottom: 3;
+
+    background-image: resource("Builtin Skins/Processed/Images/colorpickerbox.png");
+}
+
+VFXCurveField:focus > #border
+{
+    background-image: resource("Builtin Skins/Processed/Images/colorpickerboxfocused.png");
 }

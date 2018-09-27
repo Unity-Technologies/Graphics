@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXContextController : VFXNodeController
     {
-        public VFXContext context       { get { return model as VFXContext; } }
+        public new VFXContext model { get { return base.model as VFXContext; } }
 
         private List<VFXBlockController> m_BlockControllers = new List<VFXBlockController>();
         public ReadOnlyCollection<VFXBlockController> blockControllers
@@ -85,14 +85,14 @@ namespace UnityEditor.VFX.UI
             SyncControllers();
             // make sure we listen to the right data
 
-            if (!object.ReferenceEquals(m_Data, null) && context.GetData() != m_Data)
+            if (!object.ReferenceEquals(m_Data, null) && model.GetData() != m_Data)
             {
                 viewController.UnRegisterNotification(m_Data, DataChanged);
                 m_Data = null;
             }
-            if (m_Data == null && context.GetData() != null)
+            if (m_Data == null && model.GetData() != null)
             {
-                m_Data = context.GetData();
+                m_Data = model.GetData();
 
                 viewController.RegisterNotification(m_Data, DataChanged);
             }
@@ -106,9 +106,9 @@ namespace UnityEditor.VFX.UI
         {
             UnregisterAnchors();
 
-            if (context.inputType != VFXDataType.kNone)
+            if (this.model.inputType != VFXDataType.kNone)
             {
-                for (int slot = 0; slot < context.inputFlowSlot.Length; ++slot)
+                for (int slot = 0; slot < this.model.inputFlowSlot.Length; ++slot)
                 {
                     var inAnchor = new VFXFlowInputAnchorController();
                     inAnchor.Init(this, slot);
@@ -117,9 +117,9 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if (context.outputType != VFXDataType.kNone)
+            if (this.model.outputType != VFXDataType.kNone)
             {
-                for (int slot = 0; slot < context.outputFlowSlot.Length; ++slot)
+                for (int slot = 0; slot < this.model.outputFlowSlot.Length; ++slot)
                 {
                     var outAnchor = new VFXFlowOutputAnchorController();
                     outAnchor.Init(this, slot);
@@ -133,25 +133,25 @@ namespace UnityEditor.VFX.UI
 
         public void AddBlock(int index, VFXBlock block)
         {
-            context.AddChild(block, index);
+            model.AddChild(block, index);
         }
 
         public void ReorderBlock(int index, VFXBlock block)
         {
-            if (block.GetParent() == model && context.GetIndex(block) < index)
+            if (block.GetParent() == base.model && model.GetIndex(block) < index)
             {
                 --index;
             }
 
-            if (index < 0 || index >= model.GetNbChildren())
+            if (index < 0 || index >= base.model.GetNbChildren())
                 index = -1;
 
-            context.AddChild(block, index);
+            model.AddChild(block, index);
         }
 
         public void RemoveBlock(VFXBlock block)
         {
-            context.RemoveChild(block);
+            model.RemoveChild(block);
 
             VFXSlot slotToClean = null;
             do
@@ -173,7 +173,7 @@ namespace UnityEditor.VFX.UI
         private void SyncControllers()
         {
             var m_NewControllers = new List<VFXBlockController>();
-            foreach (var block in context.children)
+            foreach (var block in model.children)
             {
                 var newController = m_BlockControllers.Find(p => p.model == block);
                 if (newController == null) // If the controller does not exist for this model, create it

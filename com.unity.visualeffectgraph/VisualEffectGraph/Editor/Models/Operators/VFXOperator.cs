@@ -71,6 +71,14 @@ namespace UnityEditor.VFX
             return space;
         }
 
+        protected virtual VFXCoordinateSpace actualOutputSpace
+        {
+            get
+            {
+                return (VFXCoordinateSpace)int.MaxValue; //Admit it comes from inputs
+            }
+        }
+
         protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             //Detect spaceable input slot & set output slot as a result (if one output slot is spaceable)
@@ -84,12 +92,25 @@ namespace UnityEditor.VFX
                 GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.IsMasterSlot());
 
                 var outputSlotSpaceable = outputSlots.Where(o => o.spaceable);
-                if (outputSlotSpaceable.Any())
+                bool needUpdateInputSpaceable = false;
+                foreach (var output in outputSlotSpaceable)
                 {
-                    var currentSpace = GetCommonSpaceFromSpaceableSlot(inputSlots);
-                    foreach (var output in outputSlotSpaceable)
+                    var currentSpaceForSlot = GetOutputSpaceFromSlot(output);
+                    if (currentSpaceForSlot != output.space)
                     {
-                        output.space = currentSpace;
+                        output.space = currentSpaceForSlot;
+                        needUpdateInputSpaceable = true;
+                    }
+                }
+
+                //If one of output slot has changed its space, expression tree for inputs,
+                //and more generally, current operation expression graph is invalid.
+                //=> Trigger invalidation on input is enough to recompute the graph from this operator
+                if (needUpdateInputSpaceable)
+                {
+                    foreach (var input in inputSlotSpaceable)
+                    {
+                        input.Invalidate(InvalidationCause.kSpaceChanged);
                     }
                 }
             }
@@ -104,7 +125,12 @@ namespace UnityEditor.VFX
 
         public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
-            return GetCommonSpaceFromSpaceableSlot(inputSlots);
+            var currentSpace = actualOutputSpace;
+            if (currentSpace == (VFXCoordinateSpace)int.MaxValue)
+            {
+                currentSpace = GetCommonSpaceFromSpaceableSlot(inputSlots);
+            }
+            return currentSpace;
         }
 
         public override sealed void UpdateOutputExpressions()

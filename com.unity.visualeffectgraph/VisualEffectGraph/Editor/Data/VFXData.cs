@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
     public enum VFXCoordinateSpace
     {
         Local = 0,
-        Global = 1,
+        World = 1,
     }
 
     // TODO Move this
@@ -520,8 +520,8 @@ namespace UnityEditor.VFX
                 foreach (var attrib in m_LocalCurrentAttributes)
                     builder.AppendLine(string.Format("\t\tAttribute {0} {1}", attrib.name, attrib.type));
             }
-
-            Debug.Log(builder.ToString());
+            if(VFXViewPreference.advancedLogs)
+                Debug.Log(builder.ToString());
         }
 
         public uint layer

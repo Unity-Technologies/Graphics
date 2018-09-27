@@ -89,10 +89,11 @@ namespace UnityEditor.VFX
             foreach (var line in lines)
             {
                 dst.Append(linePrefix);
-                dst.AppendLine(line);
+                dst.Append(line);
+                dst.Append('\n');
             }
 
-            return dst.ToString(0, dst.Length - Environment.NewLine.Length); // Remove the last line terminator
+            return dst.ToString(0, dst.Length - 1); // Remove the last line terminator
         }
 
         public void WriteFormat(string str, object arg0)                                { m_Builder.AppendFormat(str, arg0); }
@@ -123,7 +124,7 @@ namespace UnityEditor.VFX
 
         public void WriteLine()
         {
-            m_Builder.AppendLine();
+            m_Builder.Append('\n');
             WriteIndent();
         }
 

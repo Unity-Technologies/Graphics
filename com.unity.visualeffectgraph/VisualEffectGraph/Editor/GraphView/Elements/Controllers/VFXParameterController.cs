@@ -305,6 +305,8 @@ namespace UnityEditor.VFX.UI
         {
             m_Slot = model.outputSlots[0];
             viewController.RegisterNotification(m_Slot, OnSlotChanged);
+
+            exposedName = MakeNameUnique(exposedName);
         }
 
         public const int ValueChanged = 1;

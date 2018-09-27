@@ -569,17 +569,17 @@ namespace UnityEditor.VFX.Test
             //Creation
             Undo.IncrementCurrentGroup();
             fnContextController().AddBlock(0, blockDesc.CreateInstance());
-            Assert.AreEqual(1, fnContextController().context.children.Count());
+            Assert.AreEqual(1, fnContextController().model.children.Count());
             Undo.PerformUndo();
-            Assert.AreEqual(0, fnContextController().context.children.Count());
+            Assert.AreEqual(0, fnContextController().model.children.Count());
 
             //Deletion
             var block = blockDesc.CreateInstance();
             fnContextController().AddBlock(0, block);
-            Assert.AreEqual(1, fnContextController().context.children.Count());
+            Assert.AreEqual(1, fnContextController().model.children.Count());
             Undo.IncrementCurrentGroup();
             fnContextController().RemoveBlock(block);
-            Assert.AreEqual(0, fnContextController().context.children.Count());
+            Assert.AreEqual(0, fnContextController().model.children.Count());
 
             Undo.PerformUndo();
 
@@ -587,8 +587,8 @@ namespace UnityEditor.VFX.Test
 
 
             Assert.IsNotNull(fnContextController());
-            Assert.AreEqual(1, fnContextController().context.children.Count());
-            Assert.IsInstanceOf(typeof(AllType), fnContextController().context.children.First());
+            Assert.AreEqual(1, fnContextController().model.children.Count());
+            Assert.IsInstanceOf(typeof(AllType), fnContextController().model.children.First());
         }
 
         [Test]

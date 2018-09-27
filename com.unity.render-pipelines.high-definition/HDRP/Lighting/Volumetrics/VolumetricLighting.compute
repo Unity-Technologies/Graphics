@@ -2,6 +2,9 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
 #pragma kernel VolumetricLightingBruteforceMQ       VolumetricLighting=VolumetricLightingBruteforceMQ       VL_PRESET_MQ ENABLE_REPROJECTION=0 LIGHTLOOP_SINGLE_PASS
 #pragma kernel VolumetricLightingBruteforceReprojMQ VolumetricLighting=VolumetricLightingBruteforceReprojMQ VL_PRESET_MQ ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
 #pragma kernel VolumetricLightingClusteredMQ        VolumetricLighting=VolumetricLightingClusteredMQ        VL_PRESET_MQ ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
@@ -10,8 +13,6 @@
 #pragma kernel VolumetricLightingBruteforceReprojHQ VolumetricLighting=VolumetricLightingBruteforceReprojHQ VL_PRESET_HQ ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
 #pragma kernel VolumetricLightingClusteredHQ        VolumetricLighting=VolumetricLightingClusteredHQ        VL_PRESET_HQ ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 #pragma kernel VolumetricLightingClusteredReprojHQ  VolumetricLighting=VolumetricLightingClusteredReprojHQ  VL_PRESET_HQ ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
-
-// #pragma enable_d3d11_debug_symbols
 
 #ifdef VL_PRESET_MQ
     // E.g. for 1080p: (1920/8)x(1080/8)x(64)  =  2,073,600 voxels
@@ -46,7 +47,6 @@
 #include "../Lighting.hlsl"       // Includes Material.hlsl
 #include "../LightEvaluation.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs

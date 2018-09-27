@@ -9,12 +9,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXGraphUndoCursor : ScriptableObject
-    {
-        [SerializeField]
-        public int index;
-    }
-
     class VFXGraphUndoStack
     {
         public VFXGraphUndoStack(VFXGraph initialState)
@@ -90,7 +84,7 @@ namespace UnityEditor.VFX.UI
 
         class SerializedState
         {
-            public string serializedGraph;
+            public object serializedGraph;
             public Dictionary<VFXSlot, object> slotDeltas;
         }
 

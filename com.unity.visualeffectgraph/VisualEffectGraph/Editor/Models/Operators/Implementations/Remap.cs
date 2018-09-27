@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Operator
             public float newRangeMax = 10.0f;
         }
 
-        public override sealed string name { get { return "Remap"; } }
+        protected override sealed string operatorName { get { return "Remap"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {

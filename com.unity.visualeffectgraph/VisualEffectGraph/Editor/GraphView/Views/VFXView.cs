@@ -12,142 +12,6 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-    class SelectionSetter : Manipulator
-    {
-        VFXView m_View;
-        public SelectionSetter(VFXView view)
-        {
-            m_View = view;
-        }
-
-        protected override void RegisterCallbacksOnTarget()
-        {
-            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
-        }
-
-        protected override void UnregisterCallbacksFromTarget()
-        {
-            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
-        }
-
-        void OnMouseUp(MouseUpEvent evt)
-        {
-            Selection.activeObject = m_View.controller.model;
-        }
-    }
-
-
-    class GroupNodeAdder
-    {
-    }
-
-    class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
-    {
-        public class Descriptor
-        {
-            public object modelDescriptor;
-            public string category;
-            public string name;
-        }
-
-        Func<Descriptor, bool> m_Filter;
-        IEnumerable<Type> m_AcceptedTypes;
-
-        public VFXNodeProvider(Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter = null, IEnumerable<Type> acceptedTypes = null) : base(onAddBlock)
-        {
-            m_Filter = filter;
-            m_AcceptedTypes = acceptedTypes;
-        }
-
-        protected override string GetCategory(Descriptor desc)
-        {
-            return desc.category;
-        }
-
-        protected override string GetName(Descriptor desc)
-        {
-            return desc.name;
-        }
-
-        protected override string title
-        {
-            get {return "Node"; }
-        }
-
-        string ComputeCategory<T>(string type, VFXModelDescriptor<T> model) where T : VFXModel
-        {
-            if (model.info != null && model.info.category != null)
-            {
-                if (m_AcceptedTypes != null && m_AcceptedTypes.Count() == 1)
-                {
-                    return model.info.category;
-                }
-                else
-                {
-                    return string.Format("{0}/{1}", type, model.info.category);
-                }
-            }
-            else
-            {
-                return type;
-            }
-        }
-
-        protected override IEnumerable<Descriptor> GetDescriptors()
-        {
-            var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath, "*.vfx").Select(t => t.Replace("\\", "/").Replace(VisualEffectGraphPackageInfo.fileSystemPackagePath, VisualEffectGraphPackageInfo.assetPackagePath));
-            var systemDesc = systemFiles.Select(t => new Descriptor() {modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t)});
-
-
-            var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = ComputeCategory("Context", o),
-                        name = o.name
-                    };
-                }).OrderBy(o => o.category + o.name);
-
-            var descriptorsOperator = VFXLibrary.GetOperators().Select(o =>
-                {
-                    return new Descriptor()
-                    {
-                        modelDescriptor = o,
-                        category = ComputeCategory("Operator", o),
-                        name = o.name
-                    };
-                }).OrderBy(o => o.category + o.name);
-
-            IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();
-
-            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXContext)))
-            {
-                descs = descs.Concat(descriptorsContext);
-            }
-            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXOperator)))
-            {
-                descs = descs.Concat(descriptorsOperator);
-            }
-            if (m_AcceptedTypes == null)
-            {
-                descs = descs.Concat(systemDesc);
-            }
-            var groupNodeDesc = new Descriptor()
-            {
-                modelDescriptor = new GroupNodeAdder(),
-                category = "Misc",
-                name = "Group Node"
-            };
-
-            descs = descs.Concat(Enumerable.Repeat(groupNodeDesc, 1));
-
-            if (m_Filter == null)
-                return descs;
-            else
-                return descs.Where(t => m_Filter(t));
-        }
-    }
     class VFXView : GraphView, IDropTarget, IControlledElement<VFXViewController>
     {
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
@@ -215,6 +79,7 @@ namespace UnityEditor.VFX.UI
             rootNodes.Clear();
             rootGroupNodeElements.Clear();
             VFXExpression.ClearCache();
+            m_NodeProvider = null;
         }
 
         void ConnectController()
@@ -236,6 +101,8 @@ namespace UnityEditor.VFX.UI
             elementsAddedToGroup = ElementAddedToGroupNode;
             elementsRemovedFromGroup = ElementRemovedFromGroupNode;
             groupTitleChanged = GroupNodeTitleChanged;
+
+            m_NodeProvider = new VFXNodeProvider(controller, (d, mPos) => AddNode(d, mPos));
         }
 
         public VisualEffect attachedComponent
@@ -300,6 +167,12 @@ namespace UnityEditor.VFX.UI
             {
                 controller.AddGroupNode(mPos);
             }
+            else if( d.modelDescriptor is VFXParameterController)
+            {
+                var parameter = d.modelDescriptor as VFXParameterController;
+
+                return controller.AddVFXParameter(mPos, parameter, groupNode != null ? groupNode.controller : null );
+            }
             else
                 return controller.AddNode(mPos, d.modelDescriptor, groupNode != null ? groupNode.controller : null);
             return null;
@@ -319,8 +192,6 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new FreehandSelector());
 
-            m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
-
             AddStyleSheetPath("VFXView");
 
             AddLayer(-1);
@@ -337,19 +208,30 @@ namespace UnityEditor.VFX.UI
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
             m_Toolbar.Add(button);
+            button = new Button(() => { SelectAsset(); });
+            button.text = "Select Asset";
+            button.AddToClassList("toolbarItem");
+            m_Toolbar.Add(button);
 
-            Button toggleBlackboard = new Button(ToggleBlackboard);
+            VisualElement spacer = new VisualElement();
+            spacer.style.width = 10;
+            m_Toolbar.Add(spacer);
+
+            Toggle toggleBlackboard = new Toggle();
             toggleBlackboard.text = "Blackboard";
             toggleBlackboard.AddToClassList("toolbarItem");
+            toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
             m_Toolbar.Add(toggleBlackboard);
 
-            Button toggleComponentBoard = new Button(ToggleComponentBoard);
-            toggleComponentBoard.text = "Component board";
+            Toggle toggleComponentBoard = new Toggle();
+            toggleComponentBoard.text = "Target GameObject";
             toggleComponentBoard.AddToClassList("toolbarItem");
+            toggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(toggleComponentBoard);
 
 
-            VisualElement spacer = new VisualElement();
+
+            spacer = new VisualElement();
             spacer.style.flex = new Flex(1);
             m_Toolbar.Add(spacer);
 
@@ -391,11 +273,13 @@ namespace UnityEditor.VFX.UI
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
             if (blackboardVisible)
                 Add(m_Blackboard);
+            toggleBlackboard.value = blackboardVisible;
 
 
             bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, false);
             if (componentBoardVisible)
                 ShowComponentBoard();
+            toggleComponentBoard.value = componentBoardVisible;
 
             Add(m_Toolbar);
 
@@ -430,7 +314,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void ToggleBlackboard()
+        void ToggleBlackboard(ChangeEvent<bool> e)
         {
             if (m_Blackboard.parent == null)
             {
@@ -492,7 +376,7 @@ namespace UnityEditor.VFX.UI
             UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
-        void ToggleComponentBoard()
+        void ToggleComponentBoard(ChangeEvent<bool> e)
         {
             if (m_ComponentBoard == null || m_ComponentBoard.parent == null)
             {
@@ -795,17 +679,12 @@ namespace UnityEditor.VFX.UI
                     groupNodes.Remove(deletedController);
                 }
 
-
-                bool addNew = false;
-
                 foreach (var newController in controller.groupNodes.Except(groupNodes.Keys))
                 {
                     var newElement = new VFXGroupNode();
                     AddElement(newElement);
                     newElement.controller = newController;
                     groupNodes.Add(newController, newElement);
-
-                    addNew = true;
                 }
             }
         }
@@ -1317,7 +1196,7 @@ namespace UnityEditor.VFX.UI
         {
             if (controller == null) return;
 
-            var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null).ToArray();
+            var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model).Cast<VFXModel>()).Where(t => t != null).ToArray();
 
             if (objectSelected.Length > 0)
             {
@@ -1332,10 +1211,14 @@ namespace UnityEditor.VFX.UI
                 Selection.objects = blackBoardSelected;
                 return;
             }
+        }
 
+        void SelectAsset()
+        {
             if (Selection.activeObject != controller.model)
             {
                 Selection.activeObject = controller.model.asset;
+                EditorGUIUtility.PingObject(controller.model.asset);
             }
         }
 

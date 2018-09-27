@@ -59,6 +59,23 @@ namespace UnityEditor.VFX
             }
         }
 
+        [SerializeField]
+        string m_Tooltip;
+
+        public string tooltip
+        {
+            get
+            {
+                return m_Tooltip;
+            }
+
+            set
+            {
+                m_Tooltip = value;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
+        }
+
         [System.Serializable]
         public struct NodeLinkedSlot
         {
@@ -171,6 +188,12 @@ namespace UnityEditor.VFX
                 }
                 return m_Nodes.AsReadOnly();
             }
+        }
+
+
+        public Node GetNode(int id)
+        {
+            return m_Nodes.FirstOrDefault(t => t.id == id);
         }
 
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)

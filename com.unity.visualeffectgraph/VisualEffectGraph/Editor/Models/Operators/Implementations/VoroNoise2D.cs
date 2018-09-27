@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public float o;
+            public float o = 0.0f;
         }
 
         override public string name { get { return "VoroNoise (2D)"; } }

@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
             public float s = 0.5f;
         }
 
-        public override sealed string name { get { return "Smoothstep"; } }
+        protected override sealed string operatorName { get { return "Smoothstep"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {

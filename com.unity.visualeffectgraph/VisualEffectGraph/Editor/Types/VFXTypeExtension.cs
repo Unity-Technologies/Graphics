@@ -28,6 +28,7 @@ namespace UnityEditor.VFX
             s_FriendlyName[typeof(decimal)] = "decimal";
             s_FriendlyName[typeof(char)] = "char";
             s_FriendlyName[typeof(string)] = "string";
+            s_FriendlyName[typeof(DirectionType)] = "Direction";
         }
 
         public static string UserFriendlyName(this Type type)

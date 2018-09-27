@@ -55,17 +55,9 @@ float4x4 VFXGetViewToWorldMatrix()
     return viewToWorld;
 }
 
-float4 VFXGetPOSSS(float4 posCS)
-{
-    float4 posSS = posCS * 0.5f;
-    posSS.xy = float2(posSS.x, posSS.y*_ProjectionParams.x) + posSS.w;
-    posSS.zw = posCS.zw;
-    return posSS;
-}
-
 float VFXSampleDepth(float4 posSS)
 {
-    return SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, _ScreenToTargetScale.xy * posSS.xyz / posSS.w);
+    return LOAD_TEXTURE2D(_CameraDepthTexture, posSS.xy).r;
 }
 
 float VFXLinearEyeDepth(float depth)

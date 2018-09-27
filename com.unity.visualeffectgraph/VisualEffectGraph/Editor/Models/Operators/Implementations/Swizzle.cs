@@ -10,14 +10,14 @@ namespace UnityEditor.VFX.Operator
     class Swizzle : VFXOperatorNumericUniform
     {
         public override sealed string libraryName { get { return "Swizzle"; } }
-        public override sealed string name { get { return "Swizzle." + mask; } }
+        protected override sealed string operatorName { get { return "Swizzle." + mask; } }
 
         public class InputProperties
         {
             public Vector4 x = Vector4.zero;
         }
 
-        [VFXSetting, Regex("[^w-zW-Z]", 4)]
+        [VFXSetting, Regex("[^w-zW-Z]", 4),Delayed]
         public string mask = "xyzw";
 
         protected override sealed Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)

@@ -1,5 +1,4 @@
 using UnityEngine.Rendering;
-using System;
 using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -21,15 +20,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Matrix4x4[]   m_faceWorldToViewMatrixMatrices     = new Matrix4x4[6];
 
-
         RenderPipelineResources m_RenderPipelineResources;
-        BufferPyramidProcessor m_BufferPyramidProcessor;
-        List<RenderTexture> m_PlanarColorMips = new List<RenderTexture>();
+        MipGenerator m_MipGenerator;
 
-        public IBLFilterGGX(RenderPipelineResources renderPipelineResources, BufferPyramidProcessor processor)
+        public IBLFilterGGX(RenderPipelineResources renderPipelineResources, MipGenerator mipGenerator)
         {
             m_RenderPipelineResources = renderPipelineResources;
-            m_BufferPyramidProcessor = processor;
+            m_MipGenerator = mipGenerator;
         }
 
         public bool IsInitialized()
@@ -87,9 +84,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             CoreUtils.Destroy(m_GgxConvolveMaterial);
             CoreUtils.Destroy(m_GgxIblSampleData);
-            for (var i = 0; i < m_PlanarColorMips.Count; ++i)
-                m_PlanarColorMips[i].Release();
-            m_PlanarColorMips.Clear();
         }
 
         void FilterCubemapCommon(CommandBuffer cmd,
@@ -149,62 +143,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
         }
 
-        public void FilterPlanarTexture(CommandBuffer cmd, Texture source, RenderTexture target)
+        public void FilterPlanarTexture(CommandBuffer cmd, RenderTexture source, RenderTexture target)
         {
-            var lodCount = Mathf.Max(Mathf.FloorToInt(Mathf.Log(Mathf.Min(source.width, source.height), 2f)), 0);
-
-            for (var i = 0; i < lodCount - 0; ++i)
-            {
-                var width = target.width >> (i + 1);
-                var height = target.height >> (i + 1);
-                var rtHash = HashRenderTextureProperties(
-                        width,
-                        height,
-                        target.depth,
-                        target.format,
-                        target.sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear
-                        );
-
-                var lodIsMissing = i >= m_PlanarColorMips.Count;
-                RenderTexture rt = null;
-                var createRT = lodIsMissing
-                    || (rt = m_PlanarColorMips[i]) == null
-                    || rtHash != HashRenderTextureProperties(
-                        rt.width, rt.height, rt.depth, rt.format, rt.sRGB
-                        ? RenderTextureReadWrite.sRGB
-                        : RenderTextureReadWrite.Linear
-                        );
-
-                if (createRT && rt)
-                    rt.Release();
-                if (createRT)
-                {
-                    rt = new RenderTexture(
-                            width,
-                            height,
-                            target.depth,
-                            target.format,
-                            target.sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear
-                            );
-                    rt.enableRandomWrite = true;
-                    rt.name = "Planar Convolution Tmp RT";
-                    rt.hideFlags = HideFlags.HideAndDontSave;
-                    rt.Create();
-                }
-                if (lodIsMissing)
-                    m_PlanarColorMips.Add(rt);
-                else if (createRT)
-                    m_PlanarColorMips[i] = rt;
-            }
-
-            m_BufferPyramidProcessor.RenderColorPyramid(
-                new RectInt(0, 0, source.width, source.height),
-                cmd,
-                source,
-                target,
-                m_PlanarColorMips,
-                lodCount
-                );
+            m_MipGenerator.RenderColorGaussianPyramid(cmd, new Vector2Int(source.width, source.height), source, target);
         }
 
         // Filters MIP map levels (other than 0) with GGX using multiple importance sampling.
@@ -233,20 +174,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GgxConvolveMaterial.SetTexture("_MarginalRowDensities", marginalRowCdf);
 
             FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
-        }
-
-        int HashRenderTextureProperties(
-            int width,
-            int height,
-            int depth,
-            RenderTextureFormat format,
-            RenderTextureReadWrite sRGB)
-        {
-            return width.GetHashCode()
-                ^ height.GetHashCode()
-                ^ depth.GetHashCode()
-                ^ format.GetHashCode()
-                ^ sRGB.GetHashCode();
         }
     }
 }

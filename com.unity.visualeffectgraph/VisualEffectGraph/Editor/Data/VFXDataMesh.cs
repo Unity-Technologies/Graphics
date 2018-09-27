@@ -60,6 +60,7 @@ namespace UnityEditor.VFX
             {
                 externalProcessor = shader,
                 values = mappings.ToArray(),
+                parameters = contextData.parameters,
                 type = VFXTaskType.Output
             };
 

@@ -323,7 +323,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController,AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
             }
         }
 
@@ -341,16 +341,24 @@ namespace UnityEditor.VFX.UI
                     validTypes = op.validTypes;
                 }
             }
+            var parameterDescriptor = d.modelDescriptor as VFXParameterController;
+            IVFXSlotContainer container = null;
 
-
-            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
-            if (desc == null)
-                return false;
-
-            IVFXSlotContainer container = desc.model as IVFXSlotContainer;
-            if (container == null)
+            if (parameterDescriptor != null)
             {
-                return false;
+                container = parameterDescriptor.model;
+            }
+            else
+            {
+                VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
+                if (desc == null)
+                    return false;
+
+                container = desc.model as IVFXSlotContainer;
+                if (container == null)
+                {
+                    return false;
+                }
             }
 
             var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot> )container.GetOutputSlot : (System.Func<int, VFXSlot> )container.GetInputSlot;
@@ -391,16 +399,7 @@ namespace UnityEditor.VFX.UI
             VFXViewController viewController = controller.viewController;
             if (view == null) return;
 
-            /*
-            Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
-
-            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
-
-            VFXViewController viewController = controller.sourceNode.viewController;
-            VFXNodeController newNode = viewController.AddNode(tPos, desc, null);*/
-
             var newNodeController = view.AddNode(d, mPos);
-            //TODO manage if the newNode should be in a groupNode
 
             if (newNodeController == null)
                 return;
@@ -442,12 +441,7 @@ namespace UnityEditor.VFX.UI
             // If linking to a new parameter, copy the slot value
             if (direction == Direction.Input && controller.model != null) //model will be null for upcomming which won't have a value
             {
-                if (newNodeController is VFXParameterNodeController)
-                {
-                    var parameter = (newNodeController as VFXParameterNodeController).parentController.model;
-                    CopyValueToParameter(parameter);
-                }
-                else if (newNodeController is VFXOperatorController)
+                if (newNodeController is VFXOperatorController)
                 {
                     var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
                     if (inlineOperator != null)

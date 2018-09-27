@@ -40,6 +40,7 @@ namespace UnityEditor.VFX
             { typeof(AngleAttribute), o => new VFXPropertyAttribute(Type.kAngle) },
             { typeof(ShowAsColorAttribute), o => new VFXPropertyAttribute(Type.kColor) },
             { typeof(RegexAttribute), o => new VFXPropertyAttribute(Type.kRegex, (o as RegexAttribute).pattern, (o as RegexAttribute).maxLength) },
+            { typeof(DelayedAttribute), o => new VFXPropertyAttribute(Type.kDelayed) },
         };
 
         public static VFXPropertyAttribute[] Create(params object[] attributes)
@@ -69,6 +70,7 @@ namespace UnityEditor.VFX
                         case Type.kAngle:
                         case Type.kColor:
                         case Type.kRegex:
+                        case Type.kDelayed:
                             break;
                         default:
                             throw new NotImplementedException();
@@ -103,6 +105,7 @@ namespace UnityEditor.VFX
                             break;
                         case Type.kColor:
                         case Type.kRegex:
+                        case Type.kDelayed:
                             break;
                         default:
                             throw new NotImplementedException();
@@ -141,6 +144,13 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        public static bool IsDelayed(VFXPropertyAttribute[] attributes)
+        {
+            if (attributes != null)
+                return attributes.Any(o => o.m_Type == Type.kDelayed);
+            return false;
+        }
+
         public static string ApplyRegex(VFXPropertyAttribute[] attributes, object obj)
         {
             if (attributes != null)
@@ -165,7 +175,8 @@ namespace UnityEditor.VFX
             kTooltip,
             kAngle,
             kColor,
-            kRegex
+            kRegex,
+            kDelayed
         }
 
         public VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)
