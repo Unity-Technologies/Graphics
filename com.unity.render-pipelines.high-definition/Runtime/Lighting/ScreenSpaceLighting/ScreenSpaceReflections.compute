@@ -48,6 +48,8 @@
     RW_TEXTURE2D(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
 #endif
 
+    StructuredBuffer<int2>  _SsrDepthPyramidMipLevelOffsets;
+
 CBUFFER_START(UnityScreenSpaceReflections)
     int   _SsrIterLimit;
     float _SsrThicknessScale;
@@ -57,13 +59,7 @@ CBUFFER_START(UnityScreenSpaceReflections)
     float _SsrRoughnessFadeEndTimesRcpLength;
     float _SsrEdgeFadeRcpLength;
     int   _SsrDepthPyramidMaxMip;
-    int4  _SsrDepthPyramidMipLevelOffsetsX[2]; // Up to 15 levels => 8 offsets => 2 int4s
-    int4  _SsrDepthPyramidMipLevelOffsetsY[2]; // Up to 15 levels => 8 offsets => 2 int4s
 CBUFFER_END
-
-// Unpack integer arrays.
-static const int depthPyramidMipLevelOffsetsX[8] = (const int[8])(_SsrDepthPyramidMipLevelOffsetsX);
-static const int depthPyramidMipLevelOffsetsY[8] = (const int[8])(_SsrDepthPyramidMipLevelOffsetsY);
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -180,9 +176,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         rayPos.xy += raySign.xy * satEdgeDist;
 
         int2 mipCoord  = (int2)rayPos.xy >> mipLevel;
-        int2 mipOffset = int2(depthPyramidMipLevelOffsetsX[(mipLevel + 0) >> 1],
-                              depthPyramidMipLevelOffsetsY[(mipLevel + 1) >> 1]);
-
+        int2 mipOffset = _SsrDepthPyramidMipLevelOffsets[mipLevel]; 
         // Bounds define 4 faces of a cube:
         // 2 walls in front of the ray, and a floor and a base below it.
         float4 bounds;

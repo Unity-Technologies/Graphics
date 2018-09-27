@@ -199,9 +199,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier[] m_MRTWithSSS;
         string m_ForwardPassProfileName;
 
-        int[] m_DepthPyramidMipLevelOffsetsX;
-        int[] m_DepthPyramidMipLevelOffsetsY;
-
         Vector2Int m_PyramidSizeV2I = new Vector2Int();
         Vector4 m_PyramidSizeV4F = new Vector4();
         Vector4 m_PyramidScaleLod = new Vector4();
@@ -211,6 +208,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         ComputeBuffer m_DebugScreenSpaceTracingData = null;
         ScreenSpaceTracingDebug[] m_DebugScreenSpaceTracingDataArray = new ScreenSpaceTracingDebug[1];
+
+        ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
+
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
@@ -300,6 +300,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
             m_DebugScreenSpaceTracingData = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ScreenSpaceTracingDebug)));
 
+            m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
+
             InitializeRenderTextures();
 
             // For debugging
@@ -317,9 +319,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugDisplaySettings.msaaSamples = m_MSAASamples;
 
             m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
-
-            m_DepthPyramidMipLevelOffsetsX = new int[8];
-            m_DepthPyramidMipLevelOffsetsY = new int[8];
         }
 
         void UpgradeResourcesIfNeeded()
@@ -597,6 +596,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDCamera.ClearAll();
 
             DestroyRenderTextures();
+
+            CoreUtils.SafeRelease(m_DepthPyramidMipLevelOffsetsBuffer);
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
@@ -1964,15 +1965,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 HDUtils.PackedMipChainInfo info = m_SharedRTManager.GetDepthBufferMipChainInfo();
 
-                // Pack the integer array.
-
-                for (int i = 0; i < 8; i++)
-                {
-                    int j = i << 1;
-                    m_DepthPyramidMipLevelOffsetsX[i] = info.mipLevelOffsets[j].x;
-                    m_DepthPyramidMipLevelOffsetsY[i] = info.mipLevelOffsets[Math.Max(0, j - 1)].y;
-                }
-
                 float roughnessFadeStart             = 1 - volumeSettings.smoothnessFadeStart;
                 float roughnessFadeEnd               = 1 - volumeSettings.minSmoothness;
                 float roughnessFadeLength            = roughnessFadeEnd - roughnessFadeStart;
@@ -1988,11 +1980,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrRoughnessFadeEndTimesRcpLength, roughnessFadeEndTimesRcpLength);
                 cmd.SetComputeIntParam(  cs, HDShaderIDs._SsrDepthPyramidMaxMip,             info.mipLevelCount);
                 cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrEdgeFadeRcpLength,              edgeFadeRcpLength);
-                cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsX,   m_DepthPyramidMipLevelOffsetsX);
-                cmd.SetComputeIntParams( cs, HDShaderIDs._SsrDepthPyramidMipLevelOffsetsY,   m_DepthPyramidMipLevelOffsetsY);
 
                 // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrHitPointTexture, m_SsrHitPointTexture);
+
+                cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._SsrDepthPyramidMipOffsets, info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(hdCamera.actualWidth, 8), HDUtils.DivRoundUp(hdCamera.actualHeight, 8), 1);
             }
@@ -2005,6 +1997,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityTexture,      m_SharedRTManager.GetVelocityBuffer());
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrHitPointTexture,   m_SsrHitPointTexture);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrLightingTextureRW, m_SsrLightingTexture);
+                if (hdCamera.colorPyramidIsValid)
+                {
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ColorPyramidTexture, m_CameraColorBufferMipChain);
+                }
+                else
+                {
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ColorPyramidTexture, RuntimeUtilities.whiteTexture);
+                }
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(hdCamera.actualWidth, 8), HDUtils.DivRoundUp(hdCamera.actualHeight, 8), 1);
             }
@@ -2043,6 +2043,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, m_PyramidSizeV4F);
             cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, m_PyramidScaleLod);
             PushFullScreenDebugTextureMip(hdCamera, cmd, m_CameraColorBufferMipChain, lodCount, m_PyramidScale, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            hdCamera.colorPyramidIsValid = true;
         }
 
         void GenerateDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, FullScreenDebugMode debugMode)
