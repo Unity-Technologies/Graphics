@@ -703,11 +703,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void UpdateShadowSettings(HDCamera hdCamera)
-        {
-            var shadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
-        }
-
         public void SetMicroShadowingSettings(CommandBuffer cmd)
         {
             MicroShadowing microShadowingSettings = VolumeManager.instance.stack.GetComponent<MicroShadowing>();
@@ -981,7 +976,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Resize(hdCamera);
 
                     ApplyDebugDisplaySettings(hdCamera, cmd);
-                    UpdateShadowSettings(hdCamera);
                     m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
                     ScriptableCullingParameters cullingParams;
@@ -1180,7 +1174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             StartStereoRendering(cmd, renderContext, hdCamera);
                             // When debug is enabled we need to clear otherwise we may see non-shadows areas with stale values.
-                            if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows)
+                            if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ContactShadows)
                             {
                                 HDUtils.SetRenderTarget(cmd, hdCamera, m_ScreenSpaceShadowsBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                             }
@@ -1192,7 +1186,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, hdCamera.frameSettings.enableMSAA ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), cmd);
 
-                            PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ScreenSpaceShadows);
+                            PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ContactShadows);
                             StopStereoRendering(cmd, renderContext, hdCamera);
                         }
 
