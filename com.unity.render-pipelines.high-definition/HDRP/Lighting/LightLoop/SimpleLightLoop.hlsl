@@ -1,66 +1,9 @@
 #include "CoreRP/ShaderLibrary/Macros.hlsl"
+#include "LightLoop.hlsl"
 
 //-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
-
-void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout float3 diffuseLighting, inout float3 specularLighting)
-{
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
-    {
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING)
-    {
-        diffuseLighting = float3(0.0, 0.0, 0.0); // Disable diffuse lighting
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-        // Take the luminance
-        diffuseLighting = Luminance(diffuseLighting).xxx;
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_VISUALIZE_CASCADE)
-    {
-        specularLighting = float3(0.0, 0.0, 0.0);
-
-        const float3 s_CascadeColors[] = {
-            float3(1.0, 0.0, 0.0),
-            float3(0.0, 1.0, 0.0),
-            float3(0.0, 0.0, 1.0),
-            float3(1.0, 1.0, 0.0),
-            float3(1.0, 1.0, 1.0)
-        };
-
-        diffuseLighting = float3(1.0, 1.0, 1.0);
-        if (_DirectionalLightCount > 0)
-        {
-            int shadowIdx = _DirectionalLightDatas[0].shadowIndex;
-            float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, float3(0.0, 1.0, 0.0 ), shadowIdx, -_DirectionalLightDatas[0].forward, float2(0.0, 0.0));
-            uint  payloadOffset;
-            real  alpha;
-            int cascadeCount;
-            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, shadowIdx, positionWS, payloadOffset, alpha, cascadeCount);
-            if (shadowSplitIndex >= 0)
-            {
-                diffuseLighting = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex+1], alpha) * shadow;
-            }
-
-        }
-    }
-
-    // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.
-    diffuseLighting *= exp2(_DebugExposure);
-    specularLighting *= exp2(_DebugExposure);
-#endif
-}
-
-// Factor all test so we can disable it easily
-bool IsMatchingLightLayer(uint lightLayers, uint renderingLayers)
-{
-    return (lightLayers & renderingLayers) != 0;
-}
 
 void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
                 out float3 diffuseLighting,
@@ -84,7 +27,7 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
         {
             if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, builtinData.renderingLayers))
             {
-                DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, builtinData);
+                DirectLighting lighting = SimpleEvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, builtinData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
             }
         }
@@ -107,7 +50,7 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
 
             if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {
-                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                DirectLighting lighting = SimpleEvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
             }
         }
@@ -131,7 +74,7 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
 
             if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {
-                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                DirectLighting lighting = SimpleEvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
             }
         }
@@ -179,7 +122,7 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
                 EnvLightData envLightData = FetchEnvLight(envLightStart, i);
                 if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers))
                 {
-                    IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
+                    IndirectLighting lighting = SimpleEvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
                     AccumulateIndirectLighting(lighting, aggregateLighting);
                 }
             }
@@ -197,7 +140,7 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
             // Only apply the sky if we haven't yet accumulated enough IBL lighting.
             if (reflectionHierarchyWeight < 1.0)
             {
-                IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, envLightSky.influenceShapeType, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
+                IndirectLighting lighting = SimpleEvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, envLightSky.influenceShapeType, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
                 AccumulateIndirectLighting(lighting, aggregateLighting);
             }
         }
