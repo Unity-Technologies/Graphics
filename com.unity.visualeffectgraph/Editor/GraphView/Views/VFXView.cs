@@ -1527,31 +1527,44 @@ namespace UnityEditor.VFX.UI
 
             VFXContext[] contexts = controller.graph.children.OfType<VFXContext>().ToArray();
 
-            HashSet<VFXContext> initializes = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kInit || t.contextType == VFXContextType.kUpdate).ToArray());
+            HashSet<VFXContext> initializes = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kInit).ToArray());
+            HashSet<VFXContext> updates = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kUpdate).ToArray());
 
             List<HashSet<VFXContext>> systems = new List<HashSet<VFXContext>>();
 
-            while(initializes.Count > 0)
+            while(initializes.Count > 0 || updates.Count > 0)
             {
-                VFXContext initialize = initializes.First();
-                initializes.Remove(initialize);
+                VFXContext currentContext;
+                if (initializes.Count > 0)
+                {
+                    currentContext = initializes.First();
+                    initializes.Remove(currentContext);
+                }
+                else
+                {
+                    currentContext = updates.First();
+                    updates.Remove(currentContext);
+                }
+
 
                 HashSet<VFXContext> system = new HashSet<VFXContext>();
 
-                system.Add(initialize);
+                system.Add(currentContext);
 
-                var allChildren = initialize.outputFlowSlot.SelectMany(t => t.link.Select(u => u.context));
+                var allChildren = currentContext.outputFlowSlot.SelectMany(t => t.link.Select(u => u.context)).ToList();
                 while(allChildren.Count() > 0)
                 {
                     foreach (var child in allChildren)
                     {
                         initializes.Remove(child);
+                        updates.Remove(child);
                         system.Add(child);
                     }
 
-                    allChildren = allChildren.SelectMany(t => t.outputFlowSlot.SelectMany(u => u.link.Select(v => v.context))
-                                                            .Concat(t.inputFlowSlot.SelectMany(u=>u.link.Select(v=>v.context).Where(v=>v.contextType != VFXContextType.kSpawner && v.contextType != VFXContextType.kSpawnerGPU) )))
-                                                            .Except(system);
+                    var allSubChildren = allChildren.SelectMany(t => t.outputFlowSlot.SelectMany(u => u.link.Select(v => v.context)));
+                    var allPreChildren = allChildren.SelectMany(t => t.inputFlowSlot.SelectMany(u => u.link.Select(v => v.context).Where(v => v.contextType != VFXContextType.kSpawner && v.contextType != VFXContextType.kSpawnerGPU)));
+
+                    allChildren = allSubChildren.Concat(allPreChildren).Except(system).ToList();
                 }
 
                 if(system.Count > 1)
