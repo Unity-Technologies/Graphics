@@ -135,7 +135,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 // Only one deferred layout is allowed for a HDRenderPipeline, this will be detect by the redefinition of GBUFFERMATERIAL_COUNT
 // If GBUFFERMATERIAL_COUNT is define two time, the shaders will not compile
 #ifdef UNITY_MATERIAL_LIT
-#if USE_SIMPLE_LIGHTLOOP
+#if HDRP_MATERIAL_TYPE_SIMPLELIT
 #include "Lit/SimpleLit.hlsl"
 #else
 #include "Lit/Lit.hlsl"

@@ -2,7 +2,7 @@
 
 void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, out BSDFData bsdfData, out PreLightData preLightData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, uint2 tileIndex)
 {	
-	#if HDRP_MATERIAL_TYPE_TRANSLUCENT
+	#if HDRP_MATERIAL_TYPE_TRANSLUCENT || HDRP_MATERIAL_TYPE_SIMPLELIT
 	${VFXLoadParameter:{diffusionProfile}} // Loads diffusion profile
 	#else
 	const uint diffusionProfile = 0;

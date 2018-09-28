@@ -23,7 +23,7 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 	uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
 	#endif
 
-	#if USE_SIMPLE_LIGHTLOOP
+	#if HDRP_MATERIAL_TYPE_SIMPLELIT
 	SimpleLightLoop(GetWorldSpaceNormalizeViewDir(i.VFX_VARYING_POSRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 	#else
 	LightLoop(GetWorldSpaceNormalizeViewDir(i.VFX_VARYING_POSRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);

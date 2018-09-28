@@ -117,6 +117,8 @@ namespace UnityEditor.VFX
 
         public class SimpleLitProperties
         {
+            [Range(0, 1)]
+            public float thickness = 1.0f;
         }
 
         public class BaseColorMapProperties
@@ -208,6 +210,7 @@ namespace UnityEditor.VFX
                     break;
 
                 case MaterialType.Translucent:
+                case MaterialType.SimpleLit:
                     yield return slotExpressions.First(o => o.name == "thickness");
                     yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfile), "diffusionProfile");
                     break;
@@ -264,7 +267,7 @@ namespace UnityEditor.VFX
                         break;
                 
                     case MaterialType.SimpleLit:
-                        yield return "USE_SIMPLE_LIGHTLOOP";
+                        yield return "HDRP_MATERIAL_TYPE_SIMPLELIT";
                         if (enableShadows)
                             yield return "HDRP_ENABLE_SHADOWS";
                         if (enableSpecular)
@@ -275,6 +278,8 @@ namespace UnityEditor.VFX
                             yield return "HDRP_ENABLE_COOKIE";
                         if (enableEnvLight)
                             yield return "HDRP_ENABLE_ENV_LIGHT";
+                        if (multiplyThicknessWithAlpha)
+                            yield return "HDRP_MULTIPLY_THICKNESS_WITH_ALPHA";
                         break;
 
                     default: break;
@@ -324,7 +329,8 @@ namespace UnityEditor.VFX
                 if (materialType != MaterialType.Translucent)
                 {
                     yield return "diffusionProfile";
-                    yield return "multiplyThicknessWithAlpha";
+                    if (materialType != MaterialType.SimpleLit)
+                        yield return "multiplyThicknessWithAlpha";
                 }
 
                 if (materialType != MaterialType.SimpleLit)
