@@ -364,7 +364,7 @@ public class VisualEffectAssetEditor : Editor
     {
         new KeyValuePair<string, VFXCullingFlags>("Recompute bounds and simulate when visible", (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate)),
         new KeyValuePair<string, VFXCullingFlags>("Always recompute bounds, simulate only when visible", (VFXCullingFlags.CullSimulation)),
-        new KeyValuePair<string, VFXCullingFlags>("Always simulate and recompute bounds", VFXCullingFlags.CullNone),
+        new KeyValuePair<string, VFXCullingFlags>("Always recompute bounds and simulate", VFXCullingFlags.CullNone),
     };
 
     private string CullingMaskToString(VFXCullingFlags flags)
