@@ -40,8 +40,9 @@ namespace UnityEditor.VFX.Test
         {
             AssetDatabase.DeleteAsset(tempFilePath);
         }
-
+#pragma warning disable 0414
         private static VFXCoordinateSpace[] available_Space = { VFXCoordinateSpace.Local, VFXCoordinateSpace.World };
+#pragma warning restore 0414
 
         [UnityTest]
         public IEnumerator CreateAssetAndComponent_Space_Bounds([ValueSource("available_Space")] VFXCoordinateSpace systemSpace, [ValueSource("available_Space")] VFXCoordinateSpace boundSpace)
