@@ -76,7 +76,9 @@ namespace UnityEditor.VFX.UI
             }
             MarkDirtyRepaint();
 
-            ((VisualElement)s_m_Content.GetValue(this))?.MarkDirtyRepaint();
+            var content = ((VisualElement)s_m_Content.GetValue(this));
+            if (content != null)
+                content.MarkDirtyRepaint();
         }
     }
     class CurvePropertyRM : PropertyRM<AnimationCurve>
