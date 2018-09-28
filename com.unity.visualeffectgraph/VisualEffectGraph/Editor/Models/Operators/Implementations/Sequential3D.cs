@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            public Position Origin;
+            public Position Origin = Position.defaultValue;
             public Vector AxisX = Vector3.right;
             public Vector AxisY = Vector3.up;
             public Vector AxisZ = Vector3.forward;
