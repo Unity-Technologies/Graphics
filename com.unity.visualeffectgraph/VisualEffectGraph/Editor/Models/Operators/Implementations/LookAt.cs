@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public Transform o;
+            public Transform o = Transform.defaultValue;
         }
 
         override public string name { get { return "Look At"; } }
