@@ -1,3 +1,4 @@
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -1518,7 +1519,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXContext[] contexts = controller.graph.children.OfType<VFXContext>().ToArray();
 
-            HashSet<VFXContext> initializes = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kInit).ToArray());
+            HashSet<VFXContext> initializes = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kInit || t.contextType == VFXContextType.kUpdate).ToArray());
 
             List<HashSet<VFXContext>> systems = new List<HashSet<VFXContext>>();
 
@@ -1545,7 +1546,8 @@ namespace UnityEditor.VFX.UI
                                                             .Except(system);
                 }
 
-                systems.Add(system);
+                if(system.Count > 1)
+                    systems.Add(system);
             }
 
             while(m_Systems.Count() < systems.Count())

@@ -22,6 +22,9 @@ namespace UnityEditor.VFX.UI
         public VFXSystemBorder()
         {
             RecreateResources();
+
+            this.clippingOptions = ClippingOptions.NoClipping;
+            this.pickingMode = PickingMode.Ignore;
         }
 
         void OnContextChanged(GeometryChangedEvent e)
