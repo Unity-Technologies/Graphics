@@ -10,10 +10,10 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXSystemBorderFactory : UxmlFactory<VFXContextBorder>
+    public class VFXSystemBorderFactory : UxmlFactory<VFXSystemBorder>
     {}
 
-    class VFXSystemBorder : GraphElement, IDisposable
+    public class VFXSystemBorder : GraphElement, IDisposable
     {
         Material m_Mat;
 
@@ -23,8 +23,75 @@ namespace UnityEditor.VFX.UI
         {
             RecreateResources();
 
+            var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXSystemBorder");
+            tpl.CloneTree(this,new Dictionary<string, VisualElement>());
+
+            AddStyleSheetPath("VFXSystemBorder");
+
             this.clippingOptions = ClippingOptions.NoClipping;
             this.pickingMode = PickingMode.Ignore;
+
+            m_Title = this.Query<Label>("title");
+            m_TitleField = this.Query<TextField>("title-field");
+            m_TitleField.visible = false;
+
+            m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
+
+            m_TitleField.RegisterCallback<BlurEvent>(OnTitleBlur);
+            m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
+            m_Title.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
+        }
+
+
+        Label m_Title;
+        TextField m_TitleField;
+
+
+        void OnTitleMouseDown(MouseDownEvent e)
+        {
+            if (e.clickCount == 2)
+            {
+                m_TitleField.RemoveFromClassList("empty");
+                m_TitleField.value = m_Title.text;
+                m_TitleField.visible = true;
+                UpdateTitleFieldRect();
+
+                m_TitleField.Focus();
+                m_TitleField.SelectAll();
+
+                e.StopPropagation();
+                e.PreventDefault();
+            }
+        }
+
+        void OnTitleRelayout(GeometryChangedEvent e)
+        {
+            UpdateTitleFieldRect();
+            RecomputeBounds();
+        }
+
+        void UpdateTitleFieldRect()
+        {
+            Rect rect = m_Title.layout;
+
+            m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent, rect);
+
+
+            m_TitleField.style.positionTop = rect.yMin;
+            m_TitleField.style.positionLeft = rect.xMin;
+            m_TitleField.style.positionRight = m_Title.style.marginRight.value + m_Title.style.borderRight.value;
+            //m_TitleField.style.width = rect.width - m_Title.style.marginLeft - m_Title.style.marginRight;
+            m_TitleField.style.height = rect.height - m_Title.style.marginTop - m_Title.style.marginBottom;
+        }
+
+        void OnTitleBlur(BlurEvent e)
+        {
+            title = m_TitleField.value;
+            m_TitleField.visible = false;
+
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+
+            view.SetSystemTitle(this,title);
         }
 
         void OnContextChanged(GeometryChangedEvent e)
@@ -32,9 +99,44 @@ namespace UnityEditor.VFX.UI
             RecomputeBounds();
         }
 
+        void OnTitleChange(EventBase e)
+        {
+            title = m_TitleField.value;
+        }
+
+        public override string title {
+            get
+            {
+                return m_Title.text;
+            }
+            set
+            {
+                if(m_Title.text != value)
+                {
+                    m_Title.text = value;
+                }
+            }
+        }
+
+        public bool m_WaitingRecompute;
 
         public void RecomputeBounds()
         {
+            if (m_WaitingRecompute)
+                return;
+            //title width should be at least as wide as a context to be valid.
+            float titleWidth = m_Title.layout.width;
+            bool invalidTitleWidth = float.IsNaN(titleWidth) || titleWidth < 50;
+            bool titleEmpty = string.IsNullOrEmpty(m_Title.text) || invalidTitleWidth;
+            if (titleEmpty )
+            {
+                m_Title.AddToClassList("empty");
+            }
+            else
+            {
+                m_Title.RemoveFromClassList("empty");
+            }
+
             Rect rect = Rect.zero;
 
             foreach (var context in m_Contexts)
@@ -52,12 +154,25 @@ namespace UnityEditor.VFX.UI
             if (float.IsNaN(rect.xMin) || float.IsNaN(rect.yMin) || float.IsNaN(rect.width) || float.IsNaN(rect.height))
                 rect = Rect.zero;
 
-            rect = RectUtils.Inflate(rect, 30, 30, 30, 30);
-            SetPosition(rect);
+            rect = RectUtils.Inflate(rect, 20, titleEmpty ? 20 : m_Title.layout.height, 20, 20);
+
+            if(invalidTitleWidth)
+            {
+                SetPosition(rect);
+                if( !m_WaitingRecompute)
+                {
+                    m_WaitingRecompute = true;
+                    schedule.Execute(()=> { m_WaitingRecompute = false; RecomputeBounds();  }).ExecuteLater(0); // title height might have changed if width have changed
+                }
+            }
+            else
+            {
+                SetPosition(rect);
+            }
         }
 
         VFXContextUI[] m_Contexts;
-        public VFXContextUI[] contexts
+        internal VFXContextUI[] contexts
         {
             get
             {

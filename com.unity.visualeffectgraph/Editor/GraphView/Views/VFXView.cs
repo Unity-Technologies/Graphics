@@ -74,11 +74,16 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveElement(element);
             }
+            foreach (var system in m_Systems)
+            {
+                RemoveElement(system);
+            }
 
             groupNodes.Clear();
             stickyNotes.Clear();
             rootNodes.Clear();
             rootGroupNodeElements.Clear();
+            m_Systems.Clear();
             VFXExpression.ClearCache();
             m_NodeProvider = null;
         }
@@ -1205,6 +1210,7 @@ namespace UnityEditor.VFX.UI
             if (objectSelected.Length > 0)
             {
                 Selection.objects = objectSelected;
+                Selection.objects = objectSelected;
                 return;
             }
 
@@ -1517,6 +1523,8 @@ namespace UnityEditor.VFX.UI
 
         public void UpdateSystems()
         {
+            if (controller == null) return;
+
             VFXContext[] contexts = controller.graph.children.OfType<VFXContext>().ToArray();
 
             HashSet<VFXContext> initializes = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kInit || t.contextType == VFXContextType.kUpdate).ToArray());
@@ -1552,8 +1560,8 @@ namespace UnityEditor.VFX.UI
 
             while(m_Systems.Count() < systems.Count())
             {
+                
                 VFXSystemBorder border = new VFXSystemBorder();
-                border.layer = -400;
                 m_Systems.Add(border);
                 AddElement(border);
             }
@@ -1567,8 +1575,15 @@ namespace UnityEditor.VFX.UI
 
             for(int i = 0; i < systems.Count(); ++i)
             {
-                m_Systems[i].contexts = systems[i].Select(t=>rootNodes[controller.GetNodeController(t, 0)]).Cast<VFXContextUI>().ToArray();
+                m_Systems[i].contexts = systems[i].Select(t => controller.GetNodeController(t, 0)).Where(t=>t != null).Select(t=> rootNodes[t]).Cast<VFXContextUI>().ToArray();
+                m_Systems[i].title = controller.graph.UIInfos.GetNameOfSystem(systems[i]);
             }
+        }
+
+
+        public void SetSystemTitle(VFXSystemBorder system, string title)
+        {
+            controller.graph.UIInfos.SetNameOfSystem(system.contexts.Select(t => t.controller.model), title);
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
