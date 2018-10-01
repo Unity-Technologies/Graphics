@@ -107,6 +107,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0, _MainTex, _MainTex_TexelSize, _MainTex_MipInfo, surfaceData.baseColor);
         surfaceData.metallic = 0;
     }
+
+    // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+    // as it can modify attribute use for static lighting
+    ApplyDebugToSurfaceData(input.worldToTangent, surfaceData);
 #endif
 
     GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, builtinData);

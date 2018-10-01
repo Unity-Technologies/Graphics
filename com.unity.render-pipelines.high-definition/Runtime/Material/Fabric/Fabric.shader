@@ -165,8 +165,12 @@ Shader "HDRenderPipeline/Fabric"
     #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
     #pragma shader_feature _MATERIAL_FEATURE_COTTON_WOOL
     
+    // enable dithering LOD crossfade
+    #pragma multi_compile _ LOD_FADE_CROSSFADE
+
     //enable GPU instancing support
     #pragma multi_compile_instancing
+    #pragma instancing_options renderinglayer
 
     // If we use subsurface scattering, enable output split lighting (for forward pass)
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING)
