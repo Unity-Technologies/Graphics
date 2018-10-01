@@ -9,7 +9,7 @@
 
 #define UNITY_MATRIX_V     _ViewMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_I_V   _InvViewMatrixStereo[unity_StereoEyeIndex]
-#define UNITY_MATRIX_P     OptimizeProjectionMatrix(unity_StereoMatrixP[unity_StereoEyeIndex])
+#define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrixStereo[unity_StereoEyeIndex])
 #define UNITY_MATRIX_I_P   _InvProjMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_VP    _ViewProjMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_I_VP  _InvViewProjMatrixStereo[unity_StereoEyeIndex]
