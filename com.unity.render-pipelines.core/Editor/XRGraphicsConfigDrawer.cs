@@ -16,13 +16,13 @@ namespace UnityEngine.Experimental.Rendering
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             var drawUseOcclusionMesh = property.FindPropertyRelative("useOcclusionMesh");
-            var drawOcclusionMaskScale = property.FindPropertyRelative("occlusionMaskScale");
+            var drawOcclusionMeshScale = property.FindPropertyRelative("occlusionMeshScale");
 
             EditorGUI.BeginDisabledGroup(!XRGraphicsConfig.tryEnable);
             EditorGUILayout.LabelField(Styles.XRSettingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(drawUseOcclusionMesh, Styles.useOcclusionMeshLabel);
-            EditorGUILayout.PropertyField(drawOcclusionMaskScale, Styles.occlusionScaleLabel);
+            EditorGUILayout.PropertyField(drawOcclusionMeshScale, Styles.occlusionScaleLabel);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUI.EndDisabledGroup();

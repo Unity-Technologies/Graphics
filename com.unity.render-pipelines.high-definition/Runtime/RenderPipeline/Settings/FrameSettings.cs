@@ -42,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enablePostprocess = true;
 
         public bool enableStereo = false;
-        public XRGraphicsConfig xrGraphicsConfig;
+        public XRGraphicsConfig xrGraphicsConfig = new XRGraphicsConfig();
 
         public bool enableAsyncCompute = true;
 
@@ -85,7 +85,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enablePostprocess = this.enablePostprocess;
 
             frameSettings.enableStereo = this.enableStereo;
-            frameSettings.xrGraphicsConfig = this.xrGraphicsConfig;
+
+            this.xrGraphicsConfig.CopyTo(frameSettings.xrGraphicsConfig);
 
             frameSettings.enableOpaqueObjects = this.enableOpaqueObjects;
             frameSettings.enableTransparentObjects = this.enableTransparentObjects;
@@ -156,7 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableStereo = ((camera.cameraType == CameraType.Game) || (camera.cameraType == CameraType.VR)) && srcFrameSettings.enableStereo && XRGraphicsConfig.enabled && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
 
-            aggregate.xrGraphicsConfig = renderPipelineSettings.xrConfig;
+            srcFrameSettings.xrGraphicsConfig.CopyTo(aggregate.xrGraphicsConfig);
 
             aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
 
@@ -226,6 +227,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableSSR = false;
                 enableSubsurfaceScattering = false;
                 enableTransparentObjects = false;
+
+                xrGraphicsConfig.SetConfig();
             }
         }
 

@@ -82,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
+                XRUtils.DrawOcclusionMesh(cmd, camera, renderingData.cameraData.isStereoEnabled);
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawRendererSettings(camera, sortFlags, rendererConfiguration, renderingData.supportsDynamicBatching);
                 context.DrawRenderers(renderingData.cullResults.visibleRenderers, ref drawSettings, m_OpaqueFilterSettings);
