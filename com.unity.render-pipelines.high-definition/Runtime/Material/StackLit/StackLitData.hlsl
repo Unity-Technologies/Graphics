@@ -426,6 +426,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         }
         surfaceData.metallic = 0.0;
     }
+
+    // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+    // as it can modify attribute use for static lighting
+    ApplyDebugToSurfaceData(input.worldToTangent, surfaceData);
 #endif
 
     // -------------------------------------------------------------

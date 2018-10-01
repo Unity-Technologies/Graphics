@@ -436,7 +436,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsReceiveShadows = false,
                 rendererSupportsReflectionProbes = true,
                 rendererSupportsRendererPriority = true,
-                rendererOverridesEnvironmentLighting = true
+                rendererOverridesEnvironmentLighting = true,
+                rendererOverridesFog = true,
+                rendererOverridesOtherLightingSettings = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
