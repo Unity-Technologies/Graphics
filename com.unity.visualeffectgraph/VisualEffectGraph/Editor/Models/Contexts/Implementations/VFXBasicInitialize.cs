@@ -28,10 +28,33 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override void OnDataChanges(VFXData oldData, VFXData newData)
+        {
+            base.OnDataChanges(oldData, newData);
+
+            if( oldData != null)
+                oldData.onModified -= DataModified;
+            if (newData != null)
+                newData.onModified += DataModified;
+        }
+
+        void DataModified(VFXObject obj)
+        {
+            VFXDataParticle particleData = (GetData() as VFXDataParticle);
+            if( particleData )
+                capacity = particleData.capacity;
+        }
+
         public override void OnEnable()
         {
             base.OnEnable();
-            capacity = ((VFXDataParticle)GetData()).capacity;
+            VFXDataParticle particleData = (GetData() as VFXDataParticle);
+
+            if (particleData != null)
+            {
+                capacity = ((VFXDataParticle)GetData()).capacity;
+                particleData.onModified += DataModified;
+            }
         }
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
