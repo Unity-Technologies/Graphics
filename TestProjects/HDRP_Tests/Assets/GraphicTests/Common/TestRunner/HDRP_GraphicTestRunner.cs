@@ -1,14 +1,15 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
+using System.IO;
 
 public class HDRP_GraphicTestRunner
 {
-    [UnityTest, Category("HDRP Graphic Tests")]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases]
     public IEnumerator Run(GraphicsTestCase testCase)
