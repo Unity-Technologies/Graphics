@@ -38,9 +38,9 @@ namespace UnityEditor.VFX.UI
             get { return m_ContextController; }
         }
 
-        public VFXBlock block
+        public new VFXBlock model
         {
-            get { return model as VFXBlock; }
+            get { return base.model as VFXBlock; }
         }
 
         public int index
