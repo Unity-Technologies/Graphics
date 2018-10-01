@@ -244,11 +244,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TaaFrameRotation = Shader.PropertyToID("_TaaFrameRotation");
 
         public static readonly int _ViewMatrixStereo = Shader.PropertyToID("_ViewMatrixStereo");
+        public static readonly int _ProjMatrixStereo = Shader.PropertyToID("_ProjMatrixStereo");
         public static readonly int _ViewProjMatrixStereo = Shader.PropertyToID("_ViewProjMatrixStereo");
         public static readonly int _InvViewMatrixStereo = Shader.PropertyToID("_InvViewMatrixStereo");
         public static readonly int _InvProjMatrixStereo = Shader.PropertyToID("_InvProjMatrixStereo");
         public static readonly int _InvViewProjMatrixStereo = Shader.PropertyToID("_InvViewProjMatrixStereo");
         public static readonly int _PrevViewProjMatrixStereo = Shader.PropertyToID("_PrevViewProjMatrixStereo");
+        public static readonly int _WorldSpaceCameraPosStereo = Shader.PropertyToID("_WorldSpaceCameraPosStereo");
         public static readonly int _TextureWidthScaling = Shader.PropertyToID("_TextureWidthScaling"); // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
         public static readonly int _ComputeEyeIndex = Shader.PropertyToID("_ComputeEyeIndex");
 
