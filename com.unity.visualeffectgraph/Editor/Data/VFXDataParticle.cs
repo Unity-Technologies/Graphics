@@ -507,7 +507,7 @@ namespace UnityEditor.VFX
             {
                 systemFlag |= VFXSystemFlag.SystemHasIndirectBuffer;
                 indirectBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity, stride = 4 });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = 4 });
                 systemBufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
             }
 
