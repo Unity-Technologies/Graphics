@@ -19,6 +19,9 @@ Pass
 		nointerpolation float2 builtInInterpolants : TEXCOORD1;
 		#endif
 		nointerpolation uint faceID : TEXCOORD2;
+		#if VFX_NEEDS_POSWS_INTERPOLATOR
+		float3 posWS : TEXCOORD3;
+		#endif
 	};
 	
 	struct ps_output
@@ -34,6 +37,9 @@ Pass
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_OFFSETS offsets
 #define VFX_VARYING_FACEID faceID
+#if VFX_NEEDS_POSWS_INTERPOLATOR
+#define VFX_VARYING_POSWS posWS
+#endif
 								
 	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
@@ -43,6 +49,7 @@ Pass
 		ps_output o = (ps_output)0;
 		o.color = VFXGetFragmentColor(i);
 		o.color *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i));
+		o.color = VFXApplyFog(o.color,i)
 		VFXClipFragmentColor(o.color.a,i);
 		return o;
 	}

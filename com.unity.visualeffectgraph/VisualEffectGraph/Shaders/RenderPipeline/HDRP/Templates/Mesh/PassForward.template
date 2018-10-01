@@ -35,6 +35,9 @@ Pass
 		// z: frame blending factor
 		nointerpolation float3 builtInInterpolants : TEXCOORD4;
 		#endif
+		#if IS_TRANSPARENT_PARTICLE
+		float3 posWS : TEXCOORD5;
+		#endif
 	};
 	
 	struct ps_output
@@ -54,6 +57,9 @@ ${VFXHDRPLitVaryingsMacros}
 #if USE_NORMAL_MAP
 #define VFX_VARYING_TANGENT tangent
 #endif
+#if IS_TRANSPARENT_PARTICLE
+#define VFX_VARYING_POSWS posWS
+#endif
 
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
@@ -64,7 +70,8 @@ ${VFXEnd}
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}	
 		
 	#pragma fragment frag
-	void frag(ps_input i, out float4 outColor : SV_Target0
+	void frag(ps_input i
+	, out float4 outColor : SV_Target0
 #if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 #endif

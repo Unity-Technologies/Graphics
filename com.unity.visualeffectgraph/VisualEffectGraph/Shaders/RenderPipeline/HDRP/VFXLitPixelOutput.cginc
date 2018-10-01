@@ -13,7 +13,7 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 	
 	clip(builtinData.opacity - 1e-4);
 	
-	PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, i.VFX_VARYING_POSRWS, tileIndex);
+	PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, i.VFX_VARYING_POSWS, tileIndex);
 	
 	#if IS_OPAQUE_PARTICLE
 	uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
@@ -22,7 +22,7 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 	#else
 	uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
 	#endif
-	LightLoop(GetWorldSpaceNormalizeViewDir(i.VFX_VARYING_POSRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+	LightLoop(GetWorldSpaceNormalizeViewDir(i.VFX_VARYING_POSWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
 	#ifdef _BLENDMODE_PRE_MULTIPLY
 	diffuseLighting *= builtinData.opacity;

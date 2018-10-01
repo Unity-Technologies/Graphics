@@ -5,7 +5,7 @@ Pass
 	
 	HLSLPROGRAM
 	#pragma target 4.5
-	
+		
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
@@ -23,6 +23,9 @@ Pass
 		// z: frame blending factor
 		nointerpolation float3 builtInInterpolants : TEXCOORD1;
 		#endif
+		#if VFX_NEEDS_POSWS_INTERPOLATOR
+		float3 posWS : TEXCOORD2;
+		#endif
 	};
 	
 	struct ps_output
@@ -38,6 +41,9 @@ Pass
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_UV uv
+#if VFX_NEEDS_POSWS_INTERPOLATOR
+#define VFX_VARYING_POSWS posWS
+#endif
 		
 	${VFXInclude("Shaders/ParticleQuads/Pass.template")}	
 		
@@ -46,7 +52,8 @@ Pass
 	{
 		ps_output o = (ps_output)0;
 		o.color = VFXGetFragmentColor(i);
-		o.color *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);		
+		o.color *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);
+		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		return o;
 	}

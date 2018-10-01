@@ -17,8 +17,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 			
 	if (!alive)
 		return o;
-					
-	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(position);
+				
+	float3 vPos = position;
+	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
