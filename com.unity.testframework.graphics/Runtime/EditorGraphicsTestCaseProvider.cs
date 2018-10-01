@@ -42,6 +42,24 @@ namespace UnityEditor.TestTools.Graphics
             }
         }
 
+        public GraphicsTestCase GetTestCaseFromPath(string scenePath)
+        {
+            GraphicsTestCase output = null;
+
+            var allImages = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath, QualitySettings.activeColorSpace, Application.platform,
+                SystemInfo.graphicsDeviceType);
+
+            Texture2D referenceImage = null;
+
+            string imagePath;
+            if (allImages.TryGetValue(Path.GetFileNameWithoutExtension(scenePath), out imagePath))
+                referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
+
+            output = new GraphicsTestCase(scenePath, referenceImage);
+
+            return output;
+        }
+
         public const string ReferenceImagesRoot = "Assets/ReferenceImages";
 
         public static Dictionary<string, string> CollectReferenceImagePathsFor(string referenceImageRoot, ColorSpace colorSpace, RuntimePlatform runtimePlatform,
