@@ -10,6 +10,48 @@
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
+PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
+{
+    PreLightData preLightData;
+    // Don't init to zero to allow to track warning about uninitialized data
+
+    float3 N = bsdfData.normalWS;
+    preLightData.NdotV = dot(N, V);
+    preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
+
+    float NdotV = ClampNdotV(preLightData.NdotV);
+
+    preLightData.coatPartLambdaV = 0;
+    preLightData.coatIblR = 0;
+    preLightData.coatIblF = 0;
+
+    // Handle IBL + area light + multiscattering.
+    // Note: use the not modified by anisotropy iblPerceptualRoughness here.
+    float specularReflectivity;
+    GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+    preLightData.diffuseFGD = 1.0;
+
+    preLightData.energyCompensation = 0.0;
+
+    preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, bsdfData.roughnessT);
+
+    preLightData.iblR = reflect(-V, N);
+
+    // Area light
+    // UVs for sampling the LUTs
+    float theta = FastACosPos(NdotV); // For Area light - UVs for sampling the LUTs
+    float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
+
+    preLightData.ltcTransformDiffuse = k_identity3x3;
+
+    // Construct a right-handed view-dependent orthogonal basis around the normal
+    preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
+
+    preLightData.ltcTransformCoat = 0.0;
+
+    return preLightData;
+}
+
 // This function apply BSDF. Assumes that NdotL is positive.
 void SimpleBSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
