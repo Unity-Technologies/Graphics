@@ -226,6 +226,8 @@ namespace UnityEditor.VFX
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
+                yield return "HDRP_LIT";
+
                 switch (materialType)
                 {
                     case MaterialType.Standard:

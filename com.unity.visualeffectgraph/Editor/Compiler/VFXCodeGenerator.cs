@@ -214,7 +214,7 @@ namespace UnityEditor.VFX
         {
             return Path.GetFullPath(path)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                #if ! UNITY_STANDALONE_LINUX
+                #if !UNITY_STANDALONE_LINUX
                 .ToLowerInvariant()
                 #endif
                 ;
@@ -458,17 +458,15 @@ namespace UnityEditor.VFX
             //< Final composition
             var renderPipePath = UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath;
             var renderPipeShaderIncludePath = renderPipePath;
-            /*if(renderPipeShaderIncludePath.StartsWith(VisualEffectGraphPackageInfo.assetPackagePath))
-            {
-                renderPipeShaderIncludePath = renderPipeShaderIncludePath.Substring(VisualEffectGraphPackageInfo.assetPackagePath.Length);
-            }*/
             string renderPipeCommon = "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc";
             string renderPipePasses = null;
+            string renderPipeDefines = null;
 
             if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
             {
                 renderPipeCommon = renderPipeShaderIncludePath + "/VFXCommon.cginc";
                 renderPipePasses = renderPipePath + "/VFXPasses.template";
+                renderPipeDefines = renderPipeShaderIncludePath + "/VFXGlobalDefines.cginc";
             }
 
             var globalIncludeContent = new VFXShaderWriter();
@@ -491,6 +489,9 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
 
+            var globalDefinesContent = new VFXShaderWriter();
+            globalDefinesContent.WriteLine("#include \"" + renderPipeDefines + "\"");
+
             var perPassIncludeContent = new VFXShaderWriter();
             perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
             perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"");
@@ -505,6 +506,7 @@ namespace UnityEditor.VFX
 
             ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGlobalDeclaration}", globalDeclaration.builder);
+            ReplaceMultiline(stringBuilder, "${VFXGlobalDefines}", globalDefinesContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXPerPassInclude}", perPassIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction.builder);
             ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);

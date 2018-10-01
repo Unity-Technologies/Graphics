@@ -49,12 +49,16 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	const float thickness = 0.0f; // tmp
 	float4 dPos0 = float4(normal * max(abs(minThickness0),thickness), 0.0f, 0.0f);
 	float4 dPos1 = float4(normal * max(abs(minThickness1),thickness), 0.0f, 0.0f);
-	float4 vPos[4] = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};
+	float4 vPosArray[4] = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};
 	
 	#ifdef VFX_VARYING_PIXELOFFSET
 	o.VFX_VARYING_PIXELOFFSET = (id & 1) ? -1.0f : 1.0f;
 	#endif
-	o.VFX_VARYING_POSCS = vPos[id & 3];
+	
+	// If ever used we need the position in vfx space (we dont take into account the pixel offset)
+	float3 vPos = ((id >> 1) & 1) ? position : targetPosition;
+	
+	o.VFX_VARYING_POSCS = vPosArray[id & 3];;
 	
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}

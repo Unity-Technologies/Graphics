@@ -50,3 +50,8 @@ float VFXLinearEyeDepth(float4 posSS)
 {
     return 0.0f;
 }
+
+float4 VFXApplyFog(float4 color,float4 posSS,float3 posWS)
+{
+	return color;
+}

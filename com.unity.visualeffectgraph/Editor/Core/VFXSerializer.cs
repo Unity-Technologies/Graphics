@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -27,6 +28,11 @@ namespace UnityEditor.VFX
         public SerializableType(Type type)
         {
             m_Type = type;
+        }
+        public SerializableType(string typeText)
+        {
+            m_SerializableType = typeText;
+            OnAfterDeserialize();
         }
 
         public virtual void OnBeforeSerialize()
@@ -78,6 +84,11 @@ namespace UnityEditor.VFX
             }
 
             return type;
+        }
+
+        public string text
+        {
+            get { OnBeforeSerialize(); return m_SerializableType; }
         }
 
         [NonSerialized]
@@ -262,7 +273,7 @@ namespace UnityEditor.VFX
             }
             else if (obj is UnityEngine.Object) //type is a unity object
             {
-                if((obj as UnityEngine.Object) == null)
+                if ((obj as UnityEngine.Object) == null)
                 {
                     return string.Empty;
                 }
@@ -314,6 +325,30 @@ namespace UnityEditor.VFX
                 }
                 return JsonUtility.ToJson(gw);
             }
+            else if (obj is string)
+            {
+                return "\"" + ((string)obj).Replace("\"","\\\"")+ "\"";
+            }
+            else if (obj is SerializableType)
+            {
+                return "\""+((SerializableType)obj).text + "\"";
+            }
+            else if (obj.GetType().IsArrayOrList())
+            {
+                IList list = (IList)obj;
+
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                sb.Append('[');
+                for (int i = 0; i < list.Count; ++i)
+                {
+                    sb.Append(Save(list[i]));
+                    sb.Append(',');
+                }
+                sb.Length = sb.Length - 1;
+                sb.Append(']');
+
+                return sb.ToString();
+            }
             else
             {
                 return EditorJsonUtility.ToJson(obj);
@@ -332,7 +367,16 @@ namespace UnityEditor.VFX
             if (type.IsPrimitive)
             {
                 if (string.IsNullOrEmpty(text))
+                try
+                {
                     return Activator.CreateInstance(type);
+                }
+                catch(MissingMethodException e)
+                {
+                    Debug.LogError(type.Name + " Doesn't seem to have a default constructor");
+
+                    throw e;
+                }
 
                 return Convert.ChangeType(text, type, CultureInfo.InvariantCulture);
             }
@@ -419,12 +463,140 @@ namespace UnityEditor.VFX
                 gradient.SetKeys(colorKeys, alphaKeys);
                 return gradient;
             }
-            else
+            else if( type == typeof(string))
             {
-                object obj = Activator.CreateInstance(type);
-                EditorJsonUtility.FromJsonOverwrite(text, obj);
+                return text.Substring(1,text.Length-2).Replace("\\\"","\"");
+            }
+            else if( type == typeof(SerializableType))
+            {
+                var obj = new SerializableType(text.Substring(1,text.Length-2));
                 return obj;
             }
+            else if( type.IsArrayOrList())
+            {
+                List<string> elements = ParseArray(text);
+
+                if( elements == null)
+                    return null;
+                if (type.IsArray)
+                {
+                    int listCount = elements.Count;
+
+                    Array arrayObj = (Array)Activator.CreateInstance(type, new object[] { listCount });
+
+                    for (int index = 0; index < listCount; index++)
+                    {
+                        arrayObj.SetValue(Load(type.GetElementType(), elements[index], null), index);
+                    }
+
+                    return arrayObj;
+                }
+                else //List
+                {
+                    int listCount = elements.Count;
+                    IList listObj = (Array)Activator.CreateInstance(type, new object[] { listCount });
+                    for (int index = 0; index < listCount; index++)
+                    {
+                        listObj.Add(Load(type.GetElementType(), elements[index], null));
+                    }
+
+                    return listObj;
+                }
+                
+            }
+            else
+            {
+                try { 
+                    object obj = Activator.CreateInstance(type);
+                    EditorJsonUtility.FromJsonOverwrite(text, obj);
+                    return obj;
+                }
+                catch (MissingMethodException e)
+                {
+                    Debug.LogError(type.Name + " Doesn't seem to have a default constructor");
+
+                    throw e;
+                }
+            }
+        }
+        internal static List<string> ParseArray(string arrayText)
+        {
+            List<string> elements = new List<string>();
+
+
+            int cur = 0;
+            bool isInString = false;
+            bool ignoreNext = false;
+            int depth = 0; // depth of []
+            int bracketDepth = 0; //depth of {}
+
+            int prevElementStart = 0;
+
+
+            foreach(char c in arrayText)
+            {
+                switch(c)
+                {
+                    case '{':
+                        ignoreNext = false;
+                        if (!isInString)
+                            bracketDepth++;
+                        break;
+                    case '}':
+                        ignoreNext = false;
+                        if (!isInString)
+                            bracketDepth--;
+                        break;
+                    case '[':
+                        ignoreNext = false;
+                        if (!isInString && bracketDepth == 0)
+                        {
+                            depth++;
+                            if (depth == 1)
+                                prevElementStart = cur + 1;
+                        }
+                        break;
+                    case ']':
+                        ignoreNext = false;
+                        if (!isInString && bracketDepth == 0)
+                        {
+                            depth--;
+                            if (depth < 0)
+                                goto error;
+                            if (depth == 0)
+                                elements.Add(arrayText.Substring(prevElementStart, cur - prevElementStart));
+                        }
+                        return elements;
+                    case ',':
+                        ignoreNext = false;
+                        if (!isInString && bracketDepth == 0)
+                        {
+                            elements.Add(arrayText.Substring(prevElementStart, cur - prevElementStart));
+                            prevElementStart = cur + 1;
+                        }
+                        break;
+                    case '"':
+                        if (!isInString)
+                            isInString = true;
+                        else if (!ignoreNext)
+                            isInString = false;
+                        break;
+                    case '\\':
+                        if( isInString)
+                        {
+                            ignoreNext = !ignoreNext;
+                        }
+                        break;
+                    default:
+                        ignoreNext = false;
+                        break;
+                }
+                ++cur;
+            }
+            error:
+            Debug.LogError("Couln't parse array" + arrayText +" from "+ cur);
+
+            return null;
         }
     }
 }

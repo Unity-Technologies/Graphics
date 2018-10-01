@@ -15,6 +15,9 @@ Pass
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
 		nointerpolation float2 builtInInterpolants : TEXCOORD0;
 		#endif
+		#if VFX_NEEDS_POSWS_INTERPOLATOR
+		float3 posWS : TEXCOORD1;
+		#endif
 	};
 	
 	struct ps_output
@@ -28,6 +31,9 @@ Pass
 #define VFX_VARYING_ALPHA color.a
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#if VFX_NEEDS_POSWS_INTERPOLATOR
+#define VFX_VARYING_POSWS posWS
+#endif
 	
 	${VFXInclude("Shaders/ParticlePoints/Pass.template")}	
 		
@@ -36,6 +42,7 @@ Pass
 	{
 		ps_output o = (ps_output)0;
 		o.color = VFXGetFragmentColor(i);
+		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		return o;
 	}

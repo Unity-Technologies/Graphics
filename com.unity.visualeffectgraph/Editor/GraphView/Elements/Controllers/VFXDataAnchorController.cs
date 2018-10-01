@@ -451,7 +451,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_SourceNode.enabled && m_Editable;
+                return m_Editable;
             }
         }
 

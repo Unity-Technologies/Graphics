@@ -236,7 +236,7 @@ namespace UnityEditor.VFX.UI
             
         }
 
-        public VFXGraph graph { get {return model.graph as VFXGraph; }}
+        public VFXGraph graph { get {return model!= null ? model.graph as VFXGraph : null; }}
 
         List<VFXFlowAnchorController> m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
@@ -681,9 +681,9 @@ namespace UnityEditor.VFX.UI
             {
                 var block = element as VFXBlockController;
                 block.NodeGoingToBeRemoved();
-                block.contextController.RemoveBlock(block.block);
+                block.contextController.RemoveBlock(block.model);
 
-                UnityObject.DestroyImmediate(block.block, true);
+                UnityObject.DestroyImmediate(block.model, true);
             }
             else if (element is VFXParameterNodeController)
             {

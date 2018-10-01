@@ -330,6 +330,10 @@ namespace UnityEditor.VFX
             InnerSetData(VFXData.CreateDataType(ownedType), notify);
         }
 
+        public virtual void OnDataChanges(VFXData oldData, VFXData newData)
+        {
+        }
+
         private void InnerSetData(VFXData data, bool notify)
         {
             if (m_Data != data)
@@ -340,7 +344,9 @@ namespace UnityEditor.VFX
                     if (m_Data.owners.Count() == 0)
                         m_Data.Detach();
                 }
+                OnDataChanges(m_Data,data);
                 m_Data = data;
+                
                 if (m_Data != null)
                     m_Data.OnContextAdded(this);
 

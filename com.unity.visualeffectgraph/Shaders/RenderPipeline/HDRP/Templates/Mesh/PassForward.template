@@ -9,8 +9,8 @@ Pass
 	#define LIGHTLOOP_TILE_PASS
 	${VFXHDRPForwardDefines}
 	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-    #pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
-    #pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
+	#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
+	#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
 	#pragma multi_compile _ DEBUG_DISPLAY
 	//#pragma enable_d3d11_debug_symbols
 	
@@ -37,6 +37,9 @@ Pass
 		// z: frame blending factor
 		nointerpolation float3 builtInInterpolants : TEXCOORD4;
 		#endif
+		#if IS_TRANSPARENT_PARTICLE
+		float3 posWS : TEXCOORD5;
+		#endif
 	};
 	
 	struct ps_output
@@ -56,6 +59,9 @@ ${VFXHDRPLitVaryingsMacros}
 #if USE_NORMAL_MAP
 #define VFX_VARYING_TANGENT tangent
 #endif
+#if IS_TRANSPARENT_PARTICLE
+#define VFX_VARYING_POSWS posWS
+#endif
 
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
@@ -66,7 +72,8 @@ ${VFXEnd}
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}	
 		
 	#pragma fragment frag
-	void frag(ps_input i, out float4 outColor : SV_Target0
+	void frag(ps_input i
+	, out float4 outColor : SV_Target0
 #if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 #endif

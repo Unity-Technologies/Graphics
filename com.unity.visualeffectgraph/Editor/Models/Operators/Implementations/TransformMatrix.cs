@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public Matrix4x4 o;
+            public Matrix4x4 o = Matrix4x4.identity;
         }
 
         override public string name { get { return "Transform (Matrix)"; } }

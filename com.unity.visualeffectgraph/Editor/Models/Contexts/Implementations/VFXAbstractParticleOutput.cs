@@ -199,6 +199,19 @@ namespace UnityEditor.VFX
                 if (supportSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
 
+                switch (blendMode)
+                {
+                    case BlendMode.Alpha:
+                        yield return "VFX_BLENDMODE_ALPHA";
+                        break;
+                    case BlendMode.Additive:
+                        yield return "VFX_BLENDMODE_ADD";
+                        break;
+                    case BlendMode.AlphaPremultiplied:
+                        yield return "VFX_BLENDMODE_PREMULTIPLY";
+                        break;
+                }
+
                 VisualEffectResource asset = GetResource();
                 if (asset != null)
                 {

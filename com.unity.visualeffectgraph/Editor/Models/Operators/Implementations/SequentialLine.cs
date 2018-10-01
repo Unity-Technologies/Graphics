@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            public Line line;
+            public Line line = Line.defaultValue;
             [Tooltip("Element index used to loop over the sequence")]
             public uint Index = 0u;
             [Tooltip("Element count used to loop over the sequence")]

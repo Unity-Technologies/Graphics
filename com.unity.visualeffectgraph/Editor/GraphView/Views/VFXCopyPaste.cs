@@ -375,7 +375,7 @@ namespace UnityEditor.VFX.UI
 
             if (contexts.Count() == 0 && slotContainers.Count() == 0 && blocks.Count() > 0)
             {
-                VFXBlock[] copiedBlocks = blocks.Select(t => t.block).ToArray();
+                VFXBlock[] copiedBlocks = blocks.Select(t => t.model).ToArray();
                 copyData.blocks = copiedBlocks;
                 PrepareSerializedObjects(copyData, null);
                 copyData.blocksOnly = true;
@@ -495,7 +495,7 @@ namespace UnityEditor.VFX.UI
 
             if (selectedBlocks.Count() > 0)
             {
-                targetBlock = selectedBlocks.OrderByDescending(t => t.context.controller.model.GetIndex(t.controller.block)).First();
+                targetBlock = selectedBlocks.OrderByDescending(t => t.context.controller.model.GetIndex(t.controller.model)).First();
                 targetContext = targetBlock.context;
             }
             else if (selectedContexts.Count() == 1)
@@ -513,7 +513,7 @@ namespace UnityEditor.VFX.UI
             int targetIndex = -1;
             if (targetBlock != null)
             {
-                targetIndex = targetModelContext.GetIndex(targetBlock.controller.block) + 1;
+                targetIndex = targetModelContext.GetIndex(targetBlock.controller.model) + 1;
             }
 
             var newBlocks = new HashSet<VFXBlock>();
@@ -543,7 +543,7 @@ namespace UnityEditor.VFX.UI
 
             view.ClearSelection();
 
-            foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => newBlocks.Contains(t.controller.block)).ToList())
+            foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => newBlocks.Contains(t.controller.model)).ToList())
             {
                 view.AddToSelection(uiBlock);
             }

@@ -5,6 +5,7 @@ real3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_A
         real3 triplanarWeights = uvMapping.triplanarWeights;
 
 #ifdef SURFACE_GRADIENT
+        // Height map gradient. Basically, it encodes height map slopes along S and T axes.
         real2 derivXplane;
         real2 derivYPlane;
         real2 derivZPlane;

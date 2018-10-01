@@ -362,9 +362,9 @@ public class VisualEffectAssetEditor : Editor
 
     private static readonly KeyValuePair<string, VFXCullingFlags>[] k_CullingOptions = new KeyValuePair<string, VFXCullingFlags>[]
     {
-        new KeyValuePair<string, VFXCullingFlags>("Cull simulation and bounds", (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate)),
-        new KeyValuePair<string, VFXCullingFlags>("Cull simulation only", (VFXCullingFlags.CullSimulation)),
-        new KeyValuePair<string, VFXCullingFlags>("Disable culling", VFXCullingFlags.CullNone),
+        new KeyValuePair<string, VFXCullingFlags>("Recompute bounds and simulate when visible", (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate)),
+        new KeyValuePair<string, VFXCullingFlags>("Always recompute bounds, simulate only when visible", (VFXCullingFlags.CullSimulation)),
+        new KeyValuePair<string, VFXCullingFlags>("Always recompute bounds and simulate", VFXCullingFlags.CullNone),
     };
 
     private string CullingMaskToString(VFXCullingFlags flags)
