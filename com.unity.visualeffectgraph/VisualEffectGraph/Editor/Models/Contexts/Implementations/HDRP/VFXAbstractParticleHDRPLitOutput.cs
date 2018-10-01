@@ -15,6 +15,7 @@ namespace UnityEditor.VFX
             SpecularColor,
             Translucent,
             SimpleLit,
+            SimpleLitTranslucent,
         }
 
         [Flags]
@@ -40,6 +41,7 @@ namespace UnityEditor.VFX
             "SpecularColorProperties",
             "TranslucentProperties",
             "SimpleLitProperties",
+            "SimpleLitTranslucentProperties",
         };
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting")]
@@ -82,9 +84,6 @@ namespace UnityEditor.VFX
         protected bool enableSpecular = true;
         
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected bool enableTransmission = true;
-        
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool enableCookie = true;
         
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -116,6 +115,12 @@ namespace UnityEditor.VFX
         }
 
         public class SimpleLitProperties
+        {
+            [Range(0, 1)]
+            public float metallic = 0.5f;
+        }
+
+        public class SimpleLitTranslucentProperties
         {
             [Range(0, 1)]
             public float thickness = 1.0f;
@@ -202,6 +207,7 @@ namespace UnityEditor.VFX
             switch (materialType)
             {
                 case MaterialType.Standard:
+                case MaterialType.SimpleLit:
                     yield return slotExpressions.First(o => o.name == "metallic");
                     break;
 
@@ -210,7 +216,7 @@ namespace UnityEditor.VFX
                     break;
 
                 case MaterialType.Translucent:
-                case MaterialType.SimpleLit:
+                case MaterialType.SimpleLitTranslucent:
                     yield return slotExpressions.First(o => o.name == "thickness");
                     yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfile), "diffusionProfile");
                     break;
@@ -272,8 +278,18 @@ namespace UnityEditor.VFX
                             yield return "HDRP_ENABLE_SHADOWS";
                         if (enableSpecular)
                             yield return "HDRP_ENABLE_SPECULAR";
-                        if (enableTransmission)
-                            yield return "HDRP_ENABLE_TRANSMISSION";
+                        if (enableCookie)
+                            yield return "HDRP_ENABLE_COOKIE";
+                        if (enableEnvLight)
+                            yield return "HDRP_ENABLE_ENV_LIGHT";
+                        break;
+                    
+                    case MaterialType.SimpleLitTranslucent:
+                        yield return "HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT";
+                        if (enableShadows)
+                            yield return "HDRP_ENABLE_SHADOWS";
+                        if (enableSpecular)
+                            yield return "HDRP_ENABLE_SPECULAR";
                         if (enableCookie)
                             yield return "HDRP_ENABLE_COOKIE";
                         if (enableEnvLight)

@@ -150,8 +150,8 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
 #undef EVALUATE_BSDF_ENV_SKY    
 
     // Also Apply indiret diffuse (GI)
-    // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
-    PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting,
+    // SimplePostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
+    SimplePostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting,
                         diffuseLighting, specularLighting);
 
     ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);

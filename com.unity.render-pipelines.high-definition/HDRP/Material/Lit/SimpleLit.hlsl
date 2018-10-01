@@ -25,25 +25,7 @@ void SimpleBSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightDa
 
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
-    float DV;
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
-    {
-        float3 H = (L + V) * invLenLV;
-
-        // For anisotropy we must not saturate these values
-        float TdotH = dot(bsdfData.tangentWS, H);
-        float TdotL = dot(bsdfData.tangentWS, L);
-        float BdotH = dot(bsdfData.bitangentWS, H);
-        float BdotL = dot(bsdfData.bitangentWS, L);
-
-        // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-        DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
-                                   bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
-    }
-    else
-    {
-        DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessT, preLightData.partLambdaV);
-    }
+    float DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessT, preLightData.partLambdaV);
     specularLighting = F * DV;
 #endif // HDRP_ENABLE_SPECULAR
 }
@@ -123,7 +105,7 @@ DirectLighting SimpleEvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float NdotL = dot(N, L);
 
     float3 transmittance = float3(0.0, 0.0, 0.0);
-#if HDRP_ENABLE_TRANSMISSION
+#if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
     if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
     {
         // Caution: This function modify N and contactShadowIndex
@@ -146,7 +128,7 @@ DirectLighting SimpleEvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-#if HDRP_ENABLE_TRANSMISSION
+#if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
     // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
     if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
     {
@@ -223,7 +205,7 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
     attenuation = SmoothPunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
                                                  lightData.angleScale, lightData.angleOffset);
 
-#if HDRP_ENABLE_TRANSMISSION
+#if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
     // TODO: sample the extinction from the density V-buffer.
     float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
     attenuation *= TransmittanceHomogeneousMedium(_GlobalExtinction, distVol);
@@ -350,7 +332,7 @@ DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float  NdotL = dot(N, L);
 
     float3 transmittance = float3(0.0, 0.0, 0.0);
-#if HDRP_ENABLE_TRANSMISSION
+#if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // Caution: This function modify N and lightData.contactShadowIndex
@@ -381,7 +363,7 @@ DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-#if HDRP_ENABLE_TRANSMISSION
+#if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         float  NdotV = ClampNdotV(preLightData.NdotV);
@@ -482,4 +464,32 @@ IndirectLighting SimpleEvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     lighting.specularReflected = envLighting;
 
     return lighting;
+}
+
+void SimplePostEvaluateBSDF(  LightLoopContext lightLoopContext,
+                        float3 V, PositionInputs posInput,
+                        PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
+                        out float3 diffuseLighting, out float3 specularLighting)
+{
+    AmbientOcclusionFactor aoFactor;
+    // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
+    GetScreenSpaceAmbientOcclusion(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, aoFactor);
+    ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
+
+    // Subsurface scattering mode
+    float3 modifiedDiffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
+
+    // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
+    // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
+    // Note: In deferred bakeDiffuseLighting also contain emissive and in this case emissiveColor is 0
+    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
+
+
+    specularLighting = lighting.indirect.specularReflected;
+    // Rescale the GGX to account for the multiple scattering.
+    // specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
+
+#ifdef DEBUG_DISPLAY
+    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
+#endif
 }
