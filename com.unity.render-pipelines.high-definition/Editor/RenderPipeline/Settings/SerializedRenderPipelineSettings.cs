@@ -17,9 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty increaseResolutionOfVolumetrics;
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportOnlyForward;
-
-        public SerializedProperty xrConfig;
-
+        
         public SerializedProperty supportDecals;
         public SerializedProperty supportMSAA;
         public SerializedProperty MSAASampleCount;
@@ -43,9 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             increaseResolutionOfVolumetrics = root.Find((RenderPipelineSettings s) => s.increaseResolutionOfVolumetrics);
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             supportOnlyForward              = root.Find((RenderPipelineSettings s) => s.supportOnlyForward);
-
-            xrConfig                        = root.Find((RenderPipelineSettings s) => s.xrConfig);
-
+            
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
             supportMSAA                     = root.Find((RenderPipelineSettings s) => s.supportMSAA);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        

@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a normal bias issue with Stacklit (Was causing light leaking)
 - Fixed camera preview outputing an error when both scene and game view where display and play and exit was call
 - Fixed override debug mode not apply correctly on static GI
+- Fixed issue where XRGraphicsConfig values set in the asset inspector GUI weren't propagating correctly (VR still disabled for now)
 
 ### Changed
 - Use samplerunity_ShadowMask instead of samplerunity_samplerLightmap for shadow mask
 - Allow to resize reflection probe gizmo's size
+- Added occlusion mesh to depth prepass for VR (VR still disabled for now)
 
 ## [4.0.0-preview] - 2018-09-28
 ### Added
@@ -37,6 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Stencil test during decals normal buffer update is now properly applied
 - Decals corectly update normal buffer in forward
 - Fixed a normalization problem in reflection probe face fading causing artefacts in some cases
+- Fix multi-selection behavior of Density Volumes overwriting the albedo value
+- Fixed support of depth texture for RenderTexture. HDRP now correctly output depth to user depth buffer if RenderTexture request it.
 - Fixed multi-selection behavior of Density Volumes overwriting the albedo value
 - Fixed support of depth for RenderTexture. HDRP now correctly output depth to user depth buffer if RenderTexture request it.
 - Fixed support of Gizmo in game view in the editor
