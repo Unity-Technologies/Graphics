@@ -327,7 +327,7 @@ namespace UnityEditor.VFX
             }
             else if (obj is string)
             {
-                return "\"" + ((string)obj)+ "\"";
+                return "\"" + ((string)obj).Replace("\"","\\\"")+ "\"";
             }
             else if (obj is SerializableType)
             {
@@ -465,7 +465,7 @@ namespace UnityEditor.VFX
             }
             else if( type == typeof(string))
             {
-                return text.Substring(1,text.Length-2);
+                return text.Substring(1,text.Length-2).Replace("\\\"","\"");
             }
             else if( type == typeof(SerializableType))
             {
