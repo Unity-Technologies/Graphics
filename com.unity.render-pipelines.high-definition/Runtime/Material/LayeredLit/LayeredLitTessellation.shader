@@ -449,7 +449,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-    // enable GPU instancing
+    //enable GPU instancing support
     #pragma multi_compile_instancing
     #pragma instancing_options renderinglayer
 

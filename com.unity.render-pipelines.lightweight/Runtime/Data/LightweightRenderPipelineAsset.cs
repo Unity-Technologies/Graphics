@@ -105,10 +105,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
-        [SerializeField] bool m_LocalShadowsSupported;
-        [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution;
-        [SerializeField] int m_MaxPixelLights;
-        [SerializeField] ShadowResolution m_ShadowAtlasResolution;
+        [SerializeField] bool m_LocalShadowsSupported = false;
+        [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._256;
+        [SerializeField] int m_MaxPixelLights = 0;
+        [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
         [SerializeField] LightweightRenderPipelineResources m_ResourcesAsset;
 #if UNITY_EDITOR

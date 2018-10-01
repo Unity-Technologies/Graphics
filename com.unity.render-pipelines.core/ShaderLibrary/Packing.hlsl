@@ -7,8 +7,7 @@
 
 real3 PackNormalMaxComponent(real3 n)
 {
-    // TODO: use max3
-    return (n / max(abs(n.x), max(abs(n.y), abs(n.z)))) * 0.5 + 0.5;
+    return (n / Max3(abs(n.x), abs(n.y), abs(n.z))) * 0.5 + 0.5;
 }
 
 real3 UnpackNormalMaxComponent(real3 n)
@@ -177,7 +176,7 @@ real3 UnpackNormalRGBNoScale(real4 packedNormal)
 real3 UnpackNormalAG(real4 packedNormal, real scale = 1.0)
 {
     real3 normal;
-    normal.xy = packedNormal.wy * 2.0 - 1.0;
+    normal.xy = packedNormal.ag * 2.0 - 1.0;
     normal.xy *= scale;
     normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
     return normal;
@@ -186,8 +185,8 @@ real3 UnpackNormalAG(real4 packedNormal, real scale = 1.0)
 // Unpack normal as DXT5nm (1, y, 0, x) or BC5 (x, y, 0, 1)
 real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
 {
-    // This do the trick
-    packedNormal.w *= packedNormal.x;
+    // Convert to (?, y, 0, x)
+    packedNormal.a *= packedNormal.r;
     return UnpackNormalAG(packedNormal, scale);
 }
 
