@@ -4,6 +4,10 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [4.0.1-preview] - 2018-10-01
+### Fixed
+- Fixed compiler warnings on new mono 
+
 ## [4.0.0-preview] - 2018-09-28
 ### Added
 - Shader Graph now supports the High Definition Render Pipeline with both PBR and Unlit Master nodes. Shaders built with Shader Graph work with both the Lightweight and HD render pipelines.
