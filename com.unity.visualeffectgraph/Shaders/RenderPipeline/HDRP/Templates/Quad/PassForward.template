@@ -10,10 +10,14 @@ Pass
 	#define LIGHTLOOP_TILE_PASS
 	${VFXHDRPForwardDefines}
 	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST 
-    #pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
-    #pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
+	#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
+	#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
 	#pragma multi_compile _ DEBUG_DISPLAY
 	//#pragma enable_d3d11_debug_symbols
+	
+	#if IS_TRANSPARENT_PARTICLE
+	#define VFX_NEEDS_POSWS_INTERPOLATOR 1
+	#endif
 		
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}		
 		
@@ -42,6 +46,9 @@ Pass
 		#if USE_NORMAL_BENDING
 		float2 bentFactors : TEXCOORD5;
 		#endif
+		#if IS_TRANSPARENT_PARTICLE
+		float3 posWS : TEXCOORD6;
+		#endif
 	};
 	
 ${VFXHDRPLitVaryingsMacros}	
@@ -58,6 +65,9 @@ ${VFXHDRPLitVaryingsMacros}
 #endif
 #if USE_NORMAL_BENDING
 #define VFX_VARYING_BENTFACTORS bentFactors
+#endif
+#if IS_TRANSPARENT_PARTICLE
+#define VFX_VARYING_POSWS posWS
 #endif
 
 ${VFXBegin:VFXVertexAdditionalProcess}
