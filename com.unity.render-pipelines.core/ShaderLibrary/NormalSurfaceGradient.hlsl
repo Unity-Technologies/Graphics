@@ -60,38 +60,34 @@ real3 SurfaceGradientResolveNormal(real3 nrmVertexNormal, real3 surfGrad)
     return normalize(nrmVertexNormal - surfGrad);
 }
 
-// The 128 means the derivative will come out no greater than 128 numerically (where 1 is 45 degrees so 128 is very steap). You can increase it if u like of course
-// Basically tan(angle) limited to 128
-// So a max angle of 89.55 degrees ;) id argue thats close enough to the vertical limit at 90 degrees
-// vT is channels.xy of a tangent space normal in[-1; 1]
-// out: convert vT to a derivative
+real2 ConvertTangentSpaceNormalToHeightMapGradient(real2 normalXY, real rcpNormalZ, real scale)
+{
+    // scale * (-normal.xy / normal.z)
+    return normalXY * (-rcpNormalZ * scale);
+}
+
+// Converts tangent space normal to slopes (height map gradient).
+real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
+{
+    real3 vT   = packedNormal.rgb * 2.0 - 1.0; // Unsigned to signed
+    real  rcpZ = rcp(max(vT.z, FLT_EPS));      // Clamp to avoid INF
+
+    return ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ, scale);
+}
+
+// Converts tangent space normal to slopes (height map gradient).
 real2 UnpackDerivativeNormalAG(real4 packedNormal, real scale = 1.0)
 {
-    const real fS = 1.0 / (128.0 * 128.0);
-    real2 vT = packedNormal.wy * 2.0 - 1.0;
-    real2 vTsq = vT * vT;
-    real nz_sq = 1 - vTsq.x - vTsq.y;
-    real maxcompxy_sq = fS * max(vTsq.x, vTsq.y);
-    real z_inv = rsqrt(max(nz_sq, maxcompxy_sq));
-    real2 deriv = -z_inv * real2(vT.x, vT.y);
-    return deriv * scale;
+    real2 vT   = packedNormal.ag * 2.0 - 1.0;                      // Unsigned to signed
+    real  rcpZ = rsqrt(max(1 - Sq(vT.x) - Sq(vT.y), Sq(FLT_EPS))); // Clamp to avoid INF
+
+    return ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ, scale);
 }
 
 // Unpack normal as DXT5nm (1, y, 0, x) or BC5 (x, y, 0, 1)
 real2 UnpackDerivativeNormalRGorAG(real4 packedNormal, real scale = 1.0)
 {
-    // This do the trick
-    packedNormal.w *= packedNormal.x;
+    // Convert to (?, y, 0, x)
+    packedNormal.a *= packedNormal.r;
     return UnpackDerivativeNormalAG(packedNormal, scale);
-}
-
-real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
-{
-    const real fS = 1.0 / (128.0 * 128.0);
-    real3 vT = packedNormal.xyz * 2.0 - 1.0;
-    real3 vTsq = vT * vT;
-    real maxcompxy_sq = fS * max(vTsq.x, vTsq.y);
-    real z_inv = rsqrt(max(vTsq.z, maxcompxy_sq));
-    real2 deriv = -z_inv * real2(vT.x, vT.y);
-    return deriv * scale;
 }
