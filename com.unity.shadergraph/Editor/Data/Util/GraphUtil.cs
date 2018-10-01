@@ -11,6 +11,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
+using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -86,6 +87,39 @@ namespace UnityEditor.ShaderGraph
 
     public static class ShaderSpliceUtil
     {
+        enum BaseFieldType
+        {
+            Invalid,
+            Float,
+            Uint,
+        };
+
+        private static BaseFieldType GetBaseFieldType(string typeName)
+        {
+            if (typeName.StartsWith("Vector") || typeName.Equals("Single"))
+            {
+                return BaseFieldType.Float;
+            }
+            if (typeName.StartsWith("UInt32")) // We don't have proper support for uint (Uint, Uint2, Uint3, Uint4). Need these types, for now just supporting instancing via a single uint.
+            {
+                return BaseFieldType.Uint;
+            }
+            return BaseFieldType.Invalid;
+        }
+
+        private static int GetComponentCount(string typeName)
+        {
+            switch (GetBaseFieldType(typeName))
+            {
+                case BaseFieldType.Float:
+                    return GetFloatVectorCount(typeName);
+                case BaseFieldType.Uint:
+                    return GetUintCount(typeName);
+                default:
+                    return 0;
+            }
+        }
+
         private static int GetFloatVectorCount(string typeName)
         {
             if (typeName.Equals("Vector4"))
@@ -110,6 +144,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // Need uint types
+        private static int GetUintCount(string typeName)
+        {
+            if (typeName.Equals("UInt32"))
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
         private static string[] vectorTypeNames =
         {
             "unknown",
@@ -117,6 +164,12 @@ namespace UnityEditor.ShaderGraph
             "float2",
             "float3",
             "float4"
+        };
+
+        private static string[] uintTypeNames =
+        {
+            "unknown",
+            "uint",
         };
 
         private static char[] channelNames =
@@ -161,7 +214,7 @@ namespace UnityEditor.ShaderGraph
             return semanticString;
         }
 
-        private static string GetFieldType(FieldInfo field, out int floatVectorCount)
+        private static string GetFieldType(FieldInfo field, out int componentCount)
         {
             string fieldType;
             object[] overrideType = field.GetCustomAttributes(typeof(OverrideType), false);
@@ -169,13 +222,24 @@ namespace UnityEditor.ShaderGraph
             {
                 OverrideType first = (OverrideType)overrideType[0];
                 fieldType = first.typeName;
-                floatVectorCount = 0;
+                componentCount = 0;
             }
             else
             {
                 // TODO: handle non-float types
-                floatVectorCount = GetFloatVectorCount(field.FieldType.Name);
-                fieldType = vectorTypeNames[floatVectorCount];
+                componentCount = GetComponentCount(field.FieldType.Name);
+                switch (GetBaseFieldType(field.FieldType.Name))
+                {
+                    case BaseFieldType.Float:
+                        fieldType = vectorTypeNames[componentCount];
+                        break;
+                    case BaseFieldType.Uint:
+                        fieldType = uintTypeNames[componentCount];
+                        break;
+                    default:
+                        fieldType = "unknown";
+                        break;
+                }
             }
             return fieldType;
         }
@@ -210,8 +274,8 @@ namespace UnityEditor.ShaderGraph
                     if (ShouldSpliceField(t, field, activeFields, out isOptional))
                     {
                         string semanticString = GetFieldSemantic(field);
-                        int floatVectorCount;
-                        string fieldType = GetFieldType(field, out floatVectorCount);
+                        int componentCount;
+                        string fieldType = GetFieldType(field, out componentCount);
                         string conditional = GetFieldConditional(field);
 
                         if (conditional != null)
@@ -1021,11 +1085,12 @@ namespace UnityEditor.ShaderGraph
 
                 finalShader.AppendLine(@"HLSLINCLUDE");
                 finalShader.AppendLine("#define USE_LEGACY_UNITY_MATRIX_VARIABLES");
-                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/Common.hlsl""");
-                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/Packing.hlsl""");
-                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/Color.hlsl""");
-                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/UnityInstancing.hlsl""");
-                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/EntityLighting.hlsl""");
+                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl""");
+                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl""");
+                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl""");
+                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl""");
+                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl""");
+                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl""");
                 finalShader.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalShader.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
                 finalShader.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
@@ -1131,7 +1196,7 @@ namespace UnityEditor.ShaderGraph
                         (activeNode as IGeneratesFunction).GenerateNodeFunction(functionRegistry, graphContext, mode);
                     }
                     if (activeNode is IGeneratesBodyCode)
-                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(sg, mode);
+                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(sg, graphContext, mode);
                     if (masterNode == null && activeNode.hasPreview)
                     {
                         var outputSlot = activeNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
@@ -1245,7 +1310,7 @@ namespace UnityEditor.ShaderGraph
                     var generatesBodyCode = node as IGeneratesBodyCode;
                     if (generatesBodyCode != null)
                     {
-                        generatesBodyCode.GenerateNodeCode(sg, mode);
+                        generatesBodyCode.GenerateNodeCode(sg, graphContext, mode);
                     }
                     node.CollectShaderProperties(shaderProperties, mode);
                 }
@@ -1370,22 +1435,53 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        static ProcessStartInfo CreateProcessStartInfo(string filePath)
+        {
+            string externalScriptEditor = ScriptEditorUtility.GetExternalScriptEditor();
+
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.UseShellExecute = false;
+
+
+        #if UNITY_EDITOR_OSX
+            string arg = string.Format("-a \"{0}\" -n --args \"{1}\"", externalScriptEditor, Path.GetFullPath(filePath));
+            psi.FileName = "open";
+            psi.Arguments = arg;
+        #else
+            psi.Arguments = Path.GetFileName(filePath);
+            psi.WorkingDirectory = Path.GetDirectoryName(filePath);
+            psi.FileName = externalScriptEditor;
+        #endif
+            return psi;
+        }
+
         public static void OpenFile(string path)
         {
-            if (!File.Exists(Path.GetFullPath(path)))
+            string filePath = Path.GetFullPath(path);
+            if (!File.Exists(filePath))
             {
                 Debug.LogError(string.Format("Path {0} doesn't exists", path));
                 return;
             }
 
-            string file = Path.GetFullPath(path);
-            ProcessStartInfo pi = new ProcessStartInfo(file);
-            pi.Arguments = Path.GetFileName(file);
-            pi.UseShellExecute = true;
-            pi.WorkingDirectory = Path.GetDirectoryName(file);
-            pi.FileName = ScriptEditorUtility.GetExternalScriptEditor();
-            pi.Verb = "OPEN";
-            Process.Start(pi);
+            string externalScriptEditor = ScriptEditorUtility.GetExternalScriptEditor();
+            if (externalScriptEditor != "internal")
+            {
+                ProcessStartInfo psi = CreateProcessStartInfo(filePath);
+                Process.Start(psi);
+            }
+            else
+            {
+                Process p = new Process();
+                p.StartInfo.FileName = filePath;
+                p.EnableRaisingEvents = true;
+                p.Exited += (Object obj, EventArgs args) =>
+                {
+                    if(p.ExitCode != 0)
+                        Debug.LogWarningFormat("Unable to open {0}: Check external editor in preferences", filePath);
+                };
+                p.Start();
+            }
         }
     }
 }

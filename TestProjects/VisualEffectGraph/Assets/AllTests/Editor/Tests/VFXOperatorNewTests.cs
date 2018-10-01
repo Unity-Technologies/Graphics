@@ -805,8 +805,9 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(e.z, r.z);
         }
 
-
+#pragma warning disable 0414
         private static Type[] k_Completly_free_operator = new[] { typeof(Operator.Subtract), typeof(Operator.Add), typeof(Operator.Multiply), typeof(Operator.Divide) };
+#pragma warning restore 0414
         [Test]
         public void Compute_Output_Type_All_Combinaison_And_Compare_With_Reference([ValueSource("k_Completly_free_operator")]Type concernedOperator)
         {

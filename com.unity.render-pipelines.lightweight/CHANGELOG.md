@@ -4,23 +4,89 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.4.0-preview]
+## [4.1.0-preview] - 2018-09-28
+
+### Added
+- Added occlusion mesh rendering/hookup for VR
+
+## [4.0.0-preview] - 2018-09-28
 ### Added
 - When you have enabled Gizmos, they now appear correctly in the Game view.
 - Added requiresDepthPrepass field to RenderingData struct to tell if the runtime platform requires a depth prepass to generate a camera depth texture.
 - The `RenderingData` struct now holds a reference to `CullResults`.
 - When __HDR__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
 - When __MSAA__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
+- Enabled instancing on the terrain shader.
+- Sorting of opaque objects now respects camera `opaqueSortMode` setting.
+- Sorting of opaque objects disables front-to-back sorting flag, when camera settings allow that and the GPU has hidden surface removal.
+- LWRP now has a Custom Light Explorer that suits its feature set.
+- LWRP now supports Vertex Lit shaders for detail meshes on terrain.
+- LWRP now has three interactive Autodesk shaders: Autodesk Interactive, Autodesk Interactive Masked and Autodesk Interactive Transparent.
+- [Shader API] The `GetMainLight` and `GetAdditionalLight` functions can now compute shadow attenuation and store it in the new `shadowAttenuation` field in `LightData` struct.
+- [Shader API] Added a `VertexPositionInputs` struct that contains vertex position in difference spaces (world, view, hclip).
+- [Shader API] Added a `GetVertexPositionInputs` function to get an initialized `VertexPositionInputs`.
+- [Shader API] Added a `GetPerObjectLightIndex` function to return the per-object index given a for-loop index.
+- [Shader API] Added a `GetShadowCoord` function that takes a `VertexPositionInputs` as input.
+- [ShaderLibrary] Added VertexNormalInputs struct that contains data for per-pixel normal computation.
+- [ShaderLibrary] Added GetVertexNormalInputs function to return an initialized VertexNormalInputs.
+
 ### Changed
 - The `RenderingData` struct is now read-only.
-- `ScriptableRenderer`always perform a Clear before calling `IRendererSetup::Setup.` 
+- `ScriptableRenderer`always performs a Clear before calling `IRendererSetup::Setup.` 
 - `ScriptableRenderPass::Execute` no longer takes `CullResults` as input. Instead, use `RenderingData`as input, since that references `CullResults`.
 - `IRendererSetup_Setup` no longer takes `ScriptableRenderContext` and `CullResults` as input.
+- Shader includes are now referenced via package relative paths instead of via the deprecated shader export path mechanism https://docs.unity3d.com/2018.3/Documentation/ScriptReference/ShaderIncludePathAttribute.html.
+- The LWRP Asset settings were re-organized to be more clear.
+- Vertex lighting now controls if additional lights should be shaded per-vertex or per-pixel.
+- Renamed all `Local Lights` nomenclature to `Additional Lights`.
+- Changed shader naming to conform to our SRP shader code convention.
+- [Shader API] Renamed `SpotAttenuation` function to `AngleAttenuation`.
+- [Shader API] Renamed `_SHADOWS_ENABLED` keyword to `_MAIN_LIGHT_SHADOWS`
+- [Shader API] Renamed `_SHADOWS_CASCADE` keyword to `_MAIN_LIGHT_SHADOWS_CASCADE`
+- [Shader API] Renamed `_VERTEX_LIGHTS` keyword to `_ADDITIONAL_LIGHTS_VERTEX`.
+- [Shader API] Renamed `_LOCAL_SHADOWS_ENABLED` to `_ADDITIONAL_LIGHT_SHADOWS`
+- [Shader API] Renamed `GetLight` function to `GetAdditionalLight`.
+- [Shader API] Renamed `GetPixelLightCount` function to `GetAdditionalLightsCount`.
+- [Shader API] Renamed `attenuation` to `distanceAttenuation` in `LightData`.
+- [Shader API] Renamed `GetLocalLightShadowStrength` function to `GetAdditionalLightShadowStrength`.
+- [Shader API] Renamed `SampleScreenSpaceShadowMap` functions to `SampleScreenSpaceShadowmap`.
+- [Shader API] Renamed `MainLightRealtimeShadowAttenuation` function to `MainLightRealtimeShadow`.
+- [Shader API] Renamed light constants from `Directional` and `Local` to `MainLight` and `AdditionalLights`.
+- [Shader API] Renamed `GetLocalLightShadowSamplingData` function to `GetAdditionalLightShadowSamplingData`.
+- [Shader API] Removed OUTPUT_NORMAL macro.
+- [Shader API] Removed `lightIndex` and `substractiveAttenuation` from `LightData`.
+- [Shader API] Removed `ComputeShadowCoord` function. `GetShadowCoord` is provided instead.
+- All `LightweightPipeline` references in API and classes are now named `LightweightRenderPipeline`.
+- Files no longer have the `Lightweight` prefix.
+- Renamed Physically Based shaders to `Lit`, `ParticlesLit`, and `TerrainLit`.
+- Renamed Simple Lighting shaders to `SimpleLit`, and `ParticlesSimpleLit`.
+- [ShaderLibrary] Renamed `InputSurfacePBR.hlsl`, `InputSurfaceSimple.hlsl`, and `InputSurfaceUnlit` to `LitInput.hlsl`, `SimpleLitInput.hlsl`, and `UnlitInput.hlsl`. These files were moved from the `ShaderLibrary` folder to the`Shaders`.
+- [ShaderLibrary] Renamed `LightweightPassLit.hlsl` and `LightweightPassLitSimple.hlsl` to `LitForwardPass.hlsl` and `SimpleLitForwardPass.hlsl`. These files were moved from the `ShaderLibrary` folder to `Shaders`.
+- [ShaderLibrary] Renamed `LightweightPassMetaPBR.hlsl`, `LightweightPassMetaSimple.hlsl` and `LighweightPassMetaUnlit` to `LitMetaPass.hlsl`, `SimpleLitMetaPass.hlsl` and `UnlitMetaPass.hlsl`. These files were moved from the `ShaderLibrary` folder to `Shaders`.
+- [ShaderLibrary] Renamed `LightweightPassShadow.hlsl` to `ShadowCasterPass.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `LightweightPassDepthOnly.hlsl` to `DepthOnlyPass.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `InputSurfaceTerrain.hlsl` to `TerrainLitInput.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `LightweightPassLitTerrain.hlsl` to `TerrainLitPases.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `ParticlesPBR.hlsl` to `ParticlesLitInput.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `InputSurfacePBR.hlsl` to `LitInput.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `InputSurfaceUnlit.hlsl` to `UnlitInput.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `InputBuiltin.hlsl` to `UnityInput.hlsl`.
+- [ShaderLibrary] Renamed `LightweightPassMetaCommon.hlsl` to `MetaInput.hlsl`.
+- [ShaderLibrary] Renamed `InputSurfaceCommon.hlsl` to `SurfaceInput.hlsl`.
+- [ShaderLibrary] Removed LightInput struct and GetLightDirectionAndAttenuation. Use GetAdditionalLight function instead.
+- [ShaderLibrary] Removed ApplyFog and ApplyFogColor functions. Use MixFog and MixFogColor instead.
+- [ShaderLibrary] Removed TangentWorldToNormal function. Use TransformTangentToWorld instead.
+- [ShaderLibrary] Removed view direction normalization functions. View direction should always be normalized per pixel for accurate results.
+- [ShaderLibrary] Renamed FragmentNormalWS function to NormalizeNormalPerPixel.
+
 ### Fixed
+- If you have more than 16 lights in a scene, LWRP no longer causes random glitches while rendering lights.
 - The Unlit shader now samples Global Illumination correctly.
 - The Inspector window for the Unlit shader now displays correctly.
 - Reduced GC pressure by removing several per-frame memory allocations.
 - The tooltip for the the camera __MSAA__ property now appears correctly.
+- Fixed multiple C# code analysis rule violations.
+- The fullscreen mesh is no longer recreated upon every call to `ScriptableRenderer.fullscreenMesh`.
 
 ## [3.3.0-preview]
 ### Added
@@ -32,6 +98,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - UNITY_MATRIX_I_VP is now defined.
 - Renamed LightweightForwardRenderer to ScriptableRenderer.
 - Moved all light constants to _LightBuffer CBUFFER. Now _PerCamera CBUFFER contains all other per camera constants.
+- Change real-time attenuation to inverse square.
+- Change attenuation for baked GI to inverse square, to match real-time attenuation.
+- Small optimization in light attenuation shader code.
 
 ### Fixed
 - Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.

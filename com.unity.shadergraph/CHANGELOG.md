@@ -4,7 +4,9 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.4.0-preview]
+## [4.1.0-preview] - 2018-09-28
+
+## [4.0.0-preview] - 2018-09-28
 ### Added
 - Shader Graph now supports the High Definition Render Pipeline with both PBR and Unlit Master nodes. Shaders built with Shader Graph work with both the Lightweight and HD render pipelines.
 - You can now modify vertex position via the Position slot on the PBR and Unlit Master nodes. By default, the input to this node is object space position. Custom inputs to this slot should specify the absolute local position of a given vertex. Certain nodes (such as Procedural Shapes) are not viable in the vertex shader. Such nodes are incompatible with this slot.
@@ -19,6 +21,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - A new node `Texture 2D LOD` has been added for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot.
 - Added `Texel Size` node, which allows you to get the special texture properties of a Texture 2D Asset via the `{texturename}_TexelSize` variable. Based on input from the Texture 2D Asset, the node outputs the width and height of the texel size in Vector1 format.
 - Added `Rotate About Axis` node. This allows you to rotate a 3D vector space around an axis. For the rotation, you can specify an amount of degrees or a radian value.
+- Unpacking normal maps in object space.
+- Unpacking derivative maps option on sample texture nodes.
+- Added Uint type for instancing support.
+- Added HDR option for color material slots.
+- Added definitions used by new HD Lit Master node.
+- Added a popup control for a string list.
+- Added conversion type (position/direction) to TransformNode.
+- In your preview for nodes that are not master nodes, pixels now display as pink if they are not finite.
 
 ### Changed
 - The settings for master nodes now live in a small window that you can toggle on and off. Here, you can change various rendering settings for your shader.
@@ -38,6 +48,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Simple Noise` node no longer has a loop.
 - The `Polygon` node now calculates radius based on apothem.
 - `Normal Strength` node now calculates Z value more accurately.
+- You can now connect Sub Graphs to vertex shader slots. If a node in the Sub Graph specifies a shader stage, that specific Sub Graph node is locked to that stage. When an instance of a Sub Graph node is connected to a slot that specifies a shader stage, all slots on that instance are locked to the stage.
+- Separated material options and tags.
+- Master node settings are now recreated when a topological modification occurs.
 
 ### Fixed
 - Vector 1 nodes now evaluate correctly. ([#334](https://github.com/Unity-Technologies/ShaderGraph/issues/334) and [#337](https://github.com/Unity-Technologies/ShaderGraph/issues/337))
@@ -58,3 +71,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Normal Create` node has been renamed to `Normal From Texture`.
 - The preview of nodes now updates correctly.
 - Your system locale can no longer cause incorrect commands due to full stops being converted to commas.
+- `Show Generated Code` no longer throws an "Argument cannot be null" error.
+- Sub Graphs now use the correct generation mode when they generate preview shaders.
+- The `CodeFunctionNode` API now generates correct function headers when you use `DynamicMatrix` type slots.
+- Texture type input slots now set correct default values for 'Normal' texture type.
+- SpaceMaterialSlot now reads correct slot.
+- Slider node control now functions correctly.
+- Shader Graphs no longer display an error message intended for Sub Graphs when you delete properties.
+- The Shader Graph and Sub Shader Graph file extensions are no longer case-sensitive.
+- The dynamic value slot type now uses the correct decimal separator during HLSL generation.
+- Fixed an issue where Show Generated Code could fail when external editor was not set.

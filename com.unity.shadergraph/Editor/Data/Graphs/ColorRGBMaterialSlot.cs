@@ -9,6 +9,9 @@ namespace UnityEditor.ShaderGraph
 {
     public class ColorRGBMaterialSlot : Vector3MaterialSlot
     {
+        [SerializeField]
+        ColorMode m_ColorMode = ColorMode.Default;
+
         public ColorRGBMaterialSlot() {}
 
         public ColorRGBMaterialSlot(
@@ -17,10 +20,18 @@ namespace UnityEditor.ShaderGraph
             string shaderOutputName,
             SlotType slotType,
             Color value,
+            ColorMode colorMode,
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, (Vector4)value, stageCapability, hidden: hidden)
         {
+            m_ColorMode = colorMode;
+        }
+
+        public ColorMode colorMode
+        {
+            get { return m_ColorMode; }
+            set { m_ColorMode = value; }
         }
 
         public override VisualElement InstantiateControl()
@@ -30,7 +41,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return string.Format("IsGammaSpace() ? {0}3({1}, {2}, {3}) : SRGBToLinear({0}3({1}, {2}, {3}))"
+            return string.Format(m_ColorMode == ColorMode.Default ? "IsGammaSpace() ? {0}3({1}, {2}, {3}) : SRGBToLinear({0}3({1}, {2}, {3}))" : "{0}3({1}, {2}, {3})"
                 , precision
                 , NodeUtils.FloatToShaderValue(value.x)
                 , NodeUtils.FloatToShaderValue(value.y)

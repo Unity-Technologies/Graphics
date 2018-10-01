@@ -19,7 +19,7 @@
 			// make fog work
 			#pragma multi_compile_fog
 			
-			#include "LWRP/ShaderLibrary/Core.hlsl"
+			#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 
 			struct appdata
 			{
