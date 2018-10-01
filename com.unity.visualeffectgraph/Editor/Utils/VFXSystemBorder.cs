@@ -99,9 +99,13 @@ namespace UnityEditor.VFX.UI
             RecomputeBounds();
         }
 
-        void OnTitleChange(EventBase e)
+        void OnTitleChange(ChangeEvent<string> e)
         {
             title = m_TitleField.value;
+            if ( string.IsNullOrEmpty(e.previousValue) != string.IsNullOrEmpty(e.newValue) )
+            {
+                RecomputeBounds();
+            }
         }
 
         public override string title {
