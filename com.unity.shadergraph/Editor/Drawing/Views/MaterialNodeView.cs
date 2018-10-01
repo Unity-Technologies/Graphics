@@ -263,10 +263,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ShowGeneratedCode()
         {
-            var graph = (AbstractMaterialGraph)node.owner;
+            string name = GetFirstAncestorOfType<GraphEditorView>().assetName;
 
-            string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}.shader", SanitizeName(graph.name), SanitizeName(node.name), node.guid);
-
+            string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}.shader", SanitizeName(name), SanitizeName(node.name), node.guid);
             if (GraphUtil.WriteToFile(path, ConvertToShader()))
                 GraphUtil.OpenFile(path);
         }
@@ -280,6 +279,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var graph = (AbstractMaterialGraph)node.owner;
             return graph.GetShader(node, GenerationMode.ForReals, node.name).shader;
+        }
+
+        void RecreateSettings()
+        {
+            var settings = node as IHasSettings;
+            if (settings != null)
+            {
+                m_Settings.RemoveFromHierarchy();
+
+                m_Settings = settings.CreateSettingsElement();
+                m_NodeSettingsView.Add(m_Settings);
+            }
         }
 
         void UpdateSettingsExpandedState()
@@ -347,6 +358,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
+                RecreateSettings();
+
                 var slots = node.GetSlots<MaterialSlot>().ToList();
 
                 var inputPorts = inputContainer.Children().OfType<ShaderPort>().ToList();

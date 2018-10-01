@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
 {
     public class ShaderGenerationTest
     {
-        static readonly string s_Path = Path.Combine(Path.Combine(Path.Combine(DefaultShaderIncludes.GetRepositoryPath(), "Testing"), "IntegrationTests"), "Graphs");
+        static readonly string s_Path = Path.Combine(Path.Combine(Path.Combine("" /*DefaultShaderIncludes.GetRepositoryPath()*/, "Testing"), "IntegrationTests"), "Graphs");
 
         public struct TestInfo
         {
@@ -35,13 +35,14 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
             {
                 get
                 {
-                    var filePaths = Directory.GetFiles(s_Path, "*.ShaderGraph", SearchOption.AllDirectories).Select(x => new FileInfo(x));
+                    var filePaths = Directory.GetFiles(s_Path, string.Format("*.{0}", ShaderGraphImporter.Extension), SearchOption.AllDirectories).Select(x => new FileInfo(x));
 
                     foreach (var p in filePaths)
                     {
+                        var extension = Path.GetExtension(p.FullName);
                         yield return new TestInfo
                         {
-                            name = p.FullName.Replace(s_Path + Path.DirectorySeparatorChar, "").Replace(Path.DirectorySeparatorChar, '/').Replace(".ShaderGraph", ""),
+                            name = p.FullName.Replace(s_Path + Path.DirectorySeparatorChar, "").Replace(Path.DirectorySeparatorChar, '/').Replace(extension, ""),
                             info = p,
                             threshold = 0.05f
                         };
@@ -83,7 +84,7 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
 
             Assert.IsNotNull(graph.masterNode, "No master node in graph.");
 
-            var rootPath = Path.Combine(Path.Combine(DefaultShaderIncludes.GetRepositoryPath(), "Testing"), "IntegrationTests");
+            var rootPath = Path.Combine(Path.Combine("" /*DefaultShaderIncludes.GetRepositoryPath()*/, "Testing"), "IntegrationTests");
             var shaderTemplatePath = Path.Combine(rootPath, ".ShaderTemplates");
             var textTemplateFilePath = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", testInfo.name, "shader"));
 
