@@ -22,6 +22,7 @@ namespace UnityEditor.VFX
         public Vector2 aVector2;
         public Vector3 aVector3;
         public Vector4 aVector4;
+        public Color aColor;
         public UnityObject anObject;
         public AnimationCurve anAnimationCurve;
         public Gradient aGradient;
@@ -117,56 +118,62 @@ namespace UnityEditor.VFX
         {
             if (parameter.defaultValue == null)
                 return null;
+            Type type = parameter.defaultValue.type;
             object defaultValue = parameter.defaultValue.Get();
-            if (defaultValue == null)
+            if (type == null)
                 return null;
 
-            if( defaultValue is float)
+            if( typeof(float) == type)
             {
                 s_FakeObjectCache.aFloat = (float)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aFloat");
             }
-            else if (defaultValue is Vector2)
+            else if (typeof(Vector2) == type)
             {
                 s_FakeObjectCache.aVector2 = (Vector2)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aVector2");
             }
-            else if (defaultValue is Vector3)
+            else if (typeof(Vector3) == type)
             {
                 s_FakeObjectCache.aVector3 = (Vector3)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aVector3");
             }
-            else if (defaultValue is Vector4)
+            else if (typeof(Vector4) == type)
             {
                 s_FakeObjectCache.aVector4 = (Vector4)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aVector4");
             }
-            else if (defaultValue is Gradient)
+            else if (typeof(Color) == type)
+            {
+                s_FakeObjectCache.aColor = (Color)defaultValue;
+                return s_FakeObjectSerializedCache.FindProperty("aColor");
+            }
+            else if (typeof(Gradient) == type)
             {
                 s_FakeObjectCache.aGradient = (Gradient)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aGradient");
             }
-            else if (defaultValue is AnimationCurve)
+            else if (typeof(AnimationCurve) == type)
             {
                 s_FakeObjectCache.anAnimationCurve = (AnimationCurve)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("anAnimationCurve");
             }
-            else if (defaultValue is UnityObject)
+            else if (typeof(UnityObject).IsAssignableFrom(type))
             {
                 s_FakeObjectCache.anObject = (UnityObject)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("anObject");
             }
-            else if (defaultValue is int)
+            else if (typeof(int) == type)
             {
                 s_FakeObjectCache.anInt = (int)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("anInt");
             }
-            else if (defaultValue is uint)
+            else if (typeof(uint) == type)
             {
                 s_FakeObjectCache.anUInt = (uint)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("anUInt");
             }
-            else if (defaultValue is bool)
+            else if (typeof(bool) == type)
             {
                 s_FakeObjectCache.aBool = (bool)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aBool");

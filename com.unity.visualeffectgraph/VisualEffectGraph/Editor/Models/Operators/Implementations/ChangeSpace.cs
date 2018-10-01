@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Operator
 
         public class InputProperties
         {
-            public Position x;
+            public Position x = Position.defaultValue;
         }
 
         protected override double defaultValueDouble
