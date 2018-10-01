@@ -415,8 +415,6 @@ namespace UnityEditor.VFX.UI
                 bool foundSamePosition = false;
                 if (serializableGraph.contexts != null && serializableGraph.contexts.Length > 0)
                 {
-                    var type = serializableGraph.contexts[0].node.type;
-
                     foreach (var existingContext in viewController.graph.children.OfType<VFXContext>())
                     {
                         if ((serializableGraph.contexts[0].node.position + pasteOffset - existingContext.position).sqrMagnitude < 1)
