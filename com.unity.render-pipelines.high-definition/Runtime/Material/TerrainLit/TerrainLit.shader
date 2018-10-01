@@ -68,7 +68,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
-    #pragma instancing_options renderinglayer
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
     //-------------------------------------------------------------------------------------
