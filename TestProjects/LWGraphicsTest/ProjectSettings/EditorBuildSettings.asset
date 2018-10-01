@@ -98,7 +98,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity
     guid: 7a8ef7ce062f0465b9e493dd5730cecb
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/037_Particles_Standard.unity
     guid: 67bc76c89479b264aa4a5c176433ec3a
   - enabled: 1
@@ -140,4 +140,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/053_UnlitShader.unity
     guid: a28e1d48e6e3c0e42a4050ab4e770bf8
+  - enabled: 1
+    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/054_Lighting_Attenuation.unity
+    guid: 93a99004f07ca6f4dbbc9ccb319c7698
+  - enabled: 1
+    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/055_Lighting_Attenuation_Spot_Point.unity
+    guid: 362b9a0c21a9b4e798504044c7604e80
   m_configObjects: {}

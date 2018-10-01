@@ -4,11 +4,21 @@ ModelImporter:
   serializedVersion: 23
   fileIDToRecycleName:
     100000: //RootNode
+    100002: Fabric
+    100004: Sphere
     400000: //RootNode
+    400002: Fabric
+    400004: Sphere
     2100000: No Name
     2300000: //RootNode
+    2300002: Fabric
+    2300004: Sphere
     3300000: //RootNode
+    3300002: Fabric
+    3300004: Sphere
     4300000: grid1
+    4300002: Fabric
+    4300004: Sphere
   externalObjects: {}
   materials:
     importMaterials: 1
