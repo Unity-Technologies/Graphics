@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hide environment lighting settings when enabling HDRP (Settings are control from sceneSettings)
 - Update all shader includes to use absolute path (allow users to create material in their Asset folder)
 - Done a reorganization of the files (Move ShaderPass to RenderPipeline folder, Move all shadow related files to Lighting/Shadow and others)
+- Improved performance and quality of Screen Space Shadows
 
 ## [3.3.0-preview]
 
