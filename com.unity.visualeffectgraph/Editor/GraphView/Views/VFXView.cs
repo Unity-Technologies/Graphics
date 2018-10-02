@@ -1566,7 +1566,7 @@ namespace UnityEditor.VFX.UI
 
                 system.Add(currentContext);
 
-                var allChildren = currentContext.outputFlowSlot.SelectMany(t => t.link.Select(u => u.context)).ToList();
+                var allChildren = currentContext.outputFlowSlot.Where(t => t != null).SelectMany(t => t.link.Select(u => u.context)).Where(t => t != null).ToList();
                 while(allChildren.Count() > 0)
                 {
                     foreach (var child in allChildren)
@@ -1576,8 +1576,8 @@ namespace UnityEditor.VFX.UI
                         system.Add(child);
                     }
 
-                    var allSubChildren = allChildren.SelectMany(t => t.outputFlowSlot.SelectMany(u => u.link.Select(v => v.context)));
-                    var allPreChildren = allChildren.SelectMany(t => t.inputFlowSlot.SelectMany(u => u.link.Select(v => v.context).Where(v => v.contextType != VFXContextType.kSpawner && v.contextType != VFXContextType.kSpawnerGPU)));
+                    var allSubChildren = allChildren.SelectMany(t => t.outputFlowSlot.Where(u=>u != null).SelectMany(u => u.link.Select(v => v.context).Where(v=>v != null)));
+                    var allPreChildren = allChildren.SelectMany(t => t.inputFlowSlot.Where(u => u != null).SelectMany(u => u.link.Select(v => v.context).Where(v => v != null && v.contextType != VFXContextType.kSpawner && v.contextType != VFXContextType.kSpawnerGPU)));
 
                     allChildren = allSubChildren.Concat(allPreChildren).Except(system).ToList();
                 }
