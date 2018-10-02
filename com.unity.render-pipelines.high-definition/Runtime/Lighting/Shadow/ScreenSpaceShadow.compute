@@ -37,6 +37,7 @@ CBUFFER_END
 #define _ContactShadowFadeOneOverRange      _ContactShadowParamsParameters.w
 #define _ContactShadowOpacity               _ContactShadowParamsParameters2.x
 #define _EnableTimeDependentNoise           _ContactShadowParamsParameters2.y
+#define _RenderTargetHeight                 _ContactShadowParamsParameters2.z
 
 #define DEFERRED_SHADOW_TILE_SIZE 16
 
@@ -58,7 +59,7 @@ float SampleDepth(float2 UV, bool HalfRes)
     if (HalfRes)
     {
         pixelCoord.x *= 0.5f;
-        pixelCoord.y = pixelCoord.y * 0.5f + _ScreenSize.y;
+        pixelCoord.y = pixelCoord.y * 0.5f + _RenderTargetHeight;
     }
     
     return LOAD_TEXTURE2D(_CameraDepthTexture, pixelCoord).x;
