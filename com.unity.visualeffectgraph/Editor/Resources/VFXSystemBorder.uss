@@ -42,7 +42,7 @@ VFXSystemBorder.graphElement Label:hover
 
 #title-field
 {
-    positionType:absolute;
+    position-type:absolute;
 }
 
 #title, #title-field
@@ -53,7 +53,6 @@ VFXSystemBorder.graphElement Label:hover
 
 #title
 {
-    -height : 60;
     color:#17AB6A;
     opacity:0.75;
 }
