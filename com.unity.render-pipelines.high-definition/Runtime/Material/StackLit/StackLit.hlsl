@@ -654,7 +654,7 @@ float3 GetOrthogonalComponent(float3 V, float3 N)
     // V and N are supposed to be unit vectors
     float VdotN = dot(V, N);
     float3 VOrtho = V - VdotN * N;
-    float3 unitVOrtho = VOrtho * rsqrt(1.0 - Sq(VdotN));
+    float3 unitVOrtho = VOrtho * rsqrt(max(1.0 - Sq(VdotN), FLT_EPS));  // clamp to avoid rsqrt(0) = NaN
     return unitVOrtho;
 }
 
