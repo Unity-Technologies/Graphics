@@ -44,10 +44,24 @@ PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDF
 
     preLightData.ltcTransformDiffuse = k_identity3x3;
 
+    preLightData.ltcTransformSpecular      = 0.0;
+    preLightData.ltcTransformSpecular._m22 = 1.0;
+    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
+
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
 
     preLightData.ltcTransformCoat = 0.0;
+
+#if HAS_REFRACTION
+    RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
+    preLightData.transparentRefractV = refraction.rayWS;
+    preLightData.transparentPositionWS = refraction.positionWS;
+    preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
+    // Empirical remap to try to match a bit the refraction probe blurring for the fallback
+    // Use IblPerceptualRoughness so we can handle approx of clear coat.
+    preLightData.transparentSSMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
+#endif
 
     return preLightData;
 }
@@ -113,7 +127,7 @@ void SimpleEvaluateLight_Directional(LightLoopContext lightLoopContext, Position
     UNITY_BRANCH if (lightData.cookieIndex >= 0)
     {
         float3 lightToSample = positionWS - lightData.positionRWS;
-        float3 cookie = SimpleEvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
+        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
 
         color *= cookie;
     }
@@ -121,13 +135,10 @@ void SimpleEvaluateLight_Directional(LightLoopContext lightLoopContext, Position
 
 #if HDRP_ENABLE_SHADOWS
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
-    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
+    float NdotL = dot(N, L);
+    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (NdotL >= 0.0))
     {
-#ifdef USE_DEFERRED_DIRECTIONAL_SHADOWS
-        shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
-#else
-        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
-#endif
+        shadow = lightLoopContext.shadowValue;
     }
 #endif // HDRP_ENABLE_SHADOWS
 
@@ -244,7 +255,7 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
     float  shadow        = 1.0;
 
     color       = lightData.color;
-    attenuation = SmoothPunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
+    attenuation = PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
                                                  lightData.angleScale, lightData.angleOffset);
 
 #if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
@@ -270,7 +281,7 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
     {
         // TODO: make projector lights cast shadows.
         // Note:the case of NdotL < 0 can appear with isThinModeTransmission, in this case we need to flip the shadow bias
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, lightData.lightType == GPULIGHTTYPE_POINT, lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 
         // Transparent have no contact shadow information
@@ -294,7 +305,7 @@ float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopCont
     // If NdotL is negative, we have two cases:
     // - Thin mode: Reuse the front face fetch as shadow for back face - flip the normal for the bias (and the NdotL test) and disable contact shadow
     // - Mixed mode: Do a fetch on back face to retrieve the thickness. The thickness will provide a shadow attenuation (with distance travelled there is less transmission).
-    // (Note: SimpleEvaluateLight_Punctual discard the fetch if NdotL < 0)
+    // (Note: EvaluateLight_Punctual discard the fetch if NdotL < 0)
     if (NdotL < 0 && lightData.shadowIndex >= 0)
     {
         if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
@@ -308,7 +319,8 @@ float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopCont
 
             // Compute the distance from the light to the back face of the object along the light direction.
             float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
-                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS);
+                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS,
+                                                                            lightData.lightType == GPULIGHTTYPE_POINT);
 
             // Our subsurface scattering models use the semi-infinite planar slab assumption.
             // Therefore, we need to find the thickness along the normal.
@@ -317,7 +329,6 @@ float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopCont
             float thicknessInMeters = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
             float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
-#if SHADEROPTIONS_USE_DISNEY_SSS
             // We need to make sure it's not less than the baked thickness to minimize light leaking.
             float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
 
@@ -327,31 +338,17 @@ float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopCont
 #if 0
             float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
 #else
-            // Help the compiler.
-            float  k = (-1.0 / 3.0) * LOG2_E;
-            float3 p = (k * thicknessDelta) * S;
+            // Help the compiler. S is premultiplied by ((-1.0 / 3.0) * LOG2_E) on the CPU.
+            float3 p = thicknessDelta * S;
             float3 expOneThird = exp2(p);
 #endif
 
             transmittance *= expOneThird;
 
-#else // SHADEROPTIONS_USE_DISNEY_SSS
-
-            // We need to make sure it's not less than the baked thickness to minimize light leaking.
-            thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
-
-            transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].rgb,
-                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].a,
-                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].rgb,
-                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].a,
-                                                        _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
-                                                        thicknessInMillimeters);
-#endif // SHADEROPTIONS_USE_DISNEY_SSS
-
             // Note: we do not modify the distance to the light, or the light angle for the back face.
             // This is a performance-saving optimization which makes sense as long as the thickness is small.
         }
-        
+
         transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
     }
 
