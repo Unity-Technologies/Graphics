@@ -57,6 +57,18 @@ namespace UnityEditor.VFX
             return UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath + "/templates/" + fileName;
         }
 
+        [SerializeField]
+        private string m_Label;
+
+        public string label
+        {
+            get { return m_Label; }
+            set {
+                m_Label = value;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
+        }
+
         private VFXContext() { m_UICollapsed = false; } // Used by serialization
 
         public VFXContext(VFXContextType contextType, VFXDataType inputType, VFXDataType outputType)

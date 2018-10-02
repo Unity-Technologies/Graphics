@@ -294,6 +294,15 @@ TextField#user-title-textfield
     min-height:24;
 }
 
+VFXContextUI.inputTypespawnevent #user-label
+{
+    text-color:#00ff8f;
+}
+VFXContextUI.inputTypeparticle #user-label
+{
+    text-color:#FFBC21;
+}
+
 #user-label.empty
 {
     height : 4;

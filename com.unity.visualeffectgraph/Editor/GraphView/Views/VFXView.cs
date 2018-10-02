@@ -1545,10 +1545,13 @@ namespace UnityEditor.VFX.UI
             HashSet<VFXContext> initializes = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kInit).ToArray());
             HashSet<VFXContext> updates = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kUpdate).ToArray());
 
-            List<HashSet<VFXContext>> systems = new List<HashSet<VFXContext>>();
+            List<Dictionary<VFXContext,int>> systems = new List<Dictionary<VFXContext, int>>();
 
-            while(initializes.Count > 0 || updates.Count > 0)
+            
+            while (initializes.Count > 0 || updates.Count > 0)
             {
+                int generation = 0;
+
                 VFXContext currentContext;
                 if (initializes.Count > 0)
                 {
@@ -1562,24 +1565,26 @@ namespace UnityEditor.VFX.UI
                 }
 
 
-                HashSet<VFXContext> system = new HashSet<VFXContext>();
+                Dictionary<VFXContext, int> system = new Dictionary<VFXContext, int>();
 
-                system.Add(currentContext);
+                system.Add(currentContext,generation);
 
                 var allChildren = currentContext.outputFlowSlot.Where(t => t != null).SelectMany(t => t.link.Select(u => u.context)).Where(t => t != null).ToList();
                 while(allChildren.Count() > 0)
                 {
+                    ++generation;
+
                     foreach (var child in allChildren)
                     {
                         initializes.Remove(child);
                         updates.Remove(child);
-                        system.Add(child);
+                        system.Add(child,generation);
                     }
 
                     var allSubChildren = allChildren.SelectMany(t => t.outputFlowSlot.Where(u=>u != null).SelectMany(u => u.link.Select(v => v.context).Where(v=>v != null)));
                     var allPreChildren = allChildren.SelectMany(t => t.inputFlowSlot.Where(u => u != null).SelectMany(u => u.link.Select(v => v.context).Where(v => v != null && v.contextType != VFXContextType.kSpawner && v.contextType != VFXContextType.kSpawnerGPU)));
 
-                    allChildren = allSubChildren.Concat(allPreChildren).Except(system).ToList();
+                    allChildren = allSubChildren.Concat(allPreChildren).Except(system.Keys).ToList();
                 }
 
                 if(system.Count > 1)
@@ -1603,8 +1608,8 @@ namespace UnityEditor.VFX.UI
 
             for(int i = 0; i < systems.Count(); ++i)
             {
-                m_Systems[i].contexts = systems[i].Select(t => controller.GetNodeController(t, 0)).Where(t=>t != null).Select(t=> rootNodes[t]).Cast<VFXContextUI>().ToArray();
-                m_Systems[i].title = controller.graph.UIInfos.GetNameOfSystem(systems[i]);
+                m_Systems[i].contexts = systems[i].Keys.Select(t => controller.GetNodeController(t, 0)).Where(t=>t != null).Select(t=> rootNodes[t]).Cast<VFXContextUI>().ToArray();
+                m_Systems[i].title = controller.graph.UIInfos.GetNameOfSystem(systems[i].Keys);
             }
         }
 
@@ -1612,6 +1617,7 @@ namespace UnityEditor.VFX.UI
         public void SetSystemTitle(VFXSystemBorder system, string title)
         {
             controller.graph.UIInfos.SetNameOfSystem(system.contexts.Select(t => t.controller.model), title);
+            controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
