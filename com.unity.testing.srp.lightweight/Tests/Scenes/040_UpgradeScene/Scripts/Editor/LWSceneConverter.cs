@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-using UnityEditor.Experimental.Rendering.LightweightPipeline;
+using UnityEditor.Experimental.Rendering.LightweightRP;
 
 
 public class LWSceneConverter : MonoBehaviour 

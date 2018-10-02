@@ -4,7 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.4.0]
+## [4.1.0-preview] - 2018-09-28
+
+## [4.0.0-preview] - 2018-09-28
+### Added
+- Space transform functions are now defined in `ShaderLibrary/SpaceTransforms.hlsl`.
+### Changed
+- Removed setting shader inclue path via old API, use package shader include paths
 
 ## [3.3.0]
 

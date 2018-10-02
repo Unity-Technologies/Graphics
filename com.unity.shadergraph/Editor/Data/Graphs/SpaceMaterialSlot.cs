@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            var slot = foundSlot as NormalMaterialSlot;
+            var slot = foundSlot as SpaceMaterialSlot;
             if (slot != null)
                 space = slot.space;
         }
