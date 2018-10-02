@@ -396,7 +396,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
     GenerateLayerTexCoordBasisTB(input, layerTexCoord);
 #endif
 
-    GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
+    GetLayerTexCoord(   input.texCoord0.xy, input.texCoord1.xy, input.texCoord2.xy, input.texCoord3.xy,
                         input.positionRWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
