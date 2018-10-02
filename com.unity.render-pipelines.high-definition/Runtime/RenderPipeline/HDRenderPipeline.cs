@@ -1146,10 +1146,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         StopStereoRendering(cmd, renderContext, hdCamera);
 
+#if UNITY_2019_1_OR_NEWER
+                        GraphicsFence buildGPULightListsCompleteFence = new GraphicsFence();
+#else
                         GPUFence buildGPULightListsCompleteFence = new GPUFence();
+#endif
                         if (hdCamera.frameSettings.enableAsyncCompute)
                         {
+#if UNITY_2019_1_OR_NEWER
+                            GraphicsFence startFence = cmd.CreateAsyncGraphicsFence();
+#else
                             GPUFence startFence = cmd.CreateGPUFence();
+#endif
                             renderContext.ExecuteCommandBuffer(cmd);
                             cmd.Clear();
 
@@ -1343,9 +1351,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DebugScreenSpaceTracingData.SetData(m_DebugScreenSpaceTracingDataArray);
                 }
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
                 UnityEditor.Handles.DrawGizmos(camera);
-            #endif
+#endif
 
             } // For each camera
         }
