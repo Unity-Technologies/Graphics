@@ -106,7 +106,7 @@ MonoBehaviour:
     m_Value: 1
   length:
     m_OverrideState: 1
-    m_Value: 0.039
+    m_Value: 0.131
     min: 0
     max: 1
   opacity:
@@ -125,7 +125,7 @@ MonoBehaviour:
     min: 0
   fadeDistance:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.01
     min: 0
   sampleCount:
     m_OverrideState: 1
