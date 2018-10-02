@@ -27,7 +27,7 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     #else
     ComputeLayerTexCoord0(
     #endif
-                            input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3, _UVMappingMaskEmissive, _UVMappingMaskEmissive,
+                            input.texCoord0.xy, input.texCoord1.xy, input.texCoord2.xy, input.texCoord3.xy, _UVMappingMaskEmissive, _UVMappingMaskEmissive,
                             _EmissiveColorMap_ST.xy, _EmissiveColorMap_ST.zw, float2(0.0, 0.0), float2(0.0, 0.0), 1.0, false,
                             input.positionRWS, _TexWorldScaleEmissive,
                             mappingType, layerTexCoord);
@@ -42,7 +42,7 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
 #endif // _EMISSIVE_COLOR_MAP
 
 #if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
-    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
+    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0.xy).rgb;
     distortion.rg = distortion.rg * _DistortionVectorScale.xx + _DistortionVectorBias.xx;
     builtinData.distortion = distortion.rg * _DistortionScale;
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;

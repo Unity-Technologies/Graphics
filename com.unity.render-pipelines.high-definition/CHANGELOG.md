@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new HD Lit Master node that implements Lit shader support for Shader Graph
 - Added Micro shadowing support (hack)
 - Added an event on HDAdditionalCameraData for custom rendering
+- HDRP Shader Graph shaders now support 4-channel UVs.
 
 ### Fixed
 - Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.

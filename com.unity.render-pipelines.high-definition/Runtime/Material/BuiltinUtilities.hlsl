@@ -125,7 +125,7 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 // 3. PostInitBuiltinData - Handle debug mode + allow the current lighting model to update the data with ModifyBakedDiffuseLighting
 
 // This method initialize BuiltinData usual values and after update of builtinData by the caller must be follow by PostInitBuiltinData
-void InitBuiltinData(   float alpha, float3 normalWS, float3 backNormalWS, float3 positionRWS, float2 texCoord1, float2 texCoord2,
+void InitBuiltinData(   float alpha, float3 normalWS, float3 backNormalWS, float3 positionRWS, float4 texCoord1, float4 texCoord2,
                         out BuiltinData builtinData)
 {
     ZERO_INITIALIZE(BuiltinData, builtinData);
@@ -133,15 +133,15 @@ void InitBuiltinData(   float alpha, float3 normalWS, float3 backNormalWS, float
     builtinData.opacity = alpha;
 
     // Sample lightmap/lightprobe/volume proxy
-    builtinData.bakeDiffuseLighting = SampleBakedGI(positionRWS, normalWS, texCoord1, texCoord2);
+    builtinData.bakeDiffuseLighting = SampleBakedGI(positionRWS, normalWS, texCoord1.xy, texCoord2.xy);
     // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler
     // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
     // however it may not optimize the lightprobe case due to the proxy volume relying on dynamic if (to verify), not a problem for SH9, but a problem for proxy volume.
     // TODO: optimize more this code.    
-    builtinData.backBakeDiffuseLighting = SampleBakedGI(positionRWS, backNormalWS, texCoord1, texCoord2);
+    builtinData.backBakeDiffuseLighting = SampleBakedGI(positionRWS, backNormalWS, texCoord1.xy, texCoord2.xy);
 
 #ifdef SHADOWS_SHADOWMASK
-    float4 shadowMask = SampleShadowMask(positionRWS, texCoord1);
+    float4 shadowMask = SampleShadowMask(positionRWS, texCoord1.xy);
     builtinData.shadowMask0 = shadowMask.x;
     builtinData.shadowMask1 = shadowMask.y;
     builtinData.shadowMask2 = shadowMask.z;

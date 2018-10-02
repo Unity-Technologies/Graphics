@@ -51,20 +51,20 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
     
     // Generate the primary uv coordinates
-    float2 uvBase = _UVMappingMask.x * input.texCoord0 +
-                    _UVMappingMask.y * input.texCoord1 +
-                    _UVMappingMask.z * input.texCoord2 +
-                    _UVMappingMask.w * input.texCoord3;
+    float2 uvBase = _UVMappingMask.x * input.texCoord0.xy +
+                    _UVMappingMask.y * input.texCoord1.xy +
+                    _UVMappingMask.z * input.texCoord2.xy +
+                    _UVMappingMask.w * input.texCoord3.xy;
 
     // Apply tiling and offset
     uvBase = uvBase * _BaseColorMap_ST.xy + _BaseColorMap_ST.zw;
 
 
     // Generate the detail uv coordinates
-    float2 uvThread =  _UVMappingMaskThread.x * input.texCoord0 +
-                        _UVMappingMaskThread.y * input.texCoord1 +
-                        _UVMappingMaskThread.z * input.texCoord2 +
-                        _UVMappingMaskThread.w * input.texCoord3;
+    float2 uvThread =  _UVMappingMaskThread.x * input.texCoord0.xy +
+                        _UVMappingMaskThread.y * input.texCoord1.xy +
+                        _UVMappingMaskThread.z * input.texCoord2.xy +
+                        _UVMappingMaskThread.w * input.texCoord3.xy;
 
     // Apply offset and tiling
     uvThread = uvThread * _ThreadMap_ST.xy + _ThreadMap_ST.zw;
@@ -231,10 +231,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveColor = _EmissiveColor.rgb * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #ifdef _EMISSIVE_COLOR_MAP
     // Generate the primart uv coordinates
-    float2 uvEmissive = _UVMappingMaskEmissive.x * input.texCoord0 +
-                    _UVMappingMaskEmissive.y * input.texCoord1 +
-                    _UVMappingMaskEmissive.z * input.texCoord2 +
-                    _UVMappingMaskEmissive.w * input.texCoord3;
+    float2 uvEmissive = _UVMappingMaskEmissive.x * input.texCoord0.xy +
+                    _UVMappingMaskEmissive.y * input.texCoord1.xy +
+                    _UVMappingMaskEmissive.z * input.texCoord2.xy +
+                    _UVMappingMaskEmissive.w * input.texCoord3.xy;
     
     uvEmissive = uvEmissive * _EmissiveColorMap_ST.xy + _EmissiveColorMap_ST.zw;
 

@@ -75,7 +75,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     alpha = SAMPLE_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, UV0).x;
 
     // Useless for SVBRDF
-    surfaceData.flakesUV = input.texCoord0;
+    surfaceData.flakesUV = input.texCoord0.xy;
     surfaceData.flakesMipLevel = 0.0;
 
     //-----------------------------------------------------------------------------
