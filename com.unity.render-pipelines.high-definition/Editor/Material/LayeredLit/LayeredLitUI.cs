@@ -7,9 +7,10 @@ using System.Linq;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class LayeredLitGUI : LitGUI
+    class LayeredLitGUI : LitGUI
     {
         //Be sure to start after last BaseUnlitGUI.Expendable
+        [Flags]
         protected enum LayerExpendable : uint
         {
             ShowLayer1 = 1 << 16,
@@ -29,6 +30,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LayeringOption3 = 1 << 30
         }
 
+        static uint state = (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Other | Expendable.Tesselation)
+            + (uint)(LayerExpendable.MaterialReferences | LayerExpendable.MainInput | LayerExpendable.MainDetail);
+        protected override uint expendedState { get => state; set => state = value; }
+        
         public enum VertexColorMode
         {
             None,
@@ -194,11 +199,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     inheritBaseColor[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseColor, i), props);
                 }
             }
-        }
-
-        protected override void FindEditorProperties(MaterialProperty[] props)
-        {
-            base.FindEditorProperties(props);
+            
             UpdateEditorExpended((int)layerCount.floatValue);
         }
 
@@ -706,7 +707,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             FindBaseMaterialProperties(props);
             FindMaterialProperties(props);
-            FindEditorProperties(props);    //require MaterialPropertie to sync
 
             m_MaterialEditor = materialEditor;
             // We should always do this call at the beginning

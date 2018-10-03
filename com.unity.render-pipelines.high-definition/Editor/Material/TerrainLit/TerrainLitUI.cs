@@ -7,8 +7,11 @@ using System.Linq;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class TerrainLitGUI : LitGUI, ITerrainLayerCustomUI
+    class TerrainLitGUI : LitGUI, ITerrainLayerCustomUI
     {
+        static Expendable state = 0;
+        protected override uint expendedState { get { return (uint)state; } set { state = (Expendable)value; } }
+
         private class StylesLayer
         {
             public readonly GUIContent enableHeightBlend = new GUIContent("Enable Height-based Blend", "Blend terrain layers based on height values.");
@@ -105,7 +108,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             FindBaseMaterialProperties(props);
-            FindEditorProperties(props);
             FindMaterialProperties(props);
 
             m_MaterialEditor = materialEditor;

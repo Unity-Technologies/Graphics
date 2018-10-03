@@ -6,12 +6,15 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class DecalUI : ShaderGUI, IExpendableArea
+    class DecalUI : ExpendableAreaMaterial
     {
-        protected enum Expendable : uint
+        [Flags]
+        enum Expendable : uint
         {
             Input = 1 << 0
         }
+        static Expendable state = Expendable.Input;
+        protected override uint expendedState { get { return (uint)state; } set { state = (Expendable)value; } }
 
         protected static class Styles
         {
@@ -91,16 +94,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
         protected const string kDecalStencilRef = "_DecalStencilRef";
-        
-        const string k_expendedAreas = "_EditorExpendedAreas";
-        private MaterialProperty editorStatus;
 
         protected MaterialEditor m_MaterialEditor;
-        
-        protected void FindEditorProperties(MaterialProperty[] props)
-        {
-            editorStatus = FindProperty(k_expendedAreas, props);
-        }
 
         void FindMaterialProperties(MaterialProperty[] props)
         {
@@ -193,7 +188,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
 
-            using (var header = new BaseUnlitGUI.HeaderScope(Styles.InputsText, (uint)Expendable.Input, this))
+            using (var header = new HeaderScope(Styles.InputsText, (uint)Expendable.Input, this))
             {
                 if (header.expended)
                 {
@@ -276,8 +271,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor = materialEditor;
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
-
-            FindEditorProperties(props);
+            
             FindMaterialProperties(props);
 
             Material material = materialEditor.target as Material;
@@ -285,43 +279,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // We should always do this call at the end
             m_MaterialEditor.serializedObject.ApplyModifiedProperties();
-        }
-
-        bool IExpendableArea.GetExpendedAreas(uint mask)
-        {
-            float stockedValue = editorStatus.floatValue;
-            bool result;
-
-            unsafe
-            {
-                uint uintView = *(uint*)&stockedValue;
-                result = (uintView & mask) > 0;
-            }
-
-            return result;
-        }
-
-        void IExpendableArea.SetExpendedAreas(uint mask, bool value)
-        {
-            float stockedValue = editorStatus.floatValue;
-
-            unsafe
-            {
-                uint uintView = *(uint*)&stockedValue;
-
-                if (value)
-                {
-                    uintView |= mask;
-                }
-                else
-                {
-                    mask = ~mask;
-                    uintView &= mask; 
-                }
-                stockedValue = *(float*)&uintView;
-            }
-
-            editorStatus.floatValue = stockedValue;
         }
     }
 }
