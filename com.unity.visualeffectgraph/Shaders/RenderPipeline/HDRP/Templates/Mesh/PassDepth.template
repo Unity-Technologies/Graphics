@@ -56,7 +56,7 @@ ${VFXEnd}
 	#pragma fragment frag
 	void frag(ps_input i
 #ifdef WRITE_NORMAL_BUFFER
-	, OUTPUT_NORMALBUFFER(outNormalBuffer)
+	, out float4 outNormalBuffer : SV_Target0
 #if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 #endif
