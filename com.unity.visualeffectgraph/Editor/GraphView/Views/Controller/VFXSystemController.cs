@@ -35,11 +35,14 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                m_ViewController.graph.UIInfos.SetNameOfSystem(contexts.Select(t => t.model), value);
-                VFXData data = contexts.First().model.GetData();
-                if (data != null)
-                    data.title = value;
-                m_ViewController.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                if( value != title)
+                {
+                    m_ViewController.graph.UIInfos.SetNameOfSystem(contexts.Select(t => t.model), value);
+                    VFXData data = contexts.First().model.GetData();
+                    if (data != null)
+                        data.title = value;
+                    m_ViewController.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                }
             }
         }
 
