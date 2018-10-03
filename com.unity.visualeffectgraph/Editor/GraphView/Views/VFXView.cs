@@ -1605,11 +1605,37 @@ namespace UnityEditor.VFX.UI
                 m_Systems.RemoveAt(m_Systems.Count - 1);
                 border.RemoveFromHierarchy();
             }
-
+            
             for(int i = 0; i < systems.Count(); ++i)
             {
-                m_Systems[i].contexts = systems[i].Keys.Select(t => controller.GetNodeController(t, 0)).Where(t=>t != null).Select(t=> rootNodes[t]).Cast<VFXContextUI>().ToArray();
+                var contextToUI = systems[i].Keys.Select(t => new KeyValuePair<VFXNodeController,VFXContext>(controller.GetNodeController(t, 0),t)).Where(t => t.Key != null).Select(t => new KeyValuePair<VFXContext,VFXContextUI>(t.Value,rootNodes[t.Key] as VFXContextUI)).ToDictionary(t=>t.Key,t=>t.Value);
+                m_Systems[i].contexts = contextToUI.Values.ToArray();
                 m_Systems[i].title = controller.graph.UIInfos.GetNameOfSystem(systems[i].Keys);
+                /*
+                VFXContextType type = VFXContextType.kNone;
+                VFXContext prevContext = null;
+                var orderedContexts = systems[i].Keys.OrderBy(t => t.contextType).ThenBy(t => systems[i][t]).ThenBy(t => t.position.x).ThenBy(t => t.position.y).ToArray();
+
+                char letter = '\a';
+                foreach(var context in orderedContexts)
+                {
+                    if (context.contextType == type)
+                    {
+                        if( prevContext != null)
+                        {
+                            letter = '\a';
+                            contextToUI[prevContext].letter = letter;
+                            prevContext = null;
+                        }
+                        contextToUI[context].letter = letter++;
+                    }
+                    else 
+                    {
+                        contextToUI[context].letter = '\0';
+                        prevContext = context;
+                    }
+                }*/
+
             }
         }
 
