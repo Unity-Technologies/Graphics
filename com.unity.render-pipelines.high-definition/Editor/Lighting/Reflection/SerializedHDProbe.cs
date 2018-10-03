@@ -8,7 +8,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         
         internal SerializedProperty renderDynamicObjects;
         internal SerializedProperty customBakedTexture;
-        //internal SerializedProperty timeSlicingMode;
 
         internal SerializedProperty proxyVolumeReference;
         internal SerializedProperty infiniteProjection;

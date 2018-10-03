@@ -27,8 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedPlanarReflectionProbe(SerializedObject serializedObject) : base(serializedObject)
         {
             captureLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureLocalPosition);
-            nearClip = serializedObject.Find((PlanarReflectionProbe p) => p.captureNearPlane);
-            farClip = serializedObject.Find((PlanarReflectionProbe p) => p.captureFarPlane);
+            nearClip = serializedObject.Find((PlanarReflectionProbe p) => p.captureSettings.nearClipPlane);
+            farClip = serializedObject.Find((PlanarReflectionProbe p) => p.captureSettings.farClipPlane);
             capturePositionMode = serializedObject.Find((PlanarReflectionProbe p) => p.capturePositionMode);
             captureMirrorPlaneLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalPosition);
             captureMirrorPlaneLocalNormal = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalNormal);

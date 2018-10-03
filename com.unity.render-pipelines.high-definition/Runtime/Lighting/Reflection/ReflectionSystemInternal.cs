@@ -500,11 +500,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
         static void CalculateStaticCaptureCameraProperties(PlanarReflectionProbe probe, out float nearClipPlane, out float farClipPlane, out float aspect, out float fov, out CameraClearFlags clearFlags, out Color backgroundColor, out Matrix4x4 worldToCamera, out Matrix4x4 projection, out Vector3 capturePosition, out Quaternion captureRotation)
         {
-            nearClipPlane = probe.captureNearPlane;
-            farClipPlane = probe.captureFarPlane;
+            nearClipPlane = probe.captureSettings.nearClipPlane;
+            farClipPlane = probe.captureSettings.farClipPlane;
             aspect = 1f;
-            fov = probe.overrideFieldOfView
-                ? probe.fieldOfViewOverride
+            fov = (probe.captureSettings.overrides & CaptureSettingsOverrides.FieldOfview) > 0
+                ? probe.captureSettings.fieldOfView
                 : 90f;
             clearFlags = CameraClearFlags.Nothing;
             backgroundColor = Color.white;

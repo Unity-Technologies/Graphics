@@ -22,35 +22,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public SerializedProperty renderingPath;
 
-        //public SerializedProperty aperture;
-        //public SerializedProperty shutterSpeed;
-        //public SerializedProperty iso;
-
         public SerializedProperty shadowDistance;
 
         private SerializedProperty overrides;
-        //public bool overridesCubeResolution
-        //{
-        //    get { return (overrides.intValue & (int)CaptureSettingsOverrides.CubeResolution) > 0; }
-        //    set
-        //    {
-        //        if (value)
-        //            overrides.intValue |= (int)CaptureSettingsOverrides.CubeResolution;
-        //        else
-        //            overrides.intValue &= ~(int)CaptureSettingsOverrides.CubeResolution;
-        //    }
-        //}
-        //public bool overridesPlanarResolution
-        //{
-        //    get { return (overrides.intValue & (int)CaptureSettingsOverrides.PlanarResolution) > 0; }
-        //    set
-        //    {
-        //        if (value)
-        //            overrides.intValue |= (int)CaptureSettingsOverrides.PlanarResolution;
-        //        else
-        //            overrides.intValue &= ~(int)CaptureSettingsOverrides.PlanarResolution;
-        //    }
-        //}
         public bool overridesClearColorMode
         {
             get { return (overrides.intValue & (int)CaptureSettingsOverrides.ClearColorMode) > 0; }
@@ -194,39 +168,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     overrides.intValue &= ~(int)CaptureSettingsOverrides.RenderingPath;
             }
         }
-        //public bool overridesAperture
-        //{
-        //    get { return (overrides.intValue & (int)CaptureSettingsOverrides.Aperture) > 0; }
-        //    set
-        //    {
-        //        if (value)
-        //            overrides.intValue |= (int)CaptureSettingsOverrides.Aperture;
-        //        else
-        //            overrides.intValue &= ~(int)CaptureSettingsOverrides.Aperture;
-        //    }
-        //}
-        //public bool overridesShutterSpeed
-        //{
-        //    get { return (overrides.intValue & (int)CaptureSettingsOverrides.ShutterSpeed) > 0; }
-        //    set
-        //    {
-        //        if (value)
-        //            overrides.intValue |= (int)CaptureSettingsOverrides.ShutterSpeed;
-        //        else
-        //            overrides.intValue &= ~(int)CaptureSettingsOverrides.ShutterSpeed;
-        //    }
-        //}
-        //public bool overridesIso
-        //{
-        //    get { return (overrides.intValue & (int)CaptureSettingsOverrides.Iso) > 0; }
-        //    set
-        //    {
-        //        if (value)
-        //            overrides.intValue |= (int)CaptureSettingsOverrides.Iso;
-        //        else
-        //            overrides.intValue &= ~(int)CaptureSettingsOverrides.Iso;
-        //    }
-        //}
         public bool overridesShadowDistance
         {
             get { return (overrides.intValue & (int)CaptureSettingsOverrides.ShadowDistance) > 0; }
@@ -260,10 +201,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             orthographicSize = root.Find((CaptureSettings d) => d.orthographicSize);
 
             renderingPath = root.Find((CaptureSettings d) => d.renderingPath);
-
-            //aperture = root.Find((CaptureSettings d) => d.aperture);
-            //shutterSpeed = root.Find((CaptureSettings d) => d.shutterSpeed);
-            //iso = root.Find((CaptureSettings d) => d.iso);
 
             shadowDistance = root.Find((CaptureSettings d) => d.shadowDistance);
         }

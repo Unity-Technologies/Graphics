@@ -20,9 +20,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public AnimBool isSectionExpandedInfluenceSettings { get { return m_AnimBools[k_ReflectionProbeModeCount]; } }
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 1]; } }
-
-        //public AnimBool isSectionExpandedCaptureMirrorSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 2]; } }
-        //public AnimBool isSectionExpandedCaptureStaticSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 3]; } }
         public AnimBool isFrameSettingsOverriden { get { return m_AnimBools[k_ReflectionProbeModeCount + 2]; } }
         public AnimBool isSectionExpendedProxyVolume { get { return m_AnimBools[k_ReflectionProbeModeCount + 4]; } }
         public AnimBool isSectionExpendedAdditionalSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 5]; } }

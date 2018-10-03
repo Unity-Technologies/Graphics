@@ -185,15 +185,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 d.multiplier.floatValue = Mathf.Max(0.0f, d.multiplier.floatValue);
         }
 
-        //static void Drawer_FieldCaptureType(HDProbeUI s, SerializedHDProbe d, Editor o)
-        //{
-        //    GUI.enabled = false;
-        //    EditorGUILayout.PropertyField(d.mode, fieldCaptureTypeContent);
-        //    GUI.enabled = true;
-        //}
-
-
-
         static readonly GUIContent[] k_ModeContents = { new GUIContent("Baked"), new GUIContent("Custom"), new GUIContent("Realtime") };
         static readonly int[] k_ModeValues = { (int)ReflectionProbeMode.Baked, (int)ReflectionProbeMode.Custom, (int)ReflectionProbeMode.Realtime };
         protected static void Drawer_ReflectionProbeMode(HDProbeUI s, SerializedHDProbe p, Editor owner)
@@ -220,18 +211,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
                 p.customBakedTexture.objectReferenceValue = customTexture;
         }
-
-        //static void Drawer_ModeSettingsRealtime(HDProbeUI s, SerializedHDProbe p, Editor owner)
-        //{
-        //    //SerializedHDReflectionProbe probe = (SerializedHDReflectionProbe)p;
-        //    //EditorGUILayout.PropertyField(p.refreshMode, CoreEditorUtils.GetContent("Refresh Mode|Controls how this probe refreshes in the Player"));
-        //    //EditorGUILayout.PropertyField(probe.timeSlicingMode, CoreEditorUtils.GetContent("Time Slicing|If enabled this probe will update over several frames, to help reduce the impact on the frame rate"));
-        //}
-        
-        //static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new[] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);
-        //static bool ButtonWithDropdownList(GUIContent content, string[] buttonNames, GenericMenu.MenuFunction2 callback, params GUILayoutOption[] options)
-        //{
-        //    return (bool)k_EditorGUI_ButtonWithDropdownList.Invoke(null, new object[] { content, buttonNames, callback, options });
-        //}
     }
 }
