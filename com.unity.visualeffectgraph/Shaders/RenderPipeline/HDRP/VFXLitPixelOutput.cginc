@@ -12,8 +12,10 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 	VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
 	
 	clip(builtinData.opacity - 1e-4);
+
+    float3 posRWS = VFXGetPositionRWS(i);
 	
-	PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, i.VFX_VARYING_POSWS, tileIndex);
+	PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
 	
 	#if IS_OPAQUE_PARTICLE
 	uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
@@ -22,7 +24,7 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 	#else
 	uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
 	#endif
-	LightLoop(GetWorldSpaceNormalizeViewDir(i.VFX_VARYING_POSWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+	LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
 	#ifdef _BLENDMODE_PRE_MULTIPLY
 	diffuseLighting *= builtinData.opacity;
@@ -74,7 +76,7 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 	BuiltinData builtinData; \
 	VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData); \
  \
-	ENCODE_INTO_NORMALBUFFER(surfaceData, i.VFX_VARYING_POSCS, outNormalBuffer); \
+	EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), i.VFX_VARYING_POSCS, outNormalBuffer); \
 }
 
 #endif
