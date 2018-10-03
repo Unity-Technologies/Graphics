@@ -32,7 +32,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static uint state = (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Other | Expendable.Tesselation)
             + (uint)(LayerExpendable.MaterialReferences | LayerExpendable.MainInput | LayerExpendable.MainDetail);
-        protected override uint expendedState { get => state; set => state = value; }
+        protected override uint expendedState { get { return (uint)state; } set { state = value; } }
         
         public enum VertexColorMode
         {
