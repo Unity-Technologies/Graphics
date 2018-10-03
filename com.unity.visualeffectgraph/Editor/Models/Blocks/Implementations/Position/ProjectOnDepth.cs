@@ -14,11 +14,18 @@ namespace UnityEditor.VFX.Block
 			Sequential,
 			Custom,
 		}
+
+        public enum CullMode
+        {
+            None,
+            FarPlane,
+            Range,
+        }
 		
         public class InputProperties
         {
-            public CameraType Camera;
-            public float ZMultiplier = 0.99f;
+            public CameraType Camera = CameraType.defaultValue;
+            public float ZMultiplier = 1.0f;
             public Texture2D DepthBuffer;
         }
 
@@ -34,14 +41,21 @@ namespace UnityEditor.VFX.Block
 		
 		public class CustomInputProperties
 		{
-			public Vector2 UVSpawn;
+            [Range(0.0f, 1.0f)]
+            public Vector2 UVSpawn;
 		}
 
-		[VFXSetting]
+        public class RangeInputProperties
+        {
+            [Range(0.0f,1.0f)]
+            public Vector2 DepthRange = new Vector2(0.0f,1.0f);
+        }
+
+        [VFXSetting]
 		public PositionMode mode;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
-        public bool cullOnFarPlane = false;
+        [VFXSetting]
+        public CullMode cullMode;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool inheritSceneColor = false;
@@ -62,8 +76,8 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
                 else if (mode == PositionMode.Random)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
-				
-                if (cullOnFarPlane)
+
+                if (cullMode != CullMode.None)
                     yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Write);   
             }
         }
@@ -79,6 +93,8 @@ namespace UnityEditor.VFX.Block
                     inputs = inputs.Concat(PropertiesFromType("SequentialInputProperties"));
 				else if (mode == PositionMode.Custom)
 					inputs = inputs.Concat(PropertiesFromType("CustomInputProperties"));
+                if (cullMode == CullMode.Range)
+                    inputs = inputs.Concat(PropertiesFromType("RangeInputProperties"));
                 return inputs;
             }
         }
@@ -88,10 +104,6 @@ namespace UnityEditor.VFX.Block
             get
             {
                 var expressions = GetExpressionsFromSlots(this);
-                foreach (var input in expressions)
-                {
-                    yield return input;
-                }
 
                 var fov = expressions.First(e => e.name == "Camera_fieldOfView");
                 var aspect = expressions.First(e => e.name == "Camera_aspectRatio");
@@ -99,13 +111,16 @@ namespace UnityEditor.VFX.Block
                 var far = expressions.First(e => e.name == "Camera_farPlane");
                 var cameraMatrix = expressions.First(e => e.name == "Camera_transform");
 
-                var invPerspMat = new VFXExpressionInverseMatrix(VFXOperatorUtility.GetPerspectiveMatrix(fov.exp,aspect.exp,near.exp,far.exp));
-                var clipToWorld = invPerspMat;// new VFXExpressionTransformMatrix(invPerspMat, cameraMatrix.exp);
+                expressions = expressions.Where(t => !(t.Equals(fov) || t.Equals(aspect) || t.Equals(near) || t.Equals(far) || t.Equals(cameraMatrix)));
 
-                yield return new VFXNamedExpression(clipToWorld, "clipToWorld");
+                foreach (var input in expressions)
+                    yield return input;
 
+                var clipToVFX = new VFXExpressionTransformMatrix(cameraMatrix.exp, new VFXExpressionInverseMatrix(VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp)));
                 if (((VFXDataParticle)GetData()).space == VFXCoordinateSpace.Local)
-                    yield return new VFXNamedExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal");
+                    clipToVFX = new VFXExpressionTransformMatrix(VFXBuiltInExpression.WorldToLocal, clipToVFX);
+
+                yield return new VFXNamedExpression(clipToVFX, "clipToVFX");
             }
         }
 
@@ -120,7 +135,6 @@ namespace UnityEditor.VFX.Block
 					case PositionMode.Random:
 						source += @"
 float2 uvs = RAND2;
-uint2 ids = uvs * Camera_pixelDimensions;
 ";
 					break;
 					
@@ -137,8 +151,7 @@ float2 uvs = (ids + 0.5f) / Camera_pixelDimensions;
 					
 					case PositionMode.Custom:
 						source += @"
-float2 uvs = saturate(UVSpawn);
-uint2 ids = uvs * Camera_pixelDimensions;
+float2 uvs = UVSpawn;
 ";
 					break;
 				}
@@ -146,51 +159,39 @@ uint2 ids = uvs * Camera_pixelDimensions;
                 source += @"
 float2 projpos = uvs * 2.0f - 1.0f;
 				
-float n = Camera_nearPlane;
-float f = Camera_farPlane;
+float depth = SampleTexture(DepthBuffer,uvs).r;
+#if UNITY_REVERSED_Z
+depth = 1.0f - depth; // reversed z
+#endif";
 
-// TODO We should compute the clipToWorld directly in expressions
-float4x4 camToWorld = transpose(Camera_transform);
-				
-float PlaneHalfHeight = tan(Camera_fieldOfView * 0.5f) * n;
-float3 PlaneRight = camToWorld[0].xyz * PlaneHalfHeight * Camera_aspectRatio;
-float3 PlaneUp = camToWorld[1].xyz * PlaneHalfHeight;
-
-float3 camFront = camToWorld[2].xyz;
-float3 camPos = camToWorld[3].xyz;
-float3 PlanePos = camPos + camFront * n;
-
-float depth = DepthBuffer.t[ids];
-
-float linearEyeDepth = n * f / (depth * (f - n) + n) - n;
-
-float3 worldPos = (PlaneRight * projpos.x) + (PlaneUp * projpos.y) + PlanePos;
-float3 dir = normalize(worldPos - camPos);
-position = worldPos + dir * ZMultiplier * linearEyeDepth / dot(dir,camFront);
-
-
-float4 worldPos2 = mul(clipToWorld,float4(projpos,depth,1.0f));
-position = worldPos2.xyz / worldPos2.w;
-
-
-
-
-
-#if VFX_LOCAL_SPACE
-//position = mul(worldToLocal,float4(position,1.0f)).xyz;
-#endif
-";
-
-                if (cullOnFarPlane)
+                if (cullMode == CullMode.FarPlane)
                     source += @"
 // cull on far plane
-if (linearEyeDepth >= (1.0f - VFX_EPSILON) * (f - n))
-   alive = false;
+if (depth >= 1.0f - VFX_EPSILON)
+{
+    alive = false;
+    return;
+}
+                ";
+
+                if (cullMode == CullMode.Range)
+                    source += @"
+// filter based on depth
+if (depth < DepthRange.x || depth > DepthRange.y)
+{
+    alive = false;
+    return;
+}
+";
+            source += @"
+float4 clipPos = float4(projpos,depth * ZMultiplier * 2.0f - 1.0f,1.0f);
+float4 vfxPos = mul(clipToVFX,clipPos);
+position = vfxPos.xyz / vfxPos.w;
 ";
 
                 if (inheritSceneColor)
                     source += @"
-color = ColorBuffer.t[ids].rgb;
+color = SampleTexture(ColorBuffer,uvs).rgb;
 ";
 
                 return source;
