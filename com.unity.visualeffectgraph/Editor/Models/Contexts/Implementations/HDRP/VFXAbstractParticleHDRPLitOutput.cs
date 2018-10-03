@@ -347,11 +347,11 @@ namespace UnityEditor.VFX
                 if (materialType != MaterialType.Translucent)
                 {
                     yield return "diffusionProfile";
-                    if (materialType != MaterialType.SimpleLit)
+                    if (materialType != MaterialType.SimpleLitTranslucent)
                         yield return "multiplyThicknessWithAlpha";
                 }
 
-                if (materialType != MaterialType.SimpleLit)
+                if (materialType != MaterialType.SimpleLit && materialType != MaterialType.SimpleLitTranslucent)
                 {
                     yield return "enableShadows";
                     yield return "enableSpecular";
