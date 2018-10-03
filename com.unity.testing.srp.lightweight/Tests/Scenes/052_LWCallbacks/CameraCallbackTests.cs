@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
@@ -82,6 +83,9 @@ public class CameraCallbackTests : MonoBehaviour
 
 		public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
 		{
+			if (renderer == null)
+				throw new ArgumentNullException("renderer");
+			
 			RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
 
 			var cmd = CommandBufferPool.Get("Capture Pass");
@@ -93,6 +97,9 @@ public class CameraCallbackTests : MonoBehaviour
 		
 		public override void FrameCleanup(CommandBuffer cmd)
 		{
+			if (cmd == null)
+				throw new ArgumentNullException("cmd");
+			
 			if (m_Target != RenderTargetHandle.CameraTarget)
 			{
 				cmd.ReleaseTemporaryRT(m_Target.id);
@@ -107,10 +114,13 @@ public class CameraCallbackTests : MonoBehaviour
 		
 		public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
 		{
+			if (renderer == null)
+				throw new ArgumentNullException("renderer");
+			
 			m_CopyResult.Setup(RenderTargetHandle.CameraTarget, afterAll);
 			m_CopyResult.Execute(renderer, context, ref renderingData);
 			
-			Material material = renderer.GetMaterial(MaterialHandles.Blit);
+			Material material = renderer.GetMaterial(MaterialHandle.Blit);
 
 			CommandBuffer cmd = CommandBufferPool.Get("Blit Pass");
 			cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
@@ -151,6 +161,9 @@ public class CameraCallbackTests : MonoBehaviour
 
 		public override void FrameCleanup(CommandBuffer cmd)
 		{
+			if (cmd == null)
+				throw new ArgumentNullException("cmd");
+			
 			base.FrameCleanup(cmd);
 			m_CopyResult.FrameCleanup(cmd);
 			

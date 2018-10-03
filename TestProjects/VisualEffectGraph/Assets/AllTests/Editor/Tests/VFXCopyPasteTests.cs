@@ -1,4 +1,4 @@
-#if false
+#if true
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX.Test
             AABox originalBounds = new AABox() { center = Vector3.one, size = Vector3.one * 10 };
             boundsSlot.value = originalBounds;
 
-            VFXBlock flipBookBlock = m_ViewController.contexts.First().blockControllers.First().block;
+            VFXBlock flipBookBlock = m_ViewController.contexts.First().blockControllers.First().model;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
 
 
@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.Test
             var elements = view.Query().OfType<GraphElement>().ToList();
 
             var contexts = elements.OfType<VFXContextUI>().ToArray();
-            var copyContext = elements.OfType<VFXContextUI>().Select(t => t.controller).First(t => t.context != newContext).context;
+            var copyContext = elements.OfType<VFXContextUI>().Select(t => t.controller).First(t => t.model != newContext).model;
 
             var copyBoundsSlot = copyContext.GetInputSlot(0);
             var copyMinSlot = copyContext[0].GetInputSlot(0);
@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.Test
             elements = view.Query().OfType<GraphElement>().ToList();
             contexts = elements.OfType<VFXContextUI>().ToArray();
 
-            var copy2Context = contexts.First(t => t.controller.context != newContext && t.controller.context != copyContext).controller.context;
+            var copy2Context = contexts.First(t => t.controller.model != newContext && t.controller.model != copyContext).controller.model;
 
             Assert.AreNotEqual(copy2Context.position, newContext.position);
             Assert.AreNotEqual(copy2Context.position, copyContext.position);
@@ -185,7 +185,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteEdges()
         {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.vfx");
+            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/AllTests/Editor/Tests/CopyPasteTest.vfx");
 
             VFXViewController controller = VFXViewController.GetController(asset.GetResource(), true);
 
@@ -233,7 +233,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(contexts.Length, 2);
 
-            if (contexts[0].controller.context is VFXBasicUpdate)
+            if (contexts[0].controller.model is VFXBasicUpdate)
             {
                 var tmp = contexts[0];
                 contexts[0] = contexts[1];
@@ -293,7 +293,7 @@ namespace UnityEditor.VFX.Test
 
             contextController.AddBlock(0, flipBookBlockDesc.CreateInstance());
 
-            var newBlock = contextController.context.children.First();
+            var newBlock = contextController.model.children.First();
 
             m_ViewController.ApplyChanges();
 
@@ -308,7 +308,7 @@ namespace UnityEditor.VFX.Test
                 view.AddToSelection(element);
             }
 
-            VFXBlock flipBookBlock = m_ViewController.contexts.First().blockControllers.First().block;
+            VFXBlock flipBookBlock = m_ViewController.contexts.First().blockControllers.First().model;
             VFXSlot minValueSlot = flipBookBlock.GetInputSlot(0);
 
             float originalMinValue = 123.456f;
@@ -324,7 +324,7 @@ namespace UnityEditor.VFX.Test
 
             var elements = view.Query().OfType<VFXBlockUI>().ToList();
 
-            var copyBlock = elements.Select(t => t.controller).First(t => t.block != newBlock).block;
+            var copyBlock = elements.Select(t => t.controller).First(t => t.model != newBlock).model;
 
             var copyMinSlot = copyBlock.GetInputSlot(0);
 

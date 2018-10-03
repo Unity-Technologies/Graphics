@@ -29,7 +29,7 @@ namespace UnityEngine.TestTools.Graphics
 
             int width = settings.TargetWidth;
             int height = settings.TargetHeight;
-            var format = expected != null ? expected.format : TextureFormat.RGB24;
+            var format = expected != null ? expected.format : TextureFormat.ARGB32;
 
             var rt = RenderTexture.GetTemporary(width, height, 24);
             Texture2D actual = null;
