@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_FlowOutputAnchors.AsReadOnly(); }
         }
-        public char letter { get; set; }
+        public char letter { get { return model.letter; } set { model.letter = value; } }
 
         public override void OnDisable()
         {

@@ -130,6 +130,7 @@ public class VFXSlotContainerEditor : Editor
         public static GUIStyle header;
         public static GUIStyle cell;
         public static GUIStyle foldout;
+        public static GUIStyle letter;
         static Styles()
         {
             header = new GUIStyle(EditorStyles.toolbarButton);
@@ -152,6 +153,9 @@ public class VFXSlotContainerEditor : Editor
 
             foldout = new GUIStyle(EditorStyles.foldout);
             foldout.fontStyle = FontStyle.Bold;
+
+            letter = new GUIStyle(GUI.skin.label);
+            letter.fontSize = 36;
         }
 
         static Dictionary<VFXAttributeMode, Color> attributeModeColors = new Dictionary<VFXAttributeMode, Color>()

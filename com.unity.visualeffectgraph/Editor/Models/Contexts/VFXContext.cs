@@ -441,6 +441,68 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXContextSlot[] m_OutputFlowSlot;
 
+        public char letter { get; set; }
+
+
+        string shaderNamePrefix = "Hidden/VFX";
+
+        public string shaderName
+        {
+            get
+            {
+                string prefix = shaderNamePrefix;
+                if( GetData() != null)
+                {
+                    string dataName = GetData().fileName;
+                    if( !string.IsNullOrEmpty(dataName))
+                        prefix += "/"+dataName;
+                }
+
+                if (letter != '\0')
+                {
+                    if (string.IsNullOrEmpty(label))
+                        return string.Format("{2}/{0} {1}", letter, libraryName, prefix);
+                    else
+                        return string.Format("{2}/{0} {1}", letter, label, prefix);
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(label))
+                        return string.Format("{1}/{0}", libraryName, prefix);
+                    else
+                        return string.Format("{1}/{0}",label, prefix);
+                }
+            }
+        }
+        public string fileName
+        {
+            get
+            {
+                string prefix = string.Empty;
+                if (GetData() != null)
+                {
+                    string dataName = GetData().fileName;
+                    if (!string.IsNullOrEmpty(dataName))
+                        prefix += "[" + dataName + "]";
+                }
+
+                if (letter != '\0')
+                {
+                    if (string.IsNullOrEmpty(label))
+                        return string.Format("{2}{0} {1}", letter, libraryName, prefix);
+                    else
+                        return string.Format("{2}{0} {1}", letter, label, prefix);
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(label))
+                        return string.Format("{1}{0}", libraryName, prefix);
+                    else
+                        return string.Format("{1}{0}", label, prefix);
+                }
+            }
+        }
+
         public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return space;

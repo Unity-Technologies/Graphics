@@ -39,6 +39,47 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
+        public string title
+        {
+            get;set;
+        }
+
+        public int index
+        {
+            get
+            {
+                HashSet<VFXData> datas = new HashSet<VFXData>();
+
+                VFXGraph graph = owners.First().GetGraph();
+
+                int dataIndex = -1;
+                foreach (var child in graph.children)
+                {
+                    if(child is VFXContext)
+                    {
+                        VFXData data = (child as VFXContext).GetData();
+                        if (data != null)
+                            datas.Add(data);
+                        if (data == this && dataIndex < 0)
+                            dataIndex = datas.Count();
+                    }
+                }
+                if( datas.Count() > 1)
+                    return dataIndex;
+                return -1;
+            }
+        }
+
+        public string fileName {
+            get {
+
+                int i = this.index;
+                if (i < 0)
+                    return string.Empty;
+                return string.IsNullOrEmpty(title)?string.Format("System {0}",index):title;
+            }
+        }
+
         public IEnumerable<VFXContext> implicitContexts
         {
             get { return Enumerable.Empty<VFXContext>(); }
