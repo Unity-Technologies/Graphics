@@ -5,15 +5,16 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEditor.Experimental.UIElements.GraphView;
 using System;
+using System.Linq;
 
 using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXSystemBorderFactory : UxmlFactory<VFXSystemBorder>
+    class VFXSystemBorderFactory : UxmlFactory<VFXSystemBorder>
     {}
 
-    public class VFXSystemBorder : GraphElement, IDisposable
+    class VFXSystemBorder : GraphElement, IControlledElement<VFXSystemController>, IDisposable
     {
         Material m_Mat;
 
@@ -79,8 +80,7 @@ namespace UnityEditor.VFX.UI
 
             m_TitleField.style.positionTop = rect.yMin;
             m_TitleField.style.positionLeft = rect.xMin;
-            m_TitleField.style.positionRight = m_Title.style.marginRight.value + m_Title.style.borderRight.value;
-            //m_TitleField.style.width = rect.width - m_Title.style.marginLeft - m_Title.style.marginRight;
+            m_TitleField.style.positionRight = m_Title.style.marginRight.value + m_Title.style.borderRightWidth.value;
             m_TitleField.style.height = rect.height - m_Title.style.marginTop - m_Title.style.marginBottom;
         }
 
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX.UI
 
             VFXView view = GetFirstAncestorOfType<VFXView>();
 
-            view.SetSystemTitle(this,title);
+            controller.title = title;
         }
 
         void OnContextChanged(GeometryChangedEvent e)
@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXContextUI[] m_Contexts;
-        internal VFXContextUI[] contexts
+        private VFXContextUI[] contexts
         {
             get
             {
@@ -367,6 +367,41 @@ namespace UnityEditor.VFX.UI
 
                 Graphics.DrawMeshNow(s_Mesh, Matrix4x4.Translate(new Vector3(size.x, size.y, 0)));
             }
+        }
+
+        VFXSystemController m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXSystemController controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
+
+        public void Update()
+        {
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view == null || m_Controller == null)
+                return;
+            contexts = controller.contexts.Select(t => view.GetGroupNodeElement(t) as VFXContextUI).ToArray();
+        }
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) { }
+        public void OnControllerChanged(ref ControllerChangedEvent e)
+        {
+            Update();
         }
     }
 }

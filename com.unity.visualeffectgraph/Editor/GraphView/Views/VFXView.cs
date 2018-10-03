@@ -1538,113 +1538,27 @@ namespace UnityEditor.VFX.UI
 
         public void UpdateSystems()
         {
-            if (controller == null) return;
-
-            VFXContext[] contexts = controller.graph.children.OfType<VFXContext>().ToArray();
-
-            HashSet<VFXContext> initializes = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kInit).ToArray());
-            HashSet<VFXContext> updates = new HashSet<VFXContext>(contexts.Where(t => t.contextType == VFXContextType.kUpdate).ToArray());
-
-            List<Dictionary<VFXContext,int>> systems = new List<Dictionary<VFXContext, int>>();
-
-            
-            while (initializes.Count > 0 || updates.Count > 0)
-            {
-                int generation = 0;
-
-                VFXContext currentContext;
-                if (initializes.Count > 0)
-                {
-                    currentContext = initializes.First();
-                    initializes.Remove(currentContext);
-                }
-                else
-                {
-                    currentContext = updates.First();
-                    updates.Remove(currentContext);
-                }
-
-
-                Dictionary<VFXContext, int> system = new Dictionary<VFXContext, int>();
-
-                system.Add(currentContext,generation);
-
-                var allChildren = currentContext.outputFlowSlot.Where(t => t != null).SelectMany(t => t.link.Select(u => u.context)).Where(t => t != null).ToList();
-                while(allChildren.Count() > 0)
-                {
-                    ++generation;
-
-                    foreach (var child in allChildren)
-                    {
-                        initializes.Remove(child);
-                        updates.Remove(child);
-                        system.Add(child,generation);
-                    }
-
-                    var allSubChildren = allChildren.SelectMany(t => t.outputFlowSlot.Where(u=>u != null).SelectMany(u => u.link.Select(v => v.context).Where(v=>v != null)));
-                    var allPreChildren = allChildren.SelectMany(t => t.inputFlowSlot.Where(u => u != null).SelectMany(u => u.link.Select(v => v.context).Where(v => v != null && v.contextType != VFXContextType.kSpawner && v.contextType != VFXContextType.kSpawnerGPU)));
-
-                    allChildren = allSubChildren.Concat(allPreChildren).Except(system.Keys).ToList();
-                }
-
-                if(system.Count > 1)
-                    systems.Add(system);
-            }
-
-            while(m_Systems.Count() < systems.Count())
-            {
-                
-                VFXSystemBorder border = new VFXSystemBorder();
-                m_Systems.Add(border);
-                AddElement(border);
-            }
-
-            while(m_Systems.Count() > systems.Count())
+            while (m_Systems.Count() > controller.systems.Count())
             {
                 VFXSystemBorder border = m_Systems.Last();
                 m_Systems.RemoveAt(m_Systems.Count - 1);
                 border.RemoveFromHierarchy();
             }
-            
-            for(int i = 0; i < systems.Count(); ++i)
+
+            foreach(var system in m_Systems)
             {
-                var contextToUI = systems[i].Keys.Select(t => new KeyValuePair<VFXNodeController,VFXContext>(controller.GetNodeController(t, 0),t)).Where(t => t.Key != null).Select(t => new KeyValuePair<VFXContext,VFXContextUI>(t.Value,rootNodes[t.Key] as VFXContextUI)).ToDictionary(t=>t.Key,t=>t.Value);
-                m_Systems[i].contexts = contextToUI.Values.ToArray();
-                m_Systems[i].title = controller.graph.UIInfos.GetNameOfSystem(systems[i].Keys);
-                /*
-                VFXContextType type = VFXContextType.kNone;
-                VFXContext prevContext = null;
-                var orderedContexts = systems[i].Keys.OrderBy(t => t.contextType).ThenBy(t => systems[i][t]).ThenBy(t => t.position.x).ThenBy(t => t.position.y).ToArray();
+                system.Update();
+            }
 
-                char letter = '\a';
-                foreach(var context in orderedContexts)
-                {
-                    if (context.contextType == type)
-                    {
-                        if( prevContext != null)
-                        {
-                            letter = '\a';
-                            contextToUI[prevContext].letter = letter;
-                            prevContext = null;
-                        }
-                        contextToUI[context].letter = letter++;
-                    }
-                    else 
-                    {
-                        contextToUI[context].letter = '\0';
-                        prevContext = context;
-                    }
-                }*/
-
+            while (m_Systems.Count() < controller.systems.Count())
+            {
+                VFXSystemBorder border = new VFXSystemBorder();
+                m_Systems.Add(border);
+                border.controller = controller.systems[m_Systems.Count()-1];
+                AddElement(border);
             }
         }
-
-
-        public void SetSystemTitle(VFXSystemBorder system, string title)
-        {
-            controller.graph.UIInfos.SetNameOfSystem(system.contexts.Select(t => t.controller.model), title);
-            controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
-        }
+        
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
         {

@@ -1479,6 +1479,7 @@ namespace UnityEditor.VFX.UI
 
             m_Syncing = false;
             ValidateCategoryList();
+            UpdateSystems();
             return changed;
         }
 
@@ -1788,7 +1789,12 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        List<VFXSystemController> m_Systems;
+        List<VFXSystemController> m_Systems = new List<VFXSystemController>();
+
+        public ReadOnlyCollection<VFXSystemController> systems
+        {
+            get { return m_Systems.AsReadOnly(); }
+        }
 
         public void UpdateSystems()
         {
@@ -1845,7 +1851,7 @@ namespace UnityEditor.VFX.UI
 
             while (m_Systems.Count() < systems.Count())
             {
-                VFXSystemController systemController = new VFXSystemController(graph.UIInfos);
+                VFXSystemController systemController = new VFXSystemController(this,graph.UIInfos);
                 m_Systems.Add(systemController);
             }
 
@@ -1897,10 +1903,12 @@ namespace UnityEditor.VFX.UI
     }
 
 
-    class VFXSystemController : Controller<VFXUI>
+    internal class VFXSystemController : Controller<VFXUI>
     {
-        public VFXSystemController(VFXUI model):base(model)
+        VFXViewController m_ViewController;
+        public VFXSystemController(VFXViewController viewController,VFXUI model):base(model)
         {
+            m_ViewController = viewController;
         }
 
         protected override void ModelChanged(UnityEngine.Object obj)
@@ -1908,8 +1916,19 @@ namespace UnityEditor.VFX.UI
 
         }
 
-        public string title { get; set; }
+        public string title
+        {
+            get
+            {
+                return m_ViewController.graph.UIInfos.GetNameOfSystem(contexts.Select(t => t.model));
+            }
+            set
+            {
+                m_ViewController.graph.UIInfos.SetNameOfSystem(contexts.Select(t => t.model), value);
+                m_ViewController.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+            }
+        }
 
-        public VFXContextController[] contexts { get; set; }
+        internal VFXContextController[] contexts { get; set; }
     }
 }
