@@ -1,16 +1,26 @@
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using UnityEngine.Assertions;
+using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
     public class PlanarReflectionProbe : HDProbe, ISerializationCallbackReceiver
     {
-        const int currentVersion = 2;
+        enum Version
+        {
+            First,
+            Second,
+            MigrateOffsetSphere,
+            MigrateCaptureSettings,
+            // Add new version here and they will automatically be the Current one
+            Max,
+            Current = Max - 1
+        }
 
         [SerializeField, FormerlySerializedAs("version")]
-        int m_Version;
+        uint m_Version;
 
         public enum CapturePositionMode
         {
@@ -21,22 +31,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_CaptureLocalPosition;
         [SerializeField]
-        float m_CaptureNearPlane = 1;
-        [SerializeField]
-        float m_CaptureFarPlane = 1000;
-        [SerializeField]
         CapturePositionMode m_CapturePositionMode = CapturePositionMode.Static;
         [SerializeField]
         Vector3 m_CaptureMirrorPlaneLocalPosition;
         [SerializeField]
         Vector3 m_CaptureMirrorPlaneLocalNormal = Vector3.up;
-        [SerializeField]
-        bool m_OverrideFieldOfView = false;
-        [SerializeField]
-        [Range(0, 180)]
-        float m_FieldOfViewOverride = 90;
 
-        public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
+#pragma warning disable 649 //never assigned
+        [SerializeField, Obsolete("keeped only for data migration")]
+        bool m_OverrideFieldOfView;
+        [SerializeField, Obsolete("keeped only for data migration")]
+        float m_FieldOfViewOverride = CaptureSettings.@default.fieldOfView;
+        [SerializeField, Obsolete("keeped only for data migration")]
+        float m_CaptureNearPlane = CaptureSettings.@default.nearClipPlane;
+        [SerializeField, Obsolete("keeped only for data migration")]
+        float m_CaptureFarPlane = CaptureSettings.@default.farClipPlane;
+#pragma warning restore 649 //never assigned
+
+        public bool overrideFieldOfView;
         public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 
         public BoundingSphere boundingSphere { get { return influenceVolume.GetBoundingSphereAt(transform); } }
@@ -83,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return proxyVolume != null
                     ? proxyVolume.proxyVolume.extents
-                    : influenceVolume.boxSize; 
+                    : influenceVolume.boxSize;
             }
         }
 
@@ -118,18 +130,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnAfterDeserialize()
         {
             Assert.IsNotNull(influenceVolume, "influenceVolume must have an instance at this point. See HDProbe.Awake()");
-            if (m_Version != currentVersion)
+            if (m_Version != (uint)Version.Current)
             {
                 // Add here data migration code
-                if(m_Version < 2)
+                if(m_Version < (uint)Version.MigrateOffsetSphere)
                 {
                     influenceVolume.MigrateOffsetSphere();
+                    //not used for planar, keep it clean
+                    influenceVolume.boxBlendNormalDistanceNegative = Vector3.zero;
+                    influenceVolume.boxBlendNormalDistancePositive = Vector3.zero;
+                    m_Version = (uint)Version.MigrateOffsetSphere;
                 }
-                m_Version = currentVersion;
+                if(m_Version < (uint)Version.MigrateCaptureSettings)
+                {
+#pragma warning disable CS0618 // Type or member is obsolete
+                    if (m_OverrideFieldOfView)
+                    {
+                        captureSettings.overrides |= CaptureSettingsOverrides.FieldOfview;
+                    }
+                    captureSettings.fieldOfView = m_FieldOfViewOverride;
+                    captureSettings.nearClipPlane = m_CaptureNearPlane;
+                    captureSettings.farClipPlane = m_CaptureFarPlane;
+#pragma warning restore CS0618 // Type or member is obsolete
+                    m_Version = (uint)Version.MigrateCaptureSettings;
+                }
             }
 
-            influenceVolume.boxBlendNormalDistanceNegative = Vector3.zero;
-            influenceVolume.boxBlendNormalDistancePositive = Vector3.zero;
         }
     }
 }

@@ -13,6 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDProbeChild,
             UseInfluenceVolume,
             MergeEditors,
+            AddCaptureSettingsAndFrameSettings,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
@@ -58,6 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool needMigrateToHDProbeChild = false;
         bool needMigrateToUseInfluenceVolume = false;
         bool needMigrateToMergeEditors = false;
+        bool needMigrateAddCaptureSettingsAndFrameSettings = false;
 
         public void CopyTo(HDAdditionalReflectionData data)
         {
@@ -90,6 +92,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 needMigrateToMergeEditors = true;
             }
+            if (m_Version < (int)Version.AddCaptureSettingsAndFrameSettings)
+            {
+                needMigrateAddCaptureSettingsAndFrameSettings = true;
+            }
             //mandatory 'else' to only update version if other migrations done
             else if (m_Version < (int)Version.Current)
             {
@@ -108,6 +114,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 MigrateToUseInfluenceVolume();
             if (needMigrateToMergeEditors)
                 MigrateToMergeEditors();
+            if (needMigrateAddCaptureSettingsAndFrameSettings)
+                MigrateAddCaptureSettingsAndFrameSettings();
         }
 
         void Migrate()
@@ -124,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             base.Awake();
 
             //launch migration at creation too as m_Version could not have an
-            //existance in older version
+            //existence in older version
             Migrate();
         }
 
@@ -181,7 +189,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Version = (int)Version.MergeEditors;
             needMigrateToMergeEditors = false;
         }
-        
+
+        void MigrateAddCaptureSettingsAndFrameSettings()
+        {
+            captureSettings.shadowDistance = reflectionProbe.shadowDistance;
+            captureSettings.cullingMask = reflectionProbe.cullingMask;
+#if UNITY_EDITOR //m_UseOcclusionCulling is not exposed in c# !
+            UnityEditor.SerializedObject serializedReflectionProbe = new UnityEditor.SerializedObject(reflectionProbe);
+            captureSettings.useOcclusionCulling = serializedReflectionProbe.FindProperty("m_UseOcclusionCulling").boolValue;
+#endif
+            captureSettings.nearClipPlane = reflectionProbe.nearClipPlane;
+            captureSettings.farClipPlane = reflectionProbe.farClipPlane;
+            m_Version = (int)Version.AddCaptureSettingsAndFrameSettings;
+            needMigrateAddCaptureSettingsAndFrameSettings = false;
+        }
+
         public override Texture customTexture { get { return reflectionProbe.customBakedTexture; } set { reflectionProbe.customBakedTexture = value; } }
         public override Texture bakedTexture { get { return reflectionProbe.bakedTexture; } set { reflectionProbe.bakedTexture = value; } }
 

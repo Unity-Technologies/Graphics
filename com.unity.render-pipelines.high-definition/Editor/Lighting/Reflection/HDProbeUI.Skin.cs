@@ -10,24 +10,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class HDProbeUI
     {
-        /*
-        static readonly Color[][] k_handlesColor = new Color[][]
-        {
-            new Color[]
-            {
-                Color.red,
-                Color.green,
-                Color.blue
-            },
-            new Color[]
-            {
-                new Color(.5f, 0f, 0f, 1f),
-                new Color(0f, .5f, 0f, 1f),
-                new Color(0f, 0f, .5f, 1f)
-            }
-        };
-        */
-
         //static readonly GUIContent bakeTypeContent = CoreEditorUtils.GetContent("Type|'Baked Cubemap' uses the 'Auto Baking' mode from the Lighting window. If it is enabled then baking is automatic otherwise manual bake is needed (use the bake button below). \n'Custom' can be used if a custom cubemap is wanted. \n'Realtime' can be used to dynamically re-render the cubemap during runtime (via scripting).");
 
         static readonly GUIContent proxyVolumeContent = CoreEditorUtils.GetContent("Proxy Volume");
