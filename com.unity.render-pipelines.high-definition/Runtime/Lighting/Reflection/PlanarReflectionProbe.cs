@@ -48,15 +48,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_CaptureFarPlane = CaptureSettings.@default.farClipPlane;
 #pragma warning restore 649 //never assigned
 
-        public bool overrideFieldOfView;
-        public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
-
         public BoundingSphere boundingSphere { get { return influenceVolume.GetBoundingSphereAt(transform); } }
         public Bounds bounds { get { return influenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
-
-        public float captureNearPlane { get { return m_CaptureNearPlane; } }
-        public float captureFarPlane { get { return m_CaptureFarPlane; } }
         public CapturePositionMode capturePositionMode { get { return m_CapturePositionMode; } }
         public Vector3 captureMirrorPlaneLocalPosition
         {

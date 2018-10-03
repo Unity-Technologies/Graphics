@@ -7,10 +7,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class PlanarReflectionProbeUI : HDProbeUI
     {
-        public static readonly CED.IDrawer[] Inspector;
+        new public static readonly CED.IDrawer[] Inspector;
 
         //temporary to lock UI on realtime until other mode than realtime are usable
-        static void Drawer_ReflectionProbeMode(HDProbeUI s, SerializedHDProbe p, Editor owner)
+        new static void Drawer_ReflectionProbeMode(HDProbeUI s, SerializedHDProbe p, Editor owner)
         {
             using (new EditorGUI.DisabledScope(true))
             {
