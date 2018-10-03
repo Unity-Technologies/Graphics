@@ -11,10 +11,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedProperty capturePositionMode;
         internal SerializedProperty captureMirrorPlaneLocalPosition;
         internal SerializedProperty captureMirrorPlaneLocalNormal;
-        internal SerializedProperty customTexture;
-
-        internal SerializedProperty overrideFieldOfView;
-        internal SerializedProperty fieldOfViewOverride;
 
         internal new PlanarReflectionProbe target { get { return serializedObject.targetObject as PlanarReflectionProbe; } }
 
@@ -36,15 +32,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             capturePositionMode = serializedObject.Find((PlanarReflectionProbe p) => p.capturePositionMode);
             captureMirrorPlaneLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalPosition);
             captureMirrorPlaneLocalNormal = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalNormal);
-            customTexture = serializedObject.Find((PlanarReflectionProbe p) => p.customTexture);
-
-            overrideFieldOfView = serializedObject.Find((PlanarReflectionProbe p) => p.overrideFieldOfView);
-            fieldOfViewOverride = serializedObject.Find((PlanarReflectionProbe p) => p.fieldOfViewOverride);
 
             influenceVolume.editorSimplifiedModeBlendNormalDistance.floatValue = 0;
         }
-
-
+        
         internal override void Update()
         {
             base.Update();
@@ -54,6 +45,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             refreshMode.enumValueIndex = (int)ReflectionProbeRefreshMode.EveryFrame;
             capturePositionMode.enumValueIndex = (int)PlanarReflectionProbe.CapturePositionMode.MirrorCamera;
         }
-
     }
 }
