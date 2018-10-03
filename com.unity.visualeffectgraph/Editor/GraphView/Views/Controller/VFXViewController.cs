@@ -1902,34 +1902,4 @@ namespace UnityEditor.VFX.UI
 
         private VFXView m_View; // Don't call directly as it is lazy initialized
     }
-
-
-    internal class VFXSystemController : Controller<VFXUI>
-    {
-        VFXViewController m_ViewController;
-        public VFXSystemController(VFXViewController viewController,VFXUI model):base(model)
-        {
-            m_ViewController = viewController;
-        }
-
-        protected override void ModelChanged(UnityEngine.Object obj)
-        {
-
-        }
-
-        public string title
-        {
-            get
-            {
-                return m_ViewController.graph.UIInfos.GetNameOfSystem(contexts.Select(t => t.model));
-            }
-            set
-            {
-                m_ViewController.graph.UIInfos.SetNameOfSystem(contexts.Select(t => t.model), value);
-                m_ViewController.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
-            }
-        }
-
-        internal VFXContextController[] contexts { get; set; }
-    }
 }

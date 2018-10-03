@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Rendering;
@@ -172,9 +173,42 @@ public class VisualEffectAssetEditor : Editor
         return false;
     }
 
+    ReorderableList m_ReorderableList;
+    List<VFXContext> m_OutputContexts = new List<VFXContext>();
+
+    void OnReorder(ReorderableList list)
+    {
+        for(int i = 0; i < m_OutputContexts.Count(); ++i)
+        {
+            m_OutputContexts[i].SetSettingValue("sortPriority", i);
+        }
+    }
+    private void DrawOutputContextItem(Rect rect, int index, bool isActive, bool isFocused)
+    {
+        EditorGUI.LabelField(rect, EditorGUIUtility.TempContent(m_OutputContexts[index].fileName));
+    }
+
+    private void DrawHeader(Rect rect)
+    {
+        EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent("Output Render Order"));
+    }
+
     static Mesh s_CubeWireFrame;
     void OnEnable()
     {
+        VisualEffectAsset target = this.target as VisualEffectAsset;
+
+        m_OutputContexts.Clear();
+        m_OutputContexts.AddRange(target.GetResource().GetOrCreateGraph().children.OfType<VFXAbstractParticleOutput>().OrderBy(t => t.GetSortPriority()));
+
+        m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(VFXAbstractParticleOutput));
+        m_ReorderableList.displayRemove = false;
+        m_ReorderableList.displayAdd = false;
+        m_ReorderableList.onReorderCallback = OnReorder;
+        m_ReorderableList.drawHeaderCallback = DrawHeader;
+
+        m_ReorderableList.drawElementCallback = DrawOutputContextItem;
+
         if (m_VisualEffectGO == null)
         {
             m_PreviewUtility = new PreviewRenderUtility();
@@ -197,7 +231,7 @@ public class VisualEffectAssetEditor : Editor
             m_VisualEffectGO.transform.localRotation = Quaternion.identity;
             m_VisualEffectGO.transform.localScale = Vector3.one;
 
-            m_VisualEffect.visualEffectAsset = target as VisualEffectAsset;
+            m_VisualEffect.visualEffectAsset = target;
 
             m_CurrentBounds = new Bounds(Vector3.zero, Vector3.one);
             m_FrameCount = 0;
@@ -467,6 +501,11 @@ public class VisualEffectAssetEditor : Editor
             resource.rendererSettings = settings;
             needRecompile = true;
         }
+
+        m_OutputContexts.Clear();
+        m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<VFXAbstractParticleOutput>().OrderBy(t => t.GetSortPriority()));
+
+        m_ReorderableList.DoLayoutList();
 
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
 
