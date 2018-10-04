@@ -154,6 +154,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         HDShadowInitParameters                m_HDShadowInitParameters;
         Dictionary<HDShadowQuality, Action>   m_ShadowAlgorithmUIs;
 
+        //we need this to determine if we not attempt to render it two time the same frame
+        //This is needed as we have tried to work outside of Gizmo scope with Handle only for SRP
+        int lastRenderedHandleFrame = 0; 
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -295,10 +299,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void OnSceneGUI()
         {
+            Light light = (Light)target;
+            if (!Selection.Contains(light.gameObject) || lastRenderedHandleFrame == Time.frameCount)
+            {
+                return;
+            }
+            lastRenderedHandleFrame = Time.frameCount;
+
             m_SerializedAdditionalLightData.Update();
 
             HDAdditionalLightData src = (HDAdditionalLightData)m_SerializedAdditionalLightData.targetObject;
-            Light light = (Light)target;
 
             Color wireframeColorAbove = light.enabled ? LightEditor.kGizmoLight : LightEditor.kGizmoDisabledLight;
             Color handleColorAbove = CoreLightEditorUtilities.GetLightHandleColor(wireframeColorAbove);
@@ -403,6 +413,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                     break;
                             }
                             break;
+                    }
+                    break;
+                case LightTypeExtent.Rectangle:
+                case LightTypeExtent.Line:
+                    bool withYAxis = src.lightTypeExtent == LightTypeExtent.Rectangle;
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
+                    {
+                        Vector2 widthHeight = new Vector4(light.areaSize.x, withYAxis ? light.areaSize.y : 0f);
+                        float range = light.range;
+                        EditorGUI.BeginChangeCheck();
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = wireframeColorBehind;
+                        CoreLightEditorUtilities.DrawAreaLightWireframe(widthHeight);
+                        range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = wireframeColorAbove;
+                        CoreLightEditorUtilities.DrawAreaLightWireframe(widthHeight);
+                        range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = handleColorBehind;
+                        widthHeight = CoreLightEditorUtilities.DrawAreaLightHandle(widthHeight, withYAxis);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = handleColorAbove;
+                        widthHeight = CoreLightEditorUtilities.DrawAreaLightHandle(widthHeight, withYAxis);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObjects(new UnityEngine.Object[] { target, src }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Line Light");
+                            light.areaSize = withYAxis ? widthHeight : new Vector2(widthHeight.x, light.areaSize.y);
+                            light.range = range;
+                        }
+
+                        // Handles.color reseted at end of scope
                     }
                     break;
             }
@@ -853,7 +895,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Internal utilities
         void ApplyAdditionalComponentsVisibility(bool hide)
         {
-            // UX team decided thta we should always show component in inspector.
+            // UX team decided that we should always show component in inspector.
             // However already authored scene save this settings, so force the component to be visible
             // var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
             var flags = HideFlags.None;
@@ -906,7 +948,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         break;
                 }
             }
-
         }
 
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
@@ -940,8 +981,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
-
+            Handles.zTest = CompareFunction.Always;
             Gizmos.color = previousColor;
+            
+            if (Selection.Contains(light.gameObject))
+            {
+                ((HDLightEditor)Editor.CreateEditor(light)).OnSceneGUI();
+            }
         }
     }
 }
