@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
@@ -218,7 +217,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Create shadow requests array using the light type
             if (shadowRequests == null || shadowRequests.Length != GetShadowRequestCount(shadowSettings))
-                shadowRequests = Enumerable.Range(0, GetShadowRequestCount(shadowSettings)).Select(i => new HDShadowRequest()).ToArray();
+            {
+                int count      = GetShadowRequestCount(shadowSettings);
+                shadowRequests = new HDShadowRequest[count];
+
+                for (int i = 0; i < count; i++)
+                {
+                    shadowRequests[i] = new HDShadowRequest();
+                }
+            }
 
             // If the shadow is too far away, we don't render it
             if (m_Light.type != LightType.Directional && Vector3.Distance(cameraPos, transform.position) >= m_ShadowData.shadowFadeDistance)
@@ -258,7 +265,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case LightType.Directional:
                         Vector4 cullingSphere;
                         float   nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
-                        
+
                         HDShadowUtils.ExtractDirectionalLightData(visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount, shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex, out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.splitData);
 
                         cullingSphere = shadowRequest.splitData.cullingSphere;
