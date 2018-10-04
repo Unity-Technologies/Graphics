@@ -146,14 +146,10 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
-        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
-            if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-                diffuseLighting = lighting.indirect.specularTransmitted;
+        case DEBUGLIGHTINGMODE_SCREEN_SPACE_REFRACTION:
             break;
 
-        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION:
-            if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-                diffuseLighting = lighting.indirect.specularReflected;
+        case DEBUGLIGHTINGMODE_SCREEN_SPACE_REFLECTION:
             break;
 
         case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:

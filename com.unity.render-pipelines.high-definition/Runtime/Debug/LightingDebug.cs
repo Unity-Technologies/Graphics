@@ -14,32 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VisualizeShadowMasks,
         IndirectDiffuseOcclusion,
         IndirectSpecularOcclusion,
-        ScreenSpaceTracingRefraction,
-        ScreenSpaceTracingReflection,
-    }
-
-    [GenerateHLSL]
-    public enum DebugScreenSpaceTracing
-    {
-        None,
-        Color,
-        RayDirWS,
-        HitDepth,
-        HitSuccess,
-        TracingModel,
-        HiZPositionNDC,
-        HiZRayDirNDC,
-        HiZIterationCount,
-        HiZMaxUsedMipLevel,
-        HiZIntersectionKind,
-        HiZHitWeight,
-        HiZSampledColor,
-        HiZDiff,
-        LinearPositionNDC,
-        LinearRayDirNDC,
-        LinearIterationCount,
-        LinearHitWeight,
-        LinearSampledColor
+        ScreenSpaceReflection,
+        ScreenSpaceRefraction,
     }
 
     [GenerateHLSL]
@@ -70,7 +46,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
-        public DebugScreenSpaceTracing debugScreenSpaceTracingMode = DebugScreenSpaceTracing.None;
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         public bool                 shadowDebugUseSelection = false;
         public uint                 shadowMapIndex = 0;
