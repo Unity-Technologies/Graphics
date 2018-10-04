@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        [ExecuteInEditMode]
+        [ExecuteAlways]
         class GameViewEventCatcher : MonoBehaviour
         {
             public static GameViewEventCatcher s_Instance = null;
