@@ -483,8 +483,8 @@ namespace UnityEditor.VFX.UI
 
             Profiler.EndSample();
             m_InControllerChanged = false;
-
-            UpdateSystems();
+            if(change != VFXViewController.Change.dataEdge)
+                UpdateSystems();
 
             if (m_UpdateUIBounds)
             {

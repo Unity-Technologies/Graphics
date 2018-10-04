@@ -143,15 +143,21 @@ namespace UnityEditor.VFX.UI
 
             Rect rect = Rect.zero;
 
-            foreach (var context in m_Contexts)
+            if(m_Contexts != null)
             {
-                if (rect == Rect.zero)
+                foreach (var context in m_Contexts)
                 {
-                    rect = context.localBound;
-                }
-                else
-                {
-                    rect = RectUtils.Encompass(rect, context.GetPosition());
+                    if( context != null)
+                    {
+                        if (rect == Rect.zero)
+                        {
+                            rect = context.localBound;
+                        }
+                        else
+                        {
+                            rect = RectUtils.Encompass(rect, context.GetPosition());
+                        }
+                    }
                 }
             }
 

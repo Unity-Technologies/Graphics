@@ -497,9 +497,9 @@ namespace UnityEditor.VFX.UI
             if (m_Syncing) return;
 
             bool change = RecreateFlowEdges();
-
             if (change)
             {
+                UpdateSystems(); // System will change based on flowEdges
                 NotifyChange(Change.flowEdge);
             }
         }
