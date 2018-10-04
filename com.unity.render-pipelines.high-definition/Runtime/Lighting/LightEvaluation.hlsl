@@ -84,6 +84,11 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         // Note: There is no shadowDimmer when there is no shadow mask
 #endif
 
+#ifdef DEBUG_DISPLAY
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && lightData.shadowIndex == _DebugSingleShadowIndex)
+        debugShadowAttenuation = shadow;
+#endif
+
         // Transparent have no contact shadow information
 #ifndef _SURFACE_TYPE_TRANSPARENT
         shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
@@ -211,6 +216,11 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         shadow = lerp(shadowMask, shadow, lightData.shadowDimmer);
 #else
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
+#endif
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && lightData.shadowIndex == _DebugSingleShadowIndex)
+        debugShadowAttenuation = step(FLT_EPS, attenuation) * shadow;
 #endif
 
         // Transparent have no contact shadow information

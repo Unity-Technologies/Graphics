@@ -11,6 +11,7 @@
 CBUFFER_START(UnityDebugDisplay)
 // Set of parameters available when switching to debug shader mode
 int _DebugLightingMode; // Match enum DebugLightingMode
+int _DebugShadowMapMode;
 int _DebugLightingSubMode;
 int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
 int _DebugMipMapMode; // Match enum DebugMipMapMode
@@ -25,6 +26,8 @@ float4 _MousePixelCoord;  // xy unorm, zw norm
 float4 _MouseClickPixelCoord;  // xy unorm, zw norm
 float _DebugExposure;
 CBUFFER_END
+
+float debugShadowAttenuation = 0;
 
 // When displaying lux meter we compress the light in order to be able to display value higher than 65504
 // The sun is between 100 000 and 150 000, so we use 4 to be able to cover such a range (4 * 65504)
