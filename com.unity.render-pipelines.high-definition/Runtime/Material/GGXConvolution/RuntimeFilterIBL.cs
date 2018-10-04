@@ -65,18 +65,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GgxIblSampleData.hideFlags = HideFlags.HideAndDontSave;
                 m_GgxIblSampleData.Create();
 
-                m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
-
-                using (new ProfilingSample(cmd, "Compute GGX IBL Sample Data"))
-                {
-                    cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
-                }
+                InitializeGgxIblSampleData(cmd);
             }
 
             for (int i = 0; i < 6; ++i)
             {
                 var lookAt = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
                 m_faceWorldToViewMatrixMatrices[i] = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
+            }
+        }
+
+        void InitializeGgxIblSampleData(CommandBuffer cmd)
+        {
+            m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
+
+            using (new ProfilingSample(cmd, "Compute GGX IBL Sample Data"))
+            {
+                cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
             }
         }
 
@@ -108,6 +113,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Solid angle associated with a texel of the cubemap.
             float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
+
+            if (!m_GgxIblSampleData.IsCreated())
+            {
+                m_GgxIblSampleData.Create();
+                InitializeGgxIblSampleData(cmd);
+            }
 
             m_GgxConvolveMaterial.SetTexture("_GgxIblSamples", m_GgxIblSampleData);
 
