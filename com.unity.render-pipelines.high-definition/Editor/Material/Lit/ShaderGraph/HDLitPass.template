@@ -53,8 +53,6 @@ Pass
         $Refraction:                     #define _HAS_REFRACTION 1
         $RefractionPlane:                #define _REFRACTION_PLANE 1
         $RefractionSphere:               #define _REFRACTION_SPHERE 1
-        $RefractionSSRayProxy:           #define _REFRACTION_SSRAY_PROXY 1
-        $RefractionSSRayHiZ:             #define _REFRACTION_SSRAY_HIZ 1
         $Decals:                         #define _DECALS 1
 
     //-------------------------------------------------------------------------------------
