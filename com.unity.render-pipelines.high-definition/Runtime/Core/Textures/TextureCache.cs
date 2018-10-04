@@ -71,10 +71,23 @@ namespace UnityEngine.Experimental.Rendering
         {
             CoreUtils.Destroy(m_Cache);
         }
+        
+        internal static long GetApproxCacheSizeInByte(int nbElement, int resolution)
+        {
+            return (long)((long)nbElement * resolution * resolution * k_FP16SizeInByte * k_NbChannel * k_MipmapFactorApprox);
+        }
+
+        internal static int GetMaxCacheSizeForWeightInByte(int weight, int resolution)
+        {
+            int theoricalResult = Mathf.FloorToInt(weight / ((long)resolution * resolution * k_FP16SizeInByte * k_NbChannel * k_MipmapFactorApprox));
+            return Mathf.Clamp(theoricalResult, 1, k_MaxSupported);
+        }
     }
 
     public class TextureCacheCubemap : TextureCache
     {
+        const int k_NbFace = 6;
+
         private CubemapArray m_Cache;
 
         // the member variables below are only in use when TextureCache.supportsCubemapArrayTextures is false
@@ -204,11 +217,28 @@ namespace UnityEngine.Experimental.Rendering
             for (int m = 0; m < m_NumPanoMipLevels; m++)
                 cmd.CopyTexture(m_StagingRTs[m], 0, 0, m_CacheNoCubeArray, sliceIndex, m);
         }
+
+
+        internal static long GetApproxCacheSizeInByte(int nbElement, int resolution)
+        {
+            return (long)((long)nbElement * resolution * resolution * k_NbFace * k_FP16SizeInByte * k_NbChannel * k_MipmapFactorApprox);
+        }
+
+        internal static int GetMaxCacheSizeForWeightInByte(long weight, int resolution)
+        {
+            int theoricalResult = Mathf.FloorToInt(weight / ((long)resolution * resolution * k_NbFace * k_FP16SizeInByte * k_NbChannel * k_MipmapFactorApprox));
+            return Mathf.Clamp(theoricalResult, 1, k_MaxSupported);
+        }
     }
 
 
     public abstract class TextureCache
     {
+        protected const int k_FP16SizeInByte = 2;
+        protected const int k_NbChannel = 4;
+        protected const float k_MipmapFactorApprox = 1.33f;
+        internal const int k_MaxSupported = 250; //vary along hardware and cube/2D but 250 should be always safe 
+
         protected int m_NumMipLevels;
         protected string m_CacheName;
 
