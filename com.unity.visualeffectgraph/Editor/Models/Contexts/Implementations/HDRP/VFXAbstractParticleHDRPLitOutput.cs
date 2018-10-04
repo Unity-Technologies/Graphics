@@ -40,8 +40,8 @@ namespace UnityEditor.VFX
             "StandardProperties",
             "SpecularColorProperties",
             "TranslucentProperties",
-            "SimpleLitProperties",
-            "SimpleLitTranslucentProperties",
+            "StandardProperties",
+            "TranslucentProperties",
         };
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting")]
@@ -109,18 +109,6 @@ namespace UnityEditor.VFX
         }
 
         public class TranslucentProperties
-        {
-            [Range(0, 1)]
-            public float thickness = 1.0f;
-        }
-
-        public class SimpleLitProperties
-        {
-            [Range(0, 1)]
-            public float metallic = 0.5f;
-        }
-
-        public class SimpleLitTranslucentProperties
         {
             [Range(0, 1)]
             public float thickness = 1.0f;
@@ -344,11 +332,10 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                if (materialType != MaterialType.Translucent)
+                if (materialType != MaterialType.Translucent && materialType != MaterialType.SimpleLitTranslucent)
                 {
                     yield return "diffusionProfile";
-                    if (materialType != MaterialType.SimpleLitTranslucent)
-                        yield return "multiplyThicknessWithAlpha";
+                    yield return "multiplyThicknessWithAlpha";
                 }
 
                 if (materialType != MaterialType.SimpleLit && materialType != MaterialType.SimpleLitTranslucent)

@@ -88,7 +88,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
 	opacity = color.a;
     #endif
 
-    #if HDRP_MATERIAL_TYPE_STANDARD || HDRP_MATERIAL_TYPE_SIMPLELIT
+    #if HDRP_MATERIAL_TYPE_STANDARD
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 	#ifdef VFX_VARYING_METALLIC
     surfaceData.metallic = i.VFX_VARYING_METALLIC;
@@ -98,7 +98,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
 	#ifdef VFX_VARYING_SPECULAR
     surfaceData.specularColor = saturate(i.VFX_VARYING_SPECULAR);
 	#endif
-    #elif HDRP_MATERIAL_TYPE_TRANSLUCENT || HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
+    #elif HDRP_MATERIAL_TYPE_TRANSLUCENT
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
 	#ifdef VFX_VARYING_THICKNESS
     surfaceData.thickness = i.VFX_VARYING_THICKNESS * opacity;

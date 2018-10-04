@@ -118,7 +118,6 @@ void SimpleEvaluateLight_Directional(LightLoopContext lightLoopContext, Position
 {
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
-    float  shadowMask = 1.0;
 
     color       = lightData.color;
     attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
