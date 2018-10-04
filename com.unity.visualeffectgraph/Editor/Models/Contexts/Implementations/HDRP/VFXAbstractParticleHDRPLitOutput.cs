@@ -77,7 +77,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool doubleSided = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Simple Lit features")]
         protected bool enableShadows = true;
         
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
