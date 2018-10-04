@@ -551,6 +551,7 @@ namespace UnityEngine.Experimental.Rendering
             return animateMaterials;
         }
 
+#if UNITY_EDITOR
         static Func<List<UnityEditor.MaterialEditor>> materialEditors;
 
         static CoreUtils()
@@ -561,6 +562,7 @@ namespace UnityEngine.Experimental.Rendering
             var lambda = System.Linq.Expressions.Expression.Lambda<Func<List<UnityEditor.MaterialEditor>>>(fieldExpression);
             materialEditors = lambda.Compile();
         }
+#endif
 
         public static bool IsSceneViewFogEnabled(Camera camera)
         {
