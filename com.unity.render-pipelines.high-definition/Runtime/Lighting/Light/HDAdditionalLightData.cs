@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
     [RequireComponent(typeof(Light))]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
         // 3. Added ShadowNearPlane to HDRP additional light data, we don't use Light.shadowNearPlane anymore

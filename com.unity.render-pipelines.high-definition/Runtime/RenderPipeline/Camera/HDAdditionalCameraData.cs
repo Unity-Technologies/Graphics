@@ -4,7 +4,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [DisallowMultipleComponent, ExecuteInEditMode]
+    [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {

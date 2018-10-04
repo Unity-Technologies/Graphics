@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public abstract class HDProbe : MonoBehaviour, ISerializationCallbackReceiver
     {
         [SerializeField, FormerlySerializedAs("proxyVolumeComponent"), FormerlySerializedAs("m_ProxyVolumeReference")]

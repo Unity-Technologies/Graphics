@@ -5,7 +5,7 @@ using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class PlanarReflectionProbe : HDProbe, ISerializationCallbackReceiver
     {
         enum Version
