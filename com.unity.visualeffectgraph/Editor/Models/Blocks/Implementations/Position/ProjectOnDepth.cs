@@ -26,12 +26,12 @@ namespace UnityEditor.VFX.Block
         {
             public CameraType Camera = CameraType.defaultValue;
             public float ZMultiplier = 1.0f;
-            public Texture2D DepthBuffer;
+            public Texture2D DepthBuffer = null;
         }
 
         public class SceneColorInputProperties
         {
-            public Texture2D ColorBuffer;
+            public Texture2D ColorBuffer = null;
         }
 
         public class SequentialInputProperties

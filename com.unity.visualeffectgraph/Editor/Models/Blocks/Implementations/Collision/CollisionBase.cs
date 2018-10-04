@@ -44,16 +44,16 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        protected virtual bool allowInvertedCollision { get { return true; } }
+
         protected IEnumerable<VFXNamedExpression> collisionParameters
         {
             get
             {
                 yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
 
-                if (mode == Mode.Solid)
-                    yield return new VFXNamedExpression(VFXValue.Constant(1.0f), "colliderSign");
-                else
-                    yield return new VFXNamedExpression(VFXValue.Constant(-1.0f), "colliderSign");
+                if (allowInvertedCollision)
+                    yield return new VFXNamedExpression(VFXValue.Constant(mode == Mode.Solid ? 1.0f : -1.0f), "colliderSign");
 
                 if (radiusMode == RadiusMode.None)
                     yield return new VFXNamedExpression(VFXValue.Constant(0.0f), "radius");
@@ -77,6 +77,15 @@ namespace UnityEditor.VFX.Block
 
                 foreach (var p in collisionParameters)
                     yield return p;
+            }
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                if (!allowInvertedCollision)
+                    yield return "mode";
             }
         }
 
