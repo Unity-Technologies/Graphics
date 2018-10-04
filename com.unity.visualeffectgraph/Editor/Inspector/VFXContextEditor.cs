@@ -54,7 +54,7 @@ public class VFXContextEditor : VFXSlotContainerEditor
         base.OnEnable();
     }
 
-    private void OnDisable()
+    private new void OnDisable()
     {
         base.OnDisable();
 

@@ -174,18 +174,18 @@ public class VisualEffectAssetEditor : Editor
     }
 
     ReorderableList m_ReorderableList;
-    List<VFXContext> m_OutputContexts = new List<VFXContext>();
+    List<IVFXSubRenderer> m_OutputContexts = new List<IVFXSubRenderer>();
 
     void OnReorder(ReorderableList list)
     {
         for(int i = 0; i < m_OutputContexts.Count(); ++i)
         {
-            m_OutputContexts[i].SetSettingValue("sortPriority", i);
+            m_OutputContexts[i].sortPriority =i;
         }
     }
     private void DrawOutputContextItem(Rect rect, int index, bool isActive, bool isFocused)
     {
-        EditorGUI.LabelField(rect, EditorGUIUtility.TempContent(m_OutputContexts[index].fileName));
+        EditorGUI.LabelField(rect, EditorGUIUtility.TempContent((m_OutputContexts[index] as VFXContext).fileName));
     }
 
     private void DrawHeader(Rect rect)
@@ -199,9 +199,9 @@ public class VisualEffectAssetEditor : Editor
         VisualEffectAsset target = this.target as VisualEffectAsset;
 
         m_OutputContexts.Clear();
-        m_OutputContexts.AddRange(target.GetResource().GetOrCreateGraph().children.OfType<VFXAbstractParticleOutput>().OrderBy(t => t.GetSortPriority()));
+        m_OutputContexts.AddRange(target.GetResource().GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
 
-        m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(VFXAbstractParticleOutput));
+        m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
         m_ReorderableList.displayRemove = false;
         m_ReorderableList.displayAdd = false;
         m_ReorderableList.onReorderCallback = OnReorder;
@@ -503,7 +503,7 @@ public class VisualEffectAssetEditor : Editor
         }
 
         m_OutputContexts.Clear();
-        m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<VFXAbstractParticleOutput>().OrderBy(t => t.GetSortPriority()));
+        m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
 
         m_ReorderableList.DoLayoutList();
 
