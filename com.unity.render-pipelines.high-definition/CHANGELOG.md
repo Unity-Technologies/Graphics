@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added occlusion mesh to depth prepass for VR (VR still disabled for now)
+- Added a debug mode to display only one shadow at once
 
 ### Fixed
 - Fixed a normal bias issue with Stacklit (Was causing light leaking)

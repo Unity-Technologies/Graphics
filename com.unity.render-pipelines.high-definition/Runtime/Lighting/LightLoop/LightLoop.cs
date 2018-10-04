@@ -1531,6 +1531,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DominantLightIndex = -1;
                 m_DominantLightValue = 0;
+                m_DebugSelectedLightShadowIndex = -1;
 
                 var stereoEnabled = m_FrameSettings.enableStereo;
 
@@ -1698,7 +1699,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 shadowIndex = additionalLightData.UpdateShadowRequest(camera, m_ShadowInitParameters, m_ShadowManager, light, cullResults, lightIndex, out shadowRequestCount);
 
 #if UNITY_EDITOR
-                                if (debugDisplaySettings.lightingDebugSettings.shadowDebugUseSelection && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
+                                if ((debugDisplaySettings.lightingDebugSettings.shadowDebugUseSelection
+                                        || debugDisplaySettings.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                                    && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
                                 {
                                     m_DebugSelectedLightShadowIndex = shadowIndex;
                                     m_DebugSelectedLightShadowCount = shadowRequestCount;
@@ -1934,6 +1937,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.enableShadowMask;
+
+            // We push this parameter here because we know that normal/deferred shadows are not yet rendered
+            if (debugDisplaySettings.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+            {
+                int shadowIndex = (int)debugDisplaySettings.lightingDebugSettings.shadowMapIndex;
+
+                if (debugDisplaySettings.lightingDebugSettings.shadowDebugUseSelection)
+                    shadowIndex = m_DebugSelectedLightShadowIndex;
+                cmd.SetGlobalInt(HDShaderIDs._DebugSingleShadowIndex, shadowIndex);
+            }
 
             return m_enableBakeShadowMask;
         }
@@ -2669,7 +2682,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int shadowRequestCount = 1;
 
 #if UNITY_EDITOR
-                    if (lightingDebug.shadowDebugUseSelection)
+                    if (lightingDebug.shadowDebugUseSelection && m_DebugSelectedLightShadowIndex != -1)
                     {
                         startShadowIndex = m_DebugSelectedLightShadowIndex;
                         shadowRequestCount = m_DebugSelectedLightShadowCount;

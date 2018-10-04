@@ -109,6 +109,16 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
 void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData builtinData, AggregateLighting lighting, float3 mipmapColor,
                                     inout float3 diffuseLighting, inout float3 specularLighting)
 {
+    if (_DebugShadowMapMode != 0)
+    {
+        switch (_DebugShadowMapMode)
+        {
+        case SHADOWMAPDEBUGMODE_SINGLE_SHADOW:
+            diffuseLighting = debugShadowAttenuation.xxx;
+            specularLighting = float3(0, 0, 0);
+            break ;
+        }
+    }
     if (_DebugLightingMode != 0)
     {
         // Caution: _DebugLightingMode is used in other part of the code, don't do anything outside of
