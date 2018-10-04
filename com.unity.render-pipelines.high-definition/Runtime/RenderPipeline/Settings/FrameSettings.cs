@@ -46,6 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // The settings here are per frame settings.
     // Each camera must have its own per frame settings
     [Serializable]
+    [System.Diagnostics.DebuggerDisplay("FrameSettings overriding {overrides.ToString(\"X\")}")]
     public class FrameSettings
     {
         static Dictionary<FrameSettingsOverrides, Action<FrameSettings, FrameSettings>> s_Overrides = new Dictionary<FrameSettingsOverrides, Action<FrameSettings, FrameSettings>>
@@ -198,6 +199,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             result.lightLoopSettings = lightLoopSettings.Override(overridedFrameSettings.lightLoopSettings);
+
+            //propagate override to be chained
+            result.overrides = overrides | overridedFrameSettings.overrides;
             return result;
         }
 
