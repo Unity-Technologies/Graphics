@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
+                    m_FrameSettings.Override(defaultFrameSettings).CopyTo(m_FrameSettingsRuntime);
                 }
 
                 m_frameSettingsIsDirty = false;

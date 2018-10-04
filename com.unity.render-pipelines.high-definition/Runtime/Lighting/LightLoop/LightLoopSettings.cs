@@ -81,6 +81,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     s_Overrides[val](result, this);
                 }
             }
+
+            //propagate override to be chained
+            result.overrides = overrides | overridedFrameSettings.overrides;
             return result;
         }
 
