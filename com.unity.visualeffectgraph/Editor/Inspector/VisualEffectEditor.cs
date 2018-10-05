@@ -1,3 +1,5 @@
+#define WORKAROUND_TIMELINE
+
 using System;
 using System.Linq;
 using System.Collections;
@@ -16,7 +18,11 @@ using UnityObject = UnityEngine.Object;
 using System.Reflection;
 namespace UnityEditor.VFX
 {
+#if WORKAROUND_TIMELINE
+    class FakeObject : MonoBehaviour
+#else
     class FakeObject : ScriptableObject
+#endif
     {
         public float aFloat;
         public Vector2 aVector2;
@@ -78,6 +84,9 @@ namespace UnityEditor.VFX
         SerializedProperty m_RandomSeed;
         SerializedProperty m_VFXPropertySheet;
 
+#if WORKAROUND_TIMELINE
+        static GameObject s_FakeObjectRoot;
+#endif
         static FakeObject s_FakeObjectCache;
         static SerializedObject s_FakeObjectSerializedCache;
 
@@ -543,7 +552,13 @@ namespace UnityEditor.VFX
         {
             if (s_FakeObjectCache == null)
             {
+#if WORKAROUND_TIMELINE
+                s_FakeObjectRoot = new GameObject("FakeRoot", new[] { typeof(FakeObject) });
+                s_FakeObjectRoot.hideFlags = HideFlags.HideAndDontSave;
+                s_FakeObjectCache = s_FakeObjectRoot.GetComponent<FakeObject>();
+#else
                 s_FakeObjectCache = ScriptableObject.CreateInstance<FakeObject>();
+#endif
                 s_FakeObjectSerializedCache = new SerializedObject(s_FakeObjectCache);
             }
             var component = (VisualEffect)target;

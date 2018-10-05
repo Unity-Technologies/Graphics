@@ -1,6 +1,7 @@
 //#define OLD_COPY_PASTE
 using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -10,6 +11,7 @@ using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Profiling;
+using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
@@ -452,20 +454,27 @@ namespace UnityEditor.VFX.UI
                 }
                 return;
             }
-            Profiler.BeginSample("VFXView.ControllerChanged");
             if (change == VFXViewController.Change.destroy)
             {
                 m_Blackboard.controller = null;
                 controller = null;
                 return;
             }
+            Profiler.BeginSample("VFXView.ControllerChanged");
             if (change == VFXViewController.AnyThing)
             {
                 SyncNodes();
             }
+
+            Profiler.BeginSample("VFXView.SyncStickyNotes");
             SyncStickyNotes();
+            Profiler.EndSample();
+            Profiler.BeginSample("VFXView.SyncEdges");
             SyncEdges(change);
+            Profiler.EndSample();
+            Profiler.BeginSample("VFXView.SyncGroupNodes");
             SyncGroupNodes();
+            Profiler.EndSample();
 
             if (controller != null)
             {
@@ -481,15 +490,17 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            Profiler.EndSample();
             m_InControllerChanged = false;
             if(change != VFXViewController.Change.dataEdge)
                 UpdateSystems();
 
             if (m_UpdateUIBounds)
             {
+                Profiler.BeginSample("VFXView.UpdateUIBounds");
                 UpdateUIBounds();
+                Profiler.EndSample();
             }
+            Profiler.EndSample();
         }
 
         public override void OnPersistentDataReady()
@@ -601,6 +612,7 @@ namespace UnityEditor.VFX.UI
                 elementsAddedToGroup = null;
                 elementsRemovedFromGroup = null;
 
+                Profiler.BeginSample("VFXView.SyncNodes:Delete");
                 var deletedControllers = rootNodes.Keys.Except(controller.nodes).ToArray();
 
                 foreach (var deletedController in deletedControllers)
@@ -609,9 +621,10 @@ namespace UnityEditor.VFX.UI
                     rootNodes.Remove(deletedController);
                     rootGroupNodeElements.Remove(deletedController);
                 }
-
+                Profiler.EndSample();
                 bool needOneListenToGeometry = !m_GeometrySet;
 
+                Profiler.BeginSample("VFXView.SyncNodes:Create");
                 foreach (var newController in controller.nodes.Except(rootNodes.Keys).ToArray())
                 {
                     VFXNodeUI newElement = null;
@@ -631,7 +644,9 @@ namespace UnityEditor.VFX.UI
                     {
                         throw new InvalidOperationException("Can't find right ui for controller" + newController.GetType().Name);
                     }
-                    AddElement(newElement);
+                    Profiler.BeginSample("VFXView.SyncNodes:AddElement");
+                    FastAddElement(newElement);
+                    Profiler.EndSample();
                     rootNodes[newController] = newElement;
                     rootGroupNodeElements[newController] = newElement;
                     (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
@@ -641,13 +656,33 @@ namespace UnityEditor.VFX.UI
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
                     }
                 }
-
+                Profiler.EndSample();
 
                 elementsAddedToGroup = ElementAddedToGroupNode;
                 elementsRemovedFromGroup = ElementRemovedFromGroupNode;
             }
 
             Profiler.EndSample();
+        }
+
+
+        FieldInfo s_Member_ContainerLayer = typeof(GraphView).GetField("m_ContainerLayers", BindingFlags.NonPublic | BindingFlags.Instance);
+        MethodInfo s_Method_GetLayer = typeof(GraphView).GetMethod("GetLayer", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        public void FastAddElement(GraphElement graphElement)
+        {
+            if (graphElement.IsResizable())
+            {
+                graphElement.shadow.Add(new Resizer());
+                graphElement.style.borderBottomWidth = 6;
+            }
+
+            int newLayer = graphElement.layer;
+            if (!(s_Member_ContainerLayer.GetValue(this) as IDictionary).Contains(newLayer))
+            {
+                AddLayer(newLayer);
+            }
+            (s_Method_GetLayer.Invoke(this,new object[] { newLayer }) as VisualElement).Add(graphElement);
         }
 
         bool m_UpdateUIBounds = false;
@@ -691,7 +726,7 @@ namespace UnityEditor.VFX.UI
                 foreach (var newController in controller.groupNodes.Except(groupNodes.Keys))
                 {
                     var newElement = new VFXGroupNode();
-                    AddElement(newElement);
+                    FastAddElement(newElement);
                     newElement.controller = newController;
                     groupNodes.Add(newController, newElement);
                 }
@@ -724,7 +759,7 @@ namespace UnityEditor.VFX.UI
                 {
                     var newElement = new VFXStickyNote();
                     newElement.controller = newController;
-                    AddElement(newElement);
+                    FastAddElement(newElement);
                     rootGroupNodeElements[newController] = newElement;
                     stickyNotes[newController] = newElement;
                 }
@@ -788,7 +823,7 @@ namespace UnityEditor.VFX.UI
                         }
 
                         var newElement = new VFXDataEdge();
-                        AddElement(newElement);
+                        FastAddElement(newElement);
                         newElement.controller = newController;
 
                         dataEdges.Add(newController, newElement);
@@ -832,7 +867,7 @@ namespace UnityEditor.VFX.UI
                     foreach (var newController in controller.flowEdges.Except(flowEdges.Keys))
                     {
                         var newElement = new VFXFlowEdge();
-                        AddElement(newElement);
+                        FastAddElement(newElement);
                         newElement.controller = newController;
                         flowEdges.Add(newController, newElement);
                     }

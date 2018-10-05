@@ -358,7 +358,8 @@ namespace UnityEditor.VFX.UI
 
         public VFXParameterNodeController GetParameterForLink(VFXSlot slot)
         {
-            return m_Controllers.FirstOrDefault(t => t.Value.infos.linkedSlots != null && t.Value.infos.linkedSlots.Any(u => u.inputSlot == slot)).Value;
+            return m_Controllers.FirstOrDefault(t =>
+            { var infos = t.Value.infos; return infos != null && infos.linkedSlots != null && infos.linkedSlots.Any(u => u.inputSlot == slot); }).Value;
         }
 
         public string MakeNameUnique(string name)
