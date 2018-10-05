@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added per-pixel jitter to volumetrics to reduce aliasing artifacts
 - Added a SurfaceShading.hlsl file, which implements material-agnostic shading functionality in an efficient manner
 - Added support for shadow bias for thin object transmission
+- Added FrameSettings to control realtime planar reflection
+- Added control for SRPBatcher on HDRP Asset
 
 ### Fixed
 - Fixed a normal bias issue with Stacklit (Was causing light leaking)
@@ -36,6 +38,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve quality of screen space shadow
 - Remove support of projection model for ScreenSpaceLighting (SSR always use HiZ and refraction always Proxy)
 - Remove all the debug mode from SSR that are obsolete now
+- Expose frameSettings and Capture settings for reflection and planar probe
+- Update UI for reflection probe, planar probe, camera and HDRP Asset
 
 ## [4.0.0-preview] - 2018-09-28
 

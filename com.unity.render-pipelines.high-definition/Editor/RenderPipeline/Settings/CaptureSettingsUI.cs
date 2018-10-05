@@ -21,12 +21,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent volumeLayerMaskContent = CoreEditorUtils.GetContent("Volume Layer Mask");
         static readonly GUIContent volumeAnchorOverrideContent = CoreEditorUtils.GetContent("Volume Anchor Override");
 
-        static readonly GUIContent projectionContent = CoreEditorUtils.GetContent("Projection");
         static readonly GUIContent nearClipPlaneContent = CoreEditorUtils.GetContent("Near Clip Plane");
         static readonly GUIContent farClipPlaneContent = CoreEditorUtils.GetContent("Far Clip Plane");
         static readonly GUIContent fieldOfViewContent = CoreEditorUtils.GetContent("Field Of View");
         static readonly GUIContent fieldOfViewDefault = CoreEditorUtils.GetContent("Automatic|Computed depending on point of view");
-        static readonly GUIContent orthographicSizeContent = CoreEditorUtils.GetContent("Size");
 
         static readonly GUIContent renderingPathContent = CoreEditorUtils.GetContent("Rendering Path");
 

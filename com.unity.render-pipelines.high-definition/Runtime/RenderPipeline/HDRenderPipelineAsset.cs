@@ -121,6 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public bool allowShaderVariantStripping = true;
+        public bool enableSRPBatcher = false;
 
         [SerializeField]
         public DiffusionProfileSettings diffusionProfileSettings;

@@ -24,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent asyncComputeContent = CoreEditorUtils.GetContent("Async Compute");
         static readonly GUIContent opaqueObjectsContent = CoreEditorUtils.GetContent("Opaque Objects");
         static readonly GUIContent transparentObjectsContent = CoreEditorUtils.GetContent("Transparent Objects");
+        static readonly GUIContent realtimePlanarReflectionContent = CoreEditorUtils.GetContent("Enable Realtime Planar Reflection"); 
         static readonly GUIContent msaaContent = CoreEditorUtils.GetContent("MSAA");
         static readonly GUIContent stereoContent = CoreEditorUtils.GetContent("Stereo");
         static readonly GUIContent xrGraphicConfigContent = CoreEditorUtils.GetContent("XR Graphics Config");
