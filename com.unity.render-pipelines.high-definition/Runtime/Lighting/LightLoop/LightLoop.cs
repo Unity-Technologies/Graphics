@@ -1306,8 +1306,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public bool GetEnvLightData(CommandBuffer cmd, Camera camera, HDProbe probe, DebugDisplaySettings debugDisplaySettings)
+        public bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings)
         {
+            Camera camera = hdCamera.camera;
+
             // For now we won't display real time probe when rendering one.
             // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
             // Unfortunately we don't have this information at the moment.
@@ -1323,7 +1325,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // 31 bits index, 1 bit cache type
             var envIndex = -1;
-            if (probe is PlanarReflectionProbe)
+            if (hdCamera.frameSettings.enableRealtimePlanarReflection && probe is PlanarReflectionProbe)
             {
                 PlanarReflectionProbe planarProbe = probe as PlanarReflectionProbe;
                 var fetchIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, planarProbe.currentTexture);
@@ -1908,7 +1910,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         var probeWrapper = SelectProbe(probe, planarProbe);
 
-                        if (GetEnvLightData(cmd, camera, probeWrapper, debugDisplaySettings))
+                        if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings))
                         {
                             GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
                             if (stereoEnabled)

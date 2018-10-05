@@ -38,6 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public SerializedProperty enableOpaqueObjects;
         public SerializedProperty enableTransparentObjects;
+        public SerializedProperty enableRealtimePlanarReflection;        
 
         public SerializedProperty enableMSAA;
 
@@ -310,6 +311,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     overrides.intValue &= ~(int)FrameSettingsOverrides.TransparentObjects;
             }
         }
+
+        public bool overridesRealtimePlanarReflection
+        {
+            get { return (overrides.intValue & (int)FrameSettingsOverrides.RealtimePlanarReflection) > 0; }
+            set
+            {
+                if (value)
+                    overrides.intValue |= (int)FrameSettingsOverrides.RealtimePlanarReflection;
+                else
+                    overrides.intValue &= ~(int)FrameSettingsOverrides.RealtimePlanarReflection;
+            }
+        }        
+
         public bool overridesStereo
         {
             get { return (overrides.intValue & (int)FrameSettingsOverrides.Stereo) > 0; }
@@ -375,6 +389,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             enableAsyncCompute = root.Find((FrameSettings d) => d.enableAsyncCompute);
             enableOpaqueObjects = root.Find((FrameSettings d) => d.enableOpaqueObjects);
             enableTransparentObjects = root.Find((FrameSettings d) => d.enableTransparentObjects);
+            enableRealtimePlanarReflection = root.Find((FrameSettings d) => d.enableRealtimePlanarReflection);
             enableMSAA = root.Find((FrameSettings d) => d.enableMSAA);
             enableShadowMask = root.Find((FrameSettings d) => d.enableShadowMask);
             overrides = root.Find((FrameSettings d) => d.overrides);

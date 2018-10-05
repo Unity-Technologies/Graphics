@@ -12,7 +12,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly GUIContent defaultFrameSettingsContent = CoreEditorUtils.GetContent("Default Frame Settings For");
         public static readonly GUIContent renderPipelineResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Resources|Set of resources that need to be loaded when creating stand alone");
         public static readonly GUIContent diffusionProfileSettingsContent = CoreEditorUtils.GetContent("Diffusion Profile Settings");
-        public static readonly GUIContent enableShaderVariantStrippingContent = CoreEditorUtils.GetContent("Enable Shader Variant Stripping (experimental)");
+        public static readonly GUIContent enableShaderVariantStrippingContent = CoreEditorUtils.GetContent("Enable Shader Variant Stripping");
+        public static readonly GUIContent enableSRPBatcher = CoreEditorUtils.GetContent("Enable SRP Batcher (experimental)");
 
         internal enum SelectedFrameSettings { Camera, BakedOrCustomReflection, RealtimeReflection };
         internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
@@ -139,7 +140,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUILayout.PropertyField(d.renderPipelineResources, renderPipelineResourcesContent);
             EditorGUILayout.PropertyField(d.diffusionProfileSettings, diffusionProfileSettingsContent);
-            //EditorGUILayout.PropertyField(d.allowShaderVariantStripping, enableShaderVariantStrippingContent);
+            // EditorGUILayout.PropertyField(d.allowShaderVariantStripping, enableShaderVariantStrippingContent);
+            EditorGUILayout.PropertyField(d.enableSRPBatcher, enableSRPBatcher);            
         }
     }
 }
