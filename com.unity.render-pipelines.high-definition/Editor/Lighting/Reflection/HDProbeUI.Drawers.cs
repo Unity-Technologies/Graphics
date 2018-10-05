@@ -79,8 +79,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SectionInfluenceVolume,
                 SectionShapeCheck,
                 SectionCaptureSettings,
-                SectionFrameSettings,
                 SectionFoldoutAdditionalSettings,
+                SectionFrameSettings,
                 SectionBakeButton
             };
         }

@@ -11,18 +11,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string lightLoopSettingsHeaderContent = "Light Loop Settings";
         // Uncomment if you re-enable LIGHTLOOP_SINGLE_PASS multi_compile in lit*.shader
         //static readonly GUIContent tileAndClusterContent = CoreEditorUtils.GetContent("Enable Tile And Cluster");
-        static readonly GUIContent fptlForForwardOpaqueContent = CoreEditorUtils.GetContent("Enable FPTL For Forward Opaque");
-        static readonly GUIContent bigTilePrepassContent = CoreEditorUtils.GetContent("Enable Big Tile Prepass");
-        static readonly GUIContent computeLightEvaluationContent = CoreEditorUtils.GetContent("Enable Compute Light Evaluation");
-        static readonly GUIContent computeLightVariantsContent = CoreEditorUtils.GetContent("Enable Compute Light Variants");
-        static readonly GUIContent computeMaterialVariantsContent = CoreEditorUtils.GetContent("Enable Compute Material Variants");
+        static readonly GUIContent fptlForForwardOpaqueContent = CoreEditorUtils.GetContent("FPTL For Forward Opaque");
+        static readonly GUIContent bigTilePrepassContent = CoreEditorUtils.GetContent("Big Tile Prepass");
+        static readonly GUIContent computeLightEvaluationContent = CoreEditorUtils.GetContent("Compute Light Evaluation");
+        static readonly GUIContent computeLightVariantsContent = CoreEditorUtils.GetContent("Compute Light Variants");
+        static readonly GUIContent computeMaterialVariantsContent = CoreEditorUtils.GetContent("Compute Material Variants");
 
         public static CED.IDrawer SectionLightLoopSettings(bool withOverride)
         {
             return CED.FoldoutGroup(
                     lightLoopSettingsHeaderContent,
                     (s, p, o) => s.isSectionExpandedLightLoopSettings,
-                    FoldoutOption.Indent,
+                    FoldoutOption.Indent | FoldoutOption.Boxed,
                     CED.LabelWidth(250, CED.Action((s, p, o) => Drawer_SectionLightLoopSettings(s, p, o, withOverride))),
                     CED.space
                 );

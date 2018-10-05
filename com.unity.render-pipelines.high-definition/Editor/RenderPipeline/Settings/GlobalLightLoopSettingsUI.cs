@@ -1,3 +1,4 @@
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -15,12 +16,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static GlobalLightLoopSettingsUI()
         {
             Inspector = CED.Group(
-                    SectionCookies,
-                    CED.space,
-                    SectionReflection,
-                    CED.space,
-                    SectionSky
-                    );
+                CED.FoldoutGroup(
+                    "Cookies",
+                    (s,d,o) => s.isSectionExpandedCoockiesSettings,
+                    FoldoutOption.None,
+                    SectionCookies),
+                CED.FoldoutGroup(
+                    "Reflections",
+                    (s, d, o) => s.isSectionExpandedReflectionSettings,
+                    FoldoutOption.None,
+                    SectionReflection),
+                CED.FoldoutGroup(
+                    "Sky",
+                    (s, d, o) => s.isSectionExpendedSkySettings,
+                    FoldoutOption.None,
+                    SectionSky)
+                );
         }
 
         public static readonly CED.IDrawer Inspector;
@@ -29,9 +40,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer SectionReflection = CED.Action(Drawer_SectionReflection);
         public static readonly CED.IDrawer SectionSky = CED.Action(Drawer_SectionSky);
 
+        public AnimBool isSectionExpandedCoockiesSettings { get { return m_AnimBools[0]; } }
+        public AnimBool isSectionExpandedReflectionSettings { get { return m_AnimBools[1]; } }
+        public AnimBool isSectionExpendedSkySettings { get { return m_AnimBools[2]; } }
+
         public GlobalLightLoopSettingsUI()
-            : base(0)
+            : base(3)
         {
+            isSectionExpandedCoockiesSettings.value = true;
+            isSectionExpandedReflectionSettings.value = true;
+            isSectionExpendedSkySettings.value = true;
         }
 
         static string HumanizeWeight(long weightInByte)
@@ -59,12 +77,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_SectionCookies(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
         {
-            EditorGUILayout.LabelField(_.GetContent("Cookies"), EditorStyles.boldLabel);
-            ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(d.cookieSize, _.GetContent("Cookie Size"));
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(d.cookieTexArraySize, _.GetContent("Texture Array Size"));
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 d.cookieTexArraySize.intValue = Mathf.Clamp(d.cookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
             }
@@ -99,15 +115,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 string message = string.Format(cacheInfoFormat, HumanizeWeight(currentCache));
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
-            --EditorGUI.indentLevel;
+            EditorGUILayout.Space();
         }
 
         static void Drawer_SectionReflection(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
         {
-            EditorGUILayout.LabelField(_.GetContent("Reflection"), EditorStyles.boldLabel);
-            ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(d.reflectionCacheCompressed, _.GetContent("Compress Reflection Probe Cache"));
-            EditorGUILayout.PropertyField(d.reflectionCubemapSize, _.GetContent("Reflection Cubemap Size"));
+            EditorGUILayout.PropertyField(d.reflectionCubemapSize, _.GetContent("Cubemap Size"));
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(d.reflectionProbeCacheSize, _.GetContent("Probe Cache Size"));
             if (EditorGUI.EndChangeCheck())
@@ -149,20 +163,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 string message = string.Format(cacheInfoFormat, HumanizeWeight(currentCache));
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
-            --EditorGUI.indentLevel;
+            EditorGUILayout.Space();
         }
 
         static void Drawer_SectionSky(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
         {
-            EditorGUILayout.LabelField(_.GetContent("Sky"), EditorStyles.boldLabel);
-            ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(d.skyReflectionSize, _.GetContent("Sky Reflection Size"));
-            EditorGUILayout.PropertyField(d.skyLightingOverrideLayerMask, _.GetContent("Sky Lighting Override Mask|This layer mask will define in which layers the sky system will look for sky settings volumes for lighting override"));
+            EditorGUILayout.PropertyField(d.skyReflectionSize, _.GetContent("Reflection Size"));
+            EditorGUILayout.PropertyField(d.skyLightingOverrideLayerMask, _.GetContent("Lighting Override Mask|This layer mask will define in which layers the sky system will look for sky settings volumes for lighting override"));
             if (d.skyLightingOverrideLayerMask.intValue == -1)
             {
                 EditorGUILayout.HelpBox("Be careful, Sky Lighting Override Mask is set to Everything. This is most likely a mistake as it serves no purpose.", MessageType.Warning);
             }
-            --EditorGUI.indentLevel;
+            EditorGUILayout.Space();
         }
     }
 }
