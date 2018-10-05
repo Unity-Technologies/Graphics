@@ -1,6 +1,7 @@
 //#define OLD_COPY_PASTE
 using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -10,6 +11,7 @@ using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Profiling;
+using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
@@ -635,7 +637,7 @@ namespace UnityEditor.VFX.UI
                         throw new InvalidOperationException("Can't find right ui for controller" + newController.GetType().Name);
                     }
                     Profiler.BeginSample("VFXView.SyncNodes:AddElement");
-                    AddElement(newElement);
+                    FastAddElement(newElement);
                     Profiler.EndSample();
                     rootNodes[newController] = newElement;
                     rootGroupNodeElements[newController] = newElement;
@@ -653,6 +655,26 @@ namespace UnityEditor.VFX.UI
             }
 
             Profiler.EndSample();
+        }
+
+
+        FieldInfo s_Member_ContainerLayer = typeof(GraphView).GetField("m_ContainerLayers", BindingFlags.NonPublic | BindingFlags.Instance);
+        MethodInfo s_Method_GetLayer = typeof(GraphView).GetMethod("GetLayer", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        public void FastAddElement(GraphElement graphElement)
+        {
+            if (graphElement.IsResizable())
+            {
+                graphElement.shadow.Add(new Resizer());
+                graphElement.style.borderBottomWidth = 6;
+            }
+
+            int newLayer = graphElement.layer;
+            if (!(s_Member_ContainerLayer.GetValue(this) as IDictionary).Contains(newLayer))
+            {
+                AddLayer(newLayer);
+            }
+            (s_Method_GetLayer.Invoke(this,new object[] { newLayer }) as VisualElement).Add(graphElement);
         }
 
         bool m_UpdateUIBounds = false;
@@ -696,7 +718,7 @@ namespace UnityEditor.VFX.UI
                 foreach (var newController in controller.groupNodes.Except(groupNodes.Keys))
                 {
                     var newElement = new VFXGroupNode();
-                    AddElement(newElement);
+                    FastAddElement(newElement);
                     newElement.controller = newController;
                     groupNodes.Add(newController, newElement);
                 }
@@ -729,7 +751,7 @@ namespace UnityEditor.VFX.UI
                 {
                     var newElement = new VFXStickyNote();
                     newElement.controller = newController;
-                    AddElement(newElement);
+                    FastAddElement(newElement);
                     rootGroupNodeElements[newController] = newElement;
                     stickyNotes[newController] = newElement;
                 }
@@ -793,7 +815,7 @@ namespace UnityEditor.VFX.UI
                         }
 
                         var newElement = new VFXDataEdge();
-                        AddElement(newElement);
+                        FastAddElement(newElement);
                         newElement.controller = newController;
 
                         dataEdges.Add(newController, newElement);
@@ -837,7 +859,7 @@ namespace UnityEditor.VFX.UI
                     foreach (var newController in controller.flowEdges.Except(flowEdges.Keys))
                     {
                         var newElement = new VFXFlowEdge();
-                        AddElement(newElement);
+                        FastAddElement(newElement);
                         newElement.controller = newController;
                         flowEdges.Add(newController, newElement);
                     }
