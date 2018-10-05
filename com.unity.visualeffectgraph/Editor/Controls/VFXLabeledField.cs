@@ -164,25 +164,25 @@ namespace UnityEditor.VFX.UIElements
             {
                 if (typeof(U) == typeof(float))
                 {
-                    var dragger = new VFXFieldMouseDragger<float>((IValueField<float>)m_Control, ()=> onValueDragFinished(this));
+                    var dragger = new VFXFieldMouseDragger<float>((IValueField<float>)m_Control, DragValueFinished);
                     dragger.SetDragZone(m_Label);
                     m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
                 else if (typeof(U) == typeof(double))
                 {
-                    var dragger = new VFXFieldMouseDragger<double>((IValueField<double>)m_Control, () => onValueDragFinished(this));
+                    var dragger = new VFXFieldMouseDragger<double>((IValueField<double>)m_Control, DragValueFinished);
                     dragger.SetDragZone(m_Label);
                     m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
                 else if (typeof(U) == typeof(long))
                 {
-                    var dragger = new VFXFieldMouseDragger<long>((IValueField<long>)m_Control, () => onValueDragFinished(this));
+                    var dragger = new VFXFieldMouseDragger<long>((IValueField<long>)m_Control, DragValueFinished);
                     dragger.SetDragZone(m_Label);
                     m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
                 else if (typeof(U) == typeof(int))
                 {
-                    var dragger = new VFXFieldMouseDragger<int>((IValueField<int>)m_Control, () => onValueDragFinished(this));
+                    var dragger = new VFXFieldMouseDragger<int>((IValueField<int>)m_Control, DragValueFinished);
                     dragger.SetDragZone(m_Label);
                     m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
                 }
@@ -196,6 +196,11 @@ namespace UnityEditor.VFX.UIElements
             m_IndeterminateLabel.SetEnabled(false);
         }
 
+        void DragValueFinished()
+        {
+            if( onValueDragFinished != null)
+                onValueDragFinished(this);
+        }
         public Action<VFXLabeledField<T, U>> onValueDragFinished;
 
         void CreateControl()
