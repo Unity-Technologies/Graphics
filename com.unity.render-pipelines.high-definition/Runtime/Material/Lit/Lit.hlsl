@@ -331,9 +331,31 @@ void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout BSDFData bsdfData)
     bsdfData.perceptualRoughness = normalData.perceptualRoughness;
 }
 
-float3 GetShadowNormalBias(BSDFData bsdfData)
+float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.normalWS;
+}
+
+void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
+{
+    bsdfData.roughnessT    = max(minRoughness, bsdfData.roughnessT);
+    bsdfData.roughnessB    = max(minRoughness, bsdfData.roughnessB);
+    bsdfData.coatRoughness = max(minRoughness, bsdfData.coatRoughness);
+}
+
+float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
+{
+#ifdef LIGHT_LAYERS
+    return ComputeMicroShadowing(bsdfData.ambientOcclusion, NdotL, _MicroShadowOpacity);
+#else
+    // No extra G-Buffer for AO, so 'bsdfData.ambientOcclusion' does not hold a meaningful value.
+    return ComputeMicroShadowing(bsdfData.specularOcclusion, NdotL, _MicroShadowOpacity);
+#endif
+}
+
+bool MaterialSupportsTransmission(BSDFData bsdfData)
+{
+    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
 }
 
 //-----------------------------------------------------------------------------
@@ -1097,9 +1119,6 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
 #ifdef HAS_LIGHTLOOP
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
-
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
@@ -1188,6 +1207,14 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 }
 
 //-----------------------------------------------------------------------------
+// Surface shading (all light types) below
+//-----------------------------------------------------------------------------
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
+
+//-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
 //-----------------------------------------------------------------------------
 
@@ -1196,79 +1223,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-    float3 L = -lightData.forward;
-    float3 N = bsdfData.normalWS;
-    float3 R = reflect(-V, N); // Not always the same as preLightData.iblR
-
-    // Fake a highlight of the sun disk by modifying the light vector.
-    float t = AngleAttenuation(dot(L, R), lightData.angleScale, lightData.angleOffset);
-
-    // This will be quite inaccurate for large disk radii. Would be better to use SLerp().
-    L = NLerp(L, R, t);
-
-    float NdotL = dot(N, L);
-
-    // We must clamp here, otherwise our disk light hack for smooth surfaces does not work.
-    // Explanation: for a perfectly smooth surface, lighting is only reflected if (NdotL = NdotV).
-    // This implies that (NdotH = 1).
-    // Due to the floating point arithmetic (see the math above and also GetBSDFAngle()),
-    // we will never arrive at this exact number, so no lighting will be reflected.
-    // If we increase the roughness somewhat, the trick still works.
-    bsdfData.roughnessT = max(bsdfData.roughnessT, 1.0 / (255 * 255));
-    bsdfData.roughnessB = max(bsdfData.roughnessB, 1.0 / (255 * 255));
-
-    float3 transmittance = float3(0.0, 0.0, 0.0);
-    if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-    {
-        // Caution: This function modify N and contactShadowIndex
-        transmittance = PreEvaluateDirectionalLightTransmission(NdotL, lightData, bsdfData, N, lightData.contactShadowIndex); // contactShadowIndex is only modify for the code of this function
-    }
-
-    float3 color;
-    float attenuation;
-#ifdef LIGHT_LAYERS
-    float AOForMicroshadowing = bsdfData.ambientOcclusion;
-#else
-    float AOForMicroshadowing = bsdfData.specularOcclusion;
-#endif
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, N, L, AOForMicroshadowing, color, attenuation);
-
-    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
-
-    // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
-    UNITY_BRANCH if (intensity > 0.0)
-    {
-        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
-
-        lighting.diffuse  *= intensity * lightData.diffuseScale;
-        lighting.specular *= intensity * lightData.specularScale;
-    }
-
-    // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
-    if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-    {
-        float  NdotV = ClampNdotV(preLightData.NdotV);
-        float  LdotV = dot(L, V);
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
-    }
-
-    // Save ALU by applying light and cookie colors only once.
-    lighting.diffuse  *= color;
-    lighting.specular *= color;
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        lighting.diffuse = color * intensity * lightData.diffuseScale;
-    }
-#endif
-
-    return lighting;
+    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
+                                    bsdfData, bsdfData.normalWS, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -1279,68 +1235,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
                                      PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-    float3 L;
-    float3 lightToSample;
-    float4 distances; // {d, d^2, 1/d, d_proj}
-    GetPunctualLightVectors(posInput.positionWS, lightData, L, lightToSample, distances);
-
-    float3 N     = bsdfData.normalWS;
-    float  NdotL = dot(N, L);
-
-    float3 transmittance = float3(0.0, 0.0, 0.0);
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
-    {
-        // Caution: This function modify N and lightData.contactShadowIndex
-        transmittance = PreEvaluatePunctualLightTransmission(lightLoopContext, posInput, distances.x, NdotL, L, bsdfData, N, lightData);
-    }
-
-    float3 color;
-    float attenuation;
-    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, builtinData, N, L,
-                           lightToSample, distances, color, attenuation);
-
-    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
-
-    // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
-    UNITY_BRANCH if (intensity > 0.0)
-    {
-        // Simulate a sphere light with this hack
-        // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
-        // same result) but we don't care as it is a hack anyway
-        bsdfData.coatRoughness = max(bsdfData.coatRoughness, lightData.minRoughness);
-        bsdfData.roughnessT = max(bsdfData.roughnessT, lightData.minRoughness);
-        bsdfData.roughnessB = max(bsdfData.roughnessB, lightData.minRoughness);
-
-        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
-
-        lighting.diffuse  *= intensity * lightData.diffuseScale;
-        lighting.specular *= intensity * lightData.specularScale;
-    }
-
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
-    {
-        float  NdotV = ClampNdotV(preLightData.NdotV);
-        float  LdotV = dot(L, V);
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
-    }
-
-    // Save ALU by applying light and cookie colors only once.
-    lighting.diffuse  *= color;
-    lighting.specular *= color;
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        lighting.diffuse = color * intensity * lightData.diffuseScale;
-    }
-#endif
-
-    return lighting;
+    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
+                                 bsdfData, bsdfData.normalWS, V);
 }
 
 #include "LitReference.hlsl"
@@ -1384,8 +1280,8 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     if (intensity == 0.0)
         return lighting;
 
-    lightData.diffuseScale  *= intensity;
-    lightData.specularScale *= intensity;
+    lightData.diffuseDimmer  *= intensity;
+    lightData.specularDimmer *= intensity;
 
     // Translate the light s.t. the shaded point is at the origin of the coordinate system.
     lightData.positionRWS -= positionWS;
@@ -1405,7 +1301,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
     // Evaluate the diffuse part
     ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
-    ltcValue *= lightData.diffuseScale;
+    ltcValue *= lightData.diffuseDimmer;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
 
     // See comment for specular magnitude, it apply to diffuse as well
@@ -1422,7 +1318,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         // The matrix multiplication should not generate any extra ALU on GCN.
         // TODO: double evaluation is very inefficient! This is a temporary solution.
         ltcValue  = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
-        ltcValue *= lightData.diffuseScale;
+        ltcValue *= lightData.diffuseDimmer;
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += bsdfData.transmittance * ltcValue;
@@ -1430,7 +1326,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
     // Evaluate the specular part
     ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
-    ltcValue *= lightData.specularScale;
+    ltcValue *= lightData.specularDimmer;
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
     // This value is what we store in specularFGD, so reuse it
@@ -1440,7 +1336,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformCoat);
-        ltcValue *= lightData.specularScale;
+        ltcValue *= lightData.specularDimmer;
         // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
         lighting.diffuse *= (1.0 - preLightData.coatIblF);
         lighting.specular *= (1.0 - preLightData.coatIblF);
@@ -1457,7 +1353,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         // Only lighting, not BSDF
         // Apply area light on lambert then multiply by PI to cancel Lambert
         lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
-        lighting.diffuse *= PI * lightData.diffuseScale;
+        lighting.diffuse *= PI * lightData.diffuseDimmer;
     }
 #endif
 
@@ -1527,8 +1423,8 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     if (intensity == 0.0)
         return lighting;
 
-    lightData.diffuseScale  *= intensity;
-    lightData.specularScale *= intensity;
+    lightData.diffuseDimmer  *= intensity;
+    lightData.specularDimmer *= intensity;
 
     // Translate the light s.t. the shaded point is at the origin of the coordinate system.
     lightData.positionRWS -= positionWS;
@@ -1549,7 +1445,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     // Evaluate the diffuse part
     // Polygon irradiance in the transformed configuration.
     ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
-    ltcValue *= lightData.diffuseScale;
+    ltcValue *= lightData.diffuseDimmer;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     // See comment for specular magnitude, it apply to diffuse as well
     lighting.diffuse = preLightData.diffuseFGD * ltcValue;
@@ -1568,7 +1464,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         // Polygon irradiance in the transformed configuration.
         // TODO: double evaluation is very inefficient! This is a temporary solution.
         ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
-        ltcValue *= lightData.diffuseScale;
+        ltcValue *= lightData.diffuseDimmer;
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += bsdfData.transmittance * ltcValue;
@@ -1577,7 +1473,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     // Evaluate the specular part
     // Polygon irradiance in the transformed configuration.
     ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
-    ltcValue *= lightData.specularScale;
+    ltcValue *= lightData.specularDimmer;
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
     // This value is what we store in specularFGD, so reuse it
@@ -1587,7 +1483,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
-        ltcValue *= lightData.specularScale;
+        ltcValue *= lightData.specularDimmer;
         // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
         lighting.diffuse *= (1.0 - preLightData.coatIblF);
         lighting.specular *= (1.0 - preLightData.coatIblF);
@@ -1604,7 +1500,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         // Only lighting, not BSDF
         // Apply area light on lambert then multiply by PI to cancel Lambert
         lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
-        lighting.diffuse *= PI * lightData.diffuseScale;
+        lighting.diffuse *= PI * lightData.diffuseDimmer;
     }
 #endif
 

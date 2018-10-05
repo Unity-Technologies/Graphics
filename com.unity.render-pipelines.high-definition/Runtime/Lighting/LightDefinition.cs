@@ -50,61 +50,78 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct DirectionalLightData
     {
         // Packing order depends on chronological access to avoid cache misses
-        public uint lightLayers;
-
+        // Make sure to respect the 16-byte alignment
         public Vector3 positionRWS;
-        public Vector3 color;
-        public int cookieIndex; // -1 if unused
-        public float volumetricDimmer;
+        public uint    lightLayers;
 
-        public Vector3 right;   // Rescaled by (2 / shapeWidth)
-        public Vector3 up;      // Rescaled by (2 / shapeHeight)
+        public float   lightDimmer;
+        public float   volumetricLightDimmer;   // Replaces 'lightDimer'
+        public float   angleScale;              // Sun disk highlight
+        public float   angleOffset;             // Sun disk highlight
+
         public Vector3 forward;
-        public int tileCookie; // TODO: make it a bool
-        public int shadowIndex; // -1 if unused
-        public int contactShadowIndex; // -1 if unused
+        public int     cookieIndex;             // -1 if unused (TODO: 16 bit)
 
-        public Vector4 shadowMaskSelector; // Use with ShadowMask feature
+        public Vector3 right;                   // Rescaled by (2 / shapeWidth)
+        public int     tileCookie;              // (TODO: use a bitfield)
 
-        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool
-        public float diffuseScale;
-        public float specularScale;
-        public float angleScale;  // Sun disk
-        public float angleOffset; // Sun disk
+        public Vector3 up;                      // Rescaled by (2 / shapeHeight)
+        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
+
+        public Vector3 color;
+        public int     contactShadowIndex;      // -1 if unused (TODO: 16 bit)
+
+        public float   shadowDimmer;
+        public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'
+        public int     nonLightMappedOnly;      // Used with ShadowMask (TODO: use a bitfield)
+        public float   minRoughness;            // Hack
+
+        public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
+
+        public float   diffuseDimmer;
+        public float   specularDimmer;
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
     public struct LightData
     {
         // Packing order depends on chronological access to avoid cache misses
-        public uint lightLayers;
-
+        // Make sure to respect the 16-byte alignment
         public Vector3 positionRWS;
-        public Vector3 color;
-        public float rangeAttenuationScale;
-        public float rangeAttenuationBias;
+        public uint    lightLayers;
 
-        public float angleScale;  // Spot light
-        public float angleOffset; // Spot light
-        public int cookieIndex; // -1 if unused
-        public GPULightType lightType;
+        public float   lightDimmer;
+        public float   volumetricLightDimmer;   // Replaces 'lightDimer'
+        public float   angleScale;              // Spot light
+        public float   angleOffset;             // Spot light
 
-        public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
-        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
         public Vector3 forward;
-        public int shadowIndex; // -1 if unused
-        public int contactShadowIndex; // -1 if unused
-        public float shadowDimmer;
+        public GPULightType lightType;          // TODO: move this up?
 
-        public Vector4 shadowMaskSelector; // Use with ShadowMask feature
-        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool
-        public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
-        public float diffuseScale;
-        public float specularScale;
+        public Vector3 right;                   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
+        public float   range;
 
-        public Vector2 size;        // Used by area (X = length or width, Y = height) and box projector lights (X = range (depth))
-        public float volumetricDimmer;
-        public float range;
+        public Vector3 up;                      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
+        public float   rangeAttenuationScale;
+
+        public Vector3 color;
+        public float   rangeAttenuationBias;
+
+        public int     cookieIndex;             // -1 if unused
+        public int     tileCookie;              // (TODO: use a bitfield)
+        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
+        public int     contactShadowIndex;      // -1 if unused (TODO: 16 bit)
+
+        public float   shadowDimmer;
+        public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'
+        public int     nonLightMappedOnly;      // Used with ShadowMask feature (TODO: use a bitfield)
+        public float   minRoughness;            // This is use to give a small "area" to punctual light, as if we have a light with a radius.
+
+        public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
+
+        public Vector2 size;                    // Used by area (X = length or width, Y = height) and punctual lights (X = radius)
+        public float   diffuseDimmer;
+        public float   specularDimmer;
     };
 
 
