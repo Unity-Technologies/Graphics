@@ -25,7 +25,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	position = mul(elementToVFX,float4(0,0,0,1)).xyz;
 	
 	${VFXLoadParameter:{targetOffset}}
-	targetPosition = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;
+	targetPosition = mul(elementToVFX,float4(targetOffset,1)).xyz;
 	#endif
 		
 	float4 pos0 = TransformPositionVFXToClip(position);
