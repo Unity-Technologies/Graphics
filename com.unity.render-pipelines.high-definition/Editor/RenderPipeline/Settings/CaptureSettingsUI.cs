@@ -57,20 +57,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             area.Add(p.volumeLayerMask, volumeLayerMaskContent, () => p.overridesVolumeLayerMask, a => p.overridesVolumeLayerMask = a);
             area.Add(p.volumeAnchorOverride, volumeAnchorOverrideContent, () => p.overridesVolumeAnchorOverride, a => p.overridesVolumeAnchorOverride = a);
             area.Add(p.useOcclusionCulling, useOcclusionCullingContent, () => p.overridesUseOcclusionCulling, a => p.overridesUseOcclusionCulling = a);
-
-            //disabling not well supported feature at the moment
-            area.Add(p.projection, projectionContent, () => p.overridesProjection, a => p.overridesProjection = a, () => false);
-            area.Add(p.nearClipPlane, nearClipPlaneContent, () => p.overridesNearClip, a => p.overridesNearClip = a, () => !(owner is PlanarReflectionProbeEditor));
-            area.Add(p.farClipPlane, farClipPlaneContent, () => p.overridesFarClip, a => p.overridesFarClip = a, () => !(owner is PlanarReflectionProbeEditor));
             
-            if (p.projection.enumValueIndex == (int)CameraProjection.Perspective)
+            if (!(owner is PlanarReflectionProbeEditor)) //fixed for planar
+            {
+                area.Add(p.nearClipPlane, nearClipPlaneContent, () => p.overridesNearClip, a => p.overridesNearClip = a);
+            }
+
+            area.Add(p.farClipPlane, farClipPlaneContent, () => p.overridesFarClip, a => p.overridesFarClip = a);
+            
+            if (owner is PlanarReflectionProbeEditor) //fixed for cubemap
             {
                 area.Add(p.fieldOfview, fieldOfViewContent, () => p.overridesFieldOfview, a => p.overridesFieldOfview = a, () => (owner is PlanarReflectionProbeEditor), defaultValue: (owner is PlanarReflectionProbeEditor) ? fieldOfViewDefault : null, forceOverride: true);
             }
-            else
-            {
-                area.Add(p.orthographicSize, orthographicSizeContent, () => p.overridesOrthographicSize, a => p.overridesOrthographicSize = a);
-            }
+            
             area.Add(p.shadowDistance, shadowDistanceContent, () => p.overridesShadowDistance, a => p.overridesShadowDistance = a);
             area.Add(p.renderingPath, renderingPathContent, () => p.overridesRenderingPath, a => p.overridesRenderingPath = a);
             area.Draw(withOverride: false);

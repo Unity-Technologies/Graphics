@@ -10,7 +10,8 @@ namespace UnityEditor.Experimental.Rendering
     {
         None = 0,
         Indent = 1 << 0,
-        Animate = 1 << 1
+        Animate = 1 << 1,
+        Boxed = 1 << 2
     }
 
     [Flags]
@@ -182,6 +183,7 @@ namespace UnityEditor.Experimental.Rendering
 
             bool animate { get { return (m_Options & FoldoutOption.Animate) != 0; } }
             bool indent { get { return (m_Options & FoldoutOption.Indent) != 0; } }
+            bool boxed { get { return (m_Options & FoldoutOption.Boxed) != 0; } }
 
             public FoldoutDrawerInternal(string title, AnimBoolGetter isExpanded, FoldoutOption options, params IDrawer[] bodies)
             {
@@ -194,8 +196,8 @@ namespace UnityEditor.Experimental.Rendering
             public void Draw(TUIState s, TData p, Editor owner)
             {
                 var r = m_IsExpanded(s, p, owner);
-                CoreEditorUtils.DrawSplitter();
-                r.target = CoreEditorUtils.DrawHeaderFoldout(m_Title, r.target);
+                CoreEditorUtils.DrawSplitter(boxed);
+                r.target = CoreEditorUtils.DrawHeaderFoldout(m_Title, r.target, boxed);
                 // We must start with a layout group here
                 // Otherwise, nested FadeGroup won't work
                 GUILayout.BeginVertical();
