@@ -117,8 +117,6 @@ namespace UnityEditor.VFX.Block
                     yield return input;
 
                 var clipToVFX = new VFXExpressionTransformMatrix(cameraMatrix.exp, new VFXExpressionInverseMatrix(VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp)));
-                if (((VFXDataParticle)GetData()).space == VFXCoordinateSpace.Local)
-                    clipToVFX = new VFXExpressionTransformMatrix(VFXBuiltInExpression.WorldToLocal, clipToVFX);
 
                 yield return new VFXNamedExpression(clipToVFX, "clipToVFX");
             }

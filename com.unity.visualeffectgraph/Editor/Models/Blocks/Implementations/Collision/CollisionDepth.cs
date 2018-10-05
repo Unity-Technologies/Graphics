@@ -73,13 +73,9 @@ namespace UnityEditor.VFX.Block
                     yield return e;
 
                 VFXExpression ViewToVFX = cameraMatrix.exp;
-                if (((VFXDataParticle)GetData()).space == VFXCoordinateSpace.Local)
-                    ViewToVFX = new VFXExpressionTransformMatrix(VFXBuiltInExpression.WorldToLocal, ViewToVFX);
-
                 VFXExpression VFXToView = new VFXExpressionInverseMatrix(ViewToVFX);
                 VFXExpression ViewToClip = VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp);
                 VFXExpression ClipToView = new VFXExpressionInverseMatrix(ViewToClip);
-
 
                 yield return new VFXNamedExpression(ViewToVFX, "ViewToVFX");
                 yield return new VFXNamedExpression(VFXToView, "VFXToView");
