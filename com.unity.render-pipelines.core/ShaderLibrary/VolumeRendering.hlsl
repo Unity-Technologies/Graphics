@@ -64,7 +64,7 @@ real HenyeyGreensteinPhasePartConstant(real anisotropy)
 real HenyeyGreensteinPhasePartVarying(real anisotropy, real cosTheta)
 {
     real g = anisotropy;
-    real f = rsqrt(1 + g * g - 2 * g * cosTheta); // x^(-1/2)
+    real f = rsqrt(saturate(1 + g * g - 2 * g * cosTheta)); // x^(-1/2)
 
     return f * f * f; // x^(-3/2)
 }
@@ -85,10 +85,14 @@ real CornetteShanksPhasePartConstant(real anisotropy)
 real CornetteShanksPhasePartVarying(real anisotropy, real cosTheta)
 {
     real g = anisotropy;
-    real f = rsqrt(1 + g * g - 2 * g * cosTheta); // x^(-1/2)
+    real f = rsqrt(saturate(1 + g * g - 2 * g * cosTheta)); // x^(-1/2)
     real h = (1 + cosTheta * cosTheta);
 
-    return h * (f * f * f); // h * f^(-3/2)
+    // Note that this function is not perfectly isotropic for (g = 0). We force it to be.
+    // TODO: in the future, when (g = 0), specialize the Volumetric Lighting kernel
+    // to not do anything anisotropy-specific. This way we could avoid this test
+    // (along with tons of other overhead and hacks).
+    return (g == 0) ? 1.33333333 : h * (f * f * f); // h * x^(-3/2)
 }
 
 // A better approximation of the Mie phase function.
@@ -104,7 +108,7 @@ real CornetteShanksPhaseFunction(real anisotropy, real cosTheta)
 // Returns the offset from the start of the interval and the weight = (transmittance / pdf).
 // Ref: Monte Carlo Methods for Volumetric Light Transport Simulation, p. 5.
 void ImportanceSampleHomogeneousMedium(real rndVal, real extinction, real intervalLength,
-                                      out real offset, out real weight)
+                                       out real offset, out real weight)
 {
     // pdf    = extinction * exp(extinction * (intervalLength - t)) / (exp(intervalLength * extinction - 1)
     // weight = exp(-extinction * t) / pdf
@@ -118,36 +122,53 @@ void ImportanceSampleHomogeneousMedium(real rndVal, real extinction, real interv
 }
 
 // Implements equiangular light sampling.
-// Returns the distance from the origin of the ray, the squared (radial) distance from the light,
+// Returns the distance from the origin of the ray, the squared distance from the light,
 // and the reciprocal of the PDF.
 // Ref: Importance Sampling of Area Lights in Participating Medium.
-void ImportanceSamplePunctualLight(real rndVal, real3 lightPosition,
+void ImportanceSamplePunctualLight(real rndVal, real3 lightPosition, real lightSqRadius,
                                    real3 rayOrigin, real3 rayDirection,
                                    real tMin, real tMax,
-                                   out real dist, out real rSq, out real rcpPdf,
-                                   real minDistSq = FLT_EPS)
+                                   out real t, out real sqDist, out real rcpPdf)
 {
-    real3 originToLight       = lightPosition - rayOrigin;
-    real  originToLightProj   = dot(originToLight, rayDirection);
-    real  originToLightDistSq = dot(originToLight, originToLight);
-    real  rayToLightDistSq    = max(originToLightDistSq - originToLightProj * originToLightProj, minDistSq);
+    real3 originToLight         = lightPosition - rayOrigin;
+    real  originToLightProjDist = dot(originToLight, rayDirection);
+    real  originToLightSqDist   = dot(originToLight, originToLight);
+    real  rayToLightSqDist      = originToLightSqDist - originToLightProjDist * originToLightProjDist;
 
-    real a    = tMin - originToLightProj;
-    real b    = tMax - originToLightProj;
-    real dSq  = rayToLightDistSq;
-    real dRcp = rsqrt(dSq);
-    real d    = dSq * dRcp;
+    // Virtually offset the light to modify the PDF distribution.
+    real sqD  = max(rayToLightSqDist + lightSqRadius, FLT_EPS);
+    real rcpD = rsqrt(sqD);
+    real d    = sqD * rcpD;
+    real a    = tMin - originToLightProjDist;
+    real b    = tMax - originToLightProjDist;
+    real x    = a * rcpD;
+    real y    = b * rcpD;
 
-    // TODO: optimize me. :-(
-    real theta0 = FastATan(a * dRcp);
-    real theta1 = FastATan(b * dRcp);
-    real gamma  = theta1 - theta0;
-    real theta  = lerp(theta0, theta1, rndVal);
-    real t      = d * tan(theta);
+#if 0
+    real theta0   = FastATan(x);
+    real theta1   = FastATan(y);
+    real gamma    = theta1 - theta0;
+    real tanTheta = tan(theta0 + rndVal * gamma);
+#else
+    // Same but faster:
+    // atan(y) - atan(x) = atan((y - x) / (1 + x * y))
+    // tan(atan(x) + z)  = (x * cos(z) + sin(z)) / (cos(z) - x * sin(z))
+    real tanGamma = abs((y - x) * rcp(1 + x * y));
+    real gamma    = FastATanPos(tanGamma);
+    real z        = rndVal * gamma;
+    real numer    = x * cos(z) + sin(z);
+    real denom    = cos(z) - x * sin(z);
+    real tanTheta = numer * rcp(denom);
+#endif
 
-    dist   = originToLightProj + t;
-    rSq    = dSq + t * t;
-    rcpPdf = gamma * rSq * dRcp;
+    real tRelative = d * tanTheta;
+
+    sqDist = sqD + tRelative * tRelative;
+    rcpPdf = gamma * rcpD * sqDist;
+    t      = originToLightProjDist + tRelative;
+
+    // Remove the virtual light offset to obtain the real geometric distance.
+    sqDist = max(sqDist - lightSqRadius, FLT_EPS);
 }
 
 // Absorption coefficient from Disney: http://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf

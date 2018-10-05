@@ -28,7 +28,10 @@
 
 #define GROUP_SIZE_1D                      8
 #define SUPPORT_PUNCTUAL_LIGHTS            1 // Punctual lights contribute to fog lighting
-#define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1 // We don't use normal biasing as it is not available when doing volumetric
+
+// All shadow bias code is completely broken in volumetrics. Disable it.
+#define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1
+#define SHADOW_USE_VIEW_BIAS_SCALING       0
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -127,6 +130,9 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
     ZERO_INITIALIZE(VoxelLighting, lighting);
 
     BuiltinData unused; // Unused for now, so define once
+    ZERO_INITIALIZE(BuiltinData, unused);
+
+    const float NdotL = 1;
 
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {
@@ -136,23 +142,38 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
         float t = t0 + tOffset;
         posInput.positionWS = GetPointAtDistance(ray, t);
 
-        // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
-        context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionWS, 0,
-                                                              _DirectionalLightDatas[_DirectionalShadowIndex].shadowIndex,
-                                                             -_DirectionalLightDatas[_DirectionalShadowIndex].forward,
-                                                              posInput.positionSS);
+        // Evaluate sun shadows.
+        if (_DirectionalShadowIndex >= 0)
+        {
+            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+
+            // Prep the light so that it works with non-volumetrics-specific code.
+            light.contactShadowIndex = -1;
+            light.lightDimmer        = light.volumetricLightDimmer;
+            light.shadowDimmer       = light.volumetricShadowDimmer;
+
+            // Pass the light direction as the normal to avoid issues with shadow biasing code.
+            context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, -light.forward);
+        }
+        else
+        {
+            context.shadowValue = 1;
+        }
 
         for (uint i = 0; i < _DirectionalLightCount; ++i)
         {
-            // Fetch the light.
             DirectionalLightData light = _DirectionalLightDatas[i];
-            float3 L = -light.forward; // Lights point backwards in Unity
 
+            // Prep the light so that it works with non-volumetrics-specific code.
+            light.contactShadowIndex = -1;
+            light.lightDimmer        = light.volumetricLightDimmer;
+            light.shadowDimmer       = light.volumetricShadowDimmer;
+
+            float3 L = -light.forward;
+
+            // Pass the light direction as the normal to avoid issues with shadow biasing code.
             float3 color; float attenuation;
-            light.contactShadowIndex = -1; // Disable shadow contact if any
-            // AO for microshadowing is set to 1 as we don't want to microshadow volumetrics.
-            // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
-            EvaluateLight_Directional(context, posInput, light, unused, 0.0, L, 1.0,
+            EvaluateLight_Directional(context, posInput, light, unused, L, L, NdotL,
                                       color, attenuation);
 
             // Important:
@@ -170,7 +191,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             float phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
             // Note: the 'weight' accounts for transmittance from 't0' to 't'.
-            float intensity = light.volumetricDimmer * attenuation * weight;
+            float intensity = light.volumetricLightDimmer * attenuation * weight;
 
             // Compute the amount of in-scattered radiance.
             lighting.radianceNoPhase  += intensity * color;
@@ -224,6 +245,11 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
 
                 LightData light = _LightDatas[lightIndex];
 
+                // Prep the light so that it works with non-volumetrics-specific code.
+                light.contactShadowIndex = -1;
+                light.shadowDimmer       = light.volumetricShadowDimmer;
+                light.lightDimmer        = light.volumetricLightDimmer;
+
                 // Process box lights in a separate loop.
                 if (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) { break; }
 
@@ -261,32 +287,29 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
 
                 if (sampleLight)
                 {
-                    // We are unable to adequately sample features larger
-                    // than the half of the length of the integration interval
-                    // divided by the number of temporal samples (7).
-                    // Therefore, we apply this hack to reduce flickering.
-                    float hackMinDistSq = Sq(dt * (0.5 / 7));
+                    float lightSqRadius = light.size.x;
 
                     float t, distSq, rcpPdf;
-                    ImportanceSamplePunctualLight(rndVal, light.positionRWS,
+                    ImportanceSamplePunctualLight(rndVal, light.positionRWS, lightSqRadius,
                                                   ray.originWS, ray.jitterDirWS,
-                                                  tEntr, tExit, t, distSq, rcpPdf,
-                                                  hackMinDistSq);
+                                                  tEntr, tExit,
+                                                  t, distSq, rcpPdf);
 
-                    posInput.positionWS = GetPointAtDistance(ray, t);
-
+                    posInput.positionWS  = GetPointAtDistance(ray, t);
                     float3 lightToSample = posInput.positionWS - light.positionRWS;
-                    float  distRcp       = rsqrt(distSq);
-                    float  dist          = distSq * distRcp;
-                    float  distProj      = dot(lightToSample, light.forward);
-                    float4 distances     = float4(dist, distSq, distRcp, distProj);
-                    float3 L             = -lightToSample * distRcp;
 
+                    float  distRcp   = rsqrt(distSq);
+                    float  dist      = distSq * distRcp;
+                    float  distProj  = dot(lightToSample, light.forward);
+                    float4 distances = float4(dist, distSq, distRcp, distProj);
+                    float3 L         = -lightToSample * distRcp;
+
+                    ModifyDistancesForFillLighting(distances, light.size.x);
+
+                    // Pass the light direction as the normal to avoid issues with shadow biasing code.
                     float3 color; float attenuation;
-                    light.contactShadowIndex = -1; // Disable shadow contact if any
-                    // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
                     EvaluateLight_Punctual(context, posInput, light, unused,
-                                           0, L, lightToSample, distances,
+                                           L, L, NdotL, lightToSample, distances,
                                            color, attenuation);
 
                     // Important:
@@ -300,11 +323,11 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     // and any temporal instability of anisotropy causes causes visible jitter.
                     // In order to stabilize the image, we use the voxel center for all
                     // anisotropy-related calculations.
-                    float3 centerL = light.positionRWS - centerWS;
+                    float3 centerL  = light.positionRWS - centerWS;
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
                     float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
-                    float intensity = light.volumetricDimmer * attenuation * rcpPdf;
+                    float intensity = light.volumetricLightDimmer * attenuation * rcpPdf;
 
                     // Compute transmittance from 't0' to 't'.
                     intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
@@ -347,6 +370,11 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                 LightData light = _LightDatas[lightIndex];
                 light.lightType = GPULIGHTTYPE_PROJECTOR_BOX;
 
+                // Prep the light so that it works with non-volumetrics-specific code.
+                light.contactShadowIndex = -1;
+                light.shadowDimmer       = light.volumetricShadowDimmer;
+                light.lightDimmer        = light.volumetricLightDimmer;
+
                 // Convert the box light from OBB to AABB.
                 // 'light.right' and 'light.up' vectors are pre-scaled on the CPU by (2/w) and (2/h).
                 float3x3 rotMat = float3x3(light.right, light.up, light.forward);
@@ -354,9 +382,8 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                 float3 o = mul(rotMat, ray.originWS - light.positionRWS);
                 float3 d = mul(rotMat, ray.jitterDirWS);
 
-                float  range  = light.size.x;
                 float3 boxPt0 = float3(-1, -1, 0);
-                float3 boxPt1 = float3( 1,  1, range);
+                float3 boxPt1 = float3( 1,  1, light.range);
 
                 float tEntr, tExit;
 
@@ -373,12 +400,11 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float  distProj      = dot(lightToSample, light.forward);
                     float4 distances     = float4(1, 1, 1, distProj);
 
+                    // Pass the light direction as the normal to avoid issues with shadow biasing code.
                     float3 color; float attenuation;
-                    light.contactShadowIndex = -1; // Disable shadow contact if any
-                    // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
-                    EvaluateLight_Punctual( context, posInput, light, unused,
-                                            0, L, lightToSample, distances,
-                                            color, attenuation);
+                    EvaluateLight_Punctual(context, posInput, light, unused,
+                                           L, L, NdotL, lightToSample, distances,
+                                           color, attenuation);
 
                     // Important:
                     // Ideally, all scattering calculations should use the jittered versions
@@ -396,7 +422,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
                     // Note: the 'weight' accounts for transmittance from 'tEntr' to 't'.
-                    float intensity = light.volumetricDimmer * attenuation * weight;
+                    float intensity = light.volumetricLightDimmer * attenuation * weight;
 
                     // Compute transmittance from 't0' to 'tEntr'.
                     intensity *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);
@@ -483,12 +509,17 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Prevent division by 0.
         extinction = max(extinction, FLT_MIN);
 
+        // Perform per-pixel randomization by adding an offset and then sampling uniformly
+        // (in the log space) in a vein similar to Stochastic Universal Sampling:
+        // https://en.wikipedia.org/wiki/Stochastic_universal_sampling
+        float perPixelRandomOffset = GenerateHashedRandomFloat(posInput.positionSS);
+
     #if ENABLE_REPROJECTION
-        // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
+        // This is a time-based sequence of 7 equidistant numbers from 1/14 to 13/14.
         // Each of them is the centroid of the interval of length 2/14.
-        float rndVal = _VBufferSampleOffset.z;
+        float rndVal = frac(perPixelRandomOffset + _VBufferSampleOffset.z);
     #else
-        float rndVal = 0.5;
+        float rndVal = frac(perPixelRandomOffset + 0.5);
     #endif
 
         VoxelLighting lighting = EvaluateVoxelLighting(context, featureFlags, posInput, centerWS,
@@ -680,15 +711,12 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     ray.jitterDirInvViewZ = jitterDirLen;                   // View space Z
     ray.twoDirRatioViewZ  = centerDirLen * jitterDirLenRcp; // View space Z ratio
 
+    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
+
     // TODO
     LightLoopContext context;
-    context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
-    context.contactShadow = 1.0;
-    context.shadowValue = 1.0;
-    uint featureFlags = 0xFFFFFFFF;
-
-    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
+    uint featureFlags     = 0xFFFFFFFF;
 
     FillVolumetricLightingBuffer(context, featureFlags, posInput, ray);
 }

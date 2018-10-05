@@ -27,6 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent lightIntensity = new GUIContent("Intensity", "");
 
             public readonly GUIContent maxSmoothness = new GUIContent("Max Smoothness", "Very low cost way of faking spherical area lighting. This will modify the roughness of the material lit. This is useful when the specular highlight is too small or too sharp.");
+            public readonly GUIContent lightRadius = new GUIContent("Light Radius", "Can be used to soften the core of the punctual light to create fill lighting.");
             public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "This will disable diffuse lighting for this light. Doesn't save performance, diffuse lighting is still computed.");
             public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "This will disable specular lighting for this light. Doesn't save performance, specular lighting is still computed.");
             public readonly GUIContent nonLightmappedOnly = new GUIContent("Non Lightmapped Only", "This will disable the rendering of lightmapped object for shadow map. Only effective with shadow mask feature");
@@ -56,6 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowResolution = new GUIContent("Resolution", "Controls the rendered resolution of the shadow maps. A higher resolution will increase the fidelity of shadows at the cost of GPU performance and memory usage.");
             public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "The shadow will fade at distance ShadowFadeDistance before being culled to minimize popping.");
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Aim to be use with script, timeline or animation. It allows dimming one or multiple shadows. This can also be used as an optimization to fit in shadow budget manually and minimize popping.");
+            public readonly GUIContent volumetricShadowDimmer = new GUIContent("Volumetric Dimmer", "Aim to be use with script, timeline or animation. It allows dimming one or multiple shadows. This can also be used as an optimization to fit in shadow budget manually and minimize popping.");
             public readonly GUIContent contactShadows = new GUIContent("Enable Contact Shadows", "Enable support for contact shadows on this light. Better for lights with a lot of visible shadows.");
 
             // Bias control
