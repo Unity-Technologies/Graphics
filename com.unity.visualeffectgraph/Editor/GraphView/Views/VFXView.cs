@@ -447,20 +447,27 @@ namespace UnityEditor.VFX.UI
                 }
                 return;
             }
-            Profiler.BeginSample("VFXView.ControllerChanged");
             if (change == VFXViewController.Change.destroy)
             {
                 m_Blackboard.controller = null;
                 controller = null;
                 return;
             }
+            Profiler.BeginSample("VFXView.ControllerChanged");
             if (change == VFXViewController.AnyThing)
             {
                 SyncNodes();
             }
+
+            Profiler.BeginSample("VFXView.SyncStickyNotes");
             SyncStickyNotes();
+            Profiler.EndSample();
+            Profiler.BeginSample("VFXView.SyncEdges");
             SyncEdges(change);
+            Profiler.EndSample();
+            Profiler.BeginSample("VFXView.SyncGroupNodes");
             SyncGroupNodes();
+            Profiler.EndSample();
 
             if (controller != null)
             {
@@ -476,12 +483,14 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            Profiler.EndSample();
             m_InControllerChanged = false;
             if (m_UpdateUIBounds)
             {
+                Profiler.BeginSample("VFXView.UpdateUIBounds");
                 UpdateUIBounds();
+                Profiler.EndSample();
             }
+            Profiler.EndSample();
         }
 
         public override void OnPersistentDataReady()
@@ -593,6 +602,7 @@ namespace UnityEditor.VFX.UI
                 elementsAddedToGroup = null;
                 elementsRemovedFromGroup = null;
 
+                Profiler.BeginSample("VFXView.SyncNodes:Delete");
                 var deletedControllers = rootNodes.Keys.Except(controller.nodes).ToArray();
 
                 foreach (var deletedController in deletedControllers)
@@ -601,9 +611,10 @@ namespace UnityEditor.VFX.UI
                     rootNodes.Remove(deletedController);
                     rootGroupNodeElements.Remove(deletedController);
                 }
-
+                Profiler.EndSample();
                 bool needOneListenToGeometry = !m_GeometrySet;
 
+                Profiler.BeginSample("VFXView.SyncNodes:Create");
                 foreach (var newController in controller.nodes.Except(rootNodes.Keys).ToArray())
                 {
                     VFXNodeUI newElement = null;
@@ -623,7 +634,9 @@ namespace UnityEditor.VFX.UI
                     {
                         throw new InvalidOperationException("Can't find right ui for controller" + newController.GetType().Name);
                     }
+                    Profiler.BeginSample("VFXView.SyncNodes:AddElement");
                     AddElement(newElement);
+                    Profiler.EndSample();
                     rootNodes[newController] = newElement;
                     rootGroupNodeElements[newController] = newElement;
                     (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
@@ -633,7 +646,7 @@ namespace UnityEditor.VFX.UI
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
                     }
                 }
-
+                Profiler.EndSample();
 
                 elementsAddedToGroup = ElementAddedToGroupNode;
                 elementsRemovedFromGroup = ElementRemovedFromGroupNode;
