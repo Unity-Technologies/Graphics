@@ -374,12 +374,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            public bool CreateDrawData()
+            public bool IsDrawn()
             {
-                if (m_Material == null)
-                    return false;
-                if (m_NumResults == 0)
-                    return false;
+                return ((m_Material != null) && (m_NumResults > 0));
+            }
+
+            public void CreateDrawData()
+            {
 
                 int instanceCount = 0;
                 int batchCount = 0;
@@ -445,7 +446,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 { 
                     AddToTextureList(ref instance.m_TextureList);
                 }
-                return true;
             }
 
             public void EndCull()
@@ -753,7 +753,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DecalSetsRenderList.Clear();
             foreach (var pair in m_DecalSets)
             {
-                if (pair.Value.CreateDrawData())
+                if (pair.Value.IsDrawn())
                 {
                     int insertIndex = 0;
                     while((insertIndex < m_DecalSetsRenderList.Count) && (pair.Value.DrawOrder >= m_DecalSetsRenderList[insertIndex].DrawOrder))
@@ -762,6 +762,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     m_DecalSetsRenderList.Insert(insertIndex, pair.Value);
                 }
+            }
+
+            foreach(var decalSet in m_DecalSetsRenderList)
+            {
+                decalSet.CreateDrawData();
             }
         }
 

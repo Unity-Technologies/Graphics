@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong error message display when switching to unsupported target like IOS
 - Fixed an issue with ambient occlusion texture sometimes not being created properly causing broken rendering
 - Shadow near plane is no longer limited at 0.1
+- Fixed decal draw order on transparent material
 - Fixed an issue where sometime the lookup texture used for GGX convolution was broken, causing broken rendering
 - Fixed an issue where you wouldn't see any fog for certain pipeline/scene configurations
 - Fixed an issue with volumetric lighting where the anisotropy value of 0 would not result in perfectly isotropic lighting
