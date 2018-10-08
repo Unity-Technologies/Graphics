@@ -39,8 +39,6 @@ namespace UnityEditor.VFX.Block
             {
                 foreach (var a in base.attributes)
                     yield return a;
-
-                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write);
             }
         }
 
@@ -143,8 +141,6 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
         viewPos *= 1.0f - radius / linearEyeDepth; // Push based on radius
         position = mul(ViewToVFX,float4(viewPos,1.0f)).xyz;
-
-        color = n *0.5f + 0.5f;";
 
                 Source += collisionResponseSource;
                 Source += @"
