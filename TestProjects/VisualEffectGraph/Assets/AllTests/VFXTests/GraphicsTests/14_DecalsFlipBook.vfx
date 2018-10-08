@@ -1978,9 +1978,9 @@ MonoBehaviour:
   uiBounds:
     serializedVersion: 2
     x: 1351
-    y: -947
-    width: 3093
-    height: 2875
+    y: -955
+    width: 2728
+    height: 2971
 --- !u!114 &114363468396401704
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2384,9 +2384,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114713359854958158}
   m_Children: []
-  m_UIPosition: {x: 3408.2893, y: 1568.1954}
+  m_UIPosition: {x: 3347, y: 1479}
   m_UICollapsed: 0
-  m_UISuperCollapsed: 1
+  m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114492709542381202}
   - {fileID: 114088044937819362}
@@ -2655,7 +2655,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114713359854958158}
   m_Children: []
-  m_UIPosition: {x: 2546.7493, y: 1384.4509}
+  m_UIPosition: {x: 2508, y: 1461}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3020,7 +3020,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":0.0,"y":-1.0,"z":-0.5}'
+      m_SerializableObject: '{"x":0.0,"y":-0.5,"z":-0.25}'
     m_Space: 2147483647
   m_Property:
     name: Pivot
@@ -3799,7 +3799,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114303831766578312}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 8926484042661614611}
@@ -3976,7 +3976,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: 
+  m_Name: 14_DecalsFlipBook
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
@@ -5588,7 +5588,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114303831766578312}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114551134472462742}
@@ -5913,7 +5913,7 @@ VisualEffectResource:
       \   float3 tmp_bm = float3(tmp_bj, tmp_bk, tmp_bl);\n\t\t\t\t    SetAttribute_CA95FE17(
       /*inout */color, tmp_bm);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_37814D93(
       /*inout */sizeZ, (float)0.2);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_8470CB66(
-      /*inout */pivot, float3(0,-1,-0.5));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    Orient_2(
+      /*inout */pivot, float3(0,-0.5,-0.25));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    Orient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, float3(0,0,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   float3 tmp_ba = velocity * velocity;\n\t\t\t\t    float tmp_bb = tmp_ba[2];\n\t\t\t\t
       \   float tmp_bc = tmp_ba[1];\n\t\t\t\t    float tmp_bd = tmp_bb + tmp_bc;\n\t\t\t\t
@@ -5974,7 +5974,7 @@ VisualEffectResource:
       /*inout */texIndex, age, lifetime, TexIndex_i);\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\tfloat3 offsets = (float3)0;\n\t\t\t\toffsets.x
       = float(id & 1);\n\t\t\t\toffsets.y = float((id & 3) >> 1);\n\t\t\t\toffsets.z
-      = float((id & 7) >> 2);\n\t\t\t\toffsets = offsets * 2.0f - 1.0f;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      = float((id & 7) >> 2);\n\t\t\t\toffsets -= 0.5f;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3x3
@@ -5983,7 +5983,7 @@ VisualEffectResource:
       vPos = mul(elementToVFX,float4(offsets,1.0f)).xyz;\n\t\t\t\tfloat3 vPosWS =
       TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t#ifdef VFX_VARYING_POSWS\n\t\t\t\to.VFX_VARYING_POSWS
       = vPosWS;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_OFFSETS\n\t\t\t\to.VFX_VARYING_OFFSETS
-      = offsets;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_FACEID\n\t\t\t\to.VFX_VARYING_FACEID
+      = offsets * 2.0f;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_FACEID\n\t\t\t\to.VFX_VARYING_FACEID
       = (id & 7) % 5;\n\t\t\t#endif\n\t\t\t#if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)\n\t\t\t\trot
       = mul(transpose(float3x3(axisX,axisY,axisZ)),rot);\n\t\t\t#ifdef VFX_LOCAL_SPACE
       \n\t\t\t\trot = mul((float3x3)VFXGetObjectToWorldMatrix(),rot);\n\t\t\t#endif\n\t\t\t\to.VFX_VARYING_ROTX
@@ -6044,8 +6044,8 @@ VisualEffectResource:
       = 1.0f;\n\t\t\t\t\n\t\t\t\tfloat4x4 viewToElement;\n\t\t\t\tviewToElement[0]
       = i.viewToDecal0;\n\t\t\t\tviewToElement[1] = i.viewToDecal1;\n\t\t\t\tviewToElement[2]
       = i.viewToDecal2;\n\t\t\t\tviewToElement[3] = float4(0,0,0,1);\n\t\t\t\t\n\t\t\t\tfloat3
-      elementPos = mul(viewToElement,worldPos);\n\t\t\t\t\t\t\n\t\t\t\tconst float
-      bias = 0.0f;\n\t\t\t\tclip(1.0f - abs(elementPos) + bias);\n\t\t\n\t\t\t\to.color
+      elementPos = mul(viewToElement,worldPos).xyz * 2.0f;\n\t\t\t\t\t\t\n\t\t\t\tconst
+      float bias = 0.0f;\n\t\t\t\tclip(1.0f - abs(elementPos) + bias);\n\t\t\n\t\t\t\to.color
       = VFXGetParticleColor(i);\n\t\t\n\t\t\t\tVFXSampler2D s = VFX_SAMPLER(mainTexture);\n\t\t\t\tfloat2
       uv = elementPos.xy * 0.5f + 0.5f;\n\t\t\t\to.color *= VFXGetTextureColorWithProceduralUV(s,i,uv);\n\t\t\t\t\n\t\t\t\to.color
       = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn
@@ -6337,7 +6337,7 @@ VisualEffectResource:
         - m_ExpressionIndex: 21
           m_Value: {x: 2, y: 2, z: 2}
         - m_ExpressionIndex: 28
-          m_Value: {x: 0, y: -1, z: -0.5}
+          m_Value: {x: 0, y: -0.5, z: -0.25}
         - m_ExpressionIndex: 30
           m_Value: {x: 0, y: 0.70000005, z: 0}
         - m_ExpressionIndex: 32
@@ -6579,7 +6579,6 @@ VisualEffectResource:
       receiveShadows: 0
       reflectionProbeUsage: 0
       lightProbeUsage: 0
-      transparencyPriority: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
   m_Systems:
