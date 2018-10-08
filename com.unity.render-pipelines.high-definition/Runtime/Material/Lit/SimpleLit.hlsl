@@ -66,6 +66,8 @@ PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDF
     return preLightData;
 }
 
+#ifdef HAS_LIGHTLOOP
+
 // This function apply BSDF. Assumes that NdotL is positive.
 void SimpleBSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
@@ -312,42 +314,6 @@ float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopCont
             normalWS = -normalWS; // Flip normal for shadow bias
             lightData.contactShadowIndex = -1;  //  Disable shadow contact
         }
-        else // MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS
-        {
-            // Recompute transmittance using the thickness value computed from the shadow map.
-
-            // Compute the distance from the light to the back face of the object along the light direction.
-            float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
-                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS,
-                                                                            lightData.lightType == GPULIGHTTYPE_POINT);
-
-            // Our subsurface scattering models use the semi-infinite planar slab assumption.
-            // Therefore, we need to find the thickness along the normal.
-            // Warning: based on the artist's input, dependence on the NdotL has been disabled.
-            float thicknessInUnits = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
-            float thicknessInMeters = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
-            float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
-
-            // We need to make sure it's not less than the baked thickness to minimize light leaking.
-            float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
-
-            float3 S = _ShapeParams[bsdfData.diffusionProfile].rgb;
-
-            // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
-#if 0
-            float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
-#else
-            // Help the compiler. S is premultiplied by ((-1.0 / 3.0) * LOG2_E) on the CPU.
-            float3 p = thicknessDelta * S;
-            float3 expOneThird = exp2(p);
-#endif
-
-            transmittance *= expOneThird;
-
-            // Note: we do not modify the distance to the light, or the light angle for the back face.
-            // This is a performance-saving optimization which makes sense as long as the thickness is small.
-        }
-
         transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
     }
 
@@ -531,3 +497,5 @@ void SimplePostEvaluateBSDF(  LightLoopContext lightLoopContext,
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
 #endif
 }
+
+#endif
