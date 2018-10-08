@@ -328,5 +328,44 @@ namespace UnityEditor.VFX.Test
             position.inputSlots[0].space = VFXCoordinateSpace.World;
             Assert.AreEqual(VFXCoordinateSpace.World, direction.outputSlots[0].space);
         }
+
+        [Test]
+        public void Space_Main_Camera()
+        {
+            var mainCamera = ScriptableObject.CreateInstance<MainCamera>();
+            mainCamera.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+            Assert.AreEqual(VFXCoordinateSpace.World, mainCamera.outputSlots[0].space);
+            foreach (var slot in mainCamera.outputSlots[0].GetExpressionSlots())
+            {
+                var expressions = CollectParentExpression(slot.GetExpression()).ToArray();
+                Assert.IsFalse(expressions.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+            }
+        }
+
+        [Test]
+        public void Space_MainCamera_To_Block_ProjectOnDepth()
+        {
+            var mainCamera = ScriptableObject.CreateInstance<MainCamera>();
+            var initialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var projectOnDepth = ScriptableObject.CreateInstance<ProjectOnDepth>();
+
+            initialize.space = VFXCoordinateSpace.World;
+            mainCamera.outputSlots[0].Link(projectOnDepth.inputSlots[0]);
+            initialize.AddChild(projectOnDepth);
+
+            foreach (var slot in mainCamera.outputSlots[0].GetExpressionSlots())
+            {
+                var expressions = CollectParentExpression(slot.GetExpression()).ToArray();
+                Assert.IsFalse(expressions.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+            }
+
+            var slotMatrix = mainCamera.outputSlots[0][0];
+            var expressionSlotMatrix = CollectParentExpression(slotMatrix.GetExpression()).ToArray();
+            Assert.IsTrue(expressionSlotMatrix.Any(o => o.operation == VFXExpressionOperation.ExtractMatrixFromMainCamera));
+
+            initialize.space = VFXCoordinateSpace.Local;
+            expressionSlotMatrix = CollectParentExpression(slotMatrix.GetExpression()).ToArray();
+            Assert.IsTrue(expressionSlotMatrix.Any(o => o.operation == VFXExpressionOperation.WorldToLocal));
+        }
     }
 }

@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        bool IPropertyRMProvider.spaceable
+        bool IPropertyRMProvider.spaceableAndMasterOfSpace
         {
             get
             {
@@ -247,7 +247,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool spaceable
+        public bool spaceableAndMasterOfSpace
         {
             get
             {
@@ -394,7 +394,7 @@ namespace UnityEditor.VFX.UI
                     int index = parentMemberPath.LastIndexOf(VFXGizmoUtility.Context.separator);
                     if (index == -1)
                     {
-                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
+                        Debug.LogError("Couldn't find SubParameter path " + memberPath);
                         return null;
                     }
 
@@ -411,7 +411,7 @@ namespace UnityEditor.VFX.UI
                     subParameterController = subParameterController.children.FirstOrDefault(t => t.name == member);
                     if (subParameterController == null)
                     {
-                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
+                        Debug.LogError("Couldn't find SubParameter path " + memberPath);
                         return null;
                     }
                 }
@@ -790,7 +790,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool spaceable
+        public bool spaceableAndMasterOfSpace
         {
             get
             {

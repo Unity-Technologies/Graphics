@@ -53,31 +53,6 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        private static VFXCoordinateSpace GetCommonSpaceFromSpaceableSlot(IEnumerable<VFXSlot> slots)
-        {
-            var space = (VFXCoordinateSpace)int.MaxValue;
-            foreach (var slot in slots)
-            {
-                if (slot.spaceable)
-                {
-                    var currentSpace = slot.space;
-                    if (space == (VFXCoordinateSpace)int.MaxValue
-                        ||  space < currentSpace)
-                    {
-                        space = currentSpace;
-                    }
-                }
-            }
-            return space;
-        }
-
-        protected virtual VFXCoordinateSpace actualOutputSpace
-        {
-            get
-            {
-                return (VFXCoordinateSpace)int.MaxValue; //Admit it comes from inputs
-            }
-        }
 
         protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
@@ -86,7 +61,7 @@ namespace UnityEditor.VFX
             GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.IsMasterSlot());
 
             var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
-            if (inputSlotSpaceable.Any())
+            if (inputSlotSpaceable.Any() || inputSlots.Count == 0)
             {
                 var outputSlotWithExpression = new List<VFXSlot>();
                 GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.IsMasterSlot());
@@ -123,14 +98,23 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
         {
-            var currentSpace = actualOutputSpace;
-            if (currentSpace == (VFXCoordinateSpace)int.MaxValue)
+            /* Most common case : space is the maximal output space from input slot */
+            var space = (VFXCoordinateSpace)int.MaxValue;
+            foreach (var inputSlot in inputSlots)
             {
-                currentSpace = GetCommonSpaceFromSpaceableSlot(inputSlots);
+                if (inputSlot.spaceable)
+                {
+                    var currentSpace = inputSlot.space;
+                    if (space == (VFXCoordinateSpace)int.MaxValue
+                        || space < currentSpace)
+                    {
+                        space = currentSpace;
+                    }
+                }
             }
-            return currentSpace;
+            return space;
         }
 
         public override sealed void UpdateOutputExpressions()
