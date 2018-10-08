@@ -17,6 +17,11 @@ namespace UnityEditor.ShaderGraph
             get { return PropertyType.Matrix3; }
         }
 
+        public override bool isBatchable
+        {
+            get { return true; }
+        }
+
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return "float4x4 " + referenceName + " = float4x4(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0)" + delimiter;

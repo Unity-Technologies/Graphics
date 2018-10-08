@@ -84,4 +84,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - In the High Definition Render Pipeline, Shader Graph now supports 4-channel UVs.
 - The Lightweight PBR subshader now generates the correct meta pass.
 - Both PBR subshaders can now generate indirect light from emission.
+- Shader graphs now support the SRP batcher.
 
