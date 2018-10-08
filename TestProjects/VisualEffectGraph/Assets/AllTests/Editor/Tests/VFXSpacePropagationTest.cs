@@ -362,6 +362,10 @@ namespace UnityEditor.VFX.Test
             var slotMatrix = mainCamera.outputSlots[0][0];
             var expressionSlotMatrix = CollectParentExpression(slotMatrix.GetExpression()).ToArray();
             Assert.IsTrue(expressionSlotMatrix.Any(o => o.operation == VFXExpressionOperation.ExtractMatrixFromMainCamera));
+
+            initialize.space = VFXCoordinateSpace.Local;
+            expressionSlotMatrix = CollectParentExpression(slotMatrix.GetExpression()).ToArray();
+            Assert.IsTrue(expressionSlotMatrix.Any(o => o.operation == VFXExpressionOperation.WorldToLocal));
         }
     }
 }

@@ -40,11 +40,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool spaceable
+        public bool spaceableAndMasterOfSpace
         {
             get
             {
-                return model.spaceable;
+                return model.spaceable && model.IsMasterSlot();
             }
         }
 

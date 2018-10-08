@@ -42,6 +42,7 @@ namespace UnityEditor.VFX
 
         public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
+            /* For block, space is directly inherited from parent context, this method should remains sealed */
             if (GetParent() != null)
                 return GetParent().space;
             return (VFXCoordinateSpace)int.MaxValue;

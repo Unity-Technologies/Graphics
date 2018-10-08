@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         bool expanded { get; }
         bool expandable { get; }
         object value { get; set; }
-        bool spaceable { get; }
+        bool spaceableAndMasterOfSpace { get; }
         VFXCoordinateSpace space { get; set; }
         bool IsSpaceInherited();
         string name { get; }
@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.IsSpaceInherited() { return false; }
 
-        bool IPropertyRMProvider.spaceable { get { return false; } }
+        bool IPropertyRMProvider.spaceableAndMasterOfSpace { get { return false; } }
 
         bool IPropertyRMProvider.expanded { get { return false; } }
         bool IPropertyRMProvider.expandable { get { return false; } }
@@ -360,7 +360,7 @@ namespace UnityEditor.VFX.UI
                 {
                     propertyType = typeof(EnumPropertyRM);
                 }
-                else if (controller.spaceable)
+                else if (controller.spaceableAndMasterOfSpace)
                 {
                     if (!m_TypeDictionary.TryGetValue(type, out propertyType))
                     {
