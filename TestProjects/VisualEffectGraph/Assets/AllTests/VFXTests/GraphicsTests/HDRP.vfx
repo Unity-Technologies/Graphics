@@ -757,8 +757,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -946,8 +947,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1132,8 +1134,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1339,8 +1342,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1550,8 +1554,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1751,8 +1756,9 @@ VisualEffectResource:
       posRWS = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1903,8 +1909,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2072,8 +2079,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2239,8 +2247,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2428,8 +2437,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2580,8 +2590,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2760,8 +2771,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2938,8 +2950,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -3126,8 +3139,9 @@ VisualEffectResource:
       posRWS = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -3914,6 +3928,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
   normalBending: 0
 --- !u!114 &8926484042661614540
 MonoBehaviour:
@@ -6879,6 +6897,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661614757
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7866,6 +7888,10 @@ MonoBehaviour:
   colorMode: 0
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
   normalBending: 0
 --- !u!114 &8926484042661614808
 MonoBehaviour:
@@ -9233,6 +9259,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
   normalBending: 0
 --- !u!114 &8926484042661614865
 MonoBehaviour:
@@ -10110,6 +10140,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661614905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11056,6 +11090,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661614957
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12489,6 +12527,10 @@ MonoBehaviour:
   colorMode: 0
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661615005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13613,6 +13655,10 @@ MonoBehaviour:
   colorMode: 0
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661615070
 MonoBehaviour:
   m_ObjectHideFlags: 0
