@@ -7,7 +7,7 @@ using System.Globalization;
 using UnityEngine;
 using UnityEditor.Experimental.AssetImporters;
 
-namespace UnityEditor.VFXToolbox
+namespace UnityEditor.VFX.Utils
 {
     [ScriptedImporter(1, "pcache")]
     public class PointCacheImporter : ScriptedImporter
