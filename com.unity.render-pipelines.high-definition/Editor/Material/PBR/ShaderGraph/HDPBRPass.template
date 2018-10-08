@@ -233,7 +233,7 @@ $include("SharedCode.template.hlsl")
 
         // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
         // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(input.worldToTangent, surfaceData);
+        ApplyDebugToSurfaceData(fragInputs.worldToTangent, surfaceData);
 #endif
     }
 

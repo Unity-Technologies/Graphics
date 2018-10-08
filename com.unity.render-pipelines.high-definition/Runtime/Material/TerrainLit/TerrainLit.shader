@@ -40,9 +40,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
 
-        // this will let collapsable element of material be persistant
-        [HideInInspector] _EditorExpendedAreas("_EditorExpendedAreas", Float) = 0
-
         // TEMP: See comment later for motion vector pass
         [HideInInspector] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0
     }
@@ -68,7 +65,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
-    #pragma instancing_options renderinglayer
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
     //-------------------------------------------------------------------------------------

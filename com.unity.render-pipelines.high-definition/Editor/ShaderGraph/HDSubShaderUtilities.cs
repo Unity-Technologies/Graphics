@@ -15,10 +15,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Semantic("POSITION")]                  Vector3 positionOS;
             [Semantic("NORMAL")][Optional]          Vector3 normalOS;
             [Semantic("TANGENT")][Optional]         Vector4 tangentOS;       // Stores bi-tangent sign in w
-            [Semantic("TEXCOORD0")][Optional]       Vector2 uv0;
-            [Semantic("TEXCOORD1")][Optional]       Vector2 uv1;
-            [Semantic("TEXCOORD2")][Optional]       Vector2 uv2;
-            [Semantic("TEXCOORD3")][Optional]       Vector2 uv3;
+            [Semantic("TEXCOORD0")][Optional]       Vector4 uv0;
+            [Semantic("TEXCOORD1")][Optional]       Vector4 uv1;
+            [Semantic("TEXCOORD2")][Optional]       Vector4 uv2;
+            [Semantic("TEXCOORD3")][Optional]       Vector4 uv3;
             [Semantic("COLOR")][Optional]           Vector4 color;
             [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("INSTANCING_ON")] uint instanceID;
         };
@@ -30,10 +30,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional]                                                              Vector3 positionRWS;
             [Optional]                                                              Vector3 normalWS;
             [Optional]                                                              Vector4 tangentWS;      // w contain mirror sign
-            [Optional]                                                              Vector2 texCoord0;
-            [Optional]                                                              Vector2 texCoord1;
-            [Optional]                                                              Vector2 texCoord2;
-            [Optional]                                                              Vector2 texCoord3;
+            [Optional]                                                              Vector4 texCoord0;
+            [Optional]                                                              Vector4 texCoord1;
+            [Optional]                                                              Vector4 texCoord2;
+            [Optional]                                                              Vector4 texCoord3;
             [Optional]                                                              Vector4 color;
             [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("INSTANCING_ON")]     uint instanceID;
             [Optional][Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("SHADER_STAGE_FRAGMENT")] bool cullFace;
@@ -71,10 +71,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Vector3 positionRWS;
             Vector3 normalWS;
             [Optional]      Vector4 tangentWS;
-            [Optional]      Vector2 texCoord0;
-            [Optional]      Vector2 texCoord1;
-            [Optional]      Vector2 texCoord2;
-            [Optional]      Vector2 texCoord3;
+            [Optional]      Vector4 texCoord0;
+            [Optional]      Vector4 texCoord1;
+            [Optional]      Vector4 texCoord2;
+            [Optional]      Vector4 texCoord3;
             [Optional]      Vector4 color;
             [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("INSTANCING_ON")] uint instanceID;
 

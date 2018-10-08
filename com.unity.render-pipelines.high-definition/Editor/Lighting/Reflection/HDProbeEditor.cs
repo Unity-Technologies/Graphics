@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal abstract HDProbe GetTarget(Object editorTarget);
 
         protected SerializedHDProbe m_SerializedHDProbe;
-        HDProbeUI m_UIState;
+        internal HDProbeUI m_UIState;
         HDProbeUI[] m_UIHandleState;
         protected HDProbe[] m_TypedTargets;
 

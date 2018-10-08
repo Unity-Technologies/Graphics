@@ -702,21 +702,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         UnityEngine.Debug.LogError("Unknown refraction model: " + masterNode.refractionModel);
                         break;
                 }
-
-                switch (masterNode.projectionModel)
-                {
-                    case HDLitMasterNode.ProjectionModelLit.Proxy:
-                        activeFields.Add("RefractionSSRayProxy");
-                        break;
-
-                    case HDLitMasterNode.ProjectionModelLit.HiZ:
-                        activeFields.Add("RefractionSSRayHiZ");
-                        break;
-
-                    default:
-                        UnityEngine.Debug.LogError("Unknown projection model: " + masterNode.projectionModel);
-                        break;
-                }
             }
 
             if (masterNode.IsSlotConnected(HDLitMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.BentNormalSlotId))

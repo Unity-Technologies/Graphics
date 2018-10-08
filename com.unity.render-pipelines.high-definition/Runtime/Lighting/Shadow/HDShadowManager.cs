@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -29,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Matrix4x4    shadowToWorld;
     }
-    
+
     // We use a different structure for directional light because these is a lot of data there
     // and it will add too much useless stuff for other lights
     // Note: In order to support HLSL array generation, we need to use fixed arrays and so a unsafe context for this struct
@@ -90,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int                  blockerSampleCount;
         public int                  filterSampleCount;
     }
-    
+
     public enum HDShadowQuality
     {
         Low = 0,
@@ -105,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int        k_DefaultMaxShadowRequests = 128;
         // TODO: 32 bit shadowmap are not supported by RThandle currently, when they will, change Depth24 to Depth32
         public const DepthBits  k_DefaultShadowMapDepthBits = DepthBits.Depth24;
-        
+
         public int              shadowAtlasWidth = k_DefaultShadowAtlasSize;
         public int              shadowAtlasHeight = k_DefaultShadowAtlasSize;
         public int              maxShadowRequests = k_DefaultMaxShadowRequests;
@@ -156,12 +155,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_ShadowRequests.Count >= m_maxShadowRequests)
                 return -1;
-            
+
             if (shadowRequest.allowResize)
                 m_Atlas.Reserve(shadowRequest);
             else
                 m_CascadeAtlas.Reserve(shadowRequest);
-            
+
             // Keep track of all shadow request and the order they was requested
             m_ShadowRequests.Add(shadowRequest);
 
@@ -239,7 +238,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 foreach (var shadowRequest in m_ShadowRequests)
                     shadowRequest.viewportSize *= lightingDebugSettings.shadowResolutionScaleFactor;
             }
-            
+
             // Assign a position to all the shadows in the atlas, and scale shadows if needed
             if (!m_CascadeAtlas.Layout(false))
                 Debug.LogWarning("Cascade Shadow atlasing has failed, try reducing the shadow resolution of the directional light or increase the shadow atlas size");
@@ -274,10 +273,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DirectionalShadowData.cascadeDirection.w = k_DirectionalShadowCascadeCount;
         }
- 
+
         public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults)
         {
-            // Avoid to do any commands if there is no shadow to draw 
+            // Avoid to do any commands if there is no shadow to draw
             if (m_ShadowRequests.Count == 0)
                 return ;
 
@@ -288,18 +287,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Atlas.RenderShadows(renderContext, cmd, dss);
             m_CascadeAtlas.RenderShadows(renderContext, cmd, dss);
         }
-        
+
         public void SyncData()
         {
             // Avoid to upload datas which will not be used
             if (m_ShadowRequests.Count == 0)
                 return;
-            
+
             // Upload the shadow buffers to GPU
             m_ShadowDataBuffer.SetData(m_ShadowDatas);
             m_DirectionalShadowDataBuffer.SetData(new HDDirectionalShadowData[]{ m_DirectionalShadowData });
         }
-        
+
         public void BindResources(CommandBuffer cmd)
         {
             // This code must be in sync with ShadowContext.hlsl
@@ -329,7 +328,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_Atlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_Width, m_Height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, flipY);
         }
-        
+
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
         public void DisplayShadowCascadeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
         {

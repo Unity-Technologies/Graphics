@@ -1,7 +1,7 @@
 #ifndef UNITY_VBUFFER_INCLUDED
 #define UNITY_VBUFFER_INCLUDED
 
-// Interpolation in the log space is non-linear.
+// Interpolation of log-encoded values is non-linear.
 // Therefore, given 'logEncodedDepth', we compute a new depth value
 // which allows us to perform HW interpolation which is linear in the view space.
 float ComputeLerpPositionForLogEncoding(float  linearDepth,
@@ -57,6 +57,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      bool   quadraticFilterXY,
                      bool   clampToBorder)
 {
+    // These are the viewport coordinates.
     float2 uv = positionNDC;
     float  w;
 
@@ -80,13 +81,13 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
 
     if (clampToBorder)
     {
-        // Compute the distance to the edge, and remap it to the [0, 1] range.
-        // Smoothly fade from the center of the edge texel to the black border color.
-        float weightU = saturate((1 - 2 * abs(uv.x - 0.5)) * VBufferResolution.x);
-        float weightV = saturate((1 - 2 * abs(uv.y - 0.5)) * VBufferResolution.y);
-        float weightW = saturate((1 - 2 * abs(w    - 0.5)) * VBufferSliceCount.x);
+        float3 positionCS = float3(uv, w) * 2 - 1;
+        float3 rcpLength  = float3(VBufferResolution.xy, VBufferSliceCount.x);
 
-        fadeWeight = weightU * weightV * weightW;
+        // Fade to black at the edges (0.5 pixel) of the viewport.
+        fadeWeight = Remap10(abs(positionCS.x), rcpLength.x, rcpLength.x)
+                   * Remap10(abs(positionCS.y), rcpLength.y, rcpLength.y)
+                   * Remap10(abs(positionCS.z), rcpLength.z, rcpLength.z);
     }
 
     float4 result = 0;
@@ -102,9 +103,8 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
             float2 weights[2], offsets[2];
             BiquadraticFilter(1 - fc, weights, offsets); // Inverse-translate the filter centered around 0.5
 
-            // Apply the viewport scale right at the end.
+            // We always clamp to edge only for bottom and right edges. Clamping for 'w' is handled by the hardware.
             // TODO: perform per-sample (4, in this case) bilateral filtering, rather than per-pixel. This should reduce leaking.
-            // TODO: precompute (VBufferResolution.zw * VBufferUvScale).
             result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[0].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)  // Top left
                    + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[0].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)  // Top right
                    + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[1].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)  // Bottom left
@@ -112,7 +112,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
         }
         else
         {
-            // Apply the viewport scale right at the end.
+            // We always clamp to edge only for bottom and right edges. Clamping for 'w' is handled by the hardware.
             result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(uv * VBufferUvScale, VBufferUvLimit), w), 0);
         }
 

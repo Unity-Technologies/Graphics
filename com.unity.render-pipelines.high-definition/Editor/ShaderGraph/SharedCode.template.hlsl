@@ -50,10 +50,10 @@
         $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(input.positionRWS);
         $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
         $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
-        $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         float4(input.texCoord0, 0.0f, 0.0f);
-        $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         float4(input.texCoord1, 0.0f, 0.0f);
-        $SurfaceDescriptionInputs.uv2:                       output.uv2 =                         float4(input.texCoord2, 0.0f, 0.0f);
-        $SurfaceDescriptionInputs.uv3:                       output.uv3 =                         float4(input.texCoord3, 0.0f, 0.0f);
+        $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         input.texCoord0;
+        $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         input.texCoord1;
+        $SurfaceDescriptionInputs.uv2:                       output.uv2 =                         input.texCoord2;
+        $SurfaceDescriptionInputs.uv3:                       output.uv3 =                         input.texCoord3;
         $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
         $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
 

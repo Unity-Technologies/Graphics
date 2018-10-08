@@ -81,3 +81,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Shader Graph and Sub Shader Graph file extensions are no longer case-sensitive.
 - The dynamic value slot type now uses the correct decimal separator during HLSL generation.
 - Fixed an issue where Show Generated Code could fail when external editor was not set.
+- In the High Definition Render Pipeline, Shader Graph now supports 4-channel UVs.
+- The Lightweight PBR subshader now generates the correct meta pass.
+- Both PBR subshaders can now generate indirect light from emission.
+

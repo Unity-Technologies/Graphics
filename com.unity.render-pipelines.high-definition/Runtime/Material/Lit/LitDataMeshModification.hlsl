@@ -142,22 +142,22 @@ void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inou
 
     positionRWS += GetVertexDisplacement(positionRWS, normalWS,
     #ifdef VARYINGS_DS_NEED_TEXCOORD0
-        input.texCoord0,
+        input.texCoord0.xy,
     #else
         float2(0.0, 0.0),
     #endif
     #ifdef VARYINGS_DS_NEED_TEXCOORD1
-        input.texCoord1,
+        input.texCoord1.xy,
     #else
         float2(0.0, 0.0),
     #endif
     #ifdef VARYINGS_DS_NEED_TEXCOORD2
-        input.texCoord2,
+        input.texCoord2.xy,
     #else
         float2(0.0, 0.0),
     #endif
     #ifdef VARYINGS_DS_NEED_TEXCOORD3
-        input.texCoord3,
+        input.texCoord3.xy,
     #else
         float2(0.0, 0.0),
     #endif

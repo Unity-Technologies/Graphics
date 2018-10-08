@@ -38,6 +38,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Not serialized, not visible, the settings effectively used
         FrameSettings m_FrameSettingsRuntime = new FrameSettings();
 
+        [SerializeField]
+        FrameSettings m_BakedOrCustomReflectionFrameSettings = new FrameSettings();
+
+        [SerializeField]
+        FrameSettings m_RealtimeReflectionFrameSettings = new FrameSettings();
+        
         bool m_frameSettingsIsDirty = true;
         public bool frameSettingsIsDirty
         {
@@ -47,6 +53,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FrameSettings GetFrameSettings()
         {
             return m_FrameSettingsRuntime;
+        }
+        
+        public FrameSettings GetBakedOrCustomReflectionFrameSettings()
+        {
+            return m_BakedOrCustomReflectionFrameSettings;
+        }
+
+        public FrameSettings GetRealtimeReflectionFrameSettings()
+        {
+            return m_RealtimeReflectionFrameSettings;
         }
 
         // See comment in FrameSettings.UpdateDirtyFrameSettings()
@@ -105,6 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public bool allowShaderVariantStripping = true;
+        public bool enableSRPBatcher = false;
 
         [SerializeField]
         public DiffusionProfileSettings diffusionProfileSettings;

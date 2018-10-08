@@ -131,12 +131,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
         uint3 voxelCoord = uint3(posInput.positionSS, slice);
 
         float e1 = slice * de + de; // (slice + 1) / sliceCount
-    #if defined(SHADER_API_METAL)
-        // Warning: this compiles, but it's nonsense. Use DecodeLogarithmicDepthGeneralized().
-        float z1 = DecodeLogarithmicDepth(e1, _VBufferDepthDecodingParams);
-    #else
         float z1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDepthDecodingParams);
-    #endif
 
         float  halfDZ        = 0.5 * (z1 - z0);
         float  z             = z0 + halfDZ;

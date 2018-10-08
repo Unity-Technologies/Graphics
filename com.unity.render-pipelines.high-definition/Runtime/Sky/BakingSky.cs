@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class BakingSky : MonoBehaviour
     {
         [SerializeField]

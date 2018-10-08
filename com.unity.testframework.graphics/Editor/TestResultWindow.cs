@@ -261,12 +261,14 @@ namespace UnityEngine.Experimental.Rendering
             if(templateImage == null || resultImage == null)
                 return;
 
-            EditorUtility.CopySerialized( resultImage, templateImage );
+
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(resultImage), AssetDatabase.GetAssetPath(templateImage));
             AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
 
             DeleteResults();
         }
-        
+
         public const string ActualImagesRoot = "Assets/ActualImages";
 
         public bool GetImages( GraphicsTestCase _testCase = null )
