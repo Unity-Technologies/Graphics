@@ -1,3 +1,5 @@
+# Minimum Node
+
 ## Description
 
 Returns the smallest of the two inputs values **A** and **B**.
@@ -10,6 +12,13 @@ Returns the smallest of the two inputs values **A** and **B**.
 | B      | Input | Dynamic Vector | Second input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = min(A, B)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Minimum_float4(float4 A, float4 B, out float4 Out)
+{
+    Out = min(A, B);
+}
+```

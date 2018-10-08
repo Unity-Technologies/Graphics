@@ -1,6 +1,8 @@
+# Node
+
 ## Description
 
-A **Node** defines an input, output or operation on the [Shader Graph](Shader-Graph.md), depending on its available [Ports](Port.md). A **Node** may have any number of input and/or output [Ports](Port.md). You create a [Shader Graph](Shader-Graph.md) by connecting these [Ports](Port.md) with [Edges](Edge.md). A **Node** might also have any number of **Parameters**, these are controls on the **Node** that do not have [Ports](Por.mdt).
+A **Node** defines an input, output or operation on the [Shader Graph](Shader-Graph.md), depending on its available [Ports](Port.md). A **Node** may have any number of input and/or output [Ports](Port.md). You create a [Shader Graph](Shader-Graph.md) by connecting these [Ports](Port.md) with [Edges](Edge.md). A **Node** might also have any number of **Controls**, these are controls on the **Node** that do not have [Ports](Por.mdt).
 
 You can collapse a **Node** by clicking the **Collapse** button in the top-right corner of the **Node**. This will hide all unconnected [Ports](Por.mdt).
 

@@ -1,3 +1,5 @@
+# Gradient Noise Node
+
 ## Description
 
 Generates a gradient, or [Perlin](https://en.wikipedia.org/wiki/Perlin_noise), noise based on input **UV**. The scale of the generated noise is controlled by input **Scale**.
@@ -10,7 +12,9 @@ Generates a gradient, or [Perlin](https://en.wikipedia.org/wiki/Perlin_noise), n
 | Scale      | Input | Vector 1 | None | Noise scale |
 | Out | Output      |    Vector 1 | None | Output value |
 
-## Shader Function
+## Generated Code Example
+
+The following example code represents one possible outcome of this node.
 
 ```
 float2 unity_gradientNoise_dir(float2 p)
@@ -34,5 +38,8 @@ float unity_gradientNoise(float2 p)
     return lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x);
 }
 
-Out = unity_gradientNoise(UV * Scale) + 0.5;
+void Unity_GradientNoise_float(float2 UV, float Scale, out float Out)
+{
+    Out = unity_gradientNoise(UV * Scale) + 0.5;
+}
 ```

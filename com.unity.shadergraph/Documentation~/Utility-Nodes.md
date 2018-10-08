@@ -5,7 +5,7 @@
 | ![Image](images/PreviewNodeThumb.png) | ![Image](images/SubGraphNodeThumb.png) |
 | Provides a preview window and passes the input value through without modification. | Provides a reference to a Sub-graph asset. |
 
-# Logic
+## Logic
 
 | [All](All-Node.md) | [And](And-Node.md) |
 |:-------------|:------|

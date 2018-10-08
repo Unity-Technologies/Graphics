@@ -1,3 +1,5 @@
+# Matrix Determinant
+
 ## Description
 
 Returns the determinant of the matrix defined by input **In**. It can be viewed as the scaling factor of the transformation described by the matrix.
@@ -9,6 +11,13 @@ Returns the determinant of the matrix defined by input **In**. It can be viewed 
 | In      | Input | Dynamic Matrix | Input value |
 | Out | Output      |    Vector 1 | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = determinant(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_MatrixDeterminant_float4x4(float4x4 In, out float Out)
+{
+    Out = determinant(In);
+}
+```

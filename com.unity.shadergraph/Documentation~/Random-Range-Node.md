@@ -1,3 +1,5 @@
+# Random Range Node
+
 ## Description
 
 Returns a pseudo-random number value based on input **Seed** that is between the minimum and maximum values defined by inputs **Min** and **Max** respectively.
@@ -13,9 +15,14 @@ Whilst the same value in input **Seed** will always result in the same output va
 | Max      | Input | Vector 1 | Maximum value |
 | Out | Output      |    Vector 1 | Output value |
 
-## Shader Function
+## Generated Code Example
+
+The following example code represents one possible outcome of this node.
 
 ```
-float randomno =  frac(sin(dot(Seed, float2(12.9898, 78.233)))*43758.5453)
-Out = lerp(Min, Max, randomno)
+void Unity_RandomRange_float(float2 Seed, float Min, float Max, out float Out)
+{
+    float randomno =  frac(sin(dot(Seed, float2(12.9898, 78.233)))*43758.5453);
+    Out = lerp(Min, Max, randomno);
+}
 ```

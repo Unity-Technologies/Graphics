@@ -1,3 +1,5 @@
+# Shader Graph
+
 ## Description
 
 This section outlines the user interface and interactions of the **Shader Graph** system. For an introduction to **Shader Graph** see [Getting Started](Getting-Started.md).

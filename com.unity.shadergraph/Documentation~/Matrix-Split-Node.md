@@ -1,3 +1,5 @@
+# Matrix Split Node
+
 ## Description
 
 Splits a square matrix defined by input **In** into vectors. Output vector dimension is defined by the dimension of the input matrix. 
@@ -21,8 +23,19 @@ For example, connecting **Matrix 2x2** type to input **In** will return the corr
 | M2 | Output      |    Dynamic Vector | Third row or column |
 | M3 | Output      |    Dynamic Vector | Fourth row or column |
 
-## Parameters
+## Controls
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 |      | Dropdown | Row, Column | Selects how the output vectors should be filled |
+
+## Generated Code Example
+
+The following example code represents one possible outcome of this node.
+
+```
+float2 _MatrixSplit_M0 = float2(In[0].r, In[0].g);
+float2 _MatrixSplit_M1 = float2(In[1].r, In[1].g);
+float2 _MatrixSplit_M2 = float2(0, 0);
+float2 _MatrixSplit_M3 = float2(0, 0);
+```

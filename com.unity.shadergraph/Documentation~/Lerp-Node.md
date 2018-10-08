@@ -1,3 +1,5 @@
+# Lerp Node
+
 ## Description
 
 Returns the result of linearly interpolating between input **A** and input **B** by input **T**. The value of input **T** is clamped to the range of 0 to 1.
@@ -13,6 +15,13 @@ For example, when the value of input **T** is 0 the return value is equal to the
 | T      | Input | Dynamic Vector | Time value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = lerp(A, B, T)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Lerp_float4(float4 A, float4 B, float4 T, out float4 Out)
+{
+    Out = lerp(A, B, T);
+}
+```

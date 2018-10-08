@@ -1,21 +1,6 @@
-#Math Nodes
+# Math Nodes
 
-##Basic
-
-| [Add](Add-Node.md) | [Divide](Divide-Node.md) |
-| :------- | :------ |
-| ![Image](images/AddNodeThumb.png) | ![Image](images/DivideNodeThumb.png) |
-| Returns the sum of the two input values. | Returns the result of input A divided by input B. |
-| [**Multiply**](Multiply-Node.md) | [**Power**](Power-Node.md) |
-| ![Image](images/MultiplyNodeThumb.png) | ![Image](images/PowerNodeThumb.png) |
-| Returns the result of input A multiplied by input B. | Returns the result of input A to the power of input B. |
-| [**Square Root**](Square-Root-Node.md) | [**Subtract**](Subtract-Node.md) |
-| ![Image](images/SquareRootNodeThumb.png) | ![Image](images/SubtractNodeThumb.png) |
-| Returns the square root of input In. | Returns the result of input A minus input B. |
-
-
-
-##Advanced
+## Advanced
 
 | [Absolute](Absolute-Node.md) | [Exponential](Absolute-Node.md) |
 | :------- | :------ |
@@ -35,8 +20,22 @@
 | Returns the result of 1 divided by input In. | Returns the result of 1 divided by the square root of input In. |
 
 
+## Basic
 
-##Derivative
+| [Add](Add-Node.md) | [Divide](Divide-Node.md) |
+| :------- | :------ |
+| ![Image](images/AddNodeThumb.png) | ![Image](images/DivideNodeThumb.png) |
+| Returns the sum of the two input values. | Returns the result of input A divided by input B. |
+| [**Multiply**](Multiply-Node.md) | [**Power**](Power-Node.md) |
+| ![Image](images/MultiplyNodeThumb.png) | ![Image](images/PowerNodeThumb.png) |
+| Returns the result of input A multiplied by input B. | Returns the result of input A to the power of input B. |
+| [**Square Root**](Square-Root-Node.md) | [**Subtract**](Subtract-Node.md) |
+| ![Image](images/SquareRootNodeThumb.png) | ![Image](images/SubtractNodeThumb.png) |
+| Returns the square root of input In. | Returns the result of input A minus input B. |
+
+
+
+## Derivative
 
 | [DDX](DDX-Node.md) | [DDXY](DDXY-Node.md) |
 | :------- | :------ |
@@ -48,7 +47,7 @@
 
 
 
-##Interpolation
+## Interpolation
 
 | [Inverse Lerp](Inverse-Lerp-Node.md) | [Lerp](Lerp-Node.md) |
 | :------- | :------ |
@@ -60,7 +59,7 @@
 
 
 
-##Matrix
+## Matrix
 
 | [Matrix Construction](Matrix-Construction-Node.md)           | [Matrix Determinant](Matrix-Determinant-Node.md)             |
 | :----------------------------------------------------------- | :----------------------------------------------------------- |
@@ -72,7 +71,7 @@
 
 
 
-##Range
+## Range
 
 | [Clamp](Clamp-Node.md) | [Fraction](Fraction-Node.md) |
 | :------- | :------ |
@@ -90,7 +89,7 @@
 
 
 
-##Round
+## Round
 
 | [Ceiling](Ceiling-Node.md) | [Floor](Floor-Node.md) |
 | :------- | :------ |
@@ -103,7 +102,7 @@
 | ![Image](images/StepNodeThumb.png) | ![Image](images/TruncateNodeThumb.png) |
 | Returns 1 if the value of input In is greater than or equal to the value of input Edge, otherwise returns 0. | Returns the integer, or whole number, component of the value of input In. |
 
-##Trigonometry 
+## Trigonometry 
 
 | [Arccosine](Arccosine-Node) | [Arcsine](Arcsine-Node.md) |
 | :------- | :------ |
@@ -127,7 +126,7 @@
 
 
 
-##Vector
+## Vector
 
 | [Cross Product](Cross-Product-Node.md) | [Distance](Distance-Node.md) |
 | :------- | :------ |
@@ -136,9 +135,30 @@
 | [**Dot Product**](Dot-Product-Node.md) | [**Fresnel Effect**](Fresnel-Effect-Node.md) |
 | ![Image](images/DotProductNodeThumb.png) | ![Image](images/FresnelEffectNodeThumb.png) |
 | Returns the dot product, or scalar product, of the values of the inputs A and B. | Fresnel Effect is the effect of differing reflectance on a surface depending on viewing angle, where as you approach the grazing angle more light is reflected. |
+| [**Projection**](Projection-Node.md) | [**Reflection**](Reflection-Node.md) |
+| ![Image](images/ProjectionNodeThumb.png) | ![Image](images/ReflectionNodeThumb.png) |
+| Returns the result of projecting the value of input A onto a straight line parallel to the value of input B. | Returns a reflection vector using input In and a surface normal Normal. |
+| [**Rejection**](Rejection-Node.md) | [**Rotate About Axis**](Rotate-About-Axis-Node.md) |
+| ![Image](images/RejectionNodeThumb.png) | ![Image](images/RotateAboutAxisNodeThumb.png) |
+| Returns the result of the projection of the value of  input A onto the plane orthogonal, or perpendicular, to the value of  input B. | Rotates the input vector In around the axis Axis by the value of Rotation. |
 | [**Projection**](Projection-Node.md) | [**Rejection**](Rejection-Node.md) |
 | ![Image](images/ProjectionNodeThumb.png) | ![Image](images/RejectionNodeThumb.png) |
 | Returns the result of projecting the value of input A onto a straight line parallel to the value of input B. | Returns the result of the projection of the value of  input A onto the plane orthogonal, or perpendicular, to the value of  input B. |
-| [**Transform**](Transform-Node.md) |  |
-| ![Image](images/TransformNodeThumb.png) |  |
-| Returns the result of transforming the value of input In from one coordinate space to another. |  |
+| [**Sphere Mask**](Sphere-Mask-Node.md) | [**Transform**](Transform-Node.md) |
+| ![Image](images/SphereMaskNodeThumb.png)| ![Image](images/TransformNodeThumb.png) |
+| Creates a sphere mask originating from input Center. | Returns the result of transforming the value of input In from one coordinate space to another. |
+
+## Wave
+
+| [Noise Sine Wave](Noise-Sine-Wave-Node.md)           | [Sawtooth Wave](Sawtooth-Wave-Node.md)             |
+| :----------------------------------------------------------- | :----------------------------------------------------------- |
+| ![Image](images/NoiseSineWaveNodeThumb.png)             | ![Image](images/SawtoothWaveNodeThumb.png)              |
+| Returns the sine of the value of input In. For variance, random noise is added to the amplitude of the sine wave. | Returns a sawtooth wave from the value of input In. |
+| [**Matrix Split**](Matrix-Split-Node.md)                     | [**Matrix Transpose**](Matrix-Transpose.md)                  |
+| ![Image](images/MatrixSplitNodeThumb.png)                    | ![Image](images/MatrixTransposeNodeThumb.png)                |
+| Splits a square matrix defined by input In into vectors.     | Returns the transposed value of the matrix defined by input In. |
+
+Noise Sine Wave
+Sawtooth Wave
+Square Wavve
+Triangle Wave

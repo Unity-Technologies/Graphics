@@ -1,3 +1,5 @@
+# Not Node
+
 ## Description
 
 Returns the opposite of input **In**. If **In** is true the output will be false, otherwise it will be true. This is useful for [Branching](Branch-Node.md).
@@ -9,6 +11,13 @@ Returns the opposite of input **In**. If **In** is true the output will be false
 | In      | Input | Boolean | None | Input value |
 | Out | Output      |    Boolean | None | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = !In`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_NormalUnpack_float(float In, out float Out)
+{
+    Out = !In;
+}
+```
