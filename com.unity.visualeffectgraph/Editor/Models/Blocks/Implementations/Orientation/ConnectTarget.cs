@@ -85,7 +85,7 @@ axisX = normalize(cross(axisY,axisZ));
 axisZ = cross(axisX,axisY);
 
 position = lerp(position, TargetPosition, PivotShift);
-pivot.y = PivotShift * 2 - 1;
+pivot.y = PivotShift - 0.5;
 ", orient);
             }
         }

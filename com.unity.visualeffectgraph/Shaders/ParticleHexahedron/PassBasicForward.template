@@ -49,7 +49,7 @@ Pass
 		ps_output o = (ps_output)0;
 		o.color = VFXGetFragmentColor(i);
 		o.color *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i));
-		o.color = VFXApplyFog(o.color,i)
+		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		return o;
 	}

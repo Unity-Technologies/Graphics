@@ -360,7 +360,7 @@ float3x3 GetEulerMatrix(float3 angles)
 
 float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3x3 rot,float3 pivot,float3 size,float3 pos)
 {
-    float3x3 rotAndScale = GetScaleMatrix(size * 0.5f);
+    float3x3 rotAndScale = GetScaleMatrix(size);
     rotAndScale = mul(rot,rotAndScale);
     rotAndScale = mul(transpose(float3x3(axisX,axisY,axisZ)),rotAndScale);
     pos -= mul(rotAndScale,pivot);
@@ -381,7 +381,7 @@ float4x4 GetVFXToElementMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 ang
 {
     float3x3 rotAndScale = float3x3(axisX,axisY,axisZ);
     rotAndScale = mul(transpose(GetEulerMatrix(radians(angles))),rotAndScale);
-    rotAndScale = mul(GetScaleMatrix(2.0f / size),rotAndScale);
+    rotAndScale = mul(GetScaleMatrix(1.0f / size),rotAndScale);
     pos = pivot - mul(rotAndScale,pos);
     return float4x4(
         float4(rotAndScale[0],pos.x),

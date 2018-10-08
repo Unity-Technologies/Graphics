@@ -15,7 +15,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	
 	${VFXLoadSize}
 	
-	const float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;
+	const float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;
 	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
 	const float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
 

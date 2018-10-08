@@ -21,7 +21,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	offsets.x = float(id & 1);
 	offsets.y = float((id & 3) >> 1);
 	offsets.z = float((id & 7) >> 2);
-	offsets = offsets * 2.0f - 1.0f;
+	offsets -= 0.5f;
 	
 	${VFXLoadSize}
 	
@@ -35,7 +35,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	o.VFX_VARYING_POSWS = vPosWS;
 #endif
 #ifdef VFX_VARYING_OFFSETS
-	o.VFX_VARYING_OFFSETS = offsets;
+	o.VFX_VARYING_OFFSETS = offsets * 2.0f;
 #endif
 #ifdef VFX_VARYING_FACEID
 	o.VFX_VARYING_FACEID = (id & 7) % 5;
