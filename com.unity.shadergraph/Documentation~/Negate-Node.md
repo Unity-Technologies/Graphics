@@ -1,3 +1,5 @@
+# Negate Node
+
 ## Description
 
 Returns the flipped sign value of input **In**. Positive values become negative and negative values become positive.
@@ -9,6 +11,13 @@ Returns the flipped sign value of input **In**. Positive values become negative 
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = -1 * In`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Negate_float4(float4 In, out float4 Out)
+{
+    Out = -1 * In;
+}
+```

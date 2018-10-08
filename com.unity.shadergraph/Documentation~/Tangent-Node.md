@@ -1,3 +1,5 @@
+# Tangent Node
+
 ## Description
 
 Returns the tangent of the value of input **In**.
@@ -9,6 +11,13 @@ Returns the tangent of the value of input **In**.
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = tan(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Tangent_float4(float4 In, out float4 Out)
+{
+    Out = tan(In);
+}
+```

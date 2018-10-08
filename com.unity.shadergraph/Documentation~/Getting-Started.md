@@ -37,18 +37,23 @@ To see your new [Shader Graph](Shader-Graph.md) changes affect your in game **Ma
 
 ## How do I get access to the Shader Graph?
 
-It is recommended for users to access the [Shader Graph](Shader-Graph.md) via the **Package Manager** or via **Templates**. To use the [Shader Graph](Shader-Graph.md) in your project either start a new project using the **Lightweight 3D Template** or download the **Lightweight Render Pileine** via the **Package Manager**. The [Shader Graph](Shader-Graph.md) will be downloaded automatically for your use in either of these cases.
+It is recommended for users to access the [Shader Graph](Shader-Graph.md) via the **Package Manager** or via **Templates**. To use the [Shader Graph](Shader-Graph.md) in your project either start a new project using a template that includes [Shader Graph](Shader-Graph.md) or download a **Render Pipeline** package from the **Package Manager**. The [Shader Graph](Shader-Graph.md) will be downloaded automatically for your use in either of these cases. 
+
+Packages that contain [Shader Graph](Shader-Graph.md):
+- Lightweight Render Pipeline
+- HD Render Pipeline
+
+Templates that contain [Shader Graph](Shader-Graph.md):
+- Lightweight 3D Template
+- HD 3D Template
 
 ### Download from Github
 
-If you wish to download via **Github** we recommend using [Shader Graph](Shader-Graph.md) through the [SRP repository](https://github.com/Unity-Technologies/ScriptableRenderPipeline), which has the [Shader Graph](Shader-Graph.md) repository setup as a submodule. Otherwise you will not have any [Master Node](Master-Node.md) backends available and thus your shaders will be pink. This also ensure that you get a compatible set of render pipeline and [Shader Graph](Shader-Graph.md) versions. Otherwise, carry on with the following instructions.
-
-- Create a new project (or use an existing)
-- Clone branch `2018.1` into the **Assets** folder of your project, such that the repository is contained in a sub-folder of the **Assets** folder
+If you wish to download via **Github** you must clone to [SRP repository](https://github.com/Unity-Technologies/ScriptableRenderPipeline) then reference these package versions directly in your project's package manifest.
 
 ##  What are the requirements for using Shader Graph
 
-This is a feature for the new [Scriptable Render Pipeline](https://forum.unity.com/threads/feedback-wanted-scriptable-render-pipelines.470095/), available in 2018.1. It will not work out of the box without a SRP.
+This is a feature for the new [Scriptable Render Pipeline](https://forum.unity.com/threads/feedback-wanted-scriptable-render-pipelines.470095/), available in 2018.1+. It will not work out of the box without an SRP.
 
 We won’t be supporting this feature for the legacy renderer.
 

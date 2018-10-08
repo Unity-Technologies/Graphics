@@ -1,3 +1,5 @@
+# Hyperbolic Sine Node
+
 ## Description
 
 Returns the hyperbolic sine of input **In**.
@@ -9,6 +11,13 @@ Returns the hyperbolic sine of input **In**.
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = sinh(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_HyperbolicSine_float4(float4 In, out float4 Out)
+{
+    Out = sinh(In);
+}
+```

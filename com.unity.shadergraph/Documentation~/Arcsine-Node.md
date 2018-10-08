@@ -1,6 +1,8 @@
+# Arcsine Node
+
 ## Description
 
-Returns the arcsine of each component the input **In** as a vector of equal length. Each component should be within the range of -Pi/2 to Pi/2.
+Returns the arcsine of each component of the input **In** as a vector of the same dimension and equal length. Each component should be within the range of -Pi/2 to Pi/2.
 
 ## Ports
 
@@ -9,6 +11,13 @@ Returns the arcsine of each component the input **In** as a vector of equal leng
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = asin(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Arcsine_float4(float4 In, out float4 Out)
+{
+    Out = asin(In);
+}
+```

@@ -1,3 +1,5 @@
+# And Node
+
 ## Description
 
 Returns true if both the inputs **A** and **B** are true. This is useful for [Branching](Branch-Node.md).
@@ -10,6 +12,11 @@ Returns true if both the inputs **A** and **B** are true. This is useful for [Br
 | B      | Input | Boolean | None | Second input value |
 | Out | Output      |    Boolean | None | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = A && B`
+```
+void Unity_And(float A, float B, out float Out)
+{
+    Out = A && B;
+}
+```

@@ -1,3 +1,5 @@
+# Normal Unpack Node
+
 ## Description
 
 Unpacks a normal map defined by input **In**. This node is used to unpack a texture that is defined as a **Normal Map** in its Texture Import Settings when it is sampled as if it were a default texture.
@@ -11,8 +13,13 @@ Note that in most cases this node is unnecessary as the normal map should be sam
 | In      | Input | Vector 4 | None | Input value |
 | Out | Output      |    Vector 3 | None | Output value |
 
-## Shader Function
+## Generated Code Example
+
+The following example code represents one possible outcome of this node.
 
 ```
-Out = UnpackNormalmapRGorAG(In);
+void Unity_NormalUnpack_float(float4 In, out float3 Out)
+{
+    Out = UnpackNormalmapRGorAG(In);
+}
 ```

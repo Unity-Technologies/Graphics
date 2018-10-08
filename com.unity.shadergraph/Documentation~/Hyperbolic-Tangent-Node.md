@@ -1,3 +1,5 @@
+# Hyperbolic Tangent Node
+
 ## Description
 
 Returns the hyperbolic tangent of input **In**.
@@ -9,6 +11,13 @@ Returns the hyperbolic tangent of input **In**.
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = tanh(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_HyperbolicTangent_float4(float4 In, out float4 Out)
+{
+    Out = tanh(In);
+}
+```

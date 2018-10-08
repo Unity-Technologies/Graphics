@@ -1,3 +1,5 @@
+# All Node
+
 ## Description
 
 Returns true if all components of the input **In** are non-zero. This is useful for [Branching](Branch-Node.md).
@@ -9,6 +11,13 @@ Returns true if all components of the input **In** are non-zero. This is useful 
 | In      | Input | Dynamic Vector | None | Input value |
 | Out | Output      |    Boolean | None | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = all(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_All_float4(float4 In, out float Out)
+{
+    Out = all(In);
+}
+```

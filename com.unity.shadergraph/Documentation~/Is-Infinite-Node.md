@@ -1,3 +1,5 @@
+# Is Infinite Node
+
 ## Description
 
 Returns true if any of the components of the input **In** is an infinite value. This is useful for [Branching](Branch-Node.md).
@@ -9,6 +11,13 @@ Returns true if any of the components of the input **In** is an infinite value. 
 | In      | Input | Dynamic Vector | None | Input value |
 | Out | Output      |    Boolean | None | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = isinf(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_IsInfinite_float4(float4 In, out float Out)
+{
+    Out = isinf(In);
+}
+```
