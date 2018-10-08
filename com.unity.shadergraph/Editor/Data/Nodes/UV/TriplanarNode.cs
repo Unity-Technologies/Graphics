@@ -59,22 +59,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        [SerializeField]
-        private bool m_DerivativeMap = false;
-
-        [ToggleControl]
-        public ToggleData derivativeMap
-        {
-            get { return new ToggleData(m_DerivativeMap); }
-            set
-            {
-                if (m_DerivativeMap == value.isOn)
-                    return;
-                m_DerivativeMap = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
@@ -116,58 +100,23 @@ namespace UnityEditor.ShaderGraph
                     GetSlotValue(NormalInputId, generationMode), GetSlotValue(BlendInputId, generationMode));
                     sb.AppendLine("{0}_Blend /= ({0}_Blend.x + {0}_Blend.y + {0}_Blend.z ).xxx;", GetVariableNameForNode());
 
-                    if (derivativeMap.isOn)
-                    {
-                        sb.AppendLine("{0}2 deriv_zy = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.zy));"
-                        , precision
-                        , GetVariableNameForNode()
-                        , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
+                    sb.AppendLine("{0}3 {1}_X = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.zy));"
+                    , precision
+                    , GetVariableNameForNode()
+                    , id
+                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
 
-                        sb.AppendLine("{0}3 {1}_X = SurfaceGradientFromTBN(deriv_zy, IN.WorldSpaceTangent, IN.WorldSpaceBiTangent);"
-                        , precision
-                        , GetVariableNameForNode());
+                    sb.AppendLine("{0}3 {1}_Y = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xz));"
+                    , precision
+                    , GetVariableNameForNode()
+                    , id
+                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
 
-                        sb.AppendLine("{0}2 deriv_xz = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xz));"
-                        , precision
-                        , GetVariableNameForNode()
-                        , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
-
-                        sb.AppendLine("{0}3 {1}_Y = SurfaceGradientFromTBN(deriv_xz, IN.WorldSpaceTangent, IN.WorldSpaceBiTangent);"
-                        , precision
-                        , GetVariableNameForNode());
-
-                        sb.AppendLine("{0}2 deriv_xy = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xy));"
-                        , precision
-                        , GetVariableNameForNode()
-                        , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
-
-                        sb.AppendLine("{0}3 {1}_Z = SurfaceGradientFromTBN(deriv_xy, IN.WorldSpaceTangent, IN.WorldSpaceBiTangent);"
-                        , precision
-                        , GetVariableNameForNode());
-                    }
-                    else
-                    {
-                        sb.AppendLine("{0}3 {1}_X = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.zy));"
-                        , precision
-                        , GetVariableNameForNode()
-                        , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
-
-                        sb.AppendLine("{0}3 {1}_Y = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xz));"
-                        , precision
-                        , GetVariableNameForNode()
-                        , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
-
-                        sb.AppendLine("{0}3 {1}_Z = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xy));"
-                        , precision
-                        , GetVariableNameForNode()
-                        , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
-                    }
+                    sb.AppendLine("{0}3 {1}_Z = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xy));"
+                    , precision
+                    , GetVariableNameForNode()
+                    , id
+                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
 
                     sb.AppendLine("{0}_X = {1}3({0}_X.xy + {2}.zy, abs({0}_X.z) * {2}.x);"
                     , GetVariableNameForNode()
