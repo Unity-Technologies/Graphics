@@ -6,8 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class AxFGUI : BaseUnlitGUI
     {
-        static Expendable state = Expendable.Base | Expendable.Detail | Expendable.Emissive | Expendable.Input | Expendable.Other | Expendable.Tesselation | Expendable.Transparency | Expendable.VertexAnimation;
-        protected override uint expendedState { get { return (uint)state; } set { state = (Expendable)value; } }
+        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Detail | Expendable.Emissive | Expendable.Input | Expendable.Other | Expendable.Tesselation | Expendable.Transparency | Expendable.VertexAnimation); } }
 
         protected static class Styles
         {

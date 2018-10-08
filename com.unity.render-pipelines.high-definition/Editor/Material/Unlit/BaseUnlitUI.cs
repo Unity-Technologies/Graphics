@@ -667,6 +667,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             m_MaterialEditor = materialEditor;
+
+            // We should always register the key used to keep collapsable state
+            InitExpendableState(materialEditor);
+
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
 

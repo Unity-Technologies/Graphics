@@ -30,7 +30,7 @@ Shader "HDRenderPipeline/StackLit"
         _DielectricIor("DielectricIor IOR", Range(1.0, 2.5)) = 1.5
 
         [HideInInspector] _SmoothnessAMapShow("SmoothnessA Map Show", Float) = 0
-        _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
+        _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 0.5
         _SmoothnessAMap("SmoothnessA Map", 2D) = "white" {}
         _SmoothnessAUseMap("SmoothnessA Use Map", Float) = 0
         _SmoothnessAMapUV("SmoothnessA Map UV", Float) = 0.0
@@ -43,7 +43,7 @@ Shader "HDRenderPipeline/StackLit"
 
         [ToggleUI] _EnableDualSpecularLobe("Enable Dual Specular Lobe", Float) = 0.0 // UI only
         [HideInInspector] _SmoothnessBMapShow("SmoothnessB Map Show", Float) = 0
-        _SmoothnessB("SmoothnessB", Range(0.0, 1.0)) = 1.0
+        _SmoothnessB("SmoothnessB", Range(0.0, 1.0)) = 0.5
         _SmoothnessBMap("SmoothnessB Map", 2D) = "white" {}
         _SmoothnessBUseMap("SmoothnessB Use Map", Float) = 0
         _SmoothnessBMapUV("SmoothnessB Map UV", Float) = 0.0

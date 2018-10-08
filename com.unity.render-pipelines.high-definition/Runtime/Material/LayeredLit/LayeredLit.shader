@@ -26,10 +26,10 @@ Shader "HDRenderPipeline/LayeredLit"
         _Metallic2("Metallic2", Range(0.0, 1.0)) = 0
         _Metallic3("Metallic3", Range(0.0, 1.0)) = 0
 
-        _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 1.0
-        _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 1.0
-        _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 1.0
-        _Smoothness3("Smoothness3", Range(0.0, 1.0)) = 1.0
+        _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 0.5
+        _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 0.5
+        _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 0.5
+        _Smoothness3("Smoothness3", Range(0.0, 1.0)) = 0.5
 
         _SmoothnessRemapMin0("SmoothnessRemapMin0", Range(0.0, 1.0)) = 0.0
         _SmoothnessRemapMin1("SmoothnessRemapMin1", Range(0.0, 1.0)) = 0.0

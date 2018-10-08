@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             parameters.Constrain();
         }
 
-        void OnDrawGizmos()
+        void OnDrawGizmosSelected()
         {
             Gizmos.matrix = transform.localToWorldMatrix;
 

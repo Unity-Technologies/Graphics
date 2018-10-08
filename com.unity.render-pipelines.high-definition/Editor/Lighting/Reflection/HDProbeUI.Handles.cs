@@ -27,7 +27,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one)))
                         {
-                            //Vector3 offsetWorld = probe.transform.position + probe.transform.rotation * probe.influenceVolume.offset;
                             EditorGUI.BeginChangeCheck();
                             var newCapturePosition = Handles.PositionHandle(probe.transform.position, probe.transform.rotation);
                             if (EditorGUI.EndChangeCheck())

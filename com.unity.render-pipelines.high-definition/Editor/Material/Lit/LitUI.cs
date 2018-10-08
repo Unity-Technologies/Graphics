@@ -7,8 +7,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class LitGUI : BaseLitGUI
     {
-        static Expendable state = Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Tesselation;
-        protected override uint expendedState { get { return (uint)state; } set { state = (Expendable)value; } }
+        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Tesselation); } }
 
         protected static class Styles
         {
