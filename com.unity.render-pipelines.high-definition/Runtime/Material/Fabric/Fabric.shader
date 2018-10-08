@@ -27,7 +27,7 @@ Shader "HDRenderPipeline/Fabric"
         _TangentMap("TangentMap", 2D) = "bump" {}
 
         // Smoothness values (overriden by the mask map)
-        _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
+        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
     
         // The mask texture and the matching remapping values for it        
         _MaskMap("MaskMap", 2D) = "white" {}

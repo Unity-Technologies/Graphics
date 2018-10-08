@@ -9,8 +9,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class TerrainLitGUI : LitGUI, ITerrainLayerCustomUI
     {
-        static Expendable state = 0;
-        protected override uint expendedState { get { return (uint)state; } set { state = (Expendable)value; } }
+        protected override uint defaultExpendedState { get { return 0u; } }
 
         private class StylesLayer
         {
@@ -111,6 +110,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             FindMaterialProperties(props);
 
             m_MaterialEditor = materialEditor;
+
+            // We should always register the key used to keep collapsable state
+            InitExpendableState(materialEditor);
+
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
 

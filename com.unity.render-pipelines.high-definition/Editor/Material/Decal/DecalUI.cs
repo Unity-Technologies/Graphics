@@ -13,8 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             Input = 1 << 0
         }
-        static Expendable state = Expendable.Input;
-        protected override uint expendedState { get { return (uint)state; } set { state = (Expendable)value; } }
+        protected override uint defaultExpendedState { get { return (uint)Expendable.Input; } }
 
         protected static class Styles
         {
@@ -269,6 +268,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             m_MaterialEditor = materialEditor;
+
+            // We should always register the key used to keep collapsable state
+            InitExpendableState(materialEditor);
+
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
             

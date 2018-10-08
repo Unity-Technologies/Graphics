@@ -6,13 +6,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     //should be base for al material in hdrp. It will add the collapsable mecanisme on them
     abstract class ExpendableAreaMaterial : ShaderGUI
     {
-        protected interface IExpendableArea
+        private const string k_KeyPrefix = "HDRP:Material:UI_State:";
+        private string m_StateKey;
+        
+        protected virtual uint expendedState
         {
-            bool GetExpendedAreas(uint mask);
-            void SetExpendedAreas(uint mask, bool value);
+            get
+            {
+                return (uint)EditorPrefs.GetInt(m_StateKey);
+            }
+            set
+            {
+                EditorPrefs.SetInt(m_StateKey, (int)value);
+            }
         }
 
-        protected abstract uint expendedState { get; set; }
+        protected virtual uint defaultExpendedState { get { return 0xFFFFFFFF; } } //all opened by default
 
         protected struct HeaderScope : IDisposable
         {
@@ -85,6 +94,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             expendedState = state;
+        }
+
+        protected void InitExpendableState(MaterialEditor editor)
+        {
+            m_StateKey = k_KeyPrefix + ((Material)editor.target).shader.name;
+            if(!EditorPrefs.HasKey(m_StateKey))
+            {
+                EditorPrefs.SetInt(m_StateKey, (int)defaultExpendedState);
+            }
         }
     }
 }

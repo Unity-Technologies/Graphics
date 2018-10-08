@@ -31,10 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LayeringOption3 = 1 << 30
         }
 
-        static uint state = (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Other | Expendable.Tesselation)
-            + (uint)(LayerExpendable.MaterialReferences | LayerExpendable.MainInput | LayerExpendable.MainDetail);
-
-        protected override uint expendedState { get { return (uint)state; } set { state = value; } }
+        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Other | Expendable.Tesselation) + (uint)(LayerExpendable.MaterialReferences | LayerExpendable.MainInput | LayerExpendable.MainDetail); } }
         
         public enum VertexColorMode
         {
@@ -742,6 +739,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             FindMaterialProperties(props);
 
             m_MaterialEditor = materialEditor;
+
+            // We should always register the key used to keep collapsable state
+            InitExpendableState(materialEditor);
+
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
 
