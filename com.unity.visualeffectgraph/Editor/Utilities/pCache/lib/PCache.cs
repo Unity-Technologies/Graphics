@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Globalization;
 
-public class PCache
+public partial class PCache
 {
     public List<PropertyDesc> properties;
     public List<List<object>> buckets;
@@ -16,7 +16,6 @@ public class PCache
     {
         Ascii,
         Binary,
-        None,
     }
 
     public PCache()
@@ -46,7 +45,27 @@ public class PCache
         buckets.Add(new List<object>());
     }
 
-    public void AddVectorProperty(string name)
+    public void AddVector2Property(string name)
+    {
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".x",
+            ComponentIndex = 0,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".y",
+            ComponentIndex = 1,
+            ComponentName = name,
+            Type = "float"
+        }); 
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+    }
+
+    public void AddVector3Property(string name)
     {
         properties.Add(new PropertyDesc()
         {
@@ -68,6 +87,77 @@ public class PCache
             ComponentName = name,
             Type = "float"
         });
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+    }
+
+    public void AddVector4Property(string name)
+    {
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".x",
+            ComponentIndex = 0,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".y",
+            ComponentIndex = 1,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".z",
+            ComponentIndex = 2,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".w",
+            ComponentIndex = 3,
+            ComponentName = name,
+            Type = "float"
+        });
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+        buckets.Add(new List<object>());
+    }
+
+    public void AddColorProperty(string name)
+    {
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".r",
+            ComponentIndex = 0,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".g",
+            ComponentIndex = 1,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".b",
+            ComponentIndex = 2,
+            ComponentName = name,
+            Type = "float"
+        });
+        properties.Add(new PropertyDesc()
+        {
+            Name = name + ".a",
+            ComponentIndex = 3,
+            ComponentName = name,
+            Type = "float"
+        });
+        buckets.Add(new List<object>());
         buckets.Add(new List<object>());
         buckets.Add(new List<object>());
         buckets.Add(new List<object>());
@@ -198,7 +288,7 @@ public class PCache
         if (header[0] != "pcache")
             throw new Exception("Invalid header : missing magic number");
 
-        Format format = Format.None;
+        Format format = (Format)int.MaxValue;
         data.elementCount = 0;
 
         data.properties = new List<PropertyDesc>();
@@ -336,6 +426,7 @@ public class PCache
             {
                 char c = sr.ReadChar();
                 byteLength++;
+
                 if (c == '\n' || c == '\r')
                 {
                     if (sb.Length > 0)
@@ -382,9 +473,8 @@ public class PCache
         {
             case Format.Ascii: return "ascii";
             case Format.Binary: return "binary";
-            case Format.None: throw new InvalidOperationException("Format.None does not have a format string");
+            default: throw new InvalidOperationException("Invalid format");
         }
-        return null;
     }
 
     private static int GetPropertySize(string type)
