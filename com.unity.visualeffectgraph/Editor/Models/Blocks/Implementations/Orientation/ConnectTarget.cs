@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
 
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Write);
             }
         }
@@ -85,7 +85,7 @@ axisX = normalize(cross(axisY,axisZ));
 axisZ = cross(axisX,axisY);
 
 position = lerp(position, TargetPosition, PivotShift);
-pivot.y = PivotShift - 0.5;
+pivotY = PivotShift - 0.5;
 ", orient);
             }
         }
