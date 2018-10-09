@@ -149,10 +149,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_REFRACTION:
             break;
 
-        case DEBUGLIGHTINGMODE_SCREEN_SPACE_REFLECTION:
-            break;
-
-        case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
+         case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
             #ifdef SHADOWS_SHADOWMASK
             diffuseLighting = float3(
                 builtinData.shadowMask0 / 2 + builtinData.shadowMask1 / 2,
