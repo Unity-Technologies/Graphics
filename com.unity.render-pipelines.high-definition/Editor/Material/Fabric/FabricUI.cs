@@ -7,6 +7,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class FabricGUI : BaseLitGUI
     {
+        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Other); } }
+
         protected static class Styles
         {
             // Fields

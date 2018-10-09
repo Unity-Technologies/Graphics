@@ -4,7 +4,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [DisallowMultipleComponent, ExecuteInEditMode]
+    [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
+                    m_FrameSettings.Override(defaultFrameSettings).CopyTo(m_FrameSettingsRuntime);
                 }
 
                 m_frameSettingsIsDirty = false;

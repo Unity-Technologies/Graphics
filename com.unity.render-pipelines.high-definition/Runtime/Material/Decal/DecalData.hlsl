@@ -23,7 +23,7 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 	float2 texCoords = texCoordDS * scale + offset;
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 	float albedoMapBlend = _DecalBlend;
-	float2 texCoords = input.texCoord0;
+	float2 texCoords = input.texCoord0.xy;
 #endif
 
 #if _COLORMAP

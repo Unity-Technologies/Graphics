@@ -30,7 +30,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 {
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
     {
-        float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_MainTex, (input.texCoord0 + 0.5f) * _TerrainHeightmapRecipSize.xy).rgb * 2 - 1;
+        float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_MainTex, (input.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy).rgb * 2 - 1;
         float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
         float3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
         float renormFactor = 1.0 / length(normalWS);
@@ -45,18 +45,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         input.worldToTangent[1] = worldToTangent[1] * renormFactor;
         input.worldToTangent[2] = worldToTangent[2] * renormFactor;		// normalizes the interpolated vertex normal
 
-        input.texCoord0 *= _TerrainHeightmapRecipSize.zw;
+        input.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
     }
 #endif
 
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
 
-    surfaceData.baseColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0).rgb;
+    surfaceData.baseColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0.xy).rgb;
 
-    surfaceData.perceptualSmoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0).a;
-    surfaceData.ambientOcclusion = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MainTex, input.texCoord0).g;
-    surfaceData.metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MainTex, input.texCoord0).r;
+    surfaceData.perceptualSmoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0.xy).a;
+    surfaceData.ambientOcclusion = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MainTex, input.texCoord0.xy).g;
+    surfaceData.metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MainTex, input.texCoord0.xy).r;
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = 0;
     surfaceData.thickness = 1;
@@ -104,7 +104,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef DEBUG_DISPLAY
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0, _MainTex, _MainTex_TexelSize, _MainTex_MipInfo, surfaceData.baseColor);
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy, _MainTex, _MainTex_TexelSize, _MainTex_MipInfo, surfaceData.baseColor);
         surfaceData.metallic = 0;
     }
 

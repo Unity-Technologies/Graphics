@@ -14,6 +14,8 @@ namespace UnityEditor.VFX
             Standard,
             SpecularColor,
             Translucent,
+            SimpleLit,
+            SimpleLitTranslucent,
         }
 
         [Flags]
@@ -37,6 +39,8 @@ namespace UnityEditor.VFX
         private readonly string[] kMaterialTypeToName = new string[] {
             "StandardProperties",
             "SpecularColorProperties",
+            "TranslucentProperties",
+            "StandardProperties",
             "TranslucentProperties",
         };
 
@@ -72,6 +76,18 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool doubleSided = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Simple Lit features")]
+        protected bool enableShadows = true;
+        
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool enableSpecular = true;
+        
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool enableCookie = true;
+        
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool enableEnvLight = true;
 
         protected virtual bool allowTextures { get { return true; }}
 
@@ -179,6 +195,7 @@ namespace UnityEditor.VFX
             switch (materialType)
             {
                 case MaterialType.Standard:
+                case MaterialType.SimpleLit:
                     yield return slotExpressions.First(o => o.name == "metallic");
                     break;
 
@@ -187,6 +204,7 @@ namespace UnityEditor.VFX
                     break;
 
                 case MaterialType.Translucent:
+                case MaterialType.SimpleLitTranslucent:
                     yield return slotExpressions.First(o => o.name == "thickness");
                     yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfile), "diffusionProfile");
                     break;
@@ -244,6 +262,32 @@ namespace UnityEditor.VFX
                             yield return "HDRP_MULTIPLY_THICKNESS_WITH_ALPHA";
                         break;
 
+                    case MaterialType.SimpleLit:
+                        yield return "HDRP_MATERIAL_TYPE_SIMPLELIT";
+                        if (enableShadows)
+                            yield return "HDRP_ENABLE_SHADOWS";
+                        if (enableSpecular)
+                            yield return "HDRP_ENABLE_SPECULAR";
+                        if (enableCookie)
+                            yield return "HDRP_ENABLE_COOKIE";
+                        if (enableEnvLight)
+                            yield return "HDRP_ENABLE_ENV_LIGHT";
+                        break;
+                    
+                    case MaterialType.SimpleLitTranslucent:
+                        yield return "HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT";
+                        if (enableShadows)
+                            yield return "HDRP_ENABLE_SHADOWS";
+                        if (enableSpecular)
+                            yield return "HDRP_ENABLE_SPECULAR";
+                        if (enableCookie)
+                            yield return "HDRP_ENABLE_COOKIE";
+                        if (enableEnvLight)
+                            yield return "HDRP_ENABLE_ENV_LIGHT";
+                        if (multiplyThicknessWithAlpha)
+                            yield return "HDRP_MULTIPLY_THICKNESS_WITH_ALPHA";
+                        break;
+
                     default: break;
                 }
 
@@ -288,10 +332,18 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                if (materialType != MaterialType.Translucent)
+                if (materialType != MaterialType.Translucent && materialType != MaterialType.SimpleLitTranslucent)
                 {
                     yield return "diffusionProfile";
                     yield return "multiplyThicknessWithAlpha";
+                }
+
+                if (materialType != MaterialType.SimpleLit && materialType != MaterialType.SimpleLitTranslucent)
+                {
+                    yield return "enableShadows";
+                    yield return "enableSpecular";
+                    yield return "enableTransmission";
+                    yield return "enableCookie";
                 }
 
                 if (!allowTextures)

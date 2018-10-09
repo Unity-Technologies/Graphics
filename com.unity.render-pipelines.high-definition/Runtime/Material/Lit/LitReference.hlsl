@@ -44,8 +44,8 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
     // The factor of 2 is due to the fact: Integral{0, 2 PI}{max(0, cos(x))dx} = 2.
     float normFactor = 2.0 * invPdf * rcp(sampleCount);
 
-    diffuseLighting  *= normFactor * lightData.diffuseScale  * lightData.color;
-    specularLighting *= normFactor * lightData.specularScale * lightData.color;
+    diffuseLighting  *= normFactor * lightData.diffuseDimmer  * lightData.color;
+    specularLighting *= normFactor * lightData.specularDimmer * lightData.color;
 }
 
 //-----------------------------------------------------------------------------
@@ -109,8 +109,8 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
         if (illuminance > 0.0)
         {
             BSDF(V, L, NdotL, positionWS, preLightData, bsdfData, localDiffuseLighting, localSpecularLighting);
-            localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
-            localSpecularLighting *= lightData.color * illuminance * lightData.specularScale;
+            localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseDimmer;
+            localSpecularLighting *= lightData.color * illuminance * lightData.specularDimmer;
         }
 
         diffuseLighting += localDiffuseLighting;

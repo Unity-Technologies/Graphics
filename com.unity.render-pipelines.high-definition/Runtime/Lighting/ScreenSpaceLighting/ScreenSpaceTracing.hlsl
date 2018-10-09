@@ -249,36 +249,6 @@ float CalculateHitWeight(
     return screenDistanceWeight;
 }
 
-#ifdef DEBUG_DISPLAY
-// -------------------------------------------------
-// Debug Utilities
-// -------------------------------------------------
-
-void DebugComputeCommonOutput(
-    float3 rayDirWS,
-    bool hitSuccessful,
-    int tracingModel,
-    inout ScreenSpaceRayHit hit
-)
-{
-    switch (_DebugLightingSubMode)
-    {
-    case DEBUGSCREENSPACETRACING_RAY_DIR_WS:
-        hit.debugOutput =  rayDirWS * 0.5 + 0.5;
-        break;
-    case DEBUGSCREENSPACETRACING_HIT_DEPTH:
-        hit.debugOutput =  frac(hit.linearDepth * 0.1);
-        break;
-    case DEBUGSCREENSPACETRACING_HIT_SUCCESS:
-        hit.debugOutput =  GetIndexColor(hitSuccessful ? 1 : 2);
-        break;
-    case DEBUGSCREENSPACETRACING_TRACING_MODEL:
-        hit.debugOutput =  GetIndexColor(tracingModel);
-        break;
-    }
-}
-#endif
-
 float SampleBayer4(uint2 positionSS)
 {
     const float4x4 Bayer4 = float4x4(0,  8,  2,  10,
@@ -360,18 +330,6 @@ bool ScreenSpaceLinearRaymarch(
         bool isBehindDepth              = !isAboveThickness;
         bool intersectWithDepth         = !isAboveDepth && isAboveThickness;
 
-#ifdef DEBUG_DISPLAY
-        // Fetch post iteration debug values
-        if (input.debug && _DebugStep >= int(iteration))
-        {
-            debugIterationPositionSS                        = positionSS;
-            debugIterationLinearDepthBufferMin              = minLinearDepth;
-            debugIterationLinearDepthBufferMinThickness     = minLinearDepthWithThickness;
-            debugIterationLinearDepthBufferMax              = 1 / invLinearDepth.g;
-            debugIteration                                  = iteration;
-        }
-#endif
-
         if (intersectWithDepth)
         {
             hitSuccessful = true;
@@ -407,57 +365,6 @@ bool ScreenSpaceLinearRaymarch(
 
     if (hitWeight <= 0)
         hitSuccessful = false;
-
-#ifdef DEBUG_DISPLAY
-    DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, PROJECTIONMODEL_LINEAR, hit);
-    switch (_DebugLightingSubMode)
-    {
-    case DEBUGSCREENSPACETRACING_LINEAR_POSITION_NDC:
-        hit.debugOutput =  float3(float2(startPositionSS.xy) * _ScreenSize.zw, 0);
-        break;
-    case DEBUGSCREENSPACETRACING_LINEAR_ITERATION_COUNT:
-        hit.debugOutput =  float(iteration) / float(settingsRayMaxIterations);
-        break;
-    case DEBUGSCREENSPACETRACING_LINEAR_RAY_DIR_NDC:
-        hit.debugOutput =  float3(raySS.xy * 0.5 + 0.5, frac(0.1 / raySS.z));
-        break;
-    case DEBUGSCREENSPACETRACING_LINEAR_HIT_WEIGHT:
-        hit.debugOutput =  float3(hitWeight, hitWeight, hitWeight);
-        break;
-    }
-
-    if (input.debug
-        && _DebugScreenSpaceTracingData[0].tracingModel == -1
-        && settingsDebuggedAlgorithm == PROJECTIONMODEL_LINEAR
-    )
-    {
-        // Build debug structure
-        ScreenSpaceTracingDebug debug;
-        ZERO_INITIALIZE(ScreenSpaceTracingDebug, debug);
-
-        debug.tracingModel                              = PROJECTIONMODEL_LINEAR;
-        debug.loopStartPositionSSX                      = uint(startPositionSS.x);
-        debug.loopStartPositionSSY                      = uint(startPositionSS.y);
-        debug.loopStartLinearDepth                      = 1 / startPositionSS.z;
-        debug.loopRayDirectionSS                        = raySS;
-        debug.loopIterationMax                          = iteration;
-        debug.iterationPositionSS                       = debugIterationPositionSS;
-        debug.iterationMipLevel                         = mipLevel;
-        debug.iteration                                 = debugIteration;
-        debug.iterationLinearDepthBufferMin             = debugIterationLinearDepthBufferMin;
-        debug.iterationLinearDepthBufferMinThickness    = debugIterationLinearDepthBufferMinThickness;
-        debug.iterationLinearDepthBufferMax             = debugIterationLinearDepthBufferMax;
-        debug.endHitSuccess                             = hitSuccessful;
-        debug.endLinearDepth                            = hit.linearDepth;
-        debug.endPositionSSX                            = hit.positionSS.x;
-        debug.endPositionSSY                            = hit.positionSS.y;
-        debug.iterationCellSizeW                        = 1 << mipLevel;
-        debug.iterationCellSizeH                        = 1 << mipLevel;
-        debug.endHitWeight                              = hitWeight;
-
-        _DebugScreenSpaceTracingData[0] = debug;
-    }
-#endif
 
     return hitSuccessful;
 }
@@ -510,35 +417,6 @@ bool ScreenSpaceProxyRaycast(
     hit.linearDepth         = hitLinearDepth;
 
     bool hitSuccessful      = hitLinearDepth > 0;       // Negative means that the hit is behind the camera
-
-#ifdef DEBUG_DISPLAY
-    DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, PROJECTIONMODEL_PROXY, hit);
-
-    if (input.debug
-        && _DebugScreenSpaceTracingData[0].tracingModel == -1
-        && settingsDebuggedAlgorithm == PROJECTIONMODEL_PROXY
-    )
-    {
-        ScreenSpaceTracingDebug debug;
-        ZERO_INITIALIZE(ScreenSpaceTracingDebug, debug);
-
-        float2 rayOriginNDC         = ComputeNormalizedDeviceCoordinates(input.rayOriginWS, GetWorldToHClipMatrix());
-        uint2 rayOriginSS           = uint2(rayOriginNDC * _ScreenSize.xy);
-
-        debug.tracingModel          = PROJECTIONMODEL_PROXY;
-        debug.loopStartPositionSSX  = rayOriginSS.x;
-        debug.loopStartPositionSSY  = rayOriginSS.y;
-        debug.loopStartLinearDepth  = rayOriginCS.w;
-        debug.endHitSuccess         = hitSuccessful;
-        debug.endLinearDepth        = hitLinearDepth;
-        debug.endPositionSSX        = hitPositionSS.x;
-        debug.endPositionSSY        = hitPositionSS.y;
-        debug.proxyShapeType        = input.proxyData.influenceShapeType;
-        debug.projectionDistance    = projectionDistance;
-
-        _DebugScreenSpaceTracingData[0] = debug;
-    }
-#endif
 
     return hitSuccessful;
 }
@@ -861,65 +739,6 @@ bool ScreenSpaceHiZRaymarch(
     if (hitWeight <= 0 || isBehindDepth)
         hitSuccessful = false;
 
-#ifdef DEBUG_DISPLAY
-    DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, PROJECTIONMODEL_HI_Z, hit);
-    switch (_DebugLightingSubMode)
-    {
-    case DEBUGSCREENSPACETRACING_HI_ZPOSITION_NDC:
-        hit.debugOutput =  float3(float2(startPositionSS.xy) * _ScreenSize.zw, 0);
-        break;
-    case DEBUGSCREENSPACETRACING_HI_ZITERATION_COUNT:
-        hit.debugOutput =  float(iteration) / float(settingsRayMaxIterations);
-        break;
-    case DEBUGSCREENSPACETRACING_HI_ZRAY_DIR_NDC:
-        hit.debugOutput =  float3(raySS.xy * 0.5 + 0.5, frac(0.1 / raySS.z));
-        break;
-    case DEBUGSCREENSPACETRACING_HI_ZMAX_USED_MIP_LEVEL:
-        hit.debugOutput =  float(debugLoopMipMaxUsedLevel) / float(maxMipLevel);
-        break;
-    case DEBUGSCREENSPACETRACING_HI_ZINTERSECTION_KIND:
-        hit.debugOutput =  GetIndexColor(intersectionKind);
-        break;
-    case DEBUGSCREENSPACETRACING_HI_ZHIT_WEIGHT:
-        hit.debugOutput =  float3(hitWeight, hitWeight, hitWeight);
-        break;
-    }
-
-    if (input.debug
-        && _DebugScreenSpaceTracingData[0].tracingModel == -1
-        && settingsDebuggedAlgorithm == PROJECTIONMODEL_HI_Z
-    )
-    {
-        // Build debug structure
-        ScreenSpaceTracingDebug debug;
-        ZERO_INITIALIZE(ScreenSpaceTracingDebug, debug);
-
-        debug.tracingModel                              = PROJECTIONMODEL_HI_Z;
-        debug.loopStartPositionSSX                      = uint(startPositionSS.x);
-        debug.loopStartPositionSSY                      = uint(startPositionSS.y);
-        debug.loopStartLinearDepth                      = 1 / startPositionSS.z;
-        debug.loopRayDirectionSS                        = raySS;
-        debug.loopMipLevelMax                           = debugLoopMipMaxUsedLevel;
-        debug.loopIterationMax                          = iteration;
-        debug.iterationPositionSS                       = debugIterationPositionSS;
-        debug.iterationMipLevel                         = debugIterationMipLevel;
-        debug.iteration                                 = debugIteration;
-        debug.iterationLinearDepthBufferMin             = debugIterationLinearDepthBufferMin;
-        debug.iterationLinearDepthBufferMinThickness    = debugIterationLinearDepthBufferMinThickness;
-        debug.iterationLinearDepthBufferMax             = debugIterationLinearDepthBufferMax;
-        debug.iterationIntersectionKind                 = debugIterationIntersectionKind;
-        debug.iterationCellSizeW                        = debugIterationCellSize.x;
-        debug.iterationCellSizeH                        = debugIterationCellSize.y;
-        debug.endHitSuccess                             = hitSuccessful;
-        debug.endLinearDepth                            = hit.linearDepth;
-        debug.endPositionSSX                            = hit.positionSS.x;
-        debug.endPositionSSY                            = hit.positionSS.y;
-        debug.endHitWeight                              = hitWeight;
-
-        _DebugScreenSpaceTracingData[0] = debug;
-    }
-#endif
-
     return hitSuccessful;
 }
 #endif
@@ -987,11 +806,7 @@ bool MERGE_NAME(ScreenSpaceLinearRaymarch, SSRTID)(
         max(0.01, SSRT_SETTING(DepthBufferThickness, SSRTID)),
         SSRT_SETTING(RayMaxScreenDistance, SSRTID),
         SSRT_SETTING(RayBlendScreenDistance, SSRTID),
-#ifdef DEBUG_DISPLAY
-        SSRT_SETTING(DebuggedAlgorithm, SSRTID),
-#else
-        PROJECTIONMODEL_NONE,
-#endif
+        0,
         // precomputed properties
         startPositionSS,
         raySS,
@@ -1012,11 +827,7 @@ bool MERGE_NAME(ScreenSpaceProxyRaycast, SSRTID)(
     out ScreenSpaceRayHit hit
 )
 {
-#ifdef DEBUG_DISPLAY
-    int debuggedAlgorithm = int(SSRT_SETTING(DebuggedAlgorithm, SSRTID));
-#else
-    int debuggedAlgorithm = int(PROJECTIONMODEL_NONE);
-#endif
+    int debuggedAlgorithm = int(0);
 
     return ScreenSpaceProxyRaycast(
         input,
@@ -1046,11 +857,7 @@ bool MERGE_NAME(ScreenSpaceHiZRaymarch, SSRTID)(
         SSRT_SETTING(RayMaxScreenDistance, SSRTID),
         SSRT_SETTING(RayBlendScreenDistance, SSRTID),
         SSRT_SETTING(RayMarchBehindObjects, SSRTID) == 1,
-#ifdef DEBUG_DISPLAY
-        SSRT_SETTING(DebuggedAlgorithm, SSRTID),
-#else
-        PROJECTIONMODEL_NONE,
-#endif
+        0,
         // out
         hit,
         hitWeight

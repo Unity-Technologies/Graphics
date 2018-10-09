@@ -71,6 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty lightUnit;
             public SerializedProperty displayAreaLightEmissiveMesh;
             public SerializedProperty lightLayers;
+            public SerializedProperty shadowNearPlane;
             public SerializedProperty shadowSoftness;
             public SerializedProperty blockerSampleCount;
             public SerializedProperty filterSampleCount;
@@ -85,7 +86,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         sealed class SerializedShadowData
         {
-            public SerializedProperty dimmer;
+            public SerializedProperty shadowDimmer;
+            public SerializedProperty volumetricShadowDimmer;
             public SerializedProperty fadeDistance;
             public SerializedProperty resolution;
             public SerializedProperty contactShadows;
@@ -153,6 +155,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         HDShadowInitParameters                m_HDShadowInitParameters;
         Dictionary<HDShadowQuality, Action>   m_ShadowAlgorithmUIs;
 
+        //we need this to determine if we not attempt to render it two time the same frame
+        //This is needed as we have tried to work outside of Gizmo scope with Handle only for SRP
+        int lastRenderedHandleFrame = 0; 
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -186,6 +192,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     shapeRadius = o.Find(x => x.shapeRadius),
                     maxSmoothness = o.Find(x => x.maxSmoothness),
                     applyRangeAttenuation = o.Find(x => x.applyRangeAttenuation),
+                    shadowNearPlane = o.Find(x => x.shadowNearPlane),
                     shadowSoftness = o.Find(x => x.shadowSoftness),
                     blockerSampleCount = o.Find(x => x.blockerSampleCount),
                     filterSampleCount = o.Find(x => x.filterSampleCount),
@@ -202,7 +209,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (var o = new PropertyFetcher<AdditionalShadowData>(m_SerializedAdditionalShadowData))
                 m_AdditionalShadowData = new SerializedShadowData
                 {
-                    dimmer = o.Find(x => x.shadowDimmer),
+                    shadowDimmer = o.Find(x => x.shadowDimmer),
+                    volumetricShadowDimmer = o.Find(x => x.volumetricShadowDimmer),
                     fadeDistance = o.Find(x => x.shadowFadeDistance),
                     resolution = o.Find(x => x.shadowResolution),
                     contactShadows = o.Find(x => x.contactShadows),
@@ -230,7 +238,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // If the light is disabled in the editor we force the light upgrade from his inspector
             foreach (var additionalLightData in m_AdditionalLightDatas)
                 additionalLightData.UpgradeLight();
-            
+
             m_HDShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineSettings.hdShadowInitParams;
             m_ShadowAlgorithmUIs = new Dictionary<HDShadowQuality, Action>
             {
@@ -293,10 +301,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void OnSceneGUI()
         {
+            Light light = (Light)target;
+            if (!Selection.Contains(light.gameObject) || lastRenderedHandleFrame == Time.frameCount)
+            {
+                return;
+            }
+            lastRenderedHandleFrame = Time.frameCount;
+
             m_SerializedAdditionalLightData.Update();
 
             HDAdditionalLightData src = (HDAdditionalLightData)m_SerializedAdditionalLightData.targetObject;
-            Light light = (Light)target;
 
             Color wireframeColorAbove = light.enabled ? LightEditor.kGizmoLight : LightEditor.kGizmoDisabledLight;
             Color handleColorAbove = CoreLightEditorUtilities.GetLightHandleColor(wireframeColorAbove);
@@ -321,10 +335,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                         Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * src.GetInnerSpotPercent01(), light.range);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = wireframeColorBehind;
-                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, light.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, m_AdditionalLightData.shadowNearPlane.floatValue);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                         Handles.color = wireframeColorAbove;
-                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, light.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, m_AdditionalLightData.shadowNearPlane.floatValue);
                                         EditorGUI.BeginChangeCheck();
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = handleColorBehind;
@@ -403,6 +417,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             break;
                     }
                     break;
+                case LightTypeExtent.Rectangle:
+                case LightTypeExtent.Line:
+                    bool withYAxis = src.lightTypeExtent == LightTypeExtent.Rectangle;
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
+                    {
+                        Vector2 widthHeight = new Vector4(light.areaSize.x, withYAxis ? light.areaSize.y : 0f);
+                        float range = light.range;
+                        EditorGUI.BeginChangeCheck();
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = wireframeColorBehind;
+                        CoreLightEditorUtilities.DrawAreaLightWireframe(widthHeight);
+                        range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = wireframeColorAbove;
+                        CoreLightEditorUtilities.DrawAreaLightWireframe(widthHeight);
+                        range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = handleColorBehind;
+                        widthHeight = CoreLightEditorUtilities.DrawAreaLightHandle(widthHeight, withYAxis);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = handleColorAbove;
+                        widthHeight = CoreLightEditorUtilities.DrawAreaLightHandle(widthHeight, withYAxis);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObjects(new UnityEngine.Object[] { target, src }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Line Light");
+                            light.areaSize = withYAxis ? widthHeight : new Vector2(widthHeight.x, light.areaSize.y);
+                            light.range = range;
+                        }
+
+                        // Handles.color reseted at end of scope
+                    }
+                    break;
             }
         }
 
@@ -460,11 +506,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     // Sun disk.
                     EditorGUILayout.Slider(m_AdditionalLightData.sunDiskSize, 0f, 45f, s_Styles.sunDiskSize);
                     EditorGUILayout.Slider(m_AdditionalLightData.sunHaloSize, 0f, 1f, s_Styles.sunHaloSize);
+                    EditorGUILayout.PropertyField(m_AdditionalLightData.maxSmoothness, s_Styles.maxSmoothness);
                     break;
 
                 case LightShape.Point:
                     settings.lightType.enumValueIndex = (int)LightType.Point;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Punctual;
+                    EditorGUILayout.PropertyField(m_AdditionalLightData.shapeRadius, s_Styles.lightRadius);
                     EditorGUILayout.PropertyField(m_AdditionalLightData.maxSmoothness, s_Styles.maxSmoothness);
                     break;
 
@@ -473,24 +521,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Punctual;
                     EditorGUILayout.PropertyField(m_AdditionalLightData.spotLightShape, s_Styles.spotLightShape);
                     var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
-                    // Cone Spot
-                    if (spotLightShape == SpotLightShape.Cone)
+                    if (spotLightShape == SpotLightShape.Box)
                     {
-                        settings.DrawSpotAngle();
-                        EditorGUILayout.Slider(m_AdditionalLightData.spotInnerPercent, 0f, 100f, s_Styles.spotInnerPercent);
-                    }
-                    // TODO : replace with angle and ratio
-                    else if (spotLightShape == SpotLightShape.Pyramid)
-                    {
-                        settings.DrawSpotAngle();
-                        EditorGUILayout.Slider(m_AdditionalLightData.aspectRatio, 0.05f, 20.0f, s_Styles.aspectRatioPyramid);
-                    }
-                    else if (spotLightShape == SpotLightShape.Box)
-                    {
+                        // Box light is a boxed directional light.
                         EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthBox);
                         EditorGUILayout.PropertyField(m_AdditionalLightData.shapeHeight, s_Styles.shapeHeightBox);
                     }
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.maxSmoothness, s_Styles.maxSmoothness);
+                    else
+                    {
+                        if (spotLightShape == SpotLightShape.Cone)
+                        {
+                            settings.DrawSpotAngle();
+                            EditorGUILayout.Slider(m_AdditionalLightData.spotInnerPercent, 0f, 100f, s_Styles.spotInnerPercent);
+                        }
+                        // TODO : replace with angle and ratio
+                        else if (spotLightShape == SpotLightShape.Pyramid)
+                        {
+                            settings.DrawSpotAngle();
+                            EditorGUILayout.Slider(m_AdditionalLightData.aspectRatio, 0.05f, 20.0f, s_Styles.aspectRatioPyramid);
+                        }
+
+                        EditorGUILayout.PropertyField(m_AdditionalLightData.shapeRadius, s_Styles.lightRadius);
+                        EditorGUILayout.PropertyField(m_AdditionalLightData.maxSmoothness, s_Styles.maxSmoothness);
+                    }
                     break;
 
                 case LightShape.Rectangle:
@@ -542,6 +595,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
+                m_AdditionalLightData.shapeRadius.floatValue = Mathf.Max(m_AdditionalLightData.shapeRadius.floatValue, 0.0f);
                 m_UpdateAreaLightEmissiveMeshComponents = true;
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
@@ -773,11 +827,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //EditorGUILayout.Slider(settings.shadowsBias, 0.001f, 1f, s_Styles.shadowBias);
             //EditorGUILayout.Slider(settings.shadowsNormalBias, 0.001f, 1f, s_Styles.shadowNormalBias);
             EditorGUILayout.Slider(m_AdditionalShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
-            EditorGUILayout.Slider(settings.shadowsNearPlane, 0.01f, 10f, s_Styles.shadowNearPlane);
+            EditorGUILayout.Slider(m_AdditionalLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, 10f, s_Styles.shadowNearPlane);
 
             if (settings.isBakedOrMixed)
                 DrawBakedShadowParameters();
-            
+
             // Draw shadow settings using the current shadow algorithm
             HDShadowQuality currentAlgorithm;
             if (settings.lightType.enumValueIndex == (int)LightType.Directional)
@@ -795,10 +849,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadows, s_Styles.contactShadows);
 
+                EditorGUILayout.Slider(m_AdditionalShadowData.shadowDimmer,           0.0f, 1.0f, s_Styles.shadowDimmer);
+                EditorGUILayout.Slider(m_AdditionalShadowData.volumetricShadowDimmer, 0.0f, 1.0f, s_Styles.volumetricShadowDimmer);
+
                 if (settings.lightType.enumValueIndex != (int)LightType.Directional)
                 {
                     EditorGUILayout.PropertyField(m_AdditionalShadowData.fadeDistance, s_Styles.shadowFadeDistance);
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
                 }
 
                 EditorGUILayout.Slider(m_AdditionalShadowData.viewBiasMin, 0.0f, 5.0f, s_Styles.viewBiasMin);
@@ -851,7 +907,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Internal utilities
         void ApplyAdditionalComponentsVisibility(bool hide)
         {
-            // UX team decided thta we should always show component in inspector.
+            // UX team decided that we should always show component in inspector.
             // However already authored scene save this settings, so force the component to be visible
             // var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
             var flags = HideFlags.None;
@@ -904,7 +960,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         break;
                 }
             }
-
         }
 
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
@@ -938,8 +993,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
-
+            Handles.zTest = CompareFunction.Always;
             Gizmos.color = previousColor;
+            
+            if (Selection.Contains(light.gameObject))
+            {
+                ((HDLightEditor)Editor.CreateEditor(light)).OnSceneGUI();
+            }
         }
     }
 }

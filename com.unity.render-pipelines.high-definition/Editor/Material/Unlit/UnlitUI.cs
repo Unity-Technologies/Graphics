@@ -6,6 +6,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class UnlitGUI : BaseUnlitGUI
     {
+        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.Transparency); }  }
+
         protected static class Styles
         {
             public static string InputsText = "Inputs";

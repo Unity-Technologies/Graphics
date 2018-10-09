@@ -89,13 +89,19 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUIUtility.labelWidth = labelWidth;
         }
 
-        public static void DrawSplitter()
+        public static void DrawSplitter(bool isBoxed = false)
         {
             var rect = GUILayoutUtility.GetRect(1f, 1f);
 
             // Splitter rect should be full-width
             rect.xMin = 0f;
             rect.width += 4f;
+            
+            if (isBoxed)
+            {
+                rect.xMin = EditorGUIUtility.singleLineHeight - 2;
+                rect.width -= 1;
+            }
 
             if (Event.current.type != EventType.Repaint)
                 return;
@@ -130,7 +136,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
         }
 
-        public static bool DrawHeaderFoldout(string title, bool state)
+        public static bool DrawHeaderFoldout(string title, bool state, bool isBoxed = false)
         {
             var backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
 
@@ -146,6 +152,14 @@ namespace UnityEditor.Experimental.Rendering
             // Background rect should be full-width
             backgroundRect.xMin = 0f;
             backgroundRect.width += 4f;
+
+            if (isBoxed)
+            {
+                labelRect.xMin += 5;
+                foldoutRect.xMin += 5;
+                backgroundRect.xMin = EditorGUIUtility.singleLineHeight;
+                backgroundRect.width -= 3;
+            }
 
             // Background
             float backgroundTint = EditorGUIUtility.isProSkin ? 0.1f : 1f;

@@ -51,52 +51,59 @@
 // PackingRules = Exact
 struct DirectionalLightData
 {
-    uint lightLayers;
     float3 positionRWS;
-    float3 color;
-    int cookieIndex;
-    float volumetricDimmer;
-    float3 right;
-    float3 up;
-    float3 forward;
-    int tileCookie;
-    int shadowIndex;
-    int contactShadowIndex;
-    float4 shadowMaskSelector;
-    int nonLightmappedOnly;
-    float diffuseScale;
-    float specularScale;
+    uint lightLayers;
+    float lightDimmer;
+    float volumetricLightDimmer;
     float angleScale;
     float angleOffset;
+    float3 forward;
+    int cookieIndex;
+    float3 right;
+    int tileCookie;
+    float3 up;
+    int shadowIndex;
+    float3 color;
+    int contactShadowIndex;
+    float shadowDimmer;
+    float volumetricShadowDimmer;
+    int nonLightMappedOnly;
+    float minRoughness;
+    float4 shadowMaskSelector;
+    float diffuseDimmer;
+    float specularDimmer;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
 // PackingRules = Exact
 struct LightData
 {
-    uint lightLayers;
     float3 positionRWS;
-    float3 color;
-    float rangeAttenuationScale;
-    float rangeAttenuationBias;
+    uint lightLayers;
+    float lightDimmer;
+    float volumetricLightDimmer;
     float angleScale;
     float angleOffset;
-    int cookieIndex;
+    float3 forward;
     int lightType;
     float3 right;
+    float range;
     float3 up;
-    float3 forward;
+    float rangeAttenuationScale;
+    float3 color;
+    float rangeAttenuationBias;
+    int cookieIndex;
+    int tileCookie;
     int shadowIndex;
     int contactShadowIndex;
     float shadowDimmer;
-    float4 shadowMaskSelector;
-    int nonLightmappedOnly;
+    float volumetricShadowDimmer;
+    int nonLightMappedOnly;
     float minRoughness;
-    float diffuseScale;
-    float specularScale;
+    float4 shadowMaskSelector;
     float2 size;
-    float volumetricDimmer;
-    float range;
+    float diffuseDimmer;
+    float specularDimmer;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData

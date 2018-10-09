@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class Volume : MonoBehaviour
     {
         [Tooltip("A global volume is applied to the whole scene.")]

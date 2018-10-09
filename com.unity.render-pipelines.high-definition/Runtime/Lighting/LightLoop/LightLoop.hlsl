@@ -36,8 +36,9 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
         diffuseLighting = float3(1.0, 1.0, 1.0);
         if (_DirectionalLightCount > 0)
         {
-            int shadowIdx = _DirectionalLightDatas[0].shadowIndex;
-            float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, float3(0.0, 1.0, 0.0 ), shadowIdx, -_DirectionalLightDatas[0].forward, float2(0.0, 0.0));
+            int   shadowIdx = _DirectionalShadowIndex;
+            float shadow    = lightLoopContext.shadowValue; // Not affected by the shadow dimmer
+
             uint  payloadOffset;
             real  alpha;
             int cascadeCount;
@@ -68,29 +69,50 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
+
+    context.shadowContext    = InitShadowContext();
+    context.contactShadow    = InitContactShadow(posInput);
+    context.shadowValue      = 1;
     context.sampleReflection = 0;
-    context.shadowContext = InitShadowContext();
-    context.contactShadow = InitContactShadow(posInput);
 
     // First of all we compute the shadow value of the directional light to reduce the VGPR pressure
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {
-        UNITY_BRANCH if(_DirectionalShadowIndex != -1)
+        // Evaluate sun shadows.
+        if (_DirectionalShadowIndex >= 0)
         {
-            context.shadowValue = GetDirectionalShadowAttenuation(
-                context.shadowContext, posInput.positionWS, GetShadowNormalBias(bsdfData),
-                _DirectionalLightDatas[_DirectionalShadowIndex].shadowIndex,
-                -_DirectionalLightDatas[_DirectionalShadowIndex].forward
-            );
+            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+
+            // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
+            // Also, the light direction is not consistent with the sun disk highlight hack, which modifies the light vector.
+            float  NdotL            = dot(bsdfData.normalWS, -light.forward);
+            float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
+            bool   evaluateShadows  = (NdotL > 0);
+
+        #ifdef MATERIAL_INCLUDE_TRANSMISSION
+            if (MaterialSupportsTransmission(bsdfData))
+            {
+                // We support some kind of transmission.
+                if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+                {
+                    // We always evaluate shadows.
+                    evaluateShadows = true;
+
+                    // Care must be taken to bias in the direction of the light.
+                    shadowBiasNormal *= FastSign(NdotL);
+                }
+                else
+                {
+                    // We only evaluate shadows for reflection, transmission shadows are handled separately.
+                }
+            }
+        #endif
+
+            if (evaluateShadows)
+            {
+                context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
+            }
         }
-        else
-        {
-            context.shadowValue = 1.0f;
-        }
-    }
-    else
-    {
-        context.shadowValue = 1.0f;
     }
 
     // This struct is define in the material. the Lightloop must not access it
