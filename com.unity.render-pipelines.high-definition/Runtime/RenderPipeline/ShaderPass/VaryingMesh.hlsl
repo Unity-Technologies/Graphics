@@ -168,16 +168,16 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 #endif // VARYINGS_NEED_TANGENT_TO_WORLD
 
 #ifdef VARYINGS_NEED_TEXCOORD0
-    output.texCoord0 = input.interpolators3.xy;
+    output.texCoord0.xy = input.interpolators3.xy;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD1
-    output.texCoord1 = input.interpolators3.zw;
+    output.texCoord1.xy = input.interpolators3.zw;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD2
-    output.texCoord2 = input.interpolators4.xy;
+    output.texCoord2.xy = input.interpolators4.xy;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD3
-    output.texCoord3 = input.interpolators4.zw;
+    output.texCoord3.xy = input.interpolators4.zw;
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.color = input.interpolators5;

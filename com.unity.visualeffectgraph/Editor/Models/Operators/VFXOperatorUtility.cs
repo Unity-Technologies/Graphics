@@ -587,5 +587,36 @@ namespace UnityEditor.VFX
 
             return r;
         }
+
+        static public VFXExpression GetPerspectiveMatrix(VFXExpression fov, VFXExpression aspect, VFXExpression zNear, VFXExpression zFar)
+        {
+            var fovHalf = fov / TwoExpression[VFXValueType.Float];
+            var cotangent = new VFXExpressionCos(fovHalf) / new VFXExpressionSin(fovHalf);
+            var deltaZ = zNear - zFar;
+
+            var zero = ZeroExpression[VFXValueType.Float];
+            var m0 = new VFXExpressionCombine(cotangent / aspect,   zero,       zero,                                                               zero);
+            var m1 = new VFXExpressionCombine(zero,                 cotangent,  zero,                                                               zero);
+            var m2 = new VFXExpressionCombine(zero,                 zero,       MinusOneExpression[VFXValueType.Float] * (zFar + zNear) / deltaZ,                                       OneExpression[VFXValueType.Float]);
+            var m3 = new VFXExpressionCombine(zero,                 zero,       TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ,     zero);
+
+            return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
+        }
+
+        // TODO Use a dedicated expression for that
+        static public VFXExpression Transpose(VFXExpression matrix)
+        {
+            var m0 = new VFXExpressionMatrixToVector4s(matrix, VFXValue.Constant(0));
+            var m1 = new VFXExpressionMatrixToVector4s(matrix, VFXValue.Constant(1));
+            var m2 = new VFXExpressionMatrixToVector4s(matrix, VFXValue.Constant(2));
+            var m3 = new VFXExpressionMatrixToVector4s(matrix, VFXValue.Constant(3));
+
+            var n0 = new VFXExpressionCombine(m0.x, m1.x, m2.x, m3.x);
+            var n1 = new VFXExpressionCombine(m0.y, m1.y, m2.y, m3.y);
+            var n2 = new VFXExpressionCombine(m0.z, m1.z, m2.z, m3.z);
+            var n3 = new VFXExpressionCombine(m0.w, m1.w, m2.w, m3.w);
+
+            return new VFXExpressionVector4sToMatrix(n0, n1, n2, n3);
+        }
     }
 }

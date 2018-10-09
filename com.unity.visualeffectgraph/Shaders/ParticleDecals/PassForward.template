@@ -80,7 +80,7 @@ o.viewToDecal2 = viewToDecal[2];
 		viewToElement[2] = i.viewToDecal2;
 		viewToElement[3] = float4(0,0,0,1);
 		
-		float3 elementPos = mul(viewToElement,worldPos);
+		float3 elementPos = mul(viewToElement,worldPos).xyz * 2.0f;
 				
 		const float bias = 0.0f;
 		clip(1.0f - abs(elementPos) + bias);

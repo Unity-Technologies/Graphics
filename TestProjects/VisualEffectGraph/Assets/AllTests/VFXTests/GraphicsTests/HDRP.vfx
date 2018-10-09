@@ -724,8 +724,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -757,8 +757,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -768,7 +769,7 @@ VisualEffectResource:
       = 1.0f;\n\t\t\t\tVFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,uint2(0,0));\n\t\t\t}\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXLitPixelOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tvoid frag(ps_input i\n\t\t#ifdef WRITE_NORMAL_BUFFER\n\t\t\t,
-      OUTPUT_NORMALBUFFER(outNormalBuffer)\n\t\t#if USE_DOUBLE_SIDED\n\t\t\t, bool
+      out float4 outNormalBuffer : SV_Target0\n\t\t#if USE_DOUBLE_SIDED\n\t\t\t, bool
       frontFace : SV_IsFrontFace\n\t\t#endif\n\t\t#else\n\t\t\t, out float4 outColor
       : SV_Target\n\t\t#endif\n\t\t\t)\n\t\t\t{\n\t\t#ifdef WRITE_NORMAL_BUFFER\t\t\n\t\t\t\t\n\t\t\t\t\t\t\t#if
       USE_DOUBLE_SIDED\n\t\t\t\t\t\t\tconst float faceMul = frontFace ? 1.0f : -1.0f;\n\t\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tconst
@@ -884,8 +885,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -946,8 +947,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -981,8 +983,7 @@ VisualEffectResource:
       multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST \n\t\t\t#pragma multi_compile
       PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH\n\t\t\t#pragma
       multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH\n\t\t\t#pragma
-      multi_compile _ DEBUG_DISPLAY\n\t\t\t//#pragma enable_d3d11_debug_symbols\n\t\t\t\n\t\t\t#if
-      IS_TRANSPARENT_PARTICLE\n\t\t\t#define VFX_NEEDS_POSWS_INTERPOLATOR 1\n\t\t\t#endif\n\t\t\t\t\n\t\t\t#define
+      multi_compile _ DEBUG_DISPLAY\n\t\t\t//#pragma enable_d3d11_debug_symbols\n\t\t\t\t\n\t\t\t#define
       HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || USE_NORMAL_MAP
       || HDRP_USE_EMISSIVE_MAP)\n\t\t\t#define HDRP_USE_EMISSIVE (HDRP_USE_EMISSIVE_MAP
       || HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\n\t\t\tstruct
@@ -1002,9 +1003,8 @@ VisualEffectResource:
       : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
       : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
       float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -1019,11 +1019,10 @@ VisualEffectResource:
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
       || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#if
-      IS_TRANSPARENT_PARTICLE\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if
-      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
-      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
+      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
+      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
+      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_37814D91(inout float sizeX, float Size) /*attribute:size Composition:Overwrite
       Source:Slot Random:Off channels:X */\n\t\t\t{\n\t\t\t    sizeX = Size.x;\n\t\t\t}\n\t\t\tvoid
@@ -1073,8 +1072,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -1135,8 +1134,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1212,10 +1212,9 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\tstruct ps_output\n\t\t\t{\n\t\t\t\tfloat4
-      color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD5;\n\t\t\t};\n\t\t\t\n\t\t\tstruct
+      ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -1229,10 +1228,10 @@ VisualEffectResource:
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND
       builtInInterpolants.z\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP\n\t\t#define
-      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\n\t\t\t#if
+      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_A064353D(inout float3 position, float3 Position) /*attribute:position
       Composition:Overwrite Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t
@@ -1283,7 +1282,7 @@ VisualEffectResource:
       \   float tmp_bs = tmp_bq[0];\n\t\t\t\t    float3 tmp_bu = float3(tmp_br, tmp_bs,
       (float)0);\n\t\t\t\t    SetAttribute_A064353D( /*inout */position, tmp_bu);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_9CA97420( /*inout */position, float3(0,-0.84,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.25);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
@@ -1343,8 +1342,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1399,9 +1399,8 @@ VisualEffectResource:
       USE_CLUSTERED_LIGHTLIST \n\t\t\t#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM
       PUNCTUAL_SHADOW_HIGH\n\t\t\t#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM
       DIRECTIONAL_SHADOW_HIGH\n\t\t\t#pragma multi_compile _ DEBUG_DISPLAY\n\t\t\t//#pragma
-      enable_d3d11_debug_symbols\n\t\t\t\n\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t#define
-      VFX_NEEDS_POSWS_INTERPOLATOR 1\n\t\t\t#endif\n\t\t\t\t\n\t\t\t#define HDRP_NEEDS_UVS
-      (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)\n\t\t\t#define
+      enable_d3d11_debug_symbols\n\t\t\t\t\n\t\t\t#define HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP
+      || HDRP_USE_MASK_MAP || USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)\n\t\t\t#define
       HDRP_USE_EMISSIVE (HDRP_USE_EMISSIVE_MAP || HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\n\t\t\tstruct
       ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t\t\tnointerpolation
@@ -1419,9 +1418,8 @@ VisualEffectResource:
       : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
       : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
       float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -1436,11 +1434,10 @@ VisualEffectResource:
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
       || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#if
-      IS_TRANSPARENT_PARTICLE\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if
-      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
-      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
+      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
+      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
+      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_A064353D(inout float3 position, float3 Position) /*attribute:position
       Composition:Overwrite Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t
@@ -1498,8 +1495,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -1557,8 +1554,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1619,9 +1617,8 @@ VisualEffectResource:
       USE_CLUSTERED_LIGHTLIST \n\t\t\t#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM
       PUNCTUAL_SHADOW_HIGH\n\t\t\t#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM
       DIRECTIONAL_SHADOW_HIGH\n\t\t\t#pragma multi_compile _ DEBUG_DISPLAY\n\t\t\t//#pragma
-      enable_d3d11_debug_symbols\n\t\t\t\n\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t#define
-      VFX_NEEDS_POSWS_INTERPOLATOR 1\n\t\t\t#endif\n\t\t\t\t\n\t\t\t#define HDRP_NEEDS_UVS
-      (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)\n\t\t\t#define
+      enable_d3d11_debug_symbols\n\t\t\t\t\n\t\t\t#define HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP
+      || HDRP_USE_MASK_MAP || USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)\n\t\t\t#define
       HDRP_USE_EMISSIVE (HDRP_USE_EMISSIVE_MAP || HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\n\t\t\tstruct
       ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t\t\tnointerpolation
@@ -1639,9 +1636,8 @@ VisualEffectResource:
       : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
       : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
       float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -1656,11 +1652,10 @@ VisualEffectResource:
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
       || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#if
-      IS_TRANSPARENT_PARTICLE\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if
-      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
-      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
+      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
+      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
+      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       PositionSequential_18D(uint particleId, inout float3 position, float3 computedPosition)
       /*shape:Line index:ParticleID writePosition:True writeTargetPosition:False */\n\t\t\t{\n\t\t\t
@@ -1708,8 +1703,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -1761,8 +1756,9 @@ VisualEffectResource:
       posRWS = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1871,7 +1867,7 @@ VisualEffectResource:
       angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
       angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
       sizeX = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.25);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   Orient_5( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position,
       float3(-0.529999,0.8479983,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    uint tmp_p
       = particleId / (uint)16;\n\t\t\t\t    uint tmp_q = tmp_p * (uint)16;\n\t\t\t\t
@@ -1913,8 +1909,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1924,7 +1921,7 @@ VisualEffectResource:
       = 1.0f;\n\t\t\t\tVFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,uint2(0,0));\n\t\t\t}\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXLitPixelOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\n\t\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tvoid frag(ps_input i\n\t\t#ifdef WRITE_NORMAL_BUFFER\n\t\t\t,
-      OUTPUT_NORMALBUFFER(outNormalBuffer)\n\t\t#if USE_DOUBLE_SIDED\n\t\t\t, bool
+      out float4 outNormalBuffer : SV_Target0\n\t\t#if USE_DOUBLE_SIDED\n\t\t\t, bool
       frontFace : SV_IsFrontFace\n\t\t#endif\n\t\t#else\n\t\t\t, out float4 outColor
       : SV_Target\n\t\t#endif\n\t\t\t)\n\t\t\t{\t\t\n\t\t#ifdef WRITE_NORMAL_BUFFER\n\t\t\t\t\n\t\t\t\t\t\t\t#if
       USE_DOUBLE_SIDED\n\t\t\t\t\t\t\tconst float faceMul = frontFace ? 1.0f : -1.0f;\n\t\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tconst
@@ -2021,7 +2018,7 @@ VisualEffectResource:
       angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
       angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
       sizeX = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.25);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   Orient_5( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position,
       float3(-0.529999,0.8479983,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    uint tmp_p
       = particleId / (uint)16;\n\t\t\t\t    uint tmp_q = tmp_p * (uint)16;\n\t\t\t\t
@@ -2082,8 +2079,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2129,10 +2127,9 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\tstruct ps_output\n\t\t\t{\n\t\t\t\tfloat4
-      color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD5;\n\t\t\t};\n\t\t\t\n\t\t\tstruct
+      ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -2146,10 +2143,10 @@ VisualEffectResource:
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND
       builtInInterpolants.z\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP\n\t\t#define
-      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\n\t\t\t#if
+      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_37814D91(inout float sizeX, float Size) /*attribute:size Composition:Overwrite
       Source:Slot Random:Off channels:X */\n\t\t\t{\n\t\t\t    sizeX = Size.x;\n\t\t\t}\n\t\t\tvoid
@@ -2189,7 +2186,7 @@ VisualEffectResource:
       angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
       angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
       sizeX = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.25);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   Orient_5( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position,
       float3(-0.529999,0.8479983,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    uint tmp_p
       = particleId / (uint)16;\n\t\t\t\t    uint tmp_q = tmp_p * (uint)16;\n\t\t\t\t
@@ -2250,8 +2247,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2321,10 +2319,9 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\tstruct ps_output\n\t\t\t{\n\t\t\t\tfloat4
-      color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD5;\n\t\t\t};\n\t\t\t\n\t\t\tstruct
+      ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -2338,10 +2335,10 @@ VisualEffectResource:
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND
       builtInInterpolants.z\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP\n\t\t#define
-      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\n\t\t\t#if
+      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_37814D91(inout float sizeX, float Size) /*attribute:size Composition:Overwrite
       Source:Slot Random:Off channels:X */\n\t\t\t{\n\t\t\t    sizeX = Size.x;\n\t\t\t}\n\t\t\tvoid
@@ -2380,7 +2377,7 @@ VisualEffectResource:
       angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
       angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
       sizeX = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.25);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   uint tmp_p = particleId / (uint)16;\n\t\t\t\t    uint tmp_q = tmp_p * (uint)16;\n\t\t\t\t
       \   uint tmp_r = particleId - tmp_q;\n\t\t\t\t    float tmp_s = (float)tmp_r;\n\t\t\t\t
       \   float tmp_u = tmp_s / (float)16;\n\t\t\t\t    float3 tmp_v = float3(tmp_u,
@@ -2440,8 +2437,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2557,7 +2555,7 @@ VisualEffectResource:
       \   float tmp_bs = tmp_bq[0];\n\t\t\t\t    float3 tmp_bu = float3(tmp_br, tmp_bs,
       (float)0);\n\t\t\t\t    SetAttribute_A064353D( /*inout */position, tmp_bu);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_9CA97420( /*inout */position, float3(0,-1.13,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.25);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   float tmp_n = (float)particleId;\n\t\t\t\t    bool tmp_p = tmp_n < (float)8;\n\t\t\t\t
       \   SetAttribute_96B7D519( /*inout */alive, tmp_p);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
@@ -2592,8 +2590,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2603,7 +2602,7 @@ VisualEffectResource:
       = 1.0f;\n\t\t\t\tVFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,uint2(0,0));\n\t\t\t}\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXLitPixelOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\n\t\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tvoid frag(ps_input i\n\t\t#ifdef WRITE_NORMAL_BUFFER\n\t\t\t,
-      OUTPUT_NORMALBUFFER(outNormalBuffer)\n\t\t#if USE_DOUBLE_SIDED\n\t\t\t, bool
+      out float4 outNormalBuffer : SV_Target0\n\t\t#if USE_DOUBLE_SIDED\n\t\t\t, bool
       frontFace : SV_IsFrontFace\n\t\t#endif\n\t\t#else\n\t\t\t, out float4 outColor
       : SV_Target\n\t\t#endif\n\t\t\t)\n\t\t\t{\t\t\n\t\t#ifdef WRITE_NORMAL_BUFFER\n\t\t\t\t\n\t\t\t\t\t\t\t#if
       USE_DOUBLE_SIDED\n\t\t\t\t\t\t\tconst float faceMul = frontFace ? 1.0f : -1.0f;\n\t\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tconst
@@ -2713,7 +2712,7 @@ VisualEffectResource:
       \   float tmp_bs = tmp_bq[0];\n\t\t\t\t    float3 tmp_bu = float3(tmp_br, tmp_bs,
       (float)0);\n\t\t\t\t    SetAttribute_A064353D( /*inout */position, tmp_bu);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_9CA97420( /*inout */position, float3(0,-1.13,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.25);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   float tmp_n = (float)particleId;\n\t\t\t\t    bool tmp_p = tmp_n < (float)8;\n\t\t\t\t
       \   SetAttribute_96B7D519( /*inout */alive, tmp_p);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
@@ -2772,8 +2771,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2819,10 +2819,9 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\tstruct ps_output\n\t\t\t{\n\t\t\t\tfloat4
-      color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD5;\n\t\t\t};\n\t\t\t\n\t\t\tstruct
+      ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -2836,10 +2835,10 @@ VisualEffectResource:
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND
       builtInInterpolants.z\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP\n\t\t#define
-      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\n\t\t\t#if
+      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_A064353D(inout float3 position, float3 Position) /*attribute:position
       Composition:Overwrite Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t
@@ -2892,7 +2891,7 @@ VisualEffectResource:
       \   float tmp_bs = tmp_bq[0];\n\t\t\t\t    float3 tmp_bu = float3(tmp_br, tmp_bs,
       (float)0);\n\t\t\t\t    SetAttribute_A064353D( /*inout */position, tmp_bu);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_9CA97420( /*inout */position, float3(0,-1.13,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.25);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   float tmp_n = (float)particleId;\n\t\t\t\t    bool tmp_p = tmp_n < (float)8;\n\t\t\t\t
       \   SetAttribute_96B7D519( /*inout */alive, tmp_p);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
@@ -2951,8 +2950,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -3022,10 +3022,9 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\tstruct ps_output\n\t\t\t{\n\t\t\t\tfloat4
-      color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD5;\n\t\t\t};\n\t\t\t\n\t\t\tstruct
+      ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -3039,10 +3038,10 @@ VisualEffectResource:
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND
       builtInInterpolants.z\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP\n\t\t#define
-      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\n\t\t\t#if
+      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       PositionSequential_18D(uint particleId, inout float3 position, float3 computedPosition)
       /*shape:Line index:ParticleID writePosition:True writeTargetPosition:False */\n\t\t\t{\n\t\t\t
@@ -3084,7 +3083,7 @@ VisualEffectResource:
       \   float3 tmp_y = float3(0.8,-0.42,-0.19) + tmp_x;\n\t\t\t\t    PositionSequential_18D(particleId,
       \ /*inout */position, tmp_y);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_9CA97420(
       /*inout */position, float3(-0.69,-0.42,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.44);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.22);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_FA287C3A( /*inout */alpha, (float)0.08);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
@@ -3140,8 +3139,9 @@ VisualEffectResource:
       posRWS = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -3419,25 +3419,25 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 3
+        data[3]: 1
       - op: 1
-        valueIndex: 98
+        valueIndex: 96
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 1
       - op: 1
-        valueIndex: 99
+        valueIndex: 97
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 4
       - op: 1
-        valueIndex: 103
+        valueIndex: 101
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
+        data[3]: 3
       - op: 1
         valueIndex: 104
         data[0]: -1
@@ -3476,12 +3476,12 @@ VisualEffectResource:
         - m_ExpressionIndex: 27
           m_Value: 0.08
         - m_ExpressionIndex: 28
-          m_Value: 0.44
+          m_Value: 0.22
         - m_ExpressionIndex: 37
           m_Value: 0.25
-        - m_ExpressionIndex: 39
+        - m_ExpressionIndex: 38
           m_Value: 0.26
-        - m_ExpressionIndex: 41
+        - m_ExpressionIndex: 39
           m_Value: 0.5
       m_Vector2f:
         m_Array:
@@ -3527,7 +3527,7 @@ VisualEffectResource:
           m_Value: {x: -0.1, y: -0.4, z: 0}
         - m_ExpressionIndex: 36
           m_Value: {x: 0, y: 0, z: 0}
-        - m_ExpressionIndex: 38
+        - m_ExpressionIndex: 41
           m_Value: {x: 0, y: -0.28, z: 0}
         - m_ExpressionIndex: 44
           m_Value: {x: 0, y: -0.84, z: 0}
@@ -3668,7 +3668,6 @@ VisualEffectResource:
       receiveShadows: 0
       reflectionProbeUsage: 0
       lightProbeUsage: 0
-      transparencyPriority: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
   m_Systems:
@@ -3929,6 +3928,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
   normalBending: 0
 --- !u!114 &8926484042661614540
 MonoBehaviour:
@@ -6894,6 +6897,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661614757
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7813,7 +7820,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.5
+      m_SerializableObject: 0.25
     m_Space: 2147483647
   m_Property:
     name: Size
@@ -7881,6 +7888,10 @@ MonoBehaviour:
   colorMode: 0
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
   normalBending: 0
 --- !u!114 &8926484042661614808
 MonoBehaviour:
@@ -9248,6 +9259,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
   normalBending: 0
 --- !u!114 &8926484042661614865
 MonoBehaviour:
@@ -10125,6 +10140,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661614905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10175,7 +10194,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.5
+      m_SerializableObject: 0.25
     m_Space: 2147483647
   m_Property:
     name: Size
@@ -11071,6 +11090,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661614957
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11121,7 +11144,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.5
+      m_SerializableObject: 0.25
     m_Space: 2147483647
   m_Property:
     name: Size
@@ -12504,6 +12527,10 @@ MonoBehaviour:
   colorMode: 0
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661615005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12879,7 +12906,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.5
+      m_SerializableObject: 0.25
     m_Space: 2147483647
   m_Property:
     name: Size
@@ -13628,6 +13655,10 @@ MonoBehaviour:
   colorMode: 0
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661615070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14432,7 +14463,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.44
+      m_SerializableObject: 0.22
     m_Space: 2147483647
   m_Property:
     name: Size

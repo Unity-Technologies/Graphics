@@ -478,20 +478,6 @@ public class VisualEffectAssetEditor : Editor
         bool needRecompile = false;
         EditorGUI.BeginChangeCheck();
 
-        // Use reflection to know if transparent priority has been exposed TODO REMOVE REFLECTION ONCE C++ MERGED
-        var transparencyPriorityField = typeof(VFXRendererSettings).GetField("transparencyPriority");
-        if (transparencyPriorityField != null)
-        {
-            int transparentPriority = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("Transparent Priority"), (int)transparencyPriorityField.GetValue(resource.rendererSettings));
-            if (EditorGUI.EndChangeCheck())
-            {
-                var settings = (object)resource.rendererSettings;
-                transparencyPriorityField.SetValue(settings, transparentPriority);
-                resource.rendererSettings = (VFXRendererSettings)settings;
-                needRecompile = true;
-            }
-        }
-
         EditorGUI.BeginChangeCheck();
         bool motionVector = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Use Motion Vectors"), resource.rendererSettings.motionVectorGenerationMode == MotionVectorGenerationMode.Object);
         if (EditorGUI.EndChangeCheck())

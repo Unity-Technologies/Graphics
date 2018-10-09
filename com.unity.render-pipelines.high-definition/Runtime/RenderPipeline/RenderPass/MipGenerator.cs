@@ -42,9 +42,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO: Mip-mapping depth is problematic for precision at lower mips, generate a packed atlas instead
         public void RenderMinDepthPyramid(CommandBuffer cmd, RenderTexture texture, HDUtils.PackedMipChainInfo info)
         {
-            // Since this process only goes through a compute shader, internal C++ code won't recreate it automatically if detroyed.
-            if (!texture.IsCreated())
-                texture.Create();
+            HDUtils.CheckRTCreated(texture);
 
             var cs     = m_DepthPyramidCS;
             int kernel = m_DepthDownsampleKernel;

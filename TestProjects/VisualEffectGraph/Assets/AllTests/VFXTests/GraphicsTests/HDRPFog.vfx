@@ -20,7 +20,7 @@ MonoBehaviour:
     x: -428
     y: -71
     width: 1801
-    height: 2620
+    height: 2657
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -292,10 +292,9 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\tstruct ps_output\n\t\t\t{\n\t\t\t\tfloat4
-      color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD5;\n\t\t\t};\n\t\t\t\n\t\t\tstruct
+      ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -309,14 +308,16 @@ VisualEffectResource:
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND
       builtInInterpolants.z\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP\n\t\t#define
-      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\n\t\t\t#if
+      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_9CA97420(inout float3 position, float3 Position) /*attribute:position
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    position
-      += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
+      += Position;\n\t\t\t}\n\t\t\tvoid SetAttribute_3EF6CFBB(inout float sizeX, float
+      Size) /*attribute:size Composition:Scale Source:Slot Random:Off channels:X */\n\t\t\t{\n\t\t\t
+      \   sizeX *= Size.x;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
       pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat3
       normal : NORMAL;\n\t\t\t\t#endif\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\tfloat4
       tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
@@ -344,7 +345,8 @@ VisualEffectResource:
       axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
       angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3
       pivot = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_9CA97420( /*inout */position, float3(6,-4,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
+      \   SetAttribute_9CA97420( /*inout */position, float3(6,-4,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_3EF6CFBB( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
@@ -400,8 +402,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -468,7 +471,9 @@ VisualEffectResource:
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_9CA97420(inout float3 position, float3 Position) /*attribute:position
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    position
-      += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
+      += Position;\n\t\t\t}\n\t\t\tvoid SetAttribute_3EF6CFBB(inout float sizeX, float
+      Size) /*attribute:size Composition:Scale Source:Slot Random:Off channels:X */\n\t\t\t{\n\t\t\t
+      \   sizeX *= Size.x;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
       pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat3
       normal : NORMAL;\n\t\t\t\t#endif\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\tfloat4
       tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
@@ -496,7 +501,8 @@ VisualEffectResource:
       axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
       angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3
       pivot = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_9CA97420( /*inout */position, float3(6,-1,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
+      \   SetAttribute_9CA97420( /*inout */position, float3(6,-1,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_3EF6CFBB( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
@@ -672,7 +678,7 @@ VisualEffectResource:
       elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,1,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
-      = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
+      = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
       pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
       ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
       dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
@@ -782,8 +788,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -850,7 +856,9 @@ VisualEffectResource:
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_9CA97420(inout float3 position, float3 Position) /*attribute:position
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    position
-      += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
+      += Position;\n\t\t\t}\n\t\t\tvoid SetAttribute_3EF6CFBB(inout float sizeX, float
+      Size) /*attribute:size Composition:Scale Source:Slot Random:Off channels:X */\n\t\t\t{\n\t\t\t
+      \   sizeX *= Size.x;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
       pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat3
       normal : NORMAL;\n\t\t\t\t#endif\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\tfloat4
       tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
@@ -878,7 +886,8 @@ VisualEffectResource:
       axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
       angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3
       pivot = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_9CA97420( /*inout */position, float3(6,2,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
+      \   SetAttribute_9CA97420( /*inout */position, float3(6,2,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_3EF6CFBB( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
@@ -926,7 +935,9 @@ VisualEffectResource:
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_9CA97420(inout float3 position, float3 Position) /*attribute:position
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    position
-      += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
+      += Position;\n\t\t\t}\n\t\t\tvoid SetAttribute_3EF6CFBB(inout float sizeX, float
+      Size) /*attribute:size Composition:Scale Source:Slot Random:Off channels:X */\n\t\t\t{\n\t\t\t
+      \   sizeX *= Size.x;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
       pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat3
       normal : NORMAL;\n\t\t\t\t#endif\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\tfloat4
       tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
@@ -954,7 +965,8 @@ VisualEffectResource:
       axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
       angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3
       pivot = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_9CA97420( /*inout */position, float3(6,2,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
+      \   SetAttribute_9CA97420( /*inout */position, float3(6,2,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_3EF6CFBB( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
@@ -1162,7 +1174,7 @@ VisualEffectResource:
       elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,1,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
-      = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat3
+      = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = id & 1 ? targetPosition : position;\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\n\t\t\t\t\t\to.VFX_VARYING_COLOR
       = color;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA)
@@ -1228,7 +1240,7 @@ VisualEffectResource:
       elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,1,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
-      = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat3
+      = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = id & 1 ? targetPosition : position;\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\n\t\t\t\t\t\to.VFX_VARYING_COLOR
       = color;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA)
@@ -1314,8 +1326,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -1395,8 +1407,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -1457,9 +1469,8 @@ VisualEffectResource:
       USE_CLUSTERED_LIGHTLIST \n\t\t\t#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM
       PUNCTUAL_SHADOW_HIGH\n\t\t\t#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM
       DIRECTIONAL_SHADOW_HIGH\n\t\t\t#pragma multi_compile _ DEBUG_DISPLAY\n\t\t\t//#pragma
-      enable_d3d11_debug_symbols\n\t\t\t\n\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t#define
-      VFX_NEEDS_POSWS_INTERPOLATOR 1\n\t\t\t#endif\n\t\t\t\t\n\t\t\t#define HDRP_NEEDS_UVS
-      (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)\n\t\t\t#define
+      enable_d3d11_debug_symbols\n\t\t\t\t\n\t\t\t#define HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP
+      || HDRP_USE_MASK_MAP || USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)\n\t\t\t#define
       HDRP_USE_EMISSIVE (HDRP_USE_EMISSIVE_MAP || HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\n\t\t\tstruct
       ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t\t\tnointerpolation
@@ -1477,9 +1488,8 @@ VisualEffectResource:
       : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
       : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
       float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat3
-      posWS : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if (VFX_NEEDS_COLOR_INTERPOLATOR
-      && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
+      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
       VFX_VARYING_METALLIC materialProperties.y\n\t\t\t\t\t#elif HDRP_MATERIAL_TYPE_SPECULAR\n\t\t\t\t\t#define
@@ -1494,11 +1504,10 @@ VisualEffectResource:
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
       VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
       || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#if
-      IS_TRANSPARENT_PARTICLE\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if
-      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
-      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
+      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
+      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
+      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_9CA97420(inout float3 position, float3 Position) /*attribute:position
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    position
@@ -1533,8 +1542,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -1589,8 +1598,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1688,7 +1698,7 @@ VisualEffectResource:
       \   SetAttribute_9CA97420( /*inout */position, float3(2,-4,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\tfloat3 offsets = (float3)0;\n\t\t\t\toffsets.x
       = float(id & 1);\n\t\t\t\toffsets.y = float((id & 3) >> 1);\n\t\t\t\toffsets.z
-      = float((id & 7) >> 2);\n\t\t\t\toffsets = offsets * 2.0f - 1.0f;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      = float((id & 7) >> 2);\n\t\t\t\toffsets -= 0.5f;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3x3
@@ -1697,7 +1707,7 @@ VisualEffectResource:
       vPos = mul(elementToVFX,float4(offsets,1.0f)).xyz;\n\t\t\t\tfloat3 vPosWS =
       TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t#ifdef VFX_VARYING_POSWS\n\t\t\t\to.VFX_VARYING_POSWS
       = vPosWS;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_OFFSETS\n\t\t\t\to.VFX_VARYING_OFFSETS
-      = offsets;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_FACEID\n\t\t\t\to.VFX_VARYING_FACEID
+      = offsets * 2.0f;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_FACEID\n\t\t\t\to.VFX_VARYING_FACEID
       = (id & 7) % 5;\n\t\t\t#endif\n\t\t\t#if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)\n\t\t\t\trot
       = mul(transpose(float3x3(axisX,axisY,axisZ)),rot);\n\t\t\t#ifdef VFX_LOCAL_SPACE
       \n\t\t\t\trot = mul((float3x3)VFXGetObjectToWorldMatrix(),rot);\n\t\t\t#endif\n\t\t\t\to.VFX_VARYING_ROTX
@@ -1817,7 +1827,7 @@ VisualEffectResource:
       \   SetAttribute_9CA97420( /*inout */position, float3(2,-4,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\tfloat3 offsets = (float3)0;\n\t\t\t\toffsets.x
       = float(id & 1);\n\t\t\t\toffsets.y = float((id & 3) >> 1);\n\t\t\t\toffsets.z
-      = float((id & 7) >> 2);\n\t\t\t\toffsets = offsets * 2.0f - 1.0f;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      = float((id & 7) >> 2);\n\t\t\t\toffsets -= 0.5f;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3x3
@@ -1826,7 +1836,7 @@ VisualEffectResource:
       vPos = mul(elementToVFX,float4(offsets,1.0f)).xyz;\n\t\t\t\tfloat3 vPosWS =
       TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t#ifdef VFX_VARYING_POSWS\n\t\t\t\to.VFX_VARYING_POSWS
       = vPosWS;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_OFFSETS\n\t\t\t\to.VFX_VARYING_OFFSETS
-      = offsets;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_FACEID\n\t\t\t\to.VFX_VARYING_FACEID
+      = offsets * 2.0f;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_FACEID\n\t\t\t\to.VFX_VARYING_FACEID
       = (id & 7) % 5;\n\t\t\t#endif\n\t\t\t#if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)\n\t\t\t\trot
       = mul(transpose(float3x3(axisX,axisY,axisZ)),rot);\n\t\t\t#ifdef VFX_LOCAL_SPACE
       \n\t\t\t\trot = mul((float3x3)VFXGetObjectToWorldMatrix(),rot);\n\t\t\t#endif\n\t\t\t\to.VFX_VARYING_ROTX
@@ -1901,8 +1911,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -1988,14 +1999,15 @@ VisualEffectResource:
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
       axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_3EF6CFBB( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_9CA97420( /*inout */position, float3(4,-4,0));\n\t\t\t\t}\n\t\t\t\tOrient_1(
+      \   SetAttribute_9CA97420( /*inout */position, float3(4,-4,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_3EF6CFBB( /*inout */sizeX, (float)2);\n\t\t\t\t}\n\t\t\t\tOrient_1(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id
       & 1) * 2.0f - 1.0f;\n\t\t\t\to.VFX_VARYING_UV.y = float(id & 2) - 1.0f; \n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tfloat
-      uSize = size.x;\n\t\t\t\t\n\t\t\t\tfloat camDist = length(GetViewVFXPosition()
+      uSize = size.x * 0.5f;\n\t\t\t\t\n\t\t\t\tfloat camDist = length(GetViewVFXPosition()
       - position);\n\t\t\t\tfloat scale = 1.0f - (1.0f - unity_OrthoParams.w) * uSize
       / camDist;\n\t\t\t\t\n\t\t\t\tfloat3 vPos = position;\n\t\t\t\tvPos += axisX
       * (o.VFX_VARYING_UV.x * uSize * scale);\n\t\t\t\tvPos += axisY * (o.VFX_VARYING_UV.y
@@ -2030,8 +2042,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2041,7 +2054,7 @@ VisualEffectResource:
       = 1.0f;\n\t\t\t\tVFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,uint2(0,0));\n\t\t\t}\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXLitPixelOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\n\t\t\t\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tvoid frag(ps_input i\n\t\t#ifdef WRITE_NORMAL_BUFFER\n\t\t\t,
-      OUTPUT_NORMALBUFFER(outNormalBuffer)\n\t\t#else\n\t\t    , out float4 outColor
+      out float4 outNormalBuffer : SV_Target0\n\t\t#else\n\t\t    , out float4 outColor
       : SV_Target\n\t\t#endif\n\t\t\t, out float oDepth : SV_DepthLessEqual)\n\t\t\t{\n\t\t\t\tfloat3
       normalWS;\n\t\t\t\tVFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS,
       i);\t\t\n\t\t\t\t\n\t\t#ifdef WRITE_NORMAL_BUFFER\n\t\t\t\tVFXUVData uvData
@@ -2117,14 +2130,15 @@ VisualEffectResource:
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
       axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_3EF6CFBB( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_9CA97420( /*inout */position, float3(4,-4,0));\n\t\t\t\t}\n\t\t\t\tOrient_1(
+      \   SetAttribute_9CA97420( /*inout */position, float3(4,-4,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_3EF6CFBB( /*inout */sizeX, (float)2);\n\t\t\t\t}\n\t\t\t\tOrient_1(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id
       & 1) * 2.0f - 1.0f;\n\t\t\t\to.VFX_VARYING_UV.y = float(id & 2) - 1.0f; \n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tfloat
-      uSize = size.x;\n\t\t\t\t\n\t\t\t\tfloat camDist = length(GetViewVFXPosition()
+      uSize = size.x * 0.5f;\n\t\t\t\t\n\t\t\t\tfloat camDist = length(GetViewVFXPosition()
       - position);\n\t\t\t\tfloat scale = 1.0f - (1.0f - unity_OrthoParams.w) * uSize
       / camDist;\n\t\t\t\t\n\t\t\t\tfloat3 vPos = position;\n\t\t\t\tvPos += axisX
       * (o.VFX_VARYING_UV.x * uSize * scale);\n\t\t\t\tvPos += axisY * (o.VFX_VARYING_UV.y
@@ -2178,8 +2192,9 @@ VisualEffectResource:
       = VFXGetPositionRWS(i);\n\t\t\t\tfloat4 posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs
       posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS,
       tileIndex);\n\t\t\t\t\n\t\t\t\tfloat alpha;\n\t\t\t\tsurfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);\t\n\t\t\t\tbsdfData
-      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t\tpreLightData
-      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t\tpreLightData.diffuseFGD
+      = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);\n\t\t\t\n\t\t\t#if HDRP_MATERIAL_TYPE_SIMPLE\n\t\t\t\tpreLightData
+      = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#else\n\t\t\t\tpreLightData
+      = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);\n\t\t\t#endif\n\t\t\t\tpreLightData.diffuseFGD
       = 1.0f;\n\t\t\t    //TODO: investigate why this is needed\n\t\t\t    preLightData.coatPartLambdaV
       = 0;\n\t\t\t    preLightData.coatIblR = 0;\n\t\t\t    preLightData.coatIblF
       = 0;\n\t\t\t    \n\t\t\t\tbuiltinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);\n\t\t\t}\n\t\t\t\n\t\t\tvoid
@@ -2287,31 +2302,31 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 27
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 7
+        data[3]: 3
       - op: 1
         valueIndex: 29
         data[0]: -1
         data[1]: -1
         data[2]: -1
+        data[3]: 7
+      - op: 1
+        valueIndex: 31
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
         data[3]: 3
       - op: 9
-        valueIndex: 32
+        valueIndex: 34
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: -1
       - op: 1
-        valueIndex: 48
+        valueIndex: 50
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 3
+        data[3]: 1
       - op: 1
         valueIndex: 51
         data[0]: -1
@@ -2347,76 +2362,76 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 7
+        data[3]: 1
       - op: 1
-        valueIndex: 66
+        valueIndex: 65
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 7
       - op: 1
-        valueIndex: 68
+        valueIndex: 67
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 7
+      - op: 1
+        valueIndex: 69
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 3
       - op: 1
-        valueIndex: 71
+        valueIndex: 72
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 1
-        valueIndex: 74
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 6
       - op: 1
         valueIndex: 75
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 3
+        data[3]: 6
       - op: 1
-        valueIndex: 78
+        valueIndex: 76
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
+        data[3]: 3
       - op: 1
         valueIndex: 79
         data[0]: -1
         data[1]: -1
         data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 80
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
         data[3]: 15
       - op: 1
-        valueIndex: 81
+        valueIndex: 82
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 3
       - op: 1
-        valueIndex: 84
+        valueIndex: 85
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 3
       - op: 44
-        valueIndex: 87
+        valueIndex: 88
         data[0]: 0
         data[1]: -1
         data[2]: -1
         data[3]: 0
       - op: 44
-        valueIndex: 91
+        valueIndex: 92
         data[0]: 1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 95
-        data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 1
@@ -2425,33 +2440,39 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 97
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
         data[3]: 3
       - op: 6
-        valueIndex: 99
+        valueIndex: 100
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: -1
       - op: 1
-        valueIndex: 100
+        valueIndex: 101
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 1
       - op: 1
-        valueIndex: 101
+        valueIndex: 102
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 3
       - op: 1
-        valueIndex: 104
+        valueIndex: 105
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 1
       - op: 1
-        valueIndex: 105
+        valueIndex: 106
         data[0]: -1
         data[1]: -1
         data[2]: -1
@@ -2463,19 +2484,21 @@ VisualEffectResource:
         m_Array:
         - m_ExpressionIndex: 9
           m_Value: 0
-        - m_ExpressionIndex: 11
-          m_Value: 0.5
+        - m_ExpressionIndex: 15
+          m_Value: 2
         - m_ExpressionIndex: 20
           m_Value: 0.3216903
-        - m_ExpressionIndex: 27
-          m_Value: 100
-        - m_ExpressionIndex: 33
+        - m_ExpressionIndex: 21
           m_Value: 10
-        - m_ExpressionIndex: 36
+        - m_ExpressionIndex: 28
+          m_Value: 100
+        - m_ExpressionIndex: 34
+          m_Value: 0.5
+        - m_ExpressionIndex: 37
           m_Value: 1
-        - m_ExpressionIndex: 38
-          m_Value: 6
         - m_ExpressionIndex: 39
+          m_Value: 6
+        - m_ExpressionIndex: 40
           m_Value: 3
       m_Vector2f:
         m_Array: []
@@ -2491,9 +2514,9 @@ VisualEffectResource:
           m_Value: {x: 6, y: -1, z: 0}
         - m_ExpressionIndex: 10
           m_Value: {x: 6, y: 2, z: 0}
-        - m_ExpressionIndex: 13
+        - m_ExpressionIndex: 11
           m_Value: {x: 2, y: -4, z: 0}
-        - m_ExpressionIndex: 15
+        - m_ExpressionIndex: 13
           m_Value: {x: 4, y: -4, z: 0}
         - m_ExpressionIndex: 16
           m_Value: {x: 2, y: 2, z: 0}
@@ -2503,19 +2526,19 @@ VisualEffectResource:
           m_Value: {x: 4, y: 2, z: 0}
         - m_ExpressionIndex: 19
           m_Value: {x: 0, y: -4, z: 0}
-        - m_ExpressionIndex: 23
-          m_Value: {x: 0.333, y: 1, z: 0.333}
         - m_ExpressionIndex: 24
+          m_Value: {x: 0.333, y: 1, z: 0.333}
+        - m_ExpressionIndex: 25
           m_Value: {x: -0.333, y: 0.2, z: -0.333}
-        - m_ExpressionIndex: 26
+        - m_ExpressionIndex: 27
           m_Value: {x: 0, y: 1, z: 0}
-        - m_ExpressionIndex: 29
-          m_Value: {x: 2, y: 3, z: 2}
         - m_ExpressionIndex: 30
+          m_Value: {x: 2, y: 3, z: 2}
+        - m_ExpressionIndex: 31
           m_Value: {x: 0.1882353, y: 0, z: 0.0018242331}
-        - m_ExpressionIndex: 34
+        - m_ExpressionIndex: 35
           m_Value: {x: 6, y: -4, z: 0}
-        - m_ExpressionIndex: 37
+        - m_ExpressionIndex: 38
           m_Value: {x: 0.028301895, y: 0.00040049778, z: 0.00040049778}
       m_Vector4f:
         m_Array:
@@ -2523,7 +2546,7 @@ VisualEffectResource:
           m_Value: {x: 0, y: 0, z: 0, w: 1}
       m_Uint:
         m_Array:
-        - m_ExpressionIndex: 25
+        - m_ExpressionIndex: 26
           m_Value: 4294967295
       m_Int:
         m_Array: []
@@ -2618,19 +2641,19 @@ VisualEffectResource:
           m_Value: {fileID: 2800000, guid: 039eecbca64d7d746baf0dd7d360fe32, type: 3}
         - m_ExpressionIndex: 12
           m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
-        - m_ExpressionIndex: 21
-          m_Value: {fileID: 0}
         - m_ExpressionIndex: 22
           m_Value: {fileID: 0}
-        - m_ExpressionIndex: 28
+        - m_ExpressionIndex: 23
+          m_Value: {fileID: 0}
+        - m_ExpressionIndex: 29
           m_Value: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
       m_Bool:
         m_Array: []
     m_ExposedExpressions:
     - nameId: Color Buffer
-      index: 21
-    - nameId: Depth Buffer
       index: 22
+    - nameId: Depth Buffer
+      index: 23
     m_Buffers:
     - type: 1
       size: 5440
@@ -2823,7 +2846,6 @@ VisualEffectResource:
       receiveShadows: 0
       reflectionProbeUsage: 0
       lightProbeUsage: 0
-      transparencyPriority: 0
     m_CullingFlags: 0
     m_UpdateMode: 0
   m_Systems:
@@ -2840,7 +2862,7 @@ VisualEffectResource:
       buffers: []
       values:
       - nameId: Rate
-        index: 27
+        index: 28
       params: []
       processor: {fileID: 0}
       shaderSourceIndex: -1
@@ -2867,9 +2889,9 @@ VisualEffectResource:
       index: 7
     values:
     - nameId: bounds_center
-      index: 26
+      index: 27
     - nameId: bounds_size
-      index: 29
+      index: 30
     tasks:
     - type: 536870912
       buffers:
@@ -2884,9 +2906,9 @@ VisualEffectResource:
       values: []
       params:
       - nameId: bounds_center
-        index: 26
+        index: 27
       - nameId: bounds_size
-        index: 29
+        index: 30
       processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
@@ -2899,11 +2921,11 @@ VisualEffectResource:
         index: 5
       values:
       - nameId: deltaTime_a
-        index: 35
+        index: 36
       - nameId: Alpha_b
-        index: 32
+        index: 33
       - nameId: Size_c
-        index: 31
+        index: 32
       params: []
       processor: {fileID: 0}
       shaderSourceIndex: 1
@@ -2934,9 +2956,9 @@ VisualEffectResource:
         index: 7
       params:
       - nameId: mesh
-        index: 28
+        index: 29
       - nameId: subMeshMask
-        index: 25
+        index: 26
       - nameId: sortPriority
         index: 0
       - nameId: indirectDraw
@@ -2954,9 +2976,9 @@ VisualEffectResource:
         index: 7
       params:
       - nameId: mesh
-        index: 28
+        index: 29
       - nameId: subMeshMask
-        index: 25
+        index: 26
       - nameId: sortPriority
         index: 0
       - nameId: indirectDraw
@@ -3046,9 +3068,9 @@ VisualEffectResource:
         index: 7
       params:
       - nameId: mesh
-        index: 28
+        index: 29
       - nameId: subMeshMask
-        index: 25
+        index: 26
       - nameId: sortPriority
         index: 0
       processor: {fileID: 0}
@@ -4167,6 +4189,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614864}
+  - {fileID: 8926484042661615055}
   m_UIPosition: {x: 989, y: 2128}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -4208,6 +4231,10 @@ MonoBehaviour:
   colorMode: 2
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661614716
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4836,6 +4863,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614854}
+  - {fileID: 8926484042661615059}
   m_UIPosition: {x: 981, y: 1731}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -6554,6 +6582,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614872}
+  - {fileID: 8926484042661615057}
   m_UIPosition: {x: 958, y: 1371}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -7732,6 +7761,10 @@ MonoBehaviour:
   colorMode: 2
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
   normalBending: 0
 --- !u!114 &8926484042661614991
 MonoBehaviour:
@@ -8279,6 +8312,10 @@ MonoBehaviour:
   colorMode: 2
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661615024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8415,6 +8452,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615047}
   - {fileID: 8926484042661615032}
+  - {fileID: 8926484042661615061}
   m_UIPosition: {x: 523, y: 2161}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -8451,6 +8489,10 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  enableShadows: 1
+  enableSpecular: 1
+  enableCookie: 1
+  enableEnvLight: 1
 --- !u!114 &8926484042661615029
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9136,6 +9178,246 @@ MonoBehaviour:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
       m_SerializableObject: 0.5
+    m_Space: 2147483647
+  m_Property:
+    name: Size
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661615055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614715}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 2}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 8926484042661615056}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: size
+  Composition: 2
+  Source: 0
+  Random: 0
+  channels: 0
+--- !u!114 &8926484042661615056
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661615056}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661615055}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0.5
+    m_Space: 2147483647
+  m_Property:
+    name: Size
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661615057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614871}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 2}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 8926484042661615058}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: size
+  Composition: 2
+  Source: 0
+  Random: 0
+  channels: 0
+--- !u!114 &8926484042661615058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661615058}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661615057}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0.5
+    m_Space: 2147483647
+  m_Property:
+    name: Size
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661615059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614748}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 2}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 8926484042661615060}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: size
+  Composition: 2
+  Source: 0
+  Random: 0
+  channels: 0
+--- !u!114 &8926484042661615060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661615060}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661615059}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0.5
+    m_Space: 2147483647
+  m_Property:
+    name: Size
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661615061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661615028}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 2}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 8926484042661615062}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: size
+  Composition: 2
+  Source: 0
+  Random: 0
+  channels: 0
+--- !u!114 &8926484042661615062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661615062}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661615061}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 2
     m_Space: 2147483647
   m_Property:
     name: Size

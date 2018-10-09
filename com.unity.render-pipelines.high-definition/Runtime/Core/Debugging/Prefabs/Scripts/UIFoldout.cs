@@ -2,7 +2,7 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Experimental.Rendering.UI
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class UIFoldout : Toggle
     {
         public GameObject content;

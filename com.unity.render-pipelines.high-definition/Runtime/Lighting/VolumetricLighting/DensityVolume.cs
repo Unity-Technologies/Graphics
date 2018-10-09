@@ -91,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     } // class DensityVolumeParameters
 
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     [AddComponentMenu("Rendering/Density Volume", 1100)]
     public class DensityVolume : MonoBehaviour
     {
@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             parameters.Constrain();
         }
 
-        void OnDrawGizmos()
+        void OnDrawGizmosSelected()
         {
             Gizmos.matrix = transform.localToWorldMatrix;
 

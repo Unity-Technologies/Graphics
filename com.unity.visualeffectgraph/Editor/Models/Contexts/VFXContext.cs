@@ -524,10 +524,11 @@ namespace UnityEditor.VFX
                 if (m_Data is ISpaceable)
                 {
                     (m_Data as ISpaceable).space = value;
-                    Invalidate(InvalidationCause.kSettingChanged);
+                    foreach (var owner in m_Data.owners)
+                        Invalidate(InvalidationCause.kSettingChanged);
 
-                    var slots = m_Data.owners.SelectMany(c => c.inputSlots.Concat(activeChildrenWithImplicit.SelectMany(o => o.inputSlots)));
-                    foreach (var slot in slots.Where(s => s.spaceable))
+                    var allSlots = m_Data.owners.SelectMany(c => c.inputSlots.Concat(c.activeChildrenWithImplicit.SelectMany(o => o.inputSlots)));
+                    foreach (var slot in allSlots.Where(s => s.spaceable))
                         slot.Invalidate(InvalidationCause.kSpaceChanged);
                 }
             }

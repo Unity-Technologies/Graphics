@@ -15,12 +15,12 @@ MonoBehaviour:
   profiles:
   - name: Bubonic Face
     scatteringDistance: {r: 7.2784314, g: 7.2784314, b: 7.2784314, a: 1}
-    transmissionTint: {r: 0.5, g: 0.14076413, b: 0, a: 1}
+    transmissionTint: {r: 0.25098044, g: 0.07095782, b: 0, a: 1}
     texturingMode: 0
-    transmissionMode: 0
-    thicknessRemap: {x: 0, y: 8.694578}
-    worldScale: 0.09
-    ior: 1.443
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 0}
+    worldScale: 0.9
+    ior: 1.4
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1

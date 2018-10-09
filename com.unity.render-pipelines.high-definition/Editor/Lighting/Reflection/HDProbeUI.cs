@@ -14,14 +14,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly int k_AnimBoolTotal = k_ReflectionProbeModeCount + k_AnimBoolSingleFieldCount + k_ReflectionInfluenceShapeCount;
 
         public InfluenceVolumeUI influenceVolume = new InfluenceVolumeUI();
+        public CaptureSettingsUI captureSettings = new CaptureSettingsUI();
         public FrameSettingsUI frameSettings = new FrameSettingsUI();
         public ReflectionProxyVolumeComponentUI reflectionProxyVolume = new ReflectionProxyVolumeComponentUI();
 
         public AnimBool isSectionExpandedInfluenceSettings { get { return m_AnimBools[k_ReflectionProbeModeCount]; } }
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 1]; } }
-
-        public AnimBool isSectionExpandedCaptureMirrorSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 2]; } }
-        public AnimBool isSectionExpandedCaptureStaticSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 3]; } }
+        public AnimBool isFrameSettingsOverriden { get { return m_AnimBools[k_ReflectionProbeModeCount + 2]; } }
         public AnimBool isSectionExpendedProxyVolume { get { return m_AnimBools[k_ReflectionProbeModeCount + 4]; } }
         public AnimBool isSectionExpendedAdditionalSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 5]; } }
 
@@ -70,6 +69,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void Reset(SerializedHDProbe data, UnityAction repaint)
         {
             frameSettings.Reset(data.frameSettings, repaint);
+            captureSettings.Reset(data.captureSettings, repaint);
             influenceVolume.Reset(data.influenceVolume, repaint);
             base.Reset(data, repaint);
         }
@@ -81,8 +81,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             SetModeTarget(data.mode.hasMultipleDifferentValues ? -1 : data.mode.intValue);
             influenceVolume.SetIsSectionExpanded_Shape(data.influenceVolume.shape.hasMultipleDifferentValues ? -1 : data.influenceVolume.shape.intValue);
-            
-            frameSettings.Update();
+
+            captureSettings.Update();
+            bool frameSettingsOverriden = data.captureSettings.renderingPath.enumValueIndex == (int)HDAdditionalCameraData.RenderingPath.Custom;
+            isFrameSettingsOverriden.value = frameSettingsOverriden;
+            if (frameSettingsOverriden)
+                frameSettings.Update();
             influenceVolume.Update();
             base.Update();
         }

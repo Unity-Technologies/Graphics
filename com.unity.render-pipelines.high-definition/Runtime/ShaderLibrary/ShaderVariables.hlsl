@@ -24,7 +24,7 @@
     #define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
     #define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
     #define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
-    #define _WorldSpaceCameraPos unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
+    #define _WorldSpaceCameraPos _WorldSpaceCameraPosStereo[unity_StereoEyeIndex].xyz
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
@@ -299,12 +299,13 @@ CBUFFER_END
 
 CBUFFER_START(UnityPerPassStereo)
 float4x4 _ViewMatrixStereo[2];
-// Proj not needed...yet?
+float4x4 _ProjMatrixStereo[2];
 float4x4 _ViewProjMatrixStereo[2];
 float4x4 _InvViewMatrixStereo[2];
 float4x4 _InvProjMatrixStereo[2];
 float4x4 _InvViewProjMatrixStereo[2];
 float4x4 _PrevViewProjMatrixStereo[2];
+float4   _WorldSpaceCameraPosStereo[2];
 #if SHADER_STAGE_COMPUTE
 // Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
 // Instead, we manually update _ComputeEyeIndex in SRP code. 

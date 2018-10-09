@@ -16,21 +16,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (hdrp == null)
                 return;
 
-            // Note: If you add new platform in this function, think about adding support in IsSupportedPlatform() function in HDRenderPipeline.cs
-
             // If platform is supported all good
-            if (report.summary.platform == BuildTarget.StandaloneWindows ||
-                report.summary.platform == BuildTarget.StandaloneWindows64 ||
-                report.summary.platform == BuildTarget.StandaloneLinux64 ||
-                report.summary.platform == BuildTarget.StandaloneLinuxUniversal ||
-                report.summary.platform == BuildTarget.StandaloneOSX ||
-                report.summary.platform == BuildTarget.WSAPlayer ||
-                report.summary.platform == BuildTarget.XboxOne ||
-                report.summary.platform == BuildTarget.PS4 ||
-                report.summary.platform == BuildTarget.Switch)
-            {
+            if (HDUtils.IsSupportedBuildTarget(report.summary.platform))
                 return;
-            }
 
             string msg = "The platform " + report.summary.platform.ToString() + " is not supported with Hight Definition Render Pipeline";
 

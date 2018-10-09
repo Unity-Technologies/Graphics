@@ -11,7 +11,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class HDCameraUI
     {
-        enum ProjectionType { Perspective, Orthographic };
 
         static HDCameraUI()
         {
@@ -84,14 +83,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Select(
                     (s, d, o) => s.frameSettingsUI,
                     (s, d, o) => d.frameSettings,
-                    FrameSettingsUI.SectionRenderingPasses,
-                    FrameSettingsUI.SectionRenderingSettings,
-                    FrameSettingsUI.SectionLightingSettings),
-                CED.Select(
-                    (s, d, o) => s.frameSettingsUI.lightLoopSettings,
-                    (s, d, o) => d.frameSettings.lightLoopSettings,
-                    LightLoopSettingsUI.SectionLightLoopSettings));
-        
+                    FrameSettingsUI.Inspector(withXR: false)));
+
+        static void Drawer_FieldBackgroundColorHDR(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.backgroundColorHDR, backgroundColorContent);
+        }
+
         static void Drawer_FieldVolumeLayerMask(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.volumeLayerMask, volumeLayerMaskContent);
@@ -108,17 +106,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_Projection(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            ProjectionType projectionType = p.orthographic.boolValue ? ProjectionType.Orthographic : ProjectionType.Perspective;
+            CameraProjection projection = p.orthographic.boolValue ? CameraProjection.Orthographic : CameraProjection.Perspective;
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = p.orthographic.hasMultipleDifferentValues;
-            projectionType = (ProjectionType)EditorGUILayout.EnumPopup(projectionContent, projectionType);
+            projection = (CameraProjection)EditorGUILayout.EnumPopup(projectionContent, projection);
             EditorGUI.showMixedValue = false;
             if (EditorGUI.EndChangeCheck())
-                p.orthographic.boolValue = (projectionType == ProjectionType.Orthographic);
+                p.orthographic.boolValue = (projection == CameraProjection.Orthographic);
 
             if (!p.orthographic.hasMultipleDifferentValues)
             {
-                if (projectionType == ProjectionType.Orthographic)
+                if (projection == CameraProjection.Orthographic)
                     EditorGUILayout.PropertyField(p.orthographicSize, sizeContent);
                 else
                     EditorGUILayout.Slider(p.fieldOfView, 1f, 179f, fieldOfViewContent);

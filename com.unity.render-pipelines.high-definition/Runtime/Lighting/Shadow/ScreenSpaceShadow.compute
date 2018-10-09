@@ -6,8 +6,7 @@
 #   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
 #endif
 
-// TEMP fix tobe able to have shadow contact working (when this define is enable it doesn't work and this is only mean for VR)
-//#define UNITY_SINGLE_PASS_STEREO 1
+#define UNITY_SINGLE_PASS_STEREO 1
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -22,7 +21,7 @@
     Texture2D<float4> _CameraDepthValues;
 #endif
 
-RWTexture2D<float4> _DeferredShadowTextureUAV;
+RWTexture2D<float> _DeferredShadowTextureUAV;
 
 CBUFFER_START(DeferredShadowParameters)
 float4  _DirectionalLightDirection;
@@ -37,88 +36,120 @@ CBUFFER_END
 #define _ContactShadowFadeEnd               _ContactShadowParamsParameters.z
 #define _ContactShadowFadeOneOverRange      _ContactShadowParamsParameters.w
 #define _ContactShadowOpacity               _ContactShadowParamsParameters2.x
+#define _EnableTimeDependentNoise           _ContactShadowParamsParameters2.y
+#define _RenderTargetHeight                 _ContactShadowParamsParameters2.z
 
 #define DEFERRED_SHADOW_TILE_SIZE 16
 
-// Return 1.0 if occluded 0.0 if not
-float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float rayLength)
+
+//From  Next Generation Post Processing in Call of Duty: Advanced Warfare [Jimenez 2014]
+// http://advances.realtimerendering.com/s2014/index.html
+float InterleavedGradientNoise(float2 uv, uint frameCount)
 {
-    uint3 hashInput = uint3(abs(GetAbsolutePositionWS(positionWS)) * 1000);
+    const float3 magic = float3(0.06711056f, 0.00583715f, 52.9829189f);
+    float2 frameMagicScale = _EnableTimeDependentNoise * float2(2.083f, 4.867f);
+    uv += frameCount * frameMagicScale;
+    return frac(magic.z * frac(dot(uv, magic.xy)));
+}
+
+float SampleDepth(float2 UV, bool HalfRes)
+{
+    float2 pixelCoord = UV.xy * _ScreenSize.xy;
+
+    if (HalfRes)
+    {
+        pixelCoord.x *= 0.5f;
+        pixelCoord.y = pixelCoord.y * 0.5f + _RenderTargetHeight;
+    }
+    
+    return LOAD_TEXTURE2D(_CameraDepthTexture, pixelCoord).x;
+}
+
+
+float ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLength, uint2 positionSS)
+{
+
     // Dither pattern is shifted by 0.5 because we want to jitter the ray starting position backward and forward (so we need values between -0.5 and 0.5)
-    float ditherBias = 0.5;
-    float dither = GenerateHashedRandomFloat(hashInput) - ditherBias;
+    float ditherBias = 0.5f;
+    // With a mod of 8 and taa we'd get no visible flickering, but the stitching pattern is more noticeable. With %16 we do get a bit of visible flickering, but a smoother gradient.
+    // If TAA is off, the noise pattern does not vary over time. 
+    float dither = InterleavedGradientNoise(positionSS, _FrameCount % 16u) - ditherBias;
 
     float3 rayStartWS = positionWS;
-    float3 rayEndWS = rayStartWS + rayDirection * rayLength;
+    float3 rayEndWS = rayStartWS + rayDirWS * rayLength;
 
     float4 rayStartCS = TransformWorldToHClip(rayStartWS);
     float4 rayEndCS = TransformWorldToHClip(rayEndWS);
 
     // Here we compute a ray perpendicular to view space. This is the ray we use to compute the threshold for rejecting samples.
     // This is done this way so that the threshold is less dependent of ray slope.
-    float4 rayOrthoViewSpace = rayStartCS + mul(GetViewToHClipMatrix(), float4(0, 0, rayLength, 0));
+    float4 rayOrthoViewSpace = rayStartCS + GetViewToHClipMatrix()[2];
     rayOrthoViewSpace = rayOrthoViewSpace / rayOrthoViewSpace.w;
 
     rayStartCS.xyz = rayStartCS.xyz / rayStartCS.w;
     rayEndCS.xyz = rayEndCS.xyz / rayEndCS.w;
 
     // Pixel to light ray in clip space.
-    float3 rayCS = rayEndCS.xyz - rayStartCS.xyz;
+    float3 rayDirCS = rayEndCS.xyz - rayStartCS.xyz;
 
-    // Depth at the start of the ray
-    float startDepth = rayStartCS.z;
-    // Depth range of the ray
-    float rayDepth = rayCS.z;
-
-    // Starting UV of the sampling loop
-    float2 startUV = rayStartCS.xy * 0.5f + 0.5f;
-    startUV.y = 1.0 - startUV.y;
-
-    // Pixel to light ray in
-    float2 rayUV = rayCS.xy * 0.5f;
-    rayUV.y = -rayUV.y;
-
-    float step = 1.0 / _SampleCount;
-    float compareThreshold = abs(rayOrthoViewSpace.z - rayStartCS.z) * step;
+    float step = 1.0f / _SampleCount;
+    float compareThreshold = abs(rayOrthoViewSpace.z - rayStartCS.z) * max(0.05f, step);
 
     float occluded = 0.0f;
 
+    // From this point on, all the marching will be done in UV space + Z 
+    float2 startUV = rayStartCS.xy * 0.5f + 0.5f;
+    startUV.y = 1.0f - startUV.y;
+    float3 rayStart = float3(startUV, rayStartCS.z);
+    float3 rayDir = float3(rayDirCS.x * 0.5f, -rayDirCS.y * 0.5f, rayDirCS.z);
+
+    float t = step * dither + step;
+
+    bool tracingHalfRes = true;
     for (int i = 0; i < _SampleCount; i++)
     {
-        // Step for this sample
-        float sampleStep = ((i + 1) * step + step * dither);
+        float3 sampleAlongRay = rayStart + t * rayDir;
 
-        // UVs for the current sample
-        float2 sampleUV = (startUV + rayUV * sampleStep);
-        // Ray depth for this sample
-        float raySampleDepth = startDepth + rayDepth * sampleStep;
 
-        // Depth buffer depth for this sample
-        float sampleDepth;
-        // Prevent sampling outside of the depth texture to avoid shadow artifacts
-        if (any(sampleUV > 1) || any(sampleUV < 0))
-            sampleDepth = 0;
-        else
+        if (any(sampleAlongRay.xy < 0) || any(sampleAlongRay.xy > 1))
         {
-#ifdef ENABLE_MSAA
-            sampleDepth = SAMPLE_TEXTURE2D_LOD(_CameraDepthValues, s_point_clamp_sampler, sampleUV, 0.0).y;
-#else
-            sampleDepth = SampleCameraDepth(saturate(sampleUV));
-#endif
+            break;
         }
 
-        bool Hit = false;
-        float depthDiff = sampleDepth - raySampleDepth;
-        Hit = depthDiff < compareThreshold && depthDiff > 0.0;// 1e-4;
+#ifdef ENABLE_MSAA
+        // Depth buffer depth for this sample
+        float sampleDepth = SAMPLE_TEXTURE2D_LOD(_CameraDepthValues, s_point_clamp_sampler, sampleAlongRay.xy, 0.0f).y;
+#else
+        // Depth buffer depth for this sample
+        float sampleDepth = SampleDepth(saturate(sampleAlongRay.xy), tracingHalfRes);
+#endif
 
-        if (Hit)
-            occluded = 1.0f;
+        float depthDiff = sampleDepth - sampleAlongRay.z;
+
+        if (depthDiff > 0.0f && depthDiff < compareThreshold)
+        {
+            if (tracingHalfRes)
+            {
+                // Move permanentely to full res. There is a good chance we've hit something, so next full res sample will find the intersection.
+                // If not, then allowing each thread to go back and forth between half and full was not beneficial to perf.
+                tracingHalfRes = false;
+                i--;
+                continue;
+            }
+            else
+            {
+                occluded = 1.0f;
+                break;
+            }
+        }
+
+        t += step;
     }
 
     // Off screen masking
     // We remove the occlusion if the ray is occluded and only if direction steps out of the screen
-    float2 vignette = max(6.0 * abs(rayStartCS.xy + rayCS.xy * occluded * 0.5) - 5.0, 0.0);
-    occluded *= saturate( 1.0 - dot(vignette, vignette) );
+    float2 vignette = max(6.0f * abs(rayStartCS.xy + rayDirCS.xy * t) - 5.0f, 0.0f);
+    occluded *= saturate(1.0f - dot(vignette, vignette));
 
     return occluded;
 }
@@ -130,7 +161,7 @@ float ComputeContactShadow(PositionInputs posInput, float3 direction)
     if (_ContactShadowLength > 0.0f)
     {
         //Here LightDirection is not the light direction but the light position
-        float4 result = ScreenSpaceShadowRayCast(posInput.positionWS, direction, _ContactShadowLength * max(0.5, posInput.linearDepth * _ContactShadowDistanceScaleFactor));
+        float4 result = ScreenSpaceShadowRayCast(posInput.positionWS, direction, _ContactShadowLength * max(0.5, posInput.linearDepth * _ContactShadowDistanceScaleFactor), posInput.positionSS);
         contactShadow = 1.0 - result.x * saturate((_ContactShadowFadeEnd - posInput.linearDepth) * _ContactShadowFadeOneOverRange);
     }
 
@@ -154,12 +185,11 @@ void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uin
         return;
 
     PositionInputs posInput = GetPositionInput_Stereo(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord, unity_StereoEyeIndex);
-    
+
     //Direction got from either the directional light direction or the difference of punctual light position and the pixel position
     float3 direction = normalize(_DirectionalLightDirection.xyz * _DirectionalLightDirection.w + (_PunctualLightPosition.xyz - posInput.positionWS) * _PunctualLightPosition.w);
 
     float contactShadow = ComputeContactShadow(posInput, direction);
 
-    // Caution: if moving thing here, think about updating DebugFullScreen.hlsl FULLSCREENDEBUGMODE_CONTACT_SHADOWS to display the correct channel
-    _DeferredShadowTextureUAV[pixelCoord] = float4(1.0, 1.0 - contactShadow, 1.0, 1.0); // Note: RT is RG16 format
+    _DeferredShadowTextureUAV[pixelCoord] = 1.0f - contactShadow;
 }

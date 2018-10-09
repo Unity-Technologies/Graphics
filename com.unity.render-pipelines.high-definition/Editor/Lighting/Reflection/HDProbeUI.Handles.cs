@@ -27,18 +27,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one)))
                         {
-                            Vector3 offsetWorld = probe.transform.position + probe.transform.rotation * probe.influenceVolume.offset;
                             EditorGUI.BeginChangeCheck();
-                            var newOffsetWorld = Handles.PositionHandle(offsetWorld, probe.transform.rotation);
+                            var newCapturePosition = Handles.PositionHandle(probe.transform.position, probe.transform.rotation);
                             if (EditorGUI.EndChangeCheck())
                             {
-                                Vector3 newOffset = Quaternion.Inverse(probe.transform.rotation) * (newOffsetWorld - probe.transform.position);
+                                Vector3 newOffset = Quaternion.Inverse(probe.transform.rotation) * (newCapturePosition - probe.transform.position);
                                 Undo.RecordObjects(new Object[] { probe, probe.transform }, "Translate Influence Position");
-                                d.influenceVolume.offset.vector3Value = newOffset;
-                                d.influenceVolume.Apply();
+                                Vector3 delta = newCapturePosition - probe.transform.position;
+                                Matrix4x4 oldLocalToWorld = Matrix4x4.TRS(probe.transform.position, probe.transform.rotation, Vector3.one);
 
                                 //call modification to legacy ReflectionProbe
                                 probe.influenceVolume.offset = newOffset;
+
+                                probe.transform.position = newCapturePosition;
+                                d.influenceVolume.offset.vector3Value -= oldLocalToWorld.inverse.MultiplyVector(delta);
+                                d.influenceVolume.Apply();
                             }
                         }
                         break;

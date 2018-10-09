@@ -76,7 +76,8 @@ real4 EvalShadow_WorldToShadow(HDShadowData sd, real3 positionWS, bool perspProj
 real3 EvalShadow_GetTexcoordsAtlas(HDShadowData sd, real2 shadowMapSize, real2 offset, real3 positionWS, out real3 posNDC, bool perspProj)
 {
     real4 posCS = EvalShadow_WorldToShadow(sd, positionWS, perspProj);
-    posNDC = perspProj ? (posCS.xyz / posCS.w) : posCS.xyz;
+    // Avoid (0 / 0 = NaN).
+    posNDC = (perspProj && posCS.w != 0) ? (posCS.xyz / posCS.w) : posCS.xyz;
     // calc TCs
     real3 posTC = real3(posNDC.xy * 0.5 + 0.5, posNDC.z);
     posTC.xy = posTC.xy * shadowMapSize * _ShadowAtlasSize.zw + offset;
@@ -93,7 +94,8 @@ real3 EvalShadow_GetTexcoordsAtlas(HDShadowData sd, real2 shadowMapSize, real2 o
 real2 EvalShadow_GetTexcoordsAtlas(HDShadowData sd, real2 offset, real2 shadowMapSize, real2 shadowMapSizeRcp, real3 positionWS, out real2 closestSampleNDC, bool perspProj)
 {
     real4 posCS = EvalShadow_WorldToShadow(sd, positionWS, perspProj);
-    real2 posNDC = perspProj ? (posCS.xy / posCS.w) : posCS.xy;
+    // Avoid (0 / 0 = NaN).
+    real2 posNDC = (perspProj && posCS.w != 0) ? (posCS.xy / posCS.w) : posCS.xy;
     // calc TCs
     real2 posTC = posNDC * 0.5 + 0.5;
     closestSampleNDC = (floor(posTC * shadowMapSize) + 0.5) * shadowMapSizeRcp * 2.0 - 1.0.xx;
@@ -140,7 +142,8 @@ real3 EvalShadow_ReceiverBiasWeightPos(real3 positionWS, real3 normalWS, real3 L
 real EvalShadow_ReceiverBiasWeight(HDShadowData sd, real2 shadowMapSize, real2 offset, real4 viewBias, real edgeTolerance, int flags, Texture2D tex, SamplerComparisonState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, bool perspProj)
 {
     real3 pos = EvalShadow_ReceiverBiasWeightPos(positionWS, normalWS, L, EvalShadow_WorldTexelSize(viewBias, L_dist, perspProj), edgeTolerance, EvalShadow_ReceiverBiasWeightUseNormalFlag(flags));
-    return lerp(1.0, SAMPLE_TEXTURE2D_SHADOW(tex, samp, EvalShadow_GetTexcoordsAtlas(sd, shadowMapSize, offset, pos, perspProj)).x, EvalShadow_ReceiverBiasWeightFlag(flags));
+    float t = SAMPLE_TEXTURE2D_SHADOW(tex, samp, EvalShadow_GetTexcoordsAtlas(sd, shadowMapSize, offset, pos, perspProj)).x;
+    return lerp(1.0, t, EvalShadow_ReceiverBiasWeightFlag(flags));
 }
 
 real EvalShadow_ReceiverBiasWeight(Texture2D tex, SamplerState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, bool perspProj)
@@ -149,8 +152,8 @@ real EvalShadow_ReceiverBiasWeight(Texture2D tex, SamplerState samp, real3 posit
     return 1.0;
 }
 #else // SHADOW_USE_VIEW_BIAS_SCALING != 0
-real EvalShadow_ReceiverBiasWeight(Texture2D tex, SamplerComparisonState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, bool perspProj)                              { return 1.0; }
-real EvalShadow_ReceiverBiasWeight (Texture2D tex, SamplerState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, bool perspProj)                                        { return 1.0; }
+real EvalShadow_ReceiverBiasWeight(HDShadowData sd, real2 shadowMapSize, real2 offset, real4 viewBias, real edgeTolerance, int flags, Texture2D tex, SamplerComparisonState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, bool perspProj) { return 0; }
+real EvalShadow_ReceiverBiasWeight(Texture2D tex, SamplerState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, bool perspProj)                                                                                                              { return 0; }
 #endif // SHADOW_USE_VIEW_BIAS_SCALING != 0
 
 

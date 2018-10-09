@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways]
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
 #endif

@@ -35,12 +35,9 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        protected override VFXCoordinateSpace actualOutputSpace
+        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
-            get
-            {
-                return m_targetSpace;
-            }
+            return m_targetSpace;
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

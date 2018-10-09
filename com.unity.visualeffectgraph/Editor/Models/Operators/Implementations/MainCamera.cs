@@ -14,6 +14,14 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Main Camera"; } }
 
+        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            if (slot.spaceable && slot.property.type == typeof(CameraType))
+                return VFXCoordinateSpace.World;
+
+            return (VFXCoordinateSpace)int.MaxValue;
+        }
+
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression matrix = new VFXExpressionExtractMatrixFromMainCamera();

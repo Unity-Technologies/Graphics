@@ -8,6 +8,8 @@ using UnityEditor;
 using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.VFX;
 
 using UnityEditor.VFX;
@@ -92,6 +94,10 @@ namespace UnityEditor.VFX
 
         static List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
 
+        private VFXRenderer[] m_Renderers;
+        private SerializedObject m_SerializedRenderers;
+        private SerializedProperty m_RendererTransparentPriority;
+        private SerializedProperty m_RendererRenderingLayerMask;
 
         static public void RepaintAllEditors()
         {
@@ -108,6 +114,11 @@ namespace UnityEditor.VFX
             m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
             m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
             m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
+
+            m_Renderers = targets.Cast<Component>().Select(t => t.GetComponent<VFXRenderer>()).ToArray();
+            m_SerializedRenderers = new SerializedObject(m_Renderers);
+            m_RendererTransparentPriority = m_SerializedRenderers.FindProperty("m_RendererPriority");
+            m_RendererRenderingLayerMask = m_SerializedRenderers.FindProperty("m_RenderingLayerMask");
         }
 
         protected void OnDisable()
@@ -537,6 +548,7 @@ namespace UnityEditor.VFX
 
             EditorModeInspectorButton();
 
+            DrawRendererProperties();
             DrawParameters();
 
             serializedObject.ApplyModifiedProperties();
@@ -688,10 +700,52 @@ namespace UnityEditor.VFX
             GUILayout.Space(1); // Space for the line if the last category is closed.
         }
 
+        private void DrawRendererProperties()
+        {
+            ShowHeader(Contents.headerRenderer, false, false, false, false);
+
+            m_SerializedRenderers.Update();
+
+            if (m_RendererTransparentPriority != null)
+                EditorGUILayout.PropertyField(m_RendererTransparentPriority, Contents.rendererPriorityStyle);
+
+            if (m_RendererRenderingLayerMask != null)
+            {
+                RenderPipelineAsset srpAsset = GraphicsSettings.renderPipelineAsset;
+                if (srpAsset != null)
+                {    
+                    var layerNames = srpAsset.GetRenderingLayerMaskNames();
+                    if (layerNames != null)
+                    {
+                        var mask = (int)m_Renderers[0].renderingLayerMask;
+
+                        // EditorGUI.showMixedValue = m_RendererRenderingLayerMask.hasMultipleDifferentValues;
+                        var rect = EditorGUILayout.GetControlRect();
+
+                        EditorGUI.BeginProperty(rect, Contents.renderingLayerMaskStyle, m_RendererRenderingLayerMask);
+                        EditorGUI.BeginChangeCheck();
+                        
+                        mask = EditorGUI.MaskField(rect, Contents.renderingLayerMaskStyle, mask, layerNames);
+                        
+                        if (EditorGUI.EndChangeCheck())
+                            m_RendererRenderingLayerMask.intValue = mask;
+
+                        EditorGUI.EndProperty();
+
+                        // EditorGUI.showMixedValue = false;
+                    }
+
+                }
+            }
+
+            m_SerializedRenderers.ApplyModifiedProperties();
+        }
+
         protected static class Contents
         {
             public static readonly GUIContent headerPlayControls = EditorGUIUtility.TrTextContent("Play Controls");
             public static readonly GUIContent headerParameters = EditorGUIUtility.TrTextContent("Parameters");
+            public static readonly GUIContent headerRenderer = EditorGUIUtility.TrTextContent("Renderer");
 
             public static readonly GUIContent assetPath = EditorGUIUtility.TrTextContent("Asset Template");
             public static readonly GUIContent randomSeed = EditorGUIUtility.TrTextContent("Random Seed");
@@ -700,6 +754,9 @@ namespace UnityEditor.VFX
             public static readonly GUIContent setRandomSeed = EditorGUIUtility.TrTextContent("Reseed");
             public static readonly GUIContent setPlayRate = EditorGUIUtility.TrTextContent("Set");
             public static readonly GUIContent playRate = EditorGUIUtility.TrTextContent("Rate");
+
+            public static readonly GUIContent renderingLayerMaskStyle = EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Mask that can be used with SRP DrawRenderers command to filter renderers outside of the normal layering system.");
+            public static readonly GUIContent rendererPriorityStyle = EditorGUIUtility.TrTextContent("Transparency Priority", "Priority used for sorting objects on top of material render queue.");
 
             static readonly GUIContent[] m_Icons;
 

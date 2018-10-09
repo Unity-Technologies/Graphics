@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ShaderWindSettings : MonoBehaviour
     {
         [Header("General Parameters")]

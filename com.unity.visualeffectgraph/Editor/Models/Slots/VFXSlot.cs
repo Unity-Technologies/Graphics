@@ -155,6 +155,9 @@ namespace UnityEditor.VFX
                 return true;
             }
 
+            if (!IsMasterSlot())
+                return GetMasterSlot().IsSpaceInherited();
+
             if (!HasLink() || direction == Direction.kOutput)
                 return false;
 

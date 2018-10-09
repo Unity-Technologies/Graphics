@@ -223,5 +223,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return m_TextureCache.GetTexCache();
         }
+
+        internal static long GetApproxCacheSizeInByte(int nbElement, int resolution)
+        {
+            return TextureCacheCubemap.GetApproxCacheSizeInByte(nbElement, resolution);
+        }
+
+        internal static int GetMaxCacheSizeForWeightInByte(int weight, int resolution)
+        {
+            return TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(weight, resolution);
+        }
     }
 }
