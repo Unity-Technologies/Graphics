@@ -53,5 +53,9 @@ namespace UnityEditor.VFX
                 m_NormalProperty.SetValue(normal);
             }
         }
+        public override Bounds OnGetSpacedGizmoBounds(Plane value)
+        {
+            return new Bounds(value.position, Vector3.one);
+        }
     }
 }

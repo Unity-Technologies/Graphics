@@ -195,6 +195,10 @@ namespace UnityEditor.VFX
 
             DrawCone(cone, this, ref extremities, m_CenterProperty, m_Radius0Property, m_Radius1Property, m_HeightProperty,radius0Screen,radius1Screen);
         }
+        public override Bounds OnGetSpacedGizmoBounds(Cone value)
+        {
+            return new Bounds(value.center, new Vector3(Mathf.Max(value.radius0,value.radius1), Mathf.Max(value.radius0, value.radius1), value.height)); //TODO take orientation in account
+        }
     }
     [VFXGizmo(typeof(ArcCone))]
     class VFXArcConeGizmo : VFXSpaceableGizmo<ArcCone>
@@ -273,6 +277,10 @@ namespace UnityEditor.VFX
 
             VFXConeGizmo.DrawCone(cone, this, ref extremities, m_CenterProperty, m_Radius0Property, m_Radius1Property, m_HeightProperty,radius0Screen,radius1Screen);
 
+        }
+        public override Bounds OnGetSpacedGizmoBounds(ArcCone value)
+        {
+            return new Bounds(value.center, new Vector3(Mathf.Max(value.radius0, value.radius1), Mathf.Max(value.radius0, value.radius1), value.height)); //TODO take orientation in account
         }
     }
 }
