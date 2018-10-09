@@ -296,6 +296,7 @@ MonoBehaviour:
   shutterSpeed: 0.005
   iso: 400
   m_FrameSettings:
+    overrides: 0
     enableShadow: 1
     enableContactShadows: 1
     enableShadowMask: 1
@@ -328,8 +329,10 @@ MonoBehaviour:
     enableAsyncCompute: 1
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
+    enableRealtimePlanarReflection: 1
     enableMSAA: 0
     lightLoopSettings:
+      overrides: 0
       enableTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
@@ -458,8 +461,8 @@ VisualEffect:
   m_GameObject: {fileID: 710494839}
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5b134535642fd67479c453dcfe970162, type: 3}
-  m_StartSeed: 0
-  m_ResetSeedOnPlay: 1
+  m_StartSeed: 789
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array:
@@ -627,8 +630,8 @@ VisualEffect:
   m_GameObject: {fileID: 1591423168}
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5b134535642fd67479c453dcfe970162, type: 3}
-  m_StartSeed: 0
-  m_ResetSeedOnPlay: 1
+  m_StartSeed: 666
+  m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array:
