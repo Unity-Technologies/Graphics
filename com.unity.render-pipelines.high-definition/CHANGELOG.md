@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where sometime the lookup texture used for GGX convolution was broken, causing broken rendering
 - Fixed an issue where you wouldn't see any fog for certain pipeline/scene configurations
 - Fixed an issue with volumetric lighting where the anisotropy value of 0 would not result in perfectly isotropic lighting
+- Fixed stereo sampling of depth texture in MSAA DepthValues.shader
 
 ### Changed
 - Use samplerunity_ShadowMask instead of samplerunity_samplerLightmap for shadow mask
