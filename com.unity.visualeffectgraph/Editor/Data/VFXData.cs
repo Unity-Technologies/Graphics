@@ -121,6 +121,16 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override void Sanitize()
+        {
+            base.Sanitize();
+
+            if( m_Parent == null)
+            {
+                m_Parent = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(this)).GetOrCreateGraph();
+            }
+        }
+
         public abstract void CopySettings<T>(T dst) where T : VFXData;
 
         public virtual bool CanBeCompiled()
