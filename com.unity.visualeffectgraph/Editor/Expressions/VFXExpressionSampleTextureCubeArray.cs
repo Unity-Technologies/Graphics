@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionSampleTextureCubeArray : VFXExpression
     {
-        public VFXExpressionSampleTextureCubeArray() : this(VFXValue<CubemapArray>.Default, VFXValue<Vector3>.Default, VFXValue<float>.Default, VFXValue<float>.Default)
+        public VFXExpressionSampleTextureCubeArray() : this(VFXTextureCubeValue.Default, VFXValue<Vector3>.Default, VFXValue<float>.Default, VFXValue<float>.Default)
         {
         }
 

@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionSampleTexture2DArray : VFXExpression
     {
-        public VFXExpressionSampleTexture2DArray() : this(VFXValue<Texture2DArray>.Default, VFXValue<Vector2>.Default, VFXValue<float>.Default, VFXValue<float>.Default)
+        public VFXExpressionSampleTexture2DArray() : this(VFXTexture2DArrayValue.Default, VFXValue<Vector2>.Default, VFXValue<float>.Default, VFXValue<float>.Default)
         {
         }
 
