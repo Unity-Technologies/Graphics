@@ -79,7 +79,7 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         protected bool useSoftParticle = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Rendering Options")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options")]
         protected int sortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]

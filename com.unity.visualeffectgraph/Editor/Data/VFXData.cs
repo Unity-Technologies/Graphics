@@ -50,23 +50,17 @@ namespace UnityEditor.VFX
             {
                 HashSet<VFXData> datas = new HashSet<VFXData>();
 
-                VFXGraph graph = owners.First().GetGraph();
+                VFXGraph graph = GetGraph();
 
-                int dataIndex = -1;
-                foreach (var child in graph.children)
+                foreach (var child in graph.children.OfType<VFXContext>())
                 {
-                    if(child is VFXContext)
-                    {
                         VFXData data = (child as VFXContext).GetData();
                         if (data != null)
                             datas.Add(data);
-                        if (data == this && dataIndex < 0)
-                            dataIndex = datas.Count();
-                    }
+                        if (data == this)
+                            return datas.Count();
                 }
-                if( datas.Count() > 1)
-                    return dataIndex;
-                return -1;
+                throw new InvalidOperationException("Can't determine index of a VFXData without context");
             }
         }
 
@@ -85,14 +79,22 @@ namespace UnityEditor.VFX
             get { return Enumerable.Empty<VFXContext>(); }
         }
 
-        public static VFXData CreateDataType(VFXDataType type)
+        public static VFXData CreateDataType(VFXGraph graph,VFXDataType type)
         {
+
+            VFXData newVFXData;
             switch (type)
             {
-                case VFXDataType.kParticle:     return ScriptableObject.CreateInstance<VFXDataParticle>();
-                case VFXDataType.kMesh:         return ScriptableObject.CreateInstance<VFXDataMesh>();
+                case VFXDataType.kParticle:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataParticle>();
+                    break;
+                case VFXDataType.kMesh:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataMesh>();
+                    break;
                 default:                        return null;
             }
+            newVFXData.m_Parent = graph;
+            return newVFXData;
         }
 
         public override void OnEnable()

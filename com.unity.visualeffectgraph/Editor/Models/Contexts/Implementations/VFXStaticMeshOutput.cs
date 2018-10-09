@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         [VFXSetting]
         private Shader shader; // not serialized here but in VFXDataMesh
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Rendering Options")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options")]
         protected int sortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]

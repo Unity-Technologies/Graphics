@@ -339,7 +339,7 @@ namespace UnityEditor.VFX
 
         public void SetDefaultData(bool notify)
         {
-            InnerSetData(VFXData.CreateDataType(ownedType), notify);
+            InnerSetData(VFXData.CreateDataType(GetGraph(),ownedType), notify);
         }
 
         public virtual void OnDataChanges(VFXData oldData, VFXData newData)
