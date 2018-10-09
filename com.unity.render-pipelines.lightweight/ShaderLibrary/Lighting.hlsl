@@ -112,7 +112,11 @@ Light GetMainLight()
 {
     Light light;
     light.direction = _MainLightPosition.xyz;
+#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
     light.distanceAttenuation = _MainLightPosition.w;
+#else
+    light.distanceAttenuation = 1.0;
+#endif
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
