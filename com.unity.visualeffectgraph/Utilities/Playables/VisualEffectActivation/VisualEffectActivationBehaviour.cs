@@ -5,33 +5,6 @@ using UnityEngine.Timeline;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.VFX.Utils;
 
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditorInternal;
-[CustomEditor(typeof(VisualEffectActivationClip))]
-public class VisualEffectActivationClipEditor : Editor
-{
-    private SerializedProperty onClipEnterProperty;
-    private SerializedProperty onClipExitProperty;
-
-    private void OnEnable()
-    {
-        onClipEnterProperty = serializedObject.FindProperty("activationBehavior.onClipEnter");
-        onClipExitProperty = serializedObject.FindProperty("activationBehavior.onClipExit");
-    }
-
-    public override void OnInspectorGUI()
-    {
-        serializedObject.Update();
-
-        EditorGUILayout.PropertyField(onClipEnterProperty);
-        EditorGUILayout.PropertyField(onClipExitProperty);
-
-        serializedObject.ApplyModifiedProperties();
-    }
-}
-#endif
-
 [Serializable]
 public class VisualEffectActivationBehaviour : PlayableBehaviour
 {
@@ -57,9 +30,9 @@ public class VisualEffectActivationBehaviour : PlayableBehaviour
     }
 
     [SerializeField]
-    private string onClipEnter = "OnPlay";
+    private ExposedParameter onClipEnter = "OnPlay";
     [SerializeField]
-    private string onClipExit = "OnStop";
+    private ExposedParameter onClipExit = "OnStop";
     [SerializeField]
     private EventState[] clipEnterEventAttributes;
     [SerializeField]
