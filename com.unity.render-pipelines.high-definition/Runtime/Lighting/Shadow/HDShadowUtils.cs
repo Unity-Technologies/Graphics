@@ -15,12 +15,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int Asint(float val)    { unsafe { return *((int*)&val); } }
         public static uint Asuint(float val)  { unsafe { return *((uint*)&val); } }
 
-        static float GetPunctualFilterWidthInTexels(LightType lightType)
+        static float GetPunctualFilterWidthInTexels(HDCamera camera, LightType lightType)
         {
             var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
 
             if (hdAsset == null)
                 return 1;
+            
+            // Currently only PCF 3x3 is used for deferred rendering so if we're in deferred return 3
+            if (!camera.frameSettings.enableForwardRenderingOnly)
+                return 3;
 
             switch (hdAsset.renderPipelineSettings.hdShadowInitParams.punctualShadowQuality)
             {
@@ -34,16 +38,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static void ExtractPointLightData(LightType lightType, VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+        public static void ExtractPointLightData(HDCamera camera, LightType lightType, VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
-            float guardAngle = CalcGuardAnglePerspective(90.0f, viewportSize.x, GetPunctualFilterWidthInTexels(lightType), normalBiasMax, 79.0f);
+            float guardAngle = CalcGuardAnglePerspective(90.0f, viewportSize.x, GetPunctualFilterWidthInTexels(camera, lightType), normalBiasMax, 79.0f);
             ExtractPointLightMatrix(visibleLight, faceIndex, nearPlane, guardAngle, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
         }
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
-        public static void ExtractSpotLightData(LightType lightType, SpotLightShape shape, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+        public static void ExtractSpotLightData(HDCamera camera, LightType lightType, SpotLightShape shape, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
@@ -51,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (shape != SpotLightShape.Pyramid)
                 aspectRatio = 1.0f;
 
-            float guardAngle = CalcGuardAnglePerspective(visibleLight.light.spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(lightType), normalBiasMax, 180.0f - visibleLight.light.spotAngle);
+            float guardAngle = CalcGuardAnglePerspective(visibleLight.light.spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(camera, lightType), normalBiasMax, 180.0f - visibleLight.light.spotAngle);
             ExtractSpotLightMatrix(visibleLight, nearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
 
             if (shape == SpotLightShape.Box)

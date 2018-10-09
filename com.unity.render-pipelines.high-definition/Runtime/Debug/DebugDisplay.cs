@@ -312,6 +312,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 max = () => 4.0f,
             });
 
+            list.Add(new DebugUI.BoolField{
+                displayName = "Clear Shadow atlas",
+                getter = () => lightingDebugSettings.clearShadowAtlas,
+                setter = (v) => lightingDebugSettings.clearShadowAtlas = v
+            });
+
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Min Value", getter = () => lightingDebugSettings.shadowMinValue, setter = value => lightingDebugSettings.shadowMinValue = value });
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Max Value", getter = () => lightingDebugSettings.shadowMaxValue, setter = value => lightingDebugSettings.shadowMaxValue = value });
 

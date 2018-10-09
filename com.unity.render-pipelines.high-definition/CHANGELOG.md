@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for shadow bias for thin object transmission
 - Added FrameSettings to control realtime planar reflection
 - Added control for SRPBatcher on HDRP Asset
+- Added an option to clear the shadow atlases in the debug menu
+- Added a color visualization of the shadow atlas rescale in debug mode
 
 ### Fixed
 - Fixed a normal bias issue with Stacklit (Was causing light leaking)
@@ -32,6 +34,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where sometime the lookup texture used for GGX convolution was broken, causing broken rendering
 - Fixed an issue where you wouldn't see any fog for certain pipeline/scene configurations
 - Fixed an issue with volumetric lighting where the anisotropy value of 0 would not result in perfectly isotropic lighting
+- Fixed shadow bias when the atlas is rescaled
+- Fixed shadow cascade sampling outside of the atlas when cascade count is inferior to 4
+- Fixed shadow filter width in deferred rendering not matching shader config
 - Fixed stereo sampling of depth texture in MSAA DepthValues.shader
 
 ### Changed
