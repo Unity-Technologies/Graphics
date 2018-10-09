@@ -4,22 +4,8 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public sealed class LitProjectionModelParameter : VolumeParameter<ScreenSpaceReflection.AvailableProjectionModel>
-    {
-        public LitProjectionModelParameter() : base(ScreenSpaceReflection.AvailableProjectionModel.Proxy, false) {}
-    }
-
-    [Serializable]
     public class ScreenSpaceReflection : ScreenSpaceLighting
     {
-        // Values must be in sync with ScreenSpaceLighting.ProjectionModel
-        public enum AvailableProjectionModel
-        {
-            None = 0,
-            Proxy = 1,
-            HiZ = 2
-        }
-
         static ScreenSpaceReflection s_Default = null;
         public static ScreenSpaceReflection @default
         {
@@ -58,12 +44,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             rayMaxScreenDistanceID = HDShaderIDs._SSReflectionRayMaxScreenDistance;
             rayBlendScreenDistanceID = HDShaderIDs._SSReflectionRayBlendScreenDistance;
             rayMarchBehindObjectsID = HDShaderIDs._SSReflectionRayMarchBehindObjects;
-        }
-
-        public override void PushShaderParameters(CommandBuffer cmd)
-        {
-            //base.PushShaderParameters(cmd);
-            //cmd.SetGlobalInt(HDShaderIDs._SSReflectionProjectionModel, (int)minSmoothness.value);
         }
     }
 }
