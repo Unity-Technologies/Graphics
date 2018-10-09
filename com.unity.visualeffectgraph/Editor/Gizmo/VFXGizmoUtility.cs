@@ -169,6 +169,53 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        static internal bool NeedsComponent(Context context)
+        {
+            GizmoContext gizmo;
+            if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
+            {
+                gizmo.gizmo.currentSpace = context.space;
+                return gizmo.gizmo.needsComponent;
+            }
+            return false;
+        }
+
+        static internal Bounds GetGizmoBounds(Context context, VisualEffect component)
+        {
+            GizmoContext gizmo;
+            if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
+            {
+                bool forceRegister = false;
+                if (gizmo.lastContext != context)
+                {
+                    forceRegister = true;
+                    s_DrawFunctions[context.portType] = new GizmoContext() { gizmo = gizmo.gizmo, lastContext = context };
+                }
+                return GetGizmoBounds(context,component,gizmo.gizmo,forceRegister);
+            }
+
+            return new Bounds();
+        }
+
+        static internal Bounds GetGizmoBounds(Context context, VisualEffect component, VFXGizmo gizmo, bool forceRegister = false)
+        {
+            if (context.Prepare() || forceRegister)
+            {
+                gizmo.RegisterEditableMembers(context);
+            }
+            if (!context.IsIndeterminate())
+            {
+                gizmo.component = component;
+                gizmo.currentSpace = context.space;
+                Bounds bounds = gizmo.CallGetGizmoBounds(context.value);
+                gizmo.component = null;
+
+                return bounds;
+            }
+
+            return new Bounds();
+        }
+
         static internal void Draw(Context context, VisualEffect component, VFXGizmo gizmo, bool forceRegister = false)
         {
             if (context.Prepare() || forceRegister)

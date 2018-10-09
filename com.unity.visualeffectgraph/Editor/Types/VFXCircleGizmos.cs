@@ -56,6 +56,10 @@ namespace UnityEditor.VFX
 
             DrawCircle(circle, this, m_CenterProperty, m_RadiusProperty, radiusDirections);
         }
+        public override Bounds OnGetSpacedGizmoBounds(Circle value)
+        {
+            return new Bounds(value.center, new Vector3(value.radius, value.radius, value.radius / 100.0f)); //TODO take orientation in account
+        }
     }
     [VFXGizmo(typeof(ArcCircle))]
     class VFXArcCircleGizmo : VFXSpaceableGizmo<ArcCircle>
@@ -87,6 +91,10 @@ namespace UnityEditor.VFX
             Handles.DrawLine(center, center + Quaternion.AngleAxis(arc, -Vector3.forward) * Vector3.up * radius);*/
 
             ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
+        }
+        public override Bounds OnGetSpacedGizmoBounds(ArcCircle value)
+        {
+            return new Bounds(value.circle.center, new Vector3(value.circle.radius, value.circle.radius, value.circle.radius / 100.0f)); //TODO take orientation in account
         }
     }
 }

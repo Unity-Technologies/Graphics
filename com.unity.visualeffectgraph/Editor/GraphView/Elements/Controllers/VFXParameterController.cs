@@ -270,7 +270,7 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
     }
-    class VFXParameterController : VFXController<VFXParameter>, IPropertyRMProvider
+    class VFXParameterController : VFXController<VFXParameter>, IPropertyRMProvider, IGizmoController, IGizmoable
     {
         VFXSubParameterController[] m_SubControllers;
 
@@ -307,6 +307,17 @@ namespace UnityEditor.VFX.UI
             viewController.RegisterNotification(m_Slot, OnSlotChanged);
 
             exposedName = MakeNameUnique(exposedName);
+
+            if (VFXGizmoUtility.HasGizmo(model.type))
+                m_Gizmoables = new IGizmoable[] { this };
+            else
+                m_Gizmoables = new IGizmoable[] { };
+        }
+
+
+        string IGizmoable.name
+        {
+            get { return exposedName; }
         }
 
         public const int ValueChanged = 1;
@@ -537,7 +548,7 @@ namespace UnityEditor.VFX.UI
         }
         public bool exposed
         {
-            get {return parameter.exposed; }
+            get { return parameter.exposed; }
             set
             {
                 parameter.SetSettingValue("m_exposed", value);
@@ -692,6 +703,39 @@ namespace UnityEditor.VFX.UI
             }
             VFXGizmoUtility.Draw(m_Context, component);
         }
+
+        public Bounds GetGizmoBounds(VisualEffect component)
+        {
+            if (m_Context == null)
+            {
+                m_Context = new ParameterGizmoContext(this);
+            }
+            return VFXGizmoUtility.GetGizmoBounds(m_Context, component);
+        }
+
+
+        public bool gizmoNeedsComponent
+        {
+            get
+            {
+                return VFXGizmoUtility.NeedsComponent(m_Context);
+            }
+        }
+        public bool gizmoIndeterminate
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+                IGizmoable[] m_Gizmoables;
+
+        public ReadOnlyCollection<IGizmoable> gizmoables { get {
+                return Array.AsReadOnly(m_Gizmoables);
+            } }
+
+        public IGizmoable currentGizmoable { get { return this; } set { } }
 
         Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
 

@@ -83,5 +83,9 @@ namespace UnityEditor.VFX
                 }
             }
         }
+        public override Bounds OnGetSpacedGizmoBounds(Cylinder value)
+        {
+            return new Bounds(value.center, new Vector3(value.radius, value.radius, value.height));
+        }
     }
 }
