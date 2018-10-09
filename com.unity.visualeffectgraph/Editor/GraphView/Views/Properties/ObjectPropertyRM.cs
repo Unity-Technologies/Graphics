@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
                 m_ObjectField.control.objectType = controller.portType;
 
             m_ObjectField.RegisterCallback<ChangeEvent<Object>>(OnValueChanged);
-
+            m_ObjectField.control.allowSceneObjects = false;
             m_ObjectField.style.flex = new Flex(1, 0);
 
             Add(m_ObjectField);
