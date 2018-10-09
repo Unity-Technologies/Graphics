@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [4.1.0-preview] - 2018-09-28
 ### Added
 - Added occlusion mesh rendering/hookup for VR
+- You can now configure default depth and normal shadow bias values in the pipeline asset.
+- You can now add the `LWRPAdditionalLightData` component to a `Light` to override the default depth and normal shadow bias.
 ### Fixed
 - Dynamic Objects now receive lighting when the light mode is set to mixed.
 - MSAA now works on Desktop platforms.
+- The shadow bias value is now computed correctly for shadow cascades and different shadow resolutions. [case 1076285](https://issuetracker.unity3d.com/issues/lwrp-realtime-directional-light-shadow-maps-exhibit-artifacts)
 
 ## [4.0.0-preview] - 2018-09-28
 ### Added

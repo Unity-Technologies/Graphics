@@ -176,7 +176,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                             ShadowUtils.ApplySliceTransform(ref m_AdditionalLightSlices[i], atlasWidth, atlasHeight);
 
                         var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
-                        ShadowUtils.SetupShadowCasterConstants(cmd, ref shadowLight, proj, sliceResolution);
+                        Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex,
+                            ref shadowData, proj, sliceResolution);
+                        ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
                         ShadowUtils.RenderShadowSlice(cmd, ref context, ref m_AdditionalLightSlices[i], ref settings, proj, view);
                     }
                 }
