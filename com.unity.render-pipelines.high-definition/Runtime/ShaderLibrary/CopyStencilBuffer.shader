@@ -18,6 +18,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
 
     int _StencilRef;
     RW_TEXTURE2D(float, _HTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
+    RW_TEXTURE2D(float, _StencilBufferCopy); // DXGI_FORMAT_R8_UINT is not supported by Unity
 
     struct Attributes
     {
@@ -138,6 +139,72 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
             }
 
             ENDHLSL
+        }
+
+        Pass
+        {
+            // Note, when supporting D3D 11.3+, this can be a one off copy pass.
+            // This is essentially the equivalent of Pass 1, but writing to a UAV instead.
+            Name "Pass 3 - Initialize Stencil UAV copy with 1 if value different from stencilRef to output"  
+
+            Stencil
+            {
+                ReadMask[_StencilMask]
+                Ref[_StencilRef]
+                Comp NotEqual
+                Pass Keep
+            }
+
+            Cull   Off
+            ZTest  Always
+            ZWrite Off
+            Blend  Off
+
+            HLSLPROGRAM
+            #pragma fragment Frag
+
+                // Force the stencil test before the UAV write.
+                [earlydepthstencil]
+                float4 Frag(Varyings input) : SV_Target // use SV_StencilRef in D3D 11.3+
+                {
+                    _StencilBufferCopy[(uint2)input.positionCS.xy] = PackByte(1);
+                    return float4(0.0, 0.0, 0.0, 0.0);
+                }
+
+                ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Pass 4 - Update Stencil UAV copy with Stencil Ref"  
+
+            Stencil
+            {
+                ReadMask[_StencilMask]
+                Ref[_StencilRef]
+                Comp Equal
+                Pass Keep
+            }
+
+            Cull   Off
+            ZTest  Always
+            ZWrite Off
+            Blend  Off
+
+            HLSLPROGRAM
+            #pragma fragment Frag
+
+                // Force the stencil test before the UAV write.
+                [earlydepthstencil]
+                float4 Frag(Varyings input) : SV_Target // use SV_StencilRef in D3D 11.3+
+                {
+                    uint2 dstPixCoord = (uint2)input.positionCS.xy;
+                    uint oldStencilVal = UnpackByte(_StencilBufferCopy[dstPixCoord]);
+                    _StencilBufferCopy[dstPixCoord] = PackByte(oldStencilVal | _StencilRef);
+                    return float4(0.0, 0.0, 0.0, 0.0);
+                }
+
+                ENDHLSL
         }
     }
     Fallback Off
