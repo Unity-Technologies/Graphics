@@ -59,16 +59,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int[] lightingFullScreenDebugValues = null;
         public static GUIContent[] renderingFullScreenDebugStrings = null;
         public static int[] renderingFullScreenDebugValues = null;
-        public static GUIContent[] debugScreenSpaceTracingProxyStrings = null;
-        public static int[] debugScreenSpaceTracingProxyValues = null;
-        public static GUIContent[] debugScreenSpaceTracingHiZStrings = null;
-        public static int[] debugScreenSpaceTracingHiZValues = null;
-        public static GUIContent[] debugScreenSpaceTracingLinearStrings = null;
-        public static int[] debugScreenSpaceTracingLinearValues = null;
-        public static GUIContent[] debuggedAlgorithmStrings = null;
-        public static int[] debuggedAlgorithmValues = null;
-        public static GUIContent[] debugMSAASamplesStrings = null;
-        public static int[] debugMSAASamplesValues = null;
         public static GUIContent[] msaaSamplesDebugStrings = null;
         public static int[] msaaSamplesDebugValues = null;
 

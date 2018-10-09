@@ -314,7 +314,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SSReflectionRayMaxIterations = Shader.PropertyToID("_SSReflectionRayMaxIterations");
         public static readonly int _SSReflectionDepthBufferThickness = Shader.PropertyToID("_SSReflectionDepthBufferThickness");
         public static readonly int _SSReflectionInvScreenWeightDistance = Shader.PropertyToID("_SSReflectionInvScreenWeightDistance");
-        public static readonly int _SSReflectionProjectionModel = Shader.PropertyToID("_SSReflectionProjectionModel");
         public static readonly int _SSReflectionEnabled = Shader.PropertyToID("_SSReflectionEnabled");
 
         public static readonly int _SsrIterLimit                      = Shader.PropertyToID("_SsrIterLimit");
