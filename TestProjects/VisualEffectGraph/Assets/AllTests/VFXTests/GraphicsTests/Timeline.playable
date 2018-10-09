@@ -36,8 +36,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -60,8 +62,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -311,8 +315,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -493,8 +499,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -517,8 +525,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -768,8 +778,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -792,8 +804,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -816,8 +830,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -840,8 +856,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -864,8 +882,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color
@@ -1115,8 +1135,10 @@ MonoBehaviour:
   m_Name: VisualEffectActivationClip
   m_EditorClassIdentifier: 
   activationBehavior:
-    onClipEnter: shoot
-    onClipExit: ceasefire
+    onClipEnter:
+      m_Name: shoot
+    onClipExit:
+      m_Name: ceasefire
     clipEnterEventAttributes:
     - attribute:
         m_Name: color

@@ -161,8 +161,8 @@ namespace UnityEditor.VFX.Utils
                 }
             };
 
-            onClipEnterProperty = serializedObject.FindProperty("activationBehavior.onClipEnter");
-            onClipExitProperty = serializedObject.FindProperty("activationBehavior.onClipExit");
+            onClipEnterProperty = serializedObject.FindProperty("activationBehavior.onClipEnter.m_Name");
+            onClipExitProperty = serializedObject.FindProperty("activationBehavior.onClipExit.m_Name");
 
             var clipEnterAttributesProperty = serializedObject.FindProperty("activationBehavior.clipEnterEventAttributes");
             var clipExitAttributesProperty = serializedObject.FindProperty("activationBehavior.clipExitEventAttributes");

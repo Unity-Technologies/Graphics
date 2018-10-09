@@ -57,9 +57,9 @@ public class VisualEffectActivationBehaviour : PlayableBehaviour
     }
 
     [SerializeField]
-    private string onClipEnter = "OnPlay";
+    private ExposedParameter onClipEnter = "OnPlay";
     [SerializeField]
-    private string onClipExit = "OnStop";
+    private ExposedParameter onClipExit = "OnStop";
     [SerializeField]
     private EventState[] clipEnterEventAttributes;
     [SerializeField]
