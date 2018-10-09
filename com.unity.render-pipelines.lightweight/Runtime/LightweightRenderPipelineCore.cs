@@ -77,6 +77,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int additionalLightsShadowmapHeight;
         public bool supportsSoftShadows;
         public int shadowmapDepthBufferBits;
+        public List<Vector4> bias;
     }
 
     public static class ShaderKeywordStrings
@@ -96,6 +97,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public sealed partial class LightweightRenderPipeline
     {
+        static List<Vector4> m_ShadowBiasData = new List<Vector4>();
         static ShaderFeatures s_ShaderFeatures;
 
         public static ShaderFeatures supportedShaderFeatures

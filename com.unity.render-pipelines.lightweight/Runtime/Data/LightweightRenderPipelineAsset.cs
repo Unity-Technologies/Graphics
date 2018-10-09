@@ -94,6 +94,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.FourCascades;
         [SerializeField] float m_Cascade2Split = 0.25f;
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField] float m_ShadowDepthBias = 1.0f;
+        [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
 
         // Advanced settings
@@ -322,6 +324,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Vector3 cascade4Split
         {
             get { return m_Cascade4Split; }
+        }
+
+        public float shadowDepthBias
+        {
+            get { return m_ShadowDepthBias; }
+            set { m_ShadowDepthBias = value; }
+        }
+
+        public float shadowNormalBias
+        {
+            get { return m_ShadowNormalBias; }
+            set { m_ShadowNormalBias = value; }
         }
 
         public bool supportsSoftShadows

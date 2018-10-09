@@ -69,6 +69,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public int cascadeCount { get; private set; }
             public float cascade2Split { get; private set; }
             public Vector3 cascade4Split { get; private set; }
+            public float shadowDepthBias { get; private set; }
+            public float shadowNormalBias { get; private set; }
             public bool supportsSoftShadows { get; private set; }
             public XRGraphicsConfig savedXRGraphicsConfig { get; private set; }
             public bool supportsDynamicBatching { get; private set; }
@@ -103,6 +105,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cache.cascadeCount = asset.cascadeCount;
                 cache.cascade2Split = asset.cascade2Split;
                 cache.cascade4Split = asset.cascade4Split;
+                cache.shadowDepthBias = asset.shadowDepthBias;
+                cache.shadowNormalBias = asset.shadowNormalBias;
                 cache.supportsSoftShadows = asset.supportsSoftShadows;
 
                 // Advanced settings
@@ -354,12 +358,28 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             renderingData.cullResults = cullResults;
             renderingData.cameraData = cameraData;
             InitializeLightData(settings, visibleLights, additionalLightIndices, maxPerObjectAdditionalLights, out renderingData.lightData);
-            InitializeShadowData(settings, hasDirectionalShadowCastingLight, hasPunctualShadowCastingLight && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
+            InitializeShadowData(settings, visibleLights, hasDirectionalShadowCastingLight, hasPunctualShadowCastingLight && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
         }
 
-        static void InitializeShadowData(PipelineSettings settings, bool hasDirectionalShadowCastingLight, bool hasPunctualShadowCastingLight, out ShadowData shadowData)
+        static void InitializeShadowData(PipelineSettings settings, List<VisibleLight> visibleLights, bool hasDirectionalShadowCastingLight, bool hasPunctualShadowCastingLight, out ShadowData shadowData)
         {
+            m_ShadowBiasData.Clear();
+
+            for (int i = 0; i < visibleLights.Count; ++i)
+            {
+                Light light = visibleLights[i].light;
+                LWRPAdditionalLightData data =
+                    (light != null) ? light.gameObject.GetComponent<LWRPAdditionalLightData>() : null;
+
+                if (data)
+                    m_ShadowBiasData.Add(new Vector4(data.depthBias, data.normalBias, 0.0f, 0.0f));
+                else
+                    m_ShadowBiasData.Add(new Vector4(settings.shadowDepthBias, settings.shadowNormalBias, 0.0f, 0.0f));
+            }
+
+            shadowData.bias = m_ShadowBiasData;
+
             // Until we can have keyword stripping forcing single cascade hard shadows on gles2
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
