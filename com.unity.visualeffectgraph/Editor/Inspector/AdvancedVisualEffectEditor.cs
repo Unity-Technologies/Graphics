@@ -218,6 +218,7 @@ namespace UnityEditor.VFX
 
             if (m_EditJustStarted && m_GizmoedParameter == null)
             {
+                m_EditJustStarted = false;
                 m_GizmoedParameter = parameter;
             }
             m_GizmoableParameters.Add(parameter);
@@ -229,10 +230,13 @@ namespace UnityEditor.VFX
 
             GUILayout.BeginHorizontal();
 
-            if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GetCurrentSkin().button, GUILayout.Width(overrideWidth)))
+            EditorGUI.BeginChangeCheck();
+            bool result = GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GetCurrentSkin().button, GUILayout.Width(overrideWidth));
+            if(EditorGUI.EndChangeCheck() && result)
             {
                 m_GizmoedParameter = parameter;
             }
+            
             // Make the label half the width to make the tooltip
             EditorGUILayout.LabelField(GetGUIContent(name,tooltip));
             GUILayout.FlexibleSpace();
@@ -249,6 +253,7 @@ namespace UnityEditor.VFX
 
         void OnEditEnd()
         {
+            m_EditJustStarted = false;
             m_GizmoedParameter = null;
             m_GizmoDisplayed = false;
         }
@@ -620,7 +625,7 @@ namespace UnityEditor.VFX
             base.SceneViewGUICallback(tar, sceneView);
             if (m_GizmoableParameters.Count > 0)
             {
-                int current = m_GizmoableParameters.IndexOf(m_GizmoedParameter);
+                int current = m_GizmoDisplayed ? m_GizmoableParameters.IndexOf(m_GizmoedParameter) : -1 ;
                 EditorGUI.BeginChangeCheck();
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Gizmos",GUILayout.Width(45));
