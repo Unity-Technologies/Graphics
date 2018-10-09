@@ -14,7 +14,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VisualizeShadowMasks,
         IndirectDiffuseOcclusion,
         IndirectSpecularOcclusion,
-        ScreenSpaceReflection,
         ScreenSpaceRefraction,
     }
 
