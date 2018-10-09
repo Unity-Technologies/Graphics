@@ -72,6 +72,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ShadowmapAtlas = Shader.PropertyToID("_ShadowmapAtlas");
         public static readonly int _ShadowmapCascadeAtlas = Shader.PropertyToID("_ShadowmapCascadeAtlas");
         public static readonly int _ShadowAtlasSize = Shader.PropertyToID("_ShadowAtlasSize");
+        public static readonly int _CascadeShadowAtlasSize = Shader.PropertyToID("_CascadeShadowAtlasSize");
+        public static readonly int _CascadeShadowCount = Shader.PropertyToID("_CascadeShadowCount");
 
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
         public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");

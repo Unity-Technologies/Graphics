@@ -359,7 +359,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void InitShadowSystem(HDRenderPipelineAsset hdAsset)
         {
             m_ShadowInitParameters = hdAsset.GetRenderPipelineSettings().hdShadowInitParams;
-            m_ShadowManager = new HDShadowManager(m_ShadowInitParameters.shadowAtlasWidth, m_ShadowInitParameters.shadowAtlasHeight, m_ShadowInitParameters.maxShadowRequests, m_ShadowInitParameters.shadowMapsDepthBits, hdAsset.renderPipelineResources.shaders.shadowClearPS);
+            m_ShadowManager = new HDShadowManager(
+                m_ShadowInitParameters.shadowAtlasResolution,
+                m_ShadowInitParameters.shadowAtlasResolution,
+                m_ShadowInitParameters.maxShadowRequests,
+                m_ShadowInitParameters.shadowMapsDepthBits,
+                hdAsset.renderPipelineResources.shaders.shadowClearPS
+            );
         }
 
         void DeinitShadowSystem()
@@ -1615,6 +1621,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
 
+                        // Reserve shadow map resolutions and check if light needs to render shadows
+                        additionalData.ReserveShadows(camera, m_ShadowManager, m_ShadowInitParameters, cullResults, m_FrameSettings, lightIndex);
+
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
@@ -1700,6 +1709,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
+                    // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
+                    // And if needed rescale the whole atlas
+                    m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.lightingDebugSettings);
+
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
                     // Here we sort everyone and we decide which light is important or not (this is the responsibility of the lightloop)
@@ -1732,26 +1745,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         int shadowIndex = -1;
                         // Manage shadow requests
-                        if (lightComponent.shadows != LightShadows.None)
+                        if (additionalLightData.WillRenderShadows())
                         {
-                            Bounds bounds;
-
-                            // Update light shadow requests only if the light affects at least one object
-                            if (m_FrameSettings.enableShadow && cullResults.GetShadowCasterBounds(lightIndex, out bounds))
-                            {
-                                int shadowRequestCount;
-                                shadowIndex = additionalLightData.UpdateShadowRequest(camera, m_ShadowInitParameters, m_ShadowManager, light, cullResults, lightIndex, out shadowRequestCount);
+                            int shadowRequestCount;
+                            shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, out shadowRequestCount);
 
 #if UNITY_EDITOR
-                                if ((debugDisplaySettings.lightingDebugSettings.shadowDebugUseSelection
-                                        || debugDisplaySettings.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
-                                    && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
-                                {
-                                    m_DebugSelectedLightShadowIndex = shadowIndex;
-                                    m_DebugSelectedLightShadowCount = shadowRequestCount;
-                                }
-#endif
+                            if ((debugDisplaySettings.lightingDebugSettings.shadowDebugUseSelection
+                                    || debugDisplaySettings.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                                && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
+                            {
+                                m_DebugSelectedLightShadowIndex = shadowIndex;
+                                m_DebugSelectedLightShadowCount = shadowRequestCount;
                             }
+#endif
                         }
 
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
@@ -1811,8 +1818,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    // Prepare the shadow datas for GPU and layout the shadow atlases
-                    m_ShadowManager.ProcessShadowRequests(cullResults, camera, debugDisplaySettings.lightingDebugSettings);
+                    // Update the compute buffer with the shadow request datas
+                    m_ShadowManager.PrepareGPUShadowDatas(cullResults, camera);
 
                     //Activate contact shadows on dominant light
                     if (m_DominantLightIndex != -1)
