@@ -3,7 +3,9 @@
 
 #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
 
+#ifndef SHADOW_USE_VIEW_BIAS_SCALING
 #define SHADOW_USE_VIEW_BIAS_SCALING            1   // Enable view bias scaling to mitigate light leaking across edges. Uses the light vector if SHADOW_USE_ONLY_VIEW_BASED_BIASING is defined, otherwise uses the normal.
+#endif
 // Note: Sample biasing work well but is very costly in term of VGPR, disable it for now
 #define SHADOW_USE_SAMPLE_BIASING               0   // Enable per sample biasing for wide multi-tap PCF filters. Incompatible with SHADOW_USE_ONLY_VIEW_BASED_BIASING.
 #define SHADOW_USE_DEPTH_BIAS                   0   // Enable clip space z biasing

@@ -78,7 +78,10 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 uint2 pixelCoord = (tileCoord + uint2((quadVertex+1) & 1, (quadVertex >> 1) & 1)) * tileSize;
 
                 float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
-                clipCoord.y *= -1;
+                if (!ShouldFlipDebugTexture()) // Need to do this negative test to have it work correctly on windows in scene view and game view
+                {
+                    clipCoord.y *= -1;
+                }
 
                 Varyings output;
                 output.positionCS = float4(clipCoord, 0, 1.0);

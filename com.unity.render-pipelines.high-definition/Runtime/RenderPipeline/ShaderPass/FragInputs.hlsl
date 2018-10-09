@@ -12,10 +12,10 @@ struct FragInputs
     // Note: SV_POSITION is the result of the clip space position provide to the vertex shaders that is transform by the viewport
     float4 positionSS; // In case depth offset is use, positionRWS.w is equal to depth offset
     float3 positionRWS; // Relative camera space position
-    float2 texCoord0;
-    float2 texCoord1;
-    float2 texCoord2;
-    float2 texCoord3;
+    float4 texCoord0;
+    float4 texCoord1;
+    float4 texCoord2;
+    float4 texCoord3;
     float4 color; // vertex color
 
     // TODO: confirm with Morten following statement
@@ -35,16 +35,16 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
     switch (paramId)
     {
     case DEBUGVIEWVARYING_TEXCOORD0:
-        result = float3(input.texCoord0, 0.0);
+        result = input.texCoord0.xyz;
         break;
     case DEBUGVIEWVARYING_TEXCOORD1:
-        result = float3(input.texCoord1, 0.0);
+        result = input.texCoord1.xyz;
         break;
     case DEBUGVIEWVARYING_TEXCOORD2:
-        result = float3(input.texCoord2, 0.0);
+        result = input.texCoord2.xyz;
         break;
     case DEBUGVIEWVARYING_TEXCOORD3:
-        result = float3(input.texCoord3, 0.0);
+        result = input.texCoord3.xyz;
         break;
     case DEBUGVIEWVARYING_VERTEX_TANGENT_WS:
         result = input.worldToTangent[0].xyz * 0.5 + 0.5;

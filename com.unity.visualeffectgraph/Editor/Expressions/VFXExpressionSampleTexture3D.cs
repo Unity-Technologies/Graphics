@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionSampleTexture3D : VFXExpression
     {
-        public VFXExpressionSampleTexture3D() : this(VFXValue<Texture3D>.Default, VFXValue<Vector3>.Default, VFXValue<float>.Default)
+        public VFXExpressionSampleTexture3D() : this(VFXTexture3DValue.Default, VFXValue<Vector3>.Default, VFXValue<float>.Default)
         {
         }
 

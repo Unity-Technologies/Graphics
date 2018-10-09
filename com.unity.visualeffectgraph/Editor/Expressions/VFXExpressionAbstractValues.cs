@@ -18,6 +18,27 @@ namespace UnityEditor.VFX
         }
 
         // Syntactic sugar method to create a constant value
+
+        static public VFXValue<Texture> Constant(Texture2D value)
+        {
+            return new VFXTexture2DValue(value, Mode.Constant);
+        }
+        static public VFXValue<Texture> Constant(Texture3D value)
+        {
+            return new VFXTexture3DValue(value, Mode.Constant);
+        }
+        static public VFXValue<Texture> Constant(Cubemap value)
+        {
+            return new VFXTextureCubeValue(value, Mode.Constant);
+        }
+        static public VFXValue<Texture> Constant(Texture2DArray value)
+        {
+            return new VFXTexture2DArrayValue(value, Mode.Constant);
+        }
+        static public VFXValue<Texture> Constant(CubemapArray value)
+        {
+            return new VFXTextureCubeArrayValue(value, Mode.Constant);
+        }
         static public VFXValue<T> Constant<T>(T value = default(T))
         {
             return new VFXValue<T>(value, Mode.Constant);
@@ -113,7 +134,7 @@ namespace UnityEditor.VFX
         private Mode m_Mode;
     }
 
-    sealed class VFXValue<T> : VFXValue
+    class VFXValue<T> : VFXValue
     {
         private static Flags GetFlagsFromType(VFXValueType valueType)
         {
@@ -129,7 +150,7 @@ namespace UnityEditor.VFX
             m_Content = content;
         }
 
-        sealed public override VFXValue CopyExpression(Mode mode)
+        public override VFXValue CopyExpression(Mode mode)
         {
             var copy = new VFXValue<T>(m_Content, mode);
             return copy;
@@ -163,7 +184,11 @@ namespace UnityEditor.VFX
             var fromType = value.GetType();
             var toType = typeof(T);
 
-            if (fromType == toType || toType.IsAssignableFrom(fromType))
+            if(typeof(Texture).IsAssignableFrom(toType) && toType.IsAssignableFrom(fromType))
+            {
+                m_Content = (T)value;
+            }
+            else if (fromType == toType || toType.IsAssignableFrom(fromType))
             {
                 m_Content = (T)Convert.ChangeType(value, toType);
             }
@@ -187,6 +212,10 @@ namespace UnityEditor.VFX
         private static VFXValueType ToValueType()
         {
             Type t = typeof(T);
+            if(typeof(Texture).IsAssignableFrom(t))
+            {
+                return VFXValueType.None;
+            }
             var valueType = GetVFXValueTypeFromType(t);
             if (valueType == VFXValueType.None)
                 throw new ArgumentException("Invalid type");
@@ -202,5 +231,6 @@ namespace UnityEditor.VFX
             }
         }
     }
-    #pragma warning restore 0659
+
+#pragma warning restore 0659
 }

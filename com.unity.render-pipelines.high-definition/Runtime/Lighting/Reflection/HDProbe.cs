@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public abstract class HDProbe : MonoBehaviour, ISerializationCallbackReceiver
     {
         [SerializeField, FormerlySerializedAs("proxyVolumeComponent"), FormerlySerializedAs("m_ProxyVolumeReference")]
@@ -16,6 +16,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [SerializeField]
         FrameSettings m_FrameSettings = null;
+
+        [SerializeField]
+        CaptureSettings m_CaptureSettings = new CaptureSettings();
 
         [SerializeField, FormerlySerializedAsAttribute("dimmer"), FormerlySerializedAsAttribute("m_Dimmer"), FormerlySerializedAsAttribute("multiplier")]
         float m_Multiplier = 1.0f;
@@ -33,6 +36,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Texture m_CustomTexture;
         [SerializeField]
         Texture m_BakedTexture;
+        [SerializeField]
+        bool m_RenderDynamicObjects;
 
         /// <summary>Light layer to use by this probe.</summary>
         public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
@@ -52,6 +57,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         /// <summary>Frame settings in use with this probe.</summary>
         public FrameSettings frameSettings { get { return m_FrameSettings; } }
+
+        public CaptureSettings captureSettings { get { return m_CaptureSettings; } }
 
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier { get { return m_Multiplier; } set { m_Multiplier = value; } }
@@ -81,7 +88,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-        
+        /// <summary>Render dynamic objects with custom texture as background</summary>
+        public bool renderDynamicObjects { get { return m_RenderDynamicObjects; } set { m_RenderDynamicObjects = value; } }
+
         /// <summary>The capture mode.</summary>
         public virtual ReflectionProbeMode mode
         {

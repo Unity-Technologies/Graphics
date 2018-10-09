@@ -1,15 +1,12 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     internal class SerializedHDReflectionProbe : SerializedHDProbe
     {
         internal SerializedObject serializedLegacyObject;
-
-        internal SerializedProperty renderDynamicObjects;
-        internal SerializedProperty customBakedTexture;
-        internal SerializedProperty timeSlicingMode;
 
         SerializedProperty legacyBlendDistance;
         SerializedProperty legacySize;
@@ -23,9 +20,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             serializedLegacyObject = legacyProbe;
 
-            customBakedTexture = legacyProbe.FindProperty("m_CustomBakedTexture");
-            renderDynamicObjects = legacyProbe.FindProperty("m_RenderDynamicObjects");
-            timeSlicingMode = legacyProbe.FindProperty("m_TimeSlicingMode");
             legacySize = legacyProbe.FindProperty("m_BoxSize");
             legacyOffset = legacyProbe.FindProperty("m_BoxOffset");
             resolution = legacyProbe.FindProperty("m_Resolution");
@@ -52,6 +46,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the legacy blend distance to 0 so the legacy culling system use the probe extent
             legacyBlendDistance.floatValue = 0;
+
+            if(mode.enumValueIndex == (int)ReflectionProbeMode.Realtime)
+            {
+                //only supported mode at the moment is everyframe
+                serializedObject.FindProperty("m_RefreshMode").enumValueIndex = (int)ReflectionProbeRefreshMode.EveryFrame;
+            }
         }
 
         internal override void Apply()

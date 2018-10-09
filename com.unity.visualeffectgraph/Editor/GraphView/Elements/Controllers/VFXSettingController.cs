@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool spaceable { get { return false; } }
+        public bool spaceableAndMasterOfSpace { get { return false; } }
 
         public bool IsSpaceInherited()
         {

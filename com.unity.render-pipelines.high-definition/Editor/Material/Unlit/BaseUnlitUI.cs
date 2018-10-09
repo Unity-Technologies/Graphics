@@ -4,20 +4,15 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
-{
-    internal interface IExpendableArea
-    {
-        bool GetExpendedAreas(uint mask);
-        void SetExpendedAreas(uint mask, bool value);
-    }
-
+{ 
     // A Material can be authored from the shader graph or by hand. When written by hand we need to provide an inspector.
     // Such a Material will share some properties between it various variant (shader graph variant or hand authored variant).
     // This is the purpose of BaseLitGUI. It contain all properties that are common to all Material based on Lit template.
     // For the default hand written Lit material see LitUI.cs that contain specific properties for our default implementation.
-    public abstract class BaseUnlitGUI : ShaderGUI, IExpendableArea
+    abstract class BaseUnlitGUI : ExpendableAreaMaterial
     {
         //Be sure to end before after last LayeredLitGUI.LayerExpendable
+        [Flags]
         protected enum Expendable : uint
         {
             Base = 1<<0,
@@ -30,60 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Advance = 1<<7,
             Other = 1 << 8
         }
-
         
-
-        //utility that should be not used elsewhere
-        //whole material UI will be cleaned to work the same way other UI of HDRP
-        internal struct HeaderScope : IDisposable
-        {
-            public readonly bool expended;
-            private bool spaceAtEnd;
-
-            public HeaderScope(string title, uint bitExpended, IExpendableArea owner, bool spaceAtEnd = true, Color colorDot = default(Color))
-            {
-                bool beforeExpended = owner.GetExpendedAreas(bitExpended);
-
-                this.spaceAtEnd = spaceAtEnd;
-                CoreEditorUtils.DrawSplitter();
-                GUILayout.BeginVertical();
-
-                bool saveChangeState = GUI.changed;
-                if (colorDot != default(Color))
-                    title = "   " + title;
-                expended = CoreEditorUtils.DrawHeaderFoldout(title, beforeExpended);
-                if (colorDot != default(Color))
-                {
-                    Color previousColor = GUI.contentColor;
-                    GUI.contentColor = colorDot;
-                    Rect headerRect = GUILayoutUtility.GetLastRect();
-                    headerRect.xMin += 16f;
-                    EditorGUI.LabelField(headerRect, "■");
-                    GUI.contentColor = previousColor;
-                }
-                if (expended ^ beforeExpended)
-                {
-                    owner.SetExpendedAreas((uint)bitExpended, expended);
-                    saveChangeState = true;
-                }
-                GUI.changed = saveChangeState;
-
-                if (expended)
-                    ++EditorGUI.indentLevel;
-            }
-
-            void IDisposable.Dispose()
-            {
-                if (expended)
-                {
-                    if(spaceAtEnd)
-                        EditorGUILayout.Space();
-                    --EditorGUI.indentLevel;
-                }
-                GUILayout.EndVertical();
-            }
-        }
-
         protected static class StylesBaseUnlit
         {
             public static string TransparencyInputsText = "Transparency Inputs";
@@ -197,9 +139,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected MaterialProperty enableMotionVectorForVertexAnimation = null;
         protected const string kEnableMotionVectorForVertexAnimation = "_EnableMotionVectorForVertexAnimation";
-        
-        const string k_expendedAreas = "_EditorExpendedAreas";
-        private MaterialProperty editorStatus;
 
         protected const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
         protected const string kZTestGBuffer = "_ZTestGBuffer";
@@ -211,11 +150,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected virtual SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
 
         protected virtual bool showBlendModePopup { get { return true; } }
-
-        protected virtual void FindEditorProperties(MaterialProperty[] props)
-        {
-            editorStatus = FindProperty(k_expendedAreas, props);
-        }
 
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
@@ -733,12 +667,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             m_MaterialEditor = materialEditor;
+
+            // We should always register the key used to keep collapsable state
+            InitExpendableState(materialEditor);
+
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
 
             // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
             FindBaseMaterialProperties(props);
-            FindEditorProperties(props);
             FindMaterialProperties(props);
 
             Material material = materialEditor.target as Material;
@@ -746,51 +683,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // We should always do this call at the end
             m_MaterialEditor.serializedObject.ApplyModifiedProperties();
-        }
-
-        protected bool GetExpendedAreas(uint mask)
-        {
-            return (this as IExpendableArea).GetExpendedAreas(mask);
-        }
-        bool IExpendableArea.GetExpendedAreas(uint mask)
-        {
-            float stockedValue = editorStatus.floatValue;
-            bool result;
-
-            unsafe
-            {
-                uint uintView = *(uint*)&stockedValue;
-                result = (uintView & mask) > 0;
-            }
-
-            return result;
-        }
-
-        protected void SetExpendedAreas(uint mask, bool value)
-        {
-            (this as IExpendableArea).SetExpendedAreas(mask, value);
-        }
-        void IExpendableArea.SetExpendedAreas(uint mask, bool value)
-        {
-            float stockedValue = editorStatus.floatValue;
-
-            unsafe
-            {
-                uint uintView = *(uint*)&stockedValue;
-
-                if (value)
-                {
-                    uintView |= mask;
-                }
-                else
-                {
-                    mask = ~mask;
-                    uintView &= mask;
-                }
-                stockedValue = *(float*)&uintView;
-            }
-
-            editorStatus.floatValue = stockedValue;
         }
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class FreeCamera : MonoBehaviour
     {
         public float m_LookSpeedController = 120f;

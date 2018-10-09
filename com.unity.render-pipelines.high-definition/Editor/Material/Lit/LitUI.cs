@@ -5,8 +5,10 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class LitGUI : BaseLitGUI
+    class LitGUI : BaseLitGUI
     {
+        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Tesselation); } }
+
         protected static class Styles
         {
             public static string InputsText = "Inputs";
@@ -86,7 +88,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Transparency
             public static string refractionModelText = "Refraction Model";
-            public static GUIContent refractionProjectionModelText = new GUIContent("SSRay Model", "Screen Space Ray Model");
             public static GUIContent refractionIorText = new GUIContent("Index of refraction", "Index of refraction");
             public static GUIContent refractionThicknessText = new GUIContent("Refraction Thickness", "Thickness for rough refraction");
             public static GUIContent refractionThicknessMultiplierText = new GUIContent("Refraction Thickness multiplier (m)", "Thickness multiplier");
@@ -808,7 +809,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             var mode = (ScreenSpaceLighting.RefractionModel)refractionModel.floatValue;
                             if (mode != ScreenSpaceLighting.RefractionModel.None)
                             {
-                                m_MaterialEditor.ShaderProperty(ssrefractionProjectionModel, Styles.refractionProjectionModelText);
                                 m_MaterialEditor.ShaderProperty(ior, Styles.refractionIorText);
 
                                 blendMode.floatValue = (float)BlendMode.Alpha;
@@ -973,14 +973,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == BaseLitGUI.MaterialId.LitSpecular);
 
             var refractionModelValue = (ScreenSpaceLighting.RefractionModel)material.GetFloat(kRefractionModel);
-            var refractionProjectionModelValue = (ScreenSpaceLighting.ProjectionModel)material.GetFloat(kSSRefractionProjectionModel);
             // We can't have refraction in pre-refraction queue
             var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
             CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceLighting.RefractionModel.Plane) && canHaveRefraction);
             CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceLighting.RefractionModel.Sphere) && canHaveRefraction);
             CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
-            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_PROXY", (refractionProjectionModelValue == ScreenSpaceLighting.ProjectionModel.Proxy) && canHaveRefraction);
-            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_HIZ", (refractionProjectionModelValue == ScreenSpaceLighting.ProjectionModel.HiZ) && canHaveRefraction);
         }
     }
 } // namespace UnityEditor

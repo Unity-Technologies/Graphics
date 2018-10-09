@@ -93,20 +93,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                             field.OnValueChanged(ChangeRefractionModel);
                         });
                     });
-
-                    if (m_Node.refractionModel != ScreenSpaceLighting.RefractionModel.None)
-                    {
-                        ++indentLevel;
-                        ps.Add(new PropertyRow(CreateLabel("SSRay Model", indentLevel)), (row) =>
-                        {
-                            row.Add(new EnumField(HDLitMasterNode.ProjectionModelLit.Proxy), (field) =>
-                            {
-                                field.value = m_Node.projectionModel;
-                                field.OnValueChanged(ChangeProjectionModel);
-                            });
-                        });
-                        --indentLevel;
-                    }
                 }
 
                 ps.Add(new PropertyRow(CreateLabel("Distortion", indentLevel)), (row) =>
@@ -345,15 +331,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Refraction Model Change");
             m_Node.refractionModel = (ScreenSpaceLighting.RefractionModel)evt.newValue;
-        }
-
-        void ChangeProjectionModel(ChangeEvent<Enum> evt)
-        {
-            if (Equals(m_Node.projectionModel, evt.newValue))
-                return;
-
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Projection Model Change");
-            m_Node.projectionModel = (HDLitMasterNode.ProjectionModelLit)evt.newValue;
         }
 
         void ChangeDistortion(ChangeEvent<bool> evt)

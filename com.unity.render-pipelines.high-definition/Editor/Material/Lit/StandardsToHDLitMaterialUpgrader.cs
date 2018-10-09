@@ -205,7 +205,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             Color hdrEmission = srcMaterial.GetColor("_EmissionColor");
-            dstMaterial.SetColor("_EmissiveColor", (srcMaterial.GetFloat("_EmissionEnabled") != 0)?hdrEmission: Color.black);
+            
+            // Get the _EMISSION keyword of the Standard shader
+            if ( !srcMaterial.IsKeywordEnabled("_EMISSION") )
+                hdrEmission = Color.black;
+            
+            // Emission toggle of Particle Standard Surface
+            if( srcMaterial.HasProperty("_EmissionEnabled") )
+                if (srcMaterial.GetFloat("_EmissionEnabled") == 0)
+                    hdrEmission = Color.black;
+            
+            dstMaterial.SetColor("_EmissiveColor", hdrEmission);
 
             HDEditorUtils.ResetMaterialKeywords(dstMaterial);
         }

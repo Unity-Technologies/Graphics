@@ -1089,10 +1089,10 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: 2128
-    y: 1129.0001
-    width: 2999
-    height: 2535
+    x: 2120
+    y: 1121
+    width: 3005
+    height: 2636
 --- !u!114 &114186800031931440
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1202,7 +1202,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: 
+  m_Name: 12_LocalTransformations
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
@@ -1229,6 +1229,9 @@ MonoBehaviour:
   - {fileID: 114003804114048552}
   - {fileID: 114681892207708810}
   - {fileID: 114289209455447334}
+  - {fileID: 8926484042661614600}
+  - {fileID: 8926484042661614613}
+  - {fileID: 8926484042661614616}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
@@ -1575,32 +1578,6 @@ MonoBehaviour:
   attribute: pivot
   location: 0
   mask: xyz
---- !u!114 &114303185547374634
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
-  m_Name: SetAttribute
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114680159770969686}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_UISuperCollapsed: 0
-  m_InputSlots:
-  - {fileID: 8926484042661614573}
-  m_OutputSlots: []
-  m_Disabled: 1
-  attribute: size
-  Composition: 0
-  Source: 0
-  Random: 0
-  channels: 2
 --- !u!114 &114304094525003352
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3129,8 +3106,8 @@ MonoBehaviour:
   - {fileID: 114749855709817902}
   - {fileID: 114181110538292594}
   - {fileID: 114815576562162648}
-  - {fileID: 114720462160470014}
-  - {fileID: 114303185547374634}
+  - {fileID: 8926484042661614603}
+  - {fileID: 8926484042661614591}
   m_UIPosition: {x: 2859.964, y: 2972.4434}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
@@ -3399,32 +3376,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114720462160470014
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
-  m_Name: SetAttribute
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114680159770969686}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_UISuperCollapsed: 0
-  m_InputSlots:
-  - {fileID: 8926484042661614572}
-  m_OutputSlots: []
-  m_Disabled: 1
-  attribute: size
-  Composition: 0
-  Source: 0
-  Random: 0
-  channels: 0
 --- !u!114 &114733244951243014
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4078,10 +4029,11 @@ MonoBehaviour:
   m_Parent: {fileID: 114200456888616874}
   m_Children:
   - {fileID: 114913164736257490}
+  - {fileID: 8926484042661614608}
   - {fileID: 114035107686816486}
   - {fileID: 114881672630147704}
   - {fileID: 114077051982172570}
-  m_UIPosition: {x: 3844.559, y: 2209.959}
+  m_UIPosition: {x: 3921, y: 2210}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4923,21 +4875,21 @@ VisualEffectResource:
       \           attributeBuffer.Store((index * 0x8 + 0x103) << 2,asuint(sizeX));\n
       \           attributeBuffer.Store((index * 0x8 + 0x104) << 2,asuint(sizeY));\n
       \           attributeBuffer.Store3((index * 0x8 + 0x100) << 2,asuint(position));\n
-      \           attributeBuffer.Store3((index * 0x4 + 0x900) << 2,asuint(pivot));\n
-      \           attributeBuffer.Store((index * 0x4 + 0xD00) << 2,asuint(angleX));\n
-      \           attributeBuffer.Store((index * 0x4 + 0xD01) << 2,asuint(angleY));\n
-      \           attributeBuffer.Store((index * 0x4 + 0xD02) << 2,asuint(angleZ));\n
-      \           attributeBuffer.Store((index * 0x4 + 0xD03) << 2,uint(alive));\n
+      \           attributeBuffer.Store3((index * 0x8 + 0x900) << 2,asuint(pivot));\n
+      \           attributeBuffer.Store((index * 0x8 + 0x903) << 2,asuint(angleX));\n
+      \           attributeBuffer.Store((index * 0x8 + 0x904) << 2,asuint(angleY));\n
+      \           attributeBuffer.Store((index * 0x8 + 0x905) << 2,asuint(angleZ));\n
+      \           attributeBuffer.Store((index * 0x8 + 0x906) << 2,uint(alive));\n
       \           attributeBuffer.Store((index * 0x1 + 0x1100) << 2,asuint(age));\n
       \           \n\n        }\n#else\n        uint index = particleIndex;\n        attributeBuffer.Store((index
       * 0x1 + 0x0) << 2,asuint(lifetime));\n        attributeBuffer.Store((index *
       0x8 + 0x103) << 2,asuint(sizeX));\n        attributeBuffer.Store((index * 0x8
       + 0x104) << 2,asuint(sizeY));\n        attributeBuffer.Store3((index * 0x8 +
-      0x100) << 2,asuint(position));\n        attributeBuffer.Store3((index * 0x4
-      + 0x900) << 2,asuint(pivot));\n        attributeBuffer.Store((index * 0x4 +
-      0xD00) << 2,asuint(angleX));\n        attributeBuffer.Store((index * 0x4 + 0xD01)
-      << 2,asuint(angleY));\n        attributeBuffer.Store((index * 0x4 + 0xD02) <<
-      2,asuint(angleZ));\n        attributeBuffer.Store((index * 0x4 + 0xD03) << 2,uint(alive));\n
+      0x100) << 2,asuint(position));\n        attributeBuffer.Store3((index * 0x8
+      + 0x900) << 2,asuint(pivot));\n        attributeBuffer.Store((index * 0x8 +
+      0x903) << 2,asuint(angleX));\n        attributeBuffer.Store((index * 0x8 + 0x904)
+      << 2,asuint(angleY));\n        attributeBuffer.Store((index * 0x8 + 0x905) <<
+      2,asuint(angleZ));\n        attributeBuffer.Store((index * 0x8 + 0x906) << 2,uint(alive));\n
       \       attributeBuffer.Store((index * 0x1 + 0x1100) << 2,asuint(age));\n        \n\n#endif\n
       \   }\n}\n"
   - compute: 1
@@ -4946,8 +4898,8 @@ VisualEffectResource:
       64\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_PIVOT_CURRENT 1\n#define
       VFX_USE_ANGLEX_CURRENT 1\n#define VFX_USE_ANGLEY_CURRENT 1\n#define VFX_USE_ANGLEZ_CURRENT
       1\n#define VFX_USE_ALIVE_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_WORLD_SPACE
-      1\n\n\nCBUFFER_START(parameters)\n    float3 Pivot_a;\n    float Angle_b;\n
-      \   float Angle_c;\n    float Angle_d;\n    float deltaTime_e;\n    uint PADDING_0;\nCBUFFER_END\n\n\n#include
+      1\n\n\nCBUFFER_START(parameters)\n    float3 Pivot_a;\n    float Angle_c;\n
+      \   float Angle_d;\n    float Angle_e;\n    float deltaTime_f;\n    uint PADDING_0;\nCBUFFER_END\n\n\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
       attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nAppendStructuredBuffer<uint>
@@ -4955,7 +4907,9 @@ VisualEffectResource:
       indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n    uint nbMax;\n\tuint
       dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\nvoid SetAttribute_8470CB66(inout
       float3 pivot, float3 Pivot) /*attribute:pivot Composition:Overwrite Source:Slot
-      Random:Off channels:XYZ */\n{\n    pivot = Pivot;\n}\nvoid SetAttribute_68C856E(inout
+      Random:Off channels:XYZ */\n{\n    pivot = Pivot;\n}\nvoid SetAttribute_7CFB493C(inout
+      float3 pivot, float3 Pivot) /*attribute:pivot Composition:Scale Source:Slot
+      Random:Off channels:XYZ */\n{\n    pivot *= Pivot;\n}\nvoid SetAttribute_68C856E(inout
       float angleX, float Angle) /*attribute:angle Composition:Add Source:Slot Random:Off
       channels:X */\n{\n    angleX += Angle.x;\n}\nvoid SetAttribute_68C856F(inout
       float angleY, float Angle) /*attribute:angle Composition:Add Source:Slot Random:Off
@@ -4968,40 +4922,43 @@ VisualEffectResource:
       \   : SV_GroupThreadID)\n{\n\tuint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP
       + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif
       (id < nbMax)\n\t{\n#if VFX_USE_ALIVE_CURRENT\n\t\tbool alive = (attributeBuffer.Load((index
-      * 0x4 + 0xD03) << 2));\n\t\t\n\n\t\tif (alive)\n\t\t{\n\t\t\tfloat lifetime
+      * 0x8 + 0x906) << 2));\n\t\t\n\n\t\tif (alive)\n\t\t{\n\t\t\tfloat lifetime
       = asfloat(attributeBuffer.Load((index * 0x1 + 0x0) << 2));\n\t\t\tfloat3 pivot
-      = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\tfloat angleX
-      = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\tfloat angleY
-      = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\tfloat angleZ
-      = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\tfloat age
+      = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\tfloat angleX
+      = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\tfloat angleY
+      = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\tfloat angleZ
+      = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\tfloat age
       = asfloat(attributeBuffer.Load((index * 0x1 + 0x1100) << 2));\n\t\t\t\n\n\t\t\t\n#if
       VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition = position;\n#endif\n\t\t\t\n\t\t\tSetAttribute_8470CB66(
-      /*inout */pivot, Pivot_a);\n\t\t\tSetAttribute_68C856E( /*inout */angleX, Angle_b);\n\t\t\tSetAttribute_68C856F(
-      /*inout */angleY, Angle_c);\n\t\t\tSetAttribute_68C856C( /*inout */angleZ, Angle_d);\n\t\t\tAge(
-      /*inout */age, deltaTime_e);\n\t\t\tReap(age, lifetime,  /*inout */alive);\n\t\t\t\n\n\t\t\tif
-      (alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index * 0x4 + 0x900) << 2,asuint(pivot));\n\t\t\t\tattributeBuffer.Store((index
-      * 0x4 + 0xD00) << 2,asuint(angleX));\n\t\t\t\tattributeBuffer.Store((index *
-      0x4 + 0xD01) << 2,asuint(angleY));\n\t\t\t\tattributeBuffer.Store((index * 0x4
-      + 0xD02) << 2,asuint(angleZ));\n\t\t\t\tattributeBuffer.Store((index * 0x1 +
-      0x1100) << 2,asuint(age));\n\t\t\t\t\n\n#if VFX_HAS_INDIRECT_DRAW\n                uint
+      /*inout */pivot, Pivot_a);\n\t\t\t{\n\t\t\t    SetAttribute_7CFB493C( /*inout
+      */pivot, float3(0.5,0.5,0.5));\n\t\t\t}\n\t\t\tSetAttribute_68C856E( /*inout
+      */angleX, Angle_c);\n\t\t\tSetAttribute_68C856F( /*inout */angleY, Angle_d);\n\t\t\tSetAttribute_68C856C(
+      /*inout */angleZ, Angle_e);\n\t\t\tAge( /*inout */age, deltaTime_f);\n\t\t\tReap(age,
+      lifetime,  /*inout */alive);\n\t\t\t\n\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index
+      * 0x8 + 0x900) << 2,asuint(pivot));\n\t\t\t\tattributeBuffer.Store((index *
+      0x8 + 0x903) << 2,asuint(angleX));\n\t\t\t\tattributeBuffer.Store((index * 0x8
+      + 0x904) << 2,asuint(angleY));\n\t\t\t\tattributeBuffer.Store((index * 0x8 +
+      0x905) << 2,asuint(angleZ));\n\t\t\t\tattributeBuffer.Store((index * 0x1 + 0x1100)
+      << 2,asuint(age));\n\t\t\t\t\n\n#if VFX_HAS_INDIRECT_DRAW\n                uint
       indirectIndex = indirectBuffer.IncrementCounter();\n\t\t\t\tindirectBuffer[indirectIndex]
       = index;\n#endif\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tattributeBuffer.Store((index
-      * 0x4 + 0xD03) << 2,uint(alive));\n\t\t\t\t\n\n\t\t\t\tdeadListOut.Append(index);\n\t\t\t}\n\t\t}\n#else\n\t\tfloat
+      * 0x8 + 0x906) << 2,uint(alive));\n\t\t\t\t\n\n\t\t\t\tdeadListOut.Append(index);\n\t\t\t}\n\t\t}\n#else\n\t\tfloat
       lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x0) << 2));\n\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\tfloat age =
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\tbool
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\tfloat age =
       asfloat(attributeBuffer.Load((index * 0x1 + 0x1100) << 2));\n\t\t\n\n\t\t\n#if
       VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition = position;\n#endif\n\t\t\n\t\tSetAttribute_8470CB66(
-      /*inout */pivot, Pivot_a);\n\t\tSetAttribute_68C856E( /*inout */angleX, Angle_b);\n\t\tSetAttribute_68C856F(
-      /*inout */angleY, Angle_c);\n\t\tSetAttribute_68C856C( /*inout */angleZ, Angle_d);\n\t\tAge(
-      /*inout */age, deltaTime_e);\n\t\tReap(age, lifetime,  /*inout */alive);\n\t\t\n\n\t\tattributeBuffer.Store3((index
-      * 0x4 + 0x900) << 2,asuint(pivot));\n\t\tattributeBuffer.Store((index * 0x4
-      + 0xD00) << 2,asuint(angleX));\n\t\tattributeBuffer.Store((index * 0x4 + 0xD01)
-      << 2,asuint(angleY));\n\t\tattributeBuffer.Store((index * 0x4 + 0xD02) << 2,asuint(angleZ));\n\t\tattributeBuffer.Store((index
-      * 0x4 + 0xD03) << 2,uint(alive));\n\t\tattributeBuffer.Store((index * 0x1 +
+      /*inout */pivot, Pivot_a);\n\t\t{\n\t\t    SetAttribute_7CFB493C( /*inout */pivot,
+      float3(0.5,0.5,0.5));\n\t\t}\n\t\tSetAttribute_68C856E( /*inout */angleX, Angle_c);\n\t\tSetAttribute_68C856F(
+      /*inout */angleY, Angle_d);\n\t\tSetAttribute_68C856C( /*inout */angleZ, Angle_e);\n\t\tAge(
+      /*inout */age, deltaTime_f);\n\t\tReap(age, lifetime,  /*inout */alive);\n\t\t\n\n\t\tattributeBuffer.Store3((index
+      * 0x8 + 0x900) << 2,asuint(pivot));\n\t\tattributeBuffer.Store((index * 0x8
+      + 0x903) << 2,asuint(angleX));\n\t\tattributeBuffer.Store((index * 0x8 + 0x904)
+      << 2,asuint(angleY));\n\t\tattributeBuffer.Store((index * 0x8 + 0x905) << 2,asuint(angleZ));\n\t\tattributeBuffer.Store((index
+      * 0x8 + 0x906) << 2,uint(alive));\n\t\tattributeBuffer.Store((index * 0x1 +
       0x1100) << 2,asuint(age));\n\t\t\n\n#if VFX_HAS_INDIRECT_DRAW\n        uint
       indirectIndex = indirectBuffer.IncrementCounter();\n\t\tindirectBuffer[indirectIndex]
       = index;\n#endif\n#endif\n\t}\n}\n"
@@ -5018,12 +4975,13 @@ VisualEffectResource:
       VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\n\t\t#define
       VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT
       1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define
-      VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define IS_OPAQUE_PARTICLE
-      1\n\t\t#define USE_ALPHA_TEST 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_WORLD_SPACE
-      1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float3 Position_b;\n\t\t    uint
-      PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
-      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
-      IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
+      VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_SIZEZ_CURRENT
+      1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_WORLD_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float3 Position_b;\n\t\t
+      \   uint PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D mainTexture;\n\t\tSamplerState
+      samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
+      (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define IS_TRANSPARENT_PARTICLE
+      (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
       indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
       deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
@@ -5057,27 +5015,27 @@ VisualEffectResource:
       sizeX = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_8470CB66( /*inout */pivot, float3(0,0,0));\n\t\t\t\t}\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_b);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id
@@ -5085,8 +5043,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -5147,27 +5105,27 @@ VisualEffectResource:
       sizeX = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_8470CB66( /*inout */pivot, float3(0,0,0));\n\t\t\t\t}\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_b);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id
@@ -5175,8 +5133,8 @@ VisualEffectResource:
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;\n\t\t\t\tconst float4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -5219,11 +5177,12 @@ VisualEffectResource:
       VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT
       1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define
       VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_TARGETPOSITION_CURRENT
-      1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST 1\n\t\t#define
-      TARGET_FROM_ATTRIBUTES 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_WORLD_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
-      \   float3 Position_c;\n\t\t    uint PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define
-      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
-      IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
+      1\n\t\t#define VFX_USE_SIZEZ_CURRENT 1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define
+      USE_ALPHA_TEST 1\n\t\t#define TARGET_FROM_ATTRIBUTES 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_WORLD_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float3 Position_c;\n\t\t
+      \   uint PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
+      (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define IS_TRANSPARENT_PARTICLE
+      (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
       indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
       deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
@@ -5255,27 +5214,28 @@ VisualEffectResource:
       * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat sizeY = asfloat(attributeBuffer.Load((index
       * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3 pivot = asfloat(attributeBuffer.Load3((index
-      * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
       alpha = (float)1;\n\t\t\t\t\t\t\tbool alive = (attributeBuffer.Load((index *
-      0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3
-      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_FA287C3A( /*inout */alpha, (float)1);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_CA95FE17( /*inout */color, float3(1,0,0));\n\t\t\t\t}\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_c);\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
@@ -5286,7 +5246,7 @@ VisualEffectResource:
       elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(1,0,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
-      = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
+      = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
       pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
       ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
       dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
@@ -5353,27 +5313,28 @@ VisualEffectResource:
       * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat sizeY = asfloat(attributeBuffer.Load((index
       * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3 pivot = asfloat(attributeBuffer.Load3((index
-      * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
       alpha = (float)1;\n\t\t\t\t\t\t\tbool alive = (attributeBuffer.Load((index *
-      0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3
-      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_FA287C3A( /*inout */alpha, (float)1);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_CA95FE17( /*inout */color, float3(1,0,0));\n\t\t\t\t}\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_c);\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
@@ -5384,7 +5345,7 @@ VisualEffectResource:
       elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(1,0,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
-      = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
+      = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
       pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
       ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
       dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
@@ -5433,11 +5394,12 @@ VisualEffectResource:
       VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT
       1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define
       VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_TARGETPOSITION_CURRENT
-      1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST 1\n\t\t#define
-      TARGET_FROM_ATTRIBUTES 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_WORLD_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
-      \   float3 Position_c;\n\t\t    uint PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define
-      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
-      IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
+      1\n\t\t#define VFX_USE_SIZEZ_CURRENT 1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define
+      USE_ALPHA_TEST 1\n\t\t#define TARGET_FROM_ATTRIBUTES 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_WORLD_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float3 Position_c;\n\t\t
+      \   uint PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
+      (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define IS_TRANSPARENT_PARTICLE
+      (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
       indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
       deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
@@ -5469,27 +5431,28 @@ VisualEffectResource:
       * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat sizeY = asfloat(attributeBuffer.Load((index
       * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3 pivot = asfloat(attributeBuffer.Load3((index
-      * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
       alpha = (float)1;\n\t\t\t\t\t\t\tbool alive = (attributeBuffer.Load((index *
-      0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3
-      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_FA287C3A( /*inout */alpha, (float)1);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_CA95FE17( /*inout */color, float3(0,1,0));\n\t\t\t\t}\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_c);\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
@@ -5500,7 +5463,7 @@ VisualEffectResource:
       elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,0.5,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
-      = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
+      = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
       pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
       ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
       dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
@@ -5567,27 +5530,28 @@ VisualEffectResource:
       * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat sizeY = asfloat(attributeBuffer.Load((index
       * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3 pivot = asfloat(attributeBuffer.Load3((index
-      * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
       alpha = (float)1;\n\t\t\t\t\t\t\tbool alive = (attributeBuffer.Load((index *
-      0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3
-      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_FA287C3A( /*inout */alpha, (float)1);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_CA95FE17( /*inout */color, float3(0,1,0));\n\t\t\t\t}\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_c);\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
@@ -5598,7 +5562,7 @@ VisualEffectResource:
       elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,0.5,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
-      = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
+      = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
       pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
       ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
       dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
@@ -5647,11 +5611,12 @@ VisualEffectResource:
       VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT
       1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define
       VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_TARGETPOSITION_CURRENT
-      1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST 1\n\t\t#define
-      TARGET_FROM_ATTRIBUTES 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_WORLD_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
-      \   float3 Position_c;\n\t\t    uint PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define
-      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
-      IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
+      1\n\t\t#define VFX_USE_SIZEZ_CURRENT 1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define
+      USE_ALPHA_TEST 1\n\t\t#define TARGET_FROM_ATTRIBUTES 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_WORLD_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float3 Position_c;\n\t\t
+      \   uint PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
+      (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define IS_TRANSPARENT_PARTICLE
+      (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
       indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
       deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
@@ -5683,27 +5648,28 @@ VisualEffectResource:
       * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat sizeY = asfloat(attributeBuffer.Load((index
       * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3 pivot = asfloat(attributeBuffer.Load3((index
-      * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
       alpha = (float)1;\n\t\t\t\t\t\t\tbool alive = (attributeBuffer.Load((index *
-      0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3
-      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_FA287C3A( /*inout */alpha, (float)1);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_CA95FE17( /*inout */color, float3(0,0,1));\n\t\t\t\t}\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_c);\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
@@ -5714,7 +5680,7 @@ VisualEffectResource:
       elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,0,1);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
-      = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
+      = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
       pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
       ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
       dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
@@ -5781,27 +5747,28 @@ VisualEffectResource:
       * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat sizeY = asfloat(attributeBuffer.Load((index
       * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3 pivot = asfloat(attributeBuffer.Load3((index
-      * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
       alpha = (float)1;\n\t\t\t\t\t\t\tbool alive = (attributeBuffer.Load((index *
-      0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3
-      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat3 targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_FA287C3A( /*inout */alpha, (float)1);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   SetAttribute_CA95FE17( /*inout */color, float3(0,0,1));\n\t\t\t\t}\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_c);\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
@@ -5812,7 +5779,7 @@ VisualEffectResource:
       elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,0,1);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
-      = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
+      = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
       pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
       ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
       dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
@@ -5860,12 +5827,13 @@ VisualEffectResource:
       VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\n\t\t#define
       VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT
       1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define
-      VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define IS_OPAQUE_PARTICLE
-      1\n\t\t#define USE_ALPHA_TEST 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_WORLD_SPACE
-      1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float3 Position_a;\n\t\t    uint
-      PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
-      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
-      IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
+      VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_SIZEZ_CURRENT
+      1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_WORLD_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float3 Position_a;\n\t\t
+      \   uint PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D mainTexture;\n\t\tSamplerState
+      samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
+      (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define IS_TRANSPARENT_PARTICLE
+      (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
       indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
       deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
@@ -5892,46 +5860,55 @@ VisualEffectResource:
       float sizeY, float Size) /*attribute:size Composition:Overwrite Source:Slot
       Random:Off channels:Y */\n\t\t\t{\n\t\t\t    sizeY = Size.x;\n\t\t\t}\n\t\t\tvoid
       SetAttribute_8470CB66(inout float3 pivot, float3 Pivot) /*attribute:pivot Composition:Overwrite
-      Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    pivot = Pivot;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct
-      vs_input\n\t\t\t{\n\t\t\t\tfloat3 pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\tfloat3 normal : NORMAL;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
-      VFX_VARYING_TANGENT\n\t\t\t\tfloat4 tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma
-      vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID :
-      SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = instanceID;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if
-      USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn
-      o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    pivot = Pivot;\n\t\t\t}\n\t\t\tvoid
+      SetAttribute_7CFB493C(inout float3 pivot, float3 Pivot) /*attribute:pivot Composition:Scale
+      Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    pivot *= Pivot;\n\t\t\t}\n\t\t\tvoid
+      SetAttribute_3EF6CFBF(inout float sizeX, inout float sizeY, inout float sizeZ,
+      float3 Size) /*attribute:size Composition:Scale Source:Slot Random:Off channels:XYZ
+      */\n\t\t\t{\n\t\t\t    sizeX *= Size.x;\n\t\t\t    sizeY *= Size.y;\n\t\t\t
+      \   sizeZ *= Size.z;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
+      pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat3
+      normal : NORMAL;\n\t\t\t\t#endif\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\tfloat4
+      tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
+      vert(vs_input i, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index
+      = instanceID;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex
+      = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat sizeX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat sizeY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
+      * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3 pivot = asfloat(attributeBuffer.Load3((index
+      * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      alpha = (float)1;\n\t\t\t\t\t\t\tbool alive = (attributeBuffer.Load((index *
+      0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
+      sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tOrient_2(
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_a);\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_v = sizeY / (float)2;\n\t\t\t\t    SetAttribute_37814D90( /*inout
-      */sizeY, tmp_v);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    float tmp_u = pivot[0];\n\t\t\t\t
-      \   float tmp_v = pivot[1];\n\t\t\t\t    float tmp_x = tmp_v * (float)2;\n\t\t\t\t
-      \   float tmp_y = pivot[2];\n\t\t\t\t    float3 tmp_z = float3(tmp_u, tmp_x,
-      tmp_y);\n\t\t\t\t    SetAttribute_8470CB66( /*inout */pivot, tmp_z);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
-      (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      \   float tmp_w = sizeY / (float)2;\n\t\t\t\t    SetAttribute_37814D90( /*inout
+      */sizeY, tmp_w);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    float tmp_v = pivot[0];\n\t\t\t\t
+      \   float tmp_w = pivot[1];\n\t\t\t\t    float tmp_y = tmp_w * (float)2;\n\t\t\t\t
+      \   float tmp_z = pivot[2];\n\t\t\t\t    float3 tmp_ba = float3(tmp_v, tmp_y,
+      tmp_z);\n\t\t\t\t    SetAttribute_8470CB66( /*inout */pivot, tmp_ba);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_7CFB493C( /*inout */pivot, float3(2,2,2));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_3EF6CFBF( /*inout */sizeX,  /*inout */sizeY,  /*inout */sizeZ,
+      float3(0.5,0.5,0.5));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
+      o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat4x4
@@ -5985,46 +5962,55 @@ VisualEffectResource:
       float sizeY, float Size) /*attribute:size Composition:Overwrite Source:Slot
       Random:Off channels:Y */\n\t\t\t{\n\t\t\t    sizeY = Size.x;\n\t\t\t}\n\t\t\tvoid
       SetAttribute_8470CB66(inout float3 pivot, float3 Pivot) /*attribute:pivot Composition:Overwrite
-      Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    pivot = Pivot;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct
-      vs_input\n\t\t\t{\n\t\t\t\tfloat3 pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\tfloat3 normal : NORMAL;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
-      VFX_VARYING_TANGENT\n\t\t\t\tfloat4 tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma
-      vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID :
-      SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = instanceID;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if
-      USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn
-      o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    pivot = Pivot;\n\t\t\t}\n\t\t\tvoid
+      SetAttribute_7CFB493C(inout float3 pivot, float3 Pivot) /*attribute:pivot Composition:Scale
+      Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    pivot *= Pivot;\n\t\t\t}\n\t\t\tvoid
+      SetAttribute_3EF6CFBF(inout float sizeX, inout float sizeY, inout float sizeZ,
+      float3 Size) /*attribute:size Composition:Scale Source:Slot Random:Off channels:XYZ
+      */\n\t\t\t{\n\t\t\t    sizeX *= Size.x;\n\t\t\t    sizeY *= Size.y;\n\t\t\t
+      \   sizeZ *= Size.z;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
+      pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat3
+      normal : NORMAL;\n\t\t\t\t#endif\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\tfloat4
+      tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
+      vert(vs_input i, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index
+      = instanceID;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex
+      = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat sizeX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat sizeY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
+      * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3 pivot = asfloat(attributeBuffer.Load3((index
+      * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat angleX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat angleY = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      alpha = (float)1;\n\t\t\t\t\t\t\tbool alive = (attributeBuffer.Load((index *
+      0x8 + 0x906) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
+      sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x4 + 0xD03) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
+      alive = (attributeBuffer.Load((index * 0x8 + 0x906) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat sizeX
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x103) << 2));\n\t\t\t\t\t\t\tfloat
       sizeY = asfloat(attributeBuffer.Load((index * 0x8 + 0x104) << 2));\n\t\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x100) << 2));\n\t\t\t\t\t\t\tfloat3
-      pivot = asfloat(attributeBuffer.Load3((index * 0x4 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
-      angleX = asfloat(attributeBuffer.Load((index * 0x4 + 0xD00) << 2));\n\t\t\t\t\t\t\tfloat
-      angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0xD01) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0xD02) << 2));\n\t\t\t\t\t\t\tfloat3
+      pivot = asfloat(attributeBuffer.Load3((index * 0x8 + 0x900) << 2));\n\t\t\t\t\t\t\tfloat
+      angleX = asfloat(attributeBuffer.Load((index * 0x8 + 0x903) << 2));\n\t\t\t\t\t\t\tfloat
+      angleY = asfloat(attributeBuffer.Load((index * 0x8 + 0x904) << 2));\n\t\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x8 + 0x905) << 2));\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tOrient_2(
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tOrient_2(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position, Position_a);\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_v = sizeY / (float)2;\n\t\t\t\t    SetAttribute_37814D90( /*inout
-      */sizeY, tmp_v);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    float tmp_u = pivot[0];\n\t\t\t\t
-      \   float tmp_v = pivot[1];\n\t\t\t\t    float tmp_x = tmp_v * (float)2;\n\t\t\t\t
-      \   float tmp_y = pivot[2];\n\t\t\t\t    float3 tmp_z = float3(tmp_u, tmp_x,
-      tmp_y);\n\t\t\t\t    SetAttribute_8470CB66( /*inout */pivot, tmp_z);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
-      (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      \   float tmp_w = sizeY / (float)2;\n\t\t\t\t    SetAttribute_37814D90( /*inout
+      */sizeY, tmp_w);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    float tmp_v = pivot[0];\n\t\t\t\t
+      \   float tmp_w = pivot[1];\n\t\t\t\t    float tmp_y = tmp_w * (float)2;\n\t\t\t\t
+      \   float tmp_z = pivot[2];\n\t\t\t\t    float3 tmp_ba = float3(tmp_v, tmp_y,
+      tmp_z);\n\t\t\t\t    SetAttribute_8470CB66( /*inout */pivot, tmp_ba);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_7CFB493C( /*inout */pivot, float3(2,2,2));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_3EF6CFBF( /*inout */sizeX,  /*inout */sizeY,  /*inout */sizeZ,
+      float3(0.5,0.5,0.5));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
+      o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat4x4
@@ -6074,15 +6060,15 @@ VisualEffectResource:
         data[1]: 1
         data[2]: -1
         data[3]: 1
-      - op: 1
+      - op: 11
         valueIndex: 3
-        data[0]: -1
+        data[0]: 2
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 11
+      - op: 1
         valueIndex: 4
-        data[0]: 2
+        data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 1
@@ -6092,58 +6078,58 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 1
+      - op: 12
         valueIndex: 6
+        data[0]: 2
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 21
+        valueIndex: 7
+        data[0]: 3
+        data[1]: 4
+        data[2]: -1
+        data[3]: 1
+      - op: 6
+        valueIndex: 8
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 3
+        data[3]: -1
       - op: 1
         valueIndex: 9
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 1
         valueIndex: 10
-        data[0]: 4
-        data[1]: 3
+        data[0]: -1
+        data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 9
+      - op: 1
         valueIndex: 11
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: -1
-      - op: 12
-        valueIndex: 27
-        data[0]: 2
+        data[3]: 1
+      - op: 9
+        valueIndex: 12
+        data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
+        data[3]: -1
       - op: 1
         valueIndex: 28
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
+        data[3]: 3
       - op: 1
-        valueIndex: 29
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 6
-        valueIndex: 30
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: -1
-      - op: 21
         valueIndex: 31
-        data[0]: 13
-        data[1]: 7
+        data[0]: -1
+        data[1]: -1
         data[2]: -1
         data[3]: 1
       - op: 1
@@ -6151,73 +6137,73 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 3
-      - op: 1
-        valueIndex: 35
-        data[0]: -1
-        data[1]: -1
+        data[3]: 1
+      - op: 21
+        valueIndex: 33
+        data[0]: 8
+        data[1]: 10
         data[2]: -1
-        data[3]: 3
+        data[3]: 1
       - op: 1
-        valueIndex: 38
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 7
-      - op: 1
-        valueIndex: 40
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 3
-      - op: 1
-        valueIndex: 43
+        valueIndex: 34
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 1
       - op: 21
-        valueIndex: 44
-        data[0]: 13
-        data[1]: 5
+        valueIndex: 35
+        data[0]: 8
+        data[1]: 9
         data[2]: -1
         data[3]: 1
       - op: 1
-        valueIndex: 45
+        valueIndex: 36
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 3
       - op: 1
-        valueIndex: 48
+        valueIndex: 39
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 42
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 7
       - op: 1
-        valueIndex: 50
+        valueIndex: 44
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
+        data[3]: 3
       - op: 1
-        valueIndex: 51
+        valueIndex: 47
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
+        data[3]: 7
+      - op: 1
+        valueIndex: 49
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
       - op: 1
         valueIndex: 52
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
+        data[3]: 3
       - op: 1
-        valueIndex: 53
+        valueIndex: 55
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 3
+        data[3]: 6
       - op: 1
         valueIndex: 56
         data[0]: -1
@@ -6229,19 +6215,19 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 6
-      - op: 35
-        valueIndex: 59
-        data[0]: 9
-        data[1]: 6
-        data[2]: -1
-        data[3]: -1
+        data[3]: 3
       - op: 1
-        valueIndex: 62
+        valueIndex: 61
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 3
+        data[3]: 1
+      - op: 3
+        valueIndex: 62
+        data[0]: 7
+        data[1]: 6
+        data[2]: 5
+        data[3]: -1
       - op: 1
         valueIndex: 65
         data[0]: -1
@@ -6250,28 +6236,40 @@ VisualEffectResource:
         data[3]: 1
       - op: 21
         valueIndex: 66
-        data[0]: 13
-        data[1]: 12
-        data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 67
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 68
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 3
-        valueIndex: 69
         data[0]: 8
-        data[1]: 10
-        data[2]: 11
+        data[1]: 11
+        data[2]: -1
+        data[3]: 1
+      - op: 35
+        valueIndex: 67
+        data[0]: 12
+        data[1]: 13
+        data[2]: -1
         data[3]: -1
+      - op: 1
+        valueIndex: 70
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 71
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 72
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 75
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
       m_NeedsLocalToWorld: 1
       m_NeedsWorldToLocal: 0
     m_PropertySheet:
@@ -6279,53 +6277,57 @@ VisualEffectResource:
         m_Array:
         - m_ExpressionIndex: 1
           m_Value: 9
-        - m_ExpressionIndex: 3
+        - m_ExpressionIndex: 4
           m_Value: 2
         - m_ExpressionIndex: 5
+          m_Value: 0
+        - m_ExpressionIndex: 9
           m_Value: 300
-        - m_ExpressionIndex: 7
+        - m_ExpressionIndex: 10
           m_Value: 330
         - m_ExpressionIndex: 11
-          m_Value: 0
-        - m_ExpressionIndex: 12
           m_Value: 270
-        - m_ExpressionIndex: 19
+        - m_ExpressionIndex: 14
           m_Value: 0.5
-        - m_ExpressionIndex: 23
+        - m_ExpressionIndex: 15
           m_Value: 5
-        - m_ExpressionIndex: 24
+        - m_ExpressionIndex: 17
           m_Value: 0.1
-        - m_ExpressionIndex: 25
-          m_Value: 0.2
+        - m_ExpressionIndex: 29
+          m_Value: 6.2831855
         - m_ExpressionIndex: 31
-          m_Value: 50
-        - m_ExpressionIndex: 33
           m_Value: 1
         - m_ExpressionIndex: 34
-          m_Value: 6.2831855
+          m_Value: 0.2
+        - m_ExpressionIndex: 35
+          m_Value: 50
       m_Vector2f:
         m_Array: []
       m_Vector3f:
         m_Array:
-        - m_ExpressionIndex: 6
+        - m_ExpressionIndex: 13
           m_Value: {x: 0, y: 0, z: 0}
-        - m_ExpressionIndex: 15
-          m_Value: {x: 0, y: 0.5, z: 0}
-        - m_ExpressionIndex: 16
-          m_Value: {x: 0, y: 1, z: 0}
-        - m_ExpressionIndex: 18
+        - m_ExpressionIndex: 19
           m_Value: {x: 0, y: 0, z: 1}
-        - m_ExpressionIndex: 21
+        - m_ExpressionIndex: 20
+          m_Value: {x: 2, y: 2, z: 2}
+        - m_ExpressionIndex: 22
+          m_Value: {x: 0, y: 0.5, z: 0}
+        - m_ExpressionIndex: 24
           m_Value: {x: 1, y: 0, z: 0}
-        - m_ExpressionIndex: 26
-          m_Value: {x: 2.3968344, y: 2.3523898, z: 2.3015957}
-        - m_ExpressionIndex: 30
+        - m_ExpressionIndex: 25
+          m_Value: {x: 0, y: 1, z: 0}
+        - m_ExpressionIndex: 28
           m_Value: {x: 0.025396824, y: 0.02222228, z: 0.034921408}
+        - m_ExpressionIndex: 36
+          m_Value: {x: 2.3968344, y: 2.3523898, z: 2.3015957}
+        - m_ExpressionIndex: 37
+          m_Value: {x: 0.5, y: 0.5, z: 0.5}
       m_Vector4f:
         m_Array: []
       m_Uint:
         m_Array:
-        - m_ExpressionIndex: 28
+        - m_ExpressionIndex: 26
           m_Value: 4294967295
       m_Int:
         m_Array: []
@@ -6337,9 +6339,9 @@ VisualEffectResource:
         m_Array: []
       m_NamedObject:
         m_Array:
-        - m_ExpressionIndex: 17
+        - m_ExpressionIndex: 21
           m_Value: {fileID: 2800000, guid: 039eecbca64d7d746baf0dd7d360fe32, type: 3}
-        - m_ExpressionIndex: 22
+        - m_ExpressionIndex: 23
           m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
         - m_ExpressionIndex: 27
           m_Value: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
@@ -6378,32 +6380,32 @@ VisualEffectResource:
         type: 3
         offset:
           bucket: 2304
-          structure: 4
+          structure: 8
           element: 0
       - name: angleX
         type: 1
         offset:
-          bucket: 3328
-          structure: 4
-          element: 0
+          bucket: 2304
+          structure: 8
+          element: 3
       - name: angleY
         type: 1
         offset:
-          bucket: 3328
-          structure: 4
-          element: 1
+          bucket: 2304
+          structure: 8
+          element: 4
       - name: angleZ
         type: 1
         offset:
-          bucket: 3328
-          structure: 4
-          element: 2
+          bucket: 2304
+          structure: 8
+          element: 5
       - name: alive
         type: 17
         offset:
-          bucket: 3328
-          structure: 4
-          element: 3
+          bucket: 2304
+          structure: 8
+          element: 6
       - name: age
         type: 1
         offset:
@@ -6443,32 +6445,32 @@ VisualEffectResource:
         type: 3
         offset:
           bucket: 2304
-          structure: 4
+          structure: 8
           element: 0
       - name: angleX
         type: 1
         offset:
-          bucket: 3328
-          structure: 4
-          element: 0
+          bucket: 2304
+          structure: 8
+          element: 3
       - name: angleY
         type: 1
         offset:
-          bucket: 3328
-          structure: 4
-          element: 1
+          bucket: 2304
+          structure: 8
+          element: 4
       - name: angleZ
         type: 1
         offset:
-          bucket: 3328
-          structure: 4
-          element: 2
+          bucket: 2304
+          structure: 8
+          element: 5
       - name: alive
         type: 17
         offset:
-          bucket: 3328
-          structure: 4
-          element: 3
+          bucket: 2304
+          structure: 8
+          element: 6
       - name: age
         type: 1
         offset:
@@ -6535,7 +6537,6 @@ VisualEffectResource:
       receiveShadows: 0
       reflectionProbeUsage: 0
       lightProbeUsage: 0
-      transparencyPriority: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
   m_Systems:
@@ -6552,7 +6553,7 @@ VisualEffectResource:
       buffers: []
       values:
       - nameId: Rate
-        index: 31
+        index: 35
       params: []
       processor: {fileID: 0}
       shaderSourceIndex: -1
@@ -6573,9 +6574,9 @@ VisualEffectResource:
       index: 1
     values:
     - nameId: bounds_center
-      index: 30
+      index: 28
     - nameId: bounds_size
-      index: 26
+      index: 36
     tasks:
     - type: 536870912
       buffers:
@@ -6589,12 +6590,12 @@ VisualEffectResource:
         index: 2
       values:
       - nameId: ArcSphere_sphere_center_d
-        index: 29
+        index: 33
       params:
       - nameId: bounds_center
-        index: 30
+        index: 28
       - nameId: bounds_size
-        index: 26
+        index: 36
       processor: {fileID: 0}
       shaderSourceIndex: 0
     - type: 805306368
@@ -6605,15 +6606,15 @@ VisualEffectResource:
         index: 3
       values:
       - nameId: Pivot_a
-        index: 35
-      - nameId: Angle_b
-        index: 32
+        index: 30
       - nameId: Angle_c
-        index: 14
+        index: 32
       - nameId: Angle_d
-        index: 20
-      - nameId: deltaTime_e
-        index: 13
+        index: 16
+      - nameId: Angle_e
+        index: 18
+      - nameId: deltaTime_f
+        index: 8
       params: []
       processor: {fileID: 0}
       shaderSourceIndex: 1
@@ -6623,7 +6624,7 @@ VisualEffectResource:
         index: 0
       values:
       - nameId: Position_c
-        index: 29
+        index: 33
       params:
       - nameId: sortPriority
         index: 0
@@ -6635,7 +6636,7 @@ VisualEffectResource:
         index: 0
       values:
       - nameId: Position_c
-        index: 29
+        index: 33
       params:
       - nameId: sortPriority
         index: 0
@@ -6647,7 +6648,7 @@ VisualEffectResource:
         index: 0
       values:
       - nameId: Position_c
-        index: 29
+        index: 33
       params:
       - nameId: sortPriority
         index: 0
@@ -6659,14 +6660,14 @@ VisualEffectResource:
         index: 0
       values:
       - nameId: Position_a
-        index: 29
+        index: 33
       - nameId: mainTexture
-        index: 17
+        index: 21
       params:
       - nameId: mesh
         index: 27
       - nameId: subMeshMask
-        index: 28
+        index: 26
       - nameId: sortPriority
         index: 0
       processor: {fileID: 0}
@@ -6677,9 +6678,9 @@ VisualEffectResource:
         index: 0
       values:
       - nameId: Position_b
-        index: 29
+        index: 33
       - nameId: mainTexture
-        index: 22
+        index: 23
       params:
       - nameId: sortPriority
         index: -1
@@ -7198,7 +7199,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114200456888616874}
   m_Children: []
-  m_UIPosition: {x: 3425.0916, y: 2140.8193}
+  m_UIPosition: {x: 3352, y: 2091}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -8187,7 +8188,194 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 8926484042661614551}
---- !u!114 &8926484042661614572
+--- !u!114 &8926484042661614591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114680159770969686}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 2}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 8926484042661614596}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: size
+  Composition: 2
+  Source: 0
+  Random: 0
+  channels: 4
+--- !u!114 &8926484042661614596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 8926484042661614597}
+  - {fileID: 8926484042661614598}
+  - {fileID: 8926484042661614599}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614596}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614591}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"x":0.5,"y":0.5,"z":0.0}'
+    m_Space: 2147483647
+  m_Property:
+    name: Size
+    m_serializedType:
+      m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots:
+  - {fileID: 8926484042661614602}
+--- !u!114 &8926484042661614597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614596}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614596}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: x
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614598
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614596}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614596}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: y
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614596}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614596}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: z
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 955b0c175a6f3bb4582e92f3de8f0626, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114200456888616874}
+  m_Children: []
+  m_UIPosition: {x: 2654, y: 3621}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 1
+  m_InputSlots:
+  - {fileID: 8926484042661614601}
+  m_OutputSlots:
+  - {fileID: 8926484042661614602}
+  m_Type:
+    m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+--- !u!114 &8926484042661614601
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8204,24 +8392,24 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661614572}
+  m_MasterSlot: {fileID: 8926484042661614601}
   m_MasterData:
-    m_Owner: {fileID: 114720462160470014}
+    m_Owner: {fileID: 8926484042661614600}
     m_Value:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.075
+      m_SerializableObject: 0.5
     m_Space: 2147483647
   m_Property:
-    name: Size
+    name: 
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &8926484042661614573
+--- !u!114 &8926484042661614602
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8238,20 +8426,533 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661614573}
+  m_MasterSlot: {fileID: 8926484042661614602}
   m_MasterData:
-    m_Owner: {fileID: 114303185547374634}
+    m_Owner: {fileID: 8926484042661614600}
     m_Value:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.075
+      m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: Size
+    name: 
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 8926484042661614596}
+--- !u!114 &8926484042661614603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114680159770969686}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 355}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 8926484042661614604}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: pivot
+  Composition: 2
+  Source: 0
+  Random: 0
+  channels: 4
+--- !u!114 &8926484042661614604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 8926484042661614605}
+  - {fileID: 8926484042661614606}
+  - {fileID: 8926484042661614607}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614604}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614603}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"x":0.0,"y":0.0,"z":0.0}'
+    m_Space: 2147483647
+  m_Property:
+    name: Pivot
+    m_serializedType:
+      m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots:
+  - {fileID: 8926484042661614618}
+--- !u!114 &8926484042661614605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614604}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614604}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: x
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &8926484042661614606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614604}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614604}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: y
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614604}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614604}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: z
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114828977464085218}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 355}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 8926484042661614609}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: pivot
+  Composition: 2
+  Source: 0
+  Random: 0
+  channels: 4
+--- !u!114 &8926484042661614609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 8926484042661614610}
+  - {fileID: 8926484042661614611}
+  - {fileID: 8926484042661614612}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614609}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614608}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"x":0.0,"y":0.5,"z":0.0}'
+    m_Space: 2147483647
+  m_Property:
+    name: Pivot
+    m_serializedType:
+      m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots:
+  - {fileID: 8926484042661614615}
+--- !u!114 &8926484042661614610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614609}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614609}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: x
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614609}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614609}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: y
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 8926484042661614609}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614609}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: z
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 955b0c175a6f3bb4582e92f3de8f0626, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114200456888616874}
+  m_Children: []
+  m_UIPosition: {x: 3715, y: 2366}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 8926484042661614614}
+  m_OutputSlots:
+  - {fileID: 8926484042661614615}
+  m_Type:
+    m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+--- !u!114 &8926484042661614614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614614}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614613}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0.5
+    m_Space: 2147483647
+  m_Property:
+    name: 
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614615}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614613}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: 
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 8926484042661614609}
+--- !u!114 &8926484042661614616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 955b0c175a6f3bb4582e92f3de8f0626, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114200456888616874}
+  m_Children: []
+  m_UIPosition: {x: 2659, y: 3577}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 1
+  m_InputSlots:
+  - {fileID: 8926484042661614617}
+  m_OutputSlots:
+  - {fileID: 8926484042661614618}
+  m_Type:
+    m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+--- !u!114 &8926484042661614617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614617}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614616}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 2
+    m_Space: 2147483647
+  m_Property:
+    name: 
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614618}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614616}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 
+    m_Space: 2147483647
+  m_Property:
+    name: 
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 8926484042661614604}

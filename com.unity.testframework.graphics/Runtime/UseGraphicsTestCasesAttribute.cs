@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
+using NUnit.Framework.Internal.Builders;
 using UnityEngine.Rendering;
 using Attribute = System.Attribute;
 
@@ -9,14 +11,15 @@ namespace UnityEngine.TestTools.Graphics
 {
     /// <summary>
     /// Marks a test which takes <c>GraphicsTestCase</c> instances as wanting to have them generated automatically by
-    /// the scene/reference-image management feature in the framework. 
+    /// the scene/reference-image management feature in the framework.
     /// </summary>
-    public class UseGraphicsTestCasesAttribute : Attribute, ITestBuilder
+    public class UseGraphicsTestCasesAttribute : UnityEngine.TestTools.UnityTestAttribute, ITestBuilder
     {
         string m_ReferenceImagePath = string.Empty;
 
-        public UseGraphicsTestCasesAttribute()
-        {}
+        NUnitTestCaseBuilder _builder = new NUnitTestCaseBuilder();
+
+        public UseGraphicsTestCasesAttribute(){}
 
         public UseGraphicsTestCasesAttribute(string referenceImagePath)
         {
@@ -73,11 +76,16 @@ namespace UnityEngine.TestTools.Graphics
             {
                 foreach (var testCase in provider.GetTestCases())
                 {
-                    var test = new TestMethod(method, suite)
-                    {
-                        parms = new TestCaseParameters(new object[] {testCase})
-                    };
-                    test.parms.ApplyToTest(test);
+                    TestCaseData data = new TestCaseData( new object[]{ testCase } );
+
+                    data.SetName(System.IO.Path.GetFileNameWithoutExtension(testCase.ScenePath));
+                    data.ExpectedResult = new Object();
+                    data.HasExpectedResult = true;
+
+                    TestMethod test = this._builder.BuildTestMethod(method, suite, data);
+                    if (test.parms != null)
+                        test.parms.HasExpectedResult = false;
+
                     test.Name = System.IO.Path.GetFileNameWithoutExtension(testCase.ScenePath);
 
                     results.Add(test);
@@ -96,6 +104,15 @@ namespace UnityEngine.TestTools.Graphics
 
             Console.WriteLine("Generated {0} graphics test cases.", results.Count);
             return results;
+        }
+
+        public static GraphicsTestCase GetCaseFromScenePath(string scenePath, string referenceImagePath = null )
+        {
+            UseGraphicsTestCasesAttribute tmp = new UseGraphicsTestCasesAttribute( string.IsNullOrEmpty(referenceImagePath)? String.Empty : referenceImagePath);
+
+            var provider = tmp.Provider;
+
+            return provider.GetTestCaseFromPath(scenePath);
         }
     }
 }

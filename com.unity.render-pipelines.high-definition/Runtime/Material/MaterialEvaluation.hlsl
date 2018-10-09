@@ -109,6 +109,16 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
 void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData builtinData, AggregateLighting lighting, float3 mipmapColor,
                                     inout float3 diffuseLighting, inout float3 specularLighting)
 {
+    if (_DebugShadowMapMode != 0)
+    {
+        switch (_DebugShadowMapMode)
+        {
+        case SHADOWMAPDEBUGMODE_SINGLE_SHADOW:
+            diffuseLighting = debugShadowAttenuation.xxx;
+            specularLighting = float3(0, 0, 0);
+            break ;
+        }
+    }
     if (_DebugLightingMode != 0)
     {
         // Caution: _DebugLightingMode is used in other part of the code, don't do anything outside of
@@ -136,14 +146,10 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
-        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
-            if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-                diffuseLighting = lighting.indirect.specularTransmitted;
+        case DEBUGLIGHTINGMODE_SCREEN_SPACE_REFRACTION:
             break;
 
-        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION:
-            if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-                diffuseLighting = lighting.indirect.specularReflected;
+        case DEBUGLIGHTINGMODE_SCREEN_SPACE_REFLECTION:
             break;
 
         case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:

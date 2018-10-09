@@ -155,6 +155,9 @@ namespace UnityEditor.VFX
                 return true;
             }
 
+            if (!IsMasterSlot())
+                return GetMasterSlot().IsSpaceInherited();
+
             if (!HasLink() || direction == Direction.kOutput)
                 return false;
 
@@ -264,7 +267,7 @@ namespace UnityEditor.VFX
         // Get relevant slot for UI & exposed expressions
         public IEnumerable<VFXSlot> GetVFXValueTypeSlots()
         {
-            if (VFXExpression.GetVFXValueTypeFromType(property.type) != VFXValueType.None)
+            if (valueType != VFXValueType.None)
                 yield return this;
             else
                 foreach (var child in children)
@@ -384,6 +387,14 @@ namespace UnityEditor.VFX
             }
 
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
+        }
+
+        public VFXValueType valueType
+        {
+            get
+            {
+                return VFXExpression.GetVFXValueTypeFromType(property.type);
+            }
         }
 
         public static void CopyLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)

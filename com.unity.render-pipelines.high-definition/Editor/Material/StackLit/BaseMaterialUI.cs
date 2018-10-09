@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public abstract class BaseMaterialGUI : BaseUnlitGUI
+    abstract class BaseMaterialGUI : BaseUnlitGUI
     {
         #region GUI Property Classes
         public abstract class BaseProperty

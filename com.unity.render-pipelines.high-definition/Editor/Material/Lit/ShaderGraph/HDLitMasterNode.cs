@@ -266,23 +266,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        ProjectionModelLit m_ProjectionModel = ProjectionModelLit.Proxy;
-
-        public ProjectionModelLit projectionModel
-        {
-            get { return m_ProjectionModel; }
-            set
-            {
-                if (m_ProjectionModel == value)
-                    return;
-
-                m_ProjectionModel = value;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
         bool m_Distortion;
 
         public ToggleData distortion

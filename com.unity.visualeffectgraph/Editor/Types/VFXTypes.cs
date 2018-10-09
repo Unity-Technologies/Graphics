@@ -80,7 +80,7 @@ namespace UnityEditor.VFX
         public static ArcSphere defaultValue = new ArcSphere { sphere = Sphere.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
-    [VFXType, Serializable]
+    [VFXType, VFXSpace(SpaceableType.Matrix), Serializable]
     struct OrientedBox
     {
         [Tooltip("The centre of the box."), VFXSpace(SpaceableType.Position)]

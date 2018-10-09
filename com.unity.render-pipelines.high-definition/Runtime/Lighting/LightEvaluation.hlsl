@@ -4,43 +4,63 @@
 // Directional Light evaluation helper
 //-----------------------------------------------------------------------------
 
-float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData lightData,
+float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData light,
                                   float3 lightToSample)
 {
 
     // Translate and rotate 'positionWS' into the light space.
-    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    float3x3 lightToWorld  = float3x3(lightData.right, lightData.up, lightData.forward);
-    float3   positionLS    = mul(lightToSample, transpose(lightToWorld));
+    // 'light.right' and 'light.up' are pre-scaled on CPU.
+    float3x3 lightToWorld = float3x3(light.right, light.up, light.forward);
+    float3   positionLS   = mul(lightToSample, transpose(lightToWorld));
 
     // Perform orthographic projection.
-    float2 positionCS    = positionLS.xy;
+    float2 positionCS  = positionLS.xy;
 
     // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
     float2 positionNDC = positionCS * 0.5 + 0.5;
 
     // We let the sampler handle clamping to border.
-    return SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex, lightData.tileCookie);
+    return SampleCookie2D(lightLoopContext, positionNDC, light.cookieIndex, light.tileCookie);
+}
+
+// Does not account for precomputed (screen-space or baked) shadows.
+float EvaluateRuntimeSunShadow(LightLoopContext lightLoopContext, PositionInputs posInput,
+                               DirectionalLightData light, float3 shadowBiasNormal)
+{
+    // The relationship with NdotL is complicated and is therefore handled outside the function.
+    if ((light.lightDimmer > 0) && (light.shadowDimmer > 0))
+    {
+        // Shadow dimmer is applied outside this function.
+        return GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, posInput.positionWS,
+                                               shadowBiasNormal, light.shadowIndex, -light.forward,
+                                               posInput.positionSS);
+    }
+    else
+    {
+        return 1;
+    }
 }
 
 // None of the outputs are premultiplied.
-// Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
-                               DirectionalLightData lightData, BuiltinData builtinData,
-                               float3 N, float3 L, float AOForMicroshadowing,
+                               DirectionalLightData light, BuiltinData builtinData,
+                               float3 N, float3 L, float NdotL,
                                out float3 color, out float attenuation)
 {
+    color = attenuation = 0;
+    if ((light.lightDimmer <= 0) || (NdotL <= 0)) return;
+
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
     float  shadowMask = 1.0;
 
-    color       = lightData.color;
-    attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
+    color       = light.color;
+    attenuation = 1.0; // TODO: implement volumetric attenuation along shadow rays for directional lights
 
-    UNITY_BRANCH if (lightData.cookieIndex >= 0)
+    if (light.cookieIndex >= 0)
     {
-        float3 lightToSample = positionWS - lightData.positionRWS;
-        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
+        float3 lightToSample = positionWS - light.positionRWS;
+        float3 cookie = EvaluateCookie_Directional(lightLoopContext, light, lightToSample);
 
         color *= cookie;
     }
@@ -48,17 +68,19 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
+    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
-    // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
-    float NdotL = dot(N, L);
-    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (NdotL >= 0.0))
+    if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
         shadow = lightLoopContext.shadowValue;
 
-#ifdef SHADOWS_SHADOWMASK
+        // Transparents have no contact shadow information
+    #ifndef _SURFACE_TYPE_TRANSPARENT
+        shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
+    #endif
 
+    #ifdef SHADOWS_SHADOWMASK
         // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
         // certainly more efficient to do
         // We reuse the transition from the cascade system to fade between shadow mask at max distance
@@ -67,7 +89,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         int cascadeCount;
         int shadowSplitIndex = 0;
 
-        shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, lightData.shadowIndex, positionWS, fade, cascadeCount);
+        shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, light.shadowIndex, positionWS, fade, cascadeCount);
 
         // we have a fade caclulation for each cascade but we must lerp with shadow mask only for the last one
         // if shadowSplitIndex is -1 it mean we are outside cascade and should return 1.0 to use shadowmask: saturate(-shadowSplitIndex) return 0 for >= 0 and 1 for -1
@@ -79,17 +101,16 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         shadow = shadow - fade + fade * shadowMask;
 
         // See comment in EvaluateBSDF_Punctual
-        shadow = lightData.nonLightmappedOnly ? min(shadowMask, shadow) : shadow;
+        shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
+    #endif
 
-        // Note: There is no shadowDimmer when there is no shadow mask
-#endif
-
-        // Transparent have no contact shadow information
-#ifndef _SURFACE_TYPE_TRANSPARENT
-        shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
-#endif
-        shadow *= GetMicroshadowing(NdotL, AOForMicroshadowing, _MicroShadowOpacity);
+        shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
+        debugShadowAttenuation = shadow;
+#endif
 
     attenuation *= shadow;
 }
@@ -98,17 +119,29 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 // Punctual Light evaluation helper
 //-----------------------------------------------------------------------------
 
-// Return L vector for punctual light (normalize surface to light), lightToSample (light to surface non normalize) and distances {d, d^2, 1/d, d_proj}
-void GetPunctualLightVectors(float3 positionWS, LightData lightData, out float3 L, out float3 lightToSample, out float4 distances)
+// distances = {d, d^2, 1/d, d_proj}
+void ModifyDistancesForFillLighting(inout float4 distances, float lightSqRadius)
 {
-    lightToSample = positionWS - lightData.positionRWS;
-    int lightType = lightData.lightType;
+    // Apply the sphere light hack to soften the core of the punctual light.
+    // It is not physically plausible (using max() is more correct, but looks worse).
+    // See https://www.desmos.com/calculator/otqhxunqhl
+    // We only modify 1/d for performance reasons.
+    float sqDist = distances.y;
+    distances.z = rsqrt(sqDist + lightSqRadius); // Recompute 1/d
+}
 
-    distances.w = dot(lightToSample, lightData.forward);
+// Return L vector for punctual light (normalize surface to light), lightToSample (light to surface non normalize) and
+// distances = {d, d^2, 1/d, d_proj}
+void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, out float3 lightToSample, out float4 distances)
+{
+    lightToSample = positionWS - light.positionRWS;
+    int lightType = light.lightType;
+
+    distances.w = dot(lightToSample, light.forward);
 
     if (lightType == GPULIGHTTYPE_PROJECTOR_BOX)
     {
-        L = -lightData.forward;
+        L = -light.forward;
         distances.xyz = 1; // No distance or angle attenuation
     }
     else
@@ -120,24 +153,26 @@ void GetPunctualLightVectors(float3 positionWS, LightData lightData, out float3 
 
         L = unL * distRcp;
         distances.xyz = float3(dist, distSq, distRcp);
+
+        ModifyDistancesForFillLighting(distances, light.size.x);
     }
 }
 
-float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData lightData,
+float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData light,
                                float3 lightToSample)
 {
-    int lightType = lightData.lightType;
+    int lightType = light.lightType;
 
     // Translate and rotate 'positionWS' into the light space.
-    // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
-    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    // 'light.right' and 'light.up' are pre-scaled on CPU.
+    float3x3 lightToWorld = float3x3(light.right, light.up, light.forward);
     float3   positionLS   = mul(lightToSample, transpose(lightToWorld));
 
     float4 cookie;
 
     UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
+        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, light.cookieIndex);
         cookie.a   = 1;
     }
     else
@@ -151,7 +186,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
         // Manually clamp to border (black).
-        cookie.rgb = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex, false);
+        cookie.rgb = SampleCookie2D(lightLoopContext, positionNDC, light.cookieIndex, false);
         cookie.a   = isInBounds ? 1 : 0;
     }
 
@@ -159,29 +194,32 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 }
 
 // None of the outputs are premultiplied.
-// distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, lightData.forward).
+// distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, light.forward).
 // Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
-                            LightData lightData, BuiltinData builtinData,
-                            float3 N, float3 L, float3 lightToSample, float4 distances,
+                            LightData light, BuiltinData builtinData,
+                            float3 N, float3 L, float NdotL, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
-    float3 positionWS    = posInput.positionWS;
-    float  shadow        = 1.0;
-    float  shadowMask    = 1.0;
+    color = attenuation = 0;
+    if ((light.lightDimmer <= 0) || (NdotL <= 0)) return;
 
-    color       = lightData.color;
-    attenuation = PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
-                                           lightData.angleScale, lightData.angleOffset);
+    float3 positionWS = posInput.positionWS;
+    float  shadow     = 1.0;
+    float  shadowMask = 1.0;
+
+    color       = light.color;
+    attenuation = PunctualLightAttenuation(distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
+                                           light.angleScale, light.angleOffset);
 
     // TODO: sample the extinction from the density V-buffer.
-    float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
+    float distVol = (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
     attenuation *= TransmittanceHomogeneousMedium(_GlobalExtinction, distVol);
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
-    UNITY_BRANCH if (lightData.cookieIndex >= 0)
+    if (light.cookieIndex >= 0)
     {
-        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample);
+        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, light, lightToSample);
 
         color       *= cookie.rgb;
         attenuation *= cookie.a;
@@ -190,14 +228,17 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
+    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
-    // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
-    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
+    if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
-        // Note:the case of NdotL < 0 can appear with isThinModeTransmission, in this case we need to flip the shadow bias
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, lightData.lightType == GPULIGHTTYPE_POINT, lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
+
+        // Transparents have no contact shadow information
+    #ifndef _SURFACE_TYPE_TRANSPARENT
+        shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
+    #endif
 
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
@@ -207,17 +248,16 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         // The min handle the case of having only dynamic objects in the ShadowMap
         // The second case for blend with distance is handled with ShadowDimmer. ShadowDimmer is define manually and by shadowDistance by light.
         // With distance, ShadowDimmer become one and only the ShadowMask appear, we get the blend with distance behavior.
-        shadow = lightData.nonLightmappedOnly ? min(shadowMask, shadow) : shadow;
-        shadow = lerp(shadowMask, shadow, lightData.shadowDimmer);
-#else
-        shadow = lerp(1.0, shadow, lightData.shadowDimmer);
-#endif
+        shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
+    #endif
 
-        // Transparent have no contact shadow information
-#ifndef _SURFACE_TYPE_TRANSPARENT
-        shadow = min(shadow, lerp(1.0, GetContactShadow(lightLoopContext, lightData.contactShadowIndex), lightData.shadowDimmer));;
-#endif
+        shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
+        debugShadowAttenuation = step(FLT_EPS, attenuation) * shadow;
+#endif
 
     attenuation *= shadow;
 }
@@ -225,7 +265,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 // Environment map share function
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 
-void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData lightData, int influenceShapeType, inout float3 R, inout float weight)
+void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData light, int influenceShapeType, inout float3 R, inout float weight)
 {
     // Guideline for reflection volume: In HDRenderPipeline we separate the projection volume (the proxy of the scene) from the influence volume (what pixel on the screen is affected)
     // However we add the constrain that the shape of the projection and influence volume is the same (i.e if we have a sphere shape projection volume, we have a shape influence).
@@ -233,12 +273,12 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
     // that simulate effect of no shape projection
 
-    float3x3 worldToIS = WorldToInfluenceSpace(lightData); // IS: Influence space
-    float3 positionIS = WorldToInfluencePosition(lightData, worldToIS, positionWS);
+    float3x3 worldToIS = WorldToInfluenceSpace(light); // IS: Influence space
+    float3 positionIS = WorldToInfluencePosition(light, worldToIS, positionWS);
     float3 dirIS = normalize(mul(R, worldToIS));
 
-    float3x3 worldToPS = WorldToProxySpace(lightData); // PS: Proxy space
-    float3 positionPS = WorldToProxyPosition(lightData, worldToPS, positionWS);
+    float3x3 worldToPS = WorldToProxySpace(light); // PS: Proxy space
+    float3 positionPS = WorldToProxyPosition(light, worldToPS, positionWS);
     float3 dirPS = mul(R, worldToPS);
 
     float projectionDistance = 0;
@@ -248,145 +288,23 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
     if (influenceShapeType == ENVSHAPETYPE_SPHERE)
     {
-        projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionRWS
-        R = (positionWS + projectionDistance * R) - lightData.capturePositionRWS;
+        projectionDistance = IntersectSphereProxy(light, dirPS, positionPS);
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in light.capturePositionRWS
+        R = (positionWS + projectionDistance * R) - light.capturePositionRWS;
 
-        weight = InfluenceSphereWeight(lightData, normalWS, positionWS, positionIS, dirIS);
+        weight = InfluenceSphereWeight(light, normalWS, positionWS, positionIS, dirIS);
     }
     else if (influenceShapeType == ENVSHAPETYPE_BOX)
     {
-        projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
+        projectionDistance = IntersectBoxProxy(light, dirPS, positionPS);
         // No need to normalize for fetching cubemap
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionRWS
-        R = (positionWS + projectionDistance * R) - lightData.capturePositionRWS;
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in light.capturePositionRWS
+        R = (positionWS + projectionDistance * R) - light.capturePositionRWS;
 
-        weight = InfluenceBoxWeight(lightData, normalWS, positionWS, positionIS, dirIS);
+        weight = InfluenceBoxWeight(light, normalWS, positionWS, positionIS, dirIS);
     }
 
     // Smooth weighting
     weight = Smoothstep01(weight);
-    weight *= lightData.weight;
+    weight *= light.weight;
 }
-
-// ----------------------------------------------------------------------------
-// Helper functions to use Transmission with a material
-// ----------------------------------------------------------------------------
-// For EvaluateTransmission.hlsl file it is required to define a BRDF for the transmission. Defining USE_DIFFUSE_LAMBERT_BRDF use Lambert, otherwise it use Disneydiffuse
-
-#ifdef MATERIAL_INCLUDE_TRANSMISSION
-
-// This function return transmittance to provide to EvaluateTransmission
-float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, PositionInputs posInput, float distFrontFaceToLight,
-                                            float NdotL, float3 L, BSDFData bsdfData,
-                                            inout float3 normalWS, inout LightData lightData)
-{
-    float3 transmittance = bsdfData.transmittance;
-
-    // if NdotL is positive, we do one fetch on front face done by EvaluateLight_XXX. Just regular lighting
-    // If NdotL is negative, we have two cases:
-    // - Thin mode: Reuse the front face fetch as shadow for back face - flip the normal for the bias (and the NdotL test) and disable contact shadow
-    // - Mixed mode: Do a fetch on back face to retrieve the thickness. The thickness will provide a shadow attenuation (with distance travelled there is less transmission).
-    // (Note: EvaluateLight_Punctual discard the fetch if NdotL < 0)
-    if (NdotL < 0 && lightData.shadowIndex >= 0)
-    {
-        if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-        {
-            normalWS = -normalWS; // Flip normal for shadow bias
-            lightData.contactShadowIndex = -1;  //  Disable shadow contact
-        }
-        else // MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS
-        {
-            // Recompute transmittance using the thickness value computed from the shadow map.
-
-            // Compute the distance from the light to the back face of the object along the light direction.
-#ifndef USE_CORE_SHADOW_SYSTEM
-            float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
-                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS,
-                                                                            lightData.lightType == GPULIGHTTYPE_POINT);
-#else
-            float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
-                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS);
-#endif
-
-            // Our subsurface scattering models use the semi-infinite planar slab assumption.
-            // Therefore, we need to find the thickness along the normal.
-            // Warning: based on the artist's input, dependence on the NdotL has been disabled.
-            float thicknessInUnits = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
-            float thicknessInMeters = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
-            float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
-
-            // We need to make sure it's not less than the baked thickness to minimize light leaking.
-            float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
-
-            float3 S = _ShapeParams[bsdfData.diffusionProfile].rgb;
-
-            // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
-#if 0
-            float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
-#else
-            // Help the compiler. S is premultiplied by ((-1.0 / 3.0) * LOG2_E) on the CPU.
-            float3 p = thicknessDelta * S;
-            float3 expOneThird = exp2(p);
-#endif
-
-            transmittance *= expOneThird;
-
-            // Note: we do not modify the distance to the light, or the light angle for the back face.
-            // This is a performance-saving optimization which makes sense as long as the thickness is small.
-        }
-
-        transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
-    }
-
-    return transmittance;
-}
-
-// This function return transmittance to provide to EvaluateTransmission
-float3 PreEvaluateDirectionalLightTransmission(float NdotL, DirectionalLightData lightData, BSDFData bsdfData, inout float3 normalWS, inout int contactShadowIndex)
-{
-    if (NdotL < 0 && lightData.shadowIndex >= 0)
-    {
-        if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-        {
-            normalWS = -normalWS; // Flip normal for shadow bias
-            contactShadowIndex = -1;  //  Disable shadow contact
-        }
-    }
-
-    return bsdfData.transmittance;
-}
-
-#define TRANSMISSION_WRAP_ANGLE (PI/12)              // 15 degrees
-#define TRANSMISSION_WRAP_LIGHT cos(PI/2 - TRANSMISSION_WRAP_ANGLE)
-
-// Currently, we only model diffuse transmission. Specular transmission is not yet supported.
-// Transmitted lighting is computed as follows:
-// - we assume that the object is a thick plane (slab);
-// - we reverse the front-facing normal for the back of the object;
-// - we assume that the incoming radiance is constant along the entire back surface;
-// - we apply BSDF-specific diffuse transmission to transmit the light subsurface and back;
-// - we integrate the diffuse reflectance profile w.r.t. the radius (while also accounting
-//   for the thickness) to compute the transmittance;
-// - we multiply the transmitted radiance by the transmittance.
-
-// transmittance come from the call to PreEvaluateLightTransmission
-// attenuation come from the call to EvaluateLight_Punctual
-float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
-{
-    // Apply wrapped lighting to better handle thin objects at grazing angles.
-    float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
-
-    // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-#ifdef USE_DIFFUSE_LAMBERT_BRDF
-    attenuation *= Lambert();
-#else
-    attenuation *= DisneyDiffuse(NdotV, max(0, -NdotL), LdotV, bsdfData.perceptualRoughness);
-#endif
-
-    float intensity = attenuation * wrappedNdotL;
-    return intensity * transmittance;
-}
-
-#endif // #ifdef MATERIAL_INCLUDE_TRANSMISSION

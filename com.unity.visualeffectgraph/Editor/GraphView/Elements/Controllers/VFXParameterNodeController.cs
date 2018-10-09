@@ -172,11 +172,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool spaceable
+        public bool spaceableAndMasterOfSpace
         {
             get
             {
-                return m_ParentController.spaceable;
+                return m_ParentController.spaceableAndMasterOfSpace;
             }
         }
 

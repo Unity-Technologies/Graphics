@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        bool IPropertyRMProvider.spaceable
+        bool IPropertyRMProvider.spaceableAndMasterOfSpace
         {
             get
             {
@@ -247,7 +247,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool spaceable
+        public bool spaceableAndMasterOfSpace
         {
             get
             {
@@ -369,7 +369,8 @@ namespace UnityEditor.VFX.UI
 
         public VFXParameterNodeController GetParameterForLink(VFXSlot slot)
         {
-            return m_Controllers.FirstOrDefault(t => t.Value.infos.linkedSlots != null && t.Value.infos.linkedSlots.Any(u => u.inputSlot == slot)).Value;
+            return m_Controllers.FirstOrDefault(t =>
+            { var infos = t.Value.infos; return infos != null && infos.linkedSlots != null && infos.linkedSlots.Any(u => u.inputSlot == slot); }).Value;
         }
 
         public string MakeNameUnique(string name)
@@ -405,7 +406,7 @@ namespace UnityEditor.VFX.UI
                     int index = parentMemberPath.LastIndexOf(VFXGizmoUtility.Context.separator);
                     if (index == -1)
                     {
-                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
+                        Debug.LogError("Couldn't find SubParameter path " + memberPath);
                         return null;
                     }
 
@@ -422,7 +423,7 @@ namespace UnityEditor.VFX.UI
                     subParameterController = subParameterController.children.FirstOrDefault(t => t.name == member);
                     if (subParameterController == null)
                     {
-                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
+                        Debug.LogError("Couldn't find SubParameter path " + memberPath);
                         return null;
                     }
                 }
@@ -834,7 +835,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool spaceable
+        public bool spaceableAndMasterOfSpace
         {
             get
             {
