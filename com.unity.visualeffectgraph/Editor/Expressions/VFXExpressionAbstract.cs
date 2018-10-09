@@ -160,11 +160,11 @@ namespace UnityEditor.VFX
                 case VFXValueType.Float4: return typeof(Vector4);
                 case VFXValueType.Int32: return typeof(int);
                 case VFXValueType.Uint32: return typeof(uint);
-                case VFXValueType.Texture2D: return typeof(Texture2D);
-                case VFXValueType.Texture2DArray: return typeof(Texture2DArray);
-                case VFXValueType.Texture3D: return typeof(Texture3D);
-                case VFXValueType.TextureCube: return typeof(Cubemap);
-                case VFXValueType.TextureCubeArray: return typeof(CubemapArray);
+                case VFXValueType.Texture2D: return typeof(Texture);
+                case VFXValueType.Texture2DArray: return typeof(Texture);
+                case VFXValueType.Texture3D: return typeof(Texture);
+                case VFXValueType.TextureCube: return typeof(Texture);
+                case VFXValueType.TextureCubeArray: return typeof(Texture);
                 case VFXValueType.Matrix4x4: return typeof(Matrix4x4);
                 case VFXValueType.Mesh: return typeof(Mesh);
                 case VFXValueType.Curve: return typeof(AnimationCurve);

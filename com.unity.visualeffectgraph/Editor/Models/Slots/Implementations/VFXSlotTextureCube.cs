@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
@@ -8,7 +10,7 @@ namespace UnityEditor.VFX
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<Cubemap>(null, mode);
+            return new VFXTextureCubeValue(null, mode);
         }
     }
 }
