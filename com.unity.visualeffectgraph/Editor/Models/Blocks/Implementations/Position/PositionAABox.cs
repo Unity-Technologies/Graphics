@@ -82,9 +82,9 @@ namespace UnityEditor.VFX.Block
                 else if (positionMode == PositionMode.Surface)
                 {
                     return @"
-float areaXY = Box_size.x * Box_size.y;
-float areaXZ = Box_size.x * Box_size.z;
-float areaYZ = Box_size.y * Box_size.z;
+float areaXY = max(Box_size.x * Box_size.y, VFX_EPSILON);
+float areaXZ = max(Box_size.x * Box_size.z, VFX_EPSILON);
+float areaYZ = max(Box_size.y * Box_size.z, VFX_EPSILON);
 
 float face = RAND * (areaXY + areaXZ + areaYZ);
 float flip = (RAND >= 0.5f) ? 0.5f : -0.5f;
