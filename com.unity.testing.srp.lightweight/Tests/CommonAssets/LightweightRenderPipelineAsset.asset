@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
-  m_Name: LightweightPipelineAsset
+  m_Name: LightweightRenderPipelineAsset
   m_EditorClassIdentifier: 
   k_AssetVersion: 4
   m_RequireDepthTexture: 0
@@ -30,6 +30,8 @@ MonoBehaviour:
   m_ShadowCascades: 2
   m_Cascade2Split: 0.25
   m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
+  m_ShadowDepthBias: 1
+  m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 1
   m_SupportsDynamicBatching: 1
   m_MixedLightingSupported: 1
@@ -37,9 +39,7 @@ MonoBehaviour:
     renderScale: 1
     viewportScale: 1
     useOcclusionMesh: 1
-    occlusionMaskScale: 1
-    showDeviceView: 1
-    gameViewRenderMode: 3
+    occlusionMeshScale: 1
   m_ShadowType: 0
   m_LocalShadowsSupported: 1
   m_LocalShadowsAtlasResolution: 512
