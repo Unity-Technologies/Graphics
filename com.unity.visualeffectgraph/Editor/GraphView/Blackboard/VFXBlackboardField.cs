@@ -27,6 +27,7 @@ namespace  UnityEditor.VFX.UI
         {
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            RegisterCallback<MouseCaptureOutEvent>(OnMouseHover);
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
