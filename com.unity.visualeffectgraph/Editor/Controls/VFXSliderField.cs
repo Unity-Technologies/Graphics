@@ -108,7 +108,8 @@ namespace UnityEditor.VFX.UIElements
         {
             m_IgnoreNotification = true;
             m_Value = newValue;
-            m_Field.value = newValue;
+            if( !(m_Field as VisualElement).HasFocus())
+                m_Field.value = newValue;
             m_Slider.value = ValueToFloat(value);
             m_IgnoreNotification = false;
         }
