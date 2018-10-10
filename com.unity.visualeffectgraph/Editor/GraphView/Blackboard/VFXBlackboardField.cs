@@ -48,7 +48,6 @@ namespace  UnityEditor.VFX.UI
         {
             get { return owner.controller; }
         }
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) {}
 
         public void SelfChange()

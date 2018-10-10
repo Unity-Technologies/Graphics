@@ -69,7 +69,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
@@ -161,8 +160,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)

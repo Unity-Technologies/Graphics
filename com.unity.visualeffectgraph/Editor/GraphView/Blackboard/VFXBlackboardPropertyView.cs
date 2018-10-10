@@ -125,8 +125,7 @@ namespace  UnityEditor.VFX.UI
             m_ExposedProperty = null;
             m_RangeProperty = null;
         }
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) {}
 
         public void SelfChange(int change)

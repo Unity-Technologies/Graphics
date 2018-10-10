@@ -379,7 +379,6 @@ namespace  UnityEditor.VFX.UI
         }
 
         Dictionary<string, bool> m_ExpandedStatus = new Dictionary<string, bool>();
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed

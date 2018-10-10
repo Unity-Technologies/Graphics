@@ -57,8 +57,7 @@ namespace  UnityEditor.VFX.UI
 
         public int m_CurrentOrder;
         public bool m_CurrentExposed;
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             m_Field.text = controller.exposedName;

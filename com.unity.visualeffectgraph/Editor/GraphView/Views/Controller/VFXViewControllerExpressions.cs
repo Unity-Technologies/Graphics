@@ -10,7 +10,7 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXRecompileEvent : VFXControllerEvent
+    class VFXRecompileEvent : ControllerEvent
     {
         public bool valueOnly {get; set; }
 
