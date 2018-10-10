@@ -335,6 +335,11 @@ public class VisualEffectAssetEditor : Editor
             m_Distance *= 1 + (Event.current.delta.y * .015f);
         }
 
+        if(m_Mat == null)
+        {
+            m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
+        }
+
         if (isRepaint)
         {
             m_PreviewUtility.BeginPreview(r, background);
@@ -342,14 +347,16 @@ public class VisualEffectAssetEditor : Editor
             Quaternion rot = Quaternion.Euler(0, m_Angles.x, 0) * Quaternion.Euler(m_Angles.y, 0, 0);
             m_PreviewUtility.camera.transform.position = m_CurrentBounds.center + rot * new Vector3(0, 0, -m_Distance);
             m_PreviewUtility.camera.transform.localRotation = rot;
+            m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(m_CurrentBounds.center, Quaternion.identity, m_CurrentBounds.size), m_Mat, 0);
             m_PreviewUtility.Render(true);
-            m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(m_CurrentBounds.center, Quaternion.identity, m_CurrentBounds.size), (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat"), 0);
             m_PreviewUtility.EndAndDrawPreview(r);
 
             // Ask for repaint so the effect is animated.
             Repaint();
         }
     }
+
+    Material m_Mat;
 
     void OnDisable()
     {
