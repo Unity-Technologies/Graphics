@@ -6,46 +6,10 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    class BranchNewTypeProvider : IVariantProvider
-    {
-        public Dictionary<string, object[]> variants
-        {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "m_Type", validTypes.Select(o => new SerializableType(o)).ToArray() }
-                };
-            }
-        }
-
-        static public IEnumerable<Type> validTypes
-        {
-            get
-            {
-                var exclude = new[] { typeof(FloatN), typeof(GPUEvent) };
-                return VFXLibrary.GetSlotsType().Except(exclude).Where(o => !o.IsSubclassOf(typeof(Texture)));
-            }
-        }
-    }
-
-    [VFXInfo(category = "Logic")]
-    class Branch : VFXOperatorDynamicOperand, IVFXOperatorUniform
+    abstract class VFXOperatorDynamicBranch : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType m_Type;
-
-        public class InputProperties
-        {
-            [Tooltip("The predicate")]
-            public bool predicate = true;
-            [Tooltip("The true branch")]
-            public float True = 0.0f;
-            [Tooltip("The false branch")]
-            public float False = 1.0f;
-        }
-
-        public sealed override string name { get { return "Branch"; } }
 
         public Type GetOperandType()
         {
@@ -61,19 +25,59 @@ namespace UnityEditor.VFX.Operator
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
-        public IEnumerable<int> staticSlotIndex
+        public override sealed IEnumerable<Type> validTypes
+        {
+            get
+            {
+                var exclude = new[] { typeof(FloatN), typeof(GPUEvent) };
+                return VFXLibrary.GetSlotsType().Except(exclude).Where(o => !o.IsSubclassOf(typeof(Texture)));
+            }
+        }
+
+        protected sealed override IEnumerable<VFXPropertyWithValue> outputProperties
+        {
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(m_Type, string.Empty));
+            }
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                if (m_Type == null) // Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
+                {
+                    m_Type = defaultValueType;
+                }
+                return base.inputProperties;
+            }
+        }
+
+        abstract public IEnumerable<int> staticSlotIndex{ get; }
+    }
+
+    [VFXInfo(category = "Logic")]
+    class Branch : VFXOperatorDynamicBranch
+    {
+        public class InputProperties
+        {
+            [Tooltip("The predicate")]
+            public bool predicate = true;
+            [Tooltip("The true branch")]
+            public float True = 0.0f;
+            [Tooltip("The false branch")]
+            public float False = 1.0f;
+        }
+
+        public sealed override string name { get { return "Branch"; } }
+
+
+        public override sealed IEnumerable<int> staticSlotIndex
         {
             get
             {
                 yield return 0;
-            }
-        }
-
-        public override IEnumerable<Type> validTypes
-        {
-            get
-            {
-                return BranchNewTypeProvider.validTypes;
             }
         }
 
@@ -90,26 +94,13 @@ namespace UnityEditor.VFX.Operator
             get
             {
                 var baseInputProperties = base.inputProperties;
-                if (m_Type == null) // Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
-                {
-                    m_Type = defaultValueType;
-                }
-
                 foreach (var property in baseInputProperties)
                 {
                     if (property.property.name == "predicate")
                         yield return property;
                     else
-                        yield return new VFXPropertyWithValue(new VFXProperty((Type)m_Type, property.property.name), GetDefaultValueForType(m_Type));
+                        yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), property.property.name), GetDefaultValueForType(GetOperandType()));
                 }
-            }
-        }
-
-        protected sealed override IEnumerable<VFXPropertyWithValue> outputProperties
-        {
-            get
-            {
-                yield return new VFXPropertyWithValue(new VFXProperty(m_Type, string.Empty));
             }
         }
 
