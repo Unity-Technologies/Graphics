@@ -309,17 +309,26 @@ namespace UnityEditor.VFX.UI
 
         class OperandInfo : OperandInfoBase
         {
-            VFXStringField field;
+            TextField field;
 
             public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnified op, int index) : base(owner, op, index)
             {
-                field = new VFXStringField("");
-                field.OnValueChanged = OnChangeLabel;
+                field = new TextField();
+                field.RegisterCallback<BlurEvent>(OnChangeValue);
+                field.RegisterCallback<KeyDownEvent>(OnKeyDown);
 
                 Insert(0, field);
             }
 
-            void OnChangeLabel()
+            void OnKeyDown(KeyDownEvent e)
+            {
+                if(e.keyCode == KeyCode.KeypadEnter || e.keyCode == KeyCode.Return)
+                {
+                    OnChangeValue(e);
+                }
+            }
+
+            void OnChangeValue(EventBase evt)
             {
                 (m_Owner as VFXCascadedOperatorEdit).OnChangeLabel(field.value, index);
             }
