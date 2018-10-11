@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         GPUCopy m_GPUCopy;
         MipGenerator m_MipGenerator;
 
-        IBLFilterGGX m_IBLFilterGGX = null;
+        IBLFilterBSDF[] m_IBLFilterArray = null;
 
         ComputeShader m_ScreenSpaceReflectionsCS { get { return m_Asset.renderPipelineResources.shaders.screenSpaceReflectionsCS; } }
         int m_SsrTracingKernel      = -1;
@@ -282,11 +282,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_MaterialList.ForEach(material => material.Build(asset));
 
-            m_IBLFilterGGX = new IBLFilterGGX(asset.renderPipelineResources, m_MipGenerator);
+            if(m_Asset.renderPipelineSettings.lightLoopSettings.supportFabricConvolution)
+            {
+                m_IBLFilterArray = new IBLFilterBSDF[2];
+                m_IBLFilterArray[0] = new IBLFilterGGX(asset.renderPipelineResources, m_MipGenerator);
+                m_IBLFilterArray[1] = new IBLFilterCharlie(asset.renderPipelineResources, m_MipGenerator);
+            }
+            else
+            {
+                m_IBLFilterArray = new IBLFilterBSDF[1];
+                m_IBLFilterArray[0] = new IBLFilterGGX(asset.renderPipelineResources, m_MipGenerator);
+            }
 
-            m_LightLoop.Build(asset, m_IBLFilterGGX);
+            m_LightLoop.Build(asset, m_IBLFilterArray);
 
-            m_SkyManager.Build(asset, m_IBLFilterGGX);
+            m_SkyManager.Build(asset, m_IBLFilterArray);
 
             m_VolumetricLightingSystem.Build(asset);
 
@@ -587,7 +597,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SharedRTManager.Cleanup();
             m_SkyManager.Cleanup();
             m_VolumetricLightingSystem.Cleanup();
-            m_IBLFilterGGX.Cleanup();
+            for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
+            {
+                m_IBLFilterArray[bsdfIdx].Cleanup();
+            }
 
             HDCamera.ClearAll();
 
@@ -897,8 +910,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Init material if needed
                 // TODO: this should be move outside of the camera loop but we have no command buffer, ask details to Tim or Julien to do this
-                if (!m_IBLFilterGGX.IsInitialized())
-                    m_IBLFilterGGX.Initialize(cmd);
+                for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
+                {
+                    if (!m_IBLFilterArray[bsdfIdx].IsInitialized())
+                        m_IBLFilterArray[bsdfIdx].Initialize(cmd);
+                }
+
 
                 foreach (var material in m_MaterialList)
                     material.RenderInit(cmd);

@@ -415,7 +415,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (outputSplitLighting) | (lightLoopTilePass << 1) | (shadowMask << 2) | (debugDisplay << 3);
         }
 
-        public void Build(HDRenderPipelineAsset hdAsset, IBLFilterGGX iblFilterGGX)
+        public void Build(HDRenderPipelineAsset hdAsset, IBLFilterBSDF[] iBLFilterBSDFArray)
         {
             m_Resources = hdAsset.renderPipelineResources;
 
@@ -438,29 +438,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CookieTexArray = new TextureCache2D("Cookie");
             int coockieSize = gLightLoopSettings.cookieTexArraySize;
             int coockieResolution = (int)gLightLoopSettings.cookieSize;
-            if (TextureCache2D.GetApproxCacheSizeInByte(coockieSize, coockieResolution) > k_MaxCacheSize)
-                coockieSize = TextureCache2D.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, coockieResolution);
+            if (TextureCache2D.GetApproxCacheSizeInByte(coockieSize, coockieResolution, 1) > k_MaxCacheSize)
+                coockieSize = TextureCache2D.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, coockieResolution, 1);
             m_CookieTexArray.AllocTextureArray(coockieSize, coockieResolution, coockieResolution, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap("Cookie");
             int coockieCubeSize = gLightLoopSettings.cubeCookieTexArraySize;
             int coockieCubeResolution = (int)gLightLoopSettings.pointCookieSize;
-            if (TextureCacheCubemap.GetApproxCacheSizeInByte(coockieCubeSize, coockieCubeResolution) > k_MaxCacheSize)
-                coockieCubeSize = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, coockieCubeResolution);
+            if (TextureCacheCubemap.GetApproxCacheSizeInByte(coockieCubeSize, coockieCubeResolution, 1) > k_MaxCacheSize)
+                coockieCubeSize = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, coockieCubeResolution, 1);
             m_CubeCookieTexArray.AllocTextureArray(coockieCubeSize, coockieCubeResolution, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
 
+            // For regular reflection probes, we need to convolve with all the BSDF functions
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             int reflectionCubeSize = gLightLoopSettings.reflectionProbeCacheSize;
             int reflectionCubeResolution = (int)gLightLoopSettings.reflectionCubemapSize;
-            if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionCubeSize, reflectionCubeResolution) > k_MaxCacheSize)
-                reflectionCubeSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionCubeResolution);
-            m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, reflectionCubeSize, reflectionCubeResolution, probeCacheFormat, true);
+            if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionCubeSize, reflectionCubeResolution, iBLFilterBSDFArray.Length) > k_MaxCacheSize)
+                reflectionCubeSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionCubeResolution, iBLFilterBSDFArray.Length);
+            m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iBLFilterBSDFArray, reflectionCubeSize, reflectionCubeResolution, probeCacheFormat, true);
 
+            // For planar reflection we only convolve with the GGX filter, otherwise it would be too expensive
             TextureFormat planarProbeCacheFormat = gLightLoopSettings.planarReflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             int reflectionPlanarSize = gLightLoopSettings.planarReflectionProbeCacheSize;
             int reflectionPlanarResolution = (int)gLightLoopSettings.planarReflectionTextureSize;
-            if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionPlanarSize, reflectionPlanarResolution) > k_MaxCacheSize)
-                reflectionPlanarSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionPlanarResolution);
-            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(hdAsset, iblFilterGGX, reflectionPlanarSize, reflectionPlanarResolution, planarProbeCacheFormat, true);
+            if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionPlanarSize, reflectionPlanarResolution, 1) > k_MaxCacheSize)
+                reflectionPlanarSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionPlanarResolution, 1);
+            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(hdAsset, (IBLFilterGGX)iBLFilterBSDFArray[0], reflectionPlanarSize, reflectionPlanarResolution, planarProbeCacheFormat, true);
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
             s_GenAABBKernel_Oblique = buildScreenAABBShader.FindKernel("ScreenBoundsAABB_Oblique");
@@ -2388,6 +2390,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
+                cmd.SetGlobalInt(HDShaderIDs._EnvSliceSize, m_ReflectionProbeCache.GetEnvSliceSize());
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
                 cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
 
