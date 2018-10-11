@@ -1,5 +1,4 @@
-// This file assume SHADER_API_D3D11 is defined
-// TODO: This is a straight copy from D3D11.hlsl. Go through all this stuff and adjust where needed.
+// This file assume SHADER_API_XBOXONE is defined
 
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
@@ -14,6 +13,21 @@
 
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
+
+// Intrinsics
+#define INTRINSIC_WAVEREADFIRSTLANE
+#define WaveReadFirstLane __XB_MakeUniform
+#define INTRINSIC_MINMAX3
+#define Min3 __XB_Min3_F32
+#define Max3 __XB_Max3_F32
+#define INTRINSIC_MAD24
+#define Mad24 __XB_MadU24
+#define INTRINSIC_BITFIELD_EXTRACT
+#define BitFieldExtract __XB_UBFE
+#define INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+#define BitFieldExtractSignExtend __XB_IBFE
+#define INTRINSIC_BITFIELD_INSERT
+#define BitFieldInsert __XB_BFI
 
 // flow control attributes
 #define UNITY_BRANCH        [branch]

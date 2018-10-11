@@ -139,12 +139,12 @@
 #endif
 
 // Include language header
-#if defined(SHADER_API_D3D11)
-#include "API/D3D11.hlsl"
+#if defined(SHADER_API_XBOXONE)
+#include "API/XBoxOne.hlsl"
 #elif defined(SHADER_API_PSSL)
 #include "API/PSSL.hlsl"
-#elif defined(SHADER_API_XBOXONE)
-#include "API/XBoxOne.hlsl"
+#elif defined(SHADER_API_D3D11)
+#include "API/D3D11.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
