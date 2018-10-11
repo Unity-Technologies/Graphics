@@ -737,6 +737,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
+            if (pass.PixelShaderUsesSlot(HDLitMasterNode.CoatMaskSlotId))
+            {
+                var coatMaskSlot = masterNode.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.CoatMaskSlotId);
+
+                bool connected = masterNode.IsSlotConnected(HDLitMasterNode.CoatMaskSlotId);
+                if (connected || coatMaskSlot.value > 0.0f)
+                {
+                    activeFields.Add("CoatMask");
+                }
+            }
+
             return activeFields;
         }
 
