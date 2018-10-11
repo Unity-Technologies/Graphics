@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added control for SRPBatcher on HDRP Asset
 - Added an option to clear the shadow atlases in the debug menu
 - Added a color visualization of the shadow atlas rescale in debug mode
+- Added support for disabling SSR on materials
 
 ### Fixed
 - Fixed a normal bias issue with Stacklit (Was causing light leaking)
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow cascade sampling outside of the atlas when cascade count is inferior to 4
 - Fixed shadow filter width in deferred rendering not matching shader config
 - Fixed stereo sampling of depth texture in MSAA DepthValues.shader
+- Fix box light UI which allowed negative and zero sizes, thus causing NaNs
 
 ### Changed
 - Use samplerunity_ShadowMask instead of samplerunity_samplerLightmap for shadow mask
@@ -47,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove all the debug mode from SSR that are obsolete now
 - Expose frameSettings and Capture settings for reflection and planar probe
 - Update UI for reflection probe, planar probe, camera and HDRP Asset
+- Implement proper linear blending for volumetric lighting via deep compositing as described in the paper "Deep Compositing Using Lie Algebras"
 
 ## [4.0.0-preview] - 2018-09-28
 
