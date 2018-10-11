@@ -82,7 +82,7 @@ bool IsEnvIndexTexture2D(int index) { return (index & 1) == ENVCACHETYPE_TEXTURE
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
 // Texture2D    : texCoord = projectedPositionWS - lightData.capturePosition
-float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
+float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, int sliceIdx = 0)
 {
     // 31 bit index, 1 bit cache type
     uint cacheType = index & 1;
@@ -103,12 +103,12 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
-            color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod).rgb;
+            color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
         }
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
-        color.rgb = SampleSkyTexture(texCoord, lod).rgb;
+        color.rgb = SampleSkyTexture(texCoord, lod, sliceIdx).rgb;
     }
 
     return color;

@@ -69,6 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader buildProbabilityTablesCS;
             public ComputeShader computeGgxIblSampleDataCS;
             public Shader GGXConvolvePS;
+            public Shader charlieConvolvePS;
             public Shader opaqueAtmosphericScatteringPS;
             public Shader hdriSkyPS;
             public Shader integrateHdriSkyPS;
@@ -203,6 +204,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 buildProbabilityTablesCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/GGXConvolution/BuildProbabilityTables.compute"),
                 computeGgxIblSampleDataCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/GGXConvolution/ComputeGgxIblSampleData.compute"),
                 GGXConvolvePS = Load<Shader>(HDRenderPipelinePath + "Material/GGXConvolution/GGXConvolve.shader"),
+                charlieConvolvePS = Load<Shader>(HDRenderPipelinePath + "Material/Fabric/CharlieConvolve.shader"),
                 opaqueAtmosphericScatteringPS = Load<Shader>(HDRenderPipelinePath + "Lighting/AtmosphericScattering/OpaqueAtmosphericScattering.shader"),
                 hdriSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/HDRISky.shader"),
                 integrateHdriSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/IntegrateHDRISky.shader"),

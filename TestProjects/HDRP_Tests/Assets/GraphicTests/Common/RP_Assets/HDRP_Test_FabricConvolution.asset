@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
-  m_Name: HDRP_Test_Def
+  m_Name: HDRP_Test_FabricConvolution
   m_EditorClassIdentifier: 
   m_Version: 1
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   m_FrameSettings:
+    overrides: 0
     enableShadow: 1
     enableContactShadows: 1
     enableShadowMask: 1
@@ -44,12 +45,104 @@ MonoBehaviour:
       renderScale: 0
       viewportScale: 0
       useOcclusionMesh: 0
-      occlusionMaskScale: 0
+      occlusionMeshScale: 1
     enableAsyncCompute: 0
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
+    enableRealtimePlanarReflection: 1
     enableMSAA: 0
     lightLoopSettings:
+      overrides: 0
+      enableTileAndCluster: 1
+      enableComputeLightEvaluation: 1
+      enableComputeLightVariants: 1
+      enableComputeMaterialVariants: 1
+      enableFptlForForwardOpaque: 1
+      enableBigTilePrepass: 1
+      isFptlEnabled: 1
+  m_BakedOrCustomReflectionFrameSettings:
+    overrides: 0
+    enableShadow: 1
+    enableContactShadows: 1
+    enableShadowMask: 1
+    enableSSR: 0
+    enableSSAO: 1
+    enableSubsurfaceScattering: 1
+    enableTransmission: 1
+    enableAtmosphericScattering: 1
+    enableVolumetrics: 1
+    enableReprojectionForVolumetrics: 1
+    enableLightLayers: 1
+    diffuseGlobalDimmer: 1
+    specularGlobalDimmer: 1
+    enableForwardRenderingOnly: 0
+    enableDepthPrepassWithDeferredRendering: 0
+    enableTransparentPrepass: 1
+    enableMotionVectors: 1
+    enableObjectMotionVectors: 1
+    enableDecals: 1
+    enableRoughRefraction: 1
+    enableTransparentPostpass: 1
+    enableDistortion: 1
+    enablePostprocess: 1
+    enableStereo: 0
+    xrGraphicsConfig:
+      renderScale: 1
+      viewportScale: 1
+      useOcclusionMesh: 1
+      occlusionMeshScale: 1
+    enableAsyncCompute: 1
+    enableOpaqueObjects: 1
+    enableTransparentObjects: 1
+    enableRealtimePlanarReflection: 1
+    enableMSAA: 0
+    lightLoopSettings:
+      overrides: 0
+      enableTileAndCluster: 1
+      enableComputeLightEvaluation: 1
+      enableComputeLightVariants: 1
+      enableComputeMaterialVariants: 1
+      enableFptlForForwardOpaque: 1
+      enableBigTilePrepass: 1
+      isFptlEnabled: 1
+  m_RealtimeReflectionFrameSettings:
+    overrides: 0
+    enableShadow: 1
+    enableContactShadows: 1
+    enableShadowMask: 1
+    enableSSR: 0
+    enableSSAO: 1
+    enableSubsurfaceScattering: 1
+    enableTransmission: 1
+    enableAtmosphericScattering: 1
+    enableVolumetrics: 1
+    enableReprojectionForVolumetrics: 1
+    enableLightLayers: 1
+    diffuseGlobalDimmer: 1
+    specularGlobalDimmer: 1
+    enableForwardRenderingOnly: 0
+    enableDepthPrepassWithDeferredRendering: 0
+    enableTransparentPrepass: 1
+    enableMotionVectors: 1
+    enableObjectMotionVectors: 1
+    enableDecals: 1
+    enableRoughRefraction: 1
+    enableTransparentPostpass: 1
+    enableDistortion: 1
+    enablePostprocess: 1
+    enableStereo: 0
+    xrGraphicsConfig:
+      renderScale: 1
+      viewportScale: 1
+      useOcclusionMesh: 1
+      occlusionMeshScale: 1
+    enableAsyncCompute: 1
+    enableOpaqueObjects: 1
+    enableTransparentObjects: 1
+    enableRealtimePlanarReflection: 1
+    enableMSAA: 0
+    lightLoopSettings:
+      overrides: 0
       enableTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
@@ -73,12 +166,6 @@ MonoBehaviour:
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 1
-    supportFabricConvolution: 0
-    xrConfig:
-      renderScale: 1
-      viewportScale: 1
-      useOcclusionMesh: 1
-      occlusionMaskScale: 1
     lightLoopSettings:
       cookieSize: 128
       cookieTexArraySize: 16
@@ -94,13 +181,7 @@ MonoBehaviour:
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
-    shadowInitParams:
-      shadowAtlasWidth: 4096
-      shadowAtlasHeight: 4096
-      shadowMap16Bit: 0
-      maxPointLightShadows: 6
-      maxSpotLightShadows: 12
-      maxDirectionalLightShadows: 1
+      supportFabricConvolution: 1
     hdShadowInitParams:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
@@ -115,5 +196,6 @@ MonoBehaviour:
       atlasHeight: 1024
       perChannelMask: 1
   allowShaderVariantStripping: 1
+  enableSRPBatcher: 0
   diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
     type: 2}

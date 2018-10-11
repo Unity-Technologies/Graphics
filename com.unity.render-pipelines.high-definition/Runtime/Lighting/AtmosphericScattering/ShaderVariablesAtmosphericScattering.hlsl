@@ -12,7 +12,7 @@
     float   _SkyTextureMipCount;
 #else
     TEXTURE3D(_VBufferLighting);
-    TEXTURECUBE(_SkyTexture);
+    TEXTURECUBE_ARRAY(_SkyTexture);
 
     #define _MipFogNear                     _MipFogParameters.x
     #define _MipFogFar                      _MipFogParameters.y

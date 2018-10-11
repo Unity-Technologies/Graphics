@@ -84,10 +84,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 d.cookieTexArraySize.intValue = Mathf.Clamp(d.cookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
             }
-            long currentCache = TextureCache2D.GetApproxCacheSizeInByte(d.cookieTexArraySize.intValue, d.cookieSize.intValue);
+            long currentCache = TextureCache2D.GetApproxCacheSizeInByte(d.cookieTexArraySize.intValue, d.cookieSize.intValue, 1);
             if (currentCache > LightLoop.k_MaxCacheSize)
             {
-                int reserved = TextureCache2D.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.cookieSize.intValue);
+                int reserved = TextureCache2D.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.cookieSize.intValue, 1);
                 string message = string.Format(cacheErrorFormat, HumanizeWeight(currentCache), reserved);
                 EditorGUILayout.HelpBox(message, MessageType.Error);
             }
@@ -103,10 +103,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 d.cubeCookieTexArraySize.intValue = Mathf.Clamp(d.cubeCookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
             }
-            currentCache = TextureCacheCubemap.GetApproxCacheSizeInByte(d.cubeCookieTexArraySize.intValue, d.pointCookieSize.intValue);
+            currentCache = TextureCacheCubemap.GetApproxCacheSizeInByte(d.cubeCookieTexArraySize.intValue, d.pointCookieSize.intValue, 1);
             if (currentCache > LightLoop.k_MaxCacheSize)
             {
-                int reserved = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.pointCookieSize.intValue);
+                int reserved = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.pointCookieSize.intValue, 1);
                 string message = string.Format(cacheErrorFormat, HumanizeWeight(currentCache), reserved);
                 EditorGUILayout.HelpBox(message, MessageType.Error);
             }
@@ -128,10 +128,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 d.reflectionProbeCacheSize.intValue = Mathf.Clamp(d.reflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
             }
-            long currentCache = ReflectionProbeCache.GetApproxCacheSizeInByte(d.reflectionProbeCacheSize.intValue, d.reflectionCubemapSize.intValue);
+            long currentCache = ReflectionProbeCache.GetApproxCacheSizeInByte(d.reflectionProbeCacheSize.intValue, d.reflectionCubemapSize.intValue, d.supportFabricConvolution.boolValue ? 2 : 1);
             if (currentCache > LightLoop.k_MaxCacheSize)
             {
-                int reserved = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.reflectionCubemapSize.intValue);
+                int reserved = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.reflectionCubemapSize.intValue, d.supportFabricConvolution.boolValue ? 2 : 1);
                 string message = string.Format(cacheErrorFormat, HumanizeWeight(currentCache), reserved);
                 EditorGUILayout.HelpBox(message, MessageType.Error);
             }
@@ -151,10 +151,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 d.planarReflectionProbeCacheSize.intValue = Mathf.Clamp(d.planarReflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
             }
-            currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(d.planarReflectionProbeCacheSize.intValue, d.planarReflectionCubemapSize.intValue);
+            currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(d.planarReflectionProbeCacheSize.intValue, d.planarReflectionCubemapSize.intValue, 1);
             if (currentCache > LightLoop.k_MaxCacheSize)
             {
-                int reserved = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.planarReflectionCubemapSize.intValue);
+                int reserved = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.planarReflectionCubemapSize.intValue, 1);
                 string message = string.Format(cacheErrorFormat, HumanizeWeight(currentCache), reserved);
                 EditorGUILayout.HelpBox(message, MessageType.Error);
             }
@@ -163,6 +163,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 string message = string.Format(cacheInfoFormat, HumanizeWeight(currentCache));
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
+
+            EditorGUILayout.PropertyField(d.supportFabricConvolution, _.GetContent("Support Fabric BSDF Convolution."));
             EditorGUILayout.Space();
         }
 
