@@ -32,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader debugFullScreenPS;
             public Shader debugColorPickerPS;
             public Shader debugLightVolumePS;
+            public ComputeShader debugLightVolumeCS;
 
             // Lighting
             public Shader deferredPS;
@@ -116,6 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Debug
             public Texture2D debugFontTex;
+            public Texture2D colorGradient;
         }
 
         [Serializable]
@@ -163,8 +165,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 debugViewTilesPS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugViewTiles.Shader"),
                 debugFullScreenPS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugFullScreen.Shader"),
                 debugColorPickerPS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugColorPicker.Shader"),
-                debugLightVolumePS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugLightVolume.Shader"),
-
+                debugLightVolumePS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugLightVolumes.Shader"),
+                debugLightVolumeCS = Load<ComputeShader>(HDRenderPipelinePath + "Debug/DebugLightVolumes.compute"),
                 // Lighting
                 deferredPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Deferred.Shader"),
                 colorPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/ColorPyramid.compute"),
@@ -251,6 +253,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Debug
                 debugFontTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/DebugFont.tga"),
+                colorGradient = Load<Texture2D>(HDRenderPipelinePath + "Debug/ColorGradient.png"),
             };
 
             // ShaderGraphs
