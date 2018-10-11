@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public class IBLFilterGGX
+    public class IBLFilterGGX : IBLFilterBSDF
     {
         RenderTexture m_GgxIblSampleData;
         int           m_GgxIblMaxSampleCount          = TextureCache.isMobileBuildTarget ? 34 : 89;   // Width
@@ -16,25 +16,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int           m_ConditionalDensitiesKernel    = -1;
         int           m_MarginalRowDensitiesKernel    = -1;
 
-        Material      m_GgxConvolveMaterial; // Convolves a cubemap with GGX
-
-        Matrix4x4[]   m_faceWorldToViewMatrixMatrices     = new Matrix4x4[6];
-
-        RenderPipelineResources m_RenderPipelineResources;
-        MipGenerator m_MipGenerator;
-
         public IBLFilterGGX(RenderPipelineResources renderPipelineResources, MipGenerator mipGenerator)
         {
             m_RenderPipelineResources = renderPipelineResources;
             m_MipGenerator = mipGenerator;
         }
 
-        public bool IsInitialized()
+        public override bool IsInitialized()
         {
             return m_GgxIblSampleData != null;
         }
 
-        public void Initialize(CommandBuffer cmd)
+        public override void Initialize(CommandBuffer cmd)
         {
             if (!m_ComputeGgxIblSampleDataCS)
             {
@@ -49,9 +42,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_MarginalRowDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeMarginalRowDensities");
             }
 
-            if (!m_GgxConvolveMaterial)
+            if (!m_convolveMaterial)
             {
-                m_GgxConvolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelineResources.shaders.GGXConvolvePS);
+                m_convolveMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelineResources.shaders.GGXConvolvePS);
             }
 
             if (!m_GgxIblSampleData)
@@ -85,9 +78,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void Cleanup()
+        public override void Cleanup()
         {
-            CoreUtils.Destroy(m_GgxConvolveMaterial);
+            CoreUtils.Destroy(m_convolveMaterial);
             CoreUtils.Destroy(m_GgxIblSampleData);
         }
 
@@ -120,7 +113,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 InitializeGgxIblSampleData(cmd);
             }
 
-            m_GgxConvolveMaterial.SetTexture("_GgxIblSamples", m_GgxIblSampleData);
+            m_convolveMaterial.SetTexture("_GgxIblSamples", m_GgxIblSampleData);
 
             var props = new MaterialPropertyBlock();
             props.SetTexture("_MainTex", source);
@@ -140,27 +133,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
 
                         CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
-                        CoreUtils.DrawFullScreen(cmd, m_GgxConvolveMaterial, props);
+                        CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, props);
                     }
                 }
             }
         }
 
-        // Filters MIP map levels (other than 0) with GGX using BRDF importance sampling.
-        public void FilterCubemap(CommandBuffer cmd, Texture source, RenderTexture target)
-        {
-            m_GgxConvolveMaterial.DisableKeyword("USE_MIS");
-
-            FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
-        }
-
-        public void FilterPlanarTexture(CommandBuffer cmd, RenderTexture source, RenderTexture target)
-        {
-            m_MipGenerator.RenderColorGaussianPyramid(cmd, new Vector2Int(source.width, source.height), source, target);
-        }
-
         // Filters MIP map levels (other than 0) with GGX using multiple importance sampling.
-        public void FilterCubemapMIS(CommandBuffer cmd,
+        override public void FilterCubemapMIS(CommandBuffer cmd,
             Texture source, RenderTexture target,
             RenderTexture conditionalCdf, RenderTexture marginalRowCdf)
         {
@@ -180,10 +160,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
             }
 
-            m_GgxConvolveMaterial.EnableKeyword("USE_MIS");
-            m_GgxConvolveMaterial.SetTexture("_ConditionalDensities", conditionalCdf);
-            m_GgxConvolveMaterial.SetTexture("_MarginalRowDensities", marginalRowCdf);
+            m_convolveMaterial.EnableKeyword("USE_MIS");
+            m_convolveMaterial.SetTexture("_ConditionalDensities", conditionalCdf);
+            m_convolveMaterial.SetTexture("_MarginalRowDensities", marginalRowCdf);
 
+            FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
+        }
+        override public void FilterCubemap(CommandBuffer cmd, Texture source, RenderTexture target)
+        {
             FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
         }
     }

@@ -42,6 +42,7 @@
     // TODO: move this elsewhere
     int _DebugSingleShadowIndex;
 
+    int _EnvSliceSize;
 #else
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"

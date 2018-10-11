@@ -193,10 +193,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #endif
 
-        public void Build(HDRenderPipelineAsset hdAsset, IBLFilterGGX iblFilterGGX)
+        public void Build(HDRenderPipelineAsset hdAsset, IBLFilterBSDF[] iblFilterBSDFArray)
         {
-            m_BakingSkyRenderingContext = new SkyRenderingContext(iblFilterGGX, (int)hdAsset.renderPipelineSettings.lightLoopSettings.skyReflectionSize, false);
-            m_SkyRenderingContext = new SkyRenderingContext(iblFilterGGX, (int)hdAsset.renderPipelineSettings.lightLoopSettings.skyReflectionSize, true);
+            m_BakingSkyRenderingContext = new SkyRenderingContext(iblFilterBSDFArray, (int)hdAsset.renderPipelineSettings.lightLoopSettings.skyReflectionSize, false);
+            m_SkyRenderingContext = new SkyRenderingContext(iblFilterBSDFArray, (int)hdAsset.renderPipelineSettings.lightLoopSettings.skyReflectionSize, true);
 
             m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.skyboxCubemapPS);
             m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.blitCubemapPS);
