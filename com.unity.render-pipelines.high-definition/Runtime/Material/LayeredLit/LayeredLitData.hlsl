@@ -768,6 +768,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     }
 #endif
 
+#ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
+    // Specular AA
+    surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.worldToTangent[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
+#endif
+
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
@@ -778,11 +783,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.worldToTangent, surfaceData);
-#endif
-
-#ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
-    // Specular AA
-    surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.worldToTangent[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
     GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);

@@ -171,8 +171,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static void Drawer_SectionCustomSettings(HDProbeUI s, SerializedHDProbe d, Editor o)
         {
-            var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            using (new EditorGUI.DisabledScope(!hdPipeline.asset.renderPipelineSettings.supportLightLayers))
+            using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
                 d.lightLayers.intValue = Convert.ToInt32(EditorGUILayout.EnumFlagsField(lightLayersContent, (LightLayerEnum)d.lightLayers.intValue));
             }
