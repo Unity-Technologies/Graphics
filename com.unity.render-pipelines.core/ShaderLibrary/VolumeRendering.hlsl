@@ -110,9 +110,11 @@ real CornetteShanksPhaseFunction(real anisotropy, real cosTheta)
 void ImportanceSampleHomogeneousMedium(real rndVal, real extinction, real intervalLength,
                                        out real offset, out real weight)
 {
-    // pdf    = extinction * exp(extinction * (intervalLength - t)) / (exp(intervalLength * extinction - 1)
+    // pdf    = extinction * exp(extinction * (intervalLength - t)) / (exp(intervalLength * extinction) - 1)
+    // pdf    = extinction * exp(-extinction * t) / (1 - exp(-extinction * intervalLength))
     // weight = exp(-extinction * t) / pdf
     // weight = (1 - exp(-extinction * intervalLength)) / extinction
+    // weight = OpacityFromOpticalDepth(extinction * intervalLength) / extinction
 
     real x = 1 - exp(-extinction * intervalLength);
     real c = rcp(extinction);
@@ -153,7 +155,8 @@ void ImportanceSamplePunctualLight(real rndVal, real3 lightPosition, real lightS
     // Same but faster:
     // atan(y) - atan(x) = atan((y - x) / (1 + x * y))
     // tan(atan(x) + z)  = (x * cos(z) + sin(z)) / (cos(z) - x * sin(z))
-    real tanGamma = abs((y - x) * rcp(1 + x * y));
+    // Both the tangent and the angle  cannot be negative.
+    real tanGamma = abs((y - x) * rcp(max(0, 1 + x * y)));
     real gamma    = FastATanPos(tanGamma);
     real z        = rndVal * gamma;
     real numer    = x * cos(z) + sin(z);
@@ -175,6 +178,54 @@ void ImportanceSamplePunctualLight(real rndVal, real3 lightPosition, real lightS
 real3 TransmittanceColorAtDistanceToAbsorption(real3 transmittanceColor, real atDistance)
 {
     return -log(transmittanceColor + FLT_EPS) / max(atDistance, FLT_EPS);
+}
+
+// input = {radiance, opacity}
+// Note that opacity must be less than 1 (not fully opaque).
+real4 LinearizeRGBA(real4 value)
+{
+    // See "Deep Compositing Using Lie Algebras".
+    // log(A) = {OpticalDepthFromOpacity(A.a) / A.a * A.rgb, -OpticalDepthFromOpacity(A.a)}.
+    // We drop redundant negations.
+    real a = value.a;
+    real d = -log(1 - a);
+    return real4((d * rcp(a)) * value.rgb, d);
+}
+
+// input = {radiance, optical_depth}
+// Note that opacity must be less than 1 (not fully opaque).
+real4 LinearizeRGBD(real4 value)
+{
+    // See "Deep Compositing Using Lie Algebras".
+    // log(A) = {A.a / OpacityFromOpticalDepth(A.a) * A.rgb, -A.a}.
+    // We drop redundant negations.
+    real d = value.a;
+    real a = 1 - exp(-d);
+    return real4((d * rcp(a)) * value.rgb, d);
+}
+
+// output = {radiance, opacity}
+// Note that opacity must be less than 1 (not fully opaque).
+real4 DelinearizeRGBA(real4 value)
+{
+    // See "Deep Compositing Using Lie Algebras".
+    // exp(B) = {OpacityFromOpticalDepth(-B.a) / -B.a * B.rgb, OpacityFromOpticalDepth(-B.a)}.
+    // We drop redundant negations.
+    real d = value.a;
+    real a = 1 - exp(-d);
+    return real4((a * rcp(d)) * value.rgb, a);
+}
+
+// input = {radiance, optical_depth}
+// Note that opacity must be less than 1 (not fully opaque).
+real4 DelinearizeRGBD(real4 value)
+{
+    // See "Deep Compositing Using Lie Algebras".
+    // exp(B) = {OpacityFromOpticalDepth(-B.a) / -B.a * B.rgb, -B.a}.
+    // We drop redundant negations.
+    real d = value.a;
+    real a = 1 - exp(-d);
+    return real4((a * rcp(d)) * value.rgb, d);
 }
 
 #endif // UNITY_VOLUME_RENDERING_INCLUDED
