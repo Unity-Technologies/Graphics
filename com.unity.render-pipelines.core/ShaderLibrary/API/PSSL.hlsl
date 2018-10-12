@@ -1,5 +1,7 @@
 // This file assume SHADER_API_D3D11 is defined
 
+#define SUPPORTS_WAVE_INTRINSICS
+
 #define INTRINSIC_BITFIELD_EXTRACT
 #define BitFieldExtract __v_bfe_u32
 #define INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
@@ -9,11 +11,28 @@
 #define INTRINSIC_WAVEREADFIRSTLANE
 #define WaveReadFirstLane ReadFirstLane
 #define INTRINSIC_MAD24
-#define Mad24 mad24
+#define Mad24Int mad24
+#define Mad24Uint mad24
 #define INTRINSIC_MINMAX3
 #define Min3 min3
 #define Max3 max3
 #define INTRINSIC_CUBEMAP_FACE_ID
+#define INTRINSIC_WAVE_MINMAX
+#define WaveMinInt CrossLaneMin
+#define WaveMinUint CrossLaneMin
+#define WaveMinFloat CrossLaneMin
+#define WaveMaxInt CrossLaneMax
+#define WaveMaxUint CrossLaneMax
+#define WaveMaxFloat CrossLaneMax
+#define INTRINSIC_BALLOT
+#define Ballot ballot
+#define INTRINSIC_WAVE_SUM
+#define WaveAdd CrossLaneAdd
+#define INTRINSIC_WAVE_LOGICAL_OPS
+#define WaveAnd CrossLaneAnd
+#define WaveOr CrossLaneOr
+
+
 
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
