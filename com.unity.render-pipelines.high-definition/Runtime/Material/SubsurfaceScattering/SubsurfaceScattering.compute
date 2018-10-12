@@ -81,7 +81,7 @@ groupshared bool   processGroup;
 #if SSS_USE_LDS_CACHE
 void StoreSampleToCacheMemory(float4 value, int2 cacheCoord)
 {
-    int linearCoord = Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x);
+    int linearCoord = Mad24Int(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x);
 
     textureCache0[linearCoord] = value.rg;
     textureCache1[linearCoord] = value.ba;
@@ -89,7 +89,7 @@ void StoreSampleToCacheMemory(float4 value, int2 cacheCoord)
 
 float4 LoadSampleFromCacheMemory(int2 cacheCoord)
 {
-    int linearCoord = Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x);
+    int linearCoord = Mad24Int(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x);
 
     return float4(textureCache0[linearCoord],
                   textureCache1[linearCoord]);
