@@ -35,15 +35,29 @@ namespace UnityEditor.VFX.Operator
 
         public sealed override string name { get { return "Probability Sampling"; } }
 
+        private int expressionCountPerUniqueSlot
+        {
+            get
+            {
+                /* TODO, find better method, without huge garbage */
+                var tempInstance = VFXSlot.Create(new VFXPropertyWithValue(new VFXProperty(GetOperandType(), "temp")), VFXSlot.Direction.kInput);
+                var r = tempInstance.GetVFXValueTypeSlots().Count();
+                ScriptableObject.DestroyImmediate(tempInstance);
+                return r;
+            }
+        }
+
         public override sealed IEnumerable<int> staticSlotIndex
         {
             get
             {
-                for (uint i = 0; i < m_EntryCount; ++i)
-                    yield return (int)(i + m_EntryCount);
+                var expressionCountPerSlot = expressionCountPerUniqueSlot + 1;
+                for (int i = 0; i < m_EntryCount; ++i)
+                    for (int j = 0; j < expressionCountPerSlot; ++j)
+                        yield return i * expressionCountPerSlot + j;
 
                 if (m_Constant || !m_IntegratedRandom)
-                    yield return (int)m_EntryCount * 2;
+                    yield return expressionCountPerSlot * (int)m_EntryCount;
             }
         }
 
@@ -83,10 +97,6 @@ namespace UnityEditor.VFX.Operator
                 for (uint i = 0; i < m_EntryCount; ++i)
                 {
                     yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), "V" + i), defaultValue);
-                }
-
-                for (uint i = 0; i < m_EntryCount; ++i)
-                {
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "P" + i), 0.0f);
                 }
 
@@ -123,11 +133,18 @@ namespace UnityEditor.VFX.Operator
                 rand = inputExpression.Last();
             }
 
+            var expressionCountPerSlot = expressionCountPerUniqueSlot;
+            var probabilitiesExpression = new VFXExpression[m_EntryCount]; //TODO : avoid useless copy -_-'
+            for (int i = 0; i < m_EntryCount; ++i)
+            {
+                probabilitiesExpression[i] = inputExpression[i * (expressionCountPerSlot + 1) + expressionCountPerSlot];
+            }
+
             var prefixedProbablities = new VFXExpression[m_EntryCount];
-            prefixedProbablities[0] = inputExpression[m_EntryCount];
+            prefixedProbablities[0] = probabilitiesExpression[0];
             for (uint i = 1; i < m_EntryCount; i++)
             {
-                prefixedProbablities[i] = prefixedProbablities[i - 1] + inputExpression[i + m_EntryCount];
+                prefixedProbablities[i] = prefixedProbablities[i - 1] + probabilitiesExpression[i];
             }
             rand = rand * prefixedProbablities.Last();
 
@@ -137,14 +154,25 @@ namespace UnityEditor.VFX.Operator
                 compare[i] = new VFXExpressionCondition(VFXCondition.GreaterOrEqual, prefixedProbablities[i], rand);
             };
 
-            var branch = new VFXExpression[m_EntryCount];
-            branch[m_EntryCount - 1] = inputExpression[m_EntryCount - 1]; //Last entry is the fallback
-            for (int i = (int)m_EntryCount - 2; i >= 0; i--)
+            var branchResult = new VFXExpression[expressionCountPerSlot];
+
+            Func<int, int, int> fnActualExpressionIndex = delegate (int index, int subExpression)
             {
-                branch[i] = new VFXExpressionBranch(compare[i], inputExpression[i], branch[i + 1]);
+                return index * (expressionCountPerSlot + 1) + subExpression;
+            };
+
+            for (int subExpression = 0; subExpression < expressionCountPerSlot; ++subExpression)
+            {
+                var branch = new VFXExpression[m_EntryCount];
+                branch[m_EntryCount - 1] = inputExpression[fnActualExpressionIndex((int)m_EntryCount - 1, subExpression)]; //Last entry is the fallback
+                for (int i = (int)m_EntryCount - 2; i >= 0; i--)
+                {
+                    branch[i] = new VFXExpressionBranch(compare[i], inputExpression[fnActualExpressionIndex(i, subExpression)], branch[i + 1]);
+                }
+                branchResult[subExpression] = branch[0];
             }
 
-            return new[] { branch[0] };
+            return branchResult;
         }
     }
 }
