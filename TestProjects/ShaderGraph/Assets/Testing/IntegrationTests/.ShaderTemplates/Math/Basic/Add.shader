@@ -45,7 +45,7 @@ Shader "Add"
 		    #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
 		    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 		    #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/InputSurfaceUnlit.hlsl"
-		    #include "ShaderGraphLibrary/Functions.hlsl"
+		    #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
 		
 		    
 		
