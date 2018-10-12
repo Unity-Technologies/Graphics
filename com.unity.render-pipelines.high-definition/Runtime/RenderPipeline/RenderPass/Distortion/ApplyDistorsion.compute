@@ -7,8 +7,6 @@
 TEXTURE2D(_DistortionTexture);
 RW_TEXTURE2D(float4, _Destination);
 
-SamplerState sampler_ColorPyramidTexture;
-
 CBUFFER_START(cb)
     float4 _Size;
 CBUFFER_END
@@ -55,7 +53,7 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
     // Get source pixel for distortion
     float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw * _ScreenToTargetScale.xy;
     float mip = (_ColorPyramidScale.z - 1) * clamp(distortionBlur, 0.0, 1.0);
-    float4 sampled = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, sampler_ColorPyramidTexture, distordedUV, mip);
+    float4 sampled = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, distordedUV, mip);
 
     _Destination[dispatchThreadId] = sampled;
 }
