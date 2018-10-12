@@ -87,6 +87,6 @@ Note: Always store your new Render Pipeline Asset outside of the Scriptable Rend
 
 If you want some sample scenes to use with SRP, you can find them at the [ScriptableRenderPipelineData GitHub repository](https://github.com/Unity-Technologies/ScriptableRenderPipelineData).
 
-Clone the repo into your project's Assets\ folder, likely alongside your ScriptableRenderPipeline clone folder.  You can use the same cloning process as described above for the main ScriptableRenderPipeline repo.
+Clone the repo into your project's Assets\ folder.
 
 Previous iterations of the ScriptableRenderPipeline repo owned this sample scene data, in case you noticed it before, and wondered where it went.
