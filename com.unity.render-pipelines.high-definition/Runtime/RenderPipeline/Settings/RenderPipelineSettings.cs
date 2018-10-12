@@ -40,7 +40,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportMotionVectors = true;
         public bool supportRuntimeDebugDisplay = true;
         public bool supportDitheringCrossFade = true;
-        
+        public bool supportRayTracing =  false;
+
         public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
         public HDShadowInitParameters   hdShadowInitParams = new HDShadowInitParameters();
         public GlobalDecalSettings      decalSettings = new GlobalDecalSettings();
