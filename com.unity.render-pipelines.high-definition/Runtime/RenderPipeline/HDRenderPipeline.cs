@@ -68,6 +68,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly SubsurfaceScatteringManager m_SSSBufferManager = new SubsurfaceScatteringManager();
         readonly SharedRTManager m_SharedRTManager = new SharedRTManager();
 
+#if ENABLE_RAYTRACING
+        readonly HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
+#endif
+
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         RendererConfiguration m_currentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
         Material m_CopyStencil;
@@ -225,6 +229,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+#if UNITY_EDITOR
+            // The first thing we need to do is to set the defines that depend on the render pipeline settings
+            m_Asset.EvaluateSettings();
+#endif
+
             // Upgrade the resources (re-import every references in RenderPipelineResources) if the resource version mismatches
             // It's done here because we know every HDRP assets have been imported before
             UpgradeResourcesIfNeeded();
@@ -325,6 +334,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugDisplaySettings.msaaSamples = m_MSAASamples;
 
             m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
+#if ENABLE_RAYTRACING
+            m_RayTracingManager.InitAccelerationStructures();
+#endif
         }
 
         void UpgradeResourcesIfNeeded()
@@ -568,6 +580,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             base.Dispose();
 
+#if ENABLE_RAYTRACING
+            m_RayTracingManager.ReleaseAccelerationStructures();
+#endif
             m_DebugDisplaySettings.UnregisterDebug();
 
             m_LightLoop.Cleanup();
