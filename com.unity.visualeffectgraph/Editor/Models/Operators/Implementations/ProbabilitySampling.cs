@@ -9,11 +9,14 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Logic")]
     class ProbabilitySampling : VFXOperatorDynamicBranch
     {
-        [VFXSetting, Tooltip("Generate a random number for each particle, or one that is shared by the whole system.")]
-        public Random.SeedMode seed = Random.SeedMode.PerParticle;
+        [VFXSetting, Tooltip("Use integrated random function"), SerializeField]
+        private bool m_IntegratedRandom = true;
 
-        [VFXSetting, Tooltip("The random number may either remain constant, or change every time it is evaluated.")]
-        public bool constant = true;
+        [VFXSetting, Tooltip("Generate a random number for each particle, or one that is shared by the whole system."), SerializeField]
+        public Random.SeedMode m_Seed = Random.SeedMode.PerParticle;
+
+        [VFXSetting, Tooltip("The random number may either remain constant, or change every time it is evaluated."), SerializeField]
+        public bool m_Constant = true;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.Default), SerializeField]
         uint m_EntryCount = 3u;
@@ -24,6 +27,12 @@ namespace UnityEditor.VFX.Operator
             public uint hash = 0u;
         }
 
+        public class ManualRandom
+        {
+            [Tooltip("Random Value")]
+            public float rand = 0.0f;
+        }
+
         public sealed override string name { get { return "Probability Sampling"; } }
 
         public override sealed IEnumerable<int> staticSlotIndex
@@ -32,6 +41,9 @@ namespace UnityEditor.VFX.Operator
             {
                 for (uint i = 0; i < m_EntryCount; ++i)
                     yield return (int)(i + m_EntryCount);
+
+                if (m_Constant || !m_IntegratedRandom)
+                    yield return (int)m_EntryCount * 2;
             }
         }
 
@@ -40,6 +52,18 @@ namespace UnityEditor.VFX.Operator
             get
             {
                 return typeof(Color);
+            }
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                if (!m_IntegratedRandom)
+                {
+                    yield return "m_Seed";
+                    yield return "m_Constant";
+                }
             }
         }
 
@@ -66,10 +90,19 @@ namespace UnityEditor.VFX.Operator
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "P" + i), 0.0f);
                 }
 
-                if (constant)
+                if (m_IntegratedRandom)
                 {
-                    var constantProperties = PropertiesFromType("ConstantInputProperties");
-                    foreach (var property in constantProperties)
+                    if (m_Constant)
+                    {
+                        var constantProperties = PropertiesFromType("ConstantInputProperties");
+                        foreach (var property in constantProperties)
+                            yield return property;
+                    }
+                }
+                else
+                {
+                    var manualRandomProperties = PropertiesFromType("ManualRandom");
+                    foreach (var property in manualRandomProperties)
                         yield return property;
                 }
             }
@@ -78,10 +111,17 @@ namespace UnityEditor.VFX.Operator
         protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression rand = null;
-            if (constant)
-                rand = VFXOperatorUtility.FixedRandom(inputExpression.Last(), seed == Random.SeedMode.PerParticle);
+            if (m_IntegratedRandom)
+            {
+                if (m_Constant)
+                    rand = VFXOperatorUtility.FixedRandom(inputExpression.Last(), m_Seed == Random.SeedMode.PerParticle);
+                else
+                    rand = new VFXExpressionRandom(m_Seed == Random.SeedMode.PerParticle);
+            }
             else
-                rand = new VFXExpressionRandom(seed == Random.SeedMode.PerParticle);
+            {
+                rand = inputExpression.Last();
+            }
 
             var prefixedProbablities = new VFXExpression[m_EntryCount];
             prefixedProbablities[0] = inputExpression[m_EntryCount];
