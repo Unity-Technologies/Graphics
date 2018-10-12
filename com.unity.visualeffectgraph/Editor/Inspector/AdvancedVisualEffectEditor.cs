@@ -44,6 +44,10 @@ namespace UnityEditor.VFX
             {
                 return "m_Gradient";
             }
+            else if (type == typeof(Texture))
+            {
+                return "m_NamedObject";
+            }
             else if (type == typeof(Texture2D))
             {
                 return "m_NamedObject";
