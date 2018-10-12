@@ -1,0 +1,11 @@
+<UXML xmlns:ui="UnityEngine.Experimental.UIElements" xmlns:uie="UnityEditor.Experimental.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
+    <ui:VisualElement name="header" pickingMode="Ignore">
+        <ui:VisualElement name="labelContainer" pickingMode="Ignore">
+            <ui:Label name="titleLabel" text="Target visual effect GameObject" />
+            <ui:Label name="subTitleLabel" text="Select a visual effect gameobject in the scenes and attach for additionnal control."/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+  <ui:ScrollView class="stretchContentWidth" name="scrollView">
+  </ui:ScrollView>
+    <vfx:ResizableElement pickingMode="Ignore" />
+</UXML>

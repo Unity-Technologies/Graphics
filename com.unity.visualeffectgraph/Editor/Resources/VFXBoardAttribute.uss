@@ -1,0 +1,14 @@
+VFXBoardAttribute
+{
+    flex-direction: row;
+}
+
+VFXBoardAttribute #name
+{
+    flex:1 1 auto;
+}
+VFXBoardAttribute #type-dropdown
+{
+    width:50;
+}
+

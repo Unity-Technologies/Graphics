@@ -10,229 +10,87 @@ using UnityEditor;
 using System.Linq;
 using System.Text;
 using UnityEditor.SceneManagement;
-using System.Globalization;
 
 using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-    static class BoardPreferenceHelper
+    class VFXComponentBoard : VFXBoard, IControlledElement<VFXViewController>, IVFXMovable, IVFXResizable
     {
-        public enum Board
+        Button          m_AttachButton;
+        Button          m_SelectButton;
+        Label           m_ComponentPath;
+        VisualElement   m_ComponentContainer;
+        VisualElement   m_EventsContainer;
+
+        Button          m_Stop;
+        Button          m_Play;
+        Button          m_Step;
+        Button          m_Restart;
+        Slider          m_PlayRateSlider;
+        IntegerField    m_PlayRateField;
+        Button          m_PlayRateMenu;
+
+        Label           m_ParticleCount;
+
+        public VFXComponentBoard(VFXView view):base(view, BoardPreferenceHelper.Board.componentBoard,defaultRect)
         {
-            blackboard,
-            componentBoard
-        }
-
-
-        const string rectPreferenceFormat = "vfx-{0}-rect";
-        const string visiblePreferenceFormat = "vfx-{0}-visible";
-
-
-        public static bool IsVisible(Board board, bool defaultState)
-        {
-            return EditorPrefs.GetBool(string.Format(visiblePreferenceFormat, board), defaultState);
-        }
-
-        public static void SetVisible(Board board, bool value)
-        {
-            EditorPrefs.SetBool(string.Format(visiblePreferenceFormat, board), value);
-        }
-
-        public static Rect LoadPosition(Board board, Rect defaultPosition)
-        {
-            string str = EditorPrefs.GetString(string.Format(rectPreferenceFormat, board));
-
-            Rect blackBoardPosition = defaultPosition;
-            if (!string.IsNullOrEmpty(str))
-            {
-                var rectValues = str.Split(',');
-
-                if (rectValues.Length == 4)
-                {
-                    float x, y, width, height;
-                    if (float.TryParse(rectValues[0], NumberStyles.Float, CultureInfo.InvariantCulture, out x) &&
-                        float.TryParse(rectValues[1], NumberStyles.Float, CultureInfo.InvariantCulture, out y) &&
-                        float.TryParse(rectValues[2], NumberStyles.Float, CultureInfo.InvariantCulture, out width) &&
-                        float.TryParse(rectValues[3], NumberStyles.Float, CultureInfo.InvariantCulture, out height))
-                    {
-                        blackBoardPosition = new Rect(x, y, width, height);
-                    }
-                }
-            }
-
-            return blackBoardPosition;
-        }
-
-        public static void SavePosition(Board board, Rect r)
-        {
-            EditorPrefs.SetString(string.Format(rectPreferenceFormat, board), string.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
-        }
-
-        public static readonly Vector2 sizeMargin = Vector2.one * 30;
-
-        public static bool ValidatePosition(GraphElement element, VFXView view, Rect defaultPosition)
-        {
-            Rect viewrect = view.contentRect;
-            Rect rect = element.GetPosition();
-            bool changed = false;
-
-            if (!viewrect.Contains(rect.position))
-            {
-                Vector2 newPosition = defaultPosition.position;
-                if (!viewrect.Contains(defaultPosition.position))
-                {
-                    newPosition = sizeMargin;
-                }
-
-                rect.position = newPosition;
-
-                changed = true;
-            }
-
-            Vector2 maxSizeInView = viewrect.max - rect.position - sizeMargin;
-            float newWidth = Mathf.Max(element.resolvedStyle.minWidth.value, Mathf.Min(rect.width, maxSizeInView.x));
-            float newHeight = Mathf.Max(element.resolvedStyle.minHeight.value, Mathf.Min(rect.height, maxSizeInView.y));
-
-            if (Mathf.Abs(newWidth - rect.width) > 1)
-            {
-                rect.width = newWidth;
-                changed = true;
-            }
-
-            if (Mathf.Abs(newHeight - rect.height) > 1)
-            {
-                rect.height = newHeight;
-                changed = true;
-            }
-
-            if (changed)
-            {
-                element.SetPosition(rect);
-            }
-
-            return false;
-        }
-    }
-
-
-    class VFXComponentBoard : GraphElement, IControlledElement<VFXViewController>, IVFXMovable, IVFXResizable
-    {
-        VFXViewController m_Controller;
-        Controller IControlledElement.controller
-        {
-            get { return m_Controller; }
-        }
-        public VFXViewController controller
-        {
-            get { return m_Controller; }
-            set
-            {
-                if (m_Controller != value)
-                {
-                    if (m_Controller != null)
-                    {
-                        m_Controller.UnregisterHandler(this);
-                    }
-                    Clear();
-                    m_Controller = value;
-
-                    if (m_Controller != null)
-                    {
-                        m_Controller.RegisterHandler(this);
-                    }
-                }
-            }
-        }
-
-        VFXView m_View;
-
-        public VFXComponentBoard(VFXView view)
-        {
-            m_View = view;
             var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXComponentBoard");
 
             tpl.CloneTree(contentContainer);
 
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
-            m_AttachButton = this.Query<Button>("attach");
+            m_AttachButton = contentContainer.Query<Button>("attach");
             m_AttachButton.clickable.clicked += ToggleAttach;
 
-            m_SelectButton = this.Query<Button>("select");
+            m_SelectButton = contentContainer.Query<Button>("select");
             m_SelectButton.clickable.clicked += Select;
 
-            m_ComponentPath = this.Query<Label>("component-path");
+            m_ComponentPath = contentContainer.Query<Label>("component-path");
 
-            m_ComponentContainer = this.Query("component-container");
+            m_ComponentContainer = contentContainer.Query("component-container");
             m_ComponentContainerParent = m_ComponentContainer.parent;
 
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachToPanel);
 
-            m_Stop = this.Query<Button>("stop");
+            m_Stop = contentContainer.Query<Button>("stop");
             m_Stop.clickable.clicked += EffectStop;
-            m_Play = this.Query<Button>("play");
+            m_Play = contentContainer.Query<Button>("play");
             m_Play.clickable.clicked += EffectPlay;
-            m_Step = this.Query<Button>("step");
+            m_Step = contentContainer.Query<Button>("step");
             m_Step.clickable.clicked += EffectStep;
-            m_Restart = this.Query<Button>("restart");
+            m_Restart = contentContainer.Query<Button>("restart");
             m_Restart.clickable.clicked += EffectRestart;
 
-            m_PlayRateSlider = this.Query<Slider>("play-rate-slider");
+            m_PlayRateSlider = contentContainer.Query<Slider>("play-rate-slider");
             m_PlayRateSlider.lowValue = Mathf.Pow(VisualEffectControl.minSlider, 1 / VisualEffectControl.sliderPower);
             m_PlayRateSlider.highValue = Mathf.Pow(VisualEffectControl.maxSlider, 1 / VisualEffectControl.sliderPower);
             m_PlayRateSlider.RegisterValueChangedCallback(evt => OnEffectSlider(evt.newValue));
-            m_PlayRateField = this.Query<IntegerField>("play-rate-field");
+            m_PlayRateField = contentContainer.Query<IntegerField>("play-rate-field");
             m_PlayRateField.RegisterCallback<ChangeEvent<int>>(OnPlayRateField);
 
-            m_PlayRateMenu = this.Query<Button>("play-rate-menu");
+            m_PlayRateMenu = contentContainer.Query<Button>("play-rate-menu");
             m_PlayRateMenu.AddStyleSheetPathWithSkinVariant("VFXControls");
 
             m_PlayRateMenu.clickable.clicked += OnPlayRateMenu;
 
-            m_ParticleCount = this.Query<Label>("particle-count");
+            m_ParticleCount = contentContainer.Query<Label>("particle-count");
 
-            Button button = this.Query<Button>("on-play-button");
+            Button button = contentContainer.Query<Button>("on-play-button");
             button.clickable.clicked += () => SendEvent("OnPlay");
-            button = this.Query<Button>("on-stop-button");
+            button = contentContainer.Query<Button>("on-stop-button");
             button.clickable.clicked += () => SendEvent("OnStop");
 
-            m_EventsContainer = this.Query("events-container");
+            m_EventsContainer = contentContainer.Query("events-container");
 
             Detach();
-            this.AddManipulator(new Dragger { clampToParentEdges = true });
-
-            capabilities |= Capabilities.Movable;
-
-            RegisterCallback<MouseDownEvent>(OnMouseClick, TrickleDown.TrickleDown);
-
-            style.position = PositionType.Absolute;
-
-            SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.componentBoard, defaultRect));
         }
 
         VisualElement m_ComponentContainerParent;
 
-        public void ValidatePosition()
-        {
-            BoardPreferenceHelper.ValidatePosition(this, m_View, defaultRect);
-        }
-
         static readonly Rect defaultRect = new Rect(200, 100, 300, 300);
-
-        public override Rect GetPosition()
-        {
-            return new Rect(resolvedStyle.left, resolvedStyle.top, resolvedStyle.width, resolvedStyle.height);
-        }
-
-        public override void SetPosition(Rect newPos)
-        {
-            style.left = newPos.xMin;
-            style.top = newPos.yMin;
-            style.width = newPos.width;
-            style.height = newPos.height;
-        }
 
         void OnMouseClick(MouseDownEvent e)
         {
@@ -486,25 +344,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        Button m_AttachButton;
-        Button m_SelectButton;
-        Label m_ComponentPath;
-        VisualElement m_ComponentContainer;
-        VisualElement m_EventsContainer;
-
-        Button m_Stop;
-        Button m_Play;
-        Button m_Step;
-        Button m_Restart;
-
-
-        Slider m_PlayRateSlider;
-        IntegerField m_PlayRateField;
-
-        Button m_PlayRateMenu;
-
-        Label m_ParticleCount;
-
         public new void Clear()
         {
             Detach();
@@ -583,21 +422,6 @@ namespace UnityEditor.VFX.UI
 
         Dictionary<string, VFXComponentBoardEventUI> m_Events = new Dictionary<string, VFXComponentBoardEventUI>();
 
-        public override void UpdatePresenterPosition()
-        {
-            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
-        }
-
-        public void OnMoved()
-        {
-            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
-        }
-
-        void IVFXResizable.OnStartResize() {}
-        public void OnResized()
-        {
-            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
-        }
     }
     public class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
     {}

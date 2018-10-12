@@ -38,7 +38,7 @@ VFXComponentBoard .unity-scroll-view
     flex: 1 1 auto;
 }
 
-VFXComponentBoard, #component-container
+#component-container
 {
     flex-direction:column;
     align-items:stretch;
@@ -71,6 +71,12 @@ VFXComponentBoard, #component-container
     font-size: 11px;
     color: #606060;
     white-space: normal;
+}
+
+#toolbar-container
+{
+    flex-direction:column;
+    align-items:stretch;
 }
 
 
