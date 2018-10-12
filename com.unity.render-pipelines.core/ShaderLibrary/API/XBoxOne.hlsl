@@ -15,19 +15,36 @@
 #define CBUFFER_END };
 
 // Intrinsics
+#define SUPPORTS_WAVE_INTRINSICS
+
 #define INTRINSIC_WAVEREADFIRSTLANE
 #define WaveReadFirstLane __XB_MakeUniform
 #define INTRINSIC_MINMAX3
 #define Min3 __XB_Min3_F32
 #define Max3 __XB_Max3_F32
 #define INTRINSIC_MAD24
-#define Mad24 __XB_MadU24
+#define Mad24Int __XB_MadI24
+#define Mad24Uint __XB_MadU24
 #define INTRINSIC_BITFIELD_EXTRACT
 #define BitFieldExtract __XB_UBFE
 #define INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
 #define BitFieldExtractSignExtend __XB_IBFE
 #define INTRINSIC_BITFIELD_INSERT
 #define BitFieldInsert __XB_BFI
+#define INTRINSIC_WAVE_MINMAX
+#define WaveMinInt __XB_WaveMin_I32
+#define WaveMinUint __XB_WaveMin_U32
+#define WaveMinFloat __XB_WaveMin_F32
+#define WaveMaxInt __XB_WaveMax_I32
+#define WaveMaxUint __XB_WaveMax_U32
+#define WaveMaxFloat __XB_WaveMax_F32
+#define INTRINSIC_BALLOT
+#define Ballot __XB_Ballot64
+#define INTRINSIC_WAVE_SUM
+#define WaveAdd __XB_WaveAdd_F32
+#define INTRINSIC_WAVE_LOGICAL_OPS
+#define WaveAnd __XB_WaveAND
+#define WaveOr __XB_WaveOR
 
 // flow control attributes
 #define UNITY_BRANCH        [branch]
