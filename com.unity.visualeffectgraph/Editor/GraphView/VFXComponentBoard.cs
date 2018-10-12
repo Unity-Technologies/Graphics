@@ -508,8 +508,6 @@ namespace UnityEditor.VFX.UI
         {
             Detach();
         }
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             UpdateEventList();

@@ -37,7 +37,9 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.Float);
         public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.Float);
-        public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.Float3);
+        public static readonly VFXAttribute PivotX              = new VFXAttribute("pivotX", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute PivotY              = new VFXAttribute("pivotY", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute PivotZ              = new VFXAttribute("pivotZ", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.Uint32);
         public static readonly VFXAttribute ParticleIndex       = new VFXAttribute("particleIndex", VFXValueType.Uint32);
         public static readonly VFXAttribute AxisX               = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right));
@@ -65,7 +67,8 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute[] AllVariadicAttribute = new VFXAttribute[]
         {
             new VFXAttribute("size", VFXValue.Constant(new Vector3(kDefaultSize, kDefaultSize, kDefaultSize)), VFXVariadic.True),
-            new VFXAttribute("angle", VFXValueType.Float3, VFXVariadic.True)
+            new VFXAttribute("angle", VFXValueType.Float3, VFXVariadic.True),
+            new VFXAttribute("pivot", VFXValueType.Float3, VFXVariadic.True)
         };
 
         public static readonly string[] AllVariadic = AllVariadicAttribute.Select(e => e.name).ToArray();

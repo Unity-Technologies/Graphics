@@ -15,11 +15,11 @@ using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXView : GraphView, IDropTarget, IControlledElement<VFXViewController>
+    class VFXView : GraphView, IDropTarget, IControlledElement<VFXViewController>, IControllerListener
     {
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
 
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e)
+        void IControllerListener.OnControllerEvent(ControllerEvent e)
         {
             if (e is VFXRecompileEvent)
             {
@@ -1006,8 +1006,15 @@ namespace UnityEditor.VFX.UI
 
         public EventPropagation ReinitComponents()
         {
-            foreach (var component in UnityEngine.Experimental.VFX.VFXManager.GetComponents())
-                component.Reinit();
+            if (attachedComponent != null)
+            {
+                attachedComponent.Reinit();
+            }
+            else
+            {
+                foreach (var component in UnityEngine.Experimental.VFX.VFXManager.GetComponents())
+                    component.Reinit();
+            }
             return EventPropagation.Stop;
         }
 

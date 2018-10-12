@@ -85,8 +85,7 @@ namespace UnityEditor.VFX.UI
                 node.OnMoved();
             }
         }
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)

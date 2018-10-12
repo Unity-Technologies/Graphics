@@ -154,8 +154,7 @@ namespace UnityEditor.VFX.UI
 
             m_SelectionBorder = this.Query("selection-border");
         }
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        
         public virtual void OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)

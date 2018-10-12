@@ -50,8 +50,7 @@ namespace UnityEditor.VFX.UI
             AddStyleSheetPath("VFXFlow");
             AddToClassList("EdgeConnector");
         }
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)

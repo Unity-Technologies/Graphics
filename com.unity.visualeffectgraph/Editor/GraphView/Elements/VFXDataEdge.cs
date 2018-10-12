@@ -44,8 +44,7 @@ namespace UnityEditor.VFX.UI
         public VFXDataEdge()
         {
         }
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        
 
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {

@@ -118,8 +118,6 @@ namespace UnityEditor.VFX.UI
                     break;
             }
         }
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (m_TitleField != null && !m_TitleField.HasFocus())
