@@ -20,14 +20,5 @@ namespace UnityEditor
             path = Path.Combine(path, "DebugOutput");
             return Directory.Exists(path) ? path : null;
         }
-
-        [ShaderIncludePath]
-        public static string[] GetPaths()
-        {
-            return new[]
-            {
-                GetAssetsPackagePath() ?? Path.GetFullPath("Packages/com.unity.shadergraph")
-            };
-        }
     }
 }
