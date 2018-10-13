@@ -35,18 +35,6 @@ namespace UnityEditor.VFX.Operator
 
         public sealed override string name { get { return "Probability Sampling"; } }
 
-        private int expressionCountPerUniqueSlot
-        {
-            get
-            {
-                /* TODO, find better method, without huge garbage */
-                var tempInstance = VFXSlot.Create(new VFXPropertyWithValue(new VFXProperty(GetOperandType(), "temp")), VFXSlot.Direction.kInput);
-                var r = tempInstance.GetVFXValueTypeSlots().Count();
-                ScriptableObject.DestroyImmediate(tempInstance);
-                return r;
-            }
-        }
-
         public override sealed IEnumerable<int> staticSlotIndex
         {
             get
@@ -97,7 +85,7 @@ namespace UnityEditor.VFX.Operator
                 for (uint i = 0; i < m_EntryCount; ++i)
                 {
                     yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), "V" + i), defaultValue);
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "P" + i), 0.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "P" + i), 1.0f);
                 }
 
                 if (m_IntegratedRandom)
@@ -133,18 +121,16 @@ namespace UnityEditor.VFX.Operator
                 rand = inputExpression.Last();
             }
 
-            var expressionCountPerSlot = expressionCountPerUniqueSlot;
-            var probabilitiesExpression = new VFXExpression[m_EntryCount]; //TODO : avoid useless copy -_-'
-            for (int i = 0; i < m_EntryCount; ++i)
-            {
-                probabilitiesExpression[i] = inputExpression[i * (expressionCountPerSlot + 1) + expressionCountPerSlot];
-            }
+            var expressionCountPerUniqueSlot = this.expressionCountPerUniqueSlot;
 
+            var stride = expressionCountPerUniqueSlot + 1;
             var prefixedProbablities = new VFXExpression[m_EntryCount];
-            prefixedProbablities[0] = probabilitiesExpression[0];
+            int offsetProbabilities = expressionCountPerUniqueSlot;
+            prefixedProbablities[0] = inputExpression[offsetProbabilities];
             for (uint i = 1; i < m_EntryCount; i++)
             {
-                prefixedProbablities[i] = prefixedProbablities[i - 1] + probabilitiesExpression[i];
+                offsetProbabilities += stride;
+                prefixedProbablities[i] = prefixedProbablities[i - 1] + inputExpression[offsetProbabilities];
             }
             rand = rand * prefixedProbablities.Last();
 
@@ -154,25 +140,7 @@ namespace UnityEditor.VFX.Operator
                 compare[i] = new VFXExpressionCondition(VFXCondition.GreaterOrEqual, prefixedProbablities[i], rand);
             };
 
-            var branchResult = new VFXExpression[expressionCountPerSlot];
-
-            Func<int, int, int> fnActualExpressionIndex = delegate (int index, int subExpression)
-            {
-                return index * (expressionCountPerSlot + 1) + subExpression;
-            };
-
-            for (int subExpression = 0; subExpression < expressionCountPerSlot; ++subExpression)
-            {
-                var branch = new VFXExpression[m_EntryCount];
-                branch[m_EntryCount - 1] = inputExpression[fnActualExpressionIndex((int)m_EntryCount - 1, subExpression)]; //Last entry is the fallback
-                for (int i = (int)m_EntryCount - 2; i >= 0; i--)
-                {
-                    branch[i] = new VFXExpressionBranch(compare[i], inputExpression[fnActualExpressionIndex(i, subExpression)], branch[i + 1]);
-                }
-                branchResult[subExpression] = branch[0];
-            }
-
-            return branchResult;
+            return ChainedBranchResult(compare, inputExpression, (int)m_EntryCount, stride);
         }
     }
 }

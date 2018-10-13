@@ -54,7 +54,50 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        abstract public IEnumerable<int> staticSlotIndex{ get; }
+        static Dictionary<Type, int> s_ExpressionCountPerType = new Dictionary<Type, int>();
+        private static int FindOrComputeExpressionCountPerType(Type type)
+        {
+            int count = -1;
+            if (!s_ExpressionCountPerType.TryGetValue(type, out count))
+            {
+                var tempInstance = VFXSlot.Create(new VFXPropertyWithValue(new VFXProperty(type, "temp")), VFXSlot.Direction.kInput);
+                count = tempInstance.GetVFXValueTypeSlots().Count();
+                s_ExpressionCountPerType.Add(type, count);
+            }
+            return count;
+        }
+
+        protected int expressionCountPerUniqueSlot
+        {
+            get
+            {
+                return FindOrComputeExpressionCountPerType(GetOperandType());
+            }
+        }
+
+        private static int ComputeAbsoluteIndex(int entryIndex, int subExpressionIndex, int stride)
+        {
+            return entryIndex * stride + subExpressionIndex;
+        }
+
+        protected VFXExpression[] ChainedBranchResult(VFXExpression[] compare, VFXExpression[] expressions, int entryCount, int stride)
+        {
+            var expressionCountPerUniqueSlot = this.expressionCountPerUniqueSlot;
+            var branchResult = new VFXExpression[expressionCountPerUniqueSlot];
+            for (int subExpression = 0; subExpression < expressionCountPerUniqueSlot; ++subExpression)
+            {
+                var branch = new VFXExpression[entryCount];
+                branch[entryCount - 1] = expressions[ComputeAbsoluteIndex(entryCount - 1, subExpression, stride)]; //Last entry always is a fallback
+                for (int i = entryCount - 2; i >= 0; i--)
+                {
+                    branch[i] = new VFXExpressionBranch(compare[i], expressions[ComputeAbsoluteIndex(i, subExpression, stride)], branch[i + 1]);
+                }
+                branchResult[subExpression] = branch[0];
+            }
+            return branchResult;
+        }
+
+        abstract public IEnumerable<int> staticSlotIndex { get; }
     }
 
     [VFXInfo(category = "Logic")]
@@ -106,23 +149,7 @@ namespace UnityEditor.VFX.Operator
 
         protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var nbExpressionPerSlot = (inputExpression.Length - 1) / 2;
-
-            var branches = inputExpression.Skip(1);
-            var trueList = branches.Take(nbExpressionPerSlot);
-            var falseList = branches.Skip(nbExpressionPerSlot).Take(nbExpressionPerSlot);
-
-            var pred = inputExpression[0];
-
-            var itTrue = trueList.GetEnumerator();
-            var itFalse = falseList.GetEnumerator();
-            var result = new List<VFXExpression>(nbExpressionPerSlot);
-            while (itTrue.MoveNext() && itFalse.MoveNext())
-            {
-                result.Add(new VFXExpressionBranch(pred, itTrue.Current, itFalse.Current));
-            }
-
-            return result.ToArray();
+            return ChainedBranchResult(inputExpression.Take(1).ToArray(), inputExpression.Skip(1).ToArray(), 2, expressionCountPerUniqueSlot);
         }
     }
 }
