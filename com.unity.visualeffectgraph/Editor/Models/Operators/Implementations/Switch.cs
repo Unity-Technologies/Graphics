@@ -14,8 +14,8 @@ namespace UnityEditor.VFX.Operator
 
         public class TestInputProperties
         {
-            [Tooltip("An optional additional hash.")]
-            public int testInput = 0;
+            [Tooltip("Integer value used for the test.")]
+            public int testValue = 0;
         }
 
         public class ManualRandom
@@ -30,11 +30,14 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
+                yield return 0; //TestInputProperties
+                var offset = 1;
                 var stride = expressionCountPerUniqueSlot + 1;
-                for (int i = 0; i < m_EntryCount; ++i)
-                    for (int j = 0; j < stride; ++j)
-                        yield return i * stride + j;
-                yield return stride * (int)m_EntryCount + expressionCountPerUniqueSlot /* default value */;
+                do
+                {
+                    yield return offset;
+                    offset += stride;
+                } while (offset < stride * m_EntryCount + 1);
             }
         }
 
@@ -58,39 +61,45 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                var baseInputProperties = base.inputProperties;
-                var defaultValue = GetDefaultValueForType(GetOperandType());
-                for (uint i = 0; i < m_EntryCount + 1; ++i)
-                {
-                    var name = (i == m_EntryCount) ? "default" : "V" + i;
-                    yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), name), defaultValue);
-                    if (i != m_EntryCount)
-                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(int), "Case " + i), (int)i);
-                }
-
+                var baseInputProperties = base.inputProperties; //returns value is unused but there is a lazy init in input
                 var manualRandomProperties = PropertiesFromType("TestInputProperties");
                 foreach (var property in manualRandomProperties)
                     yield return property;
+
+                var defaultValue = GetDefaultValueForType(GetOperandType());
+                for (uint i = 0; i < m_EntryCount + 1; ++i)
+                {
+                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
+                    if (i != m_EntryCount)
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(int), "C" + prefix), (int)i);
+                    var name = (i == m_EntryCount) ? "default" : "V" + prefix;
+                    yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), name), defaultValue);
+                }
             }
         }
 
         protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var referenceValue = inputExpression.Last();
+            var referenceValue = inputExpression.First();
             referenceValue = new VFXExpressionCastIntToFloat(referenceValue);
 
             var expressionCountPerUniqueSlot = this.expressionCountPerUniqueSlot;
 
+            var startCaseOffset = 1;
             var stride = expressionCountPerUniqueSlot + 1;
             var compare = new VFXExpression[m_EntryCount];
-            int offsetCase = expressionCountPerUniqueSlot;
+            int offsetCase = startCaseOffset;
+
+            var valueStartIndex = new int[m_EntryCount + 1];
             for (uint i = 0; i < m_EntryCount; i++)
             {
-                offsetCase += stride;
+                valueStartIndex[i] = offsetCase + 1;
                 compare[i] = new VFXExpressionCondition(VFXCondition.Equal, referenceValue, new VFXExpressionCastIntToFloat(inputExpression[offsetCase]));
+                offsetCase += stride;
             }
 
-            return ChainedBranchResult(compare, inputExpression, ((int)m_EntryCount + 1), stride);
+            valueStartIndex[m_EntryCount] = inputExpression.Length - 1; //Last is default value, without a case
+            return ChainedBranchResult(compare, inputExpression, valueStartIndex);
         }
     }
 }

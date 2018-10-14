@@ -75,22 +75,17 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        private static int ComputeAbsoluteIndex(int entryIndex, int subExpressionIndex, int stride)
-        {
-            return entryIndex * stride + subExpressionIndex;
-        }
-
-        protected VFXExpression[] ChainedBranchResult(VFXExpression[] compare, VFXExpression[] expressions, int entryCount, int stride)
+        protected VFXExpression[] ChainedBranchResult(VFXExpression[] compare, VFXExpression[] expressions, int[] valueStartIndex)
         {
             var expressionCountPerUniqueSlot = this.expressionCountPerUniqueSlot;
             var branchResult = new VFXExpression[expressionCountPerUniqueSlot];
             for (int subExpression = 0; subExpression < expressionCountPerUniqueSlot; ++subExpression)
             {
-                var branch = new VFXExpression[entryCount];
-                branch[entryCount - 1] = expressions[ComputeAbsoluteIndex(entryCount - 1, subExpression, stride)]; //Last entry always is a fallback
-                for (int i = entryCount - 2; i >= 0; i--)
+                var branch = new VFXExpression[valueStartIndex.Length];
+                branch[valueStartIndex.Length - 1] = expressions[valueStartIndex.Last() + subExpression]; //Last entry always is a fallback
+                for (int i = valueStartIndex.Length - 2; i >= 0; i--)
                 {
-                    branch[i] = new VFXExpressionBranch(compare[i], expressions[ComputeAbsoluteIndex(i, subExpression, stride)], branch[i + 1]);
+                    branch[i] = new VFXExpressionBranch(compare[i], expressions[valueStartIndex[i] + subExpression], branch[i + 1]);
                 }
                 branchResult[subExpression] = branch[0];
             }
@@ -149,7 +144,8 @@ namespace UnityEditor.VFX.Operator
 
         protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return ChainedBranchResult(inputExpression.Take(1).ToArray(), inputExpression.Skip(1).ToArray(), 2, expressionCountPerUniqueSlot);
+            var valueStartIndex = new[] { 1, expressionCountPerUniqueSlot + 1 };
+            return ChainedBranchResult(inputExpression.Take(1).ToArray(), inputExpression, valueStartIndex);
         }
     }
 }

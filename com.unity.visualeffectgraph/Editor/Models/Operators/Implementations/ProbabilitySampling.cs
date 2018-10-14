@@ -39,13 +39,12 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                var expressionCountPerSlot = expressionCountPerUniqueSlot + 1;
+                var stride = expressionCountPerUniqueSlot + 1;
                 for (int i = 0; i < m_EntryCount; ++i)
-                    for (int j = 0; j < expressionCountPerSlot; ++j)
-                        yield return i * expressionCountPerSlot + j;
+                    yield return i * stride;
 
                 if (m_Constant || !m_IntegratedRandom)
-                    yield return expressionCountPerSlot * (int)m_EntryCount;
+                    yield return stride * (int)m_EntryCount;
             }
         }
 
@@ -84,8 +83,9 @@ namespace UnityEditor.VFX.Operator
                 var defaultValue = GetDefaultValueForType(GetOperandType());
                 for (uint i = 0; i < m_EntryCount; ++i)
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), "V" + i), defaultValue);
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "P" + i), 1.0f);
+                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "P" + prefix), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), "V" + prefix), defaultValue);
                 }
 
                 if (m_IntegratedRandom)
@@ -125,7 +125,7 @@ namespace UnityEditor.VFX.Operator
 
             var stride = expressionCountPerUniqueSlot + 1;
             var prefixedProbablities = new VFXExpression[m_EntryCount];
-            int offsetProbabilities = expressionCountPerUniqueSlot;
+            int offsetProbabilities = 0;
             prefixedProbablities[0] = inputExpression[offsetProbabilities];
             for (uint i = 1; i < m_EntryCount; i++)
             {
@@ -140,7 +140,8 @@ namespace UnityEditor.VFX.Operator
                 compare[i] = new VFXExpressionCondition(VFXCondition.GreaterOrEqual, prefixedProbablities[i], rand);
             };
 
-            return ChainedBranchResult(compare, inputExpression, (int)m_EntryCount, stride);
+            var startValueIndex = Enumerable.Range(0, (int)m_EntryCount).Select(o => o * stride + 1).ToArray();
+            return ChainedBranchResult(compare, inputExpression, startValueIndex);
         }
     }
 }
