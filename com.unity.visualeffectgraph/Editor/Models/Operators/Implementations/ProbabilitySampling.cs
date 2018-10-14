@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Logic")]
     class ProbabilitySampling : VFXOperatorDynamicBranch
     {
-        [VFXSetting, Tooltip("Use integrated random function"), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Use integrated random function"), SerializeField]
         private bool m_IntegratedRandom = true;
 
         [VFXSetting, Tooltip("Generate a random number for each particle, or one that is shared by the whole system."), SerializeField]
@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting, Tooltip("The random number may either remain constant, or change every time it is evaluated."), SerializeField]
         public bool m_Constant = true;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default), SerializeField]
+        [VFXSetting, SerializeField]
         uint m_EntryCount = 3u;
 
         public class ConstantInputProperties
