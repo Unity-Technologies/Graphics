@@ -191,7 +191,7 @@ namespace UnityEditor.VFX.UI
                     forceRegister = true;
                     s_DrawFunctions[context.portType] = new GizmoContext() { gizmo = gizmo.gizmo, lastContext = context };
                 }
-                return GetGizmoBounds(context,component,gizmo.gizmo,forceRegister);
+                return GetGizmoBounds(context, component, gizmo.gizmo, forceRegister);
             }
 
             return new Bounds();

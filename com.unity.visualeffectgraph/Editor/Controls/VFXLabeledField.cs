@@ -9,9 +9,8 @@ namespace UnityEditor.VFX.UIElements
     //Copied from mousefield dragger but add notifications needed for delayed fields
     public class VFXFieldMouseDragger<T>
     {
-
         Action m_OnDragFinished;
-        public VFXFieldMouseDragger(IValueField<T> drivenField,Action onDragFinished = null)
+        public VFXFieldMouseDragger(IValueField<T> drivenField, Action onDragFinished = null)
         {
             m_DrivenField = drivenField;
             m_DragElement = null;
@@ -198,9 +197,10 @@ namespace UnityEditor.VFX.UIElements
 
         void DragValueFinished()
         {
-            if( onValueDragFinished != null)
+            if (onValueDragFinished != null)
                 onValueDragFinished(this);
         }
+
         public Action<VFXLabeledField<T, U>> onValueDragFinished;
 
         void CreateControl()

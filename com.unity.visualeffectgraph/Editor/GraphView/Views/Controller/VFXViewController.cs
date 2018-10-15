@@ -145,7 +145,7 @@ namespace UnityEditor.VFX.UI
                 #endif
                 notifieds.Remove(action);
 
-                if( m_CurrentlyNotified == target )
+                if (m_CurrentlyNotified == target)
                 {
                     m_CurrentActions.Remove(action);
                 }
@@ -189,7 +189,7 @@ namespace UnityEditor.VFX.UI
                         m_CurrentActions.Clear();
                         m_CurrentActions.AddRange(notifieds);
                         m_CurrentActions.Reverse();
-                        while(m_CurrentActions.Count > 0)
+                        while (m_CurrentActions.Count > 0)
                         {
                             var action = m_CurrentActions[m_CurrentActions.Count - 1];
                             action();
@@ -200,7 +200,7 @@ namespace UnityEditor.VFX.UI
                     Profiler.EndSample();
                 }
                 m_CurrentlyNotified = null;
-                
+
                 objs.Clear();
             }
             /*
@@ -211,15 +211,15 @@ namespace UnityEditor.VFX.UI
             m_InNotify = false;
 
             string newName = ComputeName();
-            if( newName != m_Name)
+            if (newName != m_Name)
             {
                 m_Name = newName;
 
-                if( model != null)
+                if (model != null)
                 {
                     model.name = m_Name;
                 }
-                if( graph != null)
+                if (graph != null)
                 {
                     (graph as UnityObject).name = m_Name;
                 }
@@ -232,11 +232,9 @@ namespace UnityEditor.VFX.UI
                 m_DataEdgesMightHaveChangedAsked = false;
                 DataEdgesMightHaveChanged();
             }
-
-            
         }
 
-        public VFXGraph graph { get {return model!= null ? model.graph as VFXGraph : null; }}
+        public VFXGraph graph { get {return model != null ? model.graph as VFXGraph : null; }}
 
         List<VFXFlowAnchorController> m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
@@ -1546,11 +1544,12 @@ namespace UnityEditor.VFX.UI
 
             return false;
         }
+
         public void RemoveCategory(string name)
         {
             int index = graph.UIInfos.categories.FindIndex(t => t.name == name);
 
-            if( index > -1)
+            if (index > -1)
             {
                 var parametersToRemove = RemoveCategory(index);
 

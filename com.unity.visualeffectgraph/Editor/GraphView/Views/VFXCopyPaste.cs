@@ -332,9 +332,9 @@ namespace UnityEditor.VFX.UI
 
             IEnumerable<VFXDataEdgeController> dataEdges = elements.OfType<VFXDataEdgeController>().Where(t => dataEdgeTargets.Contains((t.input as VFXDataAnchorController).sourceNode as VFXNodeController) && dataEdgeTargets.Contains((t.output as VFXDataAnchorController).sourceNode as VFXNodeController)).ToArray();
             IEnumerable<VFXFlowEdgeController> flowEdges = elements.OfType<VFXFlowEdgeController>().Where(t =>
-                    contexts.Contains((t.input as VFXFlowAnchorController).context) &&
-                    contexts.Contains((t.output as VFXFlowAnchorController).context)
-                    ).ToArray();
+                contexts.Contains((t.input as VFXFlowAnchorController).context) &&
+                contexts.Contains((t.output as VFXFlowAnchorController).context)
+                ).ToArray();
 
 
             VFXContext[] copiedContexts = contexts.Select(t => t.model).ToArray();

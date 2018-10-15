@@ -99,9 +99,10 @@ namespace UnityEditor.VFX
 
             DrawTorus(torus, this, m_CenterProperty, m_MinorRadiusProperty, m_MajorRadiusProperty, angles);
         }
+
         public override Bounds OnGetSpacedGizmoBounds(Torus value)
         {
-            return new Bounds(value.center, new Vector3(2*(value.majorRadius + value.minorRadius), 2 * (value.majorRadius + value.minorRadius), 2 * value.minorRadius) );
+            return new Bounds(value.center, new Vector3(2 * (value.majorRadius + value.minorRadius), 2 * (value.majorRadius + value.minorRadius), 2 * value.minorRadius));
         }
     }
     [VFXGizmo(typeof(ArcTorus))]
@@ -139,6 +140,7 @@ namespace UnityEditor.VFX
 
             ArcGizmo(center, arcTorus.majorRadius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
         }
+
         public override Bounds OnGetSpacedGizmoBounds(ArcTorus value)
         {
             return new Bounds(value.center, new Vector3(2 * (value.majorRadius + value.minorRadius), 2 * (value.majorRadius + value.minorRadius), 2 * value.minorRadius));

@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("exposed");
             }
 
-            if(m_Pill != null)
+            if (m_Pill != null)
                 m_Pill.tooltip = controller.parentController.model.tooltip;
         }
 

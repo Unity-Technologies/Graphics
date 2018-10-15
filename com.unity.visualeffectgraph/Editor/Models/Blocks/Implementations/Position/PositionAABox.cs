@@ -45,15 +45,15 @@ namespace UnityEditor.VFX.Block
                     VFXExpression volumeYZ = new VFXExpressionCombine(boxSize.y - factor.y, boxSize.z - factor.z, factor.x);
 
                     VFXExpression volumes = new VFXExpressionCombine(
-                            volumeXY.x * volumeXY.y * volumeXY.z,
-                            volumeXZ.x * volumeXZ.y * volumeXZ.z,
-                            volumeYZ.x * volumeYZ.y * volumeYZ.z
-                            );
+                        volumeXY.x * volumeXY.y * volumeXY.z,
+                        volumeXZ.x * volumeXZ.y * volumeXZ.z,
+                        volumeYZ.x * volumeYZ.y * volumeYZ.z
+                    );
                     VFXExpression cumulativeVolumes = new VFXExpressionCombine(
-                            volumes.x,
-                            volumes.x + volumes.y,
-                            volumes.x + volumes.y + volumes.z
-                            );
+                        volumes.x,
+                        volumes.x + volumes.y,
+                        volumes.x + volumes.y + volumes.z
+                    );
 
                     yield return new VFXNamedExpression(volumeXY, "volumeXY");
                     yield return new VFXNamedExpression(volumeXZ, "volumeXZ");

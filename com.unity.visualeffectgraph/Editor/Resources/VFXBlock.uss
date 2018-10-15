@@ -10,7 +10,7 @@ VFXBlockUI.VFXNodeUI.node {
     margin-left:0;
     margin-right:0;
 }
-VFXBlockUI.VFXNodeUI.node.first 
+VFXBlockUI.VFXNodeUI.node.first
 {
     padding-top:0;
 }

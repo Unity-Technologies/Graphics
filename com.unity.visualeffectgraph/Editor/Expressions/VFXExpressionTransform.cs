@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     class VFXExpressionTRSToMatrix : VFXExpression
     {
         public VFXExpressionTRSToMatrix() : this(new VFXExpression[] { VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<Vector3>.Default }
-                                                 )
+        )
         {
         }
 
@@ -292,7 +292,7 @@ namespace UnityEditor.VFX
     class VFXExpressionVector3sToMatrix : VFXExpression
     {
         public VFXExpressionVector3sToMatrix() : this(new VFXExpression[] { new VFXValue<Vector3>(Vector3.right), new VFXValue<Vector3>(Vector3.up), new VFXValue<Vector3>(Vector3.forward), VFXValue<Vector3>.Default }
-                                                      )
+        )
         {
         }
 
@@ -338,7 +338,7 @@ namespace UnityEditor.VFX
     class VFXExpressionVector4sToMatrix : VFXExpression
     {
         public VFXExpressionVector4sToMatrix() : this(new VFXExpression[] { new VFXValue<Vector4>(new Vector4(1, 0, 0, 0)), new VFXValue<Vector4>(new Vector4(0, 1, 0, 0)), new VFXValue<Vector4>(new Vector4(0, 0, 1, 0)), new VFXValue<Vector4>(new Vector4(0, 0, 0, 1)) }
-                                                      )
+        )
         {
         }
 
@@ -384,7 +384,7 @@ namespace UnityEditor.VFX
     class VFXExpressionMatrixToVector3s : VFXExpression
     {
         public VFXExpressionMatrixToVector3s() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) } // TODO row index should not be an expression!
-                                                      )
+        )
         {
         }
 
@@ -420,7 +420,7 @@ namespace UnityEditor.VFX
     class VFXExpressionMatrixToVector4s : VFXExpression
     {
         public VFXExpressionMatrixToVector4s() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) } // TODO row index should not be an expression!
-                                                      )
+        )
         {
         }
 

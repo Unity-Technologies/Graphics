@@ -69,8 +69,8 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if( typeof(Texture).IsAssignableFrom(portType) )
-                    {
+                if (typeof(Texture).IsAssignableFrom(portType))
+                {
                     return typeof(Texture);
                 }
 
@@ -561,7 +561,7 @@ namespace UnityEditor.VFX.UI
 
         public void DrawGizmo(VisualEffect component)
         {
-            if(VFXGizmoUtility.HasGizmo(portType))
+            if (VFXGizmoUtility.HasGizmo(portType))
             {
                 if (m_GizmoContext == null)
                 {

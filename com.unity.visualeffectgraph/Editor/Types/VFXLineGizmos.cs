@@ -26,6 +26,7 @@ namespace UnityEditor.VFX
             PositionGizmo(line.start, m_StartProperty, true);
             PositionGizmo(line.end, m_EndProperty, true);
         }
+
         public override Bounds OnGetSpacedGizmoBounds(Line value)
         {
             Vector3 center = (value.start + value.end) * 0.5f;

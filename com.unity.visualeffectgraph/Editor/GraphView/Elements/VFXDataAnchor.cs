@@ -322,7 +322,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController,AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
             }
         }
 
@@ -360,7 +360,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot> )container.GetOutputSlot : (System.Func<int, VFXSlot> )container.GetInputSlot;
+            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)container.GetOutputSlot : (System.Func<int, VFXSlot>)container.GetInputSlot;
 
             int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
 

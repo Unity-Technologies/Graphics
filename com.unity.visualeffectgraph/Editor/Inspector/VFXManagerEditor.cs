@@ -32,12 +32,12 @@ public class VFXManagerEditor : Editor
         var pathProperty = serializedObject.FindProperty("m_RenderPipeSettingsPath");
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.LabelField(ObjectNames.NicifyVariableName(pathProperty.name));
-        string resultPath = GUILayout.TextArea(pathProperty.stringValue,500, GUILayout.Height(30));
-        if( EditorGUI.EndChangeCheck())
+        string resultPath = GUILayout.TextArea(pathProperty.stringValue, 500, GUILayout.Height(30));
+        if (EditorGUI.EndChangeCheck())
         {
             pathProperty.stringValue = resultPath;
         }
-        
+
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Default"))
         {
@@ -65,6 +65,7 @@ public class VFXManagerEditor : Editor
         }
         serializedObject.ApplyModifiedProperties();
     }
+
     public static void CheckVFXManager()
     {
         UnityObject vfxmanager = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>("ProjectSettings/VFXManager.asset");

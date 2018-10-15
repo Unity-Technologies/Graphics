@@ -246,10 +246,9 @@ namespace UnityEditor.VFX.UI
                 {
                     m_GizmoableAnchors.Add(controller);
                 }
-
             }
 
-            if( m_GizmoedAnchor == null)
+            if (m_GizmoedAnchor == null)
             {
                 m_GizmoedAnchor = m_GizmoableAnchors.FirstOrDefault();
             }
@@ -262,11 +261,12 @@ namespace UnityEditor.VFX.UI
 
         public virtual Bounds GetGizmoBounds(VisualEffect component)
         {
-            if(m_GizmoedAnchor != null)
+            if (m_GizmoedAnchor != null)
                 return ((VFXDataAnchorController)m_GizmoedAnchor).GetGizmoBounds(component);
 
             return new Bounds();
         }
+
         public virtual bool gizmoNeedsComponent
         {
             get
@@ -287,7 +287,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-                IGizmoable m_GizmoedAnchor;
+        IGizmoable m_GizmoedAnchor;
         protected List<IGizmoable> m_GizmoableAnchors = new List<IGizmoable>();
 
         public ReadOnlyCollection<IGizmoable> gizmoables

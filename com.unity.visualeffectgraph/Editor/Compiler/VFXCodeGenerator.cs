@@ -125,8 +125,8 @@ namespace UnityEditor.VFX
             var regex = new Regex(matching);
 
             var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name) &&
-                    context.GetData().IsAttributeStored(o.attrib) &&
-                    (context.contextType == VFXContextType.kInit || context.GetData().IsCurrentAttributeWritten(o.attrib, context))).ToArray();
+                context.GetData().IsAttributeStored(o.attrib) &&
+                (context.contextType == VFXContextType.kInit || context.GetData().IsCurrentAttributeWritten(o.attrib, context))).ToArray();
 
             foreach (var attribute in attributesFromContext.Select(o => o.attrib))
             {
@@ -152,7 +152,7 @@ namespace UnityEditor.VFX
             var regex = new Regex(matching);
 
             var filteredNamedExpressions = namedExpressions.Where(o => regex.IsMatch(o.name) &&
-                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
+                !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name));     // if parameter already in the global scope, there's nothing to do
 
             bool needScope = false;
             foreach (var namedExpression in filteredNamedExpressions)
@@ -291,7 +291,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                var includeBuilder = GetFlattenedTemplateContent(VisualEffectGraphPackageInfo.assetPackagePath + "/"+includePath, includes, defines);
+                var includeBuilder = GetFlattenedTemplateContent(VisualEffectGraphPackageInfo.assetPackagePath + "/" + includePath, includes, defines);
                 ReplaceMultiline(templateContent, groups[0].Value, includeBuilder);
             }
 
@@ -377,14 +377,14 @@ namespace UnityEditor.VFX
                 var blockIndex = current.blockIndex;
 
                 var parameters = block.attributes.Select(o =>
+                {
+                    return new VFXShaderWriter.FunctionParameter
                     {
-                        return new VFXShaderWriter.FunctionParameter
-                        {
-                            name = o.attrib.name,
-                            expression = new VFXAttributeExpression(o.attrib) as VFXExpression,
-                            mode = o.mode
-                        };
-                    }).ToList();
+                        name = o.attrib.name,
+                        expression = new VFXAttributeExpression(o.attrib) as VFXExpression,
+                        mode = o.mode
+                    };
+                }).ToList();
 
                 foreach (var parameter in block.parameters)
                 {
@@ -565,7 +565,7 @@ namespace UnityEditor.VFX
             // Replace defines
             SubstituteMacros(stringBuilder);
 
-            if(VFXViewPreference.advancedLogs)
+            if (VFXViewPreference.advancedLogs)
                 Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
 
             return stringBuilder;

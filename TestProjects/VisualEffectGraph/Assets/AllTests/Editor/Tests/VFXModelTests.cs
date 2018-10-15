@@ -183,7 +183,7 @@ namespace UnityEditor.VFX.Test
             s_logs.Clear();
             Assert.Throws<ArgumentException>(() =>
                 modelB.AddChild(modelA)
-                );
+            );
 
             Assert.AreEqual(0, modelB.GetNbChildren());
             Assert.IsNull(modelA.GetParent());
@@ -199,7 +199,7 @@ namespace UnityEditor.VFX.Test
             s_logs.Clear();
             Assert.Throws<ArgumentException>(() =>
                 modelA.AddChild(modelB, 2)
-                );
+            );
 
             Assert.AreEqual(0, modelB.GetNbChildren());
             Assert.IsNull(modelA.GetParent());

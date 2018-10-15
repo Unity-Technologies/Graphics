@@ -15,8 +15,7 @@ using UnityEditor.VFX.UI;
 using UnityObject = UnityEngine.Object;
 
 
-
-public class VFXExternalShaderProcessor :  AssetPostprocessor
+public class VFXExternalShaderProcessor : AssetPostprocessor
 {
     public const string k_ShaderDirectory = "Shaders";
     public const string k_ShaderExt = ".vfxshader";
@@ -26,14 +25,14 @@ public class VFXExternalShaderProcessor :  AssetPostprocessor
     {
         if (!allowExternalization)
             return;
-        if( assetPath.EndsWith(".vfx"))
-        { 
+        if (assetPath.EndsWith(".vfx"))
+        {
             string vfxName = Path.GetFileNameWithoutExtension(assetPath);
             string vfxDirectory = Path.GetDirectoryName(assetPath);
 
             string shaderDirectory = vfxDirectory + "/" + k_ShaderDirectory + "/" + vfxName;
 
-            if( !Directory.Exists(shaderDirectory))
+            if (!Directory.Exists(shaderDirectory))
             {
                 return;
             }
@@ -47,9 +46,9 @@ public class VFXExternalShaderProcessor :  AssetPostprocessor
                 return;
             VFXShaderSourceDesc[] descs = resource.shaderSources;
 
-            foreach ( var shaderPath in Directory.GetFiles(shaderDirectory) )
+            foreach (var shaderPath in Directory.GetFiles(shaderDirectory))
             {
-                if( shaderPath.EndsWith(k_ShaderExt) )
+                if (shaderPath.EndsWith(k_ShaderExt))
                 {
                     System.IO.StreamReader file = new System.IO.StreamReader(shaderPath);
 
@@ -79,19 +78,20 @@ public class VFXExternalShaderProcessor :  AssetPostprocessor
                     oneFound = true;
                 }
             }
-            if( oneFound )
+            if (oneFound)
             {
                 resource.shaderSources = descs;
             }
         }
     }
+
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
         if (!allowExternalization)
             return;
         HashSet<string> vfxToRefresh = new HashSet<string>();
         HashSet<string> vfxToRecompile = new HashSet<string>(); // Recompile vfx if a shader is deleted to replace
-        foreach ( string assetPath in importedAssets.Concat(deletedAssets).Concat(movedAssets))
+        foreach (string assetPath in importedAssets.Concat(deletedAssets).Concat(movedAssets))
         {
             if (assetPath.EndsWith(k_ShaderExt))
             {
@@ -103,8 +103,8 @@ public class VFXExternalShaderProcessor :  AssetPostprocessor
                     continue;
 
                 vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + ".vfx";
-                
-                if( deletedAssets.Contains(assetPath))
+
+                if (deletedAssets.Contains(assetPath))
                     vfxToRecompile.Add(vfxPath);
                 else
                     vfxToRefresh.Add(vfxPath);
@@ -125,7 +125,7 @@ public class VFXExternalShaderProcessor :  AssetPostprocessor
             resource.GetOrCreateGraph().RecompileIfNeeded();
         }
 
-        foreach ( var assetPath in vfxToRefresh)
+        foreach (var assetPath in vfxToRefresh)
         {
             VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
             if (asset == null)
@@ -143,7 +143,7 @@ public class VisualEffectAssetEditor : Editor
     public static bool OnOpenVFX(int instanceID, int line)
     {
         var obj = EditorUtility.InstanceIDToObject(instanceID);
-        if( obj is VFXGraph || obj is VFXModel || obj is VFXUI) 
+        if (obj is VFXGraph || obj is VFXModel || obj is VFXUI)
         {
             // for visual effect graph editor ScriptableObject select them when double clicking on them.
             //Since .vfx importer is a copyasset, the default is to open it with an external editor.
@@ -248,7 +248,7 @@ public class VisualEffectAssetEditor : Editor
         }
 
 
-        resourceObject = new SerializedObject(targets.Cast<VisualEffectAsset>().Select(t=>t.GetResource()).Where(t=>t != null).ToArray());
+        resourceObject = new SerializedObject(targets.Cast<VisualEffectAsset>().Select(t => t.GetResource()).Where(t => t != null).ToArray());
         resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
         cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
         motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
@@ -268,7 +268,7 @@ public class VisualEffectAssetEditor : Editor
 
     public override bool HasPreviewGUI()
     {
-        return ! serializedObject.isEditingMultipleObjects;
+        return !serializedObject.isEditingMultipleObjects;
     }
 
     void ComputeFarNear()
@@ -335,7 +335,7 @@ public class VisualEffectAssetEditor : Editor
             m_Distance *= 1 + (Event.current.delta.y * .015f);
         }
 
-        if(m_Mat == null)
+        if (m_Mat == null)
         {
             m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
         }
@@ -388,7 +388,6 @@ public class VisualEffectAssetEditor : Editor
         return ObjectNames.NicifyVariableName(mode.ToString());
     }
 
-
     SerializedObject resourceObject;
     SerializedProperty resourceUpdateModeProperty;
     SerializedProperty cullingFlagsProperty;
@@ -401,11 +400,11 @@ public class VisualEffectAssetEditor : Editor
 
         bool enable = GUI.enabled; //Everything in external asset is disabled by default
         GUI.enabled = true;
-        
+
         EditorGUI.BeginChangeCheck();
         EditorGUI.showMixedValue = resourceUpdateModeProperty.hasMultipleDifferentValues;
-        VFXUpdateMode newUpdateMode = (VFXUpdateMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Update Mode"),(VFXUpdateMode)resourceUpdateModeProperty.intValue);
-        if(EditorGUI.EndChangeCheck())
+        VFXUpdateMode newUpdateMode = (VFXUpdateMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Update Mode"), (VFXUpdateMode)resourceUpdateModeProperty.intValue);
+        if (EditorGUI.EndChangeCheck())
         {
             resourceUpdateModeProperty.intValue = (int)newUpdateMode;
             resourceObject.ApplyModifiedProperties();
@@ -415,8 +414,8 @@ public class VisualEffectAssetEditor : Editor
         EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
         EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
         EditorGUI.BeginChangeCheck();
-        int newOption =  EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),k_CullingOptionsContents);
-        if( EditorGUI.EndChangeCheck())
+        int newOption =  EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
+        if (EditorGUI.EndChangeCheck())
         {
             cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
             resourceObject.ApplyModifiedProperties();
@@ -427,13 +426,12 @@ public class VisualEffectAssetEditor : Editor
         EditorGUI.BeginChangeCheck();
 
 
-
         EditorGUI.showMixedValue = motionVectorRenderModeProperty.hasMultipleDifferentValues;
         EditorGUI.BeginChangeCheck();
         bool motionVector = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Use Motion Vectors"), motionVectorRenderModeProperty.intValue == (int)MotionVectorGenerationMode.Object);
         if (EditorGUI.EndChangeCheck())
         {
-            motionVectorRenderModeProperty.intValue = motionVector?(int)MotionVectorGenerationMode.Object:(int)MotionVectorGenerationMode.Camera;
+            motionVectorRenderModeProperty.intValue = motionVector ? (int)MotionVectorGenerationMode.Object : (int)MotionVectorGenerationMode.Camera;
             resourceObject.ApplyModifiedProperties();
             needRecompile = true;
         }
@@ -451,7 +449,7 @@ public class VisualEffectAssetEditor : Editor
             }
         }
 
-        if ( ! serializedObject.isEditingMultipleObjects )
+        if (!serializedObject.isEditingMultipleObjects)
         {
             VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
             VisualEffectAsset asset = (VisualEffectAsset)target;
@@ -475,7 +473,6 @@ public class VisualEffectAssetEditor : Editor
                     {
                         if (VFXExternalShaderProcessor.allowExternalization)
                         {
-
                             string externalPath = directory + shaderSources[index].name;
                             if (!shaderSources[index].compute)
                             {

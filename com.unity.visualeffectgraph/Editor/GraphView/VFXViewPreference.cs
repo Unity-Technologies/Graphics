@@ -69,14 +69,12 @@ namespace UnityEditor.VFX
             }
         }
 
-
         class VFXSettingsProvider : SettingsProvider
         {
-            public VFXSettingsProvider():base("Visual Effects",SettingsScopes.User)
+            public VFXSettingsProvider() : base("Visual Effects", SettingsScopes.User)
             {
                 hasSearchInterestHandler = HasSearchInterestHandler;
             }
-
 
             bool HasSearchInterestHandler(string searchContext)
             {
@@ -91,7 +89,7 @@ namespace UnityEditor.VFX
                     m_DisplayExperimentalOperator = EditorGUILayout.Toggle("Experimental Operators/Blocks", m_DisplayExperimentalOperator);
                     m_DisplayExtraDebugInfo = EditorGUILayout.Toggle("Show Additional Debug info", m_DisplayExtraDebugInfo);
                     m_AdvancedLogs = EditorGUILayout.Toggle("Verbose Mode for compilation", m_AdvancedLogs);
-            m_AllowShaderExternalization = EditorGUILayout.Toggle("Experimental shader externalization", m_AllowShaderExternalization);
+                    m_AllowShaderExternalization = EditorGUILayout.Toggle("Experimental shader externalization", m_AllowShaderExternalization);
 
                     bool oldForceEditionCompilation = m_ForceEditionCompilation;
                     m_ForceEditionCompilation = EditorGUILayout.Toggle("Force Compilation in Edition Mode", m_ForceEditionCompilation);
@@ -132,10 +130,8 @@ namespace UnityEditor.VFX
             return new VFXSettingsProvider();
         }
 
-
         public static void PreferencesGUI()
         {
-
         }
     }
 }

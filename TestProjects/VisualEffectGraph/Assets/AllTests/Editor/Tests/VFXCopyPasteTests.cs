@@ -246,25 +246,25 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(dataEdges.Length, 4);
 
             Assert.IsNotNull(dataEdges.Where(t =>
-                    t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[1] &&
-                    operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>())
-                    ).FirstOrDefault());
+                t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[1] &&
+                operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>())
+                ).FirstOrDefault());
 
             Assert.IsNotNull(dataEdges.Where(t =>
-                    operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>()) &&
-                    operators.Contains(t.output.GetFirstAncestorOfType<VFXOperatorUI>()) &&
-                    t.output.GetFirstAncestorOfType<VFXNodeUI>() != t.input.GetFirstAncestorOfType<VFXNodeUI>()
-                    ).FirstOrDefault());
+                operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>()) &&
+                operators.Contains(t.output.GetFirstAncestorOfType<VFXOperatorUI>()) &&
+                t.output.GetFirstAncestorOfType<VFXNodeUI>() != t.input.GetFirstAncestorOfType<VFXNodeUI>()
+                ).FirstOrDefault());
 
             Assert.IsNotNull(dataEdges.Where(t =>
-                    t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[0] &&
-                    t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0]
-                    ).FirstOrDefault());
+                t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[0] &&
+                t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0]
+                ).FirstOrDefault());
 
             Assert.IsNotNull(dataEdges.Where(t =>
-                    operators.Contains(t.output.GetFirstAncestorOfType<VFXNodeUI>()) &&
-                    t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0].GetAllBlocks().First()
-                    ).FirstOrDefault());
+                operators.Contains(t.output.GetFirstAncestorOfType<VFXNodeUI>()) &&
+                t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0].GetAllBlocks().First()
+                ).FirstOrDefault());
 
 
             VFXFlowEdge flowEdge = view.Query().OfType<VFXFlowEdge>();

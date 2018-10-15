@@ -75,7 +75,8 @@ namespace UnityEditor.VFX.UI
             if (controller.expandable)
             {
                 if (m_Icons == null)
-                    m_Icons = new Texture2D[] {
+                    m_Icons = new Texture2D[]
+                    {
                         Resources.Load<Texture2D>("VFX/plus"),
                         Resources.Load<Texture2D>("VFX/minus")
                     };
