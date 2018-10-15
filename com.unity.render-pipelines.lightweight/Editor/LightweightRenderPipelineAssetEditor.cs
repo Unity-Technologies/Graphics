@@ -47,6 +47,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent dynamicBatching = EditorGUIUtility.TrTextContent("Dynamic Batching", "If enabled the pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
             public static GUIContent mixedLightingSupportLabel = EditorGUIUtility.TrTextContent("Mixed Lighting", "Support for mixed light mode.");
 
+            public static GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
+
             // Dropdown menu options
             public static string[] mainLightOptions = {"None", "Pixel Lighting"};
             public static string[] additionalLightsOptions = {"None", "Pixel Lighting", "Vertex Lighting"};
@@ -96,6 +98,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         SerializedProperty m_SupportsDynamicBatching;
         SerializedProperty m_MixedLightingSupportedProp;
 
+        SerializedProperty m_ShaderVariantLogLevel;
+
         SerializedProperty m_XRConfig;
 
         public override void OnInspectorGUI()
@@ -141,6 +145,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_SupportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
             m_MixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
+
+            m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
 
             m_XRConfig = serializedObject.FindProperty("m_SavedXRConfig");
         }
@@ -267,6 +273,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
                 EditorGUILayout.PropertyField(m_MixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
+                EditorGUILayout.PropertyField(m_ShaderVariantLogLevel, Styles.shaderVariantLogLevel);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
