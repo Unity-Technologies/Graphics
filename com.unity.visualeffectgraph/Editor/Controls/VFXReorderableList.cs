@@ -186,7 +186,7 @@ namespace UnityEditor.VFX.UI
 
             if (hoveredIndex != -1)
             {
-                ElementMoved(context.draggedIndex, hoveredIndex);
+                OnMoved(context.draggedIndex, hoveredIndex);
             }
         }
 
@@ -260,7 +260,7 @@ namespace UnityEditor.VFX.UI
             return hoveredIndex;
         }
 
-        protected virtual void ElementMoved(int movedIndex, int targetIndex)
+        protected virtual void OnMoved(int movedIndex, int targetIndex)
         {
             if (m_SelectedLine == movedIndex)
             {

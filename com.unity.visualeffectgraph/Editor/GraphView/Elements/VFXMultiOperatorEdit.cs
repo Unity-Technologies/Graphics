@@ -266,9 +266,9 @@ namespace UnityEditor.VFX.UI
     }
     class VFXCascadedOperatorEdit : VFXMultiOperatorEdit<VFXCascadedOperatorController, VFXOperatorNumericCascadedUnified>
     {
-        protected override void ElementMoved(int movedIndex, int targetIndex)
+        protected override void OnMoved(int movedIndex, int targetIndex)
         {
-            base.ElementMoved(movedIndex, targetIndex);
+            base.OnMoved(movedIndex, targetIndex);
             controller.model.OperandMoved(movedIndex, targetIndex);
         }
 

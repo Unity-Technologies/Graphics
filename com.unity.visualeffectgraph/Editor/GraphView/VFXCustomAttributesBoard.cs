@@ -88,6 +88,47 @@ namespace UnityEditor.VFX.UI
 
         List<VFXBoardAttribute> m_Rows = new List<VFXBoardAttribute>();
 
+        class ReorderableList : VFXReorderableList
+        {
+            VFXCustomAttributesBoard m_Board;
+            public ReorderableList(VFXCustomAttributesBoard board)
+            {
+                m_Board = board;
+            }
+
+            public override void OnAdd()
+            {
+                string name = "Attribute";
+                int cpt = 1;
+                while (m_Board.m_Attributes.Any(t=>t.name == name))
+                {
+                    name = string.Format("Attribute{0}",cpt++);
+                }
+                m_Board.m_Attributes.Add(new Attribute() { name = name ,type = VFXValueType.Float});
+
+                m_Board.SyncParameters();
+            }
+
+            public override void OnRemove(int index)
+            {
+                m_Board.m_Attributes.RemoveAt(index);
+                m_Board.SyncParameters();
+            }
+
+            protected override void OnMoved(int movedIndex, int targetIndex)
+            {
+                Attribute attr = m_Board.m_Attributes[movedIndex];
+                m_Board.m_Attributes.RemoveAt(movedIndex);
+                if (movedIndex < targetIndex)
+                    movedIndex--;
+                m_Board.m_Attributes.Insert(targetIndex, attr);
+                base.OnMoved(movedIndex, targetIndex);
+                m_Board.SyncParameters();
+            }
+        }
+
+        ReorderableList m_List;
+
         static readonly Rect defaultRect = new Rect(300, 100, 300, 300);
         public VFXCustomAttributesBoard(VFXView view):base(view,BoardPreferenceHelper.Board.customAttributeBoard,defaultRect)
         {
@@ -102,14 +143,8 @@ namespace UnityEditor.VFX.UI
 
             var header = this.Q("header");
 
-
-            var add = new Button { name = "addButton", text = "+" };
-            add.clickable.clicked += ()=>
-            {
-                m_Attributes.Add(new Attribute { name = "new attribute", type = VFXValueType.Float });
-                SyncParameters();
-            };
-            header.Add(add);
+            m_List = new ReorderableList(this);
+            Add(m_List);
         }
 
         struct Attribute
@@ -141,6 +176,16 @@ namespace UnityEditor.VFX.UI
 
         public void SetAttributeName(int index,string name)
         {
+            if( m_Attributes.Any(t=>t.name == name))
+            {
+                name = "Attribute";
+                int cpt = 1;
+                while (m_Attributes.Select((t,i) => t.name == name && i != index).Where(t=>t).Count() > 0)
+                {
+                    name = string.Format("Attribute{0}", cpt++);
+                }
+            }
+
             m_Attributes[index] = new Attribute { name = name, type = m_Attributes[index].type };
             SyncParameters();
         }
@@ -149,7 +194,7 @@ namespace UnityEditor.VFX.UI
         {
             while( m_Rows.Count > m_Attributes.Count)
             {
-                m_Rows.Last().RemoveFromHierarchy();
+                m_List.RemoveItemAt(m_Rows.Count - 1);
                 m_Rows.RemoveAt(m_Rows.Count - 1);
             }
 
@@ -157,9 +202,11 @@ namespace UnityEditor.VFX.UI
             {
                 var row = new VFXBoardAttribute(m_Rows.Count);
 
-                Add(row);
+                m_List.AddItem(row);
 
                 m_Rows.Add(row);
+
+                m_List.Select(row);
             }
 
             foreach(var row in m_Rows)
