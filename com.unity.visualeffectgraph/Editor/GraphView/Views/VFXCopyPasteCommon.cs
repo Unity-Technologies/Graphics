@@ -91,7 +91,6 @@ namespace UnityEditor.VFX.UI
         }
 
 
-
         [Serializable]
         protected struct Context
         {
@@ -148,7 +147,7 @@ namespace UnityEditor.VFX.UI
             public Data[] datas;
 
             public Parameter[] parameters;
-            
+
             public DataEdge[] dataEdges;
             public FlowEdge[] flowEdges;
 
@@ -198,7 +197,7 @@ namespace UnityEditor.VFX.UI
 
         protected static IEnumerable<VFXSlot> AllSlots(IEnumerable<VFXSlot> slots)
         {
-            foreach( var slot in slots)
+            foreach (var slot in slots)
             {
                 yield return slot;
 

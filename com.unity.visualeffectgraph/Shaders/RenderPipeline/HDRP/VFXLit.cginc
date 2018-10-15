@@ -18,14 +18,14 @@
 
 float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
 {
-	float3 posRWS = (float3)0;
-	#ifdef VFX_VARYING_POSWS
+    float3 posRWS = (float3)0;
+    #ifdef VFX_VARYING_POSWS
     posRWS = i.VFX_VARYING_POSWS;
-	#endif
-	#if VFX_WORLD_SPACE
-	posRWS = GetCameraRelativePositionWS(posRWS);
-	#endif 
-	return posRWS;
+    #endif
+    #if VFX_WORLD_SPACE
+    posRWS = GetCameraRelativePositionWS(posRWS);
+    #endif
+    return posRWS;
 }
 
 BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs posInputs, const SurfaceData surfaceData, const BSDFData bsdfData, const PreLightData preLightData, const VFXUVData uvData, float opacity = 1.0f)
@@ -37,10 +37,10 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     #if HDRP_USE_EMISSIVE
     builtinData.emissiveColor = float3(1,1,1);
     #if HDRP_USE_EMISSIVE_MAP
-	float emissiveScale = 1.0f;
-	#ifdef VFX_VARYING_EMISSIVESCALE
-	emissiveScale = i.VFX_VARYING_EMISSIVESCALE;
-	#endif
+    float emissiveScale = 1.0f;
+    #ifdef VFX_VARYING_EMISSIVESCALE
+    emissiveScale = i.VFX_VARYING_EMISSIVESCALE;
+    #endif
     builtinData.emissiveColor *= SampleTexture(VFX_SAMPLER(emissiveMap),uvData).rgb * emissiveScale;
     #endif
     #if defined(VFX_VARYING_EMISSIVE) && (HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
@@ -49,7 +49,7 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     #endif
     builtinData.emissiveColor *= opacity;
 
-	PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInputs.positionWS),posInputs,surfaceData, builtinData);
+    PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInputs.positionWS),posInputs,surfaceData, builtinData);
 
     return builtinData;
 }
@@ -62,55 +62,55 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #if HDRP_USE_BASE_COLOR
     color *= VFXGetParticleColor(i);
     #elif HDRP_USE_ADDITIONAL_BASE_COLOR
-	#if defined(VFX_VARYING_COLOR)
+    #if defined(VFX_VARYING_COLOR)
     color.xyz *= i.VFX_VARYING_COLOR;
-	#endif
-	#if defined(VFX_VARYING_ALPHA)
+    #endif
+    #if defined(VFX_VARYING_ALPHA)
     color.a *= i.VFX_VARYING_ALPHA;
-	#endif
+    #endif
     #endif
     #if HDRP_USE_BASE_COLOR_MAP
-	float4 colorMap = SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
-	#if HDRP_USE_BASE_COLOR_MAP_COLOR
-	color.xyz *= colorMap.xyz;
-	#endif
-	#if HDRP_USE_BASE_COLOR_MAP_ALPHA
-    color.a *= colorMap.a;
-	#endif
+    float4 colorMap = SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
+    #if HDRP_USE_BASE_COLOR_MAP_COLOR
+    color.xyz *= colorMap.xyz;
     #endif
-	color.a *= VFXGetSoftParticleFade(i);
+    #if HDRP_USE_BASE_COLOR_MAP_ALPHA
+    color.a *= colorMap.a;
+    #endif
+    #endif
+    color.a *= VFXGetSoftParticleFade(i);
     VFXClipFragmentColor(color.a,i);
     surfaceData.baseColor = saturate(color.rgb);
 
     #if IS_OPAQUE_PARTICLE
     opacity = 1.0f;
     #else
-	opacity = color.a;
+    opacity = color.a;
     #endif
 
     #if HDRP_MATERIAL_TYPE_STANDARD
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
-	#ifdef VFX_VARYING_METALLIC
+    #ifdef VFX_VARYING_METALLIC
     surfaceData.metallic = i.VFX_VARYING_METALLIC;
-	#endif
+    #endif
     #elif HDRP_MATERIAL_TYPE_SPECULAR
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
-	#ifdef VFX_VARYING_SPECULAR
+    #ifdef VFX_VARYING_SPECULAR
     surfaceData.specularColor = saturate(i.VFX_VARYING_SPECULAR);
-	#endif
+    #endif
     #elif HDRP_MATERIAL_TYPE_TRANSLUCENT
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
-	#ifdef VFX_VARYING_THICKNESS
+    #ifdef VFX_VARYING_THICKNESS
     surfaceData.thickness = i.VFX_VARYING_THICKNESS * opacity;
-	#endif
+    #endif
     surfaceData.diffusionProfile = diffusionProfile;
     surfaceData.subsurfaceMask = 1.0f;
     #endif
 
     surfaceData.normalWS = normalWS;
-	#ifdef VFX_VARYING_SMOOTHNESS
+    #ifdef VFX_VARYING_SMOOTHNESS
     surfaceData.perceptualSmoothness = i.VFX_VARYING_SMOOTHNESS;
-	#endif
+    #endif
     surfaceData.specularOcclusion = 1.0f;
     surfaceData.ambientOcclusion = 1.0f;
 

@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
         GreaterOrEqual,
     }
 
-class VFXExpressionCondition : VFXExpression
+    class VFXExpressionCondition : VFXExpression
     {
         public VFXExpressionCondition()
             : this(VFXCondition.Equal, VFXValue.Constant(0.0f), VFXValue.Constant(0.0f))

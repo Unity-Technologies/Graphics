@@ -118,14 +118,14 @@ namespace UnityEditor.VFX
                 if (!m_ReducedCache.TryGetValue(expression, out reduced))
                 {
                     var parents = expression.parents.Select(e =>
-                        {
-                            var parent = Compile(e);
+                    {
+                        var parent = Compile(e);
 
-                            if (Has(VFXExpressionContextOption.GPUDataTransformation) && expression.Is(VFXExpression.Flags.PerElement) && !parent.Is(VFXExpression.Flags.PerElement))
-                                parent = InsertGPUTransformation(parent);
+                        if (Has(VFXExpressionContextOption.GPUDataTransformation) && expression.Is(VFXExpression.Flags.PerElement) && !parent.Is(VFXExpression.Flags.PerElement))
+                            parent = InsertGPUTransformation(parent);
 
-                            return parent;
-                        }).ToArray();
+                        return parent;
+                    }).ToArray();
 
                     if (ShouldEvaluate(expression, parents))
                     {

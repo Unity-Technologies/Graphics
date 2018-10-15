@@ -240,17 +240,19 @@ namespace UnityEditor.VFX.UI
 
         public override void DrawGizmos(VisualEffect component)
         {
-            if( VFXGizmoUtility.HasGizmo(m_ParentController.portType))
+            if (VFXGizmoUtility.HasGizmo(m_ParentController.portType))
             {
                 m_ParentController.DrawGizmos(component);
 
                 m_GizmoableAnchors.Add(m_ParentController);
             }
         }
+
         public override Bounds GetGizmoBounds(VisualEffect component)
         {
             return m_ParentController.GetGizmoBounds(component);
         }
+
         public override bool gizmoNeedsComponent
         {
             get

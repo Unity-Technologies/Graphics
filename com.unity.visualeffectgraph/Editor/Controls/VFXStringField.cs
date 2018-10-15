@@ -11,7 +11,6 @@ namespace UnityEditor.VFX.UIElements
         protected TextField m_TextField;
 
 
-
         public TextField textfield
         {
             get { return m_TextField; }

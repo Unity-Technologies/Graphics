@@ -117,7 +117,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                string result = string.Format("Get Attribute: {0} ({1})",attribute, location);
+                string result = string.Format("Get Attribute: {0} ({1})", attribute, location);
 
                 var attrib = VFXAttribute.Find(this.attribute);
                 if (attrib.variadic == VFXVariadic.True)

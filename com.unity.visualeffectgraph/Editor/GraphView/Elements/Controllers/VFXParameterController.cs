@@ -311,9 +311,8 @@ namespace UnityEditor.VFX.UI
             if (VFXGizmoUtility.HasGizmo(model.type))
                 m_Gizmoables = new IGizmoable[] { this };
             else
-                m_Gizmoables = new IGizmoable[] { };
+                m_Gizmoables = new IGizmoable[] {};
         }
-
 
         string IGizmoable.name
         {
@@ -713,7 +712,6 @@ namespace UnityEditor.VFX.UI
             return VFXGizmoUtility.GetGizmoBounds(m_Context, component);
         }
 
-
         public bool gizmoNeedsComponent
         {
             get
@@ -729,13 +727,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-                IGizmoable[] m_Gizmoables;
+        IGizmoable[] m_Gizmoables;
 
-        public ReadOnlyCollection<IGizmoable> gizmoables { get {
+        public ReadOnlyCollection<IGizmoable> gizmoables
+        {
+            get
+            {
                 return Array.AsReadOnly(m_Gizmoables);
-            } }
+            }
+        }
 
-        public IGizmoable currentGizmoable { get { return this; } set { } }
+        public IGizmoable currentGizmoable { get { return this; } set {} }
 
         Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
 

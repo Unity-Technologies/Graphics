@@ -48,5 +48,4 @@ public class VisualEffectActivationMixerBehaviour : PlayableBehaviour
     {
         enabledStates = null;
     }
-
 }

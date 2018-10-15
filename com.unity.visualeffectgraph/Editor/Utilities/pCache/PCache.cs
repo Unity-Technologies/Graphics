@@ -192,7 +192,6 @@ namespace UnityEditor.VFX.Utils
             SetFloatData(component + ".z", dataZ);
         }
 
-
         public void SetVector2Data(string component, List<Vector2> data)
         {
             var dataX = new List<float>();
@@ -565,15 +564,15 @@ namespace UnityEditor.VFX.Utils
         }
 
         private static Dictionary<string, int> TypeSize = new Dictionary<string, int>()
-    {
-        { "byte", 1 },
-        { "short", 2 },
-        { "ushort", 2 },
-        { "int", 4 },
-        { "uint", 4 },
-        { "float", 4 },
-        { "double", 8 },
-    };
+        {
+            { "byte", 1 },
+            { "short", 2 },
+            { "ushort", 2 },
+            { "int", 4 },
+            { "uint", 4 },
+            { "float", 4 },
+            { "double", 8 },
+        };
 
         public struct PropertyDesc
         {

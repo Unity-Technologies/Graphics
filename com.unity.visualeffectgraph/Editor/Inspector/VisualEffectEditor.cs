@@ -101,7 +101,7 @@ namespace UnityEditor.VFX
 
         static public void RepaintAllEditors()
         {
-            foreach(var ed in s_AllEditors)
+            foreach (var ed in s_AllEditors)
             {
                 ed.Repaint();
             }
@@ -143,7 +143,7 @@ namespace UnityEditor.VFX
             if (type == null)
                 return null;
 
-            if( typeof(float) == type)
+            if (typeof(float) == type)
             {
                 s_FakeObjectCache.aFloat = (float)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aFloat");
@@ -206,8 +206,8 @@ namespace UnityEditor.VFX
         {
             EditorGUILayout.BeginHorizontal();
 
-            GUIContent nameContent = GetGUIContent(parameter.name,parameter.tooltip);
-            
+            GUIContent nameContent = GetGUIContent(parameter.name, parameter.tooltip);
+
             EditorGUI.BeginChangeCheck();
             bool result = EditorGUILayout.Toggle(overrideProperty.hasMultipleDifferentValues ? false : overrideProperty.boolValue, overrideProperty.hasMultipleDifferentValues ? Styles.toggleMixedStyle : Styles.toggleStyle, GUILayout.Width(overrideWidth));
             if (EditorGUI.EndChangeCheck())
@@ -252,10 +252,10 @@ namespace UnityEditor.VFX
                         property.vector4Value = newVal;
                     }
                 }
-                else if(property.propertyType == SerializedPropertyType.ObjectReference)
+                else if (property.propertyType == SerializedPropertyType.ObjectReference)
                 {
                     Type objTyp = typeof(UnityObject);
-                    if( !string.IsNullOrEmpty(parameter.realType))
+                    if (!string.IsNullOrEmpty(parameter.realType))
                     {
                         if (parameter.realType.StartsWith("Texture") || parameter.realType.StartsWith("Cubemap"))
                         {
@@ -406,7 +406,6 @@ namespace UnityEditor.VFX
                 Rect buttonRect = GUILayoutUtility.GetLastRect();
                 Event.current.type = savedEventType;
                 menu.DropDown(buttonRect);
-                
             }
             GUILayout.EndHorizontal();
         }
@@ -447,13 +446,13 @@ namespace UnityEditor.VFX
         static Dictionary<NameNTooltip, GUIContent> s_ContentCache = new Dictionary<NameNTooltip, GUIContent>();
 
 
-        protected GUIContent GetGUIContent(string name,string tooltip = null)
+        protected GUIContent GetGUIContent(string name, string tooltip = null)
         {
             GUIContent result = null;
             var nnt = new NameNTooltip { name = name, tooltip = tooltip };
-            if ( ! s_ContentCache.TryGetValue(nnt,out result) )
+            if (!s_ContentCache.TryGetValue(nnt, out result))
             {
-                s_ContentCache[nnt] = result = new GUIContent(name,tooltip);
+                s_ContentCache[nnt] = result = new GUIContent(name, tooltip);
             }
 
             return result;
@@ -463,7 +462,7 @@ namespace UnityEditor.VFX
         {
             GUILayout.BeginHorizontal();
             GUILayout.Space(overrideWidth + 4); // the 4 is so that Labels are aligned with elements having an override toggle.
-            EditorGUILayout.LabelField(GetGUIContent(name,tooltip));
+            EditorGUILayout.LabelField(GetGUIContent(name, tooltip));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
@@ -649,7 +648,7 @@ namespace UnityEditor.VFX
                                         GUILayout.Space(Styles.headerBottomMargin);
                                 }
                                 else if (!ignoreUntilNextCat)
-                                    EmptyLineControl(parameter.name,parameter.tooltip, stack.Count);
+                                    EmptyLineControl(parameter.name, parameter.tooltip, stack.Count);
                             }
                         }
                         else if (!ignoreUntilNextCat)
@@ -713,7 +712,7 @@ namespace UnityEditor.VFX
             {
                 RenderPipelineAsset srpAsset = GraphicsSettings.renderPipelineAsset;
                 if (srpAsset != null)
-                {    
+                {
                     var layerNames = srpAsset.GetRenderingLayerMaskNames();
                     if (layerNames != null)
                     {
@@ -724,9 +723,9 @@ namespace UnityEditor.VFX
 
                         EditorGUI.BeginProperty(rect, Contents.renderingLayerMaskStyle, m_RendererRenderingLayerMask);
                         EditorGUI.BeginChangeCheck();
-                        
+
                         mask = EditorGUI.MaskField(rect, Contents.renderingLayerMaskStyle, mask, layerNames);
-                        
+
                         if (EditorGUI.EndChangeCheck())
                             m_RendererRenderingLayerMask.intValue = mask;
 
@@ -734,7 +733,6 @@ namespace UnityEditor.VFX
 
                         // EditorGUI.showMixedValue = false;
                     }
-
                 }
             }
 
@@ -777,7 +775,7 @@ namespace UnityEditor.VFX
                     string name = icon.ToString();
 
                     //TODO replace with editor default resource call when going to trunk
-                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath+"/Editor/SceneWindow/Textures/" + name + ".png");
+                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/SceneWindow/Textures/" + name + ".png");
                     if (texture == null)
                     {
                         Debug.LogError("Can't find icon for " + name + " in Styles");

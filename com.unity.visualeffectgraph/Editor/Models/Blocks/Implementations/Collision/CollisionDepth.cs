@@ -113,7 +113,7 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
                     Source += @"
     if (viewPos.z > linearEyeDepth - radius && viewPos.z < linearEyeDepth + radius + surfaceThickness)";
 
-                    Source += @"
+                Source += @"
     {
         const float2 pixelOffset = 2.0f / Camera_pixelDimensions;
 

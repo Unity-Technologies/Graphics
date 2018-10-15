@@ -11,15 +11,19 @@ namespace UnityEditor.VFX
         public FloatN(float a) : this(new[] { a })
         {
         }
+
         public FloatN(Vector2 a) : this(new[] { a.x, a.y })
         {
         }
+
         public FloatN(Vector3 a) : this(new[] { a.x, a.y, a.z })
         {
         }
+
         public FloatN(Vector4 a) : this(new[] { a.x, a.y, a.z, a.w })
         {
         }
+
         public FloatN(float[] currentValues = null)
         {
             m_Components = currentValues;

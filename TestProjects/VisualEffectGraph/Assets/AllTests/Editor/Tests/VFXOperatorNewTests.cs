@@ -295,25 +295,25 @@ namespace UnityEditor.VFX.Test
             branch.inputSlots[2].value = sphereB;
 
             Func<Sphere, Sphere, bool> fnCompareSphere = delegate(Sphere aS, Sphere bS)
-                {
-                    if (aS.center.x != bS.center.x) return false;
-                    if (aS.center.y != bS.center.y) return false;
-                    if (aS.center.z != bS.center.z) return false;
-                    if (aS.radius != bS.radius) return false;
-                    return true;
-                };
+            {
+                if (aS.center.x != bS.center.x) return false;
+                if (aS.center.y != bS.center.y) return false;
+                if (aS.center.z != bS.center.z) return false;
+                if (aS.radius != bS.radius) return false;
+                return true;
+            };
 
             Func<VFXSlot, Sphere> fnSlotToSphere = delegate(VFXSlot slot)
+            {
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var center = context.Compile(slot[0].GetExpression());
+                var radius = context.Compile(slot[1].GetExpression());
+                return new Sphere()
                 {
-                    var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
-                    var center = context.Compile(slot[0].GetExpression());
-                    var radius = context.Compile(slot[1].GetExpression());
-                    return new Sphere()
-                    {
-                        center = center.Get<Vector3>(),
-                        radius = radius.Get<float>()
-                    };
+                    center = center.Get<Vector3>(),
+                    radius = radius.Get<float>()
                 };
+            };
 
             Assert.IsTrue(fnCompareSphere(fnSlotToSphere(branch.outputSlots[0]), sphereB));
 
@@ -347,14 +347,14 @@ namespace UnityEditor.VFX.Test
             };
 
             var inputTypeHeurisicalDict = inputType.Select(o =>
-                {
-                    var baseValueType = VFXSlot.Create(new VFXProperty(o, "temp1"), VFXSlot.Direction.kOutput).DefaultExpr.valueType;
-                    var baseChannelCount = VFXExpression.TypeToSize(baseValueType);
-                    var baseIsKindOfInteger = o == typeof(uint) || o == typeof(int);
+            {
+                var baseValueType = VFXSlot.Create(new VFXProperty(o, "temp1"), VFXSlot.Direction.kOutput).DefaultExpr.valueType;
+                var baseChannelCount = VFXExpression.TypeToSize(baseValueType);
+                var baseIsKindOfInteger = o == typeof(uint) || o == typeof(int);
 
-                    var compatibleSlotMetaData = inputType
-                        .Where(s => s != o && IsSlotCompatible(o, s))
-                        .Select(s =>
+                var compatibleSlotMetaData = inputType
+                    .Where(s => s != o && IsSlotCompatible(o, s))
+                    .Select(s =>
                     {
                         var otherValueType = VFXSlot.Create(new VFXProperty(s, "temp2"), VFXSlot.Direction.kOutput).DefaultExpr.valueType;
                         var otherChannelCount = VFXExpression.TypeToSize(otherValueType);
@@ -368,16 +368,16 @@ namespace UnityEditor.VFX.Test
                             diffPreferInteger = baseIsKindOfInteger == otherIsKindOfInteger ? 0 : 1
                         };
                     }).OrderBy(s => s.diffType)
-                        .ThenBy(s => s.diffChannelCount)
-                        .ThenBy(s => s.diffPreferInteger)
-                        .ToArray();
+                    .ThenBy(s => s.diffChannelCount)
+                    .ThenBy(s => s.diffPreferInteger)
+                    .ToArray();
 
-                    return new KeyValuePair<Type, Type[]>
-                    (
-                        o,
-                        compatibleSlotMetaData.Select(s => s.type).ToArray()
-                    );
-                }).ToDictionary(x => x.Key, x => x.Value);
+                return new KeyValuePair<Type, Type[]>
+                (
+                    o,
+                    compatibleSlotMetaData.Select(s => s.type).ToArray()
+                );
+            }).ToDictionary(x => x.Key, x => x.Value);
             return inputTypeHeurisicalDict;
         }
 
@@ -462,7 +462,8 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(e.z, r.z);
         }
 
-        private static KeyValuePair<Type, int>[] allOperatorUsingFloatN = new KeyValuePair<Type, int>[] {
+        private static KeyValuePair<Type, int>[] allOperatorUsingFloatN = new KeyValuePair<Type, int>[]
+        {
             new KeyValuePair<Type, int>(typeof(AbsoluteDeprecated), 1),
             new KeyValuePair<Type, int>(typeof(AddDeprecated), 2),
             new KeyValuePair<Type, int>(typeof(AppendVectorDeprecated), 1),
@@ -527,12 +528,12 @@ namespace UnityEditor.VFX.Test
             }
 
             Func<IEnumerable<KeyValuePair<Type, int>>, string> fnDumpList = delegate(IEnumerable<KeyValuePair<Type, int>> input)
-                {
-                    if (!input.Any())
-                        return "new KeyValuePair<Type, int>[] { }";
+            {
+                if (!input.Any())
+                    return "new KeyValuePair<Type, int>[] { }";
 
-                    return "new KeyValuePair<Type, int>[] { " + input.Select(o => string.Format("new KeyValuePair<Type, int>(typeof({0}), {1})", o.Key.Name, o.Value)).Aggregate((a, b) => a + ",\n " + b) + " };";
-                };
+                return "new KeyValuePair<Type, int>[] { " + input.Select(o => string.Format("new KeyValuePair<Type, int>(typeof({0}), {1})", o.Key.Name, o.Value)).Aggregate((a, b) => a + ",\n " + b) + " };";
+            };
 
             var expected = fnDumpList(typeWithFloatN);
             var current = fnDumpList(allOperatorUsingFloatN);
@@ -551,9 +552,9 @@ namespace UnityEditor.VFX.Test
             var all = contextList.Concat(operatorList).Concat(blockList);
 
             var searchFloatN = all.Where(o =>
-                {
-                    return o.inputSlots.Concat(o.outputSlots).Any(s => s.property.type == typeof(FloatN));
-                }).ToArray();
+            {
+                return o.inputSlots.Concat(o.outputSlots).Any(s => s.property.type == typeof(FloatN));
+            }).ToArray();
 
             if (searchFloatN.Length != 0)
             {
@@ -809,7 +810,7 @@ namespace UnityEditor.VFX.Test
         private static Type[] k_Completly_free_operator = new[] { typeof(Operator.Subtract), typeof(Operator.Add), typeof(Operator.Multiply), typeof(Operator.Divide) };
 #pragma warning restore 0414
         [Test]
-        public void Compute_Output_Type_All_Combinaison_And_Compare_With_Reference([ValueSource("k_Completly_free_operator")]Type concernedOperator)
+        public void Compute_Output_Type_All_Combinaison_And_Compare_With_Reference([ValueSource("k_Completly_free_operator")] Type concernedOperator)
         {
             var inputOrdering = VFXOperatorDynamicOperand.kExpectedTypeOrdering.Reverse().ToArray();
 
@@ -827,20 +828,20 @@ namespace UnityEditor.VFX.Test
             }
 
 
-            Func<IEnumerable<Type>, string> dumpArray = delegate (IEnumerable<Type> input)
+            Func<IEnumerable<Type>, string> dumpArray = delegate(IEnumerable<Type> input)
             {
                 return input.Select(o => o == null ? string.Empty : o.UserFriendlyName())
-                            .Select((o, index) =>
-                            {
-                                var r = o;
-                                if (index != input.Count() - 1)
-                                    for (var i = 0; i < 4 - o.Length / 4; ++i) r += "\t";
-                                return r;
-                            })
-                            .Aggregate((a, b) => a + "|\t" + b);
+                    .Select((o, index) =>
+                    {
+                        var r = o;
+                        if (index != input.Count() - 1)
+                            for (var i = 0; i < 4 - o.Length / 4; ++i) r += "\t";
+                        return r;
+                    })
+                    .Aggregate((a, b) => a + "|\t" + b);
             };
 
-            Func<Type[,], string> dumpRectangular = delegate (Type[,] intput)
+            Func<Type[, ], string> dumpRectangular = delegate(Type[,] intput)
             {
                 var dump = "\n";
                 dump += dumpArray(Enumerable.Repeat<Type>(null, 1).Concat(inputOrdering).ToArray());
@@ -848,9 +849,9 @@ namespace UnityEditor.VFX.Test
                 for (int i = 0; i < inputOrdering.Length; i++)
                 {
                     var current = mapOfCombinaison.Cast<Type>()
-                                            .Skip(inputOrdering.Length * i)
-                                            .Take(inputOrdering.Length)
-                                            .Reverse();
+                        .Skip(inputOrdering.Length * i)
+                        .Take(inputOrdering.Length)
+                        .Reverse();
                     dump += dumpArray(Enumerable.Repeat<Type>(inputOrdering[i], 1).Concat(current));
                     dump += "\n";
                 }
@@ -859,15 +860,15 @@ namespace UnityEditor.VFX.Test
 
             var reference = new Type[, ] //If this change, be careful with compatibility of visual effect
             {
-                {typeof(int),typeof(uint),typeof(float),typeof(Vector2),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
-                {typeof(uint),typeof(uint),typeof(float),typeof(Vector2),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
-                {typeof(float),typeof(float),typeof(float),typeof(Vector2),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
-                {typeof(Vector2),typeof(Vector2),typeof(Vector2),typeof(Vector2),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
-                {typeof(Vector3),typeof(Vector3),typeof(Vector3),typeof(Vector3),typeof(Vector3),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
-                {typeof(DirectionType),typeof(DirectionType),typeof(DirectionType),typeof(DirectionType),typeof(DirectionType),typeof(DirectionType),typeof(Vector),typeof(Position),typeof(Vector4)},
-                {typeof(Vector),typeof(Vector),typeof(Vector),typeof(Vector),typeof(Vector),typeof(Vector),typeof(Vector),typeof(Position),typeof(Vector4)},
-                {typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Position),typeof(Vector4)},
-                {typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4),typeof(Vector4)},
+                {typeof(int), typeof(uint), typeof(float), typeof(Vector2), typeof(Vector3), typeof(DirectionType), typeof(Vector), typeof(Position), typeof(Vector4)},
+                {typeof(uint), typeof(uint), typeof(float), typeof(Vector2), typeof(Vector3), typeof(DirectionType), typeof(Vector), typeof(Position), typeof(Vector4)},
+                {typeof(float), typeof(float), typeof(float), typeof(Vector2), typeof(Vector3), typeof(DirectionType), typeof(Vector), typeof(Position), typeof(Vector4)},
+                {typeof(Vector2), typeof(Vector2), typeof(Vector2), typeof(Vector2), typeof(Vector3), typeof(DirectionType), typeof(Vector), typeof(Position), typeof(Vector4)},
+                {typeof(Vector3), typeof(Vector3), typeof(Vector3), typeof(Vector3), typeof(Vector3), typeof(DirectionType), typeof(Vector), typeof(Position), typeof(Vector4)},
+                {typeof(DirectionType), typeof(DirectionType), typeof(DirectionType), typeof(DirectionType), typeof(DirectionType), typeof(DirectionType), typeof(Vector), typeof(Position), typeof(Vector4)},
+                {typeof(Vector), typeof(Vector), typeof(Vector), typeof(Vector), typeof(Vector), typeof(Vector), typeof(Vector), typeof(Position), typeof(Vector4)},
+                {typeof(Position), typeof(Position), typeof(Position), typeof(Position), typeof(Position), typeof(Position), typeof(Position), typeof(Position), typeof(Vector4)},
+                {typeof(Vector4), typeof(Vector4), typeof(Vector4), typeof(Vector4), typeof(Vector4), typeof(Vector4), typeof(Vector4), typeof(Vector4), typeof(Vector4)},
             };
 
             var referenceDump = dumpRectangular(reference);

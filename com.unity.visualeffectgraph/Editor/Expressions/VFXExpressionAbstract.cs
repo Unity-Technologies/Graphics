@@ -278,7 +278,6 @@ namespace UnityEditor.VFX
             return VFXValueType.None;
         }
 
-
         private static Dictionary<VFXExpression, VFXExpression> s_ExpressionCache = new Dictionary<VFXExpression, VFXExpression>();
 
         public static void ClearCache()
@@ -335,10 +334,10 @@ namespace UnityEditor.VFX
                 .OrderBy(o => o.GetParameters().Count())                 //promote simplest (or default) constructors
                 .First();
             var param = constructor.GetParameters().Select(o =>
-                {
-                    var type = o.GetType();
-                    return type.IsValueType ? Activator.CreateInstance(type) : null;
-                }).ToArray();
+            {
+                var type = o.GetType();
+                return type.IsValueType ? Activator.CreateInstance(type) : null;
+            }).ToArray();
             return (VFXExpression)constructor.Invoke(param);
         }
 
@@ -506,7 +505,6 @@ namespace UnityEditor.VFX
         {
             throw new ArgumentException(string.Format("GetContent isn't available for {0}", GetType().FullName));
         }
-
 
         private void PropagateParentsFlags()
         {

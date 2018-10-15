@@ -392,8 +392,8 @@ float4x4 GetVFXToElementMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 ang
 
 float3 VFXSafeNormalize(float3 v)
 {
-	float sqrLength = max(VFX_FLT_MIN,dot(v,v));
-	return v * rsqrt(sqrLength);
+    float sqrLength = max(VFX_FLT_MIN,dot(v,v));
+    return v * rsqrt(sqrLength);
 }
 
 /////////////////////

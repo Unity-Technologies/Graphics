@@ -36,7 +36,8 @@ namespace UnityEditor.VFX
             ColorAndAlpha = Color | Alpha
         }
 
-        private readonly string[] kMaterialTypeToName = new string[] {
+        private readonly string[] kMaterialTypeToName = new string[]
+        {
             "StandardProperties",
             "SpecularColorProperties",
             "TranslucentProperties",
@@ -79,13 +80,13 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Simple Lit features")]
         protected bool enableShadows = true;
-        
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool enableSpecular = true;
-        
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool enableCookie = true;
-        
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool enableEnvLight = true;
 
@@ -273,7 +274,7 @@ namespace UnityEditor.VFX
                         if (enableEnvLight)
                             yield return "HDRP_ENABLE_ENV_LIGHT";
                         break;
-                    
+
                     case MaterialType.SimpleLitTranslucent:
                         yield return "HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT";
                         if (enableShadows)
@@ -400,7 +401,7 @@ namespace UnityEditor.VFX
                 if (!isBlendModeOpaque)
                     forwardDefines.WriteLine("#define _SURFACE_TYPE_TRANSPARENT");
 
-                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);    
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);
             }
         }
     }

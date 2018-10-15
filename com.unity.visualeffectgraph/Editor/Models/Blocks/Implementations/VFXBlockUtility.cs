@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.Block
             return res;
         }
 
-        public static bool ConvertToVariadicAttributeIfNeeded(string attribName,out string outAttribName, out VariadicChannelOptions outChannel)
+        public static bool ConvertToVariadicAttributeIfNeeded(string attribName, out string outAttribName, out VariadicChannelOptions outChannel)
         {
             var attrib = VFXAttribute.Find(attribName);
 

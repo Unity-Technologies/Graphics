@@ -120,7 +120,6 @@ namespace UnityEditor.VFX.Test
                         }
                         else
                         {
-
                             sw.Start();
                             var currentData = VFXMemorySerializer.StoreObjectsToByteArray(dependenciesPerAsset[i], level);
                             sw.Stop();
@@ -138,14 +137,13 @@ namespace UnityEditor.VFX.Test
                         var sw = watch[i];
                         if (level == (CompressionLevel)int.MaxValue)
                         {
-                           var currentData = System.Text.Encoding.UTF8.GetString(data[i]);
+                            var currentData = System.Text.Encoding.UTF8.GetString(data[i]);
                             sw.Start();
                             VFXMemorySerializer.ExtractObjects(currentData, false);
                             sw.Stop();
                         }
                         else
                         {
-                            
                             sw.Start();
                             VFXMemorySerializer.ExtractObjects(data[i], false);
                             sw.Stop();
@@ -169,6 +167,7 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Debug.Log(log);
             }
         }
+
 #endif
     }
 }

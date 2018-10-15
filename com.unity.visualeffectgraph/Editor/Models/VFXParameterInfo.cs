@@ -92,7 +92,7 @@ namespace UnityEditor.VFX
                         paramInfo.min = min;
                         paramInfo.max = max;
                     }
-                    paramInfo.defaultValue = new VFXSerializableObject(parameter.type,parameter.value);
+                    paramInfo.defaultValue = new VFXSerializableObject(parameter.type, parameter.value);
 
                     paramInfo.descendantCount = 0;
                 }
@@ -123,8 +123,8 @@ namespace UnityEditor.VFX
 
                 info.path = path + "_" + field.Name;
 
-                var tooltip = field.GetCustomAttributes(typeof(TooltipAttribute),true).FirstOrDefault() as TooltipAttribute;
-                if( tooltip != null)
+                var tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), true).FirstOrDefault() as TooltipAttribute;
+                if (tooltip != null)
                 {
                     info.tooltip = tooltip.tooltip;
                 }

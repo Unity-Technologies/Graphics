@@ -160,7 +160,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        
+
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
@@ -320,7 +320,7 @@ namespace UnityEditor.VFX.UI
 
             void OnKeyDown(KeyDownEvent e)
             {
-                if(e.keyCode == KeyCode.KeypadEnter || e.keyCode == KeyCode.Return)
+                if (e.keyCode == KeyCode.KeypadEnter || e.keyCode == KeyCode.Return)
                 {
                     OnChangeValue(e);
                 }
