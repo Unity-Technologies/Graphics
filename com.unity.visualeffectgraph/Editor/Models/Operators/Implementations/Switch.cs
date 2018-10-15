@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.Operator
                 offsetCase += stride;
             }
 
-            valueStartIndex[m_EntryCount] = inputExpression.Length - 1; //Last is default value, without a case
+            valueStartIndex[m_EntryCount] = inputExpression.Length - expressionCountPerUniqueSlot; //Last is default value, without a case
             return ChainedBranchResult(compare, inputExpression, valueStartIndex);
         }
     }
