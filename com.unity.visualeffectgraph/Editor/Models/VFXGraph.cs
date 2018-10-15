@@ -471,18 +471,10 @@ namespace UnityEditor.VFX
         [SerializeField]
         List<CustomAttribute> m_CustomAttributes;
 
-        [SerializeField]
-        bool m_CustomAttributesRegistered;
 
-        public void RegisterCustomAttributes()
+        public IEnumerable<string> customAttributes
         {
-            if (m_CustomAttributesRegistered)
-                return;
-
-            foreach( var attr in m_CustomAttributes)
-            {
-                VFXAttribute.RegisterCustomAttribute(attr.name, attr.type);
-            }
+            get { return m_CustomAttributes.Select(t=>t.name); }
         }
 
         public int GetCustomAttributeCount()
@@ -490,14 +482,36 @@ namespace UnityEditor.VFX
             return m_CustomAttributes != null ? m_CustomAttributes.Count : 0;
         }
 
+
+        public bool HasCustomAttribute(string name)
+        {
+            return m_CustomAttributes.Any(t => t.name == name);
+        }
+
         public string GetCustomAttributeName(int index)
         {
             return m_CustomAttributes[index].name;
         }
 
+        public VFXValueType GetCustomAttributeType(string name)
+        {
+            return m_CustomAttributes.FirstOrDefault(t => t.name == name).type;
+        }
+
         public VFXValueType GetCustomAttributeType(int index)
         {
             return m_CustomAttributes[index].type;
+        }
+        public VFXAttribute FindAttribute(string attributeName)
+        {
+            CustomAttribute customAttribute = m_CustomAttributes.FirstOrDefault(t => t.name == attributeName);
+
+            if( customAttribute.name != null)
+            {
+                return new VFXAttribute(customAttribute.name, customAttribute.type);
+            }
+
+            return VFXAttribute.Find(attributeName);
         }
 
         public void SetCustomAttributeName(int index,string newName)
@@ -514,11 +528,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            VFXAttribute.UnregisterCustomAttribute(m_CustomAttributes[index].name);
-
             m_CustomAttributes[index] = new CustomAttribute { name = newName, type = m_CustomAttributes[index].type };
-
-            VFXAttribute.RegisterCustomAttribute(newName, m_CustomAttributes[index].type);
 
             Invalidate(InvalidationCause.kSettingChanged);
         }
@@ -528,11 +538,8 @@ namespace UnityEditor.VFX
             if (index >= m_CustomAttributes.Count)
                 throw new System.ArgumentException("Invalid Index");
             //TODO check that newType is an anthorized type for custom attributes.
-            VFXAttribute.UnregisterCustomAttribute(m_CustomAttributes[index].name);
 
             m_CustomAttributes[index] = new CustomAttribute { name = m_CustomAttributes[index].name, type = newType };
-
-            VFXAttribute.RegisterCustomAttribute(m_CustomAttributes[index].name, m_CustomAttributes[index].type);
 
             Invalidate(InvalidationCause.kSettingChanged);
         }
@@ -548,7 +555,6 @@ namespace UnityEditor.VFX
                 name = string.Format("Attribute{0}", cpt++);
             }
             m_CustomAttributes.Add(new CustomAttribute { name = name, type = VFXValueType.Float });
-            VFXAttribute.RegisterCustomAttribute(name, VFXValueType.Float);
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
@@ -556,7 +562,6 @@ namespace UnityEditor.VFX
         {
             if (index >= m_CustomAttributes.Count)
                 throw new System.ArgumentException("Invalid Index");
-            VFXAttribute.UnregisterCustomAttribute(m_CustomAttributes[index].name);
             m_CustomAttributes.RemoveAt(index);
             Invalidate(InvalidationCause.kSettingChanged);
         }
