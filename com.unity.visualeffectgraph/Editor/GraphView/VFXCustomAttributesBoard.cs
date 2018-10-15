@@ -18,6 +18,12 @@ namespace UnityEditor.VFX.UI
         public TextField m_NameField;
         public Label m_TypeButton;
 
+
+        public void SetIndex(int index)
+        {
+            m_Index = index;
+        }
+
         public VFXBoardAttribute(int index)
         {
             m_Index = index;
@@ -84,8 +90,6 @@ namespace UnityEditor.VFX.UI
 
     class VFXCustomAttributesBoard : VFXBoard
     {
-        List<Attribute> m_Attributes = new List<Attribute>();
-
         List<VFXBoardAttribute> m_Rows = new List<VFXBoardAttribute>();
 
         class ReorderableList : VFXReorderableList
@@ -98,32 +102,26 @@ namespace UnityEditor.VFX.UI
 
             public override void OnAdd()
             {
-                string name = "Attribute";
-                int cpt = 1;
-                while (m_Board.m_Attributes.Any(t=>t.name == name))
-                {
-                    name = string.Format("Attribute{0}",cpt++);
-                }
-                m_Board.m_Attributes.Add(new Attribute() { name = name ,type = VFXValueType.Float});
-
-                m_Board.SyncParameters();
+                m_Board.controller.graph.AddCustomAttribute();
             }
 
             public override void OnRemove(int index)
             {
-                m_Board.m_Attributes.RemoveAt(index);
-                m_Board.SyncParameters();
+                m_Board.controller.graph.RemoveCustomAttribute(index);
             }
 
             protected override void OnMoved(int movedIndex, int targetIndex)
             {
-                Attribute attr = m_Board.m_Attributes[movedIndex];
-                m_Board.m_Attributes.RemoveAt(movedIndex);
-                if (movedIndex < targetIndex)
-                    movedIndex--;
-                m_Board.m_Attributes.Insert(targetIndex, attr);
-                base.OnMoved(movedIndex, targetIndex);
-                m_Board.SyncParameters();
+                // the reorderable list reorders the elements, lets put them back in the right order.
+                var prev = m_Board.m_Rows[0];
+                prev.SendToBack();
+                for (int i = 1; i < m_Board.m_Rows.Count; ++i)
+                {
+                    m_Board.m_Rows[i].PlaceInFront(prev);
+                    prev = m_Board.m_Rows[i];
+                }
+                m_Board.controller.graph.MoveCustomAttribute(movedIndex,targetIndex);
+                Select(targetIndex);
             }
         }
 
@@ -155,50 +153,46 @@ namespace UnityEditor.VFX.UI
 
         public new void Clear()
         {
-            m_Attributes.Clear();
+            //m_List.Clear();
         }
-
 
         public VFXValueType GetAttributeType(int index)
         {
-            return m_Attributes[index].type;
+            return controller.graph.GetCustomAttributeType(index);
         }
         public string GetAttributeName(int index)
         {
-            return m_Attributes[index].name;
+            return controller.graph.GetCustomAttributeName(index);
         }
 
         public void SetAttributeType(int index,VFXValueType type)
         {
-            m_Attributes[index] = new Attribute {name = m_Attributes[index].name, type = type };
-            SyncParameters();
+            controller.graph.SetCustomAttributeType(index, type);
         }
 
         public void SetAttributeName(int index,string name)
         {
-            if( m_Attributes.Any(t=>t.name == name))
-            {
-                name = "Attribute";
-                int cpt = 1;
-                while (m_Attributes.Select((t,i) => t.name == name && i != index).Where(t=>t).Count() > 0)
-                {
-                    name = string.Format("Attribute{0}", cpt++);
-                }
-            }
+            controller.graph.SetCustomAttributeName(index, name);
+        }
 
-            m_Attributes[index] = new Attribute { name = name, type = m_Attributes[index].type };
-            SyncParameters();
+        public override void OnControllerChanged(ref ControllerChangedEvent e)
+        {
+            if(e.controller == controller)
+            {
+                SyncParameters();
+            }
         }
 
         public void SyncParameters()
         {
-            while( m_Rows.Count > m_Attributes.Count)
+            int attributeCount = controller.graph.GetCustomAttributeCount();
+            while( m_Rows.Count > attributeCount)
             {
                 m_List.RemoveItemAt(m_Rows.Count - 1);
                 m_Rows.RemoveAt(m_Rows.Count - 1);
             }
 
-            while(m_Rows.Count < m_Attributes.Count)
+            while(m_Rows.Count < attributeCount)
             {
                 var row = new VFXBoardAttribute(m_Rows.Count);
 

@@ -461,6 +461,120 @@ namespace UnityEditor.VFX
         [SerializeField]
         protected bool m_saved = false;
 
+        [Serializable]
+        public struct CustomAttribute
+        {
+            public string name;
+            public VFXValueType type;
+        }
+
+        [SerializeField]
+        List<CustomAttribute> m_CustomAttributes;
+
+        [SerializeField]
+        bool m_CustomAttributesRegistered;
+
+        public void RegisterCustomAttributes()
+        {
+            if (m_CustomAttributesRegistered)
+                return;
+
+            foreach( var attr in m_CustomAttributes)
+            {
+                VFXAttribute.RegisterCustomAttribute(attr.name, attr.type);
+            }
+        }
+
+        public int GetCustomAttributeCount()
+        {
+            return m_CustomAttributes != null ? m_CustomAttributes.Count : 0;
+        }
+
+        public string GetCustomAttributeName(int index)
+        {
+            return m_CustomAttributes[index].name;
+        }
+
+        public VFXValueType GetCustomAttributeType(int index)
+        {
+            return m_CustomAttributes[index].type;
+        }
+
+        public void SetCustomAttributeName(int index,string newName)
+        {
+            if (index >= m_CustomAttributes.Count)
+                throw new System.ArgumentException("Invalid Index");
+            if (m_CustomAttributes.Any(t => t.name == newName) || VFXAttribute.AllIncludingVariadic.Any(t => t == newName))
+            {
+                newName = "Attribute";
+                int cpt = 1;
+                while (m_CustomAttributes.Select((t, i) => t.name == name && i != index).Where(t => t).Count() > 0)
+                {
+                    newName = string.Format("Attribute{0}", cpt++);
+                }
+            }
+
+            VFXAttribute.UnregisterCustomAttribute(m_CustomAttributes[index].name);
+
+            m_CustomAttributes[index] = new CustomAttribute { name = newName, type = m_CustomAttributes[index].type };
+
+            VFXAttribute.RegisterCustomAttribute(newName, m_CustomAttributes[index].type);
+
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        public void SetCustomAttributeType(int index, VFXValueType newType)
+        {
+            if (index >= m_CustomAttributes.Count)
+                throw new System.ArgumentException("Invalid Index");
+            //TODO check that newType is an anthorized type for custom attributes.
+            VFXAttribute.UnregisterCustomAttribute(m_CustomAttributes[index].name);
+
+            m_CustomAttributes[index] = new CustomAttribute { name = m_CustomAttributes[index].name, type = newType };
+
+            VFXAttribute.RegisterCustomAttribute(m_CustomAttributes[index].name, m_CustomAttributes[index].type);
+
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        public void AddCustomAttribute()
+        {
+            if (m_CustomAttributes == null)
+                m_CustomAttributes = new List<CustomAttribute>();
+            string name = "Attribute";
+            int cpt = 1;
+            while (m_CustomAttributes.Any(t => t.name == name))
+            {
+                name = string.Format("Attribute{0}", cpt++);
+            }
+            m_CustomAttributes.Add(new CustomAttribute { name = name, type = VFXValueType.Float });
+            VFXAttribute.RegisterCustomAttribute(name, VFXValueType.Float);
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        public void RemoveCustomAttribute(int index)
+        {
+            if (index >= m_CustomAttributes.Count)
+                throw new System.ArgumentException("Invalid Index");
+            VFXAttribute.UnregisterCustomAttribute(m_CustomAttributes[index].name);
+            m_CustomAttributes.RemoveAt(index);
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+
+        public void MoveCustomAttribute(int movedIndex,int destinationIndex)
+        {
+            if (movedIndex >= m_CustomAttributes.Count || destinationIndex >= m_CustomAttributes.Count)
+                throw new System.ArgumentException("Invalid Index");
+            
+            var attr = m_CustomAttributes[movedIndex];
+            m_CustomAttributes.RemoveAt(movedIndex);
+            if (movedIndex < destinationIndex)
+                movedIndex--;
+            m_CustomAttributes.Insert(destinationIndex, attr);
+            Invalidate(InvalidationCause.kUIChanged);
+        }
+
         public bool saved { get { return m_saved; } }
 
         private VisualEffectResource m_Owner;

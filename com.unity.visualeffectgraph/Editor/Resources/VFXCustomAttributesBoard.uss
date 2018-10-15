@@ -1,0 +1,18 @@
+.ReorderableList
+{
+    background-color:#383838;
+}
+
+.ReorderableList #Toolbar
+{
+    padding-left:8;
+    padding-right:8;
+    background-color:#282828;
+}
+
+VFXBoardAttribute
+{
+    padding-left:8;
+    padding-right:8;
+}
+

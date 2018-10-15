@@ -122,6 +122,10 @@ namespace UnityEditor.VFX
             if (index != -1)
                 return AllVariadicAttribute[index];
 
+            VFXAttribute result;
+            if (s_CustomAttributes.TryGetValue(attributeName, out result))
+                return result;
+
             throw new ArgumentException(string.Format("Unable to find attribute expression : {0}", attributeName));
         }
 
@@ -145,6 +149,18 @@ namespace UnityEditor.VFX
             {
                 return value.valueType;
             }
+        }
+
+        static Dictionary<string, VFXAttribute> s_CustomAttributes = new Dictionary<string, VFXAttribute>();
+
+        static public void RegisterCustomAttribute(string name ,VFXValueType type)
+        {
+            s_CustomAttributes[name] = new VFXAttribute(name,type);
+        }
+
+        static public void UnregisterCustomAttribute(string name)
+        {
+            s_CustomAttributes.Remove(name);
         }
     }
 

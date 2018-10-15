@@ -124,7 +124,6 @@ namespace UnityEditor.VFX.UI
                     {
                         m_Controller.UnregisterHandler(this);
                     }
-                    Clear();
                     m_Controller = value;
 
                     if (m_Controller != null)
