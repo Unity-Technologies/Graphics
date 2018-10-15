@@ -281,18 +281,18 @@ namespace UnityEditor.VFX
         public IEnumerable<FieldInfo> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
         {
             return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
+            {
+                var attrArray = f.GetCustomAttributes(typeof(VFXSettingAttribute), true);
+                if (attrArray.Length == 1)
                 {
-                    var attrArray = f.GetCustomAttributes(typeof(VFXSettingAttribute), true);
-                    if (attrArray.Length == 1)
-                    {
-                        var attr = attrArray[0] as VFXSettingAttribute;
-                        if (listHidden)
-                            return true;
+                    var attr = attrArray[0] as VFXSettingAttribute;
+                    if (listHidden)
+                        return true;
 
-                        return (attr.visibleFlags & flags) != 0 && !filteredOutSettings.Contains(f.Name);
-                    }
-                    return false;
-                });
+                    return (attr.visibleFlags & flags) != 0 && !filteredOutSettings.Contains(f.Name);
+                }
+                return false;
+            });
         }
 
         static public VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, VFXCoordinateSpace space)

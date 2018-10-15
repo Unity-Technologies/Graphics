@@ -74,16 +74,16 @@ float4 VFXApplyShadowBias(float4 posCS)
 float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 {
 #if VFX_WORLD_SPACE
-	posWS = GetCameraRelativePositionWS(posWS); // posWS is absolute in World Space
-#endif 
-	PositionInputs posInput = GetPositionInput(posCS.xy, _ScreenSize.zw, posCS.z, posCS.w, posWS, uint2(0,0));
-	float4 fog = EvaluateAtmosphericScattering(posInput);
-#if VFX_BLENDMODE_ALPHA
-	color.rgb = lerp(color.rgb, fog.rgb, fog.a);
-#elif VFX_BLENDMODE_ADD
-	color.rgb *= 1.0 - fog.a;
-#elif VFX_BLENDMODE_PREMULTIPLY
-	color.rgb = lerp(color.rgb, fog.rgb * color.a, fog.a);
+    posWS = GetCameraRelativePositionWS(posWS); // posWS is absolute in World Space
 #endif
-	return color;
+    PositionInputs posInput = GetPositionInput(posCS.xy, _ScreenSize.zw, posCS.z, posCS.w, posWS, uint2(0,0));
+    float4 fog = EvaluateAtmosphericScattering(posInput);
+#if VFX_BLENDMODE_ALPHA
+    color.rgb = lerp(color.rgb, fog.rgb, fog.a);
+#elif VFX_BLENDMODE_ADD
+    color.rgb *= 1.0 - fog.a;
+#elif VFX_BLENDMODE_PREMULTIPLY
+    color.rgb = lerp(color.rgb, fog.rgb * color.a, fog.a);
+#endif
+    return color;
 }

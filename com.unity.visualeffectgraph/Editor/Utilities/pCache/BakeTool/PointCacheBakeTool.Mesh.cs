@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.Utils
                 public Vector4 tangent;
                 public Vector4[] uvs;
 
-                public static Vertex operator +(Vertex a, Vertex b)
+                public static Vertex operator+(Vertex a, Vertex b)
                 {
                     if (a.uvs.Length != b.uvs.Length)
                         throw new InvalidOperationException("Adding compatible vertex");
@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.Utils
                     return r;
                 }
 
-                public static Vertex operator *(float a, Vertex b)
+                public static Vertex operator*(float a, Vertex b)
                 {
                     var r = new Vertex()
                     {
@@ -207,7 +207,7 @@ namespace UnityEditor.VFX.Utils
         {
             public abstract MeshData.Vertex GetNext();
 
-            protected Picker (MeshData data)
+            protected Picker(MeshData data)
             {
                 m_cacheData = data;
             }
@@ -325,8 +325,8 @@ namespace UnityEditor.VFX.Utils
                 uint mid = max >> 1;
                 while (max >= min)
                 {
-                    if (    m_accumulatedAreaTriangles[mid] >= area &&
-                            (mid == m_accumulatedAreaTriangles.Length - 1 || area < m_accumulatedAreaTriangles[mid+1]))
+                    if (m_accumulatedAreaTriangles[mid] >= area &&
+                        (mid == m_accumulatedAreaTriangles.Length - 1 || area < m_accumulatedAreaTriangles[mid + 1]))
                     {
                         return mid;
                     }

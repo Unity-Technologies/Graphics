@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
     // temporary override until the fix goes to trunk
     class VFXCurveField : CurveField
     {
-        public VFXCurveField():base()
+        public VFXCurveField() : base()
         {
         }
 
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
          * */
 
 
-        static FieldInfo s_m_ValueNull = typeof(CurveField).GetField("m_ValueNull",BindingFlags.NonPublic|BindingFlags.FlattenHierarchy|BindingFlags.Instance);
+        static FieldInfo s_m_ValueNull = typeof(CurveField).GetField("m_ValueNull", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
         static FieldInfo s_m_Value = typeof(CurveField).GetField("m_Value", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
         static FieldInfo s_m_TextureDirty = typeof(CurveField).GetField("m_TextureDirty", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
         static FieldInfo s_m_Content = typeof(CurveField).GetField("m_Content", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);

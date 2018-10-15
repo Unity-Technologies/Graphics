@@ -21,7 +21,8 @@ namespace UnityEditor.VFX.Operator
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            VFXExpression[] output = new VFXExpression[] {
+            VFXExpression[] output = new VFXExpression[]
+            {
                 VFXBuiltInExpression.TotalTime + (VFXBuiltInExpression.DeltaTime * VFXOperatorUtility.FixedRandom(0xc43388e9, true)),
             };
             return output;

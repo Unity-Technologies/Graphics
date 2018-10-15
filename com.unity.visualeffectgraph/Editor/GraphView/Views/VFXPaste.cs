@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
     class VFXPaste : VFXCopyPasteCommon
     {
         Vector2 pasteOffset;
-        
+
         List<KeyValuePair<VFXContext, List<VFXBlock>>> newContexts = new List<KeyValuePair<VFXContext, List<VFXBlock>>>();
         List<VFXOperator> newOperators = new List<VFXOperator>();
         List<KeyValuePair<VFXParameter, List<int>>> newParameters = new List<KeyValuePair<VFXParameter, List<int>>>();
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
         {
             var serializableGraph = JsonUtility.FromJson<SerializableGraph>(data);
 
-            if( s_Instance == null)
+            if (s_Instance == null)
                 s_Instance = new VFXPaste();
             s_Instance.Paste(viewController, center, serializableGraph, view, groupNode);
         }
@@ -152,7 +152,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
         void PasteDataEdges(ref SerializableGraph serializableGraph)
         {
             if (serializableGraph.dataEdges != null)
@@ -163,11 +162,11 @@ namespace UnityEditor.VFX.UI
                         continue;
 
                     //TODO: This bypasses viewController.CreateLink, and all its additional checks it shouldn't.
-                    VFXModel inputModel = newControllers.ContainsKey(dataEdge.input.targetIndex) ? newControllers[dataEdge.input.targetIndex].model:null;
+                    VFXModel inputModel = newControllers.ContainsKey(dataEdge.input.targetIndex) ? newControllers[dataEdge.input.targetIndex].model : null;
 
                     VFXNodeController outputController = newControllers.ContainsKey(dataEdge.output.targetIndex) ? newControllers[dataEdge.output.targetIndex] : null;
                     VFXModel outputModel = outputController != null ? outputController.model : null;
-                    if( inputModel != null && outputModel != null)
+                    if (inputModel != null && outputModel != null)
                     {
                         VFXSlot outputSlot = FetchSlot(outputModel as IVFXSlotContainer, dataEdge.output.slotPath, false);
                         VFXSlot inputSlot = FetchSlot(inputModel as IVFXSlotContainer, dataEdge.input.slotPath, true);
@@ -184,7 +183,8 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        VFXContext PasteContext(VFXViewController controller,ref Context context)
+
+        VFXContext PasteContext(VFXViewController controller, ref Context context)
         {
             VFXContext newContext = PasteAndInitializeNode<VFXContext>(controller, ref context.node);
 
@@ -195,17 +195,17 @@ namespace UnityEditor.VFX.UI
             }
 
             List<VFXBlock> blocks = new List<VFXBlock>();
-            foreach(var block in context.blocks)
+            foreach (var block in context.blocks)
             {
                 var blk = block;
 
-                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(null,ref blk);
+                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(null, ref blk);
 
                 newBlock.enabled = (blk.flags & Node.Flags.Enabled) == Node.Flags.Enabled;
 
                 blocks.Add(newBlock);
 
-                if ( newBlock != null)
+                if (newBlock != null)
                     newContext.AddChild(newBlock);
             }
             newContexts.Add(new KeyValuePair<VFXContext, List<VFXBlock>>(newContext, blocks));
@@ -225,38 +225,38 @@ namespace UnityEditor.VFX.UI
             var ope = node;
             PasteNode(newNode, ref ope);
 
-            if( ! (newNode is VFXBlock))
+            if (!(newNode is VFXBlock))
                 controller.graph.AddChild(newNode);
 
             return newNode;
         }
 
-        void PasteModelSettings(VFXModel model,Property[] settings,Type type)
+        void PasteModelSettings(VFXModel model, Property[] settings, Type type)
         {
             var fields = GetFields(type);
 
-            for(int i = 0 ; i < settings.Length ; ++i)
+            for (int i = 0; i < settings.Length; ++i)
             {
                 string name = settings[i].name;
-                var field = fields.Find(t=>t.Name == name);
-                if(field != null)
-                    field.SetValue(model,settings[i].value.Get());
+                var field = fields.Find(t => t.Name == name);
+                if (field != null)
+                    field.SetValue(model, settings[i].value.Get());
             }
         }
 
-        void PasteNode(VFXModel model,ref Node node)
+        void PasteNode(VFXModel model, ref Node node)
         {
             model.position = node.position + pasteOffset;
 
-            PasteModelSettings(model,node.settings,model.GetType());
+            PasteModelSettings(model, node.settings, model.GetType());
 
             model.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
 
             var slotContainer = model as IVFXSlotContainer;
             var inputSlots = slotContainer.inputSlots;
-            for(int i = 0 ; i < node.inputSlots.Length ; ++i)
+            for (int i = 0; i < node.inputSlots.Length; ++i)
             {
-                if( inputSlots[i].name == node.inputSlots[i].name )
+                if (inputSlots[i].name == node.inputSlots[i].name)
                 {
                     inputSlots[i].value = node.inputSlots[i].value.Get();
                 }
@@ -408,7 +408,6 @@ namespace UnityEditor.VFX.UI
 
         private void MakePasteOffsetUnique(VFXViewController viewController, SerializableGraph serializableGraph)
         {
-
             // look if pasting there will result in the first element beeing exactly on top of other
             while (true)
             {
@@ -498,9 +497,8 @@ namespace UnityEditor.VFX.UI
                     newGroupInfo.title = groupInfos.infos.title;
                     newGroupInfos.Add(newGroupInfo);
                     newGroupInfo.contents = groupInfos.contents.Take(groupInfos.contents.Length - groupInfos.stickNodeCount).Select(t => { VFXNodeController node = null; newControllers.TryGetValue(t, out node); return node; }).Where(t => t != null).Select(node => new VFXNodeID(node.model, node.id))
-                                            .Concat(groupInfos.contents.Skip(groupInfos.contents.Length - groupInfos.stickNodeCount).Select(t => new VFXNodeID((int)t + firstCopiedStickyNote)))
-                                            .ToArray();
-
+                        .Concat(groupInfos.contents.Skip(groupInfos.contents.Length - groupInfos.stickNodeCount).Select(t => new VFXNodeID((int)t + firstCopiedStickyNote)))
+                        .ToArray();
                 }
                 ui.groupInfos = ui.groupInfos.Concat(newGroupInfos).ToArray();
             }
@@ -574,9 +572,9 @@ namespace UnityEditor.VFX.UI
                 if (contextController != null)
                 {
                     if ((contextController.flowInputAnchors.Count() == 0 ||
-                    contextController.flowInputAnchors.First().connections.Count() == 0 ||
-                    contextController.flowInputAnchors.First().connections.First().output.context.model.GetData() == null) &&
-                    serializableGraph.contexts[i].dataIndex >= 0)
+                         contextController.flowInputAnchors.First().connections.Count() == 0 ||
+                         contextController.flowInputAnchors.First().connections.First().output.context.model.GetData() == null) &&
+                        serializableGraph.contexts[i].dataIndex >= 0)
                     {
                         var data = serializableGraph.datas[serializableGraph.contexts[i].dataIndex];
                         VFXData targetData = contextController.model.GetData();
@@ -659,7 +657,6 @@ namespace UnityEditor.VFX.UI
                             p.SetSettingValue("m_exposedName", parameter.name); // the controller will take care or name unicity later
                             p.tooltip = parameter.tooltip;
                         }
-
                     }
 
                     if (p == null)

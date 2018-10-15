@@ -29,6 +29,7 @@ namespace UnityEditor.VFX
         {
             m_Type = type;
         }
+
         public SerializableType(string typeText)
         {
             m_SerializableType = typeText;
@@ -55,7 +56,7 @@ namespace UnityEditor.VFX
                 // Replace the assembly with the one containing VFXGraph type which will be either "Unity.VisualEffect.Graph.Editor" or "Unity.VisualEffect.Graph.Editor-testable"
                 splitted[1] = typeof(VFXGraph).Assembly.GetName().Name;
 
-                name = string.Join(",",splitted);
+                name = string.Join(",", splitted);
 
                 type = Type.GetType(name);
 
@@ -67,7 +68,7 @@ namespace UnityEditor.VFX
                 }
 
                 // If from here we still haven't found the type, try a last time with the name only.
-                if( type == null)
+                if (type == null)
                 {
                     AppDomain currentDomain = AppDomain.CurrentDomain;
                     foreach (Assembly assembly in currentDomain.GetAssemblies())
@@ -76,11 +77,10 @@ namespace UnityEditor.VFX
                         if (type != null)
                             return type;
                     }
-                        
                 }
 
                 if (type == null)
-                    Debug.LogErrorFormat("Cannot get Type from name: {0}",name);
+                    Debug.LogErrorFormat("Cannot get Type from name: {0}", name);
             }
 
             return type;
@@ -327,11 +327,11 @@ namespace UnityEditor.VFX
             }
             else if (obj is string)
             {
-                return "\"" + ((string)obj).Replace("\"","\\\"")+ "\"";
+                return "\"" + ((string)obj).Replace("\"", "\\\"") + "\"";
             }
             else if (obj is SerializableType)
             {
-                return "\""+((SerializableType)obj).text + "\"";
+                return "\"" + ((SerializableType)obj).text + "\"";
             }
             else if (obj.GetType().IsArrayOrList())
             {
@@ -367,16 +367,16 @@ namespace UnityEditor.VFX
             if (type.IsPrimitive)
             {
                 if (string.IsNullOrEmpty(text))
-                try
-                {
-                    return Activator.CreateInstance(type);
-                }
-                catch(MissingMethodException e)
-                {
-                    Debug.LogError(type.Name + " Doesn't seem to have a default constructor");
+                    try
+                    {
+                        return Activator.CreateInstance(type);
+                    }
+                    catch (MissingMethodException e)
+                    {
+                        Debug.LogError(type.Name + " Doesn't seem to have a default constructor");
 
-                    throw e;
-                }
+                        throw e;
+                    }
 
                 return Convert.ChangeType(text, type, CultureInfo.InvariantCulture);
             }
@@ -463,20 +463,20 @@ namespace UnityEditor.VFX
                 gradient.SetKeys(colorKeys, alphaKeys);
                 return gradient;
             }
-            else if( type == typeof(string))
+            else if (type == typeof(string))
             {
-                return text.Substring(1,text.Length-2).Replace("\\\"","\"");
+                return text.Substring(1, text.Length - 2).Replace("\\\"", "\"");
             }
-            else if( type == typeof(SerializableType))
+            else if (type == typeof(SerializableType))
             {
-                var obj = new SerializableType(text.Substring(1,text.Length-2));
+                var obj = new SerializableType(text.Substring(1, text.Length - 2));
                 return obj;
             }
-            else if( type.IsArrayOrList())
+            else if (type.IsArrayOrList())
             {
                 List<string> elements = ParseArray(text);
 
-                if( elements == null)
+                if (elements == null)
                     return null;
                 if (type.IsArray)
                 {
@@ -502,11 +502,11 @@ namespace UnityEditor.VFX
 
                     return listObj;
                 }
-                
             }
             else
             {
-                try { 
+                try
+                {
                     object obj = Activator.CreateInstance(type);
                     EditorJsonUtility.FromJsonOverwrite(text, obj);
                     return obj;
@@ -519,6 +519,7 @@ namespace UnityEditor.VFX
                 }
             }
         }
+
         internal static List<string> ParseArray(string arrayText)
         {
             List<string> elements = new List<string>();
@@ -533,9 +534,9 @@ namespace UnityEditor.VFX
             int prevElementStart = 0;
 
 
-            foreach(char c in arrayText)
+            foreach (char c in arrayText)
             {
-                switch(c)
+                switch (c)
                 {
                     case '{':
                         ignoreNext = false;
@@ -582,7 +583,7 @@ namespace UnityEditor.VFX
                             isInString = false;
                         break;
                     case '\\':
-                        if( isInString)
+                        if (isInString)
                         {
                             ignoreNext = !ignoreNext;
                         }
@@ -593,8 +594,8 @@ namespace UnityEditor.VFX
                 }
                 ++cur;
             }
-            error:
-            Debug.LogError("Couln't parse array" + arrayText +" from "+ cur);
+        error:
+            Debug.LogError("Couln't parse array" + arrayText + " from " + cur);
 
             return null;
         }

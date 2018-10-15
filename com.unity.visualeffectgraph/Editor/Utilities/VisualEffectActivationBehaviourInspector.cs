@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Utils
 
         private void OnEnable()
         {
-            Action<ReorderableList, SerializedProperty> fnAssetDropDown = delegate (ReorderableList list, SerializedProperty property)
+            Action<ReorderableList, SerializedProperty> fnAssetDropDown = delegate(ReorderableList list, SerializedProperty property)
             {
                 var existingAttribute = new List<string>();
                 for (int i = 0; i < property.arraySize; ++i)
@@ -95,14 +95,14 @@ namespace UnityEditor.VFX.Utils
                 menu.ShowAsContext();
             };
 
-            Action<Rect, SerializedProperty, int> fnDrawElement = delegate (Rect r, SerializedProperty property, int index)
+            Action<Rect, SerializedProperty, int> fnDrawElement = delegate(Rect r, SerializedProperty property, int index)
             {
                 var element = property.GetArrayElementAtIndex(index);
 
                 var label = element.FindPropertyRelative("attribute.m_Name").stringValue;
                 var labelWidth = 110;//GUI.skin.label.CalcSize(new GUIContent(label)); //Should be maximized among all existing property, for now, angularVelocity is considered as maximum
 
-            EditorGUI.LabelField(new Rect(r.x, r.y, labelWidth, EditorGUIUtility.singleLineHeight), label);
+                EditorGUI.LabelField(new Rect(r.x, r.y, labelWidth, EditorGUIUtility.singleLineHeight), label);
                 var valueType = (VFXValueType)element.FindPropertyRelative("type").intValue;
                 var valueSize = VFXExpression.TypeToSize(valueType);
                 var fieldWidth = (r.width - labelWidth) / valueSize;
@@ -116,8 +116,8 @@ namespace UnityEditor.VFX.Utils
                     if (label.Contains("color") && valueType == VFXValueType.Float3)
                     {
                         var oldColor = new Color(valuesProperty.GetArrayElementAtIndex(0).floatValue,
-                                                    valuesProperty.GetArrayElementAtIndex(1).floatValue,
-                                                    valuesProperty.GetArrayElementAtIndex(2).floatValue);
+                            valuesProperty.GetArrayElementAtIndex(1).floatValue,
+                            valuesProperty.GetArrayElementAtIndex(2).floatValue);
 
                         EditorGUI.BeginChangeCheck();
                         var newColor = EditorGUI.ColorField(new Rect(r.x + labelWidth, r.y, fieldWidth * 3, EditorGUIUtility.singleLineHeight), oldColor);
@@ -137,8 +137,8 @@ namespace UnityEditor.VFX.Utils
                     }
                 }
                 else if (valueType == VFXValueType.Int32
-                        || valueType == VFXValueType.Uint32
-                        || valueType == VFXValueType.Boolean)
+                         || valueType == VFXValueType.Uint32
+                         || valueType == VFXValueType.Boolean)
                 {
                     var oldValue = valuesProperty.GetArrayElementAtIndex(0).floatValue;
                     float newValue;

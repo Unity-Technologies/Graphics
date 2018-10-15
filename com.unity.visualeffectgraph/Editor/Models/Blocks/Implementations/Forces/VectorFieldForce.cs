@@ -63,8 +63,8 @@ value = mul(FieldTransform,float4(value,0.0f)).xyz * Intensity;
 float3 relativeForce = value - velocity;
 velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime) / mass);
 ",
-                        DataEncoding == TextureDataEncoding.UnsignedNormalized ? "* 2.0f - 1.0f" : ""
-                        );
+                    DataEncoding == TextureDataEncoding.UnsignedNormalized ? "* 2.0f - 1.0f" : ""
+                );
                 return Source;
             }
         }

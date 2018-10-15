@@ -65,9 +65,9 @@ namespace UnityEditor.VFX.Test
 
             var allExpr = CollectParentExpression(result).ToArray();
             Assert.IsTrue(allExpr.Count(o =>
-                {
-                    return o.operation == VFXExpressionOperation.LocalToWorld;
-                }) == 1);
+            {
+                return o.operation == VFXExpressionOperation.LocalToWorld;
+            }) == 1);
         }
 
         #pragma warning disable 0414

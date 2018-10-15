@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
             public Vector4 x = Vector4.zero;
         }
 
-        [VFXSetting, Regex("[^w-zW-Z]", 4),Delayed]
+        [VFXSetting, Regex("[^w-zW-Z]", 4), Delayed]
         public string mask = "xyzw";
 
         protected override sealed Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)

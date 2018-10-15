@@ -12,7 +12,7 @@
         <ui:Label name="component-path" text="" pickingMode="Ignore"/>
         <ui:Button name="select" text="select" />
     </ui:VisualElement>
-    <ui:VisualElement name="divider" class="horizontal"/> 
+    <ui:VisualElement name="divider" class="horizontal"/>
     <ui:VisualElement name="component-container">
         <ui:VisualElement name="parameter-container" pickingMode="Ignore"/>
         <!--<ui:VisualElement name="particle-count-container" pickingMode="Ignore">

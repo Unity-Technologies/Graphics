@@ -17,35 +17,35 @@ namespace UnityEditor.VFX
             }
 
             var realTypeAndValue = input.inputSlots.Select(o =>
+            {
+                Type type = null;
+                object value = null;
+                bool wasFloatN = o.property.type == typeof(FloatN);
+                if (!wasFloatN)
                 {
-                    Type type = null;
-                    object value = null;
-                    bool wasFloatN = o.property.type == typeof(FloatN);
-                    if (!wasFloatN)
+                    type = o.property.type;
+                    value = o.HasLink() ? null : o.value;
+                }
+                else
+                {
+                    if (o.HasLink())
                     {
-                        type = o.property.type;
-                        value = o.HasLink() ? null : o.value;
+                        type = o.LinkedSlots.First().property.type;
                     }
                     else
                     {
-                        if (o.HasLink())
-                        {
-                            type = o.LinkedSlots.First().property.type;
-                        }
-                        else
-                        {
-                            var floatN = (FloatN)o.value;
-                            type = floatN.GetCurrentType();
-                            value = (FloatN)o.value;
-                        }
+                        var floatN = (FloatN)o.value;
+                        type = floatN.GetCurrentType();
+                        value = (FloatN)o.value;
                     }
-                    return new
-                    {
-                        type = type,
-                        value = value,
-                        wasFloatN = wasFloatN
-                    };
-                }).ToArray();
+                }
+                return new
+                {
+                    type = type,
+                    value = value,
+                    wasFloatN = wasFloatN
+                };
+            }).ToArray();
 
             var output = ScriptableObject.CreateInstance(outputType) as VFXOperatorDynamicOperand;
 
@@ -124,13 +124,13 @@ namespace UnityEditor.VFX
                 if (slotIndiceThatShouldHaveSameType.Any())
                 {
                     var typeConstrained = slotIndiceThatShouldHaveSameType.Select(i =>
+                    {
+                        if (i < realTypeAndValue.Length)
                         {
-                            if (i < realTypeAndValue.Length)
-                            {
-                                return realTypeAndValue[i].type;
-                            }
-                            return (Type)null;
-                        }).Where(o => o != null);
+                            return realTypeAndValue[i].type;
+                        }
+                        return (Type)null;
+                    }).Where(o => o != null);
 
                     if (!typeConstrained.Any())
                     {

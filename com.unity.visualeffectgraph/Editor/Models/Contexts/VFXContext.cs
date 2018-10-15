@@ -344,9 +344,9 @@ namespace UnityEditor.VFX
                     if (m_Data.owners.Count() == 0)
                         m_Data.Detach();
                 }
-                OnDataChanges(m_Data,data);
+                OnDataChanges(m_Data, data);
                 m_Data = data;
-                
+
                 if (m_Data != null)
                     m_Data.OnContextAdded(this);
 

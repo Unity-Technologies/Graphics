@@ -138,7 +138,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 m_StringField = new VFXStringField(m_Label);
-                if( isDelayed)
+                if (isDelayed)
                 {
                     m_StringField.textfield.RegisterCallback<BlurEvent>(OnFocusLost);
                     m_StringField.textfield.RegisterCallback<KeyDownEvent>(OnKeyDown);

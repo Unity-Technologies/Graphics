@@ -55,6 +55,7 @@ namespace UnityEditor.VFX
 
             DrawSphere(sphere, this, m_CenterProperty, m_RadiusProperty);
         }
+
         public override Bounds OnGetSpacedGizmoBounds(Sphere value)
         {
             return new Bounds(value.center, Vector3.one * value.radius);
@@ -105,7 +106,7 @@ namespace UnityEditor.VFX
 
         public override Bounds OnGetSpacedGizmoBounds(ArcSphere value)
         {
-            return new Bounds(value.sphere.center,Vector3.one * value.sphere.radius);
+            return new Bounds(value.sphere.center, Vector3.one * value.sphere.radius);
         }
     }
 }

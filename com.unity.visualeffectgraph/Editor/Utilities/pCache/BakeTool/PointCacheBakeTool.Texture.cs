@@ -27,9 +27,9 @@ namespace UnityEditor.VFX.Utils
             GUILayout.Label("Texture baking", EditorStyles.boldLabel);
 
             m_Texture = (Texture2D)EditorGUILayout.ObjectField("Texture", m_Texture, typeof(Texture2D), false);
-            
+
             m_DecimationThresholdMode = (DecimationThresholdMode)EditorGUILayout.EnumPopup("Decimation Threshold", m_DecimationThresholdMode);
-            if(m_DecimationThresholdMode != DecimationThresholdMode.None)
+            if (m_DecimationThresholdMode != DecimationThresholdMode.None)
                 m_Threshold = EditorGUILayout.Slider("Threshold", m_Threshold, 0.0f, 1.0f);
 
             m_RandomizePixels = EditorGUILayout.Toggle("Randomize Pixels Order", m_RandomizePixels);
@@ -91,10 +91,10 @@ namespace UnityEditor.VFX.Utils
             for (int i = 0; i < pixels.Length; ++i)
             {
                 var color = pixels[i];
-                if(m_DecimationThresholdMode != DecimationThresholdMode.None)
+                if (m_DecimationThresholdMode != DecimationThresholdMode.None)
                 {
                     float value;
-                    switch(m_DecimationThresholdMode)
+                    switch (m_DecimationThresholdMode)
                     {
                         case DecimationThresholdMode.R: value = color.r; break;
                         case DecimationThresholdMode.G: value = color.g; break;

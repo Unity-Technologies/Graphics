@@ -72,10 +72,10 @@ namespace UnityEditor.VFX.Test
             m_ViewController.ApplyChanges();
 
             Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)
-                {
-                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
-                    return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
-                };
+            {
+                var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
+            };
 
             var controllerCross = fnFindController(cross);
 
@@ -130,10 +130,10 @@ namespace UnityEditor.VFX.Test
             m_ViewController.ApplyChanges();
 
             Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)
-                {
-                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
-                    return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
-                };
+            {
+                var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
+            };
 
             var vA = new Vector3(8, 9, 6);
             vector3.inputSlots[0].value = vA;
@@ -218,11 +218,11 @@ namespace UnityEditor.VFX.Test
             }
 
             Func<Type, VFXNodeController> fnFindController = delegate(Type type)
-                {
-                    m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
-                    return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
-                };
+            {
+                m_ViewController.ApplyChanges();
+                var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+            };
 
             for (int i = 0; i < positions.Length; ++i)
             {
@@ -247,25 +247,25 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoAddOperator()
         {
             Func<VFXNodeController[]> fnAllOperatorController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
-                    return allController.OfType<VFXOperatorController>().ToArray();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                return allController.OfType<VFXOperatorController>().ToArray();
+            };
 
 
             Action fnTestShouldExist = delegate()
-                {
-                    var allOperatorController = fnAllOperatorController();
-                    Assert.AreEqual(1, allOperatorController.Length);
-                    Assert.IsInstanceOf(typeof(Operator.Absolute), allOperatorController[0].model);
-                };
+            {
+                var allOperatorController = fnAllOperatorController();
+                Assert.AreEqual(1, allOperatorController.Length);
+                Assert.IsInstanceOf(typeof(Operator.Absolute), allOperatorController[0].model);
+            };
 
             Action fnTestShouldNotExist = delegate()
-                {
-                    var allOperatorController = fnAllOperatorController();
-                    Assert.AreEqual(0, allOperatorController.Length);
-                };
+            {
+                var allOperatorController = fnAllOperatorController();
+                Assert.AreEqual(0, allOperatorController.Length);
+            };
 
             Undo.IncrementCurrentGroup();
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
@@ -290,11 +290,11 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoSetSlotValue()
         {
             Func<VFXNodeController[]> fnAllOperatorController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
-                    return allController.OfType<VFXOperatorController>().ToArray();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                return allController.OfType<VFXOperatorController>().ToArray();
+            };
 
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
             m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
@@ -320,11 +320,11 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoSetSlotValueThenGraphChange()
         {
             Func<VFXNodeController[]> fnAllOperatorController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
-                    return allController.OfType<VFXOperatorController>().ToArray();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                return allController.OfType<VFXOperatorController>().ToArray();
+            };
 
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
             m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
@@ -384,11 +384,11 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoSetSlotValueAndGraphChange()
         {
             Func<VFXNodeController[]> fnAllOperatorController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
-                    return allController.OfType<VFXOperatorController>().ToArray();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                return allController.OfType<VFXOperatorController>().ToArray();
+            };
 
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
             m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
@@ -421,11 +421,11 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoOperatorLinkSimple()
         {
             Func<Type, VFXNodeController> fnFindController = delegate(Type type)
-                {
-                    m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
-                    return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
-                };
+            {
+                m_ViewController.ApplyChanges();
+                var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+            };
 
             var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cosine");
             var sinDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sine");
@@ -437,9 +437,9 @@ namespace UnityEditor.VFX.Test
             var sinController = fnFindController(typeof(Operator.Sine));
 
             Func<int> fnCountEdge = delegate()
-                {
-                    return m_ViewController.allChildren.OfType<VFXDataEdgeController>().Count();
-                };
+            {
+                return m_ViewController.allChildren.OfType<VFXDataEdgeController>().Count();
+            };
 
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(0, fnCountEdge());
@@ -459,29 +459,29 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoOperatorLinkToBlock()
         {
             Func<VFXContextController> fnFirstContextController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    return m_ViewController.allChildren.OfType<VFXContextController>().FirstOrDefault();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                return m_ViewController.allChildren.OfType<VFXContextController>().FirstOrDefault();
+            };
 
             Func<Type, VFXNodeController> fnFindController = delegate(Type type)
-                {
-                    m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
-                    return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
-                };
+            {
+                m_ViewController.ApplyChanges();
+                var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+            };
 
             Func<VFXBlockController> fnFirstBlockController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    return m_ViewController.allChildren.OfType<VFXContextController>().SelectMany(t => t.blockControllers).FirstOrDefault();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                return m_ViewController.allChildren.OfType<VFXContextController>().SelectMany(t => t.blockControllers).FirstOrDefault();
+            };
 
             Func<VFXDataEdgeController> fnFirstEdgeController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    return m_ViewController.allChildren.OfType<VFXDataEdgeController>().FirstOrDefault();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                return m_ViewController.allChildren.OfType<VFXDataEdgeController>().FirstOrDefault();
+            };
 
             Undo.IncrementCurrentGroup();
             var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cosine");
@@ -520,10 +520,10 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoOperatorSettings()
         {
             Func<VFXOperatorController> fnFirstOperatorController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    return m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                return m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
+            };
 
             var swizzleDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Swizzle");
             m_ViewController.AddVFXOperator(new Vector2(0, 0), swizzleDesc);
@@ -560,11 +560,11 @@ namespace UnityEditor.VFX.Test
 
             m_ViewController.AddVFXContext(Vector2.one, contextUpdateDesc);
             Func<VFXContextController> fnContextController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    var allContextController = m_ViewController.allChildren.OfType<VFXContextController>().ToArray();
-                    return allContextController.FirstOrDefault() as VFXContextController;
-                };
+            {
+                m_ViewController.ApplyChanges();
+                var allContextController = m_ViewController.allChildren.OfType<VFXContextController>().ToArray();
+                return allContextController.FirstOrDefault() as VFXContextController;
+            };
             Assert.IsNotNull(fnContextController());
             //Creation
             Undo.IncrementCurrentGroup();
@@ -595,10 +595,10 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoContext()
         {
             Func<VFXContextController> fnFirstContextController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    return m_ViewController.allChildren.OfType<VFXContextController>().FirstOrDefault() as VFXContextController;
-                };
+            {
+                m_ViewController.ApplyChanges();
+                return m_ViewController.allChildren.OfType<VFXContextController>().FirstOrDefault() as VFXContextController;
+            };
 
             var contextDesc = VFXLibrary.GetContexts().FirstOrDefault();
             Undo.IncrementCurrentGroup();
@@ -624,39 +624,39 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoContextLinkMultiSlot()
         {
             Func<VFXContextController[]> fnContextController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    return m_ViewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                return m_ViewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray();
+            };
 
             Func<VFXContextController> fnSpawner = delegate()
-                {
-                    var controller = fnContextController();
-                    return controller.FirstOrDefault(o => o.model.name.Contains("Spawn"));
-                };
+            {
+                var controller = fnContextController();
+                return controller.FirstOrDefault(o => o.model.name.Contains("Spawn"));
+            };
 
             Func<string, VFXContextController> fnEvent = delegate(string name)
-                {
-                    var controller = fnContextController();
-                    var allEvent = controller.Where(o => o.model.name.Contains("Event"));
-                    return allEvent.FirstOrDefault(o => (o.model as VFXBasicEvent).eventName == name) as VFXContextController;
-                };
+            {
+                var controller = fnContextController();
+                var allEvent = controller.Where(o => o.model.name.Contains("Event"));
+                return allEvent.FirstOrDefault(o => (o.model as VFXBasicEvent).eventName == name) as VFXContextController;
+            };
 
             Func<VFXContextController> fnStart = delegate()
-                {
-                    return fnEvent("Start");
-                };
+            {
+                return fnEvent("Start");
+            };
 
             Func<VFXContextController> fnStop = delegate()
-                {
-                    return fnEvent("Stop");
-                };
+            {
+                return fnEvent("Stop");
+            };
 
             Func<int> fnFlowEdgeCount = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    return m_ViewController.allChildren.OfType<VFXFlowEdgeController>().Count();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                return m_ViewController.allChildren.OfType<VFXFlowEdgeController>().Count();
+            };
 
             var contextSpawner = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Spawn"));
             var contextEvent = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Event"));
@@ -719,28 +719,28 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoContextLink()
         {
             Func<VFXContextController[]> fnContextController = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    return m_ViewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                return m_ViewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray();
+            };
 
             Func<VFXContextController> fnInitializeController = delegate()
-                {
-                    var controller = fnContextController();
-                    return controller.FirstOrDefault(o => o.model.name.Contains("Init"));
-                };
+            {
+                var controller = fnContextController();
+                return controller.FirstOrDefault(o => o.model.name.Contains("Init"));
+            };
 
             Func<VFXContextController> fnUpdateController = delegate()
-                {
-                    var controller = fnContextController();
-                    return controller.FirstOrDefault(o => o.model.name.Contains("Update"));
-                };
+            {
+                var controller = fnContextController();
+                return controller.FirstOrDefault(o => o.model.name.Contains("Update"));
+            };
 
             Func<int> fnFlowEdgeCount = delegate()
-                {
-                    m_ViewController.ApplyChanges();
-                    return m_ViewController.allChildren.OfType<VFXFlowEdgeController>().Count();
-                };
+            {
+                m_ViewController.ApplyChanges();
+                return m_ViewController.allChildren.OfType<VFXFlowEdgeController>().Count();
+            };
 
             var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Init"));
             var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
