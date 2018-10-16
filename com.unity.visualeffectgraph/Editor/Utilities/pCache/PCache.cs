@@ -128,6 +128,7 @@ namespace UnityEditor.VFX.Utils
             buckets.Add(new List<object>());
             buckets.Add(new List<object>());
             buckets.Add(new List<object>());
+            buckets.Add(new List<object>());
         }
 
         public void AddColorProperty(string name)

@@ -436,7 +436,7 @@ namespace UnityEditor.VFX.Utils
             file.AddVector3Property("position");
             if (m_ExportNormals) file.AddVector3Property("normal");
             if (m_ExportColors) file.AddColorProperty("color");
-            if (m_ExportUV) file.AddVector2Property("uv");
+            if (m_ExportUV) file.AddVector4Property("uv");
 
             EditorUtility.DisplayProgressBar("pCache bake tool", "Generating pCache...", 0.0f);
             file.SetVector3Data("position", positions);
