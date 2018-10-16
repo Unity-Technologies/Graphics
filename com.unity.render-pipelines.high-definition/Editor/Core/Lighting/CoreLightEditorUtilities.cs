@@ -240,9 +240,6 @@ namespace UnityEditor.Experimental.Rendering
             float innerAngle = outerAngleInnerAngleRange.y;
             float range = outerAngleInnerAngleRange.z;
 
-            var outerDiscRadius = range * Mathf.Sin(outerAngle * Mathf.Deg2Rad * 0.5f);
-            var outerDiscDistance = Mathf.Cos(Mathf.Deg2Rad * outerAngle * 0.5f) * range;
-
             if (innerAngle > 0f)
             {
                 innerAngle = SizeSliderSpotAngle(Vector3.zero, Vector3.forward, Vector3.right, range, innerAngle);
