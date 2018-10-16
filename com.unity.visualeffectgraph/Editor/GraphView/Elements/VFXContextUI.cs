@@ -117,14 +117,15 @@ namespace UnityEditor.VFX.UI
             }
             AddToClassList("type" + ContextEnumToClassName(type.ToString()));
 
-
             var space = controller.model.space;
             foreach (VFXCoordinateSpace val in System.Enum.GetValues(typeof(VFXCoordinateSpace)))
             {
-                if (val != space)
+                if (val != space || !controller.model.spaceable)
                     m_HeaderSpace.RemoveFromClassList("space" + val.ToString());
             }
-            m_HeaderSpace.AddToClassList("space" + (controller.model.space).ToString());
+            if (controller.model.spaceable)
+                m_HeaderSpace.AddToClassList("space" + (controller.model.space).ToString());
+
             Profiler.EndSample();
             if (controller.model.outputType == VFXDataType.kNone)
             {

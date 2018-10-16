@@ -434,11 +434,19 @@ namespace UnityEditor.VFX
             return space;
         }
 
+        public bool spaceable
+        {
+            get
+            {
+                return m_Data is ISpaceable;
+            }
+        }
+
         public VFXCoordinateSpace space
         {
             get
             {
-                if (m_Data is ISpaceable)
+                if (spaceable)
                 {
                     return (m_Data as ISpaceable).space;
                 }
@@ -447,7 +455,7 @@ namespace UnityEditor.VFX
 
             set
             {
-                if (m_Data is ISpaceable)
+                if (spaceable)
                 {
                     (m_Data as ISpaceable).space = value;
                     foreach (var owner in m_Data.owners)
