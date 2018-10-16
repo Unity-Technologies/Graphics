@@ -6,7 +6,7 @@ ${VFXPerPassInclude}
 RWByteAddressBuffer attributeBuffer;
 
 #if VFX_USE_ALIVE_CURRENT
-AppendStructuredBuffer<uint> deadListOut;
+RWStructuredBuffer<uint> deadListOut;
 #endif
 
 #if VFX_HAS_INDIRECT_DRAW
@@ -51,7 +51,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 			else
 			{
 				${VFXStoreAttributes:{alive|eventCount}}
-				deadListOut.Append(index);
+				uint deadIndex = deadListOut.IncrementCounter();
+				deadListOut[deadIndex] = index;
 			}
 		}
 #else
