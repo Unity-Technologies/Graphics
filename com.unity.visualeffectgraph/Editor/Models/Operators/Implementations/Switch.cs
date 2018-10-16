@@ -12,6 +12,9 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting(VFXSettingAttribute.VisibleFlags.Default), SerializeField]
         uint m_EntryCount = 2u;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        bool m_CustomCaseValue = false;
+
         public class TestInputProperties
         {
             [Tooltip("Integer value used for the test.")]
@@ -31,13 +34,16 @@ namespace UnityEditor.VFX.Operator
             get
             {
                 yield return 0; //TestInputProperties
-                var offset = 1;
-                var stride = expressionCountPerUniqueSlot + 1;
-                do
+                if (m_CustomCaseValue)
                 {
-                    yield return offset;
-                    offset += stride;
-                } while (offset < stride * m_EntryCount + 1);
+                    var offset = 1;
+                    var stride = expressionCountPerUniqueSlot + 1;
+                    do
+                    {
+                        yield return offset;
+                        offset += stride;
+                    } while (offset < stride * m_EntryCount + 1);
+                }
             }
         }
 
@@ -70,7 +76,7 @@ namespace UnityEditor.VFX.Operator
                 for (uint i = 0; i < m_EntryCount + 1; ++i)
                 {
                     var prefix = i.ToString();
-                    if (i != m_EntryCount)
+                    if (i != m_EntryCount && m_CustomCaseValue)
                         yield return new VFXPropertyWithValue(new VFXProperty(typeof(int), "Case " + prefix), (int)i);
                     var name = (i == m_EntryCount) ? "default" : "Value " + prefix;
                     yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), name), defaultValue);
@@ -80,10 +86,29 @@ namespace UnityEditor.VFX.Operator
 
         protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            var expressionCountPerUniqueSlot = this.expressionCountPerUniqueSlot;
+            if (!m_CustomCaseValue)
+            {
+                //Insert Case (0,1,..) entries manually
+                var newInputExpression = new VFXExpression[1 /* entry */ + m_EntryCount * (expressionCountPerUniqueSlot + 1 /* case */) + expressionCountPerUniqueSlot /* default */];
+
+                newInputExpression[0] = inputExpression[0];
+                int offsetWrite = 1;
+                int offsetRead = 1;
+                for (int i = 0; i < m_EntryCount + 1; ++i)
+                {
+                    if (i != m_EntryCount)
+                        newInputExpression[offsetWrite++] = new VFXValue<int>(i);
+                    for (int sub = 0; sub < expressionCountPerUniqueSlot; ++sub)
+                    {
+                        newInputExpression[offsetWrite++] = inputExpression[offsetRead++];
+                    }
+                }
+                inputExpression = newInputExpression;
+            }
+
             var referenceValue = inputExpression.First();
             referenceValue = new VFXExpressionCastIntToFloat(referenceValue);
-
-            var expressionCountPerUniqueSlot = this.expressionCountPerUniqueSlot;
 
             var startCaseOffset = 1;
             var stride = expressionCountPerUniqueSlot + 1;
