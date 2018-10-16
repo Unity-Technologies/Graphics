@@ -69,10 +69,10 @@ namespace UnityEditor.VFX.Operator
                 var defaultValue = GetDefaultValueForType(GetOperandType());
                 for (uint i = 0; i < m_EntryCount + 1; ++i)
                 {
-                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
+                    var prefix = i.ToString();
                     if (i != m_EntryCount)
-                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(int), "C" + prefix), (int)i);
-                    var name = (i == m_EntryCount) ? "default" : "V" + prefix;
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(int), "Case " + prefix), (int)i);
+                    var name = (i == m_EntryCount) ? "default" : "Value " + prefix;
                     yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), name), defaultValue);
                 }
             }

@@ -83,9 +83,9 @@ namespace UnityEditor.VFX.Operator
                 var defaultValue = GetDefaultValueForType(GetOperandType());
                 for (uint i = 0; i < m_EntryCount; ++i)
                 {
-                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "P" + prefix), 1.0f);
-                    yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), "V" + prefix), defaultValue);
+                    var prefix = i.ToString();
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Weight " + prefix), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), "Value " + prefix), defaultValue);
                 }
 
                 if (m_IntegratedRandom)
