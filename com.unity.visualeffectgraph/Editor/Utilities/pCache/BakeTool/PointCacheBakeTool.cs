@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Utils
             Mesh
         }
 
-        public BakeMode mode = BakeMode.Texture;
+        public BakeMode mode = BakeMode.Mesh;
 
         private void OnGUI()
         {
