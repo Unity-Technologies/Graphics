@@ -345,6 +345,7 @@ namespace UnityEditor.VFX
                     yield return "enableSpecular";
                     yield return "enableTransmission";
                     yield return "enableCookie";
+                    yield return "enableEnvLight";
                 }
 
                 if (!allowTextures)
