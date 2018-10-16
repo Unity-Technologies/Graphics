@@ -40,4 +40,16 @@ public class GraphicTestTools
             MultiMaterialPlacerEditor.PlaceObjects(placers[i]);
         }
     }
+
+    [MenuItem("Internal/GraphicTest Tools/Auto name Text Objects")]
+    public static void AutoNameTextObjects()
+    {
+        foreach( Object obj in Resources.FindObjectsOfTypeAll( typeof(TextMesh) ) )
+        {
+            TextMesh tm = obj as TextMesh;
+            string name = tm.text;
+            name = name.Replace( System.Environment.NewLine, " " );
+            tm.gameObject.name = name;
+        }
+    }
 }

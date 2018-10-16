@@ -23,15 +23,16 @@ namespace UnityEditor.TestTools.Graphics
                     return RuntimePlatform.OSXPlayer;
                 case BuildTarget.PS4:
                     return RuntimePlatform.PS4;
+#if !UNITY_2018_3_OR_NEWER
                 case BuildTarget.PSP2:
                     return RuntimePlatform.PSP2;
+#endif
                 case BuildTarget.Switch:
                     return RuntimePlatform.Switch;
                 case BuildTarget.WebGL:
                     return RuntimePlatform.WebGLPlayer;
                 case BuildTarget.WSAPlayer:
-                    throw new NotImplementedException(
-                        "Don't know how to determine the target UWP architecture from the build settings");
+                    return RuntimePlatform.WSAPlayerX64;
                 case BuildTarget.StandaloneWindows:
                 case BuildTarget.StandaloneWindows64:
                     return RuntimePlatform.WindowsPlayer;
@@ -60,8 +61,10 @@ namespace UnityEditor.TestTools.Graphics
                     return BuildTarget.StandaloneOSX;
                 case RuntimePlatform.PS4:
                     return BuildTarget.PS4;
+#if !UNITY_2018_3_OR_NEWER
                 case RuntimePlatform.PSP2:
                     return BuildTarget.PSP2;
+#endif
                 case RuntimePlatform.Switch:
                     return BuildTarget.Switch;
 #if !UNITY_2017_2_OR_NEWER

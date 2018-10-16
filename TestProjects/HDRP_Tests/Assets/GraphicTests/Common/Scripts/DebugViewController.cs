@@ -33,4 +33,12 @@ public class DebugViewController : MonoBehaviour
                 break;
         }
     }
+
+    void OnDestroy()
+    {
+        HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
+        hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(0);
+        hdPipeline.debugDisplaySettings.fullScreenDebugMode = FullScreenDebugMode.None;
+    }
 }

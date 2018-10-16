@@ -22,6 +22,11 @@ namespace UnityEditor.ShaderGraph
             get { return new Vector4(value.x, value.y, 0, 0); }
         }
 
+        public override bool isBatchable
+        {
+            get { return true; }
+        }
+
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return string.Format("float2 {0}{1}", referenceName, delimiter);

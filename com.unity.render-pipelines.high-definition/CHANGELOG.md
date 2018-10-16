@@ -4,9 +4,167 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [5.0.0-preview] - 2018-09-28
 
-## [3.0.1-preview]
+### Added
+- Added occlusion mesh to depth prepass for VR (VR still disabled for now)
+- Added a debug mode to display only one shadow at once
+- Added controls for the highlight created by directional lights
+- Added a light radius setting to punctual lights to soften light attenuation and simulate fill lighting
+- Added a 'minRoughness' parameter to all non-area lights (was previously only available for certain light types)
+- Added separate volumetric light/shadow dimmers
+- Added per-pixel jitter to volumetrics to reduce aliasing artifacts
+- Added a SurfaceShading.hlsl file, which implements material-agnostic shading functionality in an efficient manner
+- Added support for shadow bias for thin object transmission
+- Added FrameSettings to control realtime planar reflection
+- Added control for SRPBatcher on HDRP Asset
+- Added an option to clear the shadow atlases in the debug menu
+- Added a color visualization of the shadow atlas rescale in debug mode
+- Added support for disabling SSR on materials
+
+### Fixed
+- Fixed a normal bias issue with Stacklit (Was causing light leaking)
+- Fixed camera preview outputing an error when both scene and game view where display and play and exit was call
+- Fixed override debug mode not apply correctly on static GI
+- Fixed issue where XRGraphicsConfig values set in the asset inspector GUI weren't propagating correctly (VR still disabled for now)
+- Fixed issue with tangent that was using SurfaceGradient instead of regular normal decoding
+- Fixed wrong error message display when switching to unsupported target like IOS
+- Fixed an issue with ambient occlusion texture sometimes not being created properly causing broken rendering
+- Shadow near plane is no longer limited at 0.1
+- Fixed decal draw order on transparent material
+- Fixed an issue where sometime the lookup texture used for GGX convolution was broken, causing broken rendering
+- Fixed an issue where you wouldn't see any fog for certain pipeline/scene configurations
+- Fixed an issue with volumetric lighting where the anisotropy value of 0 would not result in perfectly isotropic lighting
+- Fixed shadow bias when the atlas is rescaled
+- Fixed shadow cascade sampling outside of the atlas when cascade count is inferior to 4
+- Fixed shadow filter width in deferred rendering not matching shader config
+- Fixed stereo sampling of depth texture in MSAA DepthValues.shader
+- Fix box light UI which allowed negative and zero sizes, thus causing NaNs
+
+### Changed
+- Use samplerunity_ShadowMask instead of samplerunity_samplerLightmap for shadow mask
+- Allow to resize reflection probe gizmo's size
+- Improve quality of screen space shadow
+- Remove support of projection model for ScreenSpaceLighting (SSR always use HiZ and refraction always Proxy)
+- Remove all the debug mode from SSR that are obsolete now
+- Expose frameSettings and Capture settings for reflection and planar probe
+- Update UI for reflection probe, planar probe, camera and HDRP Asset
+- Implement proper linear blending for volumetric lighting via deep compositing as described in the paper "Deep Compositing Using Lie Algebras"
+
+## [4.0.0-preview] - 2018-09-28
+
+### Added
+- Added a new TerrainLit shader that supports rendering of Unity terrains.
+- Added controls for linear fade at the boundary of density volumes
+- Added new API to control decals without monobehaviour object
+- Improve Decal Gizmo
+- Implement Screen Space Reflections (SSR) (alpha version, highly experimental)
+- Add an option to invert the fade parameter on a Density Volume
+- Added a Fabric shader (experimental) handling cotton and silk
+- Added support for MSAA in forward only for opaque only
+- Implement smoothness fade for SSR
+- Added support for AxF shader (X-rite format - require special AxF importer from Unity not part of HDRP)
+- Added control for sundisc on directional light (hack)
+- Added a new HD Lit Master node that implements Lit shader support for Shader Graph
+- Added Micro shadowing support (hack)
+- Added an event on HDAdditionalCameraData for custom rendering
+- HDRP Shader Graph shaders now support 4-channel UVs.
+
+### Fixed
+- Fixed an issue where sometimes the deferred shadow texture would not be valid, causing wrong rendering.
+- Stencil test during decals normal buffer update is now properly applied
+- Decals corectly update normal buffer in forward
+- Fixed a normalization problem in reflection probe face fading causing artefacts in some cases
+- Fix multi-selection behavior of Density Volumes overwriting the albedo value
+- Fixed support of depth texture for RenderTexture. HDRP now correctly output depth to user depth buffer if RenderTexture request it.
+- Fixed multi-selection behavior of Density Volumes overwriting the albedo value
+- Fixed support of depth for RenderTexture. HDRP now correctly output depth to user depth buffer if RenderTexture request it.
+- Fixed support of Gizmo in game view in the editor
+- Fixed gizmo for spot light type
+- Fixed issue with TileViewDebug mode being inversed in gameview
+- Fixed an issue with SAMPLE_TEXTURECUBE_SHADOW macro
+- Fixed issue with color picker not display correctly when game and scene view are visible at the same time
+- Fixed an issue with reflection probe face fading
+- Fixed camera motion vectors shader and associated matrices to update correctly for single-pass double-wide stereo rendering
+- Fixed light attenuation functions when range attenuation is disabled
+- Fixed shadow component algorithm fixup not dirtying the scene, so changes can be saved to disk.
+- Fixed some GC leaks for HDRP
+- Fixed contact shadow not affected by shadow dimmer
+- Fixed GGX that works correctly for the roughness value of 0 (mean specular highlgiht will disappeard for perfect mirror, we rely on maxSmoothness instead to always have a highlight even on mirror surface)
+- Add stereo support to ShaderPassForward.hlsl. Forward rendering now seems passable in limited test scenes with camera-relative rendering disabled.
+- Add stereo support to ProceduralSky.shader and OpaqueAtmosphericScattering.shader.
+- Added CullingGroupManager to fix more GC.Alloc's in HDRP
+- Fixed rendering when multiple cameras render into the same render texture
+
+### Changed
+- Changed the way depth & color pyramids are built to be faster and better quality, thus improving the look of distortion and refraction.
+- Stabilize the dithered LOD transition mask with respect to the camera rotation.
+- Avoid multiple depth buffer copies when decals are present
+- Refactor code related to the RT handle system (No more normal buffer manager)
+- Remove deferred directional shadow and move evaluation before lightloop
+- Add a function GetNormalForShadowBias() that material need to implement to return the normal used for normal shadow biasing
+- Remove Jimenez Subsurface scattering code (This code was disabled by default, now remove to ease maintenance)
+- Change Decal API, decal contribution is now done in Material. Require update of material using decal
+- Move a lot of files from CoreRP to HDRP/CoreRP. All moved files weren't used by Ligthweight pipeline. Long term they could move back to CoreRP after CoreRP become out of preview
+- Updated camera inspector UI
+- Updated decal gizmo
+- Optimization: The objects that are rendered in the Motion Vector Pass are not rendered in the prepass anymore
+- Removed setting shader inclue path via old API, use package shader include paths
+- The default value of 'maxSmoothness' for punctual lights has been changed to 0.99
+- Modified deferred compute and vert/frag shaders for first steps towards stereo support
+- Moved material specific Shader Graph files into corresponding material folders.
+- Hide environment lighting settings when enabling HDRP (Settings are control from sceneSettings)
+- Update all shader includes to use absolute path (allow users to create material in their Asset folder)
+- Done a reorganization of the files (Move ShaderPass to RenderPipeline folder, Move all shadow related files to Lighting/Shadow and others)
+- Improved performance and quality of Screen Space Shadows
+
+## [3.3.0-preview]
+
+### Added
+- Added an error message to say to use Metal or Vulkan when trying to use OpenGL API
+- Added a new Fabric shader model that supports Silk and Cotton/Wool
+- Added a new HDRP Lighting Debug mode to visualize Light Volumes for Point, Spot, Line, Rectangular and Reflection Probes
+- Add support for reflection probe light layers
+- Improve quality of anisotropic on IBL
+
+### Fixed
+- Fix an issue where the screen where darken when rendering camera preview
+- Fix display correct target platform when showing message to inform user that a platform is not supported
+- Remove workaround for metal and vulkan in normal buffer encoding/decoding
+- Fixed an issue with color picker not working in forward
+- Fixed an issue where reseting HDLight do not reset all of its parameters
+- Fixed shader compile warning in DebugLightVolumes.shader
+
+### Changed
+- Changed default reflection probe to be 256x256x6 and array size to be 64
+- Removed dependence on the NdotL for thickness evaluation for translucency (based on artist's input)
+- Increased the precision when comparing Planar or HD reflection probe volumes
+- Remove various GC alloc in C#. Slightly better performance
+
+## [3.2.0-preview]
+
+### Added
+- Added a luminance meter in the debug menu
+- Added support of Light, reflection probe, emissive material, volume settings related to lighting to Lighting explorer
+- Added support for 16bit shadows
+
+### Fixed
+- Fix issue with package upgrading (HDRP resources asset is now versionned to worarkound package manager limitation)
+- Fix HDReflectionProbe offset displayed in gizmo different than what is affected.
+- Fix decals getting into a state where they could not be removed or disabled.
+- Fix lux meter mode - The lux meter isn't affected by the sky anymore
+- Fix area light size reset when multi-selected
+- Fix filter pass number in HDUtils.BlitQuad
+- Fix Lux meter mode that was applying SSS
+- Fix planar reflections that were not working with tile/cluster (olbique matrix)
+- Fix debug menu at runtime not working after nested prefab PR come to trunk
+- Fix scrolling issue in density volume
+
+### Changed
+- Shader code refactor: Split MaterialUtilities file in two parts BuiltinUtilities (independent of FragInputs) and MaterialUtilities (Dependent of FragInputs)
+- Change screen space shadow rendertarget format from ARGB32 to RG16
+
+## [3.1.0-preview]
 
 ### Added
 - Decal now support per channel selection mask. There is now two mode. One with BaseColor, Normal and Smoothness and another one more expensive with BaseColor, Normal, Smoothness, Metal and AO. Control is on HDRP Asset. This may require to launch an update script for old scene: 'Edit/Render Pipeline/Single step upgrade script/Upgrade all DecalMaterial MaskBlendMode'.
@@ -15,6 +173,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added LightLayers support (Base on mask from renderers name RenderingLayers and mask from light name LightLayers - if they match, the light apply) - cost an extra GBuffer in deferred (more bandwidth)
 - When LightLayers is enabled, the AmbientOclusion is store in the GBuffer in deferred path allowing to avoid double occlusion with SSAO. In forward the double occlusion is now always avoided.
 - Added the possibility to add an override transform on the camera for volume interpolation
+- Added desired lux intensity and auto multiplier for HDRI sky
+- Added an option to disable light by type in the debug menu
+- Added gradient sky
+- Split EmissiveColor and bakeDiffuseLighting in forward avoiding the emissiveColor to be affect by SSAO
+- Added a volume to control indirect light intensity
+- Added EV 100 intensity unit for area lights
+- Added support for RendererPriority on Renderer. This allow to control order of transparent rendering manually. HDRP have now two stage of sorting for transparent in addition to bact to front. Material have a priority then Renderer have a priority.
+- Add Coupling of (HD)Camera and HDAdditionalCameraData for reset and remove in inspector contextual menu of Camera
+- Add Coupling of (HD)ReflectionProbe and HDAdditionalReflectionData for reset and remove in inspector contextual menu of ReflectoinProbe
+- Add macro to forbid unity_ObjectToWorld/unity_WorldToObject to be use as it doesn't handle camera relative rendering
+- Add opacity control on contact shadow
 
 ### Fixed
 - Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break
@@ -24,20 +193,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactored Constant Buffers to avoid hitting the maximum number of bound CBs in some cases.
 - Fixed the light range affecting the transform scale when changed.
 - Snap to grid now works for Decal projector resizing.
+- Added a warning for 128x128 cookie texture without mipmaps
+- Replace the sampler used for density volumes for correct wrap mode handling
 
 ### Changed
-- Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
+- Move Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
 - Update detail map formula for smoothness and albedo, goal it to bright and dark perceptually and scale factor is use to control gradient speed
 - Refactor the Upgrade material system. Now a material can be update from older version at any time. Call Edit/Render Pipeline/Upgrade all Materials to newer version
 - Change name EnableDBuffer to EnableDecals at several place (shader, hdrp asset...), this require a call to Edit/Render Pipeline/Upgrade all Materials to newer version to have up to date material.
 - Refactor shader code: BakeLightingData structure have been replace by BuiltinData. Lot of shader code have been remove/change.
 - Refactor shader code: All GBuffer are now handled by the deferred material. Mean ShadowMask and LightLayers are control by lit material in lit.hlsl and not outside anymore. Lot of shader code have been remove/change.
-
-### Added
-- Added support for RendererPriority on Renderer. This allow to control order of transparent rendering manually. HDRP have now two stage of sorting for transparent in addition to bact to front. Material have a priority then Renderer have a priority.
-- Add Coupling of (HD)Camera and HDAdditionalCameraData for reset and remove in inspector contextual menu of Camera
-- Add macro to forbid unity_ObjectToWorld/unity_WorldToObject to be use as it doesn't handle camera relative rendering
-- Add opacity control on contact shadow
+- Refactor shader code: Rename GetBakedDiffuseLighting to ModifyBakedDiffuseLighting. This function now handle lighting model for transmission too. Lux meter debug mode is factor outisde.
+- Refactor shader code: GetBakedDiffuseLighting is not call anymore in GBuffer or forward pass, including the ConvertSurfaceDataToBSDFData and GetPreLightData, this is done in ModifyBakedDiffuseLighting now
+- Refactor shader code: Added a backBakeDiffuseLighting to BuiltinData to handle lighting for transmission
+- Refactor shader code: Material must now call InitBuiltinData (Init all to zero + init bakeDiffuseLighting and backBakeDiffuseLighting ) and PostInitBuiltinData
 
 ## [3.0.0-preview]
 

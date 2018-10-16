@@ -251,6 +251,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                         DirtyNodes();
                     });
                 AddRow("Default", field);
+                var defaultModeField = new EnumField((Enum)textureProperty.defaultType);
+                defaultModeField.OnValueChanged(evt =>
+                    {
+                        if (textureProperty.defaultType == (TextureShaderProperty.DefaultType)evt.newValue)
+                            return;
+                        textureProperty.defaultType = (TextureShaderProperty.DefaultType)evt.newValue;
+                        DirtyNodes(ModificationScope.Graph);
+                    });
+                AddRow("Mode", defaultModeField);
             }
             else if (property is Texture2DArrayShaderProperty)
             {

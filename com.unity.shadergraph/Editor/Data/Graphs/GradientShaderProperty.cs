@@ -114,6 +114,11 @@ namespace UnityEditor.ShaderGraph
             get { return new Vector4(); }
         }
 
+        public override bool isBatchable
+        {
+            get { return false; }
+        }
+
         public override string GetPropertyBlockString()
         {
             return string.Empty;

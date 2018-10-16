@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
@@ -49,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                         m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                     }
                     float newValue;
-                    if (!float.TryParse(evt.newData, out newValue))
+                    if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
                         newValue = 0f;
                     var value = m_Get();
                     if (Math.Abs(value[index] - newValue) > 1e-9)

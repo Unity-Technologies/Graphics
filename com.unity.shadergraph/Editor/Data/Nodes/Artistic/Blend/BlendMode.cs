@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph
         Screen,
         SoftLight,
         Subtract,
-        VividLight
+        VividLight,
+        Overwrite
     }
 }

@@ -13,10 +13,19 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private SerializableTexture m_Texture = new SerializableTexture();
 
+        [SerializeField]
+        private TextureShaderProperty.DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
+
         public Texture texture
         {
             get { return m_Texture.texture; }
             set { m_Texture.texture = value; }
+        }
+
+        public TextureShaderProperty.DefaultType defaultType
+        {
+            get { return m_DefaultType; }
+            set { m_DefaultType = value; }
         }
 
         public Texture2DInputMaterialSlot()
@@ -56,6 +65,7 @@ namespace UnityEditor.ShaderGraph
             prop.modifiable = false;
             prop.generatePropertyBlock = true;
             prop.value.texture = texture;
+            prop.defaultType = defaultType;
             properties.AddShaderProperty(prop);
         }
 

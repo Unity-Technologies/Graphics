@@ -60,6 +60,25 @@ namespace UnityEditor.ShaderGraph
 
                 m_TextureType = value;
                 Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
+        [SerializeField]
+        private NormalMapSpace m_NormalMapSpace = NormalMapSpace.Tangent;
+
+        [EnumControl("Space")]
+        public NormalMapSpace normalMapSpace
+        {
+            get { return m_NormalMapSpace; }
+            set
+            {
+                if (m_NormalMapSpace == value)
+                    return;
+
+                m_NormalMapSpace = value;
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -76,8 +95,16 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInput, SamplerInput });
         }
 
+        public override void ValidateNode()
+        {
+            var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
+            textureSlot.defaultType = (textureType == TextureType.Normal ? TextureShaderProperty.DefaultType.Bump : TextureShaderProperty.DefaultType.White);
+
+            base.ValidateNode();
+        }
+
         // Node generations
-        public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var uvName = GetSlotValue(UVInput, generationMode);
 
@@ -96,7 +123,16 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(result, true);
 
             if (textureType == TextureType.Normal)
-                visitor.AddShaderChunk(string.Format("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotRGBAId)), true);
+            {
+                if (normalMapSpace == NormalMapSpace.Tangent)
+                {
+                    visitor.AddShaderChunk(string.Format("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotRGBAId)), true);
+                }
+                else
+                {
+                    visitor.AddShaderChunk(string.Format("{0}.rgb = UnpackNormalRGB({0});", GetVariableNameForSlot(OutputSlotRGBAId)), true);
+                }
+            }
 
             visitor.AddShaderChunk(string.Format("{0} {1} = {2}.r;", precision, GetVariableNameForSlot(OutputSlotRId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
             visitor.AddShaderChunk(string.Format("{0} {1} = {2}.g;", precision, GetVariableNameForSlot(OutputSlotGId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
