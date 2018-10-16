@@ -122,7 +122,13 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
             EditorGUILayout.Space();
 
-            if (SceneView.lastActiveSceneView != null && SceneView.lastActiveSceneView.m_SceneLighting == false)
+#if UNITY_2019_1_OR_NEWER
+            var sceneLighting = SceneView.lastActiveSceneView.sceneLighting;
+#else
+            var sceneLighting = SceneView.lastActiveSceneView.m_SceneLighting;
+#endif
+
+            if (SceneView.lastActiveSceneView != null && !sceneLighting)
                 EditorGUILayout.HelpBox(s_Styles.DisabledLightWarning.text, MessageType.Warning);
 
             serializedObject.ApplyModifiedProperties();
