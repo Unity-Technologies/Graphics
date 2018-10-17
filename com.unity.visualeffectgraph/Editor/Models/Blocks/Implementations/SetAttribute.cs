@@ -16,11 +16,11 @@ namespace UnityEditor.VFX.Block
                 {
                     { "attribute", VFXAttribute.AllIncludingVariadicReadWritable.Cast<object>().ToArray() },
                     { "Source", new object[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source } },
+                    { "Composition", new object[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Scale, AttributeCompositionMode.Blend } }
                 };
             }
         }
     }
-
 
     [VFXInfo(category = "Attribute/Set", variantProvider = typeof(SetAttributeVariantReadWritable))]
     class SetAttribute : VFXBlock
