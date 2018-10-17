@@ -404,7 +404,6 @@ namespace UnityEditor.VFX.UI
                 return;
             contexts = controller.contexts.Select(t => view.GetGroupNodeElement(t) as VFXContextUI).ToArray();
         }
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) { }
         public void OnControllerChanged(ref ControllerChangedEvent e)
         {
             Update();
