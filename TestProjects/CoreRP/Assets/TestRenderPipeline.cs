@@ -100,19 +100,12 @@ public class TestRenderPipeline : RenderPipeline
             renderContext.SetupCameraProperties(camera);
 
             CullingParameters cullingParameters = new CullingParameters();
-            cullingParameters.enableJobs = false;
-            cullingParameters.gatherStatistics = m_GatherStats;
-
             ScriptableCulling.FillCullingParameters(camera, ref cullingParameters);
-            cullingParameters.enableJobs = false;
-            cullingParameters.cullingMask = (uint)camera.cullingMask;
-            cullingParameters.testMask = CullingTestMask.CullingMask | CullingTestMask.LODMask;// | CullingTest.SceneMask;
 
-            cullingParameters.guid = camera.GetInstanceID();
-            cullingParameters.lodParameters.cameraPosition = camera.transform.position;
-            cullingParameters.lodParameters.fieldOfView = camera.fieldOfView;
-            cullingParameters.lodParameters.isOrthographic = camera.orthographic;
-            cullingParameters.lodParameters.orthoSize = camera.orthographicSize;
+            cullingParameters.enableJobs = false;
+            cullingParameters.extractLightProbes = true;
+            cullingParameters.gatherStatistics = m_GatherStats;
+            cullingParameters.testMask = CullingTestMask.CullingMask | CullingTestMask.LODMask;// | CullingTest.SceneMask;
 
             //if (camera.useOcclusionCulling)
             //    cullingParameters.parameters.cullingFlags |= CullFlag.OcclusionCull;
