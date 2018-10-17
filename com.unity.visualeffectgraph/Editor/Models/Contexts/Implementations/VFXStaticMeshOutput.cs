@@ -22,7 +22,21 @@ namespace UnityEditor.VFX
         // IVFXSubRenderer interface
         // TODO Could we derive this directly by looking at the shader to know if a shadow pass is present?
         public virtual bool hasShadowCasting { get { return castShadows; } }
-        int IVFXSubRenderer.sortPriority { get { return sortPriority; } set { sortPriority = value; } }
+        int IVFXSubRenderer.sortPriority
+        {
+            get
+            {
+                return sortPriority;
+            }
+            set
+            {
+                if (sortPriority != value)
+                {
+                    sortPriority = value;
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
+            }
+        }
 
         protected VFXStaticMeshOutput() : base(VFXContextType.kOutput, VFXDataType.kMesh, VFXDataType.kNone) {}
 

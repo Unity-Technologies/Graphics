@@ -48,6 +48,10 @@ namespace UnityEditor.VFX
         {
             get
             {
+                if( m_Parent == null)
+                {
+                    Sanitize();
+                }
                 HashSet<VFXData> datas = new HashSet<VFXData>();
 
                 VFXGraph graph = GetGraph();
@@ -127,7 +131,8 @@ namespace UnityEditor.VFX
 
             if( m_Parent == null)
             {
-                m_Parent = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(this)).GetOrCreateGraph();
+                string assetPath = AssetDatabase.GetAssetPath(this);
+                m_Parent = VisualEffectResource.GetResourceAtPath(assetPath).GetOrCreateGraph();
             }
         }
 
