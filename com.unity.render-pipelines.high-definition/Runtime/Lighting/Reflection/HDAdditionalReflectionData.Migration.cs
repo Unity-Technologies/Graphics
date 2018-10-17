@@ -10,7 +10,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDProbeChild = 2,
             UseInfluenceVolume,
             MergeEditors,
-            AddCaptureSettingsAndFrameSettings
+            AddCaptureSettingsAndFrameSettings,
+            ModeAndTextures
         }
 
         static readonly MigrationDescription<Version, HDAdditionalReflectionData> k_Migration
@@ -25,21 +26,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     t.influenceVolume.boxSize = t.reflectionProbe.size;
 #pragma warning disable 618 // Type or member is obsolete
                     t.influenceVolume.sphereRadius = t.m_ObsoleteInfluenceSphereRadius;
-                    t.influenceVolume.shape = t.m_ObsoleteInfluenceShape; //must be done after each size transfert
+                    t.influenceVolume.shape = t.m_ObsoleteInfluenceShape;
                     t.influenceVolume.boxBlendDistancePositive = t.m_ObsoleteBlendDistancePositive;
                     t.influenceVolume.boxBlendDistanceNegative = t.m_ObsoleteBlendDistanceNegative;
                     t.influenceVolume.boxBlendNormalDistancePositive = t.m_ObsoleteBlendNormalDistancePositive;
                     t.influenceVolume.boxBlendNormalDistanceNegative = t.m_ObsoleteBlendNormalDistanceNegative;
                     t.influenceVolume.boxSideFadePositive = t.m_ObsoleteBoxSideFadePositive;
                     t.influenceVolume.boxSideFadeNegative = t.m_ObsoleteBoxSideFadeNegative;
+                    t.influenceVolume.sphereBlendDistance = t.m_ObsoleteBlendDistancePositive.x;
+                    t.influenceVolume.sphereBlendNormalDistance = t.m_ObsoleteBlendNormalDistancePositive.x;
 #pragma warning restore 618 // Type or member is obsolete
                     //Note: former editor parameters will be recreated as if non existent.
                     //User will lose parameters corresponding to non used mode between simplified and advanced
-                }),
-                MigrationStep.New(Version.MergeEditors, (HDAdditionalReflectionData t) =>
-                {
-                    t.infiniteProjection = !t.reflectionProbe.boxProjection;
-                    t.reflectionProbe.boxProjection = false;
                 }),
                 MigrationStep.New(Version.AddCaptureSettingsAndFrameSettings, (HDAdditionalReflectionData t) =>
                 {
@@ -51,6 +49,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
                     t.captureSettings.nearClipPlane = t.reflectionProbe.nearClipPlane;
                     t.captureSettings.farClipPlane = t.reflectionProbe.farClipPlane;
+                }),
+                MigrationStep.New(Version.ModeAndTextures, (HDAdditionalReflectionData t) =>
+                {
+                    t.mode = t.reflectionProbe.mode;
+                    t.bakedTexture = t.reflectionProbe.bakedTexture;
+                    t.customTexture = t.reflectionProbe.customBakedTexture;
                 })
             );
 
