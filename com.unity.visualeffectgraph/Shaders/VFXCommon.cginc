@@ -92,6 +92,11 @@ float4 SampleTexture(VFXSamplerCubeArray s,float3 coords,float slice,float level
     return s.t.SampleLevel(s.s,float4(coords,slice),level);
 }
 
+float4 LoadTexture(VFXSampler2D s, int3 pixelCoords)
+{
+    return s.t.Load(pixelCoords);
+}
+
 float SampleSDF(VFXSampler3D s,float3 coords,float level = 0.0f)
 {
     return SampleTexture(s,coords,level).x;
