@@ -86,10 +86,9 @@ namespace UnityEditor.VFX
         SerializedProperty m_RandomSeed;
         SerializedProperty m_VFXPropertySheet;
 
-#if WORKAROUND_TIMELINE
-        static GameObject s_FakeObjectRoot;
-#endif
+#if ! WORKAROUND_TIMELINE
         static FakeObject s_FakeObjectCache;
+#endif
         static SerializedObject s_FakeObjectSerializedCache;
 
         static List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
@@ -119,6 +118,10 @@ namespace UnityEditor.VFX
             m_SerializedRenderers = new SerializedObject(m_Renderers);
             m_RendererTransparentPriority = m_SerializedRenderers.FindProperty("m_RendererPriority");
             m_RendererRenderingLayerMask = m_SerializedRenderers.FindProperty("m_RenderingLayerMask");
+
+#if WORKAROUND_TIMELINE
+            s_FakeObjectSerializedCache = new SerializedObject(target);
+#endif
         }
 
         protected void OnDisable()
@@ -139,63 +142,51 @@ namespace UnityEditor.VFX
             if (parameter.defaultValue == null)
                 return null;
             Type type = parameter.defaultValue.type;
-            object defaultValue = parameter.defaultValue.Get();
             if (type == null)
                 return null;
 
             if (typeof(float) == type)
             {
-                s_FakeObjectCache.aFloat = (float)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aFloat");
             }
             else if (typeof(Vector2) == type)
             {
-                s_FakeObjectCache.aVector2 = (Vector2)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aVector2");
             }
             else if (typeof(Vector3) == type)
             {
-                s_FakeObjectCache.aVector3 = (Vector3)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aVector3");
             }
             else if (typeof(Vector4) == type)
             {
-                s_FakeObjectCache.aVector4 = (Vector4)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aVector4");
             }
             else if (typeof(Color) == type)
             {
-                s_FakeObjectCache.aColor = (Color)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aColor");
             }
             else if (typeof(Gradient) == type)
             {
-                s_FakeObjectCache.aGradient = (Gradient)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aGradient");
             }
             else if (typeof(AnimationCurve) == type)
             {
-                s_FakeObjectCache.anAnimationCurve = (AnimationCurve)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("anAnimationCurve");
             }
             else if (typeof(UnityObject).IsAssignableFrom(type))
             {
-                s_FakeObjectCache.anObject = (UnityObject)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("anObject");
             }
             else if (typeof(int) == type)
             {
-                s_FakeObjectCache.anInt = (int)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("anInt");
             }
             else if (typeof(uint) == type)
             {
-                s_FakeObjectCache.anUInt = (uint)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("anUInt");
             }
             else if (typeof(bool) == type)
             {
-                s_FakeObjectCache.aBool = (bool)defaultValue;
                 return s_FakeObjectSerializedCache.FindProperty("aBool");
             }
 
@@ -219,9 +210,12 @@ namespace UnityEditor.VFX
 
             if (!overrideProperty.boolValue)
             {
-                property = GetFakeProperty(ref parameter);
+                s_FakeObjectSerializedCache.Update();
+                property = s_FakeObjectSerializedCache.FindProperty(originalProperty.propertyPath);
                 if (property != null)
-                    s_FakeObjectSerializedCache.Update();
+                {
+                    SetObjectValue(property,parameter.defaultValue.Get());
+                }
             }
 
             if (property != null)
@@ -336,7 +330,10 @@ namespace UnityEditor.VFX
                     prop.objectReferenceValue = (UnityEngine.Object)value;
                     return;
                 case SerializedPropertyType.Integer:
-                    prop.intValue = (int)value;
+                    if( value is uint)
+                        prop.longValue = (int)(uint)value;
+                    else
+                        prop.intValue = (int)value;
                     return;
                 case SerializedPropertyType.Boolean:
                     prop.boolValue = (bool)value;
@@ -561,17 +558,13 @@ namespace UnityEditor.VFX
 
         protected virtual void DrawParameters()
         {
+#if !WORKAROUND_TIMELINE
             if (s_FakeObjectCache == null)
             {
-#if WORKAROUND_TIMELINE
-                s_FakeObjectRoot = new GameObject("FakeRoot", new[] { typeof(FakeObject) });
-                s_FakeObjectRoot.hideFlags = HideFlags.HideAndDontSave;
-                s_FakeObjectCache = s_FakeObjectRoot.GetComponent<FakeObject>();
-#else
                 s_FakeObjectCache = ScriptableObject.CreateInstance<FakeObject>();
-#endif
                 s_FakeObjectSerializedCache = new SerializedObject(s_FakeObjectCache);
             }
+#endif
             var component = (VisualEffect)target;
             if (m_graph == null || m_asset != component.visualEffectAsset)
             {
