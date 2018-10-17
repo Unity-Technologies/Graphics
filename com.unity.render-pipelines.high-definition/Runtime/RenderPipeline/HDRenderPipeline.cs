@@ -212,8 +212,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Material GetBlitMaterial() { return m_Blit; }
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
-
-
+        
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             m_Asset = asset;
@@ -639,7 +638,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
                     m_LightLoop.ReleaseResolutionDependentBuffers();
 
-                m_LightLoop.AllocResolutionDependentBuffers((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y, hdCamera.frameSettings.enableStereo);
+                m_LightLoop.AllocResolutionDependentBuffers((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y, hdCamera.camera.stereoEnabled);
             }
 
             // update recorded window resolution
@@ -1006,7 +1005,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
                     ScriptableCullingParameters cullingParams;
-                    if (!CullResults.GetCullingParameters(camera, hdCamera.frameSettings.enableStereo, out cullingParams))
+                    if (!CullResults.GetCullingParameters(camera, camera.stereoEnabled, out cullingParams)) // Fixme remove stereo passdown?
                     {
                         renderContext.Submit();
                         continue;
@@ -1053,7 +1052,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    renderContext.SetupCameraProperties(camera, hdCamera.frameSettings.enableStereo);
+                    renderContext.SetupCameraProperties(camera, camera.stereoEnabled);
 
                     PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
 
@@ -1078,7 +1077,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Configure all the keywords
                     ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
-                    StartStereoRendering(cmd, renderContext, hdCamera);
+                    StartStereoRendering(cmd, renderContext, camera);
 
                     ClearBuffers(hdCamera, cmd);
 
@@ -1137,7 +1136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
-                    StopStereoRendering(cmd, renderContext, hdCamera);
+                    StopStereoRendering(cmd, renderContext, camera);
                     // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                     UpdateSkyEnvironment(hdCamera, cmd);
@@ -1151,7 +1150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        StartStereoRendering(cmd, renderContext, hdCamera);
+                        StartStereoRendering(cmd, renderContext, camera);
 
                         // TODO: Everything here (SSAO, Shadow, Build light list, deferred shadow, material and light classification can be parallelize with Async compute)
                         RenderSSAO(cmd, hdCamera, renderContext, postProcessLayer);
@@ -1197,7 +1196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Needs the depth pyramid and motion vectors, as well as the render of the previous frame.
                         RenderSSR(hdCamera, cmd);
 
-                        StopStereoRendering(cmd, renderContext, hdCamera);
+                        StopStereoRendering(cmd, renderContext, camera);
 
 #if UNITY_2019_1_OR_NEWER
                         GraphicsFence buildGPULightListsCompleteFence = new GraphicsFence();
@@ -1223,14 +1222,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
 
                             // Overwrite camera properties set during the shadow pass with the original camera properties.
-                            renderContext.SetupCameraProperties(camera, hdCamera.frameSettings.enableStereo);
+                            renderContext.SetupCameraProperties(camera, camera.stereoEnabled);
                             hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
                         }
 
                         using (new ProfilingSample(cmd, "Screen space shadows", CustomSamplerId.ScreenSpaceShadows.GetSampler()))
                         {
 
-                            StartStereoRendering(cmd, renderContext, hdCamera);
+                            StartStereoRendering(cmd, renderContext, camera);
                             // When debug is enabled we need to clear otherwise we may see non-shadows areas with stale values.
                             if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ContactShadows)
                             {
@@ -1243,7 +1242,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, hdCamera.frameSettings.enableMSAA ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), firstMipOffsetY, cmd);
 
                             PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ContactShadows);
-                            StopStereoRendering(cmd, renderContext, hdCamera);
+                            StopStereoRendering(cmd, renderContext, camera);
                         }
 
                         if (hdCamera.frameSettings.enableAsyncCompute)
@@ -1275,7 +1274,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 						SetMicroShadowingSettings(cmd);
 
 						// Might float this higher if we enable stereo w/ deferred
-                        StartStereoRendering(cmd, renderContext, hdCamera);
+                        StartStereoRendering(cmd, renderContext, camera);
 
                         RenderDeferredLighting(hdCamera, cmd);
 
@@ -1314,7 +1313,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                         RenderDistortion(hdCamera, cmd);
 
-                        StopStereoRendering(cmd, renderContext, hdCamera);
+                        StopStereoRendering(cmd, renderContext, camera);
 
                         PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.NanTracker);
                         PushFullScreenLightingDebugTexture(hdCamera, cmd, m_CameraColorBuffer);
@@ -1323,7 +1322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // The final pass either postprocess of Blit will flip the screen (as it is reverse by default due to Unity openGL legacy)
                         // Postprocess system (that doesn't use cmd.Blit) handle it with configuration (and do not flip in SceneView) or it is automatically done in Blit
 
-                        StartStereoRendering(cmd, renderContext, hdCamera);
+                        StartStereoRendering(cmd, renderContext, camera);
 
 
                         // Final blit
@@ -1338,9 +1337,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             using (new ProfilingSample(cmd, "Blit to final RT", CustomSamplerId.BlitToFinalRT.GetSampler()))
                             {
                                 // This Blit will flip the screen on anything other than openGL
-                                if (srcFrameSettings.enableStereo && (XRGraphicsConfig.eyeTextureDesc.vrUsage == VRTextureUsage.TwoEyes))
+                                if (camera.stereoEnabled && (XRGraphics.eyeTextureDesc.dimension == TextureDimension.Tex2D))
                                 {
-                                    cmd.BlitFullscreenTriangle(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget); // If double-wide, only blit once (not once per-eye)
+#if UNITY_2019_1_OR_NEWER
+                                    Material finalDoubleWideBlit = GetBlitMaterial();
+                                    finalDoubleWideBlit.SetTexture(HDShaderIDs._BlitTexture, m_CameraColorBuffer);
+                                    finalDoubleWideBlit.SetFloat(HDShaderIDs._BlitMipLevel, 0.0f);
+                                    finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                                    finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                                    cmd.Blit(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, finalDoubleWideBlit);
+#else
+                                    cmd.BlitFullscreenTriangle(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget); // Prior to 2019.1's y-flip fixes, we didn't need a flip in the shader
+#endif
                                 }
                                 else
                                 {
@@ -1349,10 +1357,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
-                        StopStereoRendering(cmd, renderContext, hdCamera);
+                        StopStereoRendering(cmd, renderContext, camera);
                         // Pushes to XR headset and/or display mirror
-                        if (hdCamera.frameSettings.enableStereo)
-                            renderContext.StereoEndRender(hdCamera.camera);
+                        if (camera.stereoEnabled)
+                            renderContext.StereoEndRender(camera);
                     }
 
                     // Copy depth buffer if render texture has one as our depth buffer can be bigger than the one provided and we use our RT handle system.
@@ -1588,7 +1596,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
 
-                    XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.frameSettings.enableStereo);
+                    XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.camera.stereoEnabled);
 
                     // Full forward: Output normal buffer for both forward and forwardOnly
                     // Exclude object that render velocity (if motion vector are enabled)
@@ -1602,7 +1610,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
 
-                    XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.frameSettings.enableStereo);
+                    XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.camera.stereoEnabled);
 
                     // First deferred material
                     RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector: excludeMotion);
@@ -1619,7 +1627,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
 
-                    XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.frameSettings.enableStereo);
+                    XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.camera.stereoEnabled);
 
                     // First deferred alpha tested materials. Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
                     var renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
@@ -2175,7 +2183,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 context.command = cmd;
                 context.camera = hdcamera.camera;
                 context.sourceFormat = RenderTextureFormat.ARGBHalf;
-                context.flip = (hdcamera.camera.targetTexture == null) && (!hdcamera.camera.stereoEnabled) && !needOutputToColorBuffer;
+                context.flip = (hdcamera.camera.targetTexture == null) && !needOutputToColorBuffer;
+#if !UNITY_2019_1_OR_NEWER // Y-flip correction available in 2019.1
+                context.flip = context.flip && (!hdcamera.camera.stereoEnabled);
+#endif
 
                 layer.Render(context);
 
@@ -2443,23 +2454,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void StartStereoRendering(CommandBuffer cmd, ScriptableRenderContext renderContext, HDCamera hdCamera)
+        void StartStereoRendering(CommandBuffer cmd, ScriptableRenderContext renderContext, Camera cam)
         {
-            if (hdCamera.frameSettings.enableStereo)
+            if (cam.stereoEnabled)
             {
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                renderContext.StartMultiEye(hdCamera.camera);
+                renderContext.StartMultiEye(cam);
             }
         }
 
-        void StopStereoRendering(CommandBuffer cmd, ScriptableRenderContext renderContext, HDCamera hdCamera)
+        void StopStereoRendering(CommandBuffer cmd, ScriptableRenderContext renderContext, Camera cam)
         {
-            if (hdCamera.frameSettings.enableStereo)
+            if (cam.stereoEnabled)
             {
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                renderContext.StopMultiEye(hdCamera.camera);
+                renderContext.StopMultiEye(cam);
             }
 
         }

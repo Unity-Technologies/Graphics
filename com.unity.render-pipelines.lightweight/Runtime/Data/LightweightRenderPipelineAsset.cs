@@ -110,8 +110,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_MixedLightingSupported = true;
         // TODO: Render Pipeline Batcher
         
-        [SerializeField] XRGraphicsConfig m_SavedXRConfig = XRGraphicsConfig.s_DefaultXRConfig;
-
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
         [SerializeField] bool m_LocalShadowsSupported = false;
@@ -449,13 +447,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get { return resources != null ? resources.samplingShader : null; }
         }
-
-        public XRGraphicsConfig savedXRGraphicsConfig
-        {
-            get { return m_SavedXRConfig; }
-            set { m_SavedXRConfig = value;  }
-        }
-
+        
         public void OnBeforeSerialize()
         {
         }

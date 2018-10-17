@@ -1596,7 +1596,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DominantLightValue = 0;
                 m_DebugSelectedLightShadowIndex = -1;
 
-                var stereoEnabled = m_FrameSettings.enableStereo;
+                var stereoEnabled = hdCamera.camera.stereoEnabled;
 
                 var hdShadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
 
@@ -2125,7 +2125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool isOrthographic = camera.orthographic;
 
             // camera to screen matrix (and it's inverse)
-            if (m_FrameSettings.enableStereo)
+            if (camera.stereoEnabled)
             {
                 // XRTODO: If possible, we could generate a non-oblique stereo projection
                 // matrix.  It's ok if it's not the exact same matrix, as long as it encompasses
@@ -2158,7 +2158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
-                if (m_FrameSettings.enableStereo)
+                if (camera.stereoEnabled)
                 {
                     for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                     {
@@ -2186,7 +2186,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // In stereo, we output two sets of AABB bounds
                 cmd.SetComputeBufferParam(buildScreenAABBShader, genAABBKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
 
-                int tgY = m_FrameSettings.enableStereo ? 2 : 1;
+                int tgY = (int)hdCamera.numEyes;
                 cmd.DispatchCompute(buildScreenAABBShader, genAABBKernel, (m_lightCount + 7) / 8, tgY, 1);
             }
 
@@ -2211,7 +2211,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
-                int tgZ = m_FrameSettings.enableStereo ? 2 : 1;
+                int tgZ = (int)hdCamera.numEyes;
                 cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, tgZ);
             }
 
@@ -2513,7 +2513,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
 
                 int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
-                int numTilesX = hdCamera.frameSettings.enableStereo ? ((hdCamera.actualWidth / 2) + (deferredShadowTileSize - 1)) / deferredShadowTileSize : (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+                int numTilesX = hdCamera.camera.stereoEnabled ? ((hdCamera.actualWidth / 2) + (deferredShadowTileSize - 1)) / deferredShadowTileSize : (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 int numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
                 for (int eye = 0; eye < hdCamera.numEyes; eye++)
@@ -2556,11 +2556,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     int w = hdCamera.actualWidth;
                     int h = hdCamera.actualHeight;
-                    int numTilesX = m_FrameSettings.enableStereo ? ((w / 2) + 15) / 16 : (w + 15) / 16;
+                    int numTilesX = hdCamera.camera.stereoEnabled ? ((w / 2) + 15) / 16 : (w + 15) / 16;
                     int numTilesY = (h + 15) / 16;
                     int numTiles = numTilesX * numTilesY;
 
-                    bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnabled() && !hdCamera.frameSettings.enableStereo; // TODO VR: Reenable later
+                    bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnabled() && !hdCamera.camera.stereoEnabled; // TODO VR: Reenable later
 
                     int numVariants = 1;
                     if (enableFeatureVariants)

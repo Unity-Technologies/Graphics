@@ -38,10 +38,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         OpaqueObjects = 1 << 24,
         TransparentObjects = 1 << 25,
         RealtimePlanarReflection = 1 << 26,
-
-        //stereo settings
-        Stereo = 1 << 27,
-        XrGraphicSettings = 1 << 28
     }
 
     // The settings here are per frame settings.
@@ -78,8 +74,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {FrameSettingsOverrides.OpaqueObjects, (a, b) => { a.enableOpaqueObjects = b.enableOpaqueObjects; } },
             {FrameSettingsOverrides.TransparentObjects, (a, b) => { a.enableTransparentObjects = b.enableTransparentObjects; } },
             {FrameSettingsOverrides.RealtimePlanarReflection, (a, b) => { a.enableRealtimePlanarReflection = b.enableRealtimePlanarReflection; } },
-            {FrameSettingsOverrides.Stereo, (a, b) => { a.enableStereo = b.enableStereo; } },
-            {FrameSettingsOverrides.XrGraphicSettings, (a, b) => { a.xrGraphicsConfig = b.xrGraphicsConfig; } },
         };
 
         public FrameSettingsOverrides overrides;
@@ -115,9 +109,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableTransparentPostpass = true;
         public bool enableDistortion = true;
         public bool enablePostprocess = true;
-
-        public bool enableStereo = false;
-        public XRGraphicsConfig xrGraphicsConfig = new XRGraphicsConfig();
 
         public bool enableAsyncCompute = true;
 
@@ -166,11 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableTransparentPostpass = this.enableTransparentPostpass;
             frameSettings.enableDistortion = this.enableDistortion;
             frameSettings.enablePostprocess = this.enablePostprocess;
-
-            frameSettings.enableStereo = this.enableStereo;
-
-            this.xrGraphicsConfig.CopyTo(frameSettings.xrGraphicsConfig);
-
+            
             frameSettings.enableOpaqueObjects = this.enableOpaqueObjects;
             frameSettings.enableTransparentObjects = this.enableTransparentObjects;
             frameSettings.enableRealtimePlanarReflection = this.enableRealtimePlanarReflection;            
@@ -265,11 +252,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
-
-            aggregate.enableStereo = ((camera.cameraType == CameraType.Game) || (camera.cameraType == CameraType.VR)) && srcFrameSettings.enableStereo && XRGraphicsConfig.enabled && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
-
-            srcFrameSettings.xrGraphicsConfig.CopyTo(aggregate.xrGraphicsConfig);
-
+                        
             aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
 
             aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
@@ -279,7 +262,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
 
             aggregate.ConfigureMSAADependentSettings();
-            aggregate.ConfigureStereoDependentSettings();
+            aggregate.ConfigureStereoDependentSettings(camera);
 
             // Disable various option for the preview except if we are a Camera Editor preview
             if (HDUtils.IsRegularPreviewCamera(camera))
@@ -300,7 +283,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aggregate.enableTransparentPostpass = false;
                 aggregate.enableDistortion = false;
                 aggregate.enablePostprocess = false;
-                aggregate.enableStereo = false;
             }
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
@@ -319,9 +301,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void ConfigureStereoDependentSettings()
+        public void ConfigureStereoDependentSettings(Camera cam)
         {
-            if (enableStereo)
+            if (cam.stereoEnabled)
             {
                 // Stereo deferred rendering still has the following problems:
                 // VR TODO: Dispatch tile light-list compute per-eye
@@ -329,18 +311,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableForwardRenderingOnly = true;
 
                 // TODO: The work will be implemented piecemeal to support all passes
-                //enableMotionVectors = !enableMSAA;
                 enableMotionVectors = enablePostprocess && !enableMSAA;
                 enableDecals = false;
                 enableDistortion = false;
-                //enablePostprocess = false;
                 enableRoughRefraction = false;
                 enableSSAO = false;
                 enableSSR = false;
                 enableSubsurfaceScattering = false;
-                enableTransparentObjects = false;
-
-                xrGraphicsConfig.SetConfig();
             }
         }
 
