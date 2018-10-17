@@ -121,7 +121,6 @@ namespace UnityEngine.VFX.Test
             }
         }
 
-
         [TearDown]
         public void TearDown()
         {
@@ -132,6 +131,5 @@ namespace UnityEngine.VFX.Test
             UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
 #endif
         }
-
     }
 }

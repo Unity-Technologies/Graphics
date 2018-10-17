@@ -23,22 +23,27 @@ namespace UnityEditor.VFX
         {
             return new VFXTexture2DValue(value, Mode.Constant);
         }
+
         static public VFXValue<Texture> Constant(Texture3D value)
         {
             return new VFXTexture3DValue(value, Mode.Constant);
         }
+
         static public VFXValue<Texture> Constant(Cubemap value)
         {
             return new VFXTextureCubeValue(value, Mode.Constant);
         }
+
         static public VFXValue<Texture> Constant(Texture2DArray value)
         {
             return new VFXTexture2DArrayValue(value, Mode.Constant);
         }
+
         static public VFXValue<Texture> Constant(CubemapArray value)
         {
             return new VFXTextureCubeArrayValue(value, Mode.Constant);
         }
+
         static public VFXValue<T> Constant<T>(T value = default(T))
         {
             return new VFXValue<T>(value, Mode.Constant);
@@ -144,7 +149,6 @@ namespace UnityEditor.VFX
             return flags;
         }
 
-
         public VFXValue(T content = default(T), Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
         {
             m_Content = content;
@@ -184,7 +188,7 @@ namespace UnityEditor.VFX
             var fromType = value.GetType();
             var toType = typeof(T);
 
-            if(typeof(Texture).IsAssignableFrom(toType) && toType.IsAssignableFrom(fromType))
+            if (typeof(Texture).IsAssignableFrom(toType) && toType.IsAssignableFrom(fromType))
             {
                 m_Content = (T)value;
             }
@@ -212,7 +216,7 @@ namespace UnityEditor.VFX
         private static VFXValueType ToValueType()
         {
             Type t = typeof(T);
-            if(typeof(Texture).IsAssignableFrom(t))
+            if (typeof(Texture).IsAssignableFrom(t))
             {
                 return VFXValueType.None;
             }

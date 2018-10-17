@@ -4,7 +4,7 @@ VFXContextUI.graphElement {
     margin-top:0;
     padding-left:0;
     padding-right:0;
-    
+
 }
 VFXContextUI > #node-border
 {
@@ -159,7 +159,7 @@ VFXContextUI #node-border > #inside > #contents
 {
     border-radius:6;
     background-color: rgba(63,63,63,0.8);
-    margin-left:4; 
+    margin-left:4;
     margin-right:4;
 }
 VFXContextUI #node-border > #inside > #contents > #settings

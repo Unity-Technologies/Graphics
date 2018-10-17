@@ -182,16 +182,16 @@ namespace UnityEditor.VFX.Test
             }
 
             Action<int> Invalidate = delegate(int i)
+            {
+                switch (i)
                 {
-                    switch (i)
-                    {
-                        case 0: direction.outputSlots[0].GetExpression(); break;
-                        case 1: direction.inputSlots[0].GetExpression(); break;
-                        case 2: vec3.inputSlots[0].GetExpression(); break;
-                        case 3: vec3.outputSlots[0].GetExpression(); break;
-                        default: break;
-                    }
-                };
+                    case 0: direction.outputSlots[0].GetExpression(); break;
+                    case 1: direction.inputSlots[0].GetExpression(); break;
+                    case 2: vec3.inputSlots[0].GetExpression(); break;
+                    case 3: vec3.outputSlots[0].GetExpression(); break;
+                    default: break;
+                }
+            };
 
             foreach (var i in invalidation)
                 Invalidate(i);
@@ -226,14 +226,14 @@ namespace UnityEditor.VFX.Test
             var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))));
 
             var result = combinations.Select(o =>
+            {
+                var combination = o.ToArray();
+                return new
                 {
-                    var combination = o.ToArray();
-                    return new
-                    {
-                        combination = combination,
-                        res = DumpCheckDeterministicBehaviorFromLazyGetExpression(linkSubSlotOnly, linkToDirection, combination),
-                    };
-                });
+                    combination = combination,
+                    res = DumpCheckDeterministicBehaviorFromLazyGetExpression(linkSubSlotOnly, linkToDirection, combination),
+                };
+            });
 
             var resultGroup = result.GroupBy(o => o.res);
             Assert.AreEqual(1, resultGroup.Count());

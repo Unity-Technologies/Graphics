@@ -175,11 +175,11 @@ namespace UnityEditor.VFX.UI
             {
                 controller.AddGroupNode(mPos);
             }
-            else if( d.modelDescriptor is VFXParameterController)
+            else if (d.modelDescriptor is VFXParameterController)
             {
                 var parameter = d.modelDescriptor as VFXParameterController;
 
-                return controller.AddVFXParameter(mPos, parameter, groupNode != null ? groupNode.controller : null );
+                return controller.AddVFXParameter(mPos, parameter, groupNode != null ? groupNode.controller : null);
             }
             else
                 return controller.AddNode(mPos, d.modelDescriptor, groupNode != null ? groupNode.controller : null);
@@ -236,7 +236,6 @@ namespace UnityEditor.VFX.UI
             toggleComponentBoard.AddToClassList("toolbarItem");
             toggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(toggleComponentBoard);
-
 
 
             spacer = new VisualElement();
@@ -665,7 +664,6 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
-
         static FieldInfo s_Member_ContainerLayer = typeof(GraphView).GetField("m_ContainerLayers", BindingFlags.NonPublic | BindingFlags.Instance);
         static MethodInfo s_Method_GetLayer = typeof(GraphView).GetMethod("GetLayer", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -682,7 +680,7 @@ namespace UnityEditor.VFX.UI
             {
                 AddLayer(newLayer);
             }
-            (s_Method_GetLayer.Invoke(this,new object[] { newLayer }) as VisualElement).Add(graphElement);
+            (s_Method_GetLayer.Invoke(this, new object[] { newLayer }) as VisualElement).Add(graphElement);
         }
 
         bool m_UpdateUIBounds = false;
@@ -1380,7 +1378,7 @@ namespace UnityEditor.VFX.UI
 
         Rect GetElementsBounds(IEnumerable<GraphElement> elements)
         {
-            Rect[] elementBounds = elements.Where(t=> !(t is VFXEdge)).Select(t => contentViewContainer.WorldToLocal(t.worldBound)).ToArray();
+            Rect[] elementBounds = elements.Where(t => !(t is VFXEdge)).Select(t => contentViewContainer.WorldToLocal(t.worldBound)).ToArray();
             if (elementBounds.Length < 1) return Rect.zero;
 
             Rect bounds = elementBounds[0];

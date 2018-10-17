@@ -125,7 +125,7 @@ namespace  UnityEditor.VFX.UI
             m_ExposedProperty = null;
             m_RangeProperty = null;
         }
-        
+
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) {}
 
         public void SelfChange(int change)
@@ -175,7 +175,7 @@ namespace  UnityEditor.VFX.UI
                     {
                         CreateSubProperties(ref insertIndex, fieldpath);
                     }
-                    if(m_TooltipProperty == null)
+                    if (m_TooltipProperty == null)
                     {
                         m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
                     }

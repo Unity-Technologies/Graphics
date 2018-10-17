@@ -32,7 +32,8 @@ namespace UnityEditor.VFX.Operator
         }
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            VFXExpression[] output = new VFXExpression[] {
+            VFXExpression[] output = new VFXExpression[]
+            {
                 VFXOperatorUtility.Lerp(inputExpression[1].x, inputExpression[1].y, VFXOperatorUtility.Frac(VFXBuiltInExpression.TotalTime / inputExpression[0])),
             };
             return output;

@@ -125,12 +125,12 @@ namespace UnityEditor.VFX.UI
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
             var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextController.model)).ToList();
             filteredBlocks.Sort((blockA, blockB) =>
-                {
-                    var infoA = blockA.info;
-                    var infoB = blockB.info;
-                    int res = infoA.category.CompareTo(infoB.category);
-                    return res != 0 ? res : blockA.name.CompareTo(blockB.name);
-                });
+            {
+                var infoA = blockA.info;
+                var infoB = blockB.info;
+                int res = infoA.category.CompareTo(infoB.category);
+                return res != 0 ? res : blockA.name.CompareTo(blockB.name);
+            });
             return filteredBlocks;
         }
     }

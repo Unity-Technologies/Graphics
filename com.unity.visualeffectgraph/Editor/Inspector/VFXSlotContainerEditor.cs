@@ -139,11 +139,11 @@ public class VFXSlotContainerEditor : Editor
             bool hasvfxViewOpened = VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.graphView.controller != null && VFXViewWindow.currentWindow.graphView.controller.graph == slotContainer.GetGraph();
 
 
-            if( m_CurrentController.gizmoIndeterminate)
+            if (m_CurrentController.gizmoIndeterminate)
             {
                 GUILayout.Label(Contents.gizmoIndeterminateWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
             }
-            else if (m_CurrentController.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null ))
+            else if (m_CurrentController.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null))
             {
                 GUILayout.Label(Contents.gizmoLocalWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
             }
@@ -159,13 +159,11 @@ public class VFXSlotContainerEditor : Editor
                             sceneView.Frame(m_CurrentController.GetGizmoBounds(view.attachedComponent), false);
                         }
                     }
-
                 }
             }
             GUILayout.EndHorizontal();
         }
     }
-
 
     public override void OnInspectorGUI()
     {

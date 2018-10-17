@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.UI
                 if (rectValues.Length == 4)
                 {
                     float x, y, width, height;
-                    if (float.TryParse(rectValues[0],NumberStyles.Float, CultureInfo.InvariantCulture, out x) &&
+                    if (float.TryParse(rectValues[0], NumberStyles.Float, CultureInfo.InvariantCulture, out x) &&
                         float.TryParse(rectValues[1], NumberStyles.Float, CultureInfo.InvariantCulture, out y) &&
                         float.TryParse(rectValues[2], NumberStyles.Float, CultureInfo.InvariantCulture, out width) &&
                         float.TryParse(rectValues[3], NumberStyles.Float, CultureInfo.InvariantCulture, out height))
@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
 
         public static void SavePosition(Board board, Rect r)
         {
-            EditorPrefs.SetString(string.Format(rectPreferenceFormat, board), string.Format(CultureInfo.InvariantCulture,"{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
+            EditorPrefs.SetString(string.Format(rectPreferenceFormat, board), string.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
         }
 
         public static readonly Vector2 sizeMargin = Vector2.one * 30;
@@ -508,6 +508,7 @@ namespace UnityEditor.VFX.UI
         {
             Detach();
         }
+
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             UpdateEventList();

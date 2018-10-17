@@ -18,18 +18,17 @@ namespace UnityEditor.VFX.Utils
             Mesh
         }
 
-        public BakeMode mode = BakeMode.Texture;
+        public BakeMode mode = BakeMode.Mesh;
 
         private void OnGUI()
         {
             titleContent = Contents.title;
             mode = (BakeMode)EditorGUILayout.EnumPopup(Contents.mode, mode);
-            switch(mode)
+            switch (mode)
             {
                 case BakeMode.Mesh: OnGUI_Mesh(); break;
                 case BakeMode.Texture: OnGUI_Texture(); break;
             }
-
         }
 
         static partial class Contents
@@ -37,8 +36,5 @@ namespace UnityEditor.VFX.Utils
             public static GUIContent title = new GUIContent("pCache Tool");
             public static GUIContent mode = new GUIContent("Bake Mode");
         }
-
     }
 }
-
-

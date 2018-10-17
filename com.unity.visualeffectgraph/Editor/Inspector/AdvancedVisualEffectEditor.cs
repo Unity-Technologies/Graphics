@@ -179,7 +179,7 @@ namespace UnityEditor.VFX
                 "Show Parameters",
                 EditorGUIUtility.IconContent("EditCollider"),
                 this
-                );
+            );
         }
 
         VFXParameter GetParameter(string name)
@@ -206,7 +206,7 @@ namespace UnityEditor.VFX
 
         protected override void EmptyLineControl(string name, string tooltip, int depth)
         {
-            if (depth != 1 )
+            if (depth != 1)
             {
                 base.EmptyLineControl(name, tooltip, depth);
                 return;
@@ -236,13 +236,13 @@ namespace UnityEditor.VFX
 
             EditorGUI.BeginChangeCheck();
             bool result = GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GetCurrentSkin().button, GUILayout.Width(overrideWidth));
-            if(EditorGUI.EndChangeCheck() && result)
+            if (EditorGUI.EndChangeCheck() && result)
             {
                 m_GizmoedParameter = parameter;
             }
-            
+
             // Make the label half the width to make the tooltip
-            EditorGUILayout.LabelField(GetGUIContent(name,tooltip));
+            EditorGUILayout.LabelField(GetGUIContent(name, tooltip));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
@@ -528,7 +528,7 @@ namespace UnityEditor.VFX
                         //Debug.Log("PushProperty" + propertyPath + "("+property.propertyType.ToString()+")");
                         cmdList.Add(
                             o => PushProperty(o, property)
-                            );
+                        );
                     }
                 }
                 else
@@ -539,14 +539,14 @@ namespace UnityEditor.VFX
                             continue;
                         //Debug.Log("Push "+type.UserFriendlyName()+"."+fieldInfo.Name+"("+fieldInfo.FieldType.UserFriendlyName());
                         cmdList.Add(o =>
-                            {
-                                Push(o, fieldInfo);
-                            });
+                        {
+                            Push(o, fieldInfo);
+                        });
                         BuildValue(cmdList, fieldInfo.FieldType, propertyPath + "_" + fieldInfo.Name);
                         //Debug.Log("Pop "+type.UserFriendlyName()+"."+fieldInfo.Name+"("+fieldInfo.FieldType.UserFriendlyName());
                         cmdList.Add(o =>
                             Pop(o, fieldInfo)
-                            );
+                        );
                     }
                 }
             }
@@ -629,10 +629,10 @@ namespace UnityEditor.VFX
             base.SceneViewGUICallback(tar, sceneView);
             if (m_GizmoableParameters.Count > 0)
             {
-                int current = m_GizmoDisplayed ? m_GizmoableParameters.IndexOf(m_GizmoedParameter) : -1 ;
+                int current = m_GizmoDisplayed ? m_GizmoableParameters.IndexOf(m_GizmoedParameter) : -1;
                 EditorGUI.BeginChangeCheck();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Gizmos",GUILayout.Width(45));
+                GUILayout.Label("Gizmos", GUILayout.Width(45));
                 int result = EditorGUILayout.Popup(current, m_GizmoableParameters.Select(t => t.exposedName).ToArray(), GUILayout.Width(163));
                 if (EditorGUI.EndChangeCheck() && result != current)
                 {
@@ -662,5 +662,5 @@ namespace UnityEditor.VFX
                 GUILayout.EndHorizontal();
             }
         }
-        }
     }
+}

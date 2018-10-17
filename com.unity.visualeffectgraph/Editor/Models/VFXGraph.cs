@@ -12,7 +12,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-
     public class VFXCacheManager : EditorWindow
     {
         [MenuItem("Edit/Visual Effects//Rebuild All Visual Effect Graphs", priority = 320)]
@@ -165,7 +164,6 @@ namespace UnityEditor.VFX
             VisualEffectEditor.RepaintAllEditors();
         }
 
-
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
@@ -178,33 +176,35 @@ namespace UnityEditor.VFX
             var advancedMethod = typeof(VFXMemorySerializer).GetMethod("StoreObjectsToByteArray", BindingFlags.Public | BindingFlags.Static);
             if (advancedMethod != null)
             {
-                return delegate (ScriptableObject[] objects, CompressionLevel level)
+                return delegate(ScriptableObject[] objects, CompressionLevel level)
                 {
                     return advancedMethod.Invoke(null, new object[] { objects, level }) as byte[];
                 };
             }
 
-            return delegate (ScriptableObject[] objects, CompressionLevel level)
+            return delegate(ScriptableObject[] objects, CompressionLevel level)
             {
                 return VFXMemorySerializer.StoreObjects(objects) as object;
             };
         }
+
         private static Func<object, bool, ScriptableObject[]> GetExtractObjectsFunction()
         {
             var advancedMethod = typeof(VFXMemorySerializer).GetMethod("ExtractObjects", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]), typeof(bool) }, null);
             if (advancedMethod != null)
             {
-                return delegate (object objects, bool asCopy)
+                return delegate(object objects, bool asCopy)
                 {
                     return advancedMethod.Invoke(null, new object[] { objects as byte[], asCopy }) as ScriptableObject[];
                 };
             }
 
-            return delegate (object objects, bool asCopy)
+            return delegate(object objects, bool asCopy)
             {
                 return VFXMemorySerializer.ExtractObjects(objects as string, asCopy);
             };
         }
+
         private static readonly Func<ScriptableObject[], CompressionLevel, object> k_fnStoreObjects = GetStoreObjectsFunction();
         private static readonly Func<object, bool, ScriptableObject[]> k_fnExtractObjects = GetExtractObjectsFunction();
 
@@ -253,7 +253,6 @@ namespace UnityEditor.VFX
                 Profiler.EndSample();
             }
         }
-
 
         public void OnSaved()
         {

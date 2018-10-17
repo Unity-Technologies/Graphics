@@ -86,26 +86,26 @@ namespace UnityEditor.VFX
             get
             {
                 return m_UniformToName.Select(s => {
-                        string code = null;
-                        string firstName = s.Value.First();
-                        switch (s.Key.valueType)
-                        {
-                            case VFXValueType.Int32:
-                                code = "asint(" + firstName + ")";
-                                break;
-                            case VFXValueType.Uint32:
-                                code = "asuint(" + firstName + ")";
-                                break;
-                            case VFXValueType.Boolean:
-                                code = "(bool)asuint(" + firstName + ")";
-                                break;
-                            default:
-                                code = firstName;
-                                break;
-                        }
+                    string code = null;
+                    string firstName = s.Value.First();
+                    switch (s.Key.valueType)
+                    {
+                        case VFXValueType.Int32:
+                            code = "asint(" + firstName + ")";
+                            break;
+                        case VFXValueType.Uint32:
+                            code = "asuint(" + firstName + ")";
+                            break;
+                        case VFXValueType.Boolean:
+                            code = "(bool)asuint(" + firstName + ")";
+                            break;
+                        default:
+                            code = firstName;
+                            break;
+                    }
 
-                        return new KeyValuePair<VFXExpression, string>(s.Key, code);
-                    }).Union(m_TextureToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First()))).ToDictionary(s => s.Key, s => s.Value);
+                    return new KeyValuePair<VFXExpression, string>(s.Key, code);
+                }).Union(m_TextureToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First()))).ToDictionary(s => s.Key, s => s.Value);
             }
         }
 

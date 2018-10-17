@@ -30,7 +30,6 @@ namespace UnityEditor.VFX
         bool  m_Dragging;
 
 
-
         public struct Extremities
         {
             public void Build(Cone cone)
@@ -110,12 +109,10 @@ namespace UnityEditor.VFX
 
         public static void DrawCone(Cone cone, VFXGizmo gizmo, ref Extremities extremities, IProperty<Vector3> centerProperty, IProperty<float> radius0Property, IProperty<float> radius1Property, IProperty<float> heightProperty, float radius0Screen, float radius1Screen)
         {
-
             gizmo.PositionGizmo(cone.center, centerProperty, true);
 
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(cone.center)))
             {
-
                 if (radius0Screen > 2 && radius0Property.isEditable)
                 {
                     for (int i = extremities.extremities.Count / 2; i < extremities.extremities.Count; ++i)
@@ -161,6 +158,7 @@ namespace UnityEditor.VFX
                 }
             }
         }
+
         Extremities extremities;
 
         public override void OnDrawSpacedGizmo(Cone cone)
@@ -193,11 +191,12 @@ namespace UnityEditor.VFX
                 }
             }
 
-            DrawCone(cone, this, ref extremities, m_CenterProperty, m_Radius0Property, m_Radius1Property, m_HeightProperty,radius0Screen,radius1Screen);
+            DrawCone(cone, this, ref extremities, m_CenterProperty, m_Radius0Property, m_Radius1Property, m_HeightProperty, radius0Screen, radius1Screen);
         }
+
         public override Bounds OnGetSpacedGizmoBounds(Cone value)
         {
-            return new Bounds(value.center, new Vector3(Mathf.Max(value.radius0,value.radius1), Mathf.Max(value.radius0, value.radius1), value.height)); //TODO take orientation in account
+            return new Bounds(value.center, new Vector3(Mathf.Max(value.radius0, value.radius1), Mathf.Max(value.radius0, value.radius1), value.height)); //TODO take orientation in account
         }
     }
     [VFXGizmo(typeof(ArcCone))]
@@ -227,7 +226,6 @@ namespace UnityEditor.VFX
         float radius0Screen;
         public override void OnDrawSpacedGizmo(ArcCone arcCone)
         {
-            
             float arc = arcCone.arc * Mathf.Rad2Deg;
             Cone cone = new Cone { center = arcCone.center, radius0 = arcCone.radius0, radius1 = arcCone.radius1, height = arcCone.height };
             extremities.Build(cone, arc);
@@ -249,10 +247,10 @@ namespace UnityEditor.VFX
 
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(arcCone.center)))
             {
-                if ( radius1Screen > 2)
+                if (radius1Screen > 2)
                     Handles.DrawWireArc(extremities.topCap, Vector3.up, Vector3.forward, arc, arcCone.radius1);
 
-                if( radius0Screen > 2)
+                if (radius0Screen > 2)
                     Handles.DrawWireArc(extremities.bottomCap, Vector3.up, Vector3.forward, arc, arcCone.radius0);
 
                 for (int i = 0; i < extremities.extremities.Count / 2 && i < extremities.visibleCount; ++i)
@@ -271,13 +269,13 @@ namespace UnityEditor.VFX
                 float radius = arcCone.radius0 > arcCone.radius1 ? arcCone.radius0 : arcCone.radius1;
                 Vector3 center = arcCone.radius0 > arcCone.radius1 ? Vector3.zero : extremities.topCap;
 
-                if( radius != 0)
+                if (radius != 0)
                     ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.identity, true);
             }
 
-            VFXConeGizmo.DrawCone(cone, this, ref extremities, m_CenterProperty, m_Radius0Property, m_Radius1Property, m_HeightProperty,radius0Screen,radius1Screen);
-
+            VFXConeGizmo.DrawCone(cone, this, ref extremities, m_CenterProperty, m_Radius0Property, m_Radius1Property, m_HeightProperty, radius0Screen, radius1Screen);
         }
+
         public override Bounds OnGetSpacedGizmoBounds(ArcCone value)
         {
             return new Bounds(value.center, new Vector3(Mathf.Max(value.radius0, value.radius1), Mathf.Max(value.radius0, value.radius1), value.height)); //TODO take orientation in account

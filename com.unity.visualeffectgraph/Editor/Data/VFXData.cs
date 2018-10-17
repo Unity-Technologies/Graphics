@@ -274,37 +274,37 @@ namespace UnityEditor.VFX
                 InitImplicitContexts();
 
             m_DependenciesIn = new HashSet<VFXData>(
-                    m_Contexts.Where(c => c.contextType == VFXContextType.kInit)
+                m_Contexts.Where(c => c.contextType == VFXContextType.kInit)
                     .SelectMany(c => c.inputContexts.Where(i => i.contextType == VFXContextType.kSpawnerGPU))
                     .SelectMany(c => c.allLinkedInputSlot)
                     .Where(s =>
-                {
-                    if (s.owner is VFXBlock)
                     {
-                        VFXBlock block = (VFXBlock)(s.owner);
-                        if (block.enabled)
+                        if (s.owner is VFXBlock)
+                        {
+                            VFXBlock block = (VFXBlock)(s.owner);
+                            if (block.enabled)
+                                return true;
+                        }
+                        else if (s.owner is VFXContext)
+                        {
                             return true;
-                    }
-                    else if (s.owner is VFXContext)
-                    {
-                        return true;
-                    }
+                        }
 
-                    return false;
-                })
+                        return false;
+                    })
                     .Select(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>())
                     .Where(c => c.CanBeCompiled())
                     .Select(c => c.GetData())
-                    );
+            );
 
             m_DependenciesOut = new HashSet<VFXData>(
-                    owners.SelectMany(o => o.allLinkedOutputSlot)
+                owners.SelectMany(o => o.allLinkedOutputSlot)
                     .Select(s => (VFXContext)s.owner)
                     .Where(c => c.CanBeCompiled())
                     .SelectMany(c => c.outputContexts)
                     .Where(c => c.CanBeCompiled())
                     .Select(c => c.GetData())
-                    );
+            );
 
             m_ContextsToAttributes.Clear();
             m_AttributesToContexts.Clear();
@@ -578,7 +578,7 @@ namespace UnityEditor.VFX
                 foreach (var attrib in m_LocalCurrentAttributes)
                     builder.AppendLine(string.Format("\t\tAttribute {0} {1}", attrib.name, attrib.type));
             }
-            if(VFXViewPreference.advancedLogs)
+            if (VFXViewPreference.advancedLogs)
                 Debug.Log(builder.ToString());
         }
 

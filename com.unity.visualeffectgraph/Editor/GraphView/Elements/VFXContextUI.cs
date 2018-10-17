@@ -63,13 +63,13 @@ namespace UnityEditor.VFX.UI
             if (m_BlockProvider == null)
             {
                 m_BlockProvider = new VFXBlockProvider(controller, (d, mPos) =>
-                    {
-                        AddBlock(mPos, d);
-                    });
+                {
+                    AddBlock(mPos, d);
+                });
             }
             Profiler.EndSample();
 
-            if(inputContainer.childCount == 0 && !hasSettings)
+            if (inputContainer.childCount == 0 && !hasSettings)
             {
                 mainContainer.AddToClassList("empty");
             }
@@ -120,14 +120,15 @@ namespace UnityEditor.VFX.UI
             }
             AddToClassList("type" + ContextEnumToClassName(type.ToString()));
 
-
             var space = controller.model.space;
             foreach (VFXCoordinateSpace val in System.Enum.GetValues(typeof(VFXCoordinateSpace)))
             {
-                if (val != space)
+                if (val != space || !controller.model.spaceable)
                     m_HeaderSpace.RemoveFromClassList("space" + val.ToString());
             }
-            m_HeaderSpace.AddToClassList("space" + (controller.model.space).ToString());
+            if (controller.model.spaceable)
+                m_HeaderSpace.AddToClassList("space" + (controller.model.space).ToString());
+
             Profiler.EndSample();
             if (controller.model.outputType == VFXDataType.kNone)
             {
@@ -512,7 +513,7 @@ namespace UnityEditor.VFX.UI
                 {
                     m_BlockContainer.Add(m_NoBlock);
                 }
-                if(blockControllers.Count > 0)
+                if (blockControllers.Count > 0)
                 {
                     foreach (var blockController in blockControllers)
                     {
@@ -529,8 +530,6 @@ namespace UnityEditor.VFX.UI
                     VFXBlockUI firstBlock = m_BlockContainer.Query<VFXBlockUI>();
                     firstBlock.AddToClassList("first");
                 }
-
-                
             }
             Profiler.EndSample();
         }
@@ -652,13 +651,13 @@ namespace UnityEditor.VFX.UI
                 }
         }
 
-
         public class VFXContextOnlyVFXNodeProvider : VFXNodeProvider
         {
             public VFXContextOnlyVFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter) :
                 base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext)})
             {
             }
+
             protected override string GetCategory(Descriptor desc)
             {
                 return string.Empty;
@@ -696,27 +695,27 @@ namespace UnityEditor.VFX.UI
 
             //transfer blocks
             foreach (var block in controller.model.children.ToArray()) // To array needed as the IEnumerable content will change
-                newContextController.AddBlock(-1,block);
+                newContextController.AddBlock(-1, block);
 
             //transfer settings
             var contextType = controller.model.GetType();
-            foreach(var setting in newContextController.model.GetSettings(true))
+            foreach (var setting in newContextController.model.GetSettings(true))
             {
-                FieldInfo myField = contextType.GetField(setting.Name,BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic);
+                FieldInfo myField = contextType.GetField(setting.Name, BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic);
                 if (myField == null || myField.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
                     continue;
 
                 object value;
-                if(VFXConverter.TryConvertTo(myField.GetValue(controller.model),setting.FieldType,out value))
+                if (VFXConverter.TryConvertTo(myField.GetValue(controller.model), setting.FieldType, out value))
                 {
                     newContextController.model.SetSettingValue(setting.Name, value);
                 }
             }
 
             //transfer flow edges
-            if( controller.flowInputAnchors.Count == 1)
+            if (controller.flowInputAnchors.Count == 1)
             {
-                foreach( var output in controller.flowInputAnchors[0].connections.Select(t=>t.output).ToArray())
+                foreach (var output in controller.flowInputAnchors[0].connections.Select(t => t.output).ToArray())
                 {
                     newContextController.model.LinkFrom(output.context.model, output.slotIndex);
                 }
@@ -726,7 +725,7 @@ namespace UnityEditor.VFX.UI
             newContextController.ApplyChanges();
 
             //transfer master slot values
-            foreach ( var slot in newContextController.model.inputSlots)
+            foreach (var slot in newContextController.model.inputSlots)
             {
                 VFXSlot mySlot = controller.model.inputSlots.FirstOrDefault(t => t.name == slot.name);
                 if (mySlot == null)
@@ -739,7 +738,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            foreach( var anchor in newContextController.inputPorts)
+            foreach (var anchor in newContextController.inputPorts)
             {
                 string path = anchor.path;
                 var myAnchor = controller.inputPorts.FirstOrDefault(t => t.path == path);
@@ -770,7 +769,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if( evt.target is VFXContextUI && controller.model is VFXAbstractParticleOutput )
+            if (evt.target is VFXContextUI && controller.model is VFXAbstractParticleOutput)
             {
                 evt.menu.InsertAction(0, "Convert Output", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
             }

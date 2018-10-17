@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
         IEnumerable<Type> m_AcceptedTypes;
         VFXViewController m_Controller;
 
-        public VFXNodeProvider(VFXViewController controller,Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter = null, IEnumerable<Type> acceptedTypes = null) : base(onAddBlock)
+        public VFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter = null, IEnumerable<Type> acceptedTypes = null) : base(onAddBlock)
         {
             m_Filter = filter;
             m_AcceptedTypes = acceptedTypes;
@@ -106,13 +106,13 @@ namespace UnityEditor.VFX.UI
             if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXParameter)))
             {
                 var parameterDescriptors = m_Controller.parameterControllers.Select(t =>
-                new Descriptor
-                {
-                    modelDescriptor = t,
-                    category = string.IsNullOrEmpty(t.model.category) ? "Parameter" : string.Format("Parameter/{0}", t.model.category),
-                    name = t.exposedName
-                }
-                ).OrderBy(t=>t.category);
+                    new Descriptor
+                    {
+                        modelDescriptor = t,
+                        category = string.IsNullOrEmpty(t.model.category) ? "Parameter" : string.Format("Parameter/{0}", t.model.category),
+                        name = t.exposedName
+                    }
+                    ).OrderBy(t => t.category);
                 descs = descs.Concat(parameterDescriptors);
             }
             if (m_AcceptedTypes == null)

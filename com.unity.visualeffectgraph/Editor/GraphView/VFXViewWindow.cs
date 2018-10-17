@@ -23,21 +23,21 @@ namespace  UnityEditor.VFX.UI
         protected void SetupFramingShortcutHandler(VFXView view)
         {
             m_ShortcutHandler = new ShortcutHandler(
-                    new Dictionary<Event, ShortcutDelegate>
-            {
-                {Event.KeyboardEvent("a"), view.FrameAll },
-                {Event.KeyboardEvent("f"), view.FrameSelection },
-                {Event.KeyboardEvent("o"), view.FrameOrigin },
-                {Event.KeyboardEvent("^#>"), view.FramePrev },
-                {Event.KeyboardEvent("^>"), view.FrameNext },
-                {Event.KeyboardEvent("#^r"), view.Resync},
-                {Event.KeyboardEvent("F7"), view.Compile},
-                {Event.KeyboardEvent("#d"), view.OutputToDot},
-                {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
-                {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
-                {Event.KeyboardEvent("^r"), view.ReinitComponents},
-                {Event.KeyboardEvent("F5"), view.ReinitComponents},
-            });
+                new Dictionary<Event, ShortcutDelegate>
+                {
+                    {Event.KeyboardEvent("a"), view.FrameAll },
+                    {Event.KeyboardEvent("f"), view.FrameSelection },
+                    {Event.KeyboardEvent("o"), view.FrameOrigin },
+                    {Event.KeyboardEvent("^#>"), view.FramePrev },
+                    {Event.KeyboardEvent("^>"), view.FrameNext },
+                    {Event.KeyboardEvent("#^r"), view.Resync},
+                    {Event.KeyboardEvent("F7"), view.Compile},
+                    {Event.KeyboardEvent("#d"), view.OutputToDot},
+                    {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
+                    {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
+                    {Event.KeyboardEvent("^r"), view.ReinitComponents},
+                    {Event.KeyboardEvent("F5"), view.ReinitComponents},
+                });
         }
 
         public static VFXViewWindow currentWindow;
@@ -123,8 +123,6 @@ namespace  UnityEditor.VFX.UI
             return selectedResource;
         }
 
-
-
         protected void OnEnable()
         {
             VFXManagerEditor.CheckVFXManager();
@@ -173,6 +171,7 @@ namespace  UnityEditor.VFX.UI
                 graphView.controller = null;
             return true;
         }
+
 #endif
 
         protected void OnDisable()
@@ -194,20 +193,6 @@ namespace  UnityEditor.VFX.UI
         {
             if (graphView != null)
                 graphView.UpdateGlobalSelection();
-        }
-
-        void OnSelectionChange()
-        {
-            var objs = Selection.objects;
-            VFXViewController controller = graphView.controller;
-
-            if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
-            {
-                if (controller == null || controller.model != objs[0] as VisualEffectAsset)
-                {
-                    LoadAsset(objs[0] as VisualEffectAsset, null);
-                }
-            }
         }
 
         void OnEnterPanel(AttachToPanelEvent e)
@@ -239,7 +224,7 @@ namespace  UnityEditor.VFX.UI
                     if (graph != null)
                     {
                         filename = controller.name;
-                        
+
                         if (!graph.saved)
                         {
                             filename += "*";

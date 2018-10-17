@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
@@ -150,7 +149,7 @@ namespace UnityEditor.VFX.UI
             if (element != null)
             {
                 m_Label.style.font = element.style.font;
-                return m_Label.MeasureTextSize(m_Label.text,-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
+                return m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
             }
             return 40 + m_Provider.depth * depthOffset;
         }
@@ -235,7 +234,8 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_IconStates == null)
                 {
-                    m_IconStates = new Texture2D[] {
+                    m_IconStates = new Texture2D[]
+                    {
                         Resources.Load<Texture2D>("VFX/plus"),
                         Resources.Load<Texture2D>("VFX/minus")
                     };
@@ -311,7 +311,7 @@ namespace UnityEditor.VFX.UI
         void OnCatchMouse(MouseDownEvent e)
         {
             var node = GetFirstAncestorOfType<VFXNodeUI>();
-            if( node != null)
+            if (node != null)
             {
                 node.OnSelectionMouseDown(e);
             }

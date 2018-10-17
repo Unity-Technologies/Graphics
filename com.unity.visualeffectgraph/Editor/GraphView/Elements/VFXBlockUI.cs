@@ -27,6 +27,7 @@ namespace UnityEditor.VFX.UI
             VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create(anchorController, node);
             return anchor;
         }
+
         protected override bool HasPosition()
         {
             return false;
@@ -85,6 +86,7 @@ namespace UnityEditor.VFX.UI
             if (settingsContainer != null)
                 settingsContainer.SetEnabled(controller.model.enabled);
         }
+
         public override bool superCollapsed
         {
             get { return false; }

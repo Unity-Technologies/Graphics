@@ -48,7 +48,8 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] {
+            return new[]
+            {
                 VFXValue.Constant(Mathf.PI),
                 VFXValue.Constant(2 * Mathf.PI),
                 VFXValue.Constant(Mathf.PI / 2.0f),
