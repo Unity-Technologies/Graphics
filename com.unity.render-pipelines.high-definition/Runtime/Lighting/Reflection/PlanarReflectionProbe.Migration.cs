@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static readonly MigrationDescription<Version, PlanarReflectionProbe> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.CaptureSettings, (PlanarReflectionProbe p) =>
             {
-#pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable 618 // Type or member is obsolete
                 if (p.m_ObsoleteOverrideFieldOfView)
                 {
                     p.captureSettings.overrides |= CaptureSettingsOverrides.FieldOfview;
@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 p.captureSettings.fieldOfView = p.m_ObsoleteFieldOfViewOverride;
                 p.captureSettings.nearClipPlane = p.m_ObsoleteCaptureNearPlane;
                 p.captureSettings.farClipPlane = p.m_ObsoleteCaptureFarPlane;
-#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore 618 // Type or member is obsolete
                 //not used for planar, keep it clean
                 p.influenceVolume.boxBlendNormalDistanceNegative = Vector3.zero;
                 p.influenceVolume.boxBlendNormalDistancePositive = Vector3.zero;

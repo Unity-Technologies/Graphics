@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 MigrationStep.New(Version.UseInfluenceVolume, (HDAdditionalReflectionData t) =>
                 {
                     t.influenceVolume.boxSize = t.reflectionProbe.size;
-#pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable 618 // Type or member is obsolete
                     t.influenceVolume.sphereRadius = t.m_ObsoleteInfluenceSphereRadius;
                     t.influenceVolume.shape = t.m_ObsoleteInfluenceShape; //must be done after each size transfert
                     t.influenceVolume.boxBlendDistancePositive = t.m_ObsoleteBlendDistancePositive;
@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     t.influenceVolume.boxBlendNormalDistanceNegative = t.m_ObsoleteBlendNormalDistanceNegative;
                     t.influenceVolume.boxSideFadePositive = t.m_ObsoleteBoxSideFadePositive;
                     t.influenceVolume.boxSideFadeNegative = t.m_ObsoleteBoxSideFadeNegative;
-#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore 618 // Type or member is obsolete
                     //Note: former editor parameters will be recreated as if non existent.
                     //User will lose parameters corresponding to non used mode between simplified and advanced
                 }),
