@@ -284,7 +284,6 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
 #endif
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
-#if HDRP_ENABLE_COOKIE
     UNITY_BRANCH if (lightData.cookieIndex >= 0)
     {
         float4 cookie = SimpleEvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample);
@@ -292,7 +291,6 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
         color       *= cookie.rgb;
         attenuation *= cookie.a;
     }
-#endif
 
 #if HDRP_ENABLE_SHADOWS
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
