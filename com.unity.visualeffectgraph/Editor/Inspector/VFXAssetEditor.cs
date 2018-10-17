@@ -488,7 +488,10 @@ public class VisualEffectAssetEditor : Editor
             needRecompile = true;
         }
 
+        m_OutputContexts.Clear();
+        m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
 
+        m_ReorderableList.DoLayoutList();
 
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
 
