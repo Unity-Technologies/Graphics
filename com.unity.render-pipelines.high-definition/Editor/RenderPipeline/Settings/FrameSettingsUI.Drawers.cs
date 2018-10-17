@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class FrameSettingsUI
     {
-        internal static CED.IDrawer Inspector(bool withOverride = true, bool withXR = true)
+        internal static CED.IDrawer Inspector(bool withOverride = true)
         {
             return CED.Group(
                 CED.Action((s, d, o) =>
@@ -18,21 +18,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.BeginVertical("box");
                     EditorGUILayout.LabelField(FrameSettingsUI.frameSettingsHeaderContent, EditorStyles.boldLabel);
                 }),
-                InspectorInnerbox(withOverride, withXR),
+                InspectorInnerbox(withOverride),
                 CED.Action((s, d, o) => EditorGUILayout.EndVertical())
                 );
         }
 
         //separated to add enum popup on default frame settings
-        internal static CED.IDrawer InspectorInnerbox(bool withOverride = true, bool withXR = true)
+        internal static CED.IDrawer InspectorInnerbox(bool withOverride = true)
         {
             return CED.Group(
                 SectionRenderingPasses(withOverride),
                 SectionRenderingSettings(withOverride),
-                CED.FadeGroup(
-                    (s, d, o, i) => new AnimBool(withXR),
-                    FadeOption.None,
-                    SectionXRSettings(withOverride)),
                 SectionLightingSettings(withOverride),
                 CED.Select(
                     (s, d, o) => s.lightLoopSettings,
@@ -63,20 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.space
                 );
         }
-
-        public static CED.IDrawer SectionXRSettings(bool withOverride)
-        {
-            return CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedXRSupported,
-                FadeOption.None,
-                CED.FoldoutGroup(
-                    xrSettingsHeaderContent,
-                    (s, p, o) => s.isSectionExpandedXRSettings,
-                    FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.LabelWidth(200, CED.Action((s, p, o) => Drawer_FieldStereoEnabled(s, p, o, withOverride))),
-                    CED.space));
-        }
-
+        
         public static CED.IDrawer SectionLightingSettings(bool withOverride)
         {
             return CED.FoldoutGroup(
@@ -164,16 +147,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 area.Add(p.enableLightLayers, lightLayerContent, () => p.overridesLightLayers, a => p.overridesLightLayers = a, () => hdrpSettings.supportLightLayers, defaultValue: defaultFrameSettings.enableLightLayers);
                 area.Draw(withOverride);
             }
-        }
-
-        static void Drawer_FieldStereoEnabled(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
-        {
-            OverridableSettingsArea area = new OverridableSettingsArea(2);
-            FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
-            area.Add(p.enableStereo, stereoContent, () => p.overridesStereo, a => p.overridesStereo = a, defaultValue: defaultFrameSettings.enableStereo);
-            //need to add support for xrGraphicConfig to show it
-            area.Add(p.xrGraphicsConfig, xrGraphicConfigContent, () => p.overridesXrGraphicSettings, a => p.overridesXrGraphicSettings = a, () => XRGraphicsConfig.tryEnable, defaultValue: defaultFrameSettings.xrGraphicsConfig);
-            area.Draw(withOverride);
         }
     }
 }

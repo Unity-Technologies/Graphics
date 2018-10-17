@@ -18,6 +18,9 @@ Removed the `supportedShaderFeatures` property from LWRP core. The shader stripp
 - MSAA now works on Desktop platforms.
 - The shadow bias value is now computed correctly for shadow cascades and different shadow resolutions. [case 1076285](https://issuetracker.unity3d.com/issues/lwrp-realtime-directional-light-shadow-maps-exhibit-artifacts)
 
+### Changed
+Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings. 
+
 ## [4.0.0-preview] - 2018-09-28
 ### Added
 - When you have enabled Gizmos, they now appear correctly in the Game view.

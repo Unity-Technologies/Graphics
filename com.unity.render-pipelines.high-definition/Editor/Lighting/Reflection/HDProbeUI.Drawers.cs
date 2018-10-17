@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CED.Select(
                 (s, d, o) => s.frameSettings,
                 (s, d, o) => d.frameSettings,
-                FrameSettingsUI.Inspector(withOverride: true, withXR: false))
+                FrameSettingsUI.Inspector(withOverride: true))
             );
 
         public static readonly CED.IDrawer SectionFoldoutAdditionalSettings = CED.FoldoutGroup(
