@@ -21,8 +21,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     i.m_Offset = i.m_ObsoleteSphereBaseOffset;
 #pragma warning restore 618
                 }
-                i.boxBlendNormalDistanceNegative = Vector3.zero;
-                i.boxBlendNormalDistancePositive = Vector3.zero;
             })
         );
 
