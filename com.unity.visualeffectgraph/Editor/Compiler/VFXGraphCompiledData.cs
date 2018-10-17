@@ -53,21 +53,9 @@ namespace UnityEditor.VFX
             return desc;
         }
 
-        private static VFXExpressionValueContainerDesc<S> CreateValueDesc<T, S>(VFXExpression exp, int expIndex) where S : class
-        {
-            var desc = new VFXExpressionValueContainerDesc<S>();
-            desc.value = exp.Get<T>() as S;
-            return desc;
-        }
-
         private void SetValueDesc<T>(VFXExpressionValueContainerDesc desc, VFXExpression exp)
         {
             ((VFXExpressionValueContainerDesc<T>)desc).value = exp.Get<T>();
-        }
-
-        private void SetValueDesc<T, S>(VFXExpressionValueContainerDesc desc, VFXExpression exp) where S : class
-        {
-            ((VFXExpressionValueContainerDesc<S>)desc).value = exp.Get<T>() as S;
         }
 
         public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
@@ -112,11 +100,13 @@ namespace UnityEditor.VFX
                         case VFXValueType.Float4: value = CreateValueDesc<Vector4>(exp, i); break;
                         case VFXValueType.Int32: value = CreateValueDesc<int>(exp, i); break;
                         case VFXValueType.Uint32: value = CreateValueDesc<uint>(exp, i); break;
-                        case VFXValueType.Texture2D: value = CreateValueDesc<Texture2D, Texture>(exp, i); break;
-                        case VFXValueType.Texture2DArray: value = CreateValueDesc<Texture2DArray, Texture>(exp, i); break;
-                        case VFXValueType.Texture3D: value = CreateValueDesc<Texture3D, Texture>(exp, i); break;
-                        case VFXValueType.TextureCube: value = CreateValueDesc<Cubemap, Texture>(exp, i); break;
-                        case VFXValueType.TextureCubeArray: value = CreateValueDesc<CubemapArray, Texture>(exp, i); break;
+                        case VFXValueType.Texture2D: 
+                        case VFXValueType.Texture2DArray: 
+                        case VFXValueType.Texture3D: 
+                        case VFXValueType.TextureCube: 
+                        case VFXValueType.TextureCubeArray:
+                            value = CreateValueDesc<Texture>(exp, i);
+                            break;
                         case VFXValueType.Matrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
                         case VFXValueType.Curve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.ColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
@@ -138,7 +128,7 @@ namespace UnityEditor.VFX
 
         private static void CollectExposedDesc(List<VFXMapping> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
-            var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.None ? slot.GetInExpression() : null;
+            var expression = slot.valueType != VFXValueType.None ? slot.GetInExpression() : null;
             if (expression != null)
             {
                 var exprIndex = graph.GetFlattenedIndex(expression);
@@ -560,7 +550,7 @@ namespace UnityEditor.VFX
 
             private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
             {
-                var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.None ? slot.GetInExpression() : null;
+                var expression = slot.valueType != VFXValueType.None ? slot.GetInExpression() : null;
                 if (expression != null)
                     expressions.Add(expression);
                 else
@@ -775,11 +765,13 @@ namespace UnityEditor.VFX
                         case VFXValueType.Float4: SetValueDesc<Vector4>(desc, exp); break;
                         case VFXValueType.Int32: SetValueDesc<int>(desc, exp); break;
                         case VFXValueType.Uint32: SetValueDesc<uint>(desc, exp); break;
-                        case VFXValueType.Texture2D: SetValueDesc<Texture2D, Texture>(desc, exp); break;
-                        case VFXValueType.Texture2DArray: SetValueDesc<Texture2DArray, Texture>(desc, exp); break;
-                        case VFXValueType.Texture3D: SetValueDesc<Texture3D, Texture>(desc, exp); break;
-                        case VFXValueType.TextureCube: SetValueDesc<Cubemap, Texture>(desc, exp); break;
-                        case VFXValueType.TextureCubeArray: SetValueDesc<CubemapArray, Texture>(desc, exp); break;
+                        case VFXValueType.Texture2D:
+                        case VFXValueType.Texture2DArray:
+                        case VFXValueType.Texture3D:
+                        case VFXValueType.TextureCube:
+                        case VFXValueType.TextureCubeArray:
+                            SetValueDesc<Texture>(desc, exp);
+                            break;
                         case VFXValueType.Matrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
                         case VFXValueType.Curve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.ColorGradient: SetValueDesc<Gradient>(desc, exp); break;

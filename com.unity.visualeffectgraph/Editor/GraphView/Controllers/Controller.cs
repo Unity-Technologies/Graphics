@@ -8,7 +8,7 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXControllerEvent
+    class ControllerEvent
     {
         public IControlledElement target = null;
     }
@@ -85,11 +85,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void SendEvent(VFXControllerEvent e)
+        public void SendEvent(ControllerEvent e)
         {
             var eventHandlers = m_EventHandlers.ToArray(); // Some notification may trigger Register/Unregister so duplicate the collection.
 
-            foreach (var eventHandler in eventHandlers)
+            foreach (var eventHandler in eventHandlers.OfType<IControllerListener>())
             {
                 eventHandler.OnControllerEvent(e);
             }

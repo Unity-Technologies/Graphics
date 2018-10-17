@@ -24,14 +24,11 @@ OperandInfo *
 {
     height:16;
 }
-OperandInfo VFXStringField
+OperandInfo TextField
 {
     flex:1 0 auto;
 }
-OperandInfo VFXStringField .textfield
-{
-    flex:1 0 auto;
-}
+
 OperandInfo .PopupButton
 {
     flex:0 0 auto;

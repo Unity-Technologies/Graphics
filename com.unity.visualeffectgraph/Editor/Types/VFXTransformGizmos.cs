@@ -27,5 +27,9 @@ namespace UnityEditor.VFX
             RotationGizmo(transform.position, transform.angles, m_AnglesProperty, false);
             ScaleGizmo(transform.position, transform.scale, m_ScaleProperty, false);
         }
+        public override Bounds OnGetSpacedGizmoBounds(Transform value)
+        {
+            return new Bounds(value.position, value.scale); //TODO take orientation in account
+        }
     }
 }

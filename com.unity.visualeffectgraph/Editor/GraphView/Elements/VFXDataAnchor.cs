@@ -35,7 +35,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
 
         VFXNodeUI m_Node;
 

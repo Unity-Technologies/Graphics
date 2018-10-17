@@ -15,8 +15,7 @@ namespace UnityEditor.VFX.UI
             edgeControl.inputOrientation = Orientation.Vertical;
             edgeControl.outputOrientation = Orientation.Vertical;
         }
-
-        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)

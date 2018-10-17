@@ -46,7 +46,9 @@ namespace UnityEditor.VFX
 
                 if (targetFromAttributes)
                 {
-                    yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);

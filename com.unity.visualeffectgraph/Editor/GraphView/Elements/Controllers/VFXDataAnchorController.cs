@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
         Direction direction { get; }
     }
 
-    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider
+    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IGizmoable
     {
         private VFXNodeController m_SourceNode;
 
@@ -64,6 +64,19 @@ namespace UnityEditor.VFX.UI
         VFXSlot m_MasterSlot;
 
         public Type portType { get; set; }
+
+        public Type storageType
+        {
+            get
+            {
+                if( typeof(Texture).IsAssignableFrom(portType) )
+                    {
+                    return typeof(Texture);
+                }
+
+                return portType;
+            }
+        }
 
         public VFXDataAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(sourceNode.viewController, model)
         {
@@ -311,7 +324,7 @@ namespace UnityEditor.VFX.UI
                             Profiler.EndSample();
                             if (evaluatedValue != null)
                             {
-                                return VFXConverter.ConvertTo(evaluatedValue, portType);
+                                return VFXConverter.ConvertTo(evaluatedValue, storageType);
                             }
                         }
                         catch (System.Exception e)
@@ -319,7 +332,7 @@ namespace UnityEditor.VFX.UI
                             Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
                         }
                     }
-                    return VFXConverter.ConvertTo(model.value, portType);
+                    return VFXConverter.ConvertTo(model.value, storageType);
                 }
                 else
                 {
@@ -327,7 +340,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            set { SetPropertyValue(VFXConverter.ConvertTo(value, portType)); }
+            set { SetPropertyValue(VFXConverter.ConvertTo(value, storageType)); }
         }
 
 
@@ -506,15 +519,56 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public Bounds GetGizmoBounds(VisualEffect component)
+        {
+            if (m_GizmoContext != null)
+            {
+                return VFXGizmoUtility.GetGizmoBounds(m_GizmoContext, component);
+            }
+
+            return new Bounds();
+        }
+
+        public bool gizmoNeedsComponent
+        {
+            get
+            {
+                if (!VFXGizmoUtility.HasGizmo(portType))
+                    return false;
+                if (m_GizmoContext == null)
+                {
+                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
+                }
+                return VFXGizmoUtility.NeedsComponent(m_GizmoContext);
+            }
+        }
+
+        public bool gizmoIndeterminate
+        {
+            get
+            {
+                if (!VFXGizmoUtility.HasGizmo(portType))
+                    return false;
+                if (m_GizmoContext == null)
+                {
+                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
+                }
+                return m_GizmoContext.IsIndeterminate();
+            }
+        }
+
         VFXDataAnchorGizmoContext m_GizmoContext;
 
         public void DrawGizmo(VisualEffect component)
         {
-            if (m_GizmoContext == null)
+            if(VFXGizmoUtility.HasGizmo(portType))
             {
-                m_GizmoContext = new VFXDataAnchorGizmoContext(this);
+                if (m_GizmoContext == null)
+                {
+                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
+                }
+                VFXGizmoUtility.Draw(m_GizmoContext, component);
             }
-            VFXGizmoUtility.Draw(m_GizmoContext, component);
         }
     }
 
@@ -639,7 +693,6 @@ namespace UnityEditor.VFX.UI
         {
             get {return m_Controller.portType; }
         }
-
 
         List<object> stack = new List<object>();
         public override object value

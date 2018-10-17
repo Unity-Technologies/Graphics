@@ -1,5 +1,8 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
+using UnityEngine.Rendering;
+
 
 namespace UnityEditor.VFX
 {
@@ -8,7 +11,7 @@ namespace UnityEditor.VFX
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<Texture3D>(null, mode);
+            return new VFXTexture3DValue(null, mode);
         }
     }
 }

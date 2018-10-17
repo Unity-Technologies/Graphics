@@ -243,55 +243,84 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("linkModes")] bool linkMode, [ValueSource("bindingModes")] bool bindingModes)
         {
             var commonBaseName = "abcd_";
-            Func<VFXValueType, object> GetValue_A = delegate(VFXValueType type)
-                {
-                    switch (type)
-                    {
-                        case VFXValueType.Float: return 2.0f;
-                        case VFXValueType.Float2: return new Vector2(3.0f, 4.0f);
-                        case VFXValueType.Float3: return new Vector3(8.0f, 9.0f, 10.0f);
-                        case VFXValueType.Float4: return new Vector4(11.0f, 12.0f, 13.0f, 14.0f);
-                        case VFXValueType.Int32: return 15;
-                        case VFXValueType.Uint32: return 16u;
-                        case VFXValueType.Curve: return new AnimationCurve(new Keyframe(0, 13), new Keyframe(1, 14));
-                        case VFXValueType.ColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f) } };
-                        case VFXValueType.Mesh: return m_cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
-                        case VFXValueType.Texture2D: return m_texture2D_A;
-                        case VFXValueType.Texture2DArray: return m_texture2DArray_A;
-                        case VFXValueType.Texture3D: return m_texture3D_A;
-                        case VFXValueType.TextureCube: return m_textureCube_A;
-                        case VFXValueType.TextureCubeArray: return m_textureCubeArray_A;
-                        case VFXValueType.Boolean: return true;
-                        case VFXValueType.Matrix4x4: return Matrix4x4.identity;
-                    }
-                    Assert.Fail();
-                    return null;
-                };
 
-            Func<VFXValueType, object> GetValue_B = delegate(VFXValueType type)
-                {
-                    switch (type)
-                    {
-                        case VFXValueType.Float: return 50.0f;
-                        case VFXValueType.Float2: return new Vector2(53.0f, 54.0f);
-                        case VFXValueType.Float3: return new Vector3(58.0f, 59.0f, 510.0f);
-                        case VFXValueType.Float4: return new Vector4(511.0f, 512.0f, 513.0f, 514.0f);
-                        case VFXValueType.Int32: return 515;
-                        case VFXValueType.Uint32: return 516u;
-                        case VFXValueType.Curve: return new AnimationCurve(new Keyframe(0, 47), new Keyframe(0.5f, 23), new Keyframe(1.0f, 17));
-                        case VFXValueType.ColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f), new GradientColorKey(Color.black, 0.6f) } };
-                        case VFXValueType.Mesh: return m_sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
-                        case VFXValueType.Texture2D: return m_texture2D_B;
-                        case VFXValueType.Texture2DArray: return m_texture2DArray_B;
-                        case VFXValueType.Texture3D: return m_texture3D_B;
-                        case VFXValueType.TextureCube: return m_textureCube_B;
-                        case VFXValueType.TextureCubeArray: return m_textureCubeArray_B;
-                        case VFXValueType.Boolean: return false;
-                        case VFXValueType.Matrix4x4: return Matrix4x4.LookAt(new Vector3(1, 2, 3), new Vector3(4, 5, 6), Vector3.up);
-                    }
-                    Assert.Fail();
-                    return null;
-                };
+            Func<Type, object> GetValue_A_Type = delegate (Type type)
+            {
+                if (typeof(float) == type)
+                    return 2.0f;
+                else if (typeof(Vector2) == type)
+                    return new Vector2(3.0f, 4.0f);
+                else if (typeof(Vector3) == type)
+                    return new Vector3(8.0f, 9.0f, 10.0f);
+                else if (typeof(Vector4) == type)
+                    return new Vector4(11.0f, 12.0f, 13.0f, 14.0f);
+                else if (typeof(Color) == type)
+                    return new Color(0.1f, 0.2f, 0.3f, 0.4f);
+                else if (typeof(int) == type)
+                    return 15;
+                else if (typeof(uint) == type)
+                    return 16u;
+                else if (typeof(AnimationCurve) == type)
+                    return new AnimationCurve(new Keyframe(0, 13), new Keyframe(1, 14));
+                else if (typeof(Gradient) == type)
+                    return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f) } };
+                else if (typeof(Mesh) == type)
+                    return m_cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
+                else if (typeof(Texture2D) == type)
+                    return m_texture2D_A;
+                else if (typeof(Texture2DArray) == type)
+                    return m_texture2DArray_A;
+                else if (typeof(Texture3D) == type)
+                    return m_texture3D_A;
+                else if (typeof(Cubemap) == type)
+                    return m_textureCube_A;
+                else if (typeof(CubemapArray) == type)
+                    return m_textureCubeArray_A;
+                else if (typeof(bool) == type)
+                    return true;
+                else if (typeof(Matrix4x4) == type)
+                    return Matrix4x4.identity;
+                Assert.Fail();
+                return null;
+            };
+
+            Func<Type, object> GetValue_B_Type = delegate (Type type)
+            {
+                if (typeof(float) == type)
+                    return 50.0f;
+                else if (typeof(Vector2) == type)
+                    return new Vector2(53.0f, 54.0f);
+                else if (typeof(Vector3) == type)
+                    return new Vector3(58.0f, 59.0f, 510.0f);
+                else if (typeof(Vector4) == type || typeof(Color) == type)// ValueB_Type is used to set a component value, so return a Vector4 with color values
+                    return new Vector4(511.0f, 512.0f, 513.0f, 514.0f);
+                else if (typeof(int) == type)
+                    return 515;
+                else if (typeof(uint) == type)
+                    return 516u;
+                else if (typeof(AnimationCurve) == type)
+                    return new AnimationCurve(new Keyframe(0, 47), new Keyframe(0.5f, 23), new Keyframe(1.0f, 17));
+                else if (typeof(Gradient) == type)
+                    return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f), new GradientColorKey(Color.black, 0.6f) } };
+                else if (typeof(Mesh) == type)
+                    return m_sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
+                else if (typeof(Texture2D) == type)
+                    return m_texture2D_B;
+                else if (typeof(Texture2DArray) == type)
+                    return m_texture2DArray_B;
+                else if (typeof(Texture3D) == type)
+                    return m_texture3D_B;
+                else if (typeof(Cubemap) == type)
+                    return m_textureCube_B;
+                else if (typeof(CubemapArray) == type)
+                    return m_textureCubeArray_B;
+                else if (typeof(bool) == type)
+                    return true;
+                else if (typeof(Matrix4x4) == type)
+                    return Matrix4x4.identity;
+                Assert.Fail();
+                return null;
+            };
 
             Func<VFXValueType, VisualEffect, string, bool> fnHas_UsingBindings = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
@@ -580,12 +609,12 @@ namespace UnityEditor.VFX.Test
             {
                 var newInstance = parameter.CreateInstance();
 
-                VFXValueType type = types.FirstOrDefault(e => newInstance.type == VFXExpression.TypeToType(e));
+                VFXValueType type = types.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(newInstance.type) == e);
                 if (type != VFXValueType.None)
                 {
-                    newInstance.SetSettingValue("m_exposedName", commonBaseName + type.ToString());
+                    newInstance.SetSettingValue("m_exposedName", commonBaseName + newInstance.type.UserFriendlyName());
                     newInstance.SetSettingValue("m_exposed", true);
-                    var value = GetValue_A(type);
+                    var value = GetValue_A_Type(newInstance.type);
                     Assert.IsNotNull(value);
                     newInstance.value = value;
                     graph.AddChild(newInstance);
@@ -621,7 +650,7 @@ namespace UnityEditor.VFX.Test
                             }
                             return false;
                         });
-                    Assert.IsNotNull(parameter);
+                    Assert.IsNotNull(parameter,"parameter with type : " + type.ToString());
                     slot.Link(parameter.GetOutputSlot(0));
                 }
             }
@@ -648,11 +677,14 @@ namespace UnityEditor.VFX.Test
                 };
 
             //Check default Value_A & change to Value_B
-            foreach (var type in types)
+            foreach (var parameter in VFXLibrary.GetParameters())
             {
-                var currentName = commonBaseName + type.ToString();
-                var baseValue = GetValue_A(type);
-                var newValue = GetValue_B(type);
+                VFXValueType type = types.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                if (type == VFXValueType.None)
+                    continue;
+                var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
+                var baseValue = GetValue_A_Type(parameter.model.type);
+                var newValue = GetValue_B_Type(parameter.model.type);
 
                 Assert.IsTrue(fnHas(type, vfxComponent, currentName));
                 var currentValue = fnGet(type, vfxComponent, currentName);
@@ -664,6 +696,11 @@ namespace UnityEditor.VFX.Test
                 {
                     Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
                 }
+                else if( parameter.model.type == typeof(Color))
+                {
+                    Color col = (Color)baseValue;
+                    Assert.AreEqual(new Vector4(col.r, col.g, col.b, col.a), currentValue);
+                }
                 else
                 {
                     Assert.AreEqual(baseValue, currentValue);
@@ -674,10 +711,13 @@ namespace UnityEditor.VFX.Test
             }
 
             //Compare new setted values
-            foreach (var type in types)
+            foreach (var parameter in VFXLibrary.GetParameters())
             {
-                var currentName = commonBaseName + type.ToString();
-                var baseValue = GetValue_B(type);
+                VFXValueType type = types.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                if (type == VFXValueType.None)
+                    continue;
+                var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
+                var baseValue = GetValue_B_Type(parameter.model.type);
                 Assert.IsTrue(fnHas(type, vfxComponent, currentName));
 
                 var currentValue = fnGet(type, vfxComponent, currentName);
@@ -697,14 +737,17 @@ namespace UnityEditor.VFX.Test
             }
 
             //Test ResetOverride function
-            foreach (var type in types)
+            foreach (var parameter in VFXLibrary.GetParameters())
             {
-                var currentName = commonBaseName + type.ToString();
+                VFXValueType type = types.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                if (type == VFXValueType.None)
+                    continue;
+                var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
                 vfxComponent.ResetOverride(currentName);
 
                 {
                     //If we use bindings, internal value is restored but it doesn't change serialized property (strange at first but intended behavior)
-                    var baseValue = bindingModes ? GetValue_A(type) : GetValue_B(type);
+                    var baseValue = bindingModes ? GetValue_A_Type(parameter.model.type) : GetValue_B_Type(parameter.model.type);
 
                     var currentValue = fnGet(type, vfxComponent, currentName);
                     if (type == VFXValueType.ColorGradient)
@@ -715,6 +758,11 @@ namespace UnityEditor.VFX.Test
                     {
                         Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
                     }
+                    else if (bindingModes && parameter.model.type == typeof(Color))
+                    {
+                        Color col = (Color)baseValue;
+                        Assert.AreEqual(new Vector4(col.r, col.g, col.b, col.a), currentValue);
+                    }
                     else
                     {
                         Assert.AreEqual(baseValue, currentValue);
@@ -724,7 +772,7 @@ namespace UnityEditor.VFX.Test
                 if (!bindingModes)
                 {
                     var internalValue = fnGet_UsingBindings(type, vfxComponent, currentName);
-                    var originalAssetValue = GetValue_A(type);
+                    var originalAssetValue = GetValue_A_Type(parameter.model.type);
 
                     if (type == VFXValueType.ColorGradient)
                     {
@@ -733,6 +781,11 @@ namespace UnityEditor.VFX.Test
                     else if (type == VFXValueType.Curve)
                     {
                         Assert.IsTrue(fnCompareCurve((AnimationCurve)originalAssetValue, (AnimationCurve)internalValue));
+                    }
+                    else if (parameter.model.type == typeof(Color))
+                    {
+                        Color col = (Color)originalAssetValue;
+                        Assert.AreEqual(new Vector4(col.r, col.g, col.b, col.a), internalValue);
                     }
                     else
                     {
