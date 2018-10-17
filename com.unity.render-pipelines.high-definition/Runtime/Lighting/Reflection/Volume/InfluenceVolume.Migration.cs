@@ -17,9 +17,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (i.shape == InfluenceShape.Sphere)
                 {
-#pragma warning disable CS0618
+#pragma warning disable 618
                     i.m_Offset = i.m_ObsoleteSphereBaseOffset;
-#pragma warning restore CS0618
+#pragma warning restore 618
                 }
                 i.boxBlendNormalDistanceNegative = Vector3.zero;
                 i.boxBlendNormalDistancePositive = Vector3.zero;
