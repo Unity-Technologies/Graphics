@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         public static void FillCullingParameters(Camera camera, ref CullingParameters parameters)
         {
-            CullResults.GetCullingParameters(camera, false, out parameters.parameters);
+            //CullResults.GetCullingParameters(camera, false, out parameters.parameters);
         }
     }
 }

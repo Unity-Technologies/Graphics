@@ -965,8 +965,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), new RectInt(0, 0, m_CurrentWidth, m_CurrentHeight));
                     }
                 m_IsDepthBufferCopyValid = true;
+                }
             }
-        }
 
         public void SetMicroShadowingSettings(CommandBuffer cmd)
         {
@@ -1036,8 +1036,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        CullResults m_CullResults;
-        ReflectionProbeCullResults m_ReflectionProbeCullResults;
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             if (!m_ValidAPI)
@@ -1253,6 +1251,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         continue;
                     }
 
+                    if (camera.useOcclusionCulling)
+                        cullingParams.cullingFlags |= CullFlag.OcclusionCull;
+
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
                     hdCamera.UpdateStereoDependentState(ref cullingParams);
 
@@ -1260,9 +1261,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (m_UseNewCulling)
                     {
                         ScriptableCulling.FillCullingParameters(hdCamera.camera, ref cullingParametersNew);
-                        m_LightLoop.UpdateCullingParameters(ref cullingParametersNew.parameters);
-                        hdCamera.UpdateStereoDependentState(ref cullingParametersNew.parameters);
+                        //m_LightLoop.UpdateCullingParameters(ref cullingParametersNew.parameters);
+                        //hdCamera.UpdateStereoDependentState(ref cullingParametersNew.parameters);
                     }
+
+                    //if (camera.useOcclusionCulling)
+                    //    cullingParametersNew.parameters.cullingFlags |= CullFlag.OcclusionCull;
 
 #if UNITY_EDITOR
                     // emit scene view UI
@@ -1290,11 +1294,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_Culler.CullRenderers(cullingParametersNew, m_RenderersCullingResult);
                             m_Culler.CullLights(cullingParametersNew, m_LightCullingResult);
                             m_Culler.CullReflectionProbes(cullingParametersNew, m_ReflectionProbeCullingResult);
-                            // We don't pass lights and reflection probes because we don't need per object lights/probes in HDRP.
-                            Culling.PrepareRendererScene(m_RenderersCullingResult, null, null);
 
                             PrepareRendererLists(hdCamera, m_RenderersCullingResult);
-                    }
+                        }
                     }
 
                     m_IsDepthBufferCopyValid = false; // this is a new render frame
@@ -1303,8 +1305,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DbufferManager.enableDecals = false;
                     if (hdCamera.frameSettings.enableDecals)
                     {
-                        using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
-                        {
+                    using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
+                    {
                             DecalSystem.instance.EndCull();
                             m_DbufferManager.enableDecals = true;              // mesh decals are renderers managed by c++ runtime and we have no way to query if any are visible, so set to true
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
@@ -1450,7 +1452,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     m_CopyStencil.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.DoesntReceiveSSR);
                                     m_CopyStencil.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.DoesntReceiveSSR);
 
-                                    // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes. 
+                                    // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes.
                                     CoreUtils.DrawFullScreen(cmd, m_CopyStencil, null, 4);
                                     cmd.ClearRandomWriteTargets();
                                 }
@@ -2279,7 +2281,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var cs = m_ScreenSpaceReflectionsCS;
 
             using (new ProfilingSample(cmd, "SSR - Tracing", CustomSamplerId.SsrTracing.GetSampler()))
-            {
+        {
                 var volumeSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
 
                 if (!volumeSettings) volumeSettings = ScreenSpaceReflection.@default;
@@ -2340,7 +2342,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ColorPyramidTexture, RuntimeUtilities.whiteTexture);
                 }
-  
+
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(hdCamera.actualWidth, 8), HDUtils.DivRoundUp(hdCamera.actualHeight, 8), 1);
             }
 
@@ -2521,7 +2523,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // The DebugNeedsExposure test allows us to set a neutral value if exposure is not needed. This way we don't need to make various tests inside shaders but only in this function.
                 cmd.SetGlobalFloat(HDShaderIDs._DebugExposure, m_CurrentDebugDisplaySettings.DebugNeedsExposure() ? lightingDebugSettings.debugExposure : 0.0f);
             }
-            }
+        }
 
         public void PushColorPickerDebugTexture(CommandBuffer cmd, RTHandleSystem.RTHandle textureID, HDCamera hdCamera)
         {
@@ -2718,7 +2720,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // HDUtils.SetRenderTarget(cmd, hdCamera, m_SsrDebugTexture,    ClearFlag.Color, CoreUtils.clearColorAllBlack);
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_SsrHitPointTexture, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_SsrLightingTexture, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-                    }
+                }
                 }
 
                 // We don't need to clear the GBuffers as scene is rewrite and we are suppose to only access valid data (invalid data are tagged with stencil as StencilLightingUsage.NoLighting),

@@ -80,8 +80,6 @@ public class ScriptableRendererListTests
 
         Assert.AreEqual(4, result.GetVisibleObjectCount());
 
-        Culling.PrepareRendererScene(result, null, null);
-
         List<RendererListSettings> settingsList = new List<RendererListSettings>();
         RendererListSettings settingsOpaque = new RendererListSettings(camera: m_TestCamera);
         settingsOpaque.renderQueueRange = RenderQueueRange.opaque;
@@ -117,8 +115,6 @@ public class ScriptableRendererListTests
         m_Culler.CullRenderers(cullingParams, result);
 
         Assert.AreEqual(4, result.GetVisibleObjectCount());
-
-        Culling.PrepareRendererScene(result, null, null);
 
         List<RendererListSettings> settingsList = new List<RendererListSettings>();
         RendererListSettings settings1 = new RendererListSettings(camera: m_TestCamera);

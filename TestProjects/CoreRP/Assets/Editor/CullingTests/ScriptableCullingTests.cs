@@ -93,23 +93,13 @@ public class ScriptableCullingTests
         LightCullingResult result = new LightCullingResult();
         m_Culler.CullLights(cullingParams, result);
 
-        Assert.AreEqual(4, result.visibleLights.Length);
+        Assert.AreEqual(5, result.visibleLights.Length);
 
         Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Directional Light"));
         Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light Inside"));
         Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light 2 Inside"));
         Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Spot Light Inside"));
-
-        Assert.AreEqual(1, result.visibleShadowCastingLights.Length);
-        Assert.IsTrue(result.visibleShadowCastingLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light Partial"));
-
-        Assert.AreEqual(2, result.visibleOffscreenVertexLights.Length);
-        Assert.IsTrue(result.visibleOffscreenVertexLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light Vertex"));
-        Assert.IsTrue(result.visibleOffscreenVertexLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light 2 Vertex"));
-
-        // TODO: The number here should actually be 1 but returns 3 because the off screen vertex light culling is wrong so we have false positives.
-        Assert.AreEqual(1, result.visibleOffscreenShadowCastingVertexLights.Length);
-        Assert.IsTrue(result.visibleOffscreenShadowCastingVertexLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Spot Light Vertex"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light Partial"));
 
         TearDown();
     }
@@ -141,7 +131,7 @@ public class ScriptableCullingTests
 
         CullingParameters cullingParams = new CullingParameters();
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-        cullingParams.parameters.cullingFlags |= CullFlag.OcclusionCull;
+        //cullingParams.parameters.cullingFlags |= CullFlag.OcclusionCull;
 
         RenderersCullingResult result = new RenderersCullingResult();
         m_Culler.CullRenderers(cullingParams, result);
@@ -157,7 +147,7 @@ public class ScriptableCullingTests
 
         CullingParameters cullingParams = new CullingParameters();
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-        cullingParams.parameters.cullingFlags |= CullFlag.OcclusionCull;
+        //cullingParams.parameters.cullingFlags |= CullFlag.OcclusionCull;
 
         RenderersCullingResult renderersResult = new RenderersCullingResult();
         m_Culler.CullRenderers(cullingParams, renderersResult);
@@ -171,10 +161,6 @@ public class ScriptableCullingTests
         Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light"));
         Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Spot Light"));
 
-        Assert.AreEqual(0, result.visibleShadowCastingLights.Length);
-        Assert.AreEqual(0, result.visibleOffscreenVertexLights.Length);
-        Assert.AreEqual(0, result.visibleOffscreenShadowCastingVertexLights.Length);
-
         TearDown();
     }
 
@@ -185,7 +171,7 @@ public class ScriptableCullingTests
 
         CullingParameters cullingParams = new CullingParameters();
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-        cullingParams.parameters.cullingFlags |= CullFlag.OcclusionCull;
+        //cullingParams.parameters.cullingFlags |= CullFlag.OcclusionCull;
 
         ReflectionProbeCullingResult result = new ReflectionProbeCullingResult();
         m_Culler.CullReflectionProbes(cullingParams, result);

@@ -26,8 +26,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static Vector3 GetRight(this VisibleLight value)
         {
             return value.localToWorld.GetColumn(0);
-                }
             }
+    }
 
     //-----------------------------------------------------------------------------
     // structure definition
@@ -379,7 +379,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_ShadowManager.Dispose();
             m_ShadowManager = null;
-        }
+            }
 
         int GetNumTileFtplX(HDCamera hdCamera)
         {
@@ -972,7 +972,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Rect lights are currently a special case because they use the normalized
                     // [0, 1] attenuation range rather than the regular [0, r] one.
                     lightData.rangeAttenuationScale = 1.0f;
-                }
+            }
             }
             else // Don't apply any attenuation but do a 'step' at range
             {
@@ -989,7 +989,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Rect lights are currently a special case because they use the normalized
                     // [0, 1] attenuation range rather than the regular [0, r] one.
                     lightData.rangeAttenuationScale = sqrtHuge;
-                }
+            }
             }
 
             lightData.color = GetLightColor(light);
@@ -1577,9 +1577,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Return true if BakedShadowMask are enabled
-        public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, ShadowSettings shadowSettings, CullResults cullResults,
-            LightCullingResult lightCullingResult, ReflectionProbeCullingResult reflectionProbeCullingResult,
-            ReflectionProbeCullResults reflectionProbeCullResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings)
+        public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullResults cullResults,
+            LightCullingResult lightCullingResult, ReflectionProbeCullingResult reflectionProbeCullingResult, ReflectionProbeCullResults reflectionProbeCullResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
@@ -1616,12 +1615,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Temporary bridge to new culling
                 if (lightCullingResult != null && reflectionProbeCullingResult != null)
                 {
-                    visibleLights = new List<VisibleLight>(lightCullingResult.visibleLights.Length + lightCullingResult.visibleShadowCastingLights.Length);
-                    Debug.Assert(lightCullingResult.visibleLights.Length + lightCullingResult.visibleShadowCastingLights.Length == cullResults.visibleLights.Count);
+                    visibleLights = new List<VisibleLight>(lightCullingResult.visibleLights.Length);
+                    Debug.Assert(lightCullingResult.visibleLights.Length == cullResults.visibleLights.Count);
                     for (int i = 0; i < lightCullingResult.visibleLights.Length; ++i)
                         visibleLights.Add(lightCullingResult.visibleLights[i]);
-                    for (int i = 0; i < lightCullingResult.visibleShadowCastingLights.Length; ++i)
-                        visibleLights.Add(lightCullingResult.visibleShadowCastingLights[i]);
 
                     visibleReflectionProbes = new List<VisibleReflectionProbe>(reflectionProbeCullingResult.visibleReflectionProbes.Length);
                     Debug.Assert(reflectionProbeCullingResult.visibleReflectionProbes.Length == cullResults.visibleReflectionProbes.Count);
