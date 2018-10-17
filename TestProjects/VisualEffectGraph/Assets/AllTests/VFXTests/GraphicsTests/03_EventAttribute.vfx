@@ -3236,7 +3236,7 @@ VisualEffectResource:
       !VFX_USE_SPAWNER_FROM_GPU\n    uint nbSpawned;\t\t\t\t\t// Numbers of particle
       spawned\n    uint spawnIndex;\t\t\t\t// Index of the first particle spawned\n
       \   uint dispatchWidth;\n#else\n    uint offsetInAdditionalOutput;\n\tuint nbMax;\n#endif\n\tuint
-      systemSeed;\nCBUFFER_END\n\n#if VFX_USE_ALIVE_CURRENT\nConsumeStructuredBuffer<uint>
+      systemSeed;\nCBUFFER_END\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint>
       deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to
       fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if
       VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer
@@ -3283,31 +3283,32 @@ VisualEffectResource:
       lifetime_source = asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x8 + 0x4)
       << 2));\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
       VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n
-      \       \n        {\n            float3 tmp_r = color_source;\n            SetAttribute_CA95FE17(
-      /*inout */color, tmp_r);\n        }\n        {\n            float tmp_r = lifetime_source;\n
-      \           SetAttribute_2466D9DD( /*inout */lifetime, tmp_r);\n        }\n
+      \       \n        {\n            float3 tmp_t = color_source;\n            SetAttribute_CA95FE17(
+      /*inout */color, tmp_t);\n        }\n        {\n            float tmp_t = lifetime_source;\n
+      \           SetAttribute_2466D9DD( /*inout */lifetime, tmp_t);\n        }\n
       \       {\n            SetAttribute_37814D91( /*inout */sizeX, (float)0.1);\n
       \       }\n        {\n            VelocityDirection_18D( /*inout */velocity,
       \ /*inout */direction, float3(0,-1,0), (float)1, (float)1);\n        }\n        {\n
       \           PositionAABox_18D( /*inout */position,  /*inout */seed, float3(0,0,0),
       float3(1.5,0.05,0.1));\n        }\n        {\n            VelocityRandomize_18D(
       /*inout */velocity,  /*inout */direction,  /*inout */seed, (float)0.1, (float)0.1);\n
-      \       }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if (alive)\n        {\n
-      \           uint index = deadListIn.Consume();\n            attributeBuffer.Store3((index
-      * 0x4 + 0x0) << 2,asuint(color));\n            attributeBuffer.Store((index
-      * 0x1 + 0x500) << 2,asuint(lifetime));\n            attributeBuffer.Store((index
-      * 0x4 + 0x3) << 2,asuint(sizeX));\n            attributeBuffer.Store3((index
-      * 0x4 + 0x640) << 2,asuint(velocity));\n            attributeBuffer.Store3((index
-      * 0x8 + 0xB40) << 2,asuint(position));\n            attributeBuffer.Store((index
-      * 0x8 + 0xB43) << 2,uint(alive));\n            attributeBuffer.Store((index
-      * 0x8 + 0xB44) << 2,asuint(age));\n            \n\n        }\n#else\n        uint
-      index = particleIndex;\n        attributeBuffer.Store3((index * 0x4 + 0x0) <<
-      2,asuint(color));\n        attributeBuffer.Store((index * 0x1 + 0x500) << 2,asuint(lifetime));\n
-      \       attributeBuffer.Store((index * 0x4 + 0x3) << 2,asuint(sizeX));\n        attributeBuffer.Store3((index
-      * 0x4 + 0x640) << 2,asuint(velocity));\n        attributeBuffer.Store3((index
-      * 0x8 + 0xB40) << 2,asuint(position));\n        attributeBuffer.Store((index
-      * 0x8 + 0xB43) << 2,uint(alive));\n        attributeBuffer.Store((index * 0x8
-      + 0xB44) << 2,asuint(age));\n        \n\n#endif\n    }\n}\n"
+      \       }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if (alive)\n        {\n\t\t\tuint
+      deadIndex = deadListIn.DecrementCounter();\n            uint index = deadListIn[deadIndex];\n
+      \           attributeBuffer.Store3((index * 0x4 + 0x0) << 2,asuint(color));\n
+      \           attributeBuffer.Store((index * 0x1 + 0x500) << 2,asuint(lifetime));\n
+      \           attributeBuffer.Store((index * 0x4 + 0x3) << 2,asuint(sizeX));\n
+      \           attributeBuffer.Store3((index * 0x4 + 0x640) << 2,asuint(velocity));\n
+      \           attributeBuffer.Store3((index * 0x8 + 0xB40) << 2,asuint(position));\n
+      \           attributeBuffer.Store((index * 0x8 + 0xB43) << 2,uint(alive));\n
+      \           attributeBuffer.Store((index * 0x8 + 0xB44) << 2,asuint(age));\n
+      \           \n\n        }\n#else\n        uint index = particleIndex;\n        attributeBuffer.Store3((index
+      * 0x4 + 0x0) << 2,asuint(color));\n        attributeBuffer.Store((index * 0x1
+      + 0x500) << 2,asuint(lifetime));\n        attributeBuffer.Store((index * 0x4
+      + 0x3) << 2,asuint(sizeX));\n        attributeBuffer.Store3((index * 0x4 + 0x640)
+      << 2,asuint(velocity));\n        attributeBuffer.Store3((index * 0x8 + 0xB40)
+      << 2,asuint(position));\n        attributeBuffer.Store((index * 0x8 + 0xB43)
+      << 2,uint(alive));\n        attributeBuffer.Store((index * 0x8 + 0xB44) << 2,asuint(age));\n
+      \       \n\n#endif\n    }\n}\n"
   - compute: 1
     name: Temp_compute_b_update_Runtime.compute
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
@@ -3316,38 +3317,38 @@ VisualEffectResource:
       1\n#define VFX_LOCAL_SPACE 1\n\n\nCBUFFER_START(parameters)\n    float deltaTime_a;\n
       \   uint3 PADDING_0;\nCBUFFER_END\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
-      attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nAppendStructuredBuffer<uint>
-      deadListOut;\n#endif\n\n#if VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint>
-      indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n    uint nbMax;\n\tuint
-      dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\nvoid EulerIntegration(inout
-      float3 position, float3 velocity, float deltaTime)\n{\n    position += velocity
-      * deltaTime;\n}\nvoid Age(inout float age, float deltaTime)\n{\n    age += deltaTime;\n}\nvoid
-      Reap(float age, float lifetime, inout bool alive)\n{\n    if(age > lifetime)
-      { alive = false; }\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3
-      groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n\tuint
-      id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth
-      * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif (id < nbMax)\n\t{\n#if VFX_USE_ALIVE_CURRENT\n\t\tbool
-      alive = (attributeBuffer.Load((index * 0x8 + 0xB43) << 2));\n\t\t\n\n\t\tif
-      (alive)\n\t\t{\n\t\t\tfloat lifetime = asfloat(attributeBuffer.Load((index *
-      0x1 + 0x500) << 2));\n\t\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
-      * 0x4 + 0x640) << 2));\n\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0xB40) << 2));\n\t\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x8 + 0xB44) << 2));\n\t\t\tfloat3 color_source = float3(1,1,1);\n\t\t\tfloat
-      lifetime_source = lifetime;\n\t\t\t\n\n\t\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition
-      = position;\n#endif\n\t\t\t\n\t\t\tEulerIntegration( /*inout */position, velocity,
-      deltaTime_a);\n\t\t\tAge( /*inout */age, deltaTime_a);\n\t\t\tReap(age, lifetime,
-      \ /*inout */alive);\n\t\t\t\n\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index
+      attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint> deadListOut;\n#endif\n\n#if
+      VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint> indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n
+      \   uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\nvoid
+      EulerIntegration(inout float3 position, float3 velocity, float deltaTime)\n{\n
+      \   position += velocity * deltaTime;\n}\nvoid Age(inout float age, float deltaTime)\n{\n
+      \   age += deltaTime;\n}\nvoid Reap(float age, float lifetime, inout bool alive)\n{\n
+      \   if(age > lifetime) { alive = false; }\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId
+      \   : SV_GroupThreadID)\n{\n\tuint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP
+      + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif
+      (id < nbMax)\n\t{\n#if VFX_USE_ALIVE_CURRENT\n\t\tbool alive = (attributeBuffer.Load((index
+      * 0x8 + 0xB43) << 2));\n\t\t\n\n\t\tif (alive)\n\t\t{\n\t\t\tfloat lifetime
+      = asfloat(attributeBuffer.Load((index * 0x1 + 0x500) << 2));\n\t\t\tfloat3 velocity
+      = asfloat(attributeBuffer.Load3((index * 0x4 + 0x640) << 2));\n\t\t\tfloat3
+      position = asfloat(attributeBuffer.Load3((index * 0x8 + 0xB40) << 2));\n\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x8 + 0xB44) << 2));\n\t\t\tfloat3
+      color_source = float3(1,1,1);\n\t\t\tfloat lifetime_source = lifetime;\n\t\t\t\n\n\t\t\t\n#if
+      VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition = position;\n#endif\n\t\t\t\n\t\t\tEulerIntegration(
+      /*inout */position, velocity, deltaTime_a);\n\t\t\tAge( /*inout */age, deltaTime_a);\n\t\t\tReap(age,
+      lifetime,  /*inout */alive);\n\t\t\t\n\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index
       * 0x8 + 0xB40) << 2,asuint(position));\n\t\t\t\tattributeBuffer.Store((index
       * 0x8 + 0xB44) << 2,asuint(age));\n\t\t\t\t\n\n#if VFX_HAS_INDIRECT_DRAW\n                uint
       indirectIndex = indirectBuffer.IncrementCounter();\n\t\t\t\tindirectBuffer[indirectIndex]
       = index;\n#endif\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tattributeBuffer.Store((index
-      * 0x8 + 0xB43) << 2,uint(alive));\n\t\t\t\t\n\n\t\t\t\tdeadListOut.Append(index);\n\t\t\t}\n\t\t}\n#else\n\t\tfloat
-      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x500) << 2));\n\t\tfloat3
-      velocity = asfloat(attributeBuffer.Load3((index * 0x4 + 0x640) << 2));\n\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x8 + 0xB40) << 2));\n\t\tbool
-      alive = (attributeBuffer.Load((index * 0x8 + 0xB43) << 2));\n\t\tfloat age =
-      asfloat(attributeBuffer.Load((index * 0x8 + 0xB44) << 2));\n\t\tfloat3 color_source
-      = float3(1,1,1);\n\t\tfloat lifetime_source = lifetime;\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition
+      * 0x8 + 0xB43) << 2,uint(alive));\n\t\t\t\t\n\n\t\t\t\tuint deadIndex = deadListOut.IncrementCounter();\n\t\t\t\tdeadListOut[deadIndex]
+      = index;\n\t\t\t}\n\t\t}\n#else\n\t\tfloat lifetime = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x500) << 2));\n\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x640) << 2));\n\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
+      * 0x8 + 0xB40) << 2));\n\t\tbool alive = (attributeBuffer.Load((index * 0x8
+      + 0xB43) << 2));\n\t\tfloat age = asfloat(attributeBuffer.Load((index * 0x8
+      + 0xB44) << 2));\n\t\tfloat3 color_source = float3(1,1,1);\n\t\tfloat lifetime_source
+      = lifetime;\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition
       = position;\n#endif\n\t\t\n\t\tEulerIntegration( /*inout */position, velocity,
       deltaTime_a);\n\t\tAge( /*inout */age, deltaTime_a);\n\t\tReap(age, lifetime,
       \ /*inout */alive);\n\t\t\n\n\t\tattributeBuffer.Store3((index * 0x8 + 0xB40)
@@ -3368,9 +3369,10 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_ALPHA_CURRENT 1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define
       VFX_USE_AXISX_CURRENT 1\n\t\t#define VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT
       1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT
-      1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_PIVOT_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST
-      1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_PIVOTX_CURRENT
+      1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
+      1\n\t\t#define VFX_USE_AGE_CURRENT 1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define
+      USE_ALPHA_TEST 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_b;\n\t\tCBUFFER_END\n\t\tTexture2D mainTexture;\n\t\tSamplerState
       samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
       (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define IS_TRANSPARENT_PARTICLE
@@ -3409,7 +3411,8 @@ VisualEffectResource:
       0x8 + 0xB43) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
       angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
       age = asfloat(attributeBuffer.Load((index * 0x8 + 0xB44) << 2));\n\t\t\t\t\t\t\tfloat3
       color_source = color;\n\t\t\t\t\t\t\tfloat lifetime_source = lifetime;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
@@ -3422,19 +3425,20 @@ VisualEffectResource:
       alpha = (float)1;\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
       angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
       age = asfloat(attributeBuffer.Load((index * 0x8 + 0xB44) << 2));\n\t\t\t\t\t\t\tfloat3
       color_source = color;\n\t\t\t\t\t\t\tfloat lifetime_source = lifetime;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_t = age / lifetime;\n\t\t\t\t    float tmp_u = SampleCurve(uniform_b,tmp_t);\n\t\t\t\t
-      \   float tmp_w = tmp_u * (float)0.1;\n\t\t\t\t    SetAttribute_37814D91( /*inout
-      */sizeX, tmp_w);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
+      \   float tmp_v = age / lifetime;\n\t\t\t\t    float tmp_w = SampleCurve(uniform_b,tmp_v);\n\t\t\t\t
+      \   float tmp_y = tmp_w * (float)0.1;\n\t\t\t\t    SetAttribute_37814D91( /*inout
+      */sizeX, tmp_y);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
       o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id & 1);\n\t\t\t\to.VFX_VARYING_UV.y
       = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if
       VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
       VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z
       = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
       float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
-      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -3496,7 +3500,8 @@ VisualEffectResource:
       0x8 + 0xB43) << 2));\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
       angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
       age = asfloat(attributeBuffer.Load((index * 0x8 + 0xB44) << 2));\n\t\t\t\t\t\t\tfloat3
       color_source = color;\n\t\t\t\t\t\t\tfloat lifetime_source = lifetime;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
@@ -3509,19 +3514,20 @@ VisualEffectResource:
       alpha = (float)1;\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
       angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
       age = asfloat(attributeBuffer.Load((index * 0x8 + 0xB44) << 2));\n\t\t\t\t\t\t\tfloat3
       color_source = color;\n\t\t\t\t\t\t\tfloat lifetime_source = lifetime;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_t = age / lifetime;\n\t\t\t\t    float tmp_u = SampleCurve(uniform_b,tmp_t);\n\t\t\t\t
-      \   float tmp_w = tmp_u * (float)0.1;\n\t\t\t\t    SetAttribute_37814D91( /*inout
-      */sizeX, tmp_w);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
+      \   float tmp_v = age / lifetime;\n\t\t\t\t    float tmp_w = SampleCurve(uniform_b,tmp_v);\n\t\t\t\t
+      \   float tmp_y = tmp_w * (float)0.1;\n\t\t\t\t    SetAttribute_37814D91( /*inout
+      */sizeX, tmp_y);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
       o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id & 1);\n\t\t\t\to.VFX_VARYING_UV.y
       = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if
       VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
       VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z
       = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
       float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
-      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\tconst
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
       normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
@@ -4040,7 +4046,7 @@ VisualEffectResource:
           element: 4
       capacity: 2
       stride: 4
-    - type: 2
+    - type: 4
       size: 320
       layout: []
       capacity: 0
