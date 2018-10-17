@@ -269,7 +269,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (cameraData.isStereoEnabled)
             {
-                return XRGraphicsConfig.eyeTextureDesc;
+                return XRGraphics.eyeTextureDesc;
             }
             else
             {

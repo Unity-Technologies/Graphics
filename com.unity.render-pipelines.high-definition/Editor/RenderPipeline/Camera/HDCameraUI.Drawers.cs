@@ -83,7 +83,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Select(
                     (s, d, o) => s.frameSettingsUI,
                     (s, d, o) => d.frameSettings,
-                    FrameSettingsUI.Inspector(withXR: false)));
+                    FrameSettingsUI.Inspector()));
 
         static void Drawer_FieldBackgroundColorHDR(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
@@ -211,17 +211,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldVR(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            if (s.canOverrideRenderLoopSettings)
-                EditorGUILayout.PropertyField(p.frameSettings.enableStereo, enableStereoContent);
-            else
-            {
-                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-                Assert.IsNotNull(hdrp, "This Editor is valid only for HDRP");
-                var enableStereo = hdrp.GetFrameSettings().enableStereo;
-                GUI.enabled = false;
-                EditorGUILayout.Toggle(hdrpEnableStereoContent, enableStereo);
-                GUI.enabled = true;
-            }
             EditorGUILayout.PropertyField(p.stereoSeparation, stereoSeparationContent);
             EditorGUILayout.PropertyField(p.stereoConvergence, stereoConvergenceContent);
         }
