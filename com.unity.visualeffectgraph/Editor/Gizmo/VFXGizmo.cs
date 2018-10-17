@@ -131,14 +131,14 @@ namespace UnityEditor.VFX
                     EditorGUI.BeginChangeCheck();
                     Vector3 arcHandlePosition =  Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
                     arcHandlePosition = Handles.Slider2D(
-                            arcHandlePosition,
-                            Vector3.up,
-                            Vector3.forward,
-                            Vector3.right,
-                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
-                            DefaultAngleHandleDrawFunction,
-                            0
-                            );
+                        arcHandlePosition,
+                        Vector3.up,
+                        Vector3.forward,
+                        Vector3.right,
+                        handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
+                        DefaultAngleHandleDrawFunction,
+                        0
+                    );
                     if (EditorGUI.EndChangeCheck())
                     {
                         float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
@@ -202,7 +202,7 @@ namespace UnityEditor.VFX
 
         public override Bounds CallGetGizmoBounds(object value)
         {
-            if( value is T)
+            if (value is T)
             {
                 return OnGetGizmoBounds((T)value);
             }
@@ -230,6 +230,7 @@ namespace UnityEditor.VFX
 
             Handles.matrix = oldMatrix;
         }
+
         public override Bounds OnGetGizmoBounds(T value)
         {
             Bounds bounds = OnGetSpacedGizmoBounds(value);
@@ -238,7 +239,7 @@ namespace UnityEditor.VFX
                 if (component == null)
                     return new Bounds();
 
-                return UnityEditorInternal.InternalEditorUtility.TransformBounds(bounds,component.transform);
+                return UnityEditorInternal.InternalEditorUtility.TransformBounds(bounds, component.transform);
             }
 
             return bounds;

@@ -7,10 +7,9 @@ using System.Runtime.CompilerServices;
 
 namespace UnityEditor.VFX
 {
-
-public static class VisualEffectGraphPackageInfo
-{
-    static string m_PackagePath;
+    public static class VisualEffectGraphPackageInfo
+    {
+        static string m_PackagePath;
 
         public static string fileSystemPackagePath
         {
@@ -38,5 +37,4 @@ public static class VisualEffectGraphPackageInfo
             }
         }
     }
-
 }

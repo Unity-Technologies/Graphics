@@ -18,7 +18,8 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] {
+            return new[]
+            {
                 VFXOperatorUtility.Saturate(VFXOperatorUtility.Ceil(inputExpression[0] - inputExpression[1])),
 
                 // TODO : It would be nice to have inverted step output (1 if below threshold), but we need to be able to define multiple FloatN output slots.

@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.Test
                 null,
                 (g) => BasicTest(g.exp, 3, 5, 5),
                 VFXExpressionContextOption.None
-                );
+            );
         }
 
         [Test]
@@ -120,7 +120,7 @@ namespace UnityEditor.VFX.Test
                     CheckExpressionValue(g.exp, context[0].GetInputSlot(1), new Vector2(3.0f, 4.0f));
                 },
                 VFXExpressionContextOption.ConstantFolding
-                );
+            );
         }
 
         [Test]
@@ -136,7 +136,7 @@ namespace UnityEditor.VFX.Test
                     CheckFlattenedIndex(g.exp, context[0].GetInputSlot(1));
                 },
                 VFXExpressionContextOption.Reduction
-                );
+            );
         }
 
         [Test]
@@ -164,7 +164,7 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(-1, g.exp.GetFlattenedIndex(exp));
                 },
                 VFXExpressionContextOption.Reduction
-                );
+            );
         }
     }
 }

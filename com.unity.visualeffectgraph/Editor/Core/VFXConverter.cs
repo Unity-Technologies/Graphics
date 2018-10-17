@@ -16,14 +16,17 @@ namespace UnityEditor.VFX
         {
             return (FloatN)floatN;
         }
+
         Vector2 IFloatNAffector<Vector2>.GetValue(object floatN)
         {
             return (FloatN)floatN;
         }
+
         Vector3 IFloatNAffector<Vector3>.GetValue(object floatN)
         {
             return (FloatN)floatN;
         }
+
         Vector4 IFloatNAffector<Vector4>.GetValue(object floatN)
         {
             return (FloatN)floatN;

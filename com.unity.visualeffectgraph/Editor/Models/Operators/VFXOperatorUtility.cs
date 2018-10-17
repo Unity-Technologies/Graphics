@@ -205,9 +205,9 @@ namespace UnityEditor.VFX
         static public VFXExpression Cross(VFXExpression lhs, VFXExpression rhs)
         {
             Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression, VFXExpression> ab_Minus_cd = delegate(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpression d)
-                {
-                    return (a * b - c * d);
-                };
+            {
+                return (a * b - c * d);
+            };
 
             return new VFXExpressionCombine(new[]
             {

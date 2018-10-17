@@ -105,23 +105,22 @@ namespace  UnityEditor.VFX.UI
             resizer.RemoveFromHierarchy();
         }
 
-
         void OnKeyDown(KeyDownEvent e)
         {
-            if( e.keyCode == KeyCode.F2)
+            if (e.keyCode == KeyCode.F2)
             {
                 var graphView = GetFirstAncestorOfType<VFXView>();
 
                 var field = graphView.selection.OfType<VFXBlackboardField>().FirstOrDefault();
-                if( field != null)
+                if (field != null)
                 {
                     field.OpenTextEditor();
                 }
                 else
                 {
-                    var category = graphView.selection.OfType< VFXBlackboardCategory>().FirstOrDefault();
+                    var category = graphView.selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
 
-                    if( category != null)
+                    if (category != null)
                     {
                         category.OpenTextEditor();
                     }
@@ -383,7 +382,6 @@ namespace  UnityEditor.VFX.UI
         {
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {
-
                 if (e.controller == controller && e.change == VFXViewController.Change.assetName)
                 {
                     title = controller.name;

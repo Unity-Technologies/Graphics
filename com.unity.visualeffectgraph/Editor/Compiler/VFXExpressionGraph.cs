@@ -97,10 +97,10 @@ namespace UnityEditor.VFX
                 CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
-                    {
-                        var exp = kvp.Key;
-                        return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
-                    }).ToList(); // remove per element expression from flattened data // TODO Remove uniform constants too
+                {
+                    var exp = kvp.Key;
+                    return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
+                }).ToList();     // remove per element expression from flattened data // TODO Remove uniform constants too
 
                 sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
                 m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX
                     data.index = i;
                     m_ExpressionsData[m_FlattenedExpressions[i]] = data;
                 }
-                if( VFXViewPreference.advancedLogs)
+                if (VFXViewPreference.advancedLogs)
                     Debug.Log(string.Format("RECOMPILE EXPRESSION GRAPH - NB EXPRESSIONS: {0} - NB CPU END EXPRESSIONS: {1} - NB GPU END EXPRESSIONS: {2}", m_Expressions.Count, m_CPUExpressionsToReduced.Count, m_GPUExpressionsToReduced.Count));
             }
             finally

@@ -81,10 +81,11 @@ namespace UnityEditor.VFX.UI
         void OnFocusIn(FocusInEvent e)
         {
             var gv = GetFirstAncestorOfType<VFXView>();
-            if( ! IsSelected(gv))
-                Select(gv,false);
+            if (!IsSelected(gv))
+                Select(gv, false);
             e.StopPropagation();
         }
+
         VisualElement m_SelectionBorder;
 
         public VFXNodeUI() : base(UXMLResourceToPackage("uxml/VFXNode"))
@@ -154,7 +155,7 @@ namespace UnityEditor.VFX.UI
 
             m_SelectionBorder = this.Query("selection-border");
         }
-        
+
         public virtual void OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
@@ -227,6 +228,7 @@ namespace UnityEditor.VFX.UI
             }
             Profiler.EndSample();
         }
+
         protected bool hasSettings
         {
             get;
@@ -306,6 +308,7 @@ namespace UnityEditor.VFX.UI
         {
             SelfChange();
         }
+
         public void UpdateCollapse()
         {
             if (superCollapsed)

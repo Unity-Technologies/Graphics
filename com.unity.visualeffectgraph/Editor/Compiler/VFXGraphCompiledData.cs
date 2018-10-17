@@ -100,10 +100,10 @@ namespace UnityEditor.VFX
                         case VFXValueType.Float4: value = CreateValueDesc<Vector4>(exp, i); break;
                         case VFXValueType.Int32: value = CreateValueDesc<int>(exp, i); break;
                         case VFXValueType.Uint32: value = CreateValueDesc<uint>(exp, i); break;
-                        case VFXValueType.Texture2D: 
-                        case VFXValueType.Texture2DArray: 
-                        case VFXValueType.Texture3D: 
-                        case VFXValueType.TextureCube: 
+                        case VFXValueType.Texture2D:
+                        case VFXValueType.Texture2DArray:
+                        case VFXValueType.Texture3D:
+                        case VFXValueType.TextureCube:
                         case VFXValueType.TextureCubeArray:
                             value = CreateValueDesc<Texture>(exp, i);
                             break;
@@ -189,12 +189,12 @@ namespace UnityEditor.VFX
             var currentLayoutSize = 0u;
             var listWithOffset = new List<VFXLayoutElementDesc>();
             eventAttributeDescs.ForEach(e =>
-                {
-                    e.offset.element = currentLayoutSize;
-                    e.offset.structure = structureLayoutTotalSize;
-                    currentLayoutSize += (uint)VFXExpression.TypeToSize(e.type);
-                    listWithOffset.Add(e);
-                });
+            {
+                e.offset.element = currentLayoutSize;
+                e.offset.structure = structureLayoutTotalSize;
+                currentLayoutSize += (uint)VFXExpression.TypeToSize(e.type);
+                listWithOffset.Add(e);
+            });
 
             eventAttributeDescs.Clear();
             eventAttributeDescs.AddRange(listWithOffset);
@@ -333,57 +333,57 @@ namespace UnityEditor.VFX
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
                     tasks = spawnContext.activeChildrenWithImplicit.Select((b, index) =>
+                    {
+                        var spawnerBlock = b as VFXAbstractSpawner;
+                        if (spawnerBlock == null)
                         {
-                            var spawnerBlock = b as VFXAbstractSpawner;
-                            if (spawnerBlock == null)
-                            {
-                                throw new InvalidCastException("Unexpected block type in spawnerContext");
-                            }
-                            if (spawnerBlock.spawnerType == VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior == null)
-                            {
-                                throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
-                            }
-                            if (spawnerBlock.spawnerType != VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior != null)
-                            {
-                                throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
-                            }
+                            throw new InvalidCastException("Unexpected block type in spawnerContext");
+                        }
+                        if (spawnerBlock.spawnerType == VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior == null)
+                        {
+                            throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
+                        }
+                        if (spawnerBlock.spawnerType != VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior != null)
+                        {
+                            throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
+                        }
 
-                            var cpuExpression = contextData.cpuMapper.CollectExpression(index, false).Select(o =>
+                        var cpuExpression = contextData.cpuMapper.CollectExpression(index, false).Select(o =>
+                        {
+                            return new VFXMapping
                             {
-                                return new VFXMapping
-                                {
-                                    index = graph.GetFlattenedIndex(o.exp),
-                                    name = o.name
-                                };
-                            }).ToArray();
+                                index = graph.GetFlattenedIndex(o.exp),
+                                name = o.name
+                            };
+                        }).ToArray();
 
-                            Object processor = null;
-                            if (spawnerBlock.customBehavior != null)
+                        Object processor = null;
+                        if (spawnerBlock.customBehavior != null)
+                        {
+                            var assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name);
+                            if (assets.Length != 1)
                             {
-                                var assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name);
+                                // AssetDatabase.FindAssets will not search in package by default. Search in our package explicitely
+                                assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name, new string[] { VisualEffectGraphPackageInfo.assetPackagePath });
                                 if (assets.Length != 1)
                                 {
-                                    // AssetDatabase.FindAssets will not search in package by default. Search in our package explicitely
-                                    assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name,new string[] { VisualEffectGraphPackageInfo.assetPackagePath });
-                                    if (assets.Length != 1)
-                                    {
-                                        throw new InvalidOperationException("Unable to find the definition .cs file for " + spawnerBlock.customBehavior + " Make sure that the class name and file name match" );
-                                    }
+                                    throw new InvalidOperationException("Unable to find the definition .cs file for " + spawnerBlock.customBehavior + " Make sure that the class name and file name match");
                                 }
-
-                                var assetPath = AssetDatabase.GUIDToAssetPath(assets[0]);
-                                processor = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
                             }
 
-                            return new VFXEditorTaskDesc
-                            {
-                                type = spawnerBlock.spawnerType,
-                                buffers = new VFXMapping[0],
-                                values = cpuExpression.ToArray(),
-                                parameters = contextData.parameters,
-                                externalProcessor = processor
-                            };
-                        }).ToArray()
+                            var assetPath = AssetDatabase.GUIDToAssetPath(assets[0]);
+                            processor = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
+                        }
+
+                        return new VFXEditorTaskDesc
+                        {
+                            type = spawnerBlock.spawnerType,
+                            buffers = new VFXMapping[0],
+                            values = cpuExpression.ToArray(),
+                            parameters = contextData.parameters,
+                            externalProcessor = processor
+                        };
+                    }).ToArray()
                 });
             }
         }
@@ -585,7 +585,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
+                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
                 return;
             }
 
@@ -729,7 +729,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
+                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
             }
             finally
             {

@@ -128,6 +128,7 @@ namespace UnityEditor.VFX.Utils
             buckets.Add(new List<object>());
             buckets.Add(new List<object>());
             buckets.Add(new List<object>());
+            buckets.Add(new List<object>());
         }
 
         public void AddColorProperty(string name)
@@ -191,7 +192,6 @@ namespace UnityEditor.VFX.Utils
             SetFloatData(component + ".y", dataY);
             SetFloatData(component + ".z", dataZ);
         }
-
 
         public void SetVector2Data(string component, List<Vector2> data)
         {
@@ -565,15 +565,15 @@ namespace UnityEditor.VFX.Utils
         }
 
         private static Dictionary<string, int> TypeSize = new Dictionary<string, int>()
-    {
-        { "byte", 1 },
-        { "short", 2 },
-        { "ushort", 2 },
-        { "int", 4 },
-        { "uint", 4 },
-        { "float", 4 },
-        { "double", 8 },
-    };
+        {
+            { "byte", 1 },
+            { "short", 2 },
+            { "ushort", 2 },
+            { "int", 4 },
+            { "uint", 4 },
+            { "float", 4 },
+            { "double", 8 },
+        };
 
         public struct PropertyDesc
         {

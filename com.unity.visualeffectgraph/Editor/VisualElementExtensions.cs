@@ -9,10 +9,10 @@ static class VisualElementExtensions
     static MethodInfo m_ValidateLayoutMethod;
     public static void InternalValidateLayout(this IPanel panel)
     {
-        if(m_ValidateLayoutMethod == null)
+        if (m_ValidateLayoutMethod == null)
             m_ValidateLayoutMethod = panel.GetType().GetMethod("ValidateLayout", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Public);
 
-        m_ValidateLayoutMethod.Invoke(panel, new object[] { });
+        m_ValidateLayoutMethod.Invoke(panel, new object[] {});
     }
 
     static PropertyInfo m_OwnerPropertyInfo;
@@ -23,7 +23,7 @@ static class VisualElementExtensions
             m_OwnerPropertyInfo = panel.GetType().GetProperty("ownerObject", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Public);
 
 
-        return (GUIView)m_OwnerPropertyInfo.GetValue(panel,new object[] {});
+        return (GUIView)m_OwnerPropertyInfo.GetValue(panel, new object[] {});
     }
 
     public static bool HasFocus(this VisualElement visualElement)

@@ -473,7 +473,7 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.SystemHasKill;
 
                 deadListBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity, stride = 4 });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = 4 });
                 systemBufferMappings.Add(new VFXMapping("deadList", deadListBufferIndex));
 
                 deadListCountIndex = outBufferDescs.Count;

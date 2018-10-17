@@ -21,7 +21,6 @@ namespace UnityEditor.VFX.UI
             return range != Vector2.zero && range.y != Mathf.Infinity;
         }
 
-
         protected VFXBaseSliderField<U> m_Slider;
         protected TextValueField<U> m_TextField;
 
@@ -49,7 +48,7 @@ namespace UnityEditor.VFX.UI
 
         void OnKeyDown(KeyDownEvent e)
         {
-            if( e.character == '\n')
+            if (e.character == '\n')
             {
                 DelayedNotifyValueChange();
                 UpdateGUI(true);
@@ -161,7 +160,7 @@ namespace UnityEditor.VFX.UI
         {
             var field =  new VFXLabeledField<LongField, long>(m_Label);
 
-            field.onValueDragFinished = t=>DelayedNotifyValueChange();
+            field.onValueDragFinished = t => DelayedNotifyValueChange();
             textField = field.control;
             return field;
         }
@@ -225,7 +224,7 @@ namespace UnityEditor.VFX.UI
         {
             var field = new VFXLabeledField<IntegerField, int>(m_Label);
             textField = field.control;
-            field.onValueDragFinished = t=>DelayedNotifyValueChange();
+            field.onValueDragFinished = t => DelayedNotifyValueChange();
             return field;
         }
 
@@ -266,7 +265,7 @@ namespace UnityEditor.VFX.UI
         protected override INotifyValueChanged<float> CreateSimpleField(out TextValueField<float> textField)
         {
             var field = new VFXLabeledField<FloatField, float>(m_Label);
-            field.onValueDragFinished = t=>DelayedNotifyValueChange();
+            field.onValueDragFinished = t => DelayedNotifyValueChange();
             textField = field.control;
             return field;
         }

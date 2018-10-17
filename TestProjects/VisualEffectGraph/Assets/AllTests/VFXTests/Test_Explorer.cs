@@ -41,6 +41,7 @@ public class Test_Explorer : MonoBehaviour
             }
         }
     }
+
 #endif
 
 
@@ -192,13 +193,13 @@ public class Test_Explorer : MonoBehaviour
                 var sceneIndex = i;
                 var asyncJob = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
                 asyncJob.completed += (a) =>
+                {
+                    var currentScene = SceneManager.GetSceneByPath(sceneName);
+                    foreach (var obj in currentScene.GetRootGameObjects())
                     {
-                        var currentScene = SceneManager.GetSceneByPath(sceneName);
-                        foreach (var obj in currentScene.GetRootGameObjects())
-                        {
-                            OnObjectLoaded(obj, sceneIndex);
-                        }
-                    };
+                        OnObjectLoaded(obj, sceneIndex);
+                    }
+                };
             }
         }
     }

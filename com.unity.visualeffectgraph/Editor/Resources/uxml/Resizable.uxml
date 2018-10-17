@@ -8,7 +8,7 @@
         <ui:VisualElement name="top-resize"/>
         <ui:VisualElement name="middle-center" pickingMode="Ignore" />
         <ui:VisualElement name="bottom-resize"/>
-    </ui:VisualElement>  
+    </ui:VisualElement>
     <ui:VisualElement name="right"  pickingMode="Ignore" >
         <ui:VisualElement name="top-right-resize"/>
         <ui:VisualElement name="right-resize"/>

@@ -123,9 +123,9 @@ float2 scale = {2};
 size = minSize * scale;
 {1}
 ",
-                        VFXBlockUtility.GetSizeVector(GetParent(), 2),
-                        VFXBlockUtility.SetSizesFromVector(GetParent(), "size", 2),
-                        sizeString);
+                    VFXBlockUtility.GetSizeVector(GetParent(), 2),
+                    VFXBlockUtility.SetSizesFromVector(GetParent(), "size", 2),
+                    sizeString);
 
                 if (GetData().IsCurrentAttributeRead(VFXAttribute.SizeZ) && sizeZMode != SizeZMode.Ignore)
                 {

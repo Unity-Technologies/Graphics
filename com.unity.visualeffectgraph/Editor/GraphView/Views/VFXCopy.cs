@@ -60,12 +60,12 @@ namespace UnityEditor.VFX.UI
             // consider only edges contained in the selection
 
             IEnumerable<VFXDataEdgeController> dataEdges = elements.OfType<VFXDataEdgeController>().Where(t =>
-                    dataEdgeTargets.Contains((t.input as VFXDataAnchorController).sourceNode as VFXNodeController) &&
-                    dataEdgeTargets.Contains((t.output as VFXDataAnchorController).sourceNode as VFXNodeController)).ToArray();
+                dataEdgeTargets.Contains((t.input as VFXDataAnchorController).sourceNode as VFXNodeController) &&
+                dataEdgeTargets.Contains((t.output as VFXDataAnchorController).sourceNode as VFXNodeController)).ToArray();
             IEnumerable<VFXFlowEdgeController> flowEdges = elements.OfType<VFXFlowEdgeController>().Where(t =>
-                    copiedContexts.Contains((t.input as VFXFlowAnchorController).context) &&
-                    copiedContexts.Contains((t.output as VFXFlowAnchorController).context)
-                    ).ToArray();
+                copiedContexts.Contains((t.input as VFXFlowAnchorController).context) &&
+                copiedContexts.Contains((t.output as VFXFlowAnchorController).context)
+                ).ToArray();
 
 
             modelIndices.Clear();
@@ -88,14 +88,13 @@ namespace UnityEditor.VFX.UI
             CopyFlowEdges(ref serializableGraph, flowEdges);
         }
 
-        void CopyGroupNodesAndStickyNotes(ref SerializableGraph serializableGraph,IEnumerable<Controller> elements)
+        void CopyGroupNodesAndStickyNotes(ref SerializableGraph serializableGraph, IEnumerable<Controller> elements)
         {
             VFXGroupNodeController[] groupNodes = elements.OfType<VFXGroupNodeController>().ToArray();
             VFXStickyNoteController[] stickyNotes = elements.OfType<VFXStickyNoteController>().ToArray();
 
             if (groupNodes.Length > 0 || stickyNotes.Length > 0)
             {
-
                 var stickyNodeIndexToCopiedIndex = new Dictionary<int, int>();
 
                 if (stickyNotes.Length > 0)
@@ -118,18 +117,17 @@ namespace UnityEditor.VFX.UI
                     {
                         VFXGroupNodeController groupNode = groupNodes[i];
                         VFXUI.GroupInfo info = groupNode.model.groupInfos[groupNode.index];
-                        
-                        serializableGraph.groupNodes[i] = new GroupNode { infos =new VFXUI.UIInfo(info)};
+
+                        serializableGraph.groupNodes[i] = new GroupNode { infos = new VFXUI.UIInfo(info)};
 
                         // only keep nodes and sticky notes that are copied because a element can not be in two groups at the same time.
                         if (info.contents != null)
                         {
-                            var nodeIndices = groupNode.nodes.OfType<VFXNodeController>().Where(t=>contexts.Contains(t) || operators.Contains(t) || parameters.Contains(t)).Select(t => modelIndices[t ]);
+                            var nodeIndices = groupNode.nodes.OfType<VFXNodeController>().Where(t => contexts.Contains(t) || operators.Contains(t) || parameters.Contains(t)).Select(t => modelIndices[t]);
                             var stickNoteIndices = info.contents.Where(t => t.isStickyNote && stickyNodeIndexToCopiedIndex.ContainsKey(t.id)).Select(t => (uint)stickyNodeIndexToCopiedIndex[t.id]);
 
                             serializableGraph.groupNodes[i].contents = nodeIndices.Concat(stickNoteIndices).ToArray();
                             serializableGraph.groupNodes[i].stickNodeCount = stickNoteIndices.Count();
-
                         }
                     }
                 }
@@ -154,7 +152,6 @@ namespace UnityEditor.VFX.UI
                 copyPasteEdge.output.targetIndex = modelIndices[outputController.sourceNode];
                 serializableGraph.dataEdges[cpt++] = copyPasteEdge;
             }
-            
         }
 
         void CopyFlowEdges(ref SerializableGraph serializableGraph, IEnumerable<VFXFlowEdgeController> flowEdges)
@@ -176,6 +173,7 @@ namespace UnityEditor.VFX.UI
                 serializableGraph.flowEdges[cpt++] = copyPasteEdge;
             }
         }
+
         void CopyDatas(ref SerializableGraph serializableGraph)
         {
             serializableGraph.datas = new Data[datas.Length];
@@ -184,6 +182,7 @@ namespace UnityEditor.VFX.UI
                 CopyModelSettings(ref serializableGraph.datas[i].settings, datas[i]);
             }
         }
+
         void CopyModelSettings(ref Property[] properties, VFXModel model)
         {
             // Copy all fields that are either VFXSettings or serialized by unity
@@ -193,7 +192,7 @@ namespace UnityEditor.VFX.UI
 
             properties = new Property[fields.Count()];
 
-            for(int i = 0; i < properties.Length; ++i)
+            for (int i = 0; i < properties.Length; ++i)
             {
                 properties[i].name = fields[i].Name;
                 properties[i].value = new VFXSerializableObject(fields[i].FieldType, fields[i].GetValue(model));
@@ -231,10 +230,10 @@ namespace UnityEditor.VFX.UI
                     min = p.hasRange ? p.model.m_Min : null,
                     max = p.hasRange ? p.model.m_Max : null,
                     tooltip = p.model.tooltip,
-                    nodes = c.Select((u, i) => CopyParameterNode(cpt-1, i, u)).ToArray()
+                    nodes = c.Select((u, i) => CopyParameterNode(cpt - 1, i, u)).ToArray()
                 };
             }
-            ).ToArray();
+                ).ToArray();
         }
 
         void CopyOperatorsAndContexts(ref SerializableGraph serializableGraph)
@@ -243,20 +242,20 @@ namespace UnityEditor.VFX.UI
 
             for (int i = 0; i < contexts.Length; ++i)
             {
-                NodeID id = CopyContext(ref serializableGraph.contexts[i], contexts[i],i);
+                NodeID id = CopyContext(ref serializableGraph.contexts[i], contexts[i], i);
                 modelIndices[contexts[i]] = id;
             }
 
             serializableGraph.operatorsOrBlocks = new Node[operators.Length];
 
-            for(int i = 0; i < operators.Length; ++i)
+            for (int i = 0; i < operators.Length; ++i)
             {
-                uint id = CopyNode(ref serializableGraph.operatorsOrBlocks[i], operators[i].model,(NodeID)i);
+                uint id = CopyNode(ref serializableGraph.operatorsOrBlocks[i], operators[i].model, (NodeID)i);
                 modelIndices[operators[i]] = id;
             }
         }
 
-        NodeID CopyNode(ref Node node, VFXModel model,uint index)
+        NodeID CopyNode(ref Node node, VFXModel model, uint index)
         {
             // Copy node infos
             node.position = model.position;
@@ -268,11 +267,11 @@ namespace UnityEditor.VFX.UI
                 node.flags = Node.Flags.SuperCollapsed;
 
             uint id = 0;
-            if( model is VFXOperator)
+            if (model is VFXOperator)
             {
                 id = OperatorFlag;
             }
-            else if( model is VFXContext)
+            else if (model is VFXContext)
             {
                 id = ContextFlag;
             }
@@ -284,10 +283,10 @@ namespace UnityEditor.VFX.UI
 
             var inputSlots = (model as IVFXSlotContainer).inputSlots;
             node.inputSlots = new Property[inputSlots.Count];
-            for (int i = 0; i < inputSlots.Count;i++ )
+            for (int i = 0; i < inputSlots.Count; i++)
             {
                 node.inputSlots[i].name = inputSlots[i].name;
-                node.inputSlots[i].value = new VFXSerializableObject(inputSlots[i].property.type,inputSlots[i].value);
+                node.inputSlots[i].value = new VFXSerializableObject(inputSlots[i].property.type, inputSlots[i].value);
             }
 
             node.expandedInputs = AllSlots(inputSlots).Where(t => !t.collapsed).Select(t => t.path).ToArray();
@@ -296,7 +295,7 @@ namespace UnityEditor.VFX.UI
             return id;
         }
 
-        Node[] CopyBlocks(IList<VFXBlockController> blocks,int contextIndex)
+        Node[] CopyBlocks(IList<VFXBlockController> blocks, int contextIndex)
         {
             var newBlocks = new Node[blocks.Count];
             for (uint i = 0; i < newBlocks.Length; ++i)
@@ -316,17 +315,17 @@ namespace UnityEditor.VFX.UI
             return newBlocks;
         }
 
-        NodeID CopyContext(ref Context context,VFXContextController controller,int index)
+        NodeID CopyContext(ref Context context, VFXContextController controller, int index)
         {
             NodeID id = CopyNode(ref context.node, controller.model, (NodeID)index);
 
             var blocks = controller.blockControllers;
 
-            if(controller.model.GetData() != null)
-                context.dataIndex = Array.IndexOf(datas,controller.model.GetData());
+            if (controller.model.GetData() != null)
+                context.dataIndex = Array.IndexOf(datas, controller.model.GetData());
             else
                 context.dataIndex = -1;
-            context.blocks = CopyBlocks(controller.blockControllers,index);
+            context.blocks = CopyBlocks(controller.blockControllers, index);
 
             return id;
         }

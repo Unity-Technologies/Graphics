@@ -275,7 +275,7 @@ namespace UnityEditor.VFX.UI
             return new Vector2(
                 element.style.marginLeft + element.style.marginRight + element.style.paddingLeft + element.style.paddingRight + element.style.borderRightWidth + element.style.borderLeftWidth,
                 element.style.marginTop + element.style.marginBottom + element.style.paddingTop + element.style.paddingBottom + element.style.borderBottomWidth + element.style.borderTopWidth
-                );
+            );
         }
 
         void OnFitToText(DropdownMenu.MenuAction a)
@@ -287,12 +287,12 @@ namespace UnityEditor.VFX.UI
         {
             Vector2 preferredTitleSize = Vector2.zero;
             if (!string.IsNullOrEmpty(m_Title.text))
-                preferredTitleSize = m_Title.MeasureTextSize(m_Title.text,0, MeasureMode.Undefined, 0, MeasureMode.Undefined); // This is the size of the string with the current title font and such
+                preferredTitleSize = m_Title.MeasureTextSize(m_Title.text, 0, MeasureMode.Undefined, 0, MeasureMode.Undefined); // This is the size of the string with the current title font and such
 
             preferredTitleSize += AllExtraSpace(m_Title);
             preferredTitleSize.x += m_Title.ChangeCoordinatesTo(this, Vector2.zero).x + style.width - m_Title.ChangeCoordinatesTo(this, new Vector2(m_Title.layout.width, 0)).x;
 
-            Vector2 preferredContentsSizeOneLine = m_Contents.MeasureTextSize(m_Contents.text,0, MeasureMode.Undefined, 0, MeasureMode.Undefined);
+            Vector2 preferredContentsSizeOneLine = m_Contents.MeasureTextSize(m_Contents.text, 0, MeasureMode.Undefined, 0, MeasureMode.Undefined);
 
             Vector2 contentExtraSpace = AllExtraSpace(m_Contents);
             preferredContentsSizeOneLine += contentExtraSpace;
@@ -315,7 +315,7 @@ namespace UnityEditor.VFX.UI
             {
                 width = Mathf.Max(preferredTitleSize.x + extraSpace.x, style.width);
                 float contextWidth = width - extraSpace.x - contentExtraSpace.x;
-                Vector2 preferredContentsSize = m_Contents.MeasureTextSize(m_Contents.text,contextWidth, MeasureMode.Exactly, 0, MeasureMode.Undefined);
+                Vector2 preferredContentsSize = m_Contents.MeasureTextSize(m_Contents.text, contextWidth, MeasureMode.Exactly, 0, MeasureMode.Undefined);
 
                 preferredContentsSize += contentExtraSpace;
 
@@ -575,7 +575,7 @@ namespace UnityEditor.VFX.UI
 
         void NotifyChange(StickyNodeChangeEvent.Change change)
         {
-            if( OnChange != null)
+            if (OnChange != null)
             {
                 OnChange(change);
             }

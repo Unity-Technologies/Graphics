@@ -99,9 +99,9 @@ void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
 
 float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
 {
-	#if USE_FOG && defined(VFX_VARYING_POSCS) && defined(VFX_VARYING_POSWS) 
-	return VFXApplyFog(color,i.VFX_VARYING_POSCS,i.VFX_VARYING_POSWS);
-	#else
-	return color;
-	#endif
+    #if USE_FOG && defined(VFX_VARYING_POSCS) && defined(VFX_VARYING_POSWS)
+    return VFXApplyFog(color,i.VFX_VARYING_POSCS,i.VFX_VARYING_POSWS);
+    #else
+    return color;
+    #endif
 }

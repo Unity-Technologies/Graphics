@@ -198,6 +198,7 @@ public class VFXMigration
             EditorSceneManager.SaveScene(EditorSceneManager.GetSceneByPath(file.path));
         }
     }
+
     public static void MigrateComponentsCurrentScnene()
     {
         HashSet<GameObject> prefabs = new HashSet<GameObject>();
@@ -516,7 +517,8 @@ public class VFXMigration
 
 
         #pragma warning disable 0414
-    static Dictionary<System.Type, string> m_Properties = new Dictionary<System.Type, string>() {
+    static Dictionary<System.Type, string> m_Properties = new Dictionary<System.Type, string>()
+    {
         { typeof(Vector2), "m_Vector2f"},
         { typeof(Vector3), "m_Vector3f"},
         { typeof(Vector4), "m_Vector4f"},

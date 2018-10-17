@@ -11,7 +11,6 @@ namespace UnityEditor.VFX.UI
 {
     internal class VFXEdge : Edge
     {
-
         public VFXEdge()
         {
             edgeControl.style.overflow = Overflow.Hidden;
@@ -44,7 +43,6 @@ namespace UnityEditor.VFX.UI
         public VFXDataEdge()
         {
         }
-        
 
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {

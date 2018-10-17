@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXBasicInitialize : VFXContext
     {
-        [VFXSetting,Delayed]
+        [VFXSetting, Delayed]
         private uint capacity = 0; // not serialized here but in VFXDataParticle
 
         public VFXBasicInitialize() : base(VFXContextType.kInit, VFXDataType.kSpawnEvent, VFXDataType.kParticle) {}
