@@ -119,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] int m_MaxPixelLights = 0;
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
-        [SerializeField] LightweightRenderPipelineResources m_ResourcesAsset;
+        [SerializeField] LightweightRenderPipelineResources m_ResourcesAsset = null;
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 #if UNITY_EDITOR
         [NonSerialized]
