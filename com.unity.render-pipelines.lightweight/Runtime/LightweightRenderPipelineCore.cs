@@ -93,7 +93,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 throw new ArgumentNullException("camera");
 
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRGraphicsConfig.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            return XRGraphics.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         void SortCameras(Camera[] cameras)
