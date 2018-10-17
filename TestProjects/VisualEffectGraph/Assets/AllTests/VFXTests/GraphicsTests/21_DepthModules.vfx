@@ -362,7 +362,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 100
+      m_SerializableObject: 30
     m_Space: 2147483647
   m_Property:
     name: Rate
@@ -495,7 +495,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 10
+      m_SerializableObject: 5
     m_Space: 2147483647
   m_Property:
     name: Min
@@ -649,7 +649,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 10
+      m_SerializableObject: 5
     m_Space: 2147483647
   m_Property:
     name: Max
@@ -877,8 +877,8 @@ VisualEffectResource:
       float2 pixelOffset = 2.0f / Camera_pixelDimensions;\n    \n            float2
       projPos10 = projPos.xy + float2(pixelOffset.x,0.0f);\n            float2 projPos01
       = projPos.xy + float2(0.0f,pixelOffset.y);\n    \n            float depth10
-      = LoadTexture(DepthBuffer, int3((projPos10 * 0.5f + 0.5f) * Camera_pixelDimensions,
-      0)).r;\n            float depth01 = LoadTexture(DepthBuffer, int3((projPos01
+      = LoadTexture(DepthBuffer, int3(saturate(projPos10 * 0.5f + 0.5f) * Camera_pixelDimensions,
+      0)).r;\n            float depth01 = LoadTexture(DepthBuffer, int3(saturate(projPos01
       * 0.5f + 0.5f) * Camera_pixelDimensions, 0)).r;\n    \n            #if UNITY_REVERSED_Z\n
       \           depth10 = 1.0f - depth10;\n            depth01 = 1.0f - depth01;\n
       \           #endif\n    \n            float4 vPos10 = mul(ClipToView,float4(projPos10,depth10
@@ -1716,15 +1716,15 @@ VisualEffectResource:
         - m_ExpressionIndex: 56
           m_Value: 0.5
         - m_ExpressionIndex: 57
-          m_Value: 0.2
+          m_Value: 1
         - m_ExpressionIndex: 58
           m_Value: 0
         - m_ExpressionIndex: 60
           m_Value: 0
         - m_ExpressionIndex: 61
-          m_Value: 0.8
+          m_Value: 0.6
         - m_ExpressionIndex: 62
-          m_Value: 100
+          m_Value: 30
         - m_ExpressionIndex: 63
           m_Value: 1
         - m_ExpressionIndex: 64
@@ -1742,9 +1742,9 @@ VisualEffectResource:
         - m_ExpressionIndex: 91
           m_Value: 1
         - m_ExpressionIndex: 96
-          m_Value: 10
+          m_Value: 5
         - m_ExpressionIndex: 97
-          m_Value: 10
+          m_Value: 5
       m_Vector2f:
         m_Array:
         - m_ExpressionIndex: 49
@@ -2177,7 +2177,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614553}
   - {fileID: 8926484042661614554}
   - {fileID: 8926484042661614555}
-  - {fileID: 8926484042661614766}
+  - {fileID: 8926484042661614786}
   m_OutputSlots: []
   m_Disabled: 0
   mode: 0
@@ -3052,7 +3052,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.8
+      m_SerializableObject: 0.6
     m_Space: 2147483647
   m_Property:
     name: Elasticity
@@ -5678,46 +5678,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &8926484042661614766
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661614766}
-  m_MasterData:
-    m_Owner: {fileID: 8926484042661614530}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.2
-    m_Space: 2147483647
-  m_Property:
-    name: surfaceThickness
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes:
-    - m_Type: 1
-      m_Min: 0
-      m_Max: Infinity
-      m_Tooltip: 
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &8926484042661614768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6207,3 +6167,43 @@ MonoBehaviour:
   m_Direction: 1
   m_LinkedSlots:
   - {fileID: 8926484042661614769}
+--- !u!114 &8926484042661614786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614786}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614530}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 1
+    m_Space: 2147483647
+  m_Property:
+    name: surfaceThickness
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes:
+    - m_Type: 1
+      m_Min: 0
+      m_Max: Infinity
+      m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
+  m_Direction: 0
+  m_LinkedSlots: []
