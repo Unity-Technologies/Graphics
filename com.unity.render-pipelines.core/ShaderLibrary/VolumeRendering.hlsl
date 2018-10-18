@@ -49,6 +49,48 @@ real3 TransmittanceIntegralHomogeneousMedium(real3 extinction, real intervalLeng
     return rcp(extinction) - rcp(extinction) * exp(-extinction * intervalLength);
 }
 
+// Can be used to scale base extinction and scattering coefficients.
+real ComputeHeightFogMultiplier(real height, real baseHeight, real2 heightExponents)
+{
+    height = max(0, height - baseHeight);
+
+    return exp(-heightExponents.x * height);
+}
+
+// Optical depth between two endpoints.
+real OpticalDepthHeightFog(real baseExtinction, real baseHeight, real2 heightExponents,
+                           real cosZenith, real startHeight, real intervalLength)
+{
+    // Height fog is composed of two slices:
+    // - constant fog below 'baseHeight'   : d = k * t
+    // - exponential fog above 'baseHeight': d = Integrate[k * e^(-a * (h_0 + z * x)) dx, {x, 0, t}]
+
+    real rcpAbsCos = rcp(max(abs(cosZenith), FLT_EPS));
+
+    real endHeight = startHeight + intervalLength * cosZenith;
+    real minHeight = min(startHeight, endHeight);
+    real maxHeight = max(startHeight, endHeight);
+
+    real constantFogDistance = clamp((baseHeight - minHeight) * rcpAbsCos, 0, intervalLength);
+
+    minHeight = max(0, minHeight - baseHeight);
+    maxHeight = max(0, maxHeight - baseHeight);
+
+    real heightFogFactor  = abs(exp(-heightExponents.x * maxHeight) - exp(-heightExponents.x * minHeight));
+         heightFogFactor *= rcpAbsCos * heightExponents.y;
+
+    return baseExtinction * (constantFogDistance + heightFogFactor);
+}
+
+// This version of the function assumes the interval of infinite length.
+real OpticalDepthHeightFog(real baseExtinction, real baseHeight, real2 heightExponents,
+                           real cosZenith, real startHeight)
+{
+    // TODO: optimize.
+    return OpticalDepthHeightFog(baseExtinction, baseHeight, heightExponents,
+                                 cosZenith, startHeight, rcp(FLT_EPS));
+}
+
 real IsotropicPhaseFunction()
 {
     return INV_FOUR_PI;
@@ -180,6 +222,9 @@ real3 TransmittanceColorAtDistanceToAbsorption(real3 transmittanceColor, real at
     return -log(transmittanceColor + FLT_EPS) / max(atDistance, FLT_EPS);
 }
 
+// TODO: it would be good to improve the perf and numerical stability
+// of approximations below by finding a polynomial approximation.
+
 // input = {radiance, opacity}
 // Note that opacity must be less than 1 (not fully opaque).
 real4 LinearizeRGBA(real4 value)
@@ -189,7 +234,8 @@ real4 LinearizeRGBA(real4 value)
     // We drop redundant negations.
     real a = value.a;
     real d = -log(1 - a);
-    return real4((d * rcp(a)) * value.rgb, d);
+    real r = (a >= FLT_EPS) ? (d * rcp(a)) : 1; // Prevent numerical explosion
+    return real4(r * value.rgb, d);
 }
 
 // input = {radiance, optical_depth}
@@ -201,7 +247,8 @@ real4 LinearizeRGBD(real4 value)
     // We drop redundant negations.
     real d = value.a;
     real a = 1 - exp(-d);
-    return real4((d * rcp(a)) * value.rgb, d);
+    real r = (a >= FLT_EPS) ? (d * rcp(a)) : 1; // Prevent numerical explosion
+    return real4(r * value.rgb, d);
 }
 
 // output = {radiance, opacity}
@@ -213,7 +260,8 @@ real4 DelinearizeRGBA(real4 value)
     // We drop redundant negations.
     real d = value.a;
     real a = 1 - exp(-d);
-    return real4((a * rcp(d)) * value.rgb, a);
+    real i = (a >= FLT_EPS) ? (a * rcp(d)) : 1; // Prevent numerical explosion
+    return real4(i * value.rgb, a);
 }
 
 // input = {radiance, optical_depth}
@@ -225,7 +273,8 @@ real4 DelinearizeRGBD(real4 value)
     // We drop redundant negations.
     real d = value.a;
     real a = 1 - exp(-d);
-    return real4((a * rcp(d)) * value.rgb, d);
+    real i = (a >= FLT_EPS) ? (a * rcp(d)) : 1; // Prevent numerical explosion
+    return real4(i * value.rgb, d);
 }
 
 #endif // UNITY_VOLUME_RENDERING_INCLUDED
