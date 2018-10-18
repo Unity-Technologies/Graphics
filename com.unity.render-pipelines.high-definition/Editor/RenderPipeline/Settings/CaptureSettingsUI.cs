@@ -34,8 +34,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 captureSettingsHeaderContent,
                 (s, p, o) => s.isSectionExpandedCaptureSettings,
                 FoldoutOption.Indent,
-                CED.LabelWidth(150, CED.Action((s, p, o) => Drawer_SectionCaptureSettings(s, p, o))),
-                CED.space
+                CED.LabelWidth(150, CED.Action((s, p, o) => Drawer_SectionCaptureSettings(s, p, o)))
+                //no space as FrameSettings is rendered here and will handle it
                 );
 
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[0]; } }
