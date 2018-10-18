@@ -70,7 +70,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             area.Add(p.shadowDistance, shadowDistanceContent, () => p.overridesShadowDistance, a => p.overridesShadowDistance = a);
             area.Add(p.renderingPath, renderingPathContent, () => p.overridesRenderingPath, a => p.overridesRenderingPath = a);
+            EditorGUI.BeginChangeCheck();
             area.Draw(withOverride: false);
+
+
+
+
+            //hack while we rely on legacy probe for baking.
+            //to remove once we do not rely on them
+            if (EditorGUI.EndChangeCheck() && owner is HDReflectionProbeEditor)
+            {
+                ReflectionProbe rp = owner.target as ReflectionProbe;
+                rp.clearFlags = p.clearColorMode.enumValueIndex == (int)HDAdditionalCameraData.ClearColorMode.Sky ? UnityEngine.Rendering.ReflectionProbeClearFlags.Skybox : UnityEngine.Rendering.ReflectionProbeClearFlags.SolidColor;
+                rp.backgroundColor = p.backgroundColorHDR.colorValue;
+                rp.hdr = true;
+                rp.cullingMask = p.cullingMask.intValue;
+                rp.nearClipPlane = p.nearClipPlane.floatValue;
+                rp.farClipPlane = p.farClipPlane.floatValue;
+            }
         }
     }
 }
