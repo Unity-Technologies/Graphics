@@ -62,6 +62,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent enableGeometricSpecularAAText = new GUIContent("Enable geometric specular AA", "This reduce specular aliasing on highly dense mesh (Particularly useful when they don't use normal map)");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Allow to control the strength of the specular AA reduction. Higher mean more blurry result and less aliasing");
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Allow to limit the effect of specular AA reduction. 0 mean don't apply reduction, higher value mean allow higher reduction");
+
+            // SSR
+            public static GUIContent receivesSSRText = new GUIContent("Receives SSR", "Allow to specify if the material can receive SSR or not");
+
         }
 
         public enum DoubleSidedNormalMode
@@ -179,6 +183,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty specularAAThreshold = null;
         protected const string kSpecularAAThreshold = "_SpecularAAThreshold";
 
+        // SSR
+        protected MaterialProperty receivesSSR = null;
+        protected const string kReceivesSSR = "_ReceivesSSR";
+
+
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             base.FindBaseMaterialProperties(props);
@@ -226,6 +235,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA, props, false);
             specularAAScreenSpaceVariance = FindProperty(kSpecularAAScreenSpaceVariance, props, false);
             specularAAThreshold = FindProperty(kSpecularAAThreshold, props, false);
+
+            // SSR
+            receivesSSR = FindProperty(kReceivesSSR, props, false);
         }
 
         void TessellationModePopup()
@@ -286,6 +298,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(specularAAThreshold, StylesBaseLit.specularAAThresholdText);
                     EditorGUI.indentLevel--;
                 }
+            }
+
+            if(receivesSSR != null)
+            {
+                m_MaterialEditor.ShaderProperty(receivesSSR, StylesBaseLit.receivesSSRText);
             }
 
             if (displacementMode != null)
@@ -445,13 +462,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the reference value for the stencil test.
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
+            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
             if (material.HasProperty(kMaterialID) && (int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
             {
                 stencilRef = (int)StencilLightingUsage.SplitLighting;
             }
+
+            if(material.HasProperty(kReceivesSSR) && material.GetInt(kReceivesSSR) == 0)
+            {
+                stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+                stencilRef |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+            }
+
             // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
             material.SetInt(kStencilRef, stencilRef);
-            material.SetInt(kStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
+            material.SetInt(kStencilWriteMask, stencilWriteMask);
             material.SetInt(kStencilRefMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
             material.SetInt(kStencilWriteMaskMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
 
@@ -492,7 +517,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Use negation so we don't create keyword by default
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0);
-
+            CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0);
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
         }
 

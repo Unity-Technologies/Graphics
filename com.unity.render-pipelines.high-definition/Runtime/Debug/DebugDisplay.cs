@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Lighting
         MinLightingFullScreenDebug,
         SSAO,
+        ScreenSpaceReflections,
         ContactShadows,
         PreRefractionColorPyramid,
         DepthPyramid,
@@ -59,16 +60,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int[] lightingFullScreenDebugValues = null;
         public static GUIContent[] renderingFullScreenDebugStrings = null;
         public static int[] renderingFullScreenDebugValues = null;
-        public static GUIContent[] debugScreenSpaceTracingProxyStrings = null;
-        public static int[] debugScreenSpaceTracingProxyValues = null;
-        public static GUIContent[] debugScreenSpaceTracingHiZStrings = null;
-        public static int[] debugScreenSpaceTracingHiZValues = null;
-        public static GUIContent[] debugScreenSpaceTracingLinearStrings = null;
-        public static int[] debugScreenSpaceTracingLinearValues = null;
-        public static GUIContent[] debuggedAlgorithmStrings = null;
-        public static int[] debuggedAlgorithmValues = null;
-        public static GUIContent[] debugMSAASamplesStrings = null;
-        public static int[] debugMSAASamplesValues = null;
         public static GUIContent[] msaaSamplesDebugStrings = null;
         public static int[] msaaSamplesDebugValues = null;
 
@@ -228,7 +219,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)materialDebugSettings.debugViewGBuffer;
             return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
-                (fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid);
+                (fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections);
         }
 
         void RegisterDisplayStatsDebug()
@@ -320,6 +311,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 setter = (v) => lightingDebugSettings.shadowResolutionScaleFactor = v,
                 min = () => 0.01f,
                 max = () => 4.0f,
+            });
+
+            list.Add(new DebugUI.BoolField{
+                displayName = "Clear Shadow atlas",
+                getter = () => lightingDebugSettings.clearShadowAtlas,
+                setter = (v) => lightingDebugSettings.clearShadowAtlas = v
             });
 
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Min Value", getter = () => lightingDebugSettings.shadowMinValue, setter = value => lightingDebugSettings.shadowMinValue = value });
@@ -465,6 +462,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             list.Add(new DebugUI.BoolField { displayName = "Display Light Volumes", getter = () => lightingDebugSettings.displayLightVolumes, setter = value => lightingDebugSettings.displayLightVolumes = value, onValueChanged = RefreshLightingDebug });
+            if (lightingDebugSettings.displayLightVolumes)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.EnumField { displayName = "Light Volume Debug Type", getter = () => (int)lightingDebugSettings.lightVolumeDebugByCategory, setter = value => lightingDebugSettings.lightVolumeDebugByCategory = (LightLoop.LightVolumeDebug)value, autoEnum = typeof(LightLoop.LightVolumeDebug) },
+                        new DebugUI.UIntField { displayName = "Max Debug Light Count", getter = () => (uint)lightingDebugSettings.maxDebugLightCount, setter = value => lightingDebugSettings.maxDebugLightCount = value, min = () => 0, max = () => 24, incStep = 1 }
+                    }
+                });
+            }
 
             if (DebugNeedsExposure())
                 list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => lightingDebugSettings.debugExposure, setter = value => lightingDebugSettings.debugExposure = value });

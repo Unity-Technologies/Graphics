@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph
         bool generatePropertyBlock { get; set; }
         Vector4 defaultValue { get; }
         string overrideReferenceName { get; set; }
+        bool isBatchable { get; }
 
         string GetPropertyBlockString();
         string GetPropertyDeclarationString(string delimiter = ";");

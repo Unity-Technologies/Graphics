@@ -1,3 +1,5 @@
+# Replace Color Node
+
 ## Description
 
 Replaces values in input **In** equal to input **From** to the value of input **To**. Input **Range** can be used to define a wider range of values around input **From** to replace. Input **Fuzziness** can be used to soften the edges around the selection similar to anti-aliasing.
@@ -13,9 +15,14 @@ Replaces values in input **In** equal to input **From** to the value of input **
 | Fuzziness      | Input | Vector 1 | None | Soften edges around selection |
 | Out | Output      |    Vector 3 | None | Output value |
 
-## Shader Function
+## Generated Code Example
+
+The following example code represents one possible outcome of this node.
 
 ```
-float Distance = distance(From, In);
-Out = lerp(To, In, saturate((Distance - Range) / max(Fuzziness, 1e-5f)));
+void Unity_ReplaceColor_float(float3 In, float3 From, float3 To, float Range, float Fuzziness, out float3 Out)
+{
+    float Distance = distance(From, In);
+    Out = lerp(To, In, saturate((Distance - Range) / max(Fuzziness, 1e-5f)));
+}
 ```

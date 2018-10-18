@@ -75,5 +75,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool planarReflectionCacheCompressed = false;
         public SkyResolution skyReflectionSize = SkyResolution.SkyResolution256;
         public LayerMask skyLightingOverrideLayerMask = 0;
+        public bool supportFabricConvolution = false;
     }
 }

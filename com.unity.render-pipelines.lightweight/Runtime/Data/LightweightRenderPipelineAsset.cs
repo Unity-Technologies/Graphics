@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         _4xBilinear
     }
 
-    public enum DefaultMaterialType
+    internal enum DefaultMaterialType
     {
         Standard,
         Particle,
@@ -58,6 +58,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         Disabled,
         PerPixel,
         PerVertex,
+    }
+
+    public enum ShaderVariantLogLevel
+    {
+        Disabled,
+        OnlyLightweightRPShaders,
+        AllShaders,
     }
 
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
@@ -94,6 +101,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.FourCascades;
         [SerializeField] float m_Cascade2Split = 0.25f;
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField] float m_ShadowDepthBias = 1.0f;
+        [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
 
         // Advanced settings
@@ -101,8 +110,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_MixedLightingSupported = true;
         // TODO: Render Pipeline Batcher
         
-        [SerializeField] XRGraphicsConfig m_SavedXRConfig = XRGraphicsConfig.s_DefaultXRConfig;
-
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
         [SerializeField] bool m_LocalShadowsSupported = false;
@@ -110,7 +117,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] int m_MaxPixelLights = 0;
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
-        [SerializeField] LightweightRenderPipelineResources m_ResourcesAsset;
+        [SerializeField] LightweightRenderPipelineResources m_ResourcesAsset = null;
+        [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 #if UNITY_EDITOR
         [NonSerialized]
         LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
@@ -324,6 +332,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_Cascade4Split; }
         }
 
+        public float shadowDepthBias
+        {
+            get { return m_ShadowDepthBias; }
+            set { m_ShadowDepthBias = value; }
+        }
+
+        public float shadowNormalBias
+        {
+            get { return m_ShadowNormalBias; }
+            set { m_ShadowNormalBias = value; }
+        }
+
         public bool supportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
@@ -337,6 +357,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool supportsMixedLighting
         {
             get { return m_MixedLightingSupported; }
+        }
+
+        public ShaderVariantLogLevel shaderVariantLogLevel
+        {
+            get { return m_ShaderVariantLogLevel; }
         }
 
         public override Material GetDefaultMaterial()
@@ -422,13 +447,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get { return resources != null ? resources.samplingShader : null; }
         }
-
-        public XRGraphicsConfig savedXRGraphicsConfig
-        {
-            get { return m_SavedXRConfig; }
-            set { m_SavedXRConfig = value;  }
-        }
-
+        
         public void OnBeforeSerialize()
         {
         }

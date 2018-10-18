@@ -39,6 +39,7 @@ Shader "HDRenderPipeline/TerrainLit"
         _Color("Color", Color) = (1,1,1,1)
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
+        [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
 
         // TEMP: See comment later for motion vector pass
         [HideInInspector] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0

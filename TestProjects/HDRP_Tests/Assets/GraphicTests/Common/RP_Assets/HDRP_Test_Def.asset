@@ -73,6 +73,7 @@ MonoBehaviour:
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 1
+    supportFabricConvolution: 0
     xrConfig:
       renderScale: 1
       viewportScale: 1

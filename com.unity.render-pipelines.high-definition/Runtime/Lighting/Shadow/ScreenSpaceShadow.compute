@@ -83,7 +83,7 @@ float ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLeng
 
     // Here we compute a ray perpendicular to view space. This is the ray we use to compute the threshold for rejecting samples.
     // This is done this way so that the threshold is less dependent of ray slope.
-    float4 rayOrthoViewSpace = rayStartCS + GetViewToHClipMatrix()[2];
+    float4 rayOrthoViewSpace = rayStartCS + float4(GetViewToHClipMatrix()[0][2], GetViewToHClipMatrix()[1][2], GetViewToHClipMatrix()[2][2], GetViewToHClipMatrix()[3][2]) * rayLength;
     rayOrthoViewSpace = rayOrthoViewSpace / rayOrthoViewSpace.w;
 
     rayStartCS.xyz = rayStartCS.xyz / rayStartCS.w;
@@ -93,7 +93,7 @@ float ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLeng
     float3 rayDirCS = rayEndCS.xyz - rayStartCS.xyz;
 
     float step = 1.0f / _SampleCount;
-    float compareThreshold = abs(rayOrthoViewSpace.z - rayStartCS.z) * max(0.05f, step);
+    float compareThreshold = abs(rayOrthoViewSpace.z - rayStartCS.z) * max(0.07f, step);
 
     float occluded = 0.0f;
 

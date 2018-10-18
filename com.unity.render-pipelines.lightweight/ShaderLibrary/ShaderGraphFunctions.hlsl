@@ -41,6 +41,6 @@ float3 shadergraph_LWSampleSceneColor(float2 uv)
 
 // Always include Shader Graph version
 // Always include last to avoid double macros
-#include "ShaderGraphLibrary/Functions.hlsl" 
+#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl" 
 
 #endif // UNITY_GRAPHFUNCTIONS_LW_INCLUDED

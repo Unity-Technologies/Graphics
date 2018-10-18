@@ -1,3 +1,5 @@
+# One Minus Node
+
 ## Description
 
 Returns the result of input **In** subtracted from 1.
@@ -9,6 +11,13 @@ Returns the result of input **In** subtracted from 1.
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = 1 - In`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_OneMinus_float4(float4 In, out float4 Out)
+{
+    Out = 1 - In;
+}
+```

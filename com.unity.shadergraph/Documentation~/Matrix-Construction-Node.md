@@ -1,3 +1,5 @@
+# Matrix Construction Node
+
 ## Description
 
 Constructs square matrices from the four input vectors **M0**, **M1**, **M2** and **M3**. This node can be used to generate matrices of types **Matrix 2x2**, **Matrix 3x3** and **Matrix 4x4**. 
@@ -23,26 +25,34 @@ For example, connecting **Vector 2** type values to inputs **M0** and **M1** wil
 | 3x3 | Output      |    Matrix 3x3 | Output as Matrix 3x3 |
 | 2x2 | Output      |    Matrix 2x2 | Output as Matrix 2x2 |
 
-## Parameters
+## Controls
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 |      | Dropdown | Row, Column | Selects how the output matrix should be filled |
 
-## Shader Function
+## Generated Code Example
+
+The following example code represents one possible outcome of this node per mode.
 
 **Row**
 
 ```
-Out4x4 = float4x4(M0.x, M0.y, M0.z, M0.w, M1.x, M1.y, M1.z, M1.w, M2.x, M2.y, M2.z, M2.w, M3.x, M3.y, M3.z, M3.w)
-Out3x3 = float3x3(M0.x, M0.y, M0.z, M1.x, M1.y, M1.z, M2.x, M2.y, M2.z)
-Out2x2 = float2x2(M0.x, M0.y, M1.x, M1.y)
+void Unity_MatrixConstruction_float(float4 M0, float4 M1, float4 M2, float3 M3, out float4x4 Out4x4, out float3x3 Out3x3, out float2x2 Out2x2)
+{
+    Out4x4 = float4x4(M0.x, M0.y, M0.z, M0.w, M1.x, M1.y, M1.z, M1.w, M2.x, M2.y, M2.z, M2.w, M3.x, M3.y, M3.z, M3.w);
+    Out3x3 = float3x3(M0.x, M0.y, M0.z, M1.x, M1.y, M1.z, M2.x, M2.y, M2.z);
+    Out2x2 = float2x2(M0.x, M0.y, M1.x, M1.y);
+}
 ```
 
 **Column**
 
 ```
-Out4x4 = float4x4(M0.x, M1.x, M2.x, M3.x, M0.y, M1.y, M2.y, M3.y, M0.z, M1.z, M2.z, M3.z, M0.w, M1.w, M2.w, M3.w)
-Out3x3 = float3x3(M0.x, M1.x, M2.x, M0.y, M1.y, M2.y, M0.z, M1.z, M2.z)
-Out2x2 = float2x2(M0.x, M1.x, M0.y, M1.y)
+void Unity_MatrixConstruction_float(float4 M0, float4 M1, float4 M2, float3 M3, out float4x4 Out4x4, out float3x3 Out3x3, out float2x2 Out2x2)
+{
+    Out4x4 = float4x4(M0.x, M1.x, M2.x, M3.x, M0.y, M1.y, M2.y, M3.y, M0.z, M1.z, M2.z, M3.z, M0.w, M1.w, M2.w, M3.w);
+    Out3x3 = float3x3(M0.x, M1.x, M2.x, M0.y, M1.y, M2.y, M0.z, M1.z, M2.z);
+    Out2x2 = float2x2(M0.x, M1.x, M0.y, M1.y);
+}
 ```

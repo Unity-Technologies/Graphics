@@ -203,6 +203,8 @@ Shader "HDRenderPipeline/Lit"
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
+        [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+
     }
 
     HLSLINCLUDE
@@ -245,6 +247,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _TRANSMITTANCECOLORMAP
 
     #pragma shader_feature _DISABLE_DECALS
+    #pragma shader_feature _DISABLE_SSR
     #pragma shader_feature _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent

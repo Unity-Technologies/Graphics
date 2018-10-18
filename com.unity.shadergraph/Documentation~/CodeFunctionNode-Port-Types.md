@@ -19,6 +19,8 @@ Below is a full list including the [Data Type](Data-Types) they map to.
 | ColorRGBA | Vector4 (with a ColorRGBA [Port Binding](Port-Bindings.md))|
 | ColorRGB | Vector3 (with a ColorRGB [Port Binding](Port-Bindings.md)) |
 | Texture2D | Texture2D |
+| Texture2DArray | Texture2DArray |
+| Texture3D | Texture3D |
 | Cubemap | Cubemap |
 | SamplerState | SamplerState |
 | DynamicDimensionVector | DynamicVector |

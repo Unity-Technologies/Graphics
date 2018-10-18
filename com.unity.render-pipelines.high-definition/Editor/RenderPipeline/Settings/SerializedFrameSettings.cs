@@ -32,8 +32,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty enableDistortion;
         public SerializedProperty enablePostprocess;
 
-        public SerializedProperty enableStereo;
-        public SerializedProperty xrGraphicsConfig;
         public SerializedProperty enableAsyncCompute;
 
         public SerializedProperty enableOpaqueObjects;
@@ -324,28 +322,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }        
 
-        public bool overridesStereo
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.Stereo) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.Stereo;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.Stereo;
-            }
-        }
-        public bool overridesXrGraphicSettings
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.XrGraphicSettings) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.XrGraphicSettings;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.XrGraphicSettings;
-            }
-        }
         public bool overridesMSAA
         {
             get { return (overrides.intValue & (int)FrameSettingsOverrides.MSAA) > 0; }
@@ -384,8 +360,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             enableTransparentPostpass = root.Find((FrameSettings d) => d.enableTransparentPostpass);
             enableDistortion = root.Find((FrameSettings d) => d.enableDistortion);
             enablePostprocess = root.Find((FrameSettings d) => d.enablePostprocess);
-            enableStereo = root.Find((FrameSettings d) => d.enableStereo);
-            xrGraphicsConfig = root.Find((FrameSettings d) => d.xrGraphicsConfig);
             enableAsyncCompute = root.Find((FrameSettings d) => d.enableAsyncCompute);
             enableOpaqueObjects = root.Find((FrameSettings d) => d.enableOpaqueObjects);
             enableTransparentObjects = root.Find((FrameSettings d) => d.enableTransparentObjects);

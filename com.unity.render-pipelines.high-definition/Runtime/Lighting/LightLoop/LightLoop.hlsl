@@ -239,7 +239,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         //  3. Sky Reflection / Refraction
 
         // Apply SSR.
-    #ifndef _SURFACE_TYPE_TRANSPARENT
+    #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR)
         {
             IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
                                                                            reflectionHierarchyWeight);
@@ -259,8 +259,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
         {
-            IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
-                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
+            IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
             AccumulateIndirectLighting(lighting, aggregateLighting);
         }
 

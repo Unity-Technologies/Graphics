@@ -44,9 +44,38 @@ namespace UnityEngine.Experimental.Rendering.UI
             int index = Array.IndexOf(array, m_Field.GetValue());
 
             if (index == array.Length - 1)
+            {
                 index = 0;
+            }
             else
-                index += 1;
+            {
+                if (fast)
+                {
+                    //check if quickSeparators have not been constructed
+                    //it is thecase when not constructed with autoenum
+                    var separators = m_Field.quickSeparators;
+                    if(separators == null)
+                    {
+                        m_Field.InitQuickSeparators();
+                        separators = m_Field.quickSeparators;
+                    }
+
+                    int idxSup = 0;
+                    for (; idxSup < separators.Length && index + 1 > separators[idxSup]; ++idxSup) ;
+                    if(idxSup == separators.Length)
+                    {
+                        index = 0;
+                    }
+                    else
+                    {
+                        index = separators[idxSup];
+                    }
+                }
+                else
+                {
+                    index += 1;
+                }
+            }
 
             m_Field.SetValue(array[index]);
             UpdateValueLabel();
@@ -61,9 +90,47 @@ namespace UnityEngine.Experimental.Rendering.UI
             int index = Array.IndexOf(array, m_Field.GetValue());
 
             if (index == 0)
-                index = array.Length - 1;
+            {
+                if(fast)
+                {
+                    //check if quickSeparators have not been constructed
+                    //it is thecase when not constructed with autoenum
+                    var separators = m_Field.quickSeparators;
+                    if (separators == null)
+                    {
+                        m_Field.InitQuickSeparators();
+                        separators = m_Field.quickSeparators;
+                    }
+
+                    index = separators[separators.Length - 1];
+                }
+                else
+                {
+                    index = array.Length - 1;
+                }
+            }
             else
-                index -= 1;
+            {
+                if (fast)
+                {
+                    //check if quickSeparators have not been constructed
+                    //it is thecase when not constructed with autoenum
+                    var separators = m_Field.quickSeparators;
+                    if (separators == null)
+                    {
+                        m_Field.InitQuickSeparators();
+                        separators = m_Field.quickSeparators;
+                    }
+
+                    int idxInf = separators.Length - 1;
+                    for (; idxInf > 0 && index <= separators[idxInf]; --idxInf) ;
+                    index = separators[idxInf];
+                }
+                else
+                {
+                    index -= 1;
+                }
+            }
 
             m_Field.SetValue(array[index]);
             UpdateValueLabel();

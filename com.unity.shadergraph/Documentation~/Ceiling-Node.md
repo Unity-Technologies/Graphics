@@ -1,6 +1,8 @@
+# Ceiling Node
+
 ## Description
 
-Returns the smallest integer value, or whole number, that is greater than or equal to the value of input **In**. 
+Returns the smallest integer value, or whole number, that is greater than or equal to the value of input **In**.
 
 ## Ports
 
@@ -9,6 +11,13 @@ Returns the smallest integer value, or whole number, that is greater than or equ
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = ceil(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Ceiling_float4(float4 In, out float4 Out)
+{
+    Out = ceil(In);
+}
+```

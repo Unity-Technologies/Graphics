@@ -1,3 +1,5 @@
+# Sine Node
+
 ## Description
 
 Returns the sine of the value of input **In**.
@@ -9,6 +11,13 @@ Returns the sine of the value of input **In**.
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = sin(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Sine_float4(float4 In, out float4 Out)
+{
+    Out = sin(In);
+}
+```

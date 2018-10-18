@@ -32,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader debugFullScreenPS;
             public Shader debugColorPickerPS;
             public Shader debugLightVolumePS;
+            public ComputeShader debugLightVolumeCS;
 
             // Lighting
             public Shader deferredPS;
@@ -68,6 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader buildProbabilityTablesCS;
             public ComputeShader computeGgxIblSampleDataCS;
             public Shader GGXConvolvePS;
+            public Shader charlieConvolvePS;
             public Shader opaqueAtmosphericScatteringPS;
             public Shader hdriSkyPS;
             public Shader integrateHdriSkyPS;
@@ -89,7 +91,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Shadow
             public Shader shadowClearPS;
             public ComputeShader shadowBlurMomentsCS;
-            public Shader debugShadowMapPS;
             public Shader debugHDShadowMapPS;
 
             // Decal
@@ -116,6 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Debug
             public Texture2D debugFontTex;
+            public Texture2D colorGradient;
         }
 
         [Serializable]
@@ -163,8 +165,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 debugViewTilesPS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugViewTiles.Shader"),
                 debugFullScreenPS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugFullScreen.Shader"),
                 debugColorPickerPS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugColorPicker.Shader"),
-                debugLightVolumePS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugLightVolume.Shader"),
-
+                debugLightVolumePS = Load<Shader>(HDRenderPipelinePath + "Debug/DebugLightVolumes.Shader"),
+                debugLightVolumeCS = Load<ComputeShader>(HDRenderPipelinePath + "Debug/DebugLightVolumes.compute"),
                 // Lighting
                 deferredPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Deferred.Shader"),
                 colorPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/ColorPyramid.compute"),
@@ -201,6 +203,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 buildProbabilityTablesCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/GGXConvolution/BuildProbabilityTables.compute"),
                 computeGgxIblSampleDataCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/GGXConvolution/ComputeGgxIblSampleData.compute"),
                 GGXConvolvePS = Load<Shader>(HDRenderPipelinePath + "Material/GGXConvolution/GGXConvolve.shader"),
+                charlieConvolvePS = Load<Shader>(HDRenderPipelinePath + "Material/Fabric/CharlieConvolve.shader"),
                 opaqueAtmosphericScatteringPS = Load<Shader>(HDRenderPipelinePath + "Lighting/AtmosphericScattering/OpaqueAtmosphericScattering.shader"),
                 hdriSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/HDRISky.shader"),
                 integrateHdriSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/IntegrateHDRISky.shader"),
@@ -224,7 +227,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Shadow
                 shadowClearPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowClear.shader"),
                 shadowBlurMomentsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowBlurMoments.compute"),
-                debugShadowMapPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/DebugDisplayShadowMap.shader"),
                 debugHDShadowMapPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/DebugDisplayHDShadowMap.shader"),
 
                 // Decal
@@ -251,6 +253,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Debug
                 debugFontTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/DebugFont.tga"),
+                colorGradient = Load<Texture2D>(HDRenderPipelinePath + "Debug/ColorGradient.png"),
             };
 
             // ShaderGraphs

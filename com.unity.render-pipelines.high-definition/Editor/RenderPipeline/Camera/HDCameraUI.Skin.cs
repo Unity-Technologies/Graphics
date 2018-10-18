@@ -39,8 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent targetDisplayContent = CoreEditorUtils.GetContent("Target Display");
 #endif
 
-        static readonly GUIContent enableStereoContent = CoreEditorUtils.GetContent("Enable Stereo");
-        static readonly GUIContent hdrpEnableStereoContent = CoreEditorUtils.GetContent("Enable Stereo (Set by HDRP)");
+
         static readonly GUIContent stereoSeparationContent = CoreEditorUtils.GetContent("Stereo Separation");
         static readonly GUIContent stereoConvergenceContent = CoreEditorUtils.GetContent("Stereo Convergence");
         static readonly GUIContent targetEyeContent = CoreEditorUtils.GetContent("Target Eye");

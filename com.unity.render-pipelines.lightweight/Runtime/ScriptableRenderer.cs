@@ -269,7 +269,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (cameraData.isStereoEnabled)
             {
-                return XRGraphicsConfig.eyeTextureDesc;
+                return XRGraphics.eyeTextureDesc;
             }
             else
             {
@@ -291,7 +291,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
-            return cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+            bool noAutoResolveMsaa = cameraData.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
+            return noAutoResolveMsaa || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
                    cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;
         }
 

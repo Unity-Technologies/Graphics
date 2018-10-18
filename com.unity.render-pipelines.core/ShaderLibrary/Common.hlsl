@@ -139,12 +139,12 @@
 #endif
 
 // Include language header
-#if defined(SHADER_API_D3D11)
-#include "API/D3D11.hlsl"
+#if defined(SHADER_API_XBOXONE)
+#include "API/XBoxOne.hlsl"
 #elif defined(SHADER_API_PSSL)
 #include "API/PSSL.hlsl"
-#elif defined(SHADER_API_XBOXONE)
-#include "API/XBoxOne.hlsl"
+#elif defined(SHADER_API_D3D11)
+#include "API/D3D11.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
@@ -178,6 +178,20 @@
 #define ToggleBit ERROR_ON_UNSUPPORTED_FUNC(ToggleBit)
 #define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNC(FastMulBySignOfNegZero)
 #define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNC(LODDitheringTransition)
+#endif
+
+// On everything but GCN consoles we error on cross-lane operations
+#ifndef SUPPORTS_WAVE_INTRINSICS
+#define WaveMinInt ERROR_ON_UNSUPPORTED_FUNC(WaveMinInt)
+#define WaveMinUint ERROR_ON_UNSUPPORTED_FUNC(WaveMinUint)
+#define WaveMinFloat ERROR_ON_UNSUPPORTED_FUNC(WaveMinFloat)
+#define WaveMaxInt ERROR_ON_UNSUPPORTED_FUNC(WaveMaxInt)
+#define WaveMaxUint ERROR_ON_UNSUPPORTED_FUNC(WaveMaxUint)
+#define WaveMaxFloat ERROR_ON_UNSUPPORTED_FUNC(WaveMaxFloat)
+#define Ballot ERROR_ON_UNSUPPORTED_FUNC(Ballot)
+#define WaveAdd ERROR_ON_UNSUPPORTED_FUNC(WaveAdd)
+#define WaveAnd ERROR_ON_UNSUPPORTED_FUNC(WaveAnd)
+#define WaveOr ERROR_ON_UNSUPPORTED_FUNC(WaveOr)
 #endif
 
 #if !defined(SHADER_API_GLES)
@@ -247,7 +261,8 @@ void ToggleBit(inout uint data, uint offset)
 #endif // INTRINSIC_MUL24
 
 #ifndef INTRINSIC_MAD24
-    TEMPLATE_3_INT(Mad24, a, b, c, return a * b + c)
+    TEMPLATE_3_INT(Mad24Int, a, b, c, return a * b + c)
+    TEMPLATE_3_INT(Mad24Uint, a, b, c, return a * b + c)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3

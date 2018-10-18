@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering
         public static unsafe void QuickSort(uint[] arr, int left, int right)
         {
             fixed (uint* ptr = arr)
-                CoreUnsafeUtils.QuickSort<uint>(ptr, left, right);
+                QuickSort<uint>(ptr, left, right);
         }
 
         public static void QuickSort<T>(void* data, int left, int right)
@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Just a sort function that doesn't allocate memory
-        // Note: Shoud be repalc by a radix sort for positive integer
+        // Note: Should be replace by a radix sort for positive integer
         static int Partition<T>(void* data, int left, int right)
             where T : struct, IComparable<T>
         {
@@ -79,6 +79,21 @@ namespace UnityEngine.Experimental.Rendering
                     return right;
                 }
             }
+        }
+
+        public static unsafe bool HaveDuplicates(int[] arr)
+        {
+            int* copy = stackalloc int[arr.Length];
+            arr.CopyTo<int>(copy, arr.Length);
+            QuickSort<int>(arr.Length, copy);
+            for (int i = arr.Length - 1; i > 0; --i)
+            {
+                if (UnsafeUtility.ReadArrayElement<int>(copy, i).CompareTo(UnsafeUtility.ReadArrayElement<int>(copy, i - 1)) == 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

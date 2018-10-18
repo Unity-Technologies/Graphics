@@ -100,25 +100,72 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             shadowSliceData.shadowTransform = sliceTransform * shadowSliceData.shadowTransform;
         }
 
+        public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
+        {
+            if (shadowLightIndex < 0 || shadowLightIndex >= shadowData.bias.Count)
+            {
+                Debug.LogWarning(string.Format("{0} is not a valid light index.", shadowLightIndex));
+                return Vector4.zero;
+            }
+
+            float frustumSize;
+            if (shadowLight.lightType == LightType.Directional)
+            {
+                // Frustum size is guaranteed to be a cube as we wrap shadow frustum around a sphere
+                frustumSize = 2.0f / lightProjectionMatrix.m00;
+            }
+            else if (shadowLight.lightType == LightType.Spot)
+            {
+                // For perspective projections, shadow texel size varies with depth
+                // It will only work well if done in receiver side in the pixel shader. Currently LWRP
+                // do bias on caster side in vertex shader. When we add shader quality tiers we can properly
+                // handle this. For now, as a poor approximation we do a constant bias and compute the size of
+                // the frustum as if it was orthogonal considering the size at mid point between near and far planes.
+                // Depending on how big the light range is, it will be good enough with some tweaks in bias
+                frustumSize = Mathf.Tan(shadowLight.spotAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range;
+            }
+            else
+            {
+                Debug.LogWarning("Only spot and directional shadow casters are supported in lightweight pipeline");
+                frustumSize = 0.0f;
+            }
+
+            // depth and normal bias scale is in shadowmap texel size in world space
+            float texelSize = frustumSize / shadowResolution;
+            float depthBias = -shadowData.bias[shadowLightIndex].x * texelSize;
+            float normalBias = -shadowData.bias[shadowLightIndex].y * texelSize;
+            
+            if (shadowData.supportsSoftShadows)
+            {
+                // TODO: depth and normal bias assume sample is no more than 1 texel away from shadowmap
+                // This is not true with PCF. Ideally we need to do either
+                // cone base bias (based on distance to center sample)
+                // or receiver place bias based on derivatives.
+                // For now we scale it by the PCF kernel size (5x5)
+                const float kernelRadius = 2.5f;
+                depthBias *= kernelRadius;
+                normalBias *= kernelRadius;
+            }
+
+            return new Vector4(depthBias, normalBias, 0.0f, 0.0f);
+        }
+
+        public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
+        {
+            Vector3 lightDirection = -shadowLight.localToWorld.GetColumn(2);
+            cmd.SetGlobalVector("_ShadowBias", shadowBias);
+            cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+        }
+
+        [Obsolete("SetupShadowCasterConstants is deprecated, use SetupShadowCasterConstantBuffer instead")]
         public static void SetupShadowCasterConstants(CommandBuffer cmd, ref VisibleLight visibleLight, Matrix4x4 proj, float cascadeResolution)
         {
             Light light = visibleLight.light;
             float bias = 0.0f;
             float normalBias = 0.0f;
 
-            // Use same kernel radius as built-in pipeline so we can achieve same bias results
-            // with the default light bias parameters.
-            const float kernelRadius = 3.65f;
-
             if (visibleLight.lightType == LightType.Directional)
             {
-                // Scale bias by cascade's world space depth range.
-                // Directional shadow lights have orthogonal projection.
-                // proj.m22 = -2 / (far - near) since the projection's depth range is [-1.0, 1.0]
-                // In order to be correct we should multiply bias by 0.5 but this introducing aliasing along cascades more visible.
-                float sign = (SystemInfo.usesReversedZBuffer) ? 1.0f : -1.0f;
-                bias = light.shadowBias * proj.m22 * sign;
-
                 // Currently only square POT cascades resolutions are used.
                 // We scale normalBias
                 double frustumWidth = 2.0 / (double)proj.m00;
@@ -127,9 +174,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 float texelSizeY = (float)(frustumHeight / (double)cascadeResolution);
                 float texelSize = Mathf.Max(texelSizeX, texelSizeY);
 
+                // Depth Bias - bias shadow is specified in terms of shadowmap pixels.
+                // bias = 1 means the shadowmap is offseted 1 texel world space size in the direciton of the light
+                bias = -light.shadowBias * texelSize;
+
                 // Since we are applying normal bias on caster side we want an inset normal offset
                 // thus we use a negative normal bias.
-                normalBias = -light.shadowNormalBias * texelSize * kernelRadius;
+                normalBias = -light.shadowNormalBias * texelSize * 3.65f;
             }
             else if (visibleLight.lightType == LightType.Spot)
             {

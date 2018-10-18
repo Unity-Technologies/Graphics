@@ -23,7 +23,9 @@ MonoBehaviour:
     debugFullScreenPS: {fileID: 4800000, guid: e874aca2df8300a488258738c31f85cf, type: 3}
     debugColorPickerPS: {fileID: 4800000, guid: 8137b807709e178498f22ed710864bb0,
       type: 3}
-    debugLightVolumePS: {fileID: 4800000, guid: f62fc49f20e79e64ba43db3cfd447d80,
+    debugLightVolumePS: {fileID: 4800000, guid: 8e706c0e71fcec34a8f5c9713e5e2943,
+      type: 3}
+    debugLightVolumeCS: {fileID: 7200000, guid: f5d5d21faef5cf445ac2c5d8ff9c4184,
       type: 3}
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
     colorPyramidCS: {fileID: 7200000, guid: 4e3267a1135742441a14298d8dcac04a, type: 3}
@@ -68,6 +70,7 @@ MonoBehaviour:
     computeGgxIblSampleDataCS: {fileID: 7200000, guid: 764a24bb47ef5ba4781d9ae82ca07445,
       type: 3}
     GGXConvolvePS: {fileID: 4800000, guid: 123ed592ad5c2494b8aed301fd609e7b, type: 3}
+    charlieConvolvePS: {fileID: 4800000, guid: 5685fd17e71045e4ca9fefca38a7c177, type: 3}
     opaqueAtmosphericScatteringPS: {fileID: 4800000, guid: 32f724728cf19904291226f239ec16f0,
       type: 3}
     hdriSkyPS: {fileID: 4800000, guid: 9bd32a6ece529fd4f9408b8d7e00c10d, type: 3}
@@ -113,3 +116,4 @@ MonoBehaviour:
       type: 3}
     autodeskInteractiveMaskedSG: {fileID: 4800000, guid: 29c4adff654862b40a2e9fb2015a42c3,
       type: 3}
+    colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}

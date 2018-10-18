@@ -149,7 +149,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     if (success)
                     {
                         settings.splitData.cullingSphere = m_CascadeSplitDistances[cascadeIndex];
-                        ShadowUtils.SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
+                        Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex, ref shadowData, proj, shadowResolution);
+                        ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
                         ShadowUtils.RenderShadowSlice(cmd, ref context, ref m_CascadeSlices[cascadeIndex], ref settings, proj, view);
                     }
                 }

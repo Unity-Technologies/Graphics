@@ -26,6 +26,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             public readonly GUIContent DisabledLightWarning = EditorGUIUtility.TrTextContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
 
             public readonly GUIContent ShadowsNotSupportedWarning = EditorGUIUtility.TrTextContent("Realtime shadows for point lights are not supported. Either disable shadows or set the light mode to Baked.");
+            public static readonly GUIContent ShadowRealtimeSettings = EditorGUIUtility.TrTextContent("Realtime Shadows", "Settings for realtime direct shadows.");
+            public static readonly GUIContent ShadowStrength = EditorGUIUtility.TrTextContent("Strength", "Controls how dark the shadows cast by the light will be.");
+            public static readonly GUIContent ShadowResolution = EditorGUIUtility.TrTextContent("Resolution", "Controls the rendered resolution of the shadow maps. A higher resolution will increase the fidelity of shadows at the cost of GPU performance and memory usage.");
+            public static readonly GUIContent ShadowNearPlane = EditorGUIUtility.TrTextContent("Near Plane", "Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
         }
 
         static Styles s_Styles;
@@ -118,7 +122,13 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
             EditorGUILayout.Space();
 
-            if (SceneView.lastActiveSceneView != null && SceneView.lastActiveSceneView.m_SceneLighting == false)
+#if UNITY_2019_1_OR_NEWER
+            var sceneLighting = SceneView.lastActiveSceneView.sceneLighting;
+#else
+            var sceneLighting = SceneView.lastActiveSceneView.m_SceneLighting;
+#endif
+
+            if (SceneView.lastActiveSceneView != null && !sceneLighting)
                 EditorGUILayout.HelpBox(s_Styles.DisabledLightWarning.text, MessageType.Warning);
 
             serializedObject.ApplyModifiedProperties();
@@ -174,10 +184,24 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 if (group.visible)
                     settings.DrawBakedShadowAngle();
 
-            // Runtime shadows - shadow strength, resolution, bias
+            // Runtime shadows - shadow strength, resolution and near plane offset
+            // Bias is handled differently in LWRP
             using (var group = new EditorGUILayout.FadeGroupScope(show * m_AnimRuntimeOptions.faded))
+            {
                 if (group.visible)
-                    settings.DrawRuntimeShadow();
+                {
+                    EditorGUILayout.LabelField(Styles.ShadowRealtimeSettings);
+                    EditorGUI.indentLevel += 1;
+                    EditorGUILayout.Slider(settings.shadowsStrength, 0f, 1f, Styles.ShadowStrength);
+                    EditorGUILayout.PropertyField(settings.shadowsResolution, Styles.ShadowResolution);
+
+                    // this min bound should match the calculation in SharedLightData::GetNearPlaneMinBound()
+                    float nearPlaneMinBound = Mathf.Min(0.01f * settings.range.floatValue, 0.1f);
+                    EditorGUILayout.Slider(settings.shadowsNearPlane, nearPlaneMinBound, 10.0f, Styles.ShadowNearPlane);
+                    EditorGUI.indentLevel -= 1;
+                }
+            }
+
             EditorGUI.indentLevel -= 1;
 
             if (bakingWarningValue)

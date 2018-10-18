@@ -4,18 +4,6 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    [Flags]
-    public enum ShaderFeatures
-    {
-        MainLight               = (1 << 0),
-        MainLightShadows        = (1 << 1),
-        AdditionalLights        = (1 << 2),
-        AdditionalLightShadows  = (1 << 3),
-        VertexLighting          = (1 << 4),
-        SoftShadows             = (1 << 5),
-        MixedLighting           = (1 << 6),
-    }
-
     public enum MixedLightingSetup
     {
         None,
@@ -77,6 +65,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int additionalLightsShadowmapHeight;
         public bool supportsSoftShadows;
         public int shadowmapDepthBufferBits;
+        public List<Vector4> bias;
     }
 
     public static class ShaderKeywordStrings
@@ -96,48 +85,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public sealed partial class LightweightRenderPipeline
     {
-        static ShaderFeatures s_ShaderFeatures;
+        static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
-        public static ShaderFeatures supportedShaderFeatures
-        {
-            get { return s_ShaderFeatures; }
-        }
-
-        public static void SetSupportedShaderFeatures(LightweightRenderPipelineAsset pipelineAsset)
-        {
-            s_ShaderFeatures = ShaderFeatures.MainLight;
-
-            if (pipelineAsset.supportsMainLightShadows)
-                s_ShaderFeatures |= ShaderFeatures.MainLightShadows;
-
-            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
-            {
-                s_ShaderFeatures |= ShaderFeatures.AdditionalLights;
-                s_ShaderFeatures |= ShaderFeatures.VertexLighting;
-            }
-            else if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
-            {
-                s_ShaderFeatures |= ShaderFeatures.AdditionalLights;
-
-                if (pipelineAsset.supportsAdditionalLightShadows)
-                    s_ShaderFeatures |= ShaderFeatures.AdditionalLightShadows;
-            }
-            
-            bool anyShadows = pipelineAsset.supportsMainLightShadows ||
-                              CoreUtils.HasFlag(s_ShaderFeatures, ShaderFeatures.AdditionalLightShadows);
-            if (pipelineAsset.supportsSoftShadows && anyShadows)
-                s_ShaderFeatures |= ShaderFeatures.SoftShadows;
-
-            if (pipelineAsset.supportsMixedLighting)
-                s_ShaderFeatures |= ShaderFeatures.MixedLighting;
-        }
         public static bool IsStereoEnabled(Camera camera)
         {
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRGraphicsConfig.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            return XRGraphics.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         void SortCameras(Camera[] cameras)
