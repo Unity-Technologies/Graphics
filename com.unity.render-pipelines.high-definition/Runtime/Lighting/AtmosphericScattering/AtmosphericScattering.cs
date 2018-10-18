@@ -36,9 +36,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var data = DensityVolumeEngineData.GetNeutralValues();
 
-                cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, data.scattering);
-                cmd.SetGlobalFloat(HDShaderIDs._GlobalExtinction, data.extinction);
-                cmd.SetGlobalFloat(HDShaderIDs._GlobalAnisotropy, 0.0f);
+                cmd.SetGlobalVector(HDShaderIDs._HeightFogBaseScattering, data.scattering);
+                cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseExtinction, data.extinction);
+
+                cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents, Vector2.one);
+                cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseHeight, 0.0f);
+                cmd.SetGlobalFloat(HDShaderIDs._GlobalFogAnisotropy, 0.0f);
             }
         }
 
