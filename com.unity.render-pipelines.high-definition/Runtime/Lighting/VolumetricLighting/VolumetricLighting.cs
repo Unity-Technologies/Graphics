@@ -451,7 +451,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
 
-            // VisualEnvironment sets global fog parameters: _GlobalAnisotropy, _GlobalScattering, _GlobalExtinction.
+            // VisualEnvironment sets global fog parameters
 
             if (!hdCamera.frameSettings.enableVolumetrics || visualEnvironment.fogType.value != FogType.Volumetric)
             {
