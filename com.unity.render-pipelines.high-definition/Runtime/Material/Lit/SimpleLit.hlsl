@@ -277,12 +277,6 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
     attenuation = PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
                                                  lightData.angleScale, lightData.angleOffset);
 
-#if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
-    // TODO: sample the extinction from the density V-buffer.
-    float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
-    attenuation *= TransmittanceHomogeneousMedium(_GlobalExtinction, distVol);
-#endif
-
     // Projector lights always have cookies, so we can perform clipping inside the if().
     UNITY_BRANCH if (lightData.cookieIndex >= 0)
     {
