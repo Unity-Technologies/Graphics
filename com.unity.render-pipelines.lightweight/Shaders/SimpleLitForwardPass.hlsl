@@ -91,7 +91,7 @@ Varyings LitPassVertexSimple(Attributes input)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, output.normal.xyz);
+    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _MainTex);

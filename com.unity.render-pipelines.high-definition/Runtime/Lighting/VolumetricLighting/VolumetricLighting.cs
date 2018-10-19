@@ -518,7 +518,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     DensityVolume volume = volumes[i];
 
                     // TODO: cache these?
-                    var obb = OrientedBBox.Create(volume.transform);
+                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
 
                     // Handle camera-relative rendering.
                     obb.center -= camOffset;
