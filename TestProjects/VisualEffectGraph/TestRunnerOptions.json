@@ -1,4 +1,5 @@
 {
     "disableBatchMode": true,
-    "disabledOnPlatforms" : ["Darwin", "Windows"]
+    "disabledOnPlatforms" : ["Darwin", "Windows"],
+	"disabled": true
 }
