@@ -1,3 +1,6 @@
+using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine;
+
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using _ = CoreEditorUtils;
@@ -33,6 +36,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(d.atlasWidth, _.GetContent("Atlas Width"));
             EditorGUILayout.PropertyField(d.atlasHeight, _.GetContent("Atlas Height"));
             EditorGUILayout.PropertyField(d.perChannelMask, _.GetContent("Enable Metal and AO properties"));
+
+            // Clamp input values
+            d.drawDistance.intValue = Mathf.Max(d.drawDistance.intValue, 0);
+            d.atlasWidth.intValue = Mathf.Max(d.atlasWidth.intValue, 0);
+            d.atlasHeight.intValue = Mathf.Max(d.atlasHeight.intValue, 0);
         }
     }
 }
