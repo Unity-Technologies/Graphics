@@ -15,6 +15,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             switch (EditMode.editMode)
             {
                 case EditBaseShape:
+                    //important: following will init the container for box.
+                    //This must be done before drawing the contained handles
                     InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, d.influenceVolume, o, mat, probe);
                     break;
                 case EditInfluenceShape:
@@ -49,7 +51,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [DrawGizmo(GizmoType.Selected)]
+        [DrawGizmo(GizmoType.Selected|GizmoType.Active)]
         internal static void DrawGizmos(HDProbe d, GizmoType gizmoType)
         {
             HDProbeUI s;

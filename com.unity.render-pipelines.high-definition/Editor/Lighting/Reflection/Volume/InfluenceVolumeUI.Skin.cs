@@ -7,17 +7,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     partial class InfluenceVolumeUI
     {
  
-        static readonly Color k_GizmoThemeColorBase = new Color(255f / 255f, 229f / 255f, 148f / 255f, 80f / 255f);
-        //static readonly Color k_GizmoThemeColorBaseFace = new Color(255f / 255f, 229f / 255f, 148f / 255f, 45f / 255f);
-        static readonly Color k_GizmoThemeColorInfluence = new Color(83f / 255f, 255f / 255f, 95f / 255f, 75f / 255f);
-        //static readonly Color k_GizmoThemeColorInfluenceFace = new Color(83f / 255f, 255f / 255f, 95f / 255f, 17f / 255f);
-        static readonly Color k_GizmoThemeColorInfluenceNormal = new Color(0f / 255f, 229f / 255f, 255f / 255f, 80f / 255f);
-        //static readonly Color k_GizmoThemeColorInfluenceNormalFace = new Color(0f / 255f, 229f / 255f, 255f / 255f, 36f / 255f);
-        //static readonly Color k_GizmoThemeColorProjection = new Color(0x00 / 255f, 0xE5 / 255f, 0xFF / 255f, 0x20 / 255f);
-        //static readonly Color k_GizmoThemeColorProjectionFace = new Color(0x00 / 255f, 0xE5 / 255f, 0xFF / 255f, 0x20 / 255f);
-        //static readonly Color k_GizmoThemeColorDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
-        //static readonly Color k_GizmoThemeColorDisabledFace = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
-        
+        static readonly Color k_GizmoThemeColorBase = new Color(230 / 255f, 229 / 255f, 148 / 255f, 8 / 255f).gamma;
+        static readonly Color k_GizmoThemeColorInfluence = new Color(83 / 255f, 255 / 255f, 95 / 255f, 8 / 255f).gamma;
+        static readonly Color k_GizmoThemeColorInfluenceNormal = new Color(128 / 255f, 128 / 255f, 255 / 255f, 8 / 255f).gamma;
+        internal static readonly Color[] k_HandlesColor = new Color[]
+        {
+            Color.red,
+            Color.green,
+            Color.blue,
+            new Color(.5f, 0f, 0f, 1f),
+            new Color(0f, .5f, 0f, 1f),
+            new Color(0f, 0f, .5f, 1f)
+        };
 
         static readonly GUIContent shapeContent = CoreEditorUtils.GetContent("Shape");
         static readonly GUIContent boxSizeContent = CoreEditorUtils.GetContent("Box Size|The size of the box in which the reflections will be applied to objects. The value is not affected by the Transform of the Game Object.");
