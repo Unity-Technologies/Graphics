@@ -131,6 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
         public static readonly int _EnvLightCount = Shader.PropertyToID("_EnvLightCount");
         public static readonly int _EnvProxyCount = Shader.PropertyToID("_EnvProxyCount");
+	    public static readonly int _LightFlagDatas = Shader.PropertyToID("_LightFlagDatas");
         public static readonly int _NumTileFtplX = Shader.PropertyToID("_NumTileFtplX");
         public static readonly int _NumTileFtplY = Shader.PropertyToID("_NumTileFtplY");
         public static readonly int _NumTileClusteredX = Shader.PropertyToID("_NumTileClusteredX");

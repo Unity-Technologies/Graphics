@@ -82,27 +82,27 @@ struct LightVolumeData
 //
 float3 GetBoxAxisX(SFiniteLightBound value)
 {
-    return value.boxAxisX;
+	return value.boxAxisX;
 }
 float3 GetBoxAxisY(SFiniteLightBound value)
 {
-    return value.boxAxisY;
+	return value.boxAxisY;
 }
 float3 GetBoxAxisZ(SFiniteLightBound value)
 {
-    return value.boxAxisZ;
+	return value.boxAxisZ;
 }
 float3 GetCenter(SFiniteLightBound value)
 {
-    return value.center;
+	return value.center;
 }
 float2 GetScaleXY(SFiniteLightBound value)
 {
-    return value.scaleXY;
+	return value.scaleXY;
 }
 float GetRadius(SFiniteLightBound value)
 {
-    return value.radius;
+	return value.radius;
 }
 
 //
@@ -110,51 +110,51 @@ float GetRadius(SFiniteLightBound value)
 //
 float3 GetLightPos(LightVolumeData value)
 {
-    return value.lightPos;
+	return value.lightPos;
 }
 uint GetLightVolume(LightVolumeData value)
 {
-    return value.lightVolume;
+	return value.lightVolume;
 }
 float3 GetLightAxisX(LightVolumeData value)
 {
-    return value.lightAxisX;
+	return value.lightAxisX;
 }
 uint GetLightCategory(LightVolumeData value)
 {
-    return value.lightCategory;
+	return value.lightCategory;
 }
 float3 GetLightAxisY(LightVolumeData value)
 {
-    return value.lightAxisY;
+	return value.lightAxisY;
 }
 float GetRadiusSq(LightVolumeData value)
 {
-    return value.radiusSq;
+	return value.radiusSq;
 }
 float3 GetLightAxisZ(LightVolumeData value)
 {
-    return value.lightAxisZ;
+	return value.lightAxisZ;
 }
 float GetCotan(LightVolumeData value)
 {
-    return value.cotan;
+	return value.cotan;
 }
 float3 GetBoxInnerDist(LightVolumeData value)
 {
-    return value.boxInnerDist;
+	return value.boxInnerDist;
 }
 uint GetFeatureFlags(LightVolumeData value)
 {
-    return value.featureFlags;
+	return value.featureFlags;
 }
 float3 GetBoxInvRange(LightVolumeData value)
 {
-    return value.boxInvRange;
+	return value.boxInvRange;
 }
 float GetUnused2(LightVolumeData value)
 {
-    return value.unused2;
+	return value.unused2;
 }
 
 
