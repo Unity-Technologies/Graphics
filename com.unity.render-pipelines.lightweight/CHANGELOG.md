@@ -11,8 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now add the `LWRPAdditionalLightData` component to a `Light` to override the default depth and normal shadow bias.
 - You can now log the amount of shader variants in your build. To do so, go to the `Pipeline Asset`. Under `Advanced`, select and set the `Shader Variant Log Level`.
 ### Changed
-Removed the `supportedShaderFeatures` property from LWRP core. The shader stripper now figures out which variants to strip based on the current assigned pipeline Asset in the Graphics settings.
+- Removed the `supportedShaderFeatures` property from LWRP core. The shader stripper now figures out which variants to strip based on the current assigned pipeline Asset in the Graphics settings.
 ### Fixed
+- In the Simple Lit shader, per-vertex additional lights are now shaded properly.
 - Shader variant stripping now works when you're building a Project with Cloud Build. This greatly reduces build times from Cloud Build.
 - Dynamic Objects now receive lighting when the light mode is set to mixed.
 - MSAA now works on Desktop platforms.
