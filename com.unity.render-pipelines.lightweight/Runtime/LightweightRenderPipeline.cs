@@ -364,8 +364,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 LWRPAdditionalLightData data =
                     (light != null) ? light.gameObject.GetComponent<LWRPAdditionalLightData>() : null;
 
-                if (data)
-                    m_ShadowBiasData.Add(new Vector4(data.depthBias, data.normalBias, 0.0f, 0.0f));
+                if (data && !data.usePipelineSettings)
+                    m_ShadowBiasData.Add(new Vector4(light.shadowBias, light.shadowNormalBias, 0.0f, 0.0f));
                 else
                     m_ShadowBiasData.Add(new Vector4(settings.shadowDepthBias, settings.shadowNormalBias, 0.0f, 0.0f));
             }
