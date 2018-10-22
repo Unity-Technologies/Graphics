@@ -30,7 +30,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "Sky",
                     (s, d, o) => s.isSectionExpendedSkySettings,
                     FoldoutOption.None,
-                    SectionSky)
+                    SectionSky),
+                CED.FoldoutGroup(
+                    "LightLoop",
+                    (s, d, o) => s.isSectionExpendedLightLoopSettings,
+                    FoldoutOption.None,
+                    SectionLightLoop)
                 );
         }
 
@@ -39,17 +44,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer SectionCookies = CED.Action(Drawer_SectionCookies);
         public static readonly CED.IDrawer SectionReflection = CED.Action(Drawer_SectionReflection);
         public static readonly CED.IDrawer SectionSky = CED.Action(Drawer_SectionSky);
+        public static readonly CED.IDrawer SectionLightLoop = CED.Action(Drawer_LightLoop);
 
         public AnimBool isSectionExpandedCoockiesSettings { get { return m_AnimBools[0]; } }
         public AnimBool isSectionExpandedReflectionSettings { get { return m_AnimBools[1]; } }
         public AnimBool isSectionExpendedSkySettings { get { return m_AnimBools[2]; } }
+        public AnimBool isSectionExpendedLightLoopSettings { get { return m_AnimBools[3]; } }
 
         public GlobalLightLoopSettingsUI()
-            : base(3)
+            : base(4)
         {
             isSectionExpandedCoockiesSettings.value = true;
             isSectionExpandedReflectionSettings.value = true;
             isSectionExpendedSkySettings.value = true;
+            isSectionExpendedLightLoopSettings.value = true;
         }
 
         static string HumanizeWeight(long weightInByte)
@@ -177,6 +185,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.HelpBox("Be careful, Sky Lighting Override Mask is set to Everything. This is most likely a mistake as it serves no purpose.", MessageType.Warning);
             }
             EditorGUILayout.Space();
+        }
+
+        static void Drawer_LightLoop(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
+        {
+            EditorGUILayout.PropertyField(d.maxDirectionalLightsOnScreen, _.GetContent("Max Directional Lights On Screen"));
+            EditorGUILayout.PropertyField(d.maxPunctualLightsOnScreen, _.GetContent("Max Punctual Lights On Screen"));
+            EditorGUILayout.PropertyField(d.maxAreaLightsOnScreen, _.GetContent("Max Area Lights On Screen"));
+            EditorGUILayout.PropertyField(d.maxEnvLightsOnScreen, _.GetContent("Max Env Lights On Screen"));
+            EditorGUILayout.PropertyField(d.maxDecalsOnScreen, _.GetContent("Max Decals On Screen"));
+            
+            d.maxDirectionalLightsOnScreen.intValue = Mathf.Clamp(d.maxDirectionalLightsOnScreen.intValue, 1, LightLoop.k_MaxDirectionalLightsOnScreen);
+            d.maxPunctualLightsOnScreen.intValue = Mathf.Clamp(d.maxPunctualLightsOnScreen.intValue, 1, LightLoop.k_MaxPunctualLightsOnScreen);
+            d.maxAreaLightsOnScreen.intValue = Mathf.Clamp(d.maxAreaLightsOnScreen.intValue, 1, LightLoop.k_MaxAreaLightsOnScreen);
+            d.maxEnvLightsOnScreen.intValue = Mathf.Clamp(d.maxEnvLightsOnScreen.intValue, 1, LightLoop.k_MaxEnvLightsOnScreen);
+            d.maxDecalsOnScreen.intValue = Mathf.Clamp(d.maxDecalsOnScreen.intValue, 1, LightLoop.k_MaxDecalsOnScreen);
         }
     }
 }
