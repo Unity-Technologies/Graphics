@@ -2,21 +2,17 @@
 
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.Experimental;
-using UnityEditor.SceneManagement;
+using System.Reflection;
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.VFX;
 
-using UnityEditor.VFX;
-using UnityEditor.VFX.UI;
-using UnityEditor.Experimental.UIElements.GraphView;
-using EditMode = UnityEditorInternal.EditMode;
+using UnityEditor.Experimental.VFX;
+
 using UnityObject = UnityEngine.Object;
-using System.Reflection;
+
 namespace UnityEditor.VFX
 {
 #if WORKAROUND_TIMELINE
@@ -406,6 +402,14 @@ namespace UnityEditor.VFX
                 Event.current.type = savedEventType;
                 menu.DropDown(buttonRect);
             }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            
+            GUILayout.Label("Show Bounds", GUILayout.Width(192));
+
+            VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
+
             GUILayout.EndHorizontal();
         }
 
