@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if ((int)samples > 1)
             {
-                baseDescriptor.bindMS = (int)samples > 1;
+                baseDescriptor.bindMS = false;
                 baseDescriptor.msaaSamples = (int)samples;
             }
 
@@ -80,7 +80,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     Camera camera = renderingData.cameraData.camera;
                     context.StartMultiEye(camera);
-                    XRUtils.DrawOcclusionMesh(cmd, camera, renderingData.cameraData.isStereoEnabled);
                     context.DrawRenderers(renderingData.cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
                     context.StopMultiEye(camera);
                 }
