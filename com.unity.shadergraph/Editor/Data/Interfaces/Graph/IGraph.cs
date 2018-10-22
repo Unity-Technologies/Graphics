@@ -1,36 +1,37 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Graphing
 {
     public interface IGraph : IOnAssetEnabled
     {
         IEnumerable<T> GetNodes<T>() where T : INode;
-        IEnumerable<IEdge> edges { get; }
+        IEnumerable<ShaderEdge> edges { get; }
         void AddNode(INode node);
         void RemoveNode(INode node);
-        IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef);
-        void RemoveEdge(IEdge e);
-        void RemoveElements(IEnumerable<INode> nodes, IEnumerable<IEdge> edges);
+        ShaderEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef);
+        void RemoveEdge(ShaderEdge e);
+        void RemoveElements(IEnumerable<INode> nodes, IEnumerable<ShaderEdge> edges);
         INode GetNodeFromGuid(Guid guid);
         bool ContainsNodeGuid(Guid guid);
         T GetNodeFromGuid<T>(Guid guid) where T : INode;
-        void GetEdges(SlotReference s, List<IEdge> foundEdges);
+        void GetEdges(SlotReference s, List<ShaderEdge> foundEdges);
         void ValidateGraph();
         void ReplaceWith(IGraph other);
         IGraphObject owner { get; set; }
         IEnumerable<INode> addedNodes { get; }
         IEnumerable<INode> removedNodes { get; }
-        IEnumerable<IEdge> addedEdges { get; }
-        IEnumerable<IEdge> removedEdges { get; }
+        IEnumerable<ShaderEdge> addedEdges { get; }
+        IEnumerable<ShaderEdge> removedEdges { get; }
         void ClearChanges();
     }
 
     public static class GraphExtensions
     {
-        public static IEnumerable<IEdge> GetEdges(this IGraph graph, SlotReference s)
+        public static IEnumerable<ShaderEdge> GetEdges(this IGraph graph, SlotReference s)
         {
-            var edges = new List<IEdge>();
+            var edges = new List<ShaderEdge>();
             graph.GetEdges(s, edges);
             return edges;
         }

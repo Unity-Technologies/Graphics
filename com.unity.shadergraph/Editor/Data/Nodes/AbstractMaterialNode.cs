@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     public abstract class AbstractMaterialNode : INode, ISerializationCallbackReceiver, IGenerateProperties
     {
         protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
-        protected static List<IEdge> s_TempEdges = new List<IEdge>();
+        protected static List<ShaderEdge> s_TempEdges = new List<ShaderEdge>();
         protected static List<PreviewProperty> s_TempPreviewProperties = new List<PreviewProperty>();
 
         public enum OutputPrecision

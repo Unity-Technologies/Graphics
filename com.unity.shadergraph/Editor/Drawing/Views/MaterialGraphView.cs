@@ -218,7 +218,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
         {
             var nodes = elements.OfType<MaterialNodeView>().Select(x => (INode)x.node);
-            var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
+            var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<ShaderEdge>();
             var properties = selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty);
 
             // Collect the property nodes and get the corresponding properties
@@ -258,7 +258,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graph.owner.RegisterCompleteObjectUndo(operationName);
-            graph.RemoveElements(selection.OfType<MaterialNodeView>().Where(v => !(v.node is SubGraphOutputNode)).Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+            graph.RemoveElements(selection.OfType<MaterialNodeView>().Where(v => !(v.node is SubGraphOutputNode)).Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<ShaderEdge>());
 
             foreach (var selectable in selection)
             {
@@ -481,7 +481,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             using (var remappedNodesDisposable = ListPool<INode>.GetDisposable())
             {
-                using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
+                using (var remappedEdgesDisposable = ListPool<ShaderEdge>.GetDisposable())
                 {
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
@@ -519,7 +519,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.graphElements.ForEach(element =>
                         {
                             var edge = element as Edge;
-                            if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
+                            if (edge != null && remappedEdges.Contains(edge.userData as ShaderEdge))
                                 graphView.AddToSelection(edge);
 
                             var nodeView = element as MaterialNodeView;

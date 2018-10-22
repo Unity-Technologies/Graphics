@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<Identifier> m_Wavefront = new Stack<Identifier>();
-        List<IEdge> m_Edges = new List<IEdge>();
+        List<ShaderEdge> m_Edges = new List<ShaderEdge>();
         List<MaterialSlot> m_Slots = new List<MaterialSlot>();
 
         void PropagateNodeSet(IndexSet nodeSet, bool forward = true, IEnumerable<Identifier> initialWavefront = null)
