@@ -150,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void DrawGeneralSettings()
         {
-            m_GeneralSettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_GeneralSettingsFoldout, Styles.generalSettingsText);
+            m_GeneralSettingsFoldout = EditorGUILayout.Foldout(m_GeneralSettingsFoldout, Styles.generalSettingsText);
             if (m_GeneralSettingsFoldout)
             {
                 EditorGUI.indentLevel++;
@@ -165,12 +165,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawQualitySettings()
         {
-            m_QualitySettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_QualitySettingsFoldout, Styles.qualitySettingsText);
+            m_QualitySettingsFoldout = EditorGUILayout.Foldout(m_QualitySettingsFoldout, Styles.qualitySettingsText);
             if (m_QualitySettingsFoldout)
             {
                 EditorGUI.indentLevel++;
@@ -183,12 +182,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawLightingSettings()
         {
-            m_LightingSettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_LightingSettingsFoldout, Styles.lightingSettingsText);
+            m_LightingSettingsFoldout = EditorGUILayout.Foldout(m_LightingSettingsFoldout, Styles.lightingSettingsText);
             if (m_LightingSettingsFoldout)
             {
                 EditorGUI.indentLevel++;
@@ -240,12 +238,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawShadowSettings()
         {
-            m_ShadowSettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadowSettingsFoldout, Styles.shadowSettingsText);
+            m_ShadowSettingsFoldout = EditorGUILayout.Foldout(m_ShadowSettingsFoldout, Styles.shadowSettingsText);
             if (m_ShadowSettingsFoldout)
             {
                 EditorGUI.indentLevel++;
@@ -265,12 +262,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawAdvancedSettings()
         {
-            m_AdvancedSettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdvancedSettingsFoldout, Styles.advancedSettingsText);
+            m_AdvancedSettingsFoldout = EditorGUILayout.Foldout(m_AdvancedSettingsFoldout, Styles.advancedSettingsText);
             if (m_AdvancedSettingsFoldout)
             {
                 EditorGUI.indentLevel++;
@@ -281,7 +277,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
     }
 }
