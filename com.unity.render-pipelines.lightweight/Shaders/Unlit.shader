@@ -36,7 +36,7 @@ Shader "Lightweight Render Pipeline/Unlit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _SAMPLE_GI
+            #pragma shader_feature _ _SAMPLE_GI _SAMPLE_GI_NORMALMAP
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
 
@@ -65,12 +65,12 @@ Shader "Lightweight Render Pipeline/Unlit"
             struct Varyings
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
-#if _SAMPLE_GI
+#if defined(_SAMPLE_GI) || defined(_SAMPLE_GI_NORMALMAP)
                 DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
                 half3 normal                    : TEXCOORD2;
-    #if _NORMALMAP
+    #if defined(_SAMPLE_GI_NORMALMAP)
                 half3 tangent                   : TEXCOORD3;
-                half3 bitangent                  : TEXCOORD4;
+                half3 bitangent                 : TEXCOORD4;
     #endif
 #endif
                 float4 vertex : SV_POSITION;
@@ -92,13 +92,13 @@ Shader "Lightweight Render Pipeline/Unlit"
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _MainTex);
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
 
-#if _SAMPLE_GI
+#if defined(_SAMPLE_GI) || defined(_SAMPLE_GI_NORMALMAP)
                 VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
                 output.normal = normalInput.normalWS;
-#ifdef _NORMALMAP
+    #if defined(_SAMPLE_GI_NORMALMAP)
                 output.tangent = normalInput.tangentWS;
                 output.bitangent = normalInput.bitangentWS;
-#endif
+    #endif
                 OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
                 OUTPUT_SH(output.normal, output.vertexSH);
 #endif
@@ -120,10 +120,10 @@ Shader "Lightweight Render Pipeline/Unlit"
 #endif
 
 
-#if _SAMPLE_GI
-    #if _NORMALMAP
-                half3 normalWS = TransformTangentToWorld(surfaceData.normalTS,
-                    half3x3(input.tangent, input.bitangent, input.normal));
+#if defined(_SAMPLE_GI) || defined(_SAMPLE_GI_NORMALMAP)
+    #if defined(_SAMPLE_GI_NORMALMAP)
+                half3 normalTS = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv).xyz;
+                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
     #else
                 half3 normalWS = input.normal;
     #endif

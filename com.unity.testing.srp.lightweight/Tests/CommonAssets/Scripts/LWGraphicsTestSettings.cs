@@ -9,6 +9,6 @@ public class LWGraphicsTestSettings : GraphicsTestSettings
         ImageComparisonSettings.TargetWidth = 512;
         ImageComparisonSettings.TargetHeight = 512;
         ImageComparisonSettings.AverageCorrectnessThreshold = 0.005f;
-        ImageComparisonSettings.PerPixelCorrectnessThreshold = 0.005f;
+        ImageComparisonSettings.PerPixelCorrectnessThreshold = 0.001f;
     }
 }

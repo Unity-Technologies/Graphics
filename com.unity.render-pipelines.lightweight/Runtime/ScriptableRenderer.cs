@@ -142,6 +142,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Keywords are enabled while executing passes.
+            CommandBuffer cmd = CommandBufferPool.Get("Clear Pipeline Keywords");
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 m_ActiveRenderPassQueue[i].Execute(this, context, ref renderingData);
 
@@ -180,12 +192,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int[] perObjectLightIndexMap = cullResults.GetLightIndexMap();
 
             int directionalLightsCount = 0;
-            int localLightsCount = 0;    
+            int additionalLightsCount = 0;    
 
             // Disable all directional lights from the perobject light indices
             // Pipeline handles them globally.
-            for (int i = 0; i < visibleLights.Count && localLightsCount < lightData.additionalLightIndices.Count; ++i)
-            {    
+            for (int i = 0; i < visibleLights.Count; ++i)
+            {
+                if (additionalLightsCount >= maxVisibleAdditionalLights)
+                    break;
+
                 VisibleLight light = visibleLights[i];
                 if (light.lightType == LightType.Directional)
                 {
@@ -195,12 +210,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 else
                 {
                     perObjectLightIndexMap[i] -= directionalLightsCount;
-                    ++localLightsCount;
+                    ++additionalLightsCount;
                 }
             }
 
             // Disable all remaining lights we cannot fit into the global light buffer.
-            for (int i = directionalLightsCount + localLightsCount; i < visibleLights.Count; ++i)
+            for (int i = directionalLightsCount + additionalLightsCount; i < visibleLights.Count; ++i)
                 perObjectLightIndexMap[i] = -1;
 
             cullResults.SetLightIndexMap(perObjectLightIndexMap);
