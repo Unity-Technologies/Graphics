@@ -931,10 +931,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.lightType = gpuLightType;
 
             {
-                 var customFlags = light.light.GetComponent<HDLightCustomFlags>();
-                 lightData.customData = (customFlags != null)
-                    ? customFlags.GetLightCustomData()
-                    : new HDLightCustomFlags.LightCustomData { featureFlags = 0u };
+                 HDLightCustomFlags customComponent = light.light.GetComponent<HDLightCustomFlags>();
+                 HDLightCustomFlags.LightCustomData customData = (customComponent != null)
+                    ? customComponent.GetLightCustomData()
+                    : new HDLightCustomFlags.LightCustomData { customFeatureFlags = 0u };
+
+                lightData.customFeatureFlags = customData.customFeatureFlags;
+                lightData.customRadiusScale = customData.customRadiusScale;
+                lightData.customRadiusBias = customData.customRadiusBias;
             }
 
             lightData.positionRWS = light.light.transform.position;

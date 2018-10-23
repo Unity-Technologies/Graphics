@@ -79,7 +79,10 @@ struct LightData
     float angleOffset;
     int cookieIndex;
     int lightType;
-    uint customData;
+    uint customFeatureFlags;
+    float customRadiusScale;
+    float customRadiusBias;
+    float customPadding;
     float3 right;
     float3 up;
     float3 forward;

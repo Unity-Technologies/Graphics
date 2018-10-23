@@ -9,6 +9,10 @@
 struct LightCustomData
 {
     uint featureFlags;
+    float customRadiusScale;
+    float customRadiusBias;
+    float customPadding;
+    float customPaddingTwo;
 };
 
 //
@@ -17,6 +21,22 @@ struct LightCustomData
 uint GetFeatureFlags(LightCustomData value)
 {
     return value.featureFlags;
+}
+float GetCustomRadiusScale(LightCustomData value)
+{
+    return value.customRadiusScale;
+}
+float GetCustomRadiusBias(LightCustomData value)
+{
+    return value.customRadiusBias;
+}
+float GetCustomPadding(LightCustomData value)
+{
+    return value.customPadding;
+}
+float GetCustomPaddingTwo(LightCustomData value)
+{
+    return value.customPaddingTwo;
 }
 
 
