@@ -5,7 +5,7 @@
     "unity": "2019.1",
     "displayName": "High Definition RP",
     "dependencies": {
-        "com.unity.postprocessing": "2.0.15-preview",
+        "com.unity.postprocessing": "2.0.16-preview",
         "com.unity.render-pipelines.core": "5.0.0-preview",
         "com.unity.shadergraph": "5.0.0-preview"
     }
