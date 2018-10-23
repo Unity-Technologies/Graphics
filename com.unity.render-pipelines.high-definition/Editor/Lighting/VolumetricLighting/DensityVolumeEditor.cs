@@ -347,56 +347,65 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             DensityVolume densityVolume = target as DensityVolume;
             HierarchicalBox shapeBox = shapeBoxes[densityVolume];
             HierarchicalBox blendBox = blendBoxes[densityVolume];
-            
-            using (new Handles.DrawingScope(Matrix4x4.TRS(densityVolume.transform.position, densityVolume.transform.rotation, Vector3.one)))
+
+            switch (EditMode.editMode)
             {
-                if (EditMode.editMode == k_EditBlend || EditMode.editMode == k_EditShape)
-                {
-                    //contained must be initialized in all case
-                    shapeBox.center = Vector3.zero;
-                    shapeBox.size = densityVolume.parameters.size;
-                }
-
-                if (EditMode.editMode == k_EditBlend)
-                {
-                    blendBox.monoHandle = !densityVolume.parameters.advancedFade;
-                    blendBox.center = CenterBlendLocalPosition(densityVolume);
-                    blendBox.size = BlendSize(densityVolume);
-                    EditorGUI.BeginChangeCheck();
-                    blendBox.DrawHandle();
-                    if (EditorGUI.EndChangeCheck())
+                case k_EditBlend:
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(densityVolume.transform.position, densityVolume.transform.rotation, Vector3.one)))
                     {
-                        Undo.RecordObject(densityVolume, "Change Density Volume Blend");
+                        //contained must be initialized in all case
+                        shapeBox.center = Vector3.zero;
+                        shapeBox.size = densityVolume.parameters.size;
 
-                        //work in local space to compute the change on positiveFade and negativeFade
-                        Vector3 newCenterBlendLocalPosition = blendBox.center;
-                        Vector3 halfSize = blendBox.size * 0.5f;
-                        Vector3 size = densityVolume.parameters.size;
-                        Vector3 posFade = newCenterBlendLocalPosition + halfSize;
-                        posFade.x = 0.5f - posFade.x / size.x;
-                        posFade.y = 0.5f - posFade.y / size.y;
-                        posFade.z = 0.5f - posFade.z / size.z;
-                        Vector3 negFade = newCenterBlendLocalPosition - halfSize;
-                        negFade.x = 0.5f + negFade.x / size.x;
-                        negFade.y = 0.5f + negFade.y / size.y;
-                        negFade.z = 0.5f + negFade.z / size.z;
-                        densityVolume.parameters.positiveFade = posFade;
-                        densityVolume.parameters.negativeFade = negFade;
+                        blendBox.monoHandle = !densityVolume.parameters.advancedFade;
+                        blendBox.center = CenterBlendLocalPosition(densityVolume);
+                        blendBox.size = BlendSize(densityVolume);
+                        EditorGUI.BeginChangeCheck();
+                        blendBox.DrawHandle();
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(densityVolume, "Change Density Volume Blend");
+
+                            //work in local space to compute the change on positiveFade and negativeFade
+                            Vector3 newCenterBlendLocalPosition = blendBox.center;
+                            Vector3 halfSize = blendBox.size * 0.5f;
+                            Vector3 size = densityVolume.parameters.size;
+                            Vector3 posFade = newCenterBlendLocalPosition + halfSize;
+                            posFade.x = 0.5f - posFade.x / size.x;
+                            posFade.y = 0.5f - posFade.y / size.y;
+                            posFade.z = 0.5f - posFade.z / size.z;
+                            Vector3 negFade = newCenterBlendLocalPosition - halfSize;
+                            negFade.x = 0.5f + negFade.x / size.x;
+                            negFade.y = 0.5f + negFade.y / size.y;
+                            negFade.z = 0.5f + negFade.z / size.z;
+                            densityVolume.parameters.positiveFade = posFade;
+                            densityVolume.parameters.negativeFade = negFade;
+                        }
                     }
-                }
-
-                if (EditMode.editMode == k_EditShape)
-                {
-                    shapeBox.monoHandle = !densityVolume.parameters.advancedFade;
-                    EditorGUI.BeginChangeCheck();
-                    shapeBox.DrawHandle();
-                    if (EditorGUI.EndChangeCheck())
+                    break;
+                case k_EditShape:
+                    //important: if the origin of the handle's space move along the handle,
+                    //handles displacement will appears as moving two time faster.
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, densityVolume.transform.rotation, Vector3.one)))
                     {
-                        Undo.RecordObjects(new Object[] { densityVolume, densityVolume.transform }, "ChangeDensity Volume Bounding Box");
-                        densityVolume.transform.position += densityVolume.transform.rotation * shapeBox.center;
-                        densityVolume.parameters.size = shapeBox.size;
+                        //contained must be initialized in all case
+                        shapeBox.center = Quaternion.Inverse(densityVolume.transform.rotation) * densityVolume.transform.position;
+                        shapeBox.size = densityVolume.parameters.size;
+
+                        shapeBox.monoHandle = !densityVolume.parameters.advancedFade;
+                        EditorGUI.BeginChangeCheck();
+                        shapeBox.DrawHandle();
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObjects(new Object[] { densityVolume, densityVolume.transform }, "ChangeDensity Volume Bounding Box");
+
+                            densityVolume.parameters.size = shapeBox.size;
+                            
+                            Vector3 delta = densityVolume.transform.rotation * shapeBox.center - densityVolume.transform.position;
+                            densityVolume.transform.position += delta; ;
+                        }
                     }
-                }
+                    break;
             }
         }
     }
