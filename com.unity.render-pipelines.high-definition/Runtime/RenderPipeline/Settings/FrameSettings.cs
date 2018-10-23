@@ -127,6 +127,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool enableMSAA = false;
 
+        public bool useConstantBuffers = false;
+
         // GC.Alloc
         // FrameSettings..ctor() 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
@@ -178,6 +180,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableAsyncCompute = this.enableAsyncCompute;
 
             frameSettings.enableMSAA = this.enableMSAA;
+            frameSettings.useConstantBuffers = this.useConstantBuffers;
 
             frameSettings.overrides = this.overrides;
 
@@ -277,6 +280,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableRealtimePlanarReflection = srcFrameSettings.enableRealtimePlanarReflection;       
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
+
+            aggregate.useConstantBuffers = /*srcFrameSettings.useConstantBuffers*/ false && SystemInfo.supportsSetConstantBuffer;
 
             aggregate.ConfigureMSAADependentSettings();
             aggregate.ConfigureStereoDependentSettings();

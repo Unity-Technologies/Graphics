@@ -1,7 +1,7 @@
 #ifdef SHADER_VARIABLES_INCLUDE_CB
-uint    _EnableDecals;
 float2  _DecalAtlasResolution;
-uint    _DecalCount;
+uint    _EnableDecals;
+// Decal count moved to light loop hlsl
 #else
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal//Decal.cs.hlsl"

@@ -215,6 +215,7 @@ Shader "HDRenderPipeline/Lit"
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
+    #pragma enable_d3d11_debug_symbols
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DEPTHOFFSET_ON

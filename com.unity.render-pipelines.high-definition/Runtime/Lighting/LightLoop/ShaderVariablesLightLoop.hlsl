@@ -43,6 +43,8 @@
     int _DebugSingleShadowIndex;
 
     int _EnvSliceSize;
+
+    uint    _DecalCount;
 #else
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"

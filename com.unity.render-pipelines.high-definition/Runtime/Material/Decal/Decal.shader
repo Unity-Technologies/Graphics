@@ -28,7 +28,7 @@ Shader "HDRenderPipeline/Decal"
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-    //#pragma enable_d3d11_debug_symbols
+    #pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -37,7 +37,7 @@ Shader "HDRenderPipeline/Decal"
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
 	#pragma shader_feature _ALBEDOCONTRIBUTION
-
+              
     #pragma multi_compile_instancing
     // No need to teset for DECALS_3RT we are in decal shader, so there is no OFF state
 	#pragma multi_compile _ DECALS_4RT

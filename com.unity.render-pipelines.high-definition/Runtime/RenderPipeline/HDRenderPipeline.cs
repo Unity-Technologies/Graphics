@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
+using System.Runtime.InteropServices;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -213,6 +214,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
+        ComputeBuffer m_HDRPGlobalsCB = null;
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
@@ -332,6 +334,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Propagate it to the debug menu
             m_DebugDisplaySettings.msaaSamples = m_MSAASamples;
+
+            // Allocate ComputeBuffer for HDRP globals
+            m_HDRPGlobalsCB = new ComputeBuffer(1, Marshal.SizeOf<HDRPGlobalConstantBuffer>(), ComputeBufferType.Constant);
+            m_HDRPGlobalsCB.name = "HDRPGlobalsBuf";
 
             m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
 #if ENABLE_RAYTRACING
@@ -617,6 +623,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_IBLFilterArray[bsdfIdx].Cleanup();
             }
 
+            Shader.SetGlobalConstantBuffer(HDShaderIDs.HDRPGlobalCB, null, 0, 0);
+            m_HDRPGlobalsCB.Dispose();
+
             HDCamera.ClearAll();
 
             DestroyRenderTextures();
@@ -651,10 +660,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
-                // Set up UnityPerFrame CBuffer.
-                m_SSSBufferManager.PushGlobalParams(hdCamera, cmd, sssParameters);
+                HDRPGlobalConstantBuffer shaderVars = new HDRPGlobalConstantBuffer();
 
-                m_DbufferManager.PushGlobalParams(hdCamera, cmd);
+                // Set up UnityPerFrame CBuffer.
+                m_SSSBufferManager.PushGlobalParams(hdCamera, cmd, sssParameters, ref shaderVars.m_SSSVars);
+
+                m_DbufferManager.PushGlobalParams(hdCamera, cmd, ref shaderVars.m_DecalVars);
 
                 m_VolumetricLightingSystem.PushGlobalParams(hdCamera, cmd, m_FrameCount);
 
@@ -697,6 +708,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
                 else
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, Texture2D.blackTexture);
+
+                if(hdCamera.frameSettings.useConstantBuffers)
+                {
+                    m_HDRPGlobalsCB.SetData(new HDRPGlobalConstantBuffer[] { shaderVars });
+                    cmd.SetGlobalConstantBuffer(m_HDRPGlobalsCB, HDShaderIDs.HDRPGlobalCB, 0, Marshal.SizeOf<HDRPGlobalConstantBuffer>());
+                }
             }
         }
 

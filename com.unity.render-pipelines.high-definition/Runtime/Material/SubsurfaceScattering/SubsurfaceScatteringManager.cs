@@ -1,5 +1,6 @@
 using UnityEngine.Rendering;
 using System;
+using System.Runtime.InteropServices;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -117,24 +118,64 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_HTile);
         }
 
-        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, DiffusionProfileSettings sssParameters)
+        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, DiffusionProfileSettings sssParameters, ref SubsurfaceScatteringShaderVariables shaderVars)
         {
-            // Broadcast SSS parameters to all shaders.
-            cmd.SetGlobalInt(HDShaderIDs._EnableSubsurfaceScattering, hdCamera.frameSettings.enableSubsurfaceScattering ? 1 : 0);
-            unsafe
+            if(hdCamera.frameSettings.useConstantBuffers)
             {
-                // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
-                // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
-                uint texturingModeFlags = sssParameters.texturingModeFlags;
-                uint transmissionFlags = sssParameters.transmissionFlags;
-                cmd.SetGlobalFloat(HDShaderIDs._TexturingModeFlags, *(float*)&texturingModeFlags);
-                cmd.SetGlobalFloat(HDShaderIDs._TransmissionFlags, *(float*)&transmissionFlags);
+                shaderVars.m_EnableSubsurfaceScattering = hdCamera.frameSettings.enableSubsurfaceScattering ? 1u : 0u;
+                unsafe
+                {
+                    // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
+                    // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
+                    uint texturingModeFlags = sssParameters.texturingModeFlags;
+                    uint transmissionFlags = sssParameters.transmissionFlags;
+                    shaderVars.m_TexturingModeFlags = *(float*)&texturingModeFlags;
+                    shaderVars.m_TransmissionFlags = *(float*)&transmissionFlags;
+
+                    long sz = DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4 * 4;
+                    fixed (Vector4 *src = sssParameters.thicknessRemaps)
+                    fixed (float* dst = shaderVars.m_ThicknessRemaps)
+                    {
+                        Buffer.MemoryCopy(src, dst, sz, sz);
+                    }
+
+                    fixed (Vector4* src = sssParameters.shapeParams)
+                    fixed (float* dst = shaderVars.m_ShapeParams)
+                    {
+                        Buffer.MemoryCopy(src, dst, sz, sz);
+                    }
+
+                    fixed (Vector4* src = hdCamera.frameSettings.enableTransmission ? sssParameters.transmissionTintsAndFresnel0 : sssParameters.disabledTransmissionTintsAndFresnel0)
+                    fixed (float* dst = shaderVars.m_TransmissionTintsAndFresnel0)
+                    {
+                        Buffer.MemoryCopy(src, dst, sz, sz);
+                    }
+                    fixed (Vector4* src = sssParameters.worldScales)
+                    fixed (float* dst = shaderVars.m_WorldScales)
+                    {
+                        Buffer.MemoryCopy(src, dst, sz, sz);
+                    }
+                }
             }
-            cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps, sssParameters.thicknessRemaps);
-            cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams, sssParameters.shapeParams);
-            // To disable transmission, we simply nullify the transmissionTint
-            cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTintsAndFresnel0, hdCamera.frameSettings.enableTransmission ? sssParameters.transmissionTintsAndFresnel0 : sssParameters.disabledTransmissionTintsAndFresnel0);
-            cmd.SetGlobalVectorArray(HDShaderIDs._WorldScales, sssParameters.worldScales);
+            else
+            {
+                // Broadcast SSS parameters to all shaders.
+                cmd.SetGlobalInt(HDShaderIDs._EnableSubsurfaceScattering, hdCamera.frameSettings.enableSubsurfaceScattering ? 1 : 0);
+                unsafe
+                {
+                    // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
+                    // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
+                    uint texturingModeFlags = sssParameters.texturingModeFlags;
+                    uint transmissionFlags = sssParameters.transmissionFlags;
+                    cmd.SetGlobalFloat(HDShaderIDs._TexturingModeFlags, *(float*)&texturingModeFlags);
+                    cmd.SetGlobalFloat(HDShaderIDs._TransmissionFlags, *(float*)&transmissionFlags);
+                }
+                cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps, sssParameters.thicknessRemaps);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams, sssParameters.shapeParams);
+                // To disable transmission, we simply nullify the transmissionTint
+                cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTintsAndFresnel0, hdCamera.frameSettings.enableTransmission ? sssParameters.transmissionTintsAndFresnel0 : sssParameters.disabledTransmissionTintsAndFresnel0);
+                cmd.SetGlobalVectorArray(HDShaderIDs._WorldScales, sssParameters.worldScales);
+            }
         }
 
         bool NeedTemporarySubsurfaceBuffer()

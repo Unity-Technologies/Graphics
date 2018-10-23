@@ -214,6 +214,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SSSHTile = Shader.PropertyToID("_SSSHTile");
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
 
+        public static readonly int HDRPGlobalCB = Shader.PropertyToID("HDRPGlobalCB");
+
         // all decal properties
         public static readonly int _NormalToWorldID = Shader.PropertyToID("_NormalToWorld");
         public static readonly int _DecalAtlas2DID = Shader.PropertyToID("_DecalAtlas2D");
