@@ -20,7 +20,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (e == null)
                 return;
 
-            var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
             if (reflectionProbe == e.target)
             {
                 //will draw every preview, thus no need to do it multiple times
@@ -29,8 +28,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (!e.sceneViewEditing)
                 return;
-
-
 
             DrawVerticalRay(reflectionProbe.transform);
         }
