@@ -27,7 +27,7 @@
 #endif
 
 #define GROUP_SIZE_1D                      8
-#define SUPPORT_PUNCTUAL_LIGHTS            1 // Punctual lights contribute to fog lighting
+#define SUPPORT_LOCAL_LIGHTS               1 // Local lights contribute to fog lighting
 
 // All shadow bias code is completely broken in volumetrics. Disable it.
 #define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1
@@ -141,13 +141,8 @@ float ComputeHistoryWeight()
 
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
-VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
-                                    DualRay ray, float t0, float t1, float dt, float rndVal, float extinction, float anisotropy
-                                #ifdef USE_CLUSTERED_LIGHTLIST
-                                    , uint lightClusters[2])
-                                #else
-                                    )
-                                #endif
+VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
+                                               DualRay ray, float t0, float t1, float dt, float rndVal, float extinction, float anisotropy)
 {
     VoxelLighting lighting;
     ZERO_INITIALIZE(VoxelLighting, lighting);
@@ -157,74 +152,88 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
 
     const float NdotL = 1;
 
-    if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
+    float tOffset, weight;
+    ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
+
+    float t = t0 + tOffset;
+    posInput.positionWS = GetPointAtDistance(ray, t);
+
+    // Evaluate sun shadows.
+    if (_DirectionalShadowIndex >= 0)
     {
-        float tOffset, weight;
-        ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
+        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
-        float t = t0 + tOffset;
-        posInput.positionWS = GetPointAtDistance(ray, t);
+        // Prep the light so that it works with non-volumetrics-specific code.
+        light.contactShadowIndex = -1;
+        light.lightDimmer        = light.volumetricLightDimmer;
+        light.shadowDimmer       = light.volumetricShadowDimmer;
 
-        // Evaluate sun shadows.
-        if (_DirectionalShadowIndex >= 0)
-        {
-            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
-
-            // Prep the light so that it works with non-volumetrics-specific code.
-            light.contactShadowIndex = -1;
-            light.lightDimmer        = light.volumetricLightDimmer;
-            light.shadowDimmer       = light.volumetricShadowDimmer;
-
-            // Pass the light direction as the normal to avoid issues with shadow biasing code.
-            context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, -light.forward);
-        }
-        else
-        {
-            context.shadowValue = 1;
-        }
-
-        for (uint i = 0; i < _DirectionalLightCount; ++i)
-        {
-            DirectionalLightData light = _DirectionalLightDatas[i];
-
-            // Prep the light so that it works with non-volumetrics-specific code.
-            light.contactShadowIndex = -1;
-            light.lightDimmer        = light.volumetricLightDimmer;
-            light.shadowDimmer       = light.volumetricShadowDimmer;
-
-            float3 L = -light.forward;
-
-            // Pass the light direction as the normal to avoid issues with shadow biasing code.
-            float3 color; float attenuation;
-            EvaluateLight_Directional(context, posInput, light, unused, L, L, NdotL,
-                                      color, attenuation);
-
-            // Important:
-            // Ideally, all scattering calculations should use the jittered versions
-            // of the sample position and the ray direction. However, correct reprojection
-            // of asymmetrically scattered lighting (affected by an anisotropic phase
-            // function) is not possible. We work around this issue by reprojecting
-            // lighting not affected by the phase function. This basically removes
-            // the phase function from the temporal integration process. It is a hack.
-            // The downside is that anisotropy no longer benefits from temporal averaging,
-            // and any temporal instability of anisotropy causes causes visible jitter.
-            // In order to stabilize the image, we use the voxel center for all
-            // anisotropy-related calculations.
-            float cosTheta = dot(L, ray.centerDirWS);
-            float phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
-
-            // Note: the 'weight' accounts for transmittance from 't0' to 't'.
-            float intensity = light.volumetricLightDimmer * attenuation * weight;
-
-            // Compute the amount of in-scattered radiance.
-            lighting.radianceNoPhase  += intensity * color;
-            lighting.radianceComplete += phase * intensity * color;
-        }
+        // Pass the light direction as the normal to avoid issues with shadow biasing code.
+        context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, -light.forward);
+    }
+    else
+    {
+        context.shadowValue = 1;
     }
 
-#if (SUPPORT_PUNCTUAL_LIGHTS == 0)
+    for (uint i = 0; i < _DirectionalLightCount; ++i)
+    {
+        DirectionalLightData light = _DirectionalLightDatas[i];
+
+        // Prep the light so that it works with non-volumetrics-specific code.
+        light.contactShadowIndex = -1;
+        light.lightDimmer        = light.volumetricLightDimmer;
+        light.shadowDimmer       = light.volumetricShadowDimmer;
+
+        float3 L = -light.forward;
+
+        // Pass the light direction as the normal to avoid issues with shadow biasing code.
+        float3 color; float attenuation;
+        EvaluateLight_Directional(context, posInput, light, unused, L, L, NdotL,
+                                  color, attenuation);
+
+        // Important:
+        // Ideally, all scattering calculations should use the jittered versions
+        // of the sample position and the ray direction. However, correct reprojection
+        // of asymmetrically scattered lighting (affected by an anisotropic phase
+        // function) is not possible. We work around this issue by reprojecting
+        // lighting not affected by the phase function. This basically removes
+        // the phase function from the temporal integration process. It is a hack.
+        // The downside is that anisotropy no longer benefits from temporal averaging,
+        // and any temporal instability of anisotropy causes causes visible jitter.
+        // In order to stabilize the image, we use the voxel center for all
+        // anisotropy-related calculations.
+        float cosTheta = dot(L, ray.centerDirWS);
+        float phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
+
+        // Note: the 'weight' accounts for transmittance from 't0' to 't'.
+        float intensity = light.volumetricLightDimmer * attenuation * weight;
+
+        // Compute the amount of in-scattered radiance.
+        lighting.radianceNoPhase  += intensity * color;
+        lighting.radianceComplete += phase * intensity * color;
+    }
+
     return lighting;
-#endif
+}
+
+// Computes the light integral (in-scattered radiance) within the voxel.
+// Multiplication by the scattering coefficient and the phase function is performed outside.
+VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
+                                         DualRay ray, float t0, float t1, float dt, float rndVal, float extinction, float anisotropy
+                                     #ifdef USE_CLUSTERED_LIGHTLIST
+                                         , uint lightClusters[2])
+                                     #else
+                                         )
+                                     #endif
+{
+    VoxelLighting lighting;
+    ZERO_INITIALIZE(VoxelLighting, lighting);
+
+    BuiltinData unused; // Unused for now, so define once
+    ZERO_INITIALIZE(BuiltinData, unused);
+
+    const float NdotL = 1;
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
@@ -527,7 +536,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: piecewise linear.
         float3 scattering = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).rgb;
         float  extinction = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).a;
-        float  anisotropy = _GlobalAnisotropy;
+        float  anisotropy = _GlobalFogAnisotropy;
 
         // Prevent division by 0.
         extinction = max(extinction, FLT_MIN);
@@ -545,15 +554,37 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float rndVal = frac(perPixelRandomOffset + 0.5);
     #endif
 
-        VoxelLighting lighting = EvaluateVoxelLighting(context, featureFlags, posInput, centerWS,
-                                                       ray, t0, t1, dt, rndVal, extinction, anisotropy
-                                                   #ifdef USE_CLUSTERED_LIGHTLIST
-                                                       , lightClusters);
-                                                   #else
-                                                       );
-                                                   #endif
+        VoxelLighting aggregateLighting;
+        ZERO_INITIALIZE(VoxelLighting, aggregateLighting);
+
+        if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
+        {
+            VoxelLighting lighting = EvaluateVoxelLightingDirectional(context, featureFlags, posInput,
+                                                                      centerWS, ray, t0, t1, dt, rndVal,
+                                                                      extinction, anisotropy);
+
+            aggregateLighting.radianceNoPhase  += lighting.radianceNoPhase;
+            aggregateLighting.radianceComplete += lighting.radianceComplete;
+        }
+
+        #if (SUPPORT_LOCAL_LIGHTS != 0)
+        {
+            VoxelLighting lighting = EvaluateVoxelLightingLocal(context, featureFlags, posInput, centerWS,
+                                                                ray, t0, t1, dt, rndVal, extinction, anisotropy
+                                                            #ifdef USE_CLUSTERED_LIGHTLIST
+                                                                , lightClusters);
+                                                            #else
+                                                                );
+                                                            #endif
+
+            aggregateLighting.radianceNoPhase  += lighting.radianceNoPhase;
+            aggregateLighting.radianceComplete += lighting.radianceComplete;
+        }
+        #endif
+
     #if ENABLE_REPROJECTION
-        float4 voxelValue           = float4(lighting.radianceNoPhase, extinction * dt);
+        // Clamp here to prevent generation of NaNs.
+        float4 voxelValue           = float4(aggregateLighting.radianceNoPhase, extinction * dt);
         float4 linearizedVoxelValue = LinearizeRGBD(voxelValue);
         float4 normalizedVoxelValue = linearizedVoxelValue * rcp(dt);
         float4 normalizedBlendValue = normalizedVoxelValue;
@@ -590,9 +621,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Estimate the influence of the phase function on the results of the current frame.
         float3 phaseCurrFrame;
 
-        phaseCurrFrame.r = SafeDiv(lighting.radianceComplete.r, lighting.radianceNoPhase.r);
-        phaseCurrFrame.g = SafeDiv(lighting.radianceComplete.g, lighting.radianceNoPhase.g);
-        phaseCurrFrame.b = SafeDiv(lighting.radianceComplete.b, lighting.radianceNoPhase.b);
+        phaseCurrFrame.r = SafeDiv(aggregateLighting.radianceComplete.r, aggregateLighting.radianceNoPhase.r);
+        phaseCurrFrame.g = SafeDiv(aggregateLighting.radianceComplete.g, aggregateLighting.radianceNoPhase.g);
+        phaseCurrFrame.b = SafeDiv(aggregateLighting.radianceComplete.b, aggregateLighting.radianceNoPhase.b);
 
         // Warning: in general, this does not work!
         // For a voxel with a single light, 'phaseCurrFrame' is monochromatic, and since
@@ -606,7 +637,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         blendValue.rgb *= phaseCurrFrame;
 
     #else // ENABLE_REPROJECTION
-        float4 blendValue = float4(lighting.radianceComplete, extinction * dt);
+        float4 blendValue = float4(aggregateLighting.radianceComplete, extinction * dt);
     #endif // ENABLE_REPROJECTION
 
         // Compute the transmittance from the camera to 't0'.

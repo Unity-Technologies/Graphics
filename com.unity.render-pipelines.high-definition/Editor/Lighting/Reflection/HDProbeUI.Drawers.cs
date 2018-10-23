@@ -52,14 +52,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CaptureSettingsUI.SectionCaptureSettings
             );
 
-        public static readonly CED.IDrawer SectionFrameSettings = CED.FadeGroup(
-            (s, d, o, i) => s.isFrameSettingsOverriden,
-            FadeOption.None,
-            CED.Select(
-                (s, d, o) => s.frameSettings,
-                (s, d, o) => d.frameSettings,
-                FrameSettingsUI.Inspector(withOverride: true, withXR: false))
-            );
+        public static readonly CED.IDrawer SectionFrameSettings = CED.Action((s, d, o) =>
+        {
+            if (s.captureSettings.isSectionExpandedCaptureSettings.target)
+            {
+                if (s.isFrameSettingsOverriden.target && s.captureSettings.isSectionExpandedCaptureSettings.target)
+                    FrameSettingsUI.Inspector(withOverride: true).Draw(s.frameSettings, d.frameSettings, o);
+                else
+                    EditorGUILayout.Space();
+            }
+        });
+
 
         public static readonly CED.IDrawer SectionFoldoutAdditionalSettings = CED.FoldoutGroup(
             additionnalSettingsHeader,
@@ -79,8 +82,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SectionInfluenceVolume,
                 SectionShapeCheck,
                 SectionCaptureSettings,
-                SectionFoldoutAdditionalSettings,
                 SectionFrameSettings,
+                SectionFoldoutAdditionalSettings,
                 SectionBakeButton
             };
         }

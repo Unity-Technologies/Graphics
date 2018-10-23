@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to clear the shadow atlases in the debug menu
 - Added a color visualization of the shadow atlas rescale in debug mode
 - Added support for disabling SSR on materials
+- Added intrinsic for XBone
+- Added new light volume debugging tool
+- Added a new SSR debug view mode
 
 ### Fixed
 - Fixed a normal bias issue with Stacklit (Was causing light leaking)
@@ -39,7 +42,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow cascade sampling outside of the atlas when cascade count is inferior to 4
 - Fixed shadow filter width in deferred rendering not matching shader config
 - Fixed stereo sampling of depth texture in MSAA DepthValues.shader
-- Fix box light UI which allowed negative and zero sizes, thus causing NaNs
+- Fixed box light UI which allowed negative and zero sizes, thus causing NaNs
+- Fixed stereo rendering in HDRISky.shader 
+- Fixed normal blend and blend sphere influence for reflection probe
+- Fixed distortion filtering (was point filtering, now trilinear)
+- Fixed contact shadow for large distance
+- Fixed depth pyramid debug view mode
 
 ### Changed
 - Use samplerunity_ShadowMask instead of samplerunity_samplerLightmap for shadow mask
@@ -50,6 +58,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Expose frameSettings and Capture settings for reflection and planar probe
 - Update UI for reflection probe, planar probe, camera and HDRP Asset
 - Implement proper linear blending for volumetric lighting via deep compositing as described in the paper "Deep Compositing Using Lie Algebras"
+- Changed  planar mapping to match terrain convention (XZ instead of ZX)
+- XRGraphicsConfig is no longer Read/Write. Instead, it's read-only. This improves consistency of XR behavior between the legacy render pipeline and SRP
+- Change reflection probe data migration code (to update old reflection probe to new one)
 
 ## [4.0.0-preview] - 2018-09-28
 

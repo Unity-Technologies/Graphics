@@ -64,6 +64,8 @@ public class HDRP_GraphicTestRunner
             settingsSG.biObjs.SetActive(false);
             yield return null; // Wait a frame
             yield return null;
+            bool sgFail = false;
+            bool biFail = false;
 
             // First test: Shader Graph
             try
@@ -72,7 +74,7 @@ public class HDRP_GraphicTestRunner
             }
             catch (AssertionException)
             {
-                Assert.Fail("Shader Graph Objects failed."); // Informs which ImageAssert failed.
+                sgFail = true;
             }
 
             settingsSG.sgObjs.SetActive(false);
@@ -88,8 +90,13 @@ public class HDRP_GraphicTestRunner
             }
             catch (AssertionException)
             {
-                Assert.Fail("Non-Shader Graph Objects failed to match Shader Graph objects."); // Informs which ImageAssert failed.
+                biFail = true;
             }
+
+            // Informs which ImageAssert failed, if any.
+            if (sgFail && biFail) Assert.Fail("Both Shader Graph and Non-Shader Graph Objects failed to match the reference image");
+            else if (sgFail) Assert.Fail("Shader Graph Objects failed.");
+            else if (biFail) Assert.Fail("Non-Shader Graph Objects failed to match Shader Graph objects.");
         }
     }
 

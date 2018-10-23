@@ -451,7 +451,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
 
-            // VisualEnvironment sets global fog parameters: _GlobalAnisotropy, _GlobalScattering, _GlobalExtinction.
+            // VisualEnvironment sets global fog parameters
 
             if (!hdCamera.frameSettings.enableVolumetrics || visualEnvironment.fogType.value != FogType.Volumetric)
             {
@@ -518,7 +518,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     DensityVolume volume = volumes[i];
 
                     // TODO: cache these?
-                    var obb = OrientedBBox.Create(volume.transform);
+                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
 
                     // Handle camera-relative rendering.
                     obb.center -= camOffset;
