@@ -22,11 +22,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public struct LightData
     {
-        public int additionalLightsCount;
-        public bool shadeAdditionalLightsPerVertex;
         public int mainLightIndex;
+        public int additionalLightsCount;
+        public int maxPerObjectAdditionalLightsCount;
         public List<VisibleLight> visibleLights;
-        public List<int> additionalLightIndices;
+        public bool shadeAdditionalLightsPerVertex;
         public bool supportsMixedLighting;
     }
 
