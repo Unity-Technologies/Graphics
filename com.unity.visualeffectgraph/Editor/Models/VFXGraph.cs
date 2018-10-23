@@ -379,6 +379,19 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void SetForceShaderValidation(bool forceShaderValidation)
+        {
+            if (m_ForceShaderValidation != forceShaderValidation)
+            {
+                m_ForceShaderValidation = forceShaderValidation;
+                if (m_ForceShaderValidation)
+                {
+                    SetExpressionGraphDirty();
+                    RecompileIfNeeded();
+                }
+            }
+        }
+
         public void SetExpressionGraphDirty()
         {
             m_ExpressionGraphDirty = true;
@@ -396,7 +409,7 @@ namespace UnityEditor.VFX
             bool considerGraphDirty = m_ExpressionGraphDirty && !preventRecompilation;
             if (considerGraphDirty)
             {
-                compiledData.Compile(m_CompilationMode);
+                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
             }
             else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
             {
@@ -428,6 +441,7 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private VFXGraphCompiledData m_CompiledData;
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
+        private bool m_ForceShaderValidation = false;
 
         [SerializeField]
         protected bool m_saved = false;

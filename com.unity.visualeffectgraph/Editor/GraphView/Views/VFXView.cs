@@ -244,6 +244,16 @@ namespace UnityEditor.VFX.UI
             m_Toolbar.Add(toggleRuntimeMode);
             toggleRuntimeMode.AddToClassList("toolbarItem");
 
+            if (VFXGraphCompiledData.k_FnVFXResource_SetCompileInitialVariants != null)
+            {
+                Toggle toogleForceShaderValidation = new Toggle();
+                toogleForceShaderValidation.text = "Force Shader Validation";
+                toogleForceShaderValidation.SetValueWithoutNotify(m_ForceShaderValidation);
+                toogleForceShaderValidation.RegisterCallback<ChangeEvent<bool>>(OnToggleForceShaderValidation);
+                m_Toolbar.Add(toogleForceShaderValidation);
+                toogleForceShaderValidation.AddToClassList("toolbarItem");
+            }
+
             Toggle toggleAutoCompile = new Toggle();
             toggleAutoCompile.text = "Auto Compile";
             toggleAutoCompile.SetValueWithoutNotify(true);
@@ -940,6 +950,13 @@ namespace UnityEditor.VFX.UI
         {
             m_IsRuntimeMode = e.newValue;
             controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
+        }
+
+        private bool m_ForceShaderValidation = false;
+        void OnToggleForceShaderValidation(ChangeEvent<bool> e)
+        {
+            m_ForceShaderValidation = e.newValue;
+            controller.graph.SetForceShaderValidation(m_ForceShaderValidation);
         }
 
         public EventPropagation Compile()
