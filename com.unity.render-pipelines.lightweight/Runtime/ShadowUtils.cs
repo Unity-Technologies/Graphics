@@ -5,6 +5,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public struct ShadowSliceData
     {
+        public Matrix4x4 viewMatrix;
+        public Matrix4x4 projectionMatrix;
         public Matrix4x4 shadowTransform;
         public int offsetX;
         public int offsetY;
@@ -12,6 +14,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void Clear()
         {
+            viewMatrix = Matrix4x4.identity;
+            projectionMatrix = Matrix4x4.identity;
             shadowTransform = Matrix4x4.identity;
             offsetX = offsetY = 0;
             resolution = 1024;
@@ -31,6 +35,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             shadowSliceData.offsetX = (cascadeIndex % 2) * shadowResolution;
             shadowSliceData.offsetY = (cascadeIndex / 2) * shadowResolution;
             shadowSliceData.resolution = shadowResolution;
+            shadowSliceData.viewMatrix = viewMatrix;
+            shadowSliceData.projectionMatrix = projMatrix;
             shadowSliceData.shadowTransform = GetShadowTransform(projMatrix, viewMatrix);
 
             // If we have shadow cascades baked into the atlas we bake cascade transform
@@ -68,15 +74,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
         {
             int resolution = Mathf.Min(atlasWidth, atlasHeight);
-            if (tileCount > Mathf.Log(resolution))
-            {
-                Debug.LogError(
-                    String.Format(
-                        "Cannot fit {0} tiles into current shadowmap atlas of size ({1}, {2}). ShadowMap Resolution set to zero.",
-                        tileCount, atlasWidth, atlasHeight));
-                return 0;
-            }
-
             int currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
             while (currentTileCount < tileCount)
             {
