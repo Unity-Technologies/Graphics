@@ -53,6 +53,34 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = false
         };
 
+        Pass m_SceneSelectionPass = new Pass()
+        {
+            Name = "SceneSelectionPass",
+            LightMode = "SceneSelectionPass",
+            TemplateName = "FabricPass.template",
+            MaterialName = "Fabric",
+            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            ExtraDefines = new List<string>()
+            {
+                "#define SCENESELECTIONPASS",
+            },
+            ColorMaskOverride = "ColorMask 0",
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                FabricMasterNode.AlphaSlotId,
+                FabricMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                FabricMasterNode.PositionSlotId
+            },
+            UseInPreview = true
+        };
+
         Pass m_PassShadowCaster = new Pass()
         {
             Name = "ShadowCaster",
@@ -430,11 +458,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case SpecularOcclusionMode.Off:
                     break;
-                case SpecularOcclusionMode.On:
-                    activeFields.Add("SpecularOcclusion");
+                case SpecularOcclusionMode.FromAO:
+                    activeFields.Add("SpecularOcclusionFromAO");
                     break;
-                case SpecularOcclusionMode.OnUseBentNormal:
-                    activeFields.Add("BentNormalSpecularOcclusion");
+                case SpecularOcclusionMode.FromAOAndBentNormal:
+                    activeFields.Add("SpecularOcclusionFromAOBentNormal");
+                    break;
+                case SpecularOcclusionMode.Custom:
+                    activeFields.Add("SpecularOcclusionCustom");
                     break;
                 default:
                     break;
@@ -508,6 +539,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool transparentDepthPostpassActive = transparent && masterNode.alphaTest.isOn && masterNode.alphaTestDepthPostpass.isOn;
 
                 GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
 
                 if (opaque)
