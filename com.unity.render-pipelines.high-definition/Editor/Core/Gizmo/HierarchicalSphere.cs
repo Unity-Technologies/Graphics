@@ -151,9 +151,7 @@ namespace UnityEditor.Experimental.Rendering
                 //Handles.DrawWireDisc(Vector3.zero, Vector3.right, radius);
                 //Handles.DrawWireDisc(Vector3.zero, Vector3.forward, radius);
                 Handles.DrawWireDisc(drawCenter, viewPlaneNormal, drawnRadius);
-                Color c = Handles.color;
-                c.a = 0.2f;
-                Handles.color = c;
+                Handles.color = m_WireframeColorBehind;
                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                 Handles.DrawWireDisc(Vector3.zero, Vector3.up, radius);
                 //Handles.DrawWireDisc(Vector3.zero, Vector3.right, radius);
