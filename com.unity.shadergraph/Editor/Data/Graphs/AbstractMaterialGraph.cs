@@ -200,6 +200,7 @@ namespace UnityEditor.ShaderGraph
 
                         // A node is allowed to not provide a type, but in that case it will always use the serialized
                         // values.
+                        // TODO: Is that sensible???
                         if (context.type.HasValue)
                         {
                             m_NodeTypes.Add(context.type.Value);

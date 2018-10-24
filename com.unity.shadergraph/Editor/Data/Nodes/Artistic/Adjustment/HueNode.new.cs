@@ -1,7 +1,18 @@
 namespace UnityEditor.ShaderGraph
 {
-    public class NewHueNode : IShaderNode
+    class NewHueNode : IShaderNode
     {
+        class Data
+        {
+            public Mode mode;
+        }
+
+        enum Mode
+        {
+            Degrees,
+            Normalized
+        }
+
         PortRef m_InPort;
         PortRef m_OffsetPort;
         PortRef m_OutPort;
@@ -21,7 +32,15 @@ namespace UnityEditor.ShaderGraph
 
         public void OnChange(NodeChangeContext context)
         {
-            throw new System.NotImplementedException();
+            foreach (var node in context.createdNodes)
+            {
+
+            }
         }
+    }
+
+    class HueNodeData
+    {
+
     }
 }
