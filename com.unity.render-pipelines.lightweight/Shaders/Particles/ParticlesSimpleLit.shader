@@ -88,7 +88,7 @@ Shader "Lightweight Render Pipeline/Particles/Simple Lit"
 
             VaryingsParticle ParticlesLitVertex(AttributesParticle input)
             {
-                VaryingsParticle output;
+                VaryingsParticle output = (VaryingsParticle)0;
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
                 VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal

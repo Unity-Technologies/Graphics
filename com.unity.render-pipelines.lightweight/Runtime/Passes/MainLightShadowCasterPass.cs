@@ -62,11 +62,47 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 : RenderTextureFormat.Depth;
         }
 
-        public void Setup(RenderTargetHandle destination)
+        public bool Setup(RenderTargetHandle destination, ref RenderingData renderingData)
         {
+            Clear();
             this.destination = destination;
+
+            int shadowLightIndex = renderingData.lightData.mainLightIndex;
+            if (shadowLightIndex == -1)
+                return false;
+
+            VisibleLight shadowLight = renderingData.lightData.visibleLights[shadowLightIndex];
+            Light light = shadowLight.light;
+            if (light.shadows == LightShadows.None)
+                return false;
+
+            if (shadowLight.lightType != LightType.Directional)
+            {
+                Debug.LogWarning("Only directional lights are supported as main light.");
+            }
+
+            Bounds bounds;
+            if (!renderingData.cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
+                return false;
+
+            m_ShadowCasterCascadesCount = renderingData.shadowData.mainLightShadowCascadesCount;
+
+            int shadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(renderingData.shadowData.mainLightShadowmapWidth,
+                renderingData.shadowData.mainLightShadowmapHeight, m_ShadowCasterCascadesCount);
+
+            for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
+            {
+                bool success = ShadowUtils.ExtractDirectionalLightMatrix(ref renderingData.cullResults, ref renderingData.shadowData,
+                    shadowLightIndex, cascadeIndex, shadowResolution, light.shadowNearPlane,
+                    out m_CascadeSplitDistances[cascadeIndex], out m_CascadeSlices[cascadeIndex], out m_CascadeSlices[cascadeIndex].viewMatrix, out m_CascadeSlices[cascadeIndex].projectionMatrix);
+
+                if (!success)
+                    return false;
+            }
+
+            return true;
         }
-        
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -74,18 +110,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 throw new ArgumentNullException("renderer");
 
             if (renderingData.shadowData.supportsMainLightShadows)
-            {
-                Clear();
                 RenderMainLightCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
             }
-        }
-        
+
         /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
+
             if (m_MainLightShadowmapTexture)
             {
                 RenderTexture.ReleaseTemporary(m_MainLightShadowmapTexture);
@@ -107,33 +140,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_CascadeSlices[i].Clear();
         }
 
-        void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData, ref ShadowData shadowData)
+        void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)
         {
             int shadowLightIndex = lightData.mainLightIndex;
             if (shadowLightIndex == -1)
                 return;
 
             VisibleLight shadowLight = lightData.visibleLights[shadowLightIndex];
-            Light light = shadowLight.light;
-            Debug.Assert(shadowLight.lightType == LightType.Directional);
-
-            if (light.shadows == LightShadows.None)
-                return;
-
-            Bounds bounds;
-            if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
-                return;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderMainLightShadowmapTag);
             using (new ProfilingSample(cmd, k_RenderMainLightShadowmapTag))
             {
-                m_ShadowCasterCascadesCount = shadowData.mainLightShadowCascadesCount;
-
-                int shadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(shadowData.mainLightShadowmapWidth, shadowData.mainLightShadowmapHeight, m_ShadowCasterCascadesCount);
-                float shadowNearPlane = light.shadowNearPlane;
-
-                Matrix4x4 view, proj;
-                var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
+                var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
 
                 m_MainLightShadowmapTexture = RenderTexture.GetTemporary(shadowData.mainLightShadowmapWidth,
                     shadowData.mainLightShadowmapHeight, k_ShadowmapBufferBits, m_ShadowmapFormat);
@@ -142,22 +160,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 SetRenderTarget(cmd, m_MainLightShadowmapTexture, RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.Store, ClearFlag.Depth, Color.black, TextureDimension.Tex2D);
 
-                bool success = false;
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
-                    success = ShadowUtils.ExtractDirectionalLightMatrix(ref cullResults, ref shadowData, shadowLightIndex, cascadeIndex, shadowResolution, shadowNearPlane, out m_CascadeSplitDistances[cascadeIndex], out m_CascadeSlices[cascadeIndex], out view, out proj);
-                    if (success)
-                    {
-                        settings.splitData.cullingSphere = m_CascadeSplitDistances[cascadeIndex];
-                        Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex, ref shadowData, proj, shadowResolution);
-                        ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
-                        ShadowUtils.RenderShadowSlice(cmd, ref context, ref m_CascadeSlices[cascadeIndex], ref settings, proj, view);
-                    }
+                    var splitData = settings.splitData;
+                    splitData.cullingSphere = m_CascadeSplitDistances[cascadeIndex];
+                    settings.splitData = splitData;
+                    Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex, ref shadowData, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].resolution);
+                    ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
+                    ShadowUtils.RenderShadowSlice(cmd, ref context, ref m_CascadeSlices[cascadeIndex],
+                        ref settings, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix);
                 }
 
-                if (success)
                     SetupMainLightShadowReceiverConstants(cmd, ref shadowData, shadowLight);
             }
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

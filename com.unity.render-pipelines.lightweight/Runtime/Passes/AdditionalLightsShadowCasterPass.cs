@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
@@ -24,9 +25,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         Matrix4x4[] m_AdditionalLightShadowMatrices;
         ShadowSliceData[] m_AdditionalLightSlices;
         float[] m_AdditionalLightsShadowStrength;
+        List<int> m_AdditionalShadowCastingLightIndices = new List<int>();
 
         const string k_RenderAdditionalLightShadows = "Render Additional Shadows";
-
 
         private RenderTargetHandle destination { get; set; }
 
@@ -51,8 +52,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 : RenderTextureFormat.Depth;
         }
 
-        public void Setup(RenderTargetHandle destination, int maxVisibleAdditinalLights)
+        public bool Setup(RenderTargetHandle destination, ref RenderingData renderingData, int maxVisibleAdditinalLights)
         {
+            Clear();
             this.destination = destination;
 
             if (m_AdditionalLightShadowMatrices.Length != maxVisibleAdditinalLights)
@@ -61,6 +63,68 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_AdditionalLightSlices = new ShadowSliceData[maxVisibleAdditinalLights];
                 m_AdditionalLightsShadowStrength = new float[maxVisibleAdditinalLights];
             }
+            m_AdditionalShadowCastingLightIndices.Clear();
+
+            Bounds bounds;
+            var visibleLights = renderingData.lightData.visibleLights;
+            int additionalLightsCount = renderingData.lightData.additionalLightsCount;
+            for (int i = 0; i < visibleLights.Length && m_AdditionalShadowCastingLightIndices.Count < additionalLightsCount; ++i)
+            {
+                if (i == renderingData.lightData.mainLightIndex)
+                    continue;
+
+                VisibleLight shadowLight = visibleLights[i];
+                Light light = shadowLight.light;
+
+                if (shadowLight.lightType == LightType.Spot && light != null && light.shadows != LightShadows.None)
+                {
+                    if (renderingData.cullResults.GetShadowCasterBounds(i, out bounds))
+                        m_AdditionalShadowCastingLightIndices.Add(i);
+                }
+            }
+
+            int shadowCastingLightsCount = m_AdditionalShadowCastingLightIndices.Count;
+            if (shadowCastingLightsCount == 0)
+                return false;
+
+            // TODO: Add support to point light shadows. We make a simplification here that only works
+            // for spot lights and with max spot shadows per pass.
+            int atlasWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
+            int atlasHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
+            int sliceResolution = ShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, shadowCastingLightsCount);
+
+            bool anyShadows = false;
+            int shadowSlicesPerRow = (atlasWidth / sliceResolution);
+            for (int i = 0; i < shadowCastingLightsCount; ++i)
+            {
+                int shadowLightIndex = m_AdditionalShadowCastingLightIndices[i];
+                VisibleLight shadowLight = visibleLights[shadowLightIndex];
+
+                // Currently Only Spot Lights are supported in additional lights
+                Debug.Assert(shadowLight.lightType == LightType.Spot);
+                Matrix4x4 shadowTransform;
+                bool success = ShadowUtils.ExtractSpotLightMatrix(ref renderingData.cullResults, ref renderingData.shadowData,
+                    shadowLightIndex, out shadowTransform, out m_AdditionalLightSlices[i].viewMatrix, out m_AdditionalLightSlices[i].projectionMatrix);
+
+                if (success)
+                {
+                    // TODO: We need to pass bias and scale list to shader to be able to support multiple
+                    // shadow casting additional lights.
+                    m_AdditionalLightSlices[i].offsetX = (i % shadowSlicesPerRow) * sliceResolution;
+                    m_AdditionalLightSlices[i].offsetY = (i / shadowSlicesPerRow) * sliceResolution;
+                    m_AdditionalLightSlices[i].resolution = sliceResolution;
+                    m_AdditionalLightSlices[i].shadowTransform = shadowTransform;
+
+                    m_AdditionalLightsShadowStrength[i] = shadowLight.light.shadowStrength;
+                    anyShadows = true;
+                }
+                else
+                {
+                    m_AdditionalShadowCastingLightIndices.RemoveAt(i--);
+                }
+            }
+
+            return anyShadows;
         }
 
         /// <inheritdoc/>
@@ -68,19 +132,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             if (renderer == null)
                 throw new ArgumentNullException("renderer");
-            
+
             if (renderingData.shadowData.supportsAdditionalLightShadows)
-            {
-                Clear();
                 RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
             }
-        }
 
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
+
             if (m_AdditionalLightsShadowmapTexture)
             {
                 RenderTexture.ReleaseTemporary(m_AdditionalLightsShadowmapTexture);
@@ -102,89 +163,55 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_AdditionalLightsShadowStrength[i] = 0.0f;
         }
 
-        void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData, ref ShadowData shadowData)
+        void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)
         {
-            List<int> additionalLightIndices = lightData.additionalLightIndices;
-            List<VisibleLight> visibleLights = lightData.visibleLights;
+            NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
-            int shadowCastingLightsCount = 0;
-            int additionalLightsCount = additionalLightIndices.Count;
-            for (int i = 0; i < additionalLightsCount; ++i)
-            {
-                VisibleLight shadowLight = visibleLights[additionalLightIndices[i]];
-
-                if (shadowLight.lightType == LightType.Spot && shadowLight.light.shadows != LightShadows.None)
-                    shadowCastingLightsCount++;
-            }
-
-            if (shadowCastingLightsCount == 0)
-                return;
-
-            Matrix4x4 view, proj;
-            Bounds bounds;
-
+            bool additionalLightHasSoftShadows = false;
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderAdditionalLightShadows);
             using (new ProfilingSample(cmd, k_RenderAdditionalLightShadows))
             {
-                // TODO: Add support to point light shadows. We make a simplification here that only works
-                // for spot lights and with max spot shadows per pass.
-                int atlasWidth = shadowData.additionalLightsShadowmapWidth;
-                int atlasHeight = shadowData.additionalLightsShadowmapHeight;
-                int sliceResolution = ShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, shadowCastingLightsCount);
+                int shadowmapWidth = shadowData.additionalLightsShadowmapWidth;
+                int shadowmapHeight = shadowData.additionalLightsShadowmapHeight;
 
-                m_AdditionalLightsShadowmapTexture = RenderTexture.GetTemporary(shadowData.additionalLightsShadowmapWidth,
-                    shadowData.additionalLightsShadowmapHeight, k_ShadowmapBufferBits, m_AdditionalShadowmapFormat);
+                m_AdditionalLightsShadowmapTexture = RenderTexture.GetTemporary(shadowmapWidth, shadowmapHeight,
+                    k_ShadowmapBufferBits, m_AdditionalShadowmapFormat);
                 m_AdditionalLightsShadowmapTexture.filterMode = FilterMode.Bilinear;
                 m_AdditionalLightsShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
 
                 SetRenderTarget(cmd, m_AdditionalLightsShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                     ClearFlag.Depth, Color.black, TextureDimension.Tex2D);
 
-                for (int i = 0; i < additionalLightsCount; ++i)
+                for (int i = 0; i < m_AdditionalShadowCastingLightIndices.Count; ++i)
                 {
-                    int shadowLightIndex = additionalLightIndices[i];
+                    int shadowLightIndex = m_AdditionalShadowCastingLightIndices[i];
                     VisibleLight shadowLight = visibleLights[shadowLightIndex];
-                    Light light = shadowLight.light;
 
-                    // TODO: Add support to point light shadows
-                    if (shadowLight.lightType != LightType.Spot || shadowLight.light.shadows == LightShadows.None)
-                        continue;
+                    if (m_AdditionalShadowCastingLightIndices.Count > 1)
+                        ShadowUtils.ApplySliceTransform(ref m_AdditionalLightSlices[i], shadowmapWidth, shadowmapHeight);
 
-                    if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
-                        continue;
-
-                    Matrix4x4 shadowTransform;
-                    bool success = ShadowUtils.ExtractSpotLightMatrix(ref cullResults, ref shadowData,
-                        shadowLightIndex, out shadowTransform, out view, out proj);
-
-                    if (success)
-                    {
-                        // This way of computing the shadow slice only work for spots and with most 4 shadow casting lights per pass
-                        // Change this when point lights are supported.
-                        Debug.Assert(shadowCastingLightsCount <= 4 && shadowLight.lightType == LightType.Spot);
-
-                        // TODO: We need to pass bias and scale list to shader to be able to support multiple
-                        // shadow casting additional lights.
-                        m_AdditionalLightSlices[i].offsetX = (i % 2) * sliceResolution;
-                        m_AdditionalLightSlices[i].offsetY = (i / 2) * sliceResolution;
-                        m_AdditionalLightSlices[i].resolution = sliceResolution;
-                        m_AdditionalLightSlices[i].shadowTransform = shadowTransform;
-
-                        m_AdditionalLightsShadowStrength[i] = light.shadowStrength;
-
-                        if (shadowCastingLightsCount > 1)
-                            ShadowUtils.ApplySliceTransform(ref m_AdditionalLightSlices[i], atlasWidth, atlasHeight);
-
-                        var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
+                        var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
                         Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex,
-                            ref shadowData, proj, sliceResolution);
+                            ref shadowData, m_AdditionalLightSlices[i].projectionMatrix, m_AdditionalLightSlices[i].resolution);
                         ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
-                        ShadowUtils.RenderShadowSlice(cmd, ref context, ref m_AdditionalLightSlices[i], ref settings, proj, view);
-                    }
+                    ShadowUtils.RenderShadowSlice(cmd, ref context, ref m_AdditionalLightSlices[i], ref settings, m_AdditionalLightSlices[i].projectionMatrix, m_AdditionalLightSlices[i].viewMatrix);
+                    additionalLightHasSoftShadows |= shadowLight.light.shadows == LightShadows.Soft;
                 }
 
                 SetupAdditionalLightsShadowReceiverConstants(cmd, ref shadowData);
             }
+
+            // We share soft shadow settings for main light and additional lights to save keywords.
+            // So we check here if pipeline supports soft shadows and either main light or any additional light has soft shadows
+            // to enable the keyword.
+            // TODO: In PC and Consoles we can upload shadow data per light and branch on shader. That will be more likely way faster.
+            bool mainLightHasSoftShadows = shadowData.supportsMainLightShadows &&
+                                          lightData.mainLightIndex != -1 &&
+                                          visibleLights[lightData.mainLightIndex].light.shadows == LightShadows.Soft;
+
+            bool softShadows = shadowData.supportsSoftShadows && (mainLightHasSoftShadows || additionalLightHasSoftShadows);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, true);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

@@ -9,7 +9,6 @@ using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.VFX;
 
 using UnityEditor.VFX;
@@ -324,7 +323,10 @@ namespace UnityEditor.VFX
                     prop.vector2Value = (Vector2)value;
                     return;
                 case SerializedPropertyType.Vector4:
-                    prop.vector4Value = (Vector4)value;
+                    if (value is Color)
+                        prop.vector4Value = (Vector4)(Color)value;
+                    else
+                        prop.vector4Value = (Vector4)value;
                     return;
                 case SerializedPropertyType.ObjectReference:
                     prop.objectReferenceValue = (UnityEngine.Object)value;
@@ -706,7 +708,7 @@ namespace UnityEditor.VFX
                 RenderPipelineAsset srpAsset = GraphicsSettings.renderPipelineAsset;
                 if (srpAsset != null)
                 {
-                    var layerNames = srpAsset.GetRenderingLayerMaskNames();
+                    var layerNames = srpAsset.renderingLayerMaskNames;
                     if (layerNames != null)
                     {
                         var mask = (int)m_Renderers[0].renderingLayerMask;

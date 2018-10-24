@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow filter width in deferred rendering not matching shader config
 - Fixed stereo sampling of depth texture in MSAA DepthValues.shader
 - Fixed box light UI which allowed negative and zero sizes, thus causing NaNs
+- Fixed stereo rendering in HDRISky.shader 
 - Fixed normal blend and blend sphere influence for reflection probe
 - Fixed distortion filtering (was point filtering, now trilinear)
 - Fixed contact shadow for large distance
@@ -57,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Expose frameSettings and Capture settings for reflection and planar probe
 - Update UI for reflection probe, planar probe, camera and HDRP Asset
 - Implement proper linear blending for volumetric lighting via deep compositing as described in the paper "Deep Compositing Using Lie Algebras"
+- Changed  planar mapping to match terrain convention (XZ instead of ZX)
 - XRGraphicsConfig is no longer Read/Write. Instead, it's read-only. This improves consistency of XR behavior between the legacy render pipeline and SRP
 - Change reflection probe data migration code (to update old reflection probe to new one)
 
