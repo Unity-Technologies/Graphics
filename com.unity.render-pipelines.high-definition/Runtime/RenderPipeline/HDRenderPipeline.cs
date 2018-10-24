@@ -1082,7 +1082,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ClearBuffers(hdCamera, cmd);
 
                     // TODO: Add stereo occlusion mask
-                    RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
+                    bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
+
+                    if (!shouldRenderMotionVectorAfterGBuffer)
+                    {
+                        // If objects velocity if enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
+                        // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
+                        RenderObjectsVelocity(cullingResults, hdCamera, renderContext, cmd);
+                    }                    
 
                     // Now that all depths have been rendered, resolve the depth buffer
                     m_SharedRTManager.ResolveSharedRT(cmd, hdCamera);
@@ -1127,12 +1134,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
                     cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
 
-                    // TODO: In the future we will render object velocity at the same time as depth prepass (we need C++ modification for this)
-                    // Once the C++ change is here we will first render all object without motion vector then motion vector object
-                    // We can't currently render object velocity after depth prepass because if there is no depth prepass we can have motion vector write that should have been rejected
-                    // If objects velocity if enabled, this will render the rest of objects into the target buffers (in addition to the velocity buffer)	
-                    RenderObjectsVelocity(cullingResults, hdCamera, renderContext, cmd);
-                    RenderCameraVelocity(cullingResults, hdCamera, renderContext, cmd);
+                    if (shouldRenderMotionVectorAfterGBuffer)
+                    {
+                        // See the call RenderObjectsVelocity() above and comment
+                        RenderObjectsVelocity(cullingResults, hdCamera, renderContext, cmd);
+                    }
 
                     StopStereoRendering(cmd, renderContext, camera);
                     // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
@@ -1577,7 +1583,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Forward only renderer: We always render everything
         // Deferred renderer: We always render depth prepass for alpha tested (optimization), other object are render based on engine configuration.
         // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render everything
-        void RenderDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        // True is return if motion vector must be render after GBuffer pass
+        bool RenderDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             // In case of deferred renderer, we can have forward opaque material. These materials need to be render in the depth buffer to correctly build the light list.
             // And they will tag the stencil to not be lit during the deferred lighting pass.
@@ -1601,10 +1608,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // To save drawcall we don't render in prepass the object that have object motion vector. We use the excludeMotion filter option of DrawRenderer to know that (only C++ can know if an object have object motion vector).
             // Thus during this prepass we will exclude all object that have object motion vector, mean that during the velocity pass they will also output normal buffer (like a regular prepass) if needed.
             // Combination of both depth prepass + motion vector pass provide the full depth buffer
+            // Caution: When there is no depth prepass we must render the object motion vector after the GBuffer pass, otherwise it mean some object that hide the object with motion vector will overwrite depth buffer but not the
+            // velocity buffer and we will get artifacts
 
             // In order to avoid rendering objects twice (once in the depth pre-pass and once in the motion vector pass, when the motion vector pass is enabled). We exclude the objects that have motion vectors.
-            // TODO: Currently disable, require a C++ PR
-            bool excludeMotion = false; // hdCamera.frameSettings.enableObjectMotionVectors;
+            bool excludeMotion = hdCamera.frameSettings.enableObjectMotionVectors;
+            bool shouldRenderMotionVectorAfterGBuffer = false;
 
             if (hdCamera.frameSettings.enableForwardRenderingOnly)
             {
@@ -1647,14 +1656,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // First deferred alpha tested materials. Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
                     var renderQueueRange = new RenderQueueRange { lowerBound = (int)RenderQueue.AlphaTest, upperBound = (int)RenderQueue.GeometryLast - 1 };
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange, excludeMotionVector: excludeMotion);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
 
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
 
                     // Then forward only material that output normal buffer
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector : excludeMotion);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                 }
+
+                shouldRenderMotionVectorAfterGBuffer = true;
             }
+
+            return shouldRenderMotionVectorAfterGBuffer;
         }
 
         // RenderGBuffer do the gbuffer pass. This is solely call with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque apha tested and we don't need to do it anymore
