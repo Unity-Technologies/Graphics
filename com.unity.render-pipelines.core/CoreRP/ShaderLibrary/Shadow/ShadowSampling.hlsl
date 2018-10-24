@@ -528,15 +528,16 @@ real SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffse
 
 #include "PCSS.hlsl"
 
-real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real4 scaleOffset, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real4 scaleOffset, real2 sampleBias, float slice, uint texIdx, uint sampIdx, real2 posSS)
 {
     real2 params           = asfloat(shadowContext.payloads[payloadOffset].xy);
     real shadowSoftnesss   = params.x;
     int sampleCount        = params.y;
     payloadOffset++;
-    
-    real2 sampleJitter = real2(sin(GenerateHashedRandomFloat(tcs.x)),
-                               cos(GenerateHashedRandomFloat(tcs.y)));
+
+    real sampleJitterAngle = GenerateHashedRandomFloat(posSS.xy) * 2.0 * PI;
+    real2 sampleJitter = real2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+    // real2 sampleJitter = GenerateHashedRandomFloat(posSS.xy);
 
     //1) Blocker Search
     real averageBlockerDepth = 0.0;
@@ -552,20 +553,22 @@ real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, r
     return PCSS(tcs, filterSize, scaleOffset, slice, sampleBias, sampleJitter, shadowContext, texIdx, sampIdx, sampleCount);
 }
 
-real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real4 scaleOffset, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp, SamplerState samp )
+real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real4 scaleOffset, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp, SamplerState samp, real2 posSS)
 {
     real2 params           = asfloat(shadowContext.payloads[payloadOffset].xy);
     real shadowSoftnesss   = params.x;
     int sampleCount        = params.y;
     payloadOffset++;
 
-    real2 sampleJitter = real2(sin(GenerateHashedRandomFloat(tcs.x)),
-                               cos(GenerateHashedRandomFloat(tcs.y)));
+    real sampleJitterAngle = GenerateHashedRandomFloat(posSS.xy) * 2.0 * PI;
+    real2 sampleJitter = real2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+
+    // real2 sampleJitter = GenerateHashedRandomFloat(posSS.xy);
 
     //1) Blocker Search
     real averageBlockerDepth = 0.0;
     real numBlockers         = 0.0;
-    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, slice, sampleJitter, sampleBias, tex, samp, sampleCount)) 
+    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, slice, sampleJitter, sampleBias, tex, samp, sampleCount))
         return 1.0;
 
     //2) Penumbra Estimation
@@ -578,7 +581,7 @@ real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, r
 
 //-----------------------------------------------------------------------------------------------------
 // helper function to dispatch a specific shadow algorithm
-real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint algorithm, uint texIdx, uint sampIdx )
+real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint algorithm, uint texIdx, uint sampIdx, real2 posSS)
 {
     UNITY_BRANCH
     switch( algorithm )
@@ -588,7 +591,7 @@ real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shado
     case GPUSHADOWALGORITHM_PCF_TENT_3X3    : return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
     case GPUSHADOWALGORITHM_PCF_TENT_5X5    : return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
     case GPUSHADOWALGORITHM_PCF_TENT_7X7    : return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
-    case GPUSHADOWALGORITHM_PCSS            : return SampleShadow_PCSS( shadowContext, payloadOffset, posTC, shadowData.scaleOffset, sampleBias, shadowData.slice, texIdx, sampIdx );
+    case GPUSHADOWALGORITHM_PCSS            : return SampleShadow_PCSS( shadowContext, payloadOffset, posTC, shadowData.scaleOffset, sampleBias, shadowData.slice, texIdx, sampIdx, posSS);
     case GPUSHADOWALGORITHM_VSM             : return SampleShadow_VSM_1tap(  shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx );
     case GPUSHADOWALGORITHM_EVSM_2          : return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx, false );
     case GPUSHADOWALGORITHM_EVSM_4          : return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx, true );
@@ -598,7 +601,7 @@ real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shado
     }
 }
 
-real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint algorithm, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint algorithm, Texture2DArray tex, SamplerComparisonState compSamp, real2 posSS)
 {
     UNITY_BRANCH
     switch( algorithm )
@@ -608,13 +611,13 @@ real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shado
     case GPUSHADOWALGORITHM_PCF_TENT_3X3    : return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
     case GPUSHADOWALGORITHM_PCF_TENT_5X5    : return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
     case GPUSHADOWALGORITHM_PCF_TENT_7X7    : return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
-    case GPUSHADOWALGORITHM_PCSS            : return SampleShadow_PCSS( shadowContext, payloadOffset, posTC, shadowData.scaleOffset, sampleBias, shadowData.slice, tex, compSamp, s_point_clamp_sampler );
+    case GPUSHADOWALGORITHM_PCSS            : return SampleShadow_PCSS( shadowContext, payloadOffset, posTC, shadowData.scaleOffset, sampleBias, shadowData.slice, tex, compSamp, s_point_clamp_sampler, posSS);
 
     default: return 1.0;
     }
 }
 
-real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint algorithm, Texture2DArray tex, SamplerState samp )
+real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint algorithm, Texture2DArray tex, SamplerState samp, real2 posSS)
 {
     UNITY_BRANCH
     switch( algorithm )

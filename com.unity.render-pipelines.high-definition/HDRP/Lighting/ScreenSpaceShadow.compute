@@ -108,7 +108,7 @@ float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float ra
 float ComputeContactShadow(PositionInputs posInput, float3 direction)
 {
     float contactShadow = 1.0;
-    
+
     if (_ContactShadowLength > 0.0f)
     {
         //Here LightDirection is not the light direction but the light position
@@ -132,7 +132,7 @@ void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
         return;
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
-    
+
     //Direction got from either the directional light direction or the difference of punctual light position and the pixel position
     float3 direction = normalize(_DirectionalLightDirection.xyz * _DirectionalLightDirection.w + (_PunctualLightPosition.xyz - posInput.positionWS) * _PunctualLightPosition.w);
 
@@ -141,7 +141,7 @@ void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
     float3 normalWS = normalData.normalWS;
 
     ShadowContext shadowContext = InitShadowContext();
-    float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, normalWS, _DirectionalShadowIndex, _DirectionalLightDirection.xyz);
+    float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, normalWS, _DirectionalShadowIndex, _DirectionalLightDirection.xyz, pixelCoord);
 
 #ifdef ENABLE_CONTACT_SHADOWS
     contactShadow = ComputeContactShadow(posInput, direction);
@@ -163,7 +163,7 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
         return;
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
-    
+
     float3 direction = normalize(_PunctualLightPosition.xyz - posInput.positionWS);
 
     contactShadow = ComputeContactShadow(posInput, direction);

@@ -225,7 +225,7 @@ float2 EvalShadow_SampleBias_Ortho( ShadowData sd, float3 normalWS )            
 //
 //  Point shadows
 //
-real EvalShadow_PointDepth( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist )
+real EvalShadow_PointDepth( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist, real2 posSS)
 {
     ShadowData sd = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1];
     // get the algorithm
@@ -243,11 +243,11 @@ real EvalShadow_PointDepth( ShadowContext shadowContext, real3 positionWS, real3
     real2 sampleBias = EvalShadow_SampleBias_Persp( sd, positionWS, normalWS, posTC );
     // sample the texture according to the given algorithm
     uint payloadOffset = GetPayloadOffset( sd );
-    return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx );
+    return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx, posSS);
 }
 
 #define EvalShadow_PointDepth_( _samplerType )                                                                                                                                                  \
-    real EvalShadow_PointDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist )   \
+    real EvalShadow_PointDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist, real2 posSS)   \
     {                                                                                                                                                                                           \
         ShadowData sd = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1];                                                                                                             \
         /* bias the world position */                                                                                                                                                           \
@@ -259,7 +259,7 @@ real EvalShadow_PointDepth( ShadowContext shadowContext, real3 positionWS, real3
         real2  sampleBias = EvalShadow_SampleBias_Persp( sd, positionWS, normalWS, posTC );                                                                                                     \
         /* sample the texture */                                                                                                                                                                \
         uint payloadOffset = GetPayloadOffset( sd );                                                                                                                                            \
-        return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, tex, samp );                                                                 \
+        return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, tex, samp, posSS);                                                                 \
     }
     EvalShadow_PointDepth_( SamplerComparisonState )
     EvalShadow_PointDepth_( SamplerState )
@@ -268,7 +268,7 @@ real EvalShadow_PointDepth( ShadowContext shadowContext, real3 positionWS, real3
 //
 //  Spot shadows
 //
-real EvalShadow_SpotDepth( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist )
+real EvalShadow_SpotDepth( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist, real2 posSS)
 {
     // load the right shadow data for the current face
     ShadowData sd = shadowContext.shadowDatas[index];
@@ -287,11 +287,11 @@ real EvalShadow_SpotDepth( ShadowContext shadowContext, real3 positionWS, real3 
     real2 sampleBias = EvalShadow_SampleBias_Persp( sd, positionWS, normalWS, posTC );
     // sample the texture according to the given algorithm
     uint payloadOffset = GetPayloadOffset( sd );
-    return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx );
+    return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx, posSS);
 }
 
 #define EvalShadow_SpotDepth_( _samplerType )                                                                                                                                                   \
-    real EvalShadow_SpotDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist )    \
+    real EvalShadow_SpotDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist, real2 posSS)    \
     {                                                                                                                                                                                           \
         /* load the right shadow data for the current face */                                                                                                                                   \
         ShadowData sd = shadowContext.shadowDatas[index];                                                                                                                                       \
@@ -304,7 +304,7 @@ real EvalShadow_SpotDepth( ShadowContext shadowContext, real3 positionWS, real3 
         real2  sampleBias = EvalShadow_SampleBias_Persp( sd, positionWS, normalWS, posTC );                                                                                                     \
         /* sample the texture */                                                                                                                                                                \
         uint   payloadOffset = GetPayloadOffset( sd );                                                                                                                                          \
-        return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, tex, samp );                                                                 \
+        return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, tex, samp, posSS);                                                                 \
     }
     EvalShadow_SpotDepth_( SamplerComparisonState )
     EvalShadow_SpotDepth_( SamplerState )
@@ -313,7 +313,7 @@ real EvalShadow_SpotDepth( ShadowContext shadowContext, real3 positionWS, real3 
 //
 //  Punctual shadows for Point and Spot
 //
-real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist )
+real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist, real2 posSS)
 {
     // get the algorithm
     ShadowData sd = shadowContext.shadowDatas[index];
@@ -343,11 +343,11 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
     real2 sampleBias = EvalShadow_SampleBias_Persp( sd, positionWS, normalWS, posTC );
     // sample the texture according to the given algorithm
     uint payloadOffset = GetPayloadOffset( sd );
-    return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx );
+    return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx, posSS);
 }
 
 #define EvalShadow_PunctualDepth_( _samplerType )                                                                                                                                                   \
-    real EvalShadow_PunctualDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist )    \
+    real EvalShadow_PunctualDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist, real2 posSS)    \
     {                                                                                                                                                                                               \
         int faceIndex = 0;                                                                                                                                                                          \
         /* get the shadow type */                                                                                                                                                                   \
@@ -376,7 +376,7 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
         real2  sampleBias = EvalShadow_SampleBias_Persp( sd, positionWS, normalWS, posTC );                                                                                                         \
         /* sample the texture */                                                                                                                                                                    \
         uint   payloadOffset = GetPayloadOffset( sd );                                                                                                                                              \
-        return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, tex, samp );                                                                     \
+        return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, tex, samp, posSS);                                                                     \
     }
     EvalShadow_PunctualDepth_( SamplerComparisonState )
     EvalShadow_PunctualDepth_( SamplerState )
@@ -437,7 +437,7 @@ int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 posi
     return shadowSplitIndex;
 }
 
-real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L )
+real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L, real2 posSS)
 {
     // load the right shadow data for the current face
     uint payloadOffset;
@@ -467,7 +467,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
     real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, false );
     // evaluate the first cascade
     real2 sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );
-    real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx );
+    real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx, posSS);
     real  shadow1    = 1.0;
 
     shadowSplitIndex++;
@@ -486,7 +486,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 
             UNITY_BRANCH
             if( all( abs( posNDC.xy ) <= (1.0 - sd.texelSizeRcp.zw * 0.5) ) )
-                shadow1 = SampleShadow_SelectAlgorithm( shadowContext, sd, orig_payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx );
+                shadow1 = SampleShadow_SelectAlgorithm( shadowContext, sd, orig_payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx, posSS);
         }
     }
     shadow = lerp( shadow, shadow1, alpha );
@@ -495,7 +495,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 
 
 #define EvalShadow_CascadedDepth_( _samplerType )                                                                                                                                                                   \
-    real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, uint shadowAlgorithms[kMaxShadowCascades], Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L )      \
+    real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, uint shadowAlgorithms[kMaxShadowCascades], Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real2 posSS)      \
     {                                                                                                                                                                                                               \
         uint payloadOffset;                                                                                                                                                                                         \
         real alpha;                                                                                                                                                                                                 \
@@ -518,7 +518,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
         real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, false );                                                                                                                                             \
         /* evalute the first cascade */                                                                                                                                                                             \
         real2 sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );                                                                                                                                             \
-        real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithms[shadowSplitIndex], tex, samp );                                                      \
+        real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithms[shadowSplitIndex], tex, samp, posSS);                                                      \
         real  shadow1    = 1.0;                                                                                                                                                                                     \
                                                                                                                                                                                                                     \
         shadowSplitIndex++;                                                                                                                                                                                         \
@@ -537,17 +537,17 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
                                                                                                                                                                                                                     \
                 UNITY_BRANCH                                                                                                                                                                                        \
                 if( all( abs( posNDC.xy ) <= (1.0 - sd.texelSizeRcp.zw * 0.5) ) )                                                                                                                                   \
-                    shadow1 = SampleShadow_SelectAlgorithm( shadowContext, sd, orig_payloadOffset, posTC, sampleBias, shadowAlgorithms[shadowSplitIndex], tex, samp );                                              \
+                    shadow1 = SampleShadow_SelectAlgorithm( shadowContext, sd, orig_payloadOffset, posTC, sampleBias, shadowAlgorithms[shadowSplitIndex], tex, samp, posSS);                                              \
             }                                                                                                                                                                                                       \
         }                                                                                                                                                                                                           \
         shadow = lerp( shadow, shadow1, alpha );                                                                                                                                                                    \
         return shadow;                                                                                                                                                                                              \
     }                                                                                                                                                                                                               \
                                                                                                                                                                                                                     \
-    real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L )                           \
+    real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real2 posSS)                           \
     {                                                                                                                                                                                                               \
         uint shadowAlgorithms[kMaxShadowCascades] = { SHADOW_REPEAT_CASCADE( shadowAlgorithm ) };                                                                                                                   \
-        return EvalShadow_CascadedDepth_Blend( shadowContext, shadowAlgorithms, tex, samp, positionWS, normalWS, index, L );                                                                                        \
+        return EvalShadow_CascadedDepth_Blend( shadowContext, shadowAlgorithms, tex, samp, positionWS, normalWS, index, L, posSS);                                                                                        \
     }
 
     EvalShadow_CascadedDepth_( SamplerComparisonState )
@@ -562,7 +562,7 @@ real EvalShadow_hash12( real2 pos )
     return frac( (p3.x + p3.y) * p3.z );
 }
 
-real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L )
+real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L, real2 posSS)
 {
     // load the right shadow data for the current face
     uint payloadOffset;
@@ -599,12 +599,12 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
     }
     // sample the texture
     real2 sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );
-    real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx );
+    real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx, posSS);
     return shadowSplitIndex < (cascadeCount-1) ? shadow : lerp( shadow, 1.0, alpha );
 }
 
 #define EvalShadow_CascadedDepth_( _samplerType )                                                                                                                                                                   \
-    real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, uint shadowAlgorithms[kMaxShadowCascades], Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L )     \
+    real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, uint shadowAlgorithms[kMaxShadowCascades], Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real2 posSS)     \
     {                                                                                                                                                                                                               \
         /* load the right shadow data for the current face */                                                                                                                                                       \
         uint payloadOffset;                                                                                                                                                                                         \
@@ -635,14 +635,14 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
         }                                                                                                                                                                                                           \
         /* sample the texture */                                                                                                                                                                                    \
         real2 sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );                                                                                                                                             \
-        real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithms[shadowSplitIndex], tex, samp );                                                      \
+        real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithms[shadowSplitIndex], tex, samp, posSS);                                                      \
         return shadowSplitIndex < (cascadeCount-1) ? shadow : lerp( shadow, 1.0, alpha );                                                                                                                           \
     }                                                                                                                                                                                                               \
                                                                                                                                                                                                                     \
-    real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L )                          \
+    real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real2 posSS)                          \
     {                                                                                                                                                                                                               \
         uint shadowAlgorithms[kMaxShadowCascades] = { SHADOW_REPEAT_CASCADE( shadowAlgorithm ) };                                                                                                                   \
-        return EvalShadow_CascadedDepth_Dither( shadowContext, shadowAlgorithms, tex, samp, positionWS, normalWS, index, L );                                                                                       \
+        return EvalShadow_CascadedDepth_Dither( shadowContext, shadowAlgorithms, tex, samp, positionWS, normalWS, index, L, posSS);                                                                                       \
     }
 
 

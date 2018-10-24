@@ -59,17 +59,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             atlasInit.shadowClearShader         = resources.shadowClearShader;
             atlasInit.shadowBlurMoments         = resources.shadowBlurMoments;
 
-            // Configure shadow map atlas for Exponential Variance Shadow Map format.
-            var varianceInit = atlasInit;
-            varianceInit.baseInit.shadowmapFormat = ShadowVariance.GetFormat(false, false, true);
-            var varianceInit2 = varianceInit;
-            varianceInit2.baseInit.shadowmapFormat = ShadowVariance.GetFormat(true, true, false);
-            var varianceInit3 = varianceInit;
-            varianceInit3.baseInit.shadowmapFormat = ShadowVariance.GetFormat(true, false, true);
-            m_Shadowmaps = new ShadowmapBase[] { new ShadowAtlas(ref atlasInit), new ShadowVariance(ref varianceInit), new ShadowVariance(ref varianceInit2), new ShadowVariance(ref varianceInit3) };
+            // // Configure shadow map atlas for Exponential Variance Shadow Map format.
+            // var varianceInit = atlasInit;
+            // varianceInit.baseInit.shadowmapFormat = ShadowVariance.GetFormat(false, false, true);
+            // var varianceInit2 = varianceInit;
+            // varianceInit2.baseInit.shadowmapFormat = ShadowVariance.GetFormat(true, true, false);
+            // var varianceInit3 = varianceInit;
+            // varianceInit3.baseInit.shadowmapFormat = ShadowVariance.GetFormat(true, false, true);
+            // m_Shadowmaps = new ShadowmapBase[] { new ShadowAtlas(ref atlasInit), new ShadowVariance(ref varianceInit), new ShadowVariance(ref varianceInit2), new ShadowVariance(ref varianceInit3) };
 
-            // Disabled non-EVSM configuration. Leaving here for reference.
-            // m_Shadowmaps = new ShadowmapBase[] { new ShadowAtlas(ref atlasInit) };
+            m_Shadowmaps = new ShadowmapBase[] { new ShadowAtlas(ref atlasInit) };
 
             ShadowContext.SyncDel syncer = (ShadowContext sc) =>
                 {
@@ -99,9 +98,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_PCF, tex[0]);
 
                     // Bind Exponential Variance Shadow Mapping targets
-                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_0, tex[1]);
-                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_1, tex[2]);
-                    cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_2, tex[3]);
+                    // cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_0, tex[1]);
+                    // cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_1, tex[2]);
+                    // cb.SetGlobalTexture(HDShaderIDs._ShadowmapExp_VSM_2, tex[3]);
 
                     // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                 };
@@ -124,8 +123,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, ref budgets, m_Shadowmaps);
             // set global overrides - these need to match the override specified in LightLoop/Shadow.hlsl
             bool useGlobalOverrides = true;
-            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Point        , ShadowAlgorithm.EVSM, ShadowVariant.V1, ShadowPrecision.High, useGlobalOverrides);
-            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Spot         , ShadowAlgorithm.EVSM, ShadowVariant.V1, ShadowPrecision.High, useGlobalOverrides);
+            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Point        , ShadowAlgorithm.PCSS, ShadowVariant.V0, ShadowPrecision.High, useGlobalOverrides);
+            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Spot         , ShadowAlgorithm.PCSS, ShadowVariant.V0, ShadowPrecision.High, useGlobalOverrides);
             m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V3, ShadowPrecision.High, useGlobalOverrides);
 
             m_ShadowMgr.SetShadowLightTypeDelegate(HDShadowLightType);
