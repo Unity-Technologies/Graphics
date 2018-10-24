@@ -54,6 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.EmissionSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.AnisotropySlotId,
@@ -135,6 +136,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.EmissionSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.AnisotropySlotId,
@@ -412,6 +414,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.EmissionSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.AnisotropySlotId,
@@ -476,6 +479,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.EmissionSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.AnisotropySlotId,
@@ -718,12 +722,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case SpecularOcclusionMode.Off:
                     break;
-                case SpecularOcclusionMode.On:
-                    activeFields.Add("SpecularOcclusion");
+                case SpecularOcclusionMode.FromAO:
+                    activeFields.Add("SpecularOcclusionFromAO");
                     break;
-                case SpecularOcclusionMode.OnUseBentNormal:
-                    activeFields.Add("BentNormalSpecularOcclusion");
+                case SpecularOcclusionMode.FromAOAndBentNormal:
+                    activeFields.Add("SpecularOcclusionFromAOBentNormal");
                     break;
+                case SpecularOcclusionMode.Custom:
+                    activeFields.Add("SpecularOcclusionCustom");
+                    break;
+
                 default:
                     break;
             }
@@ -733,7 +741,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.AmbientOcclusionSlotId);
                 if (occlusionSlot.value != occlusionSlot.defaultValue)
                 {
-                    activeFields.Add("Occlusion");
+                    activeFields.Add("AmbientOcclusion");
                 }
             }
 
