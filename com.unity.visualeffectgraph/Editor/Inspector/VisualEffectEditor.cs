@@ -9,7 +9,6 @@ using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.VFX;
 
 using UnityEditor.VFX;
@@ -706,7 +705,7 @@ namespace UnityEditor.VFX
                 RenderPipelineAsset srpAsset = GraphicsSettings.renderPipelineAsset;
                 if (srpAsset != null)
                 {
-                    var layerNames = srpAsset.GetRenderingLayerMaskNames();
+                    var layerNames = srpAsset.renderingLayerMaskNames;
                     if (layerNames != null)
                     {
                         var mask = (int)m_Renderers[0].renderingLayerMask;
