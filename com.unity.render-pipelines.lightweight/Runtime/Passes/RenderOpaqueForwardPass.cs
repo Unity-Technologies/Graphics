@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public class RenderOpaqueForwardPass : ScriptableRenderPass
     {
         const string k_RenderOpaquesTag = "Render Opaques";
-        FilterRenderersSettings m_OpaqueFilterSettings;
+        FilteringSettings m_OpaqueFilterSettings;
 
         RenderTargetHandle colorAttachmentHandle { get; set; }
         RenderTargetHandle depthAttachmentHandle { get; set; }
@@ -21,17 +21,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         ClearFlag clearFlag { get; set; }
         Color clearColor { get; set; }
 
-        RendererConfiguration rendererConfiguration;
+        PerObjectData rendererConfiguration;
 
         public RenderOpaqueForwardPass()
         {
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
 
-            m_OpaqueFilterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = RenderQueueRange.opaque,
-            };
+            m_OpaqueFilterSettings = new FilteringSettings(RenderQueueRange.opaque);
         }
 
         /// <summary>
@@ -49,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTargetHandle depthAttachmentHandle,
             ClearFlag clearFlag,
             Color clearColor,
-            RendererConfiguration configuration)
+            PerObjectData configuration)
         {
             this.colorAttachmentHandle = colorAttachmentHandle;
             this.depthAttachmentHandle = depthAttachmentHandle;
@@ -84,11 +81,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Camera camera = renderingData.cameraData.camera;
                 XRUtils.DrawOcclusionMesh(cmd, camera, renderingData.cameraData.isStereoEnabled);
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawRendererSettings(camera, sortFlags, rendererConfiguration, renderingData.supportsDynamicBatching);
-                context.DrawRenderers(renderingData.cullResults.visibleRenderers, ref drawSettings, m_OpaqueFilterSettings);
+                var drawSettings = CreateDrawingSettings(camera, sortFlags, rendererConfiguration, renderingData.supportsDynamicBatching);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_OpaqueFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                renderer.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_OpaqueFilterSettings, SortFlags.None);
+                renderer.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_OpaqueFilterSettings, SortingCriteria.None);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

@@ -458,7 +458,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // I think using the cull matrices is valid, as long as I only use them for tess factors in shader.
             // Using them for other calculations (like light list generation) could be problematic.
 
-            var stereoCombinedViewMatrix = cullingParams.cullStereoView;
+            var stereoCombinedViewMatrix = cullingParams.stereoViewMatrix;
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -469,7 +469,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             viewMatrix = stereoCombinedViewMatrix;
-            var stereoCombinedProjMatrix = cullingParams.cullStereoProj;
+            var stereoCombinedProjMatrix = cullingParams.stereoProjectionMatrix;
             projMatrix = GL.GetGPUProjectionMatrix(stereoCombinedProjMatrix, true);
 
             Frustum.Create(frustum, viewProjMatrix, true, true);

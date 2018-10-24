@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// </summary>
     public abstract class ScriptableRenderPass
     {
-        private List<ShaderPassName> m_ShaderPassNames = new List<ShaderPassName>();
+        private List<ShaderTagId> m_ShaderTagIDs = new List<ShaderTagId>();
 
         /// <summary>
         /// Cleanup any allocated data that was created during the execution of the pass.
@@ -28,22 +28,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         protected void RegisterShaderPassName(string passName)
         {
-            m_ShaderPassNames.Add(new ShaderPassName(passName));
+            m_ShaderTagIDs.Add(new ShaderTagId(passName));
         }
 
-        protected DrawRendererSettings CreateDrawRendererSettings(Camera camera, SortFlags sortFlags, RendererConfiguration rendererConfiguration, bool supportsDynamicBatching)
+        protected DrawingSettings CreateDrawingSettings(Camera camera, SortingCriteria sortingCriteria, PerObjectData perObjectData, bool supportsDynamicBatching)
         {
-            DrawRendererSettings settings = new DrawRendererSettings(camera, m_ShaderPassNames[0]);
-            for (int i = 1; i < m_ShaderPassNames.Count; ++i)
-                settings.SetShaderPassName(i, m_ShaderPassNames[i]);
-            settings.sorting.flags = sortFlags;
-            settings.rendererConfiguration = rendererConfiguration;
-            settings.flags = DrawRendererFlags.EnableInstancing;
-            if (supportsDynamicBatching)
-                settings.flags |= DrawRendererFlags.EnableDynamicBatching;
+            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
+            DrawingSettings settings = new DrawingSettings(m_ShaderTagIDs[0], sortingSettings)
+            {
+                perObjectData = perObjectData,
+                enableInstancing = true,
+                enableDynamicBatching = supportsDynamicBatching
+            };
+            for (int i = 1; i < m_ShaderTagIDs.Count; ++i)
+                settings.SetShaderPassName(i, m_ShaderTagIDs[i]);
             return settings;
         }
-
+        
         protected static void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,

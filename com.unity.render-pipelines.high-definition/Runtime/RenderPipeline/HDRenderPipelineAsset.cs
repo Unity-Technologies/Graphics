@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -18,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
         }
 
-        protected override IRenderPipeline InternalCreatePipeline()
+        protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
         {
             return new HDRenderPipeline(this);
         }
@@ -159,36 +160,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public override string[] GetRenderingLayerMaskNames()
+        public override string[] renderingLayerMaskNames
+        {
+            get
         {
             return renderingLayerNames;
         }
-
-        public override Shader GetDefaultShader()
-        {
-            return m_RenderPipelineResources.shaders.defaultPS;
         }
 
-        public override Material GetDefaultMaterial()
+        public override Material defaultMaterial
         {
-            return m_RenderPipelineResources.materials.defaultDiffuseMat;
+            get
+        {
+                return m_RenderPipelineResources.materials.defaultDiffuseMat;
+            }
+        }
+
+        public override Shader defaultShader
+        {
+            get
+            {
+
+                return m_RenderPipelineResources.shaders.defaultPS;
+            }
         }
 
         #if UNITY_EDITOR
         // call to GetAutodeskInteractiveShaderXXX are only from within editor
-        public override Shader GetAutodeskInteractiveShader()
+        public override Shader autodeskInteractiveShader
         {
-            return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph");
+            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph"); }
         }
 
-        public override Shader GetAutodeskInteractiveTransparentShader()
+        public override Shader autodeskInteractiveTransparentShader
         {
-            return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph");
+            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph"); }
         }
 
-        public override Shader GetAutodeskInteractiveMaskedShader()
+        public override Shader autodeskInteractiveMaskedShader
         {
-            return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph");
+            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph"); }
         }
         #endif
 
@@ -204,39 +215,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_RenderPipelineResources.materials.defaultMirrorMat;
         }
 
-        public override Material GetDefaultParticleMaterial()
+        public override Material defaultTerrainMaterial
         {
-            return null;
-        }
-
-        public override Material GetDefaultLineMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultTerrainMaterial()
+            get
         {
             return m_RenderPipelineResources.materials.defaultTerrainMat;
         }
-
-        public override Material GetDefaultUIMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultUIOverdrawMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultUIETC1SupportedMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefault2DMaterial()
-        {
-            return null;
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()

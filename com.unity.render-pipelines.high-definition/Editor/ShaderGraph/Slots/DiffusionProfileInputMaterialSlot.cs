@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
                                           ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, 0.0f, stageCapability, hidden: hidden)
         {
-            var hdPipeline = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            var hdPipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
                 var diffusionProfileSettings = hdPipeline.diffusionProfileSettings;
