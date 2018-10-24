@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUILayout.PropertyField(d.cookieSize, _.GetContent("Cookie Size"));
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(d.cookieTexArraySize, _.GetContent("Texture Array Size"));
+            EditorGUILayout.DelayedIntField(d.cookieTexArraySize, _.GetContent("Texture Array Size"));
             if (EditorGUI.EndChangeCheck())
             {
                 d.cookieTexArraySize.intValue = Mathf.Clamp(d.cookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
@@ -106,7 +106,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             EditorGUILayout.PropertyField(d.pointCookieSize, _.GetContent("Point Cookie Size"));
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(d.cubeCookieTexArraySize, _.GetContent("Cubemap Array Size"));
+            EditorGUILayout.DelayedIntField(d.cubeCookieTexArraySize, _.GetContent("Cubemap Array Size"));
             if (EditorGUI.EndChangeCheck())
             {
                 d.cubeCookieTexArraySize.intValue = Mathf.Clamp(d.cubeCookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
@@ -131,7 +131,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(d.reflectionCacheCompressed, _.GetContent("Compress Reflection Probe Cache"));
             EditorGUILayout.PropertyField(d.reflectionCubemapSize, _.GetContent("Cubemap Size"));
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(d.reflectionProbeCacheSize, _.GetContent("Probe Cache Size"));
+            EditorGUILayout.DelayedIntField(d.reflectionProbeCacheSize, _.GetContent("Probe Cache Size"));
             if (EditorGUI.EndChangeCheck())
             {
                 d.reflectionProbeCacheSize.intValue = Mathf.Clamp(d.reflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
@@ -154,7 +154,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(d.planarReflectionCacheCompressed, _.GetContent("Compress Planar Reflection Probe Cache"));
             EditorGUILayout.PropertyField(d.planarReflectionCubemapSize, _.GetContent("Planar Reflection Texture Size"));
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(d.planarReflectionProbeCacheSize, _.GetContent("Planar Probe Cache Size"));
+            EditorGUILayout.DelayedIntField(d.planarReflectionProbeCacheSize, _.GetContent("Planar Probe Cache Size"));
             if (EditorGUI.EndChangeCheck())
             {
                 d.planarReflectionProbeCacheSize.intValue = Mathf.Clamp(d.planarReflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
@@ -189,11 +189,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_LightLoop(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
         {
-            EditorGUILayout.PropertyField(d.maxDirectionalLightsOnScreen, _.GetContent("Max Directional Lights On Screen"));
-            EditorGUILayout.PropertyField(d.maxPunctualLightsOnScreen, _.GetContent("Max Punctual Lights On Screen"));
-            EditorGUILayout.PropertyField(d.maxAreaLightsOnScreen, _.GetContent("Max Area Lights On Screen"));
-            EditorGUILayout.PropertyField(d.maxEnvLightsOnScreen, _.GetContent("Max Env Lights On Screen"));
-            EditorGUILayout.PropertyField(d.maxDecalsOnScreen, _.GetContent("Max Decals On Screen"));
+            EditorGUILayout.DelayedIntField(d.maxDirectionalLightsOnScreen, _.GetContent("Max Directional Lights On Screen"));
+            EditorGUILayout.DelayedIntField(d.maxPunctualLightsOnScreen, _.GetContent("Max Punctual Lights On Screen"));
+            EditorGUILayout.DelayedIntField(d.maxAreaLightsOnScreen, _.GetContent("Max Area Lights On Screen"));
+            EditorGUILayout.DelayedIntField(d.maxEnvLightsOnScreen, _.GetContent("Max Env Lights On Screen"));
+            EditorGUILayout.DelayedIntField(d.maxDecalsOnScreen, _.GetContent("Max Decals On Screen"));
             
             d.maxDirectionalLightsOnScreen.intValue = Mathf.Clamp(d.maxDirectionalLightsOnScreen.intValue, 1, LightLoop.k_MaxDirectionalLightsOnScreen);
             d.maxPunctualLightsOnScreen.intValue = Mathf.Clamp(d.maxPunctualLightsOnScreen.intValue, 1, LightLoop.k_MaxPunctualLightsOnScreen);

@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent roughRefractionContent = CoreEditorUtils.GetContent("Rough Refraction");
         static readonly GUIContent distortionContent = CoreEditorUtils.GetContent("Distortion");
         static readonly GUIContent postprocessContent = CoreEditorUtils.GetContent("Postprocess");
-        static readonly GUIContent forwardRenderingOnlyContent = CoreEditorUtils.GetContent("Forward Rendering Only");
+        static readonly GUIContent litShaderModeContent = CoreEditorUtils.GetContent("Lit Shader Mode");
         static readonly GUIContent depthPrepassWithDeferredRenderingContent = CoreEditorUtils.GetContent("Depth Prepass With Deferred Rendering");
         static readonly GUIContent asyncComputeContent = CoreEditorUtils.GetContent("Async Compute");
         static readonly GUIContent opaqueObjectsContent = CoreEditorUtils.GetContent("Opaque Objects");
