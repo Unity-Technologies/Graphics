@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static void ExtractDirectionalLightData(VisibleLight visibleLight, Vector2 viewportSize, uint cascadeIndex, int cascadeCount, float[] cascadeRatios, float nearPlaneOffset, CullResults cullResults, int lightIndex, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+        public static void ExtractDirectionalLightData(VisibleLight visibleLight, Vector2 viewportSize, uint cascadeIndex, int cascadeCount, float[] cascadeRatios, float nearPlaneOffset, CullingResults cullResults, int lightIndex, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4     lightDir;
 
@@ -244,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // calculate view
             Matrix4x4 scaleMatrix = Matrix4x4.identity;
             scaleMatrix.m22 = -1.0f;
-            view = scaleMatrix * vl.localToWorld.inverse;
+            view = scaleMatrix * vl.localToWorldMatrix.inverse;
             // calculate projection
             float fov = vl.spotAngle + guardAngle;
             float nearZ = Mathf.Max(nearPlane, k_MinShadowNearPlane);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Rendering;
 
@@ -83,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        void InitializeLightConstants(List<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir)
+        void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir)
         {
             lightPos = k_DefaultLightPosition;
             lightColor = k_DefaultLightColor;
@@ -98,12 +99,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             VisibleLight lightData = lights[lightIndex];
             if (lightData.lightType == LightType.Directional)
             {
-                Vector4 dir = -lightData.localToWorld.GetColumn(2);
+                Vector4 dir = -lightData.localToWorldMatrix.GetColumn(2);
                 lightPos = new Vector4(dir.x, dir.y, dir.z, k_DefaultLightAttenuation.w);
             }
             else
             {
-                Vector4 pos = lightData.localToWorld.GetColumn(3);
+                Vector4 pos = lightData.localToWorldMatrix.GetColumn(3);
                 lightPos = new Vector4(pos.x, pos.y, pos.z, k_DefaultLightAttenuation.w);
             }
 
@@ -141,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (lightData.lightType == LightType.Spot)
             {
-                Vector4 dir = lightData.localToWorld.GetColumn(2);
+                Vector4 dir = lightData.localToWorldMatrix.GetColumn(2);
                 lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
 
                 // Spot Attenuation with a linear falloff can be defined as
@@ -212,11 +213,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
-            List<VisibleLight> lights = lightData.visibleLights;
+            var lights = lightData.visibleLights;
             if (lightData.additionalLightsCount > 0)
             {
                 int additionalLightsCount = 0;
-                for (int i = 0; i < lights.Count && additionalLightsCount < maxVisibleAdditionalLights; ++i)
+                for (int i = 0; i < lights.Length && additionalLightsCount < maxVisibleAdditionalLights; ++i)
                 {
                     VisibleLight light = lights[i];
                     if (light.lightType != LightType.Directional)
@@ -247,7 +248,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightsAttenuation, m_AdditionalLightAttenuations);
             cmd.SetGlobalVectorArray(LightConstantBuffer._AdditionalLightsSpotDir, m_AdditionalLightSpotDirections);
         }
-       
+        
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
