@@ -33,8 +33,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_SectionDecalSettings(GlobalDecalSettingsUI s, SerializedGlobalDecalSettings d, Editor o)
         {
             EditorGUILayout.PropertyField(d.drawDistance, _.GetContent("Draw Distance"));
-            EditorGUILayout.PropertyField(d.atlasWidth, _.GetContent("Atlas Width"));
-            EditorGUILayout.PropertyField(d.atlasHeight, _.GetContent("Atlas Height"));
+            EditorGUILayout.DelayedIntField(d.atlasWidth, _.GetContent("Atlas Width"));
+            EditorGUILayout.DelayedIntField(d.atlasHeight, _.GetContent("Atlas Height"));
             EditorGUILayout.PropertyField(d.perChannelMask, _.GetContent("Enable Metal and AO properties"));
 
             // Clamp input values
