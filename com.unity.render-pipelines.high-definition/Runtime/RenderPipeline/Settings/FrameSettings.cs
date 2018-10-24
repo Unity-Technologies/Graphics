@@ -264,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
 
-            aggregate.useConstantBuffers = /*srcFrameSettings.useConstantBuffers*/ false && SystemInfo.supportsSetConstantBuffer;
+            aggregate.useConstantBuffers = /*srcFrameSettings.useConstantBuffers*/ true && SystemInfo.supportsSetConstantBuffer;
 
             aggregate.ConfigureMSAADependentSettings();
             aggregate.ConfigureStereoDependentSettings(camera);
