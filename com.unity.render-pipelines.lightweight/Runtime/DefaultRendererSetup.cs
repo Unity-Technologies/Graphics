@@ -147,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (renderingData.cameraData.isStereoEnabled)
                 renderer.EnqueuePass(m_BeginXrRenderingPass);
 
-            RendererConfiguration rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
+            var rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
 
             m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
             renderer.EnqueuePass(m_SetupLightweightConstants);

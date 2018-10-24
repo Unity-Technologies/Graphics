@@ -3,6 +3,7 @@ using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -203,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        protected override IRenderPipeline InternalCreatePipeline()
+        protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
         {
             return new LightweightRenderPipeline(this);
         }
@@ -364,69 +365,73 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_ShaderVariantLogLevel; }
         }
 
-        public override Material GetDefaultMaterial()
+
+        public override Material defaultMaterial
         {
-            return GetMaterial(DefaultMaterialType.Standard);
+            get { return GetMaterial(DefaultMaterialType.Standard); }
         }
 
-        #if UNITY_EDITOR
-        public override Shader GetAutodeskInteractiveShader()
+        public override Material defaultParticleMaterial
         {
-            return editorResources.autodeskInteractiveShader;
+            get { return GetMaterial(DefaultMaterialType.Particle); }
         }
 
-        public override Shader GetAutodeskInteractiveTransparentShader()
+        public override Material defaultLineMaterial
         {
-            return editorResources.autodeskInteractiveTransparentShader;
+            get { return GetMaterial(DefaultMaterialType.Particle); }
         }
 
-        public override Shader GetAutodeskInteractiveMaskedShader()
+        public override Material defaultTerrainMaterial
         {
-            return editorResources.autodeskInteractiveMaskedShader;
-        }
-        #endif
-
-        public override Material GetDefaultParticleMaterial()
-        {
-            return GetMaterial(DefaultMaterialType.Particle);
+            get { return GetMaterial(DefaultMaterialType.Terrain); }
         }
 
-        public override Material GetDefaultLineMaterial()
+        public override Material defaultUIMaterial
         {
-            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
+            get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
         }
 
-        public override Material GetDefaultTerrainMaterial()
+        public override Material defaultUIOverdrawMaterial
         {
-            return GetMaterial(DefaultMaterialType.Terrain);
+            get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
         }
 
-        public override Material GetDefaultUIMaterial()
+        public override Material defaultUIETC1SupportedMaterial
         {
-            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
+            get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
         }
 
-        public override Material GetDefaultUIOverdrawMaterial()
+        public override Material default2DMaterial
         {
-            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
+            get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
         }
 
-        public override Material GetDefaultUIETC1SupportedMaterial()
+        public override Shader defaultShader
         {
-            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
+            get
+        {
+                if (m_DefaultShader == null)
+                    m_DefaultShader = Shader.Find(ShaderUtils.GetShaderPath(ShaderPathID.PhysicallyBased));
+                return m_DefaultShader;
+            }
         }
 
-        public override Material GetDefault2DMaterial()
+#if UNITY_EDITOR
+        public override Shader autodeskInteractiveShader
         {
-            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
+            get { return editorResources.autodeskInteractiveShader; }
         }
 
-        public override Shader GetDefaultShader()
+        public override Shader autodeskInteractiveTransparentShader
         {
-            if (m_DefaultShader == null)
-                m_DefaultShader = Shader.Find(ShaderUtils.GetShaderPath(ShaderPathID.PhysicallyBased));
-            return m_DefaultShader;
+            get { return editorResources.autodeskInteractiveTransparentShader; }
         }
+
+        public override Shader autodeskInteractiveMaskedShader
+        {
+            get { return editorResources.autodeskInteractiveMaskedShader; }
+        }
+#endif
 
         public Shader blitShader
         {

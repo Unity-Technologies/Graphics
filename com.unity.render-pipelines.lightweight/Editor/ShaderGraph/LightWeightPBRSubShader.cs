@@ -6,6 +6,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {

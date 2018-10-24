@@ -10,22 +10,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public static Vector3 GetPosition(this VisibleLight value)
         {
-            return value.localToWorld.GetColumn(3);
+            return value.localToWorldMatrix.GetColumn(3);
         }
 
         public static Vector3 GetForward(this VisibleLight value)
         {
-            return value.localToWorld.GetColumn(2);
+            return value.localToWorldMatrix.GetColumn(2);
         }
 
         public static Vector3 GetUp(this VisibleLight value)
         {
-            return value.localToWorld.GetColumn(1);
+            return value.localToWorldMatrix.GetColumn(1);
         }
 
         public static Vector3 GetRight(this VisibleLight value)
         {
-            return value.localToWorld.GetColumn(0);
+            return value.localToWorldMatrix.GetColumn(0);
         }
     }
 
@@ -1162,7 +1162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Then Culling side
             var range = lightDimensions.z;
-            var lightToWorld = light.localToWorld;
+            var lightToWorld = light.localToWorldMatrix;
             Vector3 positionWS = lightData.positionRWS;
             Vector3 positionVS = worldToView.MultiplyPoint(positionWS);
 
@@ -1561,7 +1561,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowManager.UpdateCullingParameters(ref cullingParams);
 
             // In HDRP we don't need per object light/probe info so we disable the native code that handles it.
-            cullingParams.cullingFlags |= CullFlag.DisablePerObjectCulling;
+            cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
         }
 
         public bool IsBakedShadowMaskLight(Light light)
@@ -1577,9 +1577,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         HDProbe SelectProbe(VisibleReflectionProbe probe, PlanarReflectionProbe planarProbe)
         {
-            if (probe.probe != null)
+            if (probe.reflectionProbe != null)
             {
-                var add = probe.probe.GetComponent<HDAdditionalReflectionData>();
+                var add = probe.reflectionProbe.GetComponent<HDAdditionalReflectionData>();
                 if (add == null)
                 {
                     add = HDUtils.s_DefaultHDAdditionalReflectionData;
@@ -1601,7 +1601,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Return true if BakedShadowMask are enabled
-        public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullResults cullResults,
+        public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
             ReflectionProbeCullResults reflectionProbeCullResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
@@ -1638,7 +1638,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowManager.Clear();
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
-                if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
+                if (cullResults.visibleLights.Length != 0 || cullResults.visibleReflectionProbes.Length != 0)
                 {
                     // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
                     // If we reach maximum of lights available on screen, then we discard the light.
@@ -1647,10 +1647,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int punctualLightcount = 0;
                     int areaLightCount = 0;
 
-                    int lightCount = Math.Min(cullResults.visibleLights.Count, m_MaxLightsOnScreen);
+                    int lightCount = Math.Min(cullResults.visibleLights.Length, m_MaxLightsOnScreen);
                     UpdateSortKeysArray(lightCount);
                     int sortCount = 0;
-                    for (int lightIndex = 0, numLights = cullResults.visibleLights.Count; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
+                    for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
                         var light = cullResults.visibleLights[lightIndex];
                         var lightComponent = light.light;
@@ -1877,30 +1877,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Debug.Assert(m_MaxEnvLightsOnScreen <= 256); //for key construction
                     int envLightCount = 0;
 
-                    var totalProbes = cullResults.visibleReflectionProbes.Count + reflectionProbeCullResults.visiblePlanarReflectionProbeCount;
+                    var totalProbes = cullResults.visibleReflectionProbes.Length + reflectionProbeCullResults.visiblePlanarReflectionProbeCount;
                     int probeCount = Math.Min(totalProbes, m_MaxEnvLightsOnScreen);
                     UpdateSortKeysArray(probeCount);
                     sortCount = 0;
 
                     for (int probeIndex = 0, numProbes = totalProbes; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
-                        if (probeIndex < cullResults.visibleReflectionProbes.Count)
+                        if (probeIndex < cullResults.visibleReflectionProbes.Length)
                         {
                             VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
-                            HDAdditionalReflectionData additional = probe.probe.GetComponent<HDAdditionalReflectionData>();
+                            HDAdditionalReflectionData additional = probe.reflectionProbe.GetComponent<HDAdditionalReflectionData>();
 
                             // probe.texture can be null when we are adding a reflection probe in the editor
                             if (probe.texture == null || envLightCount >= m_MaxEnvLightsOnScreen)
                                 continue;
 
                             // Work around the culling issues. TODO: fix culling in C++.
-                            if (probe.probe == null || !probe.probe.isActiveAndEnabled)
+                            if (probe.reflectionProbe == null || !probe.reflectionProbe.isActiveAndEnabled)
                                 continue;
 
                             // Work around the data issues.
-                            if (probe.localToWorld.determinant == 0)
+                            if (probe.localToWorldMatrix.determinant == 0)
                             {
-                                Debug.LogError("Reflection probe " + probe.probe.name + " has an invalid local frame and needs to be fixed.");
+                                Debug.LogError("Reflection probe " + probe.reflectionProbe.name + " has an invalid local frame and needs to be fixed.");
                                 continue;
                             }
 
@@ -1915,7 +1915,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            var planarProbeIndex = probeIndex - cullResults.visibleReflectionProbes.Count;
+                            var planarProbeIndex = probeIndex - cullResults.visibleReflectionProbes.Length;
                             var probe = reflectionProbeCullResults.visiblePlanarReflectionProbes[planarProbeIndex];
 
                             // probe.texture can be null when we are adding a reflection probe in the editor
@@ -2459,7 +2459,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults)
+        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullingResults cullResults)
         {
             // kick off the shadow jobs here
             m_ShadowManager.RenderShadows(renderContext, cmd, cullResults);
@@ -2703,7 +2703,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width, CullResults cullResults)
+        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width, CullingResults cullResults)
         {
             LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
 
