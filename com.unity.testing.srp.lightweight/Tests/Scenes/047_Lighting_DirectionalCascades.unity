@@ -50,7 +50,6 @@ LightmapSettings:
     m_BounceScale: 1
     m_IndirectOutputScale: 1
     m_AlbedoBoost: 1
-    m_TemporalCoherenceThreshold: 1
     m_EnvironmentLightingMode: 0
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 0
@@ -64,7 +63,8 @@ LightmapSettings:
     m_CompAOExponent: 1
     m_CompAOExponentDirect: 0
     m_Padding: 2
-    m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000, type: 0}
+    m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000,
+      type: 0}
     m_LightmapsBakeMode: 0
     m_TextureCompression: 1
     m_FinalGather: 1
@@ -89,7 +89,8 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
-  m_LightingDataAsset: {fileID: 112000002, guid: 64ceca31c1d2c421e988ae1489e452a5, type: 2}
+  m_LightingDataAsset: {fileID: 112000002, guid: 64ceca31c1d2c421e988ae1489e452a5,
+    type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
 NavMeshSettings:
@@ -802,7 +803,7 @@ MonoBehaviour:
     TargetWidth: 640
     TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.005
-    AverageCorrectnessThreshold: 0.005
+    AverageCorrectnessThreshold: 0.001
   WaitFrames: 0
 --- !u!20 &64132551
 Camera:

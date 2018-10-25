@@ -20,7 +20,7 @@ real3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_A
 
         // Assume derivXplane, derivYPlane and derivZPlane sampled using (z,y), (z,x) and (x,y) respectively.
         // TODO: Check with morten convention! Do it follow ours ?
-        real3 volumeGrad = real3(derivZPlane.x + derivYPlane.y, derivZPlane.y + derivXplane.y, derivXplane.x + derivYPlane.x);
+        real3 volumeGrad = real3(derivZPlane.x + derivYPlane.x, derivZPlane.y + derivXplane.y, derivXplane.x + derivYPlane.y);
         return SurfaceGradientFromVolumeGradient(uvMapping.normalWS, volumeGrad);
 #else
         real3 val = real3(0.0, 0.0, 0.0);
@@ -41,7 +41,7 @@ real3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_A
         // Note: Planar is on uv coordinate (and not uvXZ)
         real2 derivYPlane = UNPACK_DERIVATIVE_FUNC(SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uv, param), scale);
         // See comment above
-        real3 volumeGrad = real3(derivYPlane.y, 0.0, derivYPlane.x);
+        real3 volumeGrad = real3(derivYPlane.x, 0.0, derivYPlane.y);
         return SurfaceGradientFromVolumeGradient(uvMapping.normalWS, volumeGrad);
     }
 #endif

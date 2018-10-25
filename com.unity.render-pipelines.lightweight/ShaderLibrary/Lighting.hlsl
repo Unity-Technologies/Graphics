@@ -363,8 +363,10 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     return SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
         TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
         lightmapUV, transformCoords, normalWS, encodedLightmap, decodeInstructions);
-#else
+#elif defined(LIGHTMAP_ON)
     return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
+#else
+    return half3(0.0, 0.0, 0.0);
 #endif
 }
 

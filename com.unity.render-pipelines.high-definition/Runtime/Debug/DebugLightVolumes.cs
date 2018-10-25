@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_DebugLightVolumeMaterial);
         }
 
-        public void RenderLightVolumes(CommandBuffer cmd, HDCamera hdCamera, CullResults cullResults, LightingDebugSettings lightDebugSettings)
+        public void RenderLightVolumes(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, LightingDebugSettings lightDebugSettings)
         {
             // Clear the buffers
             HDUtils.SetRenderTarget(cmd, hdCamera, m_ColorAccumulationBuffer, ClearFlag.Color, Color.black);
@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRenderTarget(m_RTIDs, m_DepthBuffer);
 
             // First of all let's do the regions for the light sources (we only support Punctual and Area)
-            int numLights = cullResults.visibleLights.Count;
+            int numLights = cullResults.visibleLights.Length;
             for (int lightIdx = 0; lightIdx < numLights; ++lightIdx)
             {
                 // Let's build the light's bounding sphere matrix
@@ -156,11 +156,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Now let's do the same but for reflection probes
-            int numProbes = cullResults.visibleReflectionProbes.Count;
+            int numProbes = cullResults.visibleReflectionProbes.Length;
             for (int probeIdx = 0; probeIdx < numProbes; ++probeIdx)
             {
                 // Let's build the light's bounding sphere matrix
-                ReflectionProbe currentLegacyProbe = cullResults.visibleReflectionProbes[probeIdx].probe;
+                ReflectionProbe currentLegacyProbe = cullResults.visibleReflectionProbes[probeIdx].reflectionProbe;
                 HDAdditionalReflectionData currentHDProbe = currentLegacyProbe.GetComponent<HDAdditionalReflectionData>();
 
                 if (!currentHDProbe)

@@ -20,6 +20,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class RenderPipelineSettings
     {
+        public enum SupportedLitShaderMode
+        {
+            ForwardOnly = 1,
+            DeferredOnly = 2,
+            Both = ForwardOnly + DeferredOnly
+        }
+
         // Lighting
         public bool supportShadowMask = true;
         public bool supportSSR = false;
@@ -30,13 +37,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportVolumetrics = true;
         public bool increaseResolutionOfVolumetrics = false;
         public bool supportLightLayers = false;
-        public bool supportOnlyForward = false;
+        public SupportedLitShaderMode supportedLitShaderMode = SupportedLitShaderMode.Both;
 
         // Engine
         [FormerlySerializedAs("supportDBuffer")]
         public bool supportDecals = true;
-        public bool supportMSAA = false;
-        public MSAASamples  msaaSampleCount = MSAASamples.None;
+        [SerializeField, FormerlySerializedAs("supportMSAA")]
+        bool m_SupportMSAA = false;
+        public MSAASamples msaaSampleCount = MSAASamples.None;
         public bool supportMotionVectors = true;
         public bool supportRuntimeDebugDisplay = true;
         public bool supportDitheringCrossFade = true;
@@ -45,5 +53,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
         public HDShadowInitParameters   hdShadowInitParams = new HDShadowInitParameters();
         public GlobalDecalSettings      decalSettings = new GlobalDecalSettings();
+
+
+        // Lock MSAA support according to renderingPath for the moment
+        public bool supportMSAA { get { return m_SupportMSAA && supportedLitShaderMode == SupportedLitShaderMode.ForwardOnly; } }
     }
 }

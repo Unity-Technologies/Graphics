@@ -238,6 +238,14 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1000000
     min: 1
+  baseHeight:
+    m_OverrideState: 1
+    m_Value: -100
+  heightExponent:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0.001
+    max: 1
   anisotropy:
     m_OverrideState: 1
     m_Value: 0

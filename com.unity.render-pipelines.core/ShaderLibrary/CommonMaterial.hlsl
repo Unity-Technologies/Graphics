@@ -233,7 +233,7 @@ void GetTriplanarCoordinate(float3 position, out float2 uvXZ, out float2 uvXY, o
 {
     // Caution: This must follow the same rule as what is use for SurfaceGradient triplanar
     // TODO: Currently the normal mapping looks wrong without SURFACE_GRADIENT option because we don't handle corretly the tangent space
-    uvXZ = float2(position.z, position.x);
+    uvXZ = float2(position.x, position.z);
     uvXY = float2(position.x, position.y);
     uvZY = float2(position.z, position.y);
 }

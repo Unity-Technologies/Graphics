@@ -47,7 +47,7 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
         renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
 
         Camera camera = renderingData.cameraData.camera;
-        RendererConfiguration rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
+        var rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
 
         m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
         renderer.EnqueuePass(m_SetupLightweightConstants);

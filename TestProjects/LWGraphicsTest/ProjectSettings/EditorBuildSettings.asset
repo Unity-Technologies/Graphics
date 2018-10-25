@@ -137,7 +137,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/052_LWCallbacks.unity
     guid: 58d22e8497ba91141b3ae7abd7b0bb41
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/053_UnlitShader.unity
     guid: a28e1d48e6e3c0e42a4050ab4e770bf8
   - enabled: 1
