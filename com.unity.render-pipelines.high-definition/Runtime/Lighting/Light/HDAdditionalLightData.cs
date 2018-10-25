@@ -220,11 +220,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void ReserveShadows(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
         {
             Bounds bounds;
+            float cameraDistance = Vector3.Distance(camera.transform.position, transform.position);
 
             m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.enableShadow;
             m_WillRenderShadows &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadows &= m_ShadowData != null && m_ShadowData.shadowDimmer > 0;
+            // If the shadow is too far away, we don't render it
+            if (m_ShadowData != null)
+                m_WillRenderShadows &= m_Light.type == LightType.Directional || cameraDistance < (m_ShadowData.shadowFadeDistance);
 
             if (!m_WillRenderShadows)
                 return;
@@ -280,10 +284,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int                 firstShadowRequestIndex = -1;
             Vector3             cameraPos = hdCamera.camera.transform.position;
             shadowRequestCount = 0;
-
-            // If the shadow is too far away, we don't render it
-            if (m_Light.type != LightType.Directional && Vector3.Distance(cameraPos, transform.position) >= m_ShadowData.shadowFadeDistance)
-                return -1;
 
             int count = GetShadowRequestCount();
             for (int index = 0; index < count; index++)

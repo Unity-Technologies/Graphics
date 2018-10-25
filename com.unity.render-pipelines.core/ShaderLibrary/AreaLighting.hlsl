@@ -347,51 +347,54 @@ real ComputeLineWidthFactor(real3x3 invM, real3 ortho)
 // For line lights.
 real LTCEvaluate(real3 P1, real3 P2, real3 B, real3x3 invM)
 {
+    real result = 0.0;
     // Inverse-transform the endpoints.
     P1 = mul(P1, invM);
     P2 = mul(P2, invM);
 
     // Terminate the algorithm if both points are below the horizon.
-    if (P1.z <= 0.0 && P2.z <= 0.0) return 0.0;
-
-    real width = ComputeLineWidthFactor(invM, B);
-
-    if (P1.z > P2.z)
+    if (!(P1.z <= 0.0 && P2.z <= 0.0))
     {
-        // Convention: 'P2' is above 'P1', with the tangent pointing upwards.
-        Swap(P1, P2);
+        real width = ComputeLineWidthFactor(invM, B);
+    
+        if (P1.z > P2.z)
+        {
+            // Convention: 'P2' is above 'P1', with the tangent pointing upwards.
+            Swap(P1, P2);
+        }
+    
+        // Recompute the length and the tangent in the new coordinate system.
+        real  len = length(P2 - P1);
+        real3 T   = normalize(P2 - P1);
+    
+        // Clip the part of the light below the horizon.
+        if (P1.z <= 0.0)
+        {
+            // P = P1 + t * T; P.z == 0.
+            real t = -P1.z / T.z;
+            P1 = real3(P1.xy + t * T.xy, 0.0);
+    
+            // Set the length of the visible part of the light.
+            len -= t;
+        }
+    
+        // Compute the normal direction to the line, s.t. it is the shortest vector
+        // between the shaded point and the line, pointing away from the shaded point.
+        // Can be interpreted as a point on the line, since the shaded point is at the origin.
+        real  proj = dot(P1, T);
+        real3 P0   = P1 - proj * T;
+    
+        // Compute the parameterization: distances from 'P1' and 'P2' to 'P0'.
+        real l1 = proj;
+        real l2 = l1 + len;
+    
+        // Integrate the clamped cosine over the line segment.
+        real irradiance = LineIrradiance(l1, l2, P0, T);
+    
+        // Guard against numerical precision issues.
+        result = max(INV_PI * width * irradiance, 0.0);
     }
-
-    // Recompute the length and the tangent in the new coordinate system.
-    real  len = length(P2 - P1);
-    real3 T   = normalize(P2 - P1);
-
-    // Clip the part of the light below the horizon.
-    if (P1.z <= 0.0)
-    {
-        // P = P1 + t * T; P.z == 0.
-        real t = -P1.z / T.z;
-        P1 = real3(P1.xy + t * T.xy, 0.0);
-
-        // Set the length of the visible part of the light.
-        len -= t;
-    }
-
-    // Compute the normal direction to the line, s.t. it is the shortest vector
-    // between the shaded point and the line, pointing away from the shaded point.
-    // Can be interpreted as a point on the line, since the shaded point is at the origin.
-    real  proj = dot(P1, T);
-    real3 P0   = P1 - proj * T;
-
-    // Compute the parameterization: distances from 'P1' and 'P2' to 'P0'.
-    real l1 = proj;
-    real l2 = l1 + len;
-
-    // Integrate the clamped cosine over the line segment.
-    real irradiance = LineIrradiance(l1, l2, P0, T);
-
-    // Guard against numerical precision issues.
-    return max(INV_PI * width * irradiance, 0.0);
+    return result;
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
