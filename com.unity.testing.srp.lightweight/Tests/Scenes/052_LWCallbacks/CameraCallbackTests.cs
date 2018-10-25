@@ -70,60 +70,30 @@ public class CameraCallbackTests : MonoBehaviour
 		return pass;
 	}
 
-	private class CapturePass : ScriptableRenderPass
-	{
-		private RenderTargetHandle m_Source;
-		private RenderTargetHandle m_Target;
-
-		public void Setup(RenderTargetHandle source, RenderTargetHandle target)
-		{
-			m_Source = source;
-			m_Target = target;
-		}
-
-		public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
-		{
-			if (renderer == null)
-				throw new ArgumentNullException("renderer");
-			
-			RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
-
-			var cmd = CommandBufferPool.Get("Capture Pass");
-			cmd.GetTemporaryRT(m_Target.id, opaqueDesc);
-			cmd.Blit(m_Source.Identifier(), m_Target.Identifier());
-			context.ExecuteCommandBuffer(cmd);
-			CommandBufferPool.Release(cmd);
-		}
-		
-		public override void FrameCleanup(CommandBuffer cmd)
-		{
-			if (cmd == null)
-				throw new ArgumentNullException("cmd");
-			
-			if (m_Target != RenderTargetHandle.CameraTarget)
-			{
-				cmd.ReleaseTemporaryRT(m_Target.id);
-				m_Target = RenderTargetHandle.CameraTarget;
-			}
-		}
-	}
-
 	class BlitPass : ScriptableRenderPass
 	{
-		CapturePass m_CopyResult = new CapturePass();
-		
-		public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        private RenderTargetHandle colorHandle;
+        private RenderTargetHandle depthHandle;
+
+        public BlitPass(RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
+        {
+            this.colorHandle = colorHandle;
+            this.depthHandle = colorHandle;
+        }
+
+        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
 		{
 			if (renderer == null)
 				throw new ArgumentNullException("renderer");
-			
-			m_CopyResult.Setup(RenderTargetHandle.CameraTarget, afterAll);
-			m_CopyResult.Execute(renderer, context, ref renderingData);
-			
-			Material material = renderer.GetMaterial(MaterialHandle.Blit);
+
+		    var pass = new CopyColorPass();
+		    pass.Setup(colorHandle, afterAll);
+            pass.Execute(renderer, context, ref renderingData);
+
+            Material material = renderer.GetMaterial(MaterialHandle.Blit);
 
 			CommandBuffer cmd = CommandBufferPool.Get("Blit Pass");
-			cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+			cmd.SetRenderTarget(colorHandle.id, depthHandle.id);
 			cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 			
 			cmd.SetViewport(new Rect(0, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
@@ -146,17 +116,12 @@ public class CameraCallbackTests : MonoBehaviour
 			cmd.SetGlobalTexture("_BlitTex", afterTransparent.Identifier());
 		    ScriptableRenderer.RenderFullscreenQuad(cmd, material);
 			
-			
-			//TODO: Upsidown UV trash, ignore this for now
-			// Need to flip UV as we come from a framebuffer.
-			/*cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f * 2.0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
+			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f * 2.0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterAll.Identifier());
-			cmd.EnableShaderKeyword("FLIP_VERTICAL_UV");
-			LightweightPipeline.DrawFullScreen(cmd, material);
-			cmd.DisableShaderKeyword("FLIP_VERTICAL_UV");*/
-			
-			context.ExecuteCommandBuffer(cmd);
-			CommandBufferPool.Release(cmd);			
+		    ScriptableRenderer.RenderFullscreenQuad(cmd, material);
+
+            context.ExecuteCommandBuffer(cmd);
+			CommandBufferPool.Release(cmd);
 		}
 
 		public override void FrameCleanup(CommandBuffer cmd)
@@ -165,15 +130,11 @@ public class CameraCallbackTests : MonoBehaviour
 				throw new ArgumentNullException("cmd");
 			
 			base.FrameCleanup(cmd);
-			m_CopyResult.FrameCleanup(cmd);
-			
 		}
 	}
 
-	ScriptableRenderPass IAfterRender.GetPassToEnqueue()
+	ScriptableRenderPass IAfterRender.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
 	{
-		
-		
-		return new BlitPass();
+		return new BlitPass(colorHandle, depthHandle);
 	}
 }

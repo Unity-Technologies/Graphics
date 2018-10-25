@@ -267,7 +267,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cameraData.msaaSamples = 1;
 
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            cameraData.isOffscreenRender = camera.targetTexture != null && !cameraData.isSceneViewCamera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
 
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
