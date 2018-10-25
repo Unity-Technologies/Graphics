@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph
                     result.Append("\", Float) = ");
                     break;
             }
-            result.Append(value);
+            result.Append(NodeUtils.FloatToShaderValue(value));
             return result.ToString();
         }
 
