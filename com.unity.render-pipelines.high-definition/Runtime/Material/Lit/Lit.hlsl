@@ -1600,12 +1600,16 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
 
     float2 samplingPositionNDC = hit.positionNDC;
 
-    if (hitLinearDepth < posInput.linearDepth)
-        samplingPositionNDC = posInput.positionNDC;
+    // This is an empirically set hack/modifier to reduce haloes of objects visible in the refraction.
+    float refractionOffsetMultiplier = max(0.0f, 1.0f - preLightData.transparentSSMipLevel * 0.08f);
+
+    // If the hit object is in front of the refracting object, we use posInput.positionNDC to sample the color pyramid
+    // This is equivalent of setting samplingPositionNDC = posInput.positionNDC when hitLinearDepth <= posInput.linearDepth
+    refractionOffsetMultiplier *= (hitLinearDepth > posInput.linearDepth);
 
     float3 preLD = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler,
                                         // Offset by half a texel to properly interpolate between this pixel and its mips
-                                        samplingPositionNDC * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5, preLightData.transparentSSMipLevel).rgb;
+                                        lerp(posInput.positionNDC, samplingPositionNDC, refractionOffsetMultiplier) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5, preLightData.transparentSSMipLevel).rgb;
 
     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness)
     float3 F = preLightData.specularFGD;
