@@ -1,3 +1,4 @@
+#if !UNITY_EDITOR_OSX
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -161,3 +162,4 @@ public class VFXCopyPastGlobalTests
         UnityEngine.Object.DestroyImmediate(cameraObj);
     }
 }
+#endif

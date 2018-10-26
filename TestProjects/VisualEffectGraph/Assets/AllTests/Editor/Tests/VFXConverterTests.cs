@@ -1,3 +1,4 @@
+#if !UNITY_EDITOR_OSX
 using System.Runtime.InteropServices;
 using UnityEngine;
 using NUnit.Framework;
@@ -221,3 +222,4 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
+#endif
