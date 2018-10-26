@@ -26,11 +26,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [SerializeField]
         RenderPipelineResources m_RenderPipelineResources;
+
         public RenderPipelineResources renderPipelineResources
         {
             get { return m_RenderPipelineResources; }
             set { m_RenderPipelineResources = value; }
         }
+
+#if UNITY_EDITOR
+        HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
+
+        public HDRenderPipelineEditorResources renderPipelineEditorResources
+        {
+            get
+            {
+                //there is no clean way to load editor resources without having it serialized
+                // - impossible to load them at deserialization
+                // - constructor only called at asset creation
+                // - cannot rely on OnEnable
+                //thus fallback with lazy init for them
+                if (m_RenderPipelineEditorResources == null)
+                    m_RenderPipelineEditorResources = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+                return m_RenderPipelineEditorResources;
+            }
+            set { m_RenderPipelineEditorResources = value; }
+        }
+#endif
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
@@ -163,16 +184,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override string[] renderingLayerMaskNames
         {
             get
-        {
-            return renderingLayerNames;
-        }
+            {
+                return renderingLayerNames;
+            }
         }
 
         public override Material defaultMaterial
         {
             get
-        {
-                return m_RenderPipelineResources.materials.defaultDiffuseMat;
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultDiffuseMat;
             }
         }
 
@@ -180,47 +201,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-
                 return m_RenderPipelineResources.shaders.defaultPS;
             }
         }
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         // call to GetAutodeskInteractiveShaderXXX are only from within editor
         public override Shader autodeskInteractiveShader
         {
-            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph"); }
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaderGraphs.autodeskInteractive;
+            }
         }
 
         public override Shader autodeskInteractiveTransparentShader
         {
-            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph"); }
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaderGraphs.autodeskInteractiveTransparent;
+            }
         }
 
         public override Shader autodeskInteractiveMaskedShader
         {
-            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph"); }
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaderGraphs.autodeskInteractiveMasked;
+            }
         }
-        #endif
+#endif
 
         // Note: This function is HD specific
         public Material GetDefaultDecalMaterial()
         {
-            return m_RenderPipelineResources.materials.defaultDecalMat;
+            return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultDecalMat;
         }
 
         // Note: This function is HD specific
         public Material GetDefaultMirrorMaterial()
         {
-            return m_RenderPipelineResources.materials.defaultMirrorMat;
+            return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultMirrorMat;
         }
 
         public override Material defaultTerrainMaterial
         {
             get
-        {
-            return m_RenderPipelineResources.materials.defaultTerrainMat;
-        }
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultTerrainMat;
+            }
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()

@@ -1,6 +1,7 @@
 using UnityEngine.Events;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -11,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         static readonly GUIContent defaultFrameSettingsContent = CoreEditorUtils.GetContent("Default Frame Settings For");
         static readonly GUIContent renderPipelineResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Resources|Set of resources that need to be loaded when creating stand alone");
+        static readonly GUIContent renderPipelineEditorResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Editor Resources|Set of resources that need to be loaded for working in editor");
         static readonly GUIContent diffusionProfileSettingsContent = CoreEditorUtils.GetContent("Diffusion Profile Settings");
         //static readonly GUIContent enableShaderVariantStrippingContent = CoreEditorUtils.GetContent("Enable Shader Variant Stripping");
         static readonly GUIContent enableSRPBatcher = CoreEditorUtils.GetContent("Enable SRP Batcher (experimental)");
@@ -139,6 +141,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_SectionPrimarySettings(HDRenderPipelineUI s, SerializedHDRenderPipelineAsset d, Editor o)
         {
             EditorGUILayout.PropertyField(d.renderPipelineResources, renderPipelineResourcesContent);
+
+            HDRenderPipelineAsset hdrpAsset = d.serializedObject.targetObject as HDRenderPipelineAsset;
+            hdrpAsset.renderPipelineEditorResources = EditorGUILayout.ObjectField(renderPipelineEditorResourcesContent, hdrpAsset.renderPipelineEditorResources, typeof(HDRenderPipelineEditorResources), allowSceneObjects: false) as HDRenderPipelineEditorResources;
+
             EditorGUILayout.PropertyField(d.diffusionProfileSettings, diffusionProfileSettingsContent);
             // EditorGUILayout.PropertyField(d.allowShaderVariantStripping, enableShaderVariantStrippingContent);
             EditorGUILayout.PropertyField(d.enableSRPBatcher, enableSRPBatcher);            
