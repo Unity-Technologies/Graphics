@@ -340,8 +340,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void UpgradeResourcesIfNeeded()
         {
 #if UNITY_EDITOR
+            //possible because deserialized along the asset
             m_Asset.renderPipelineResources.UpgradeIfNeeded();
-            m_Asset.renderPipelineEditorResources.UpgradeIfNeeded();
+            //however it is not possible to call the same way the editor resources.
+            //Reason: we pass here before the asset are accessible on disk.
+            //Migration is done at deserialisation time for this scriptableobject
+            //Note: renderPipelineResources can be migrated at deserialisation time too to have a more unified API
 #endif
         }
         
