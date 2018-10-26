@@ -197,22 +197,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        bool m_DrawBeforeRefraction;
-
-        public ToggleData drawBeforeRefraction
-        {
-            get { return new ToggleData(m_DrawBeforeRefraction); }
-            set
-            {
-                if (m_DrawBeforeRefraction == value.isOn)
-                    return;
-                m_DrawBeforeRefraction = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
         bool m_AlphaTest;
 
         public ToggleData alphaTest
@@ -337,6 +321,21 @@ namespace UnityEditor.ShaderGraph
                 Dirty(ModificationScope.Graph);
             }
         }
+
+        [SerializeField]
+        bool m_ReceivesSSR = true;
+        public ToggleData receiveSSR
+        {
+            get { return new ToggleData(m_ReceivesSSR); }
+            set
+            {
+                if (m_ReceivesSSR == value.isOn)
+                    return;
+                m_ReceivesSSR = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
 
         [SerializeField]
         bool m_EnergyConservingSpecular = true;
@@ -629,6 +628,29 @@ namespace UnityEditor.ShaderGraph
             });
 
             base.CollectShaderProperties(collector, generationMode);
+        }
+
+        public int GetStencilWriteMask()
+        {
+            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
+            if (!m_ReceivesSSR)
+            {
+                stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+            }
+            return stencilWriteMask;
+        }
+        public int GetStencilRef()
+        {
+            int stencilRef = (int)StencilLightingUsage.RegularLighting;
+            if (RequiresSplitLighting())
+            {
+                stencilRef = (int)StencilLightingUsage.SplitLighting;
+            }
+            if (!m_ReceivesSSR)
+            {
+                stencilRef |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+            }
+            return stencilRef;
         }
     }
 }

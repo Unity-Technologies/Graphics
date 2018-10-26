@@ -63,16 +63,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
                 });
 
-                ps.Add(new PropertyRow(CreateLabel("Draw Before Refraction", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.drawBeforeRefraction.isOn;
-                        toggle.OnToggleChanged(ChangeDrawBeforeRefraction);
-                    });
-                });
-
-
                 ps.Add(new PropertyRow(CreateLabel("Back Then Front Rendering", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
@@ -183,6 +173,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Receives SSR", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.receiveSSR.isOn;
+                    toggle.OnToggleChanged(ChangeSSR);
+                });
+            });
+
             ps.Add(new PropertyRow(CreateLabel("Specular Occlusion Mode", indentLevel)), (row) =>
             {
                 row.Add(new EnumField(SpecularOcclusionMode.Off), (field) =>
@@ -266,14 +265,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Node.transparencyFog = td;
         }
 
-        void ChangeDrawBeforeRefraction(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Draw Before Refraction Change");
-            ToggleData td = m_Node.drawBeforeRefraction;
-            td.isOn = evt.newValue;
-            m_Node.drawBeforeRefraction = td;
-        }
-
         void ChangeBackThenFrontRendering(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Back Then Front Rendering Change");
@@ -323,6 +314,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             ToggleData td = m_Node.receiveDecals;
             td.isOn = evt.newValue;
             m_Node.receiveDecals = td;
+        }
+
+        void ChangeSSR(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("SSR Change");
+            ToggleData td = m_Node.receiveSSR;
+            td.isOn = evt.newValue;
+            m_Node.receiveSSR = td;
         }
 
         void ChangeEnergyConservingSpecular(ChangeEvent<bool> evt)
