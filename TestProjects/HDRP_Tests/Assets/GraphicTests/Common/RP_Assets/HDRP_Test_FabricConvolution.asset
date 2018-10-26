@@ -26,11 +26,11 @@ MonoBehaviour:
     enableTransmission: 1
     enableAtmosphericScattering: 1
     enableVolumetrics: 1
-    enableReprojectionForVolumetrics: 1
+    enableReprojectionForVolumetrics: 0
     enableLightLayers: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    enableForwardRenderingOnly: 0
+    shaderLitMode: 1
     enableDepthPrepassWithDeferredRendering: 0
     enableTransparentPrepass: 1
     enableMotionVectors: 1
@@ -40,12 +40,6 @@ MonoBehaviour:
     enableTransparentPostpass: 1
     enableDistortion: 1
     enablePostprocess: 1
-    enableStereo: 0
-    xrGraphicsConfig:
-      renderScale: 0
-      viewportScale: 0
-      useOcclusionMesh: 0
-      occlusionMeshScale: 1
     enableAsyncCompute: 0
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
@@ -75,7 +69,7 @@ MonoBehaviour:
     enableLightLayers: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    enableForwardRenderingOnly: 0
+    shaderLitMode: 1
     enableDepthPrepassWithDeferredRendering: 0
     enableTransparentPrepass: 1
     enableMotionVectors: 1
@@ -85,12 +79,6 @@ MonoBehaviour:
     enableTransparentPostpass: 1
     enableDistortion: 1
     enablePostprocess: 1
-    enableStereo: 0
-    xrGraphicsConfig:
-      renderScale: 1
-      viewportScale: 1
-      useOcclusionMesh: 1
-      occlusionMeshScale: 1
     enableAsyncCompute: 1
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
@@ -120,7 +108,7 @@ MonoBehaviour:
     enableLightLayers: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    enableForwardRenderingOnly: 0
+    shaderLitMode: 1
     enableDepthPrepassWithDeferredRendering: 0
     enableTransparentPrepass: 1
     enableMotionVectors: 1
@@ -130,12 +118,6 @@ MonoBehaviour:
     enableTransparentPostpass: 1
     enableDistortion: 1
     enablePostprocess: 1
-    enableStereo: 0
-    xrGraphicsConfig:
-      renderScale: 1
-      viewportScale: 1
-      useOcclusionMesh: 1
-      occlusionMeshScale: 1
     enableAsyncCompute: 1
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
@@ -159,13 +141,14 @@ MonoBehaviour:
     supportVolumetrics: 1
     increaseResolutionOfVolumetrics: 1
     supportLightLayers: 1
-    supportOnlyForward: 0
+    supportedLitShaderMode: 3
     supportDecals: 1
-    supportMSAA: 0
+    m_SupportMSAA: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 1
+    supportRayTracing: 0
     lightLoopSettings:
       cookieSize: 128
       cookieTexArraySize: 16
@@ -182,9 +165,13 @@ MonoBehaviour:
         serializedVersion: 2
         m_Bits: 0
       supportFabricConvolution: 1
+      maxDirectionalLightsOnScreen: 16
+      maxPunctualLightsOnScreen: 512
+      maxAreaLightsOnScreen: 64
+      maxEnvLightsOnScreen: 64
+      maxDecalsOnScreen: 512
     hdShadowInitParams:
-      shadowAtlasWidth: 4096
-      shadowAtlasHeight: 4096
+      shadowAtlasResolution: 4096
       maxShadowRequests: 128
       shadowMapsDepthBits: 32
       useDynamicViewportRescale: 0
