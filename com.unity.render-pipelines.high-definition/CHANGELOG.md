@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added translaction's scale invariance on DensityVolume
 - Added multiple supported LitShadermode and per renderer choice in case of both Forward and Deferred supported
 - Added custom specular occlusion mode to Lit Shader Graph Master node
+- Added separate editor resources file for those resources to not be taken in player builds.
 
 ### Fixed
 - Fixed a normal bias issue with Stacklit (Was causing light leaking)

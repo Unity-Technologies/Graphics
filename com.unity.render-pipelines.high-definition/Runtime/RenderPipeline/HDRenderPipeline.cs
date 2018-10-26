@@ -341,10 +341,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
 #if UNITY_EDITOR
             m_Asset.renderPipelineResources.UpgradeIfNeeded();
+            m_Asset.renderPipelineEditorResources.UpgradeIfNeeded();
 #endif
         }
-
-
+        
         void InitializeRenderTextures()
         {
             RenderPipelineSettings settings = m_Asset.renderPipelineSettings;
