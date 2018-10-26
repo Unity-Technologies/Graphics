@@ -504,8 +504,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                    "   WriteMask 7",
-                        masterNode.RequiresSplitLighting() ? "   Ref  1" : "   Ref  2",
+                    "   WriteMask " + masterNode.GetStencilWriteMask().ToString(),
+                    "   Ref  " + masterNode.GetStencilRef().ToString(),
                     "   Comp Always",
                     "   Pass Replace",
                     "}"
@@ -679,6 +679,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("Decals");
             }
+
+            if (!masterNode.receiveSSR.isOn)
+            {
+                activeFields.Add("DisableSSR");
+            }
+
 
             if (masterNode.specularAA.isOn && pass.PixelShaderUsesSlot(HDLitMasterNode.SpecularAAThresholdSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId))
             {
