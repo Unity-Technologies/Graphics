@@ -54,6 +54,7 @@ Pass
         $RefractionPlane:                    #define _REFRACTION_PLANE 1
         $RefractionSphere:                   #define _REFRACTION_SPHERE 1
         $Decals:                             #define _DECALS 1
+        $DisableSSR:                         #define _DISABLE_SSR 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
