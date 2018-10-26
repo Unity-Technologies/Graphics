@@ -166,15 +166,19 @@ real EllipsoidalDistanceAttenuation(real3 unL, real3 invHalfDim,
 real BoxDistanceAttenuation(real3 unL, real3 invHalfDim,
                             real rangeAttenuationScale, real rangeAttenuationBias)
 {
+    float attenuation = 0.0;
+
     // Transform the light vector so that we can work with
     // with the box as if it was a [-1, 1]^2 cube.
     unL *= invHalfDim;
 
     // Our algorithm expects the input vector to be within the cube.
-    if (Max3(abs(unL.x), abs(unL.y), abs(unL.z)) > 1.0) return 0.0;
-
-    real sqDist = ComputeCubeToSphereMapSqMagnitude(unL);
-    return SmoothDistanceWindowing(sqDist, rangeAttenuationScale, rangeAttenuationBias);
+    if (!(Max3(abs(unL.x), abs(unL.y), abs(unL.z)) > 1.0))
+    {
+        real sqDist = ComputeCubeToSphereMapSqMagnitude(unL);
+        attenuation = SmoothDistanceWindowing(sqDist, rangeAttenuationScale, rangeAttenuationBias);
+    }
+    return attenuation;
 }
 
 //-----------------------------------------------------------------------------
