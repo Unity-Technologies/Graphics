@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // - constructor only called at asset creation
                 // - cannot rely on OnEnable
                 //thus fallback with lazy init for them
-                if (m_RenderPipelineEditorResources.Equals(null))
+                if (m_RenderPipelineEditorResources == null || m_RenderPipelineEditorResources.Equals(null))
                     m_RenderPipelineEditorResources = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
                 return m_RenderPipelineEditorResources;
             }
