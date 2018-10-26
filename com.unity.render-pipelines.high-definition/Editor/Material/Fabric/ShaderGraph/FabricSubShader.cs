@@ -146,6 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
+                HDLitMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AlphaSlotId,
                 FabricMasterNode.AlphaThresholdSlotId
             },
@@ -223,6 +224,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
+                HDLitMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AlphaSlotId,
                 FabricMasterNode.AlphaThresholdSlotId
             },
@@ -308,8 +310,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                    "   WriteMask 7",
-                        masterNode.RequiresSplitLighting() ? "   Ref  1" : "   Ref  2",
+                    "   WriteMask " + masterNode.GetStencilWriteMask().ToString(),
+                    "   Ref  " + masterNode.GetStencilRef().ToString(),
                     "   Comp Always",
                     "   Pass Replace",
                     "}"
@@ -433,6 +435,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 activeFields.Add("Decals");
             }
 
+            if (!masterNode.receiveSSR.isOn)
+            {
+                activeFields.Add("DisableSSR");
+            }
 
             if (masterNode.energyConservingSpecular.isOn)
             {
@@ -521,7 +527,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, masterNode.alphaTest.isOn, masterNode.drawBeforeRefraction.isOn, masterNode.sortPriority);
+                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, masterNode.alphaTest.isOn, false, masterNode.sortPriority);
 
                 // Add tags at the SubShader level
                 {
