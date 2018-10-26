@@ -22,9 +22,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public enum SupportedLitShaderMode
         {
-            ForwardOnly = 1,
-            DeferredOnly = 2,
-            Both = ForwardOnly + DeferredOnly
+            ForwardOnly = 1 << 0,
+            DeferredOnly = 1 << 1,
+            Both = ForwardOnly | DeferredOnly
         }
 
         // Lighting
@@ -42,8 +42,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Engine
         [FormerlySerializedAs("supportDBuffer")]
         public bool supportDecals = true;
-        [SerializeField, FormerlySerializedAs("supportMSAA")]
-        bool m_SupportMSAA = false;
+        [SerializeField, FormerlySerializedAs("m_SupportMSAA")]
+        public bool supportMSAA = false;
         public MSAASamples msaaSampleCount = MSAASamples.None;
         public bool supportMotionVectors = true;
         public bool supportRuntimeDebugDisplay = true;
@@ -53,9 +53,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
         public HDShadowInitParameters   hdShadowInitParams = new HDShadowInitParameters();
         public GlobalDecalSettings      decalSettings = new GlobalDecalSettings();
-
-
-        // Lock MSAA support according to renderingPath for the moment
-        public bool supportMSAA { get { return m_SupportMSAA && supportedLitShaderMode == SupportedLitShaderMode.ForwardOnly; } }
     }
 }
