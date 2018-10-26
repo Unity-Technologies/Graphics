@@ -929,7 +929,7 @@ struct PreLightData
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
-    // Don't init to zero to allow to track warning about uninitialized data
+    ZERO_INITIALIZE(PreLightData, preLightData);
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
@@ -1277,87 +1277,87 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
                                                      lightData.rangeAttenuationBias);
 
     // Terminate if the shaded point is too far away.
-    if (intensity == 0.0)
-        return lighting;
-
-    lightData.diffuseDimmer  *= intensity;
-    lightData.specularDimmer *= intensity;
-
-    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    lightData.positionRWS -= positionWS;
-
-    // TODO: some of this could be precomputed.
-    float3 P1 = lightData.positionRWS - T * (0.5 * len);
-    float3 P2 = lightData.positionRWS + T * (0.5 * len);
-
-    // Rotate the endpoints into the local coordinate system.
-    P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
-    P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
-
-    // Compute the binormal in the local coordinate system.
-    float3 B = normalize(cross(P1, P2));
-
-    float ltcValue;
-
-    // Evaluate the diffuse part
-    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
-    ltcValue *= lightData.diffuseDimmer;
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-
-    // See comment for specular magnitude, it apply to diffuse as well
-    lighting.diffuse = preLightData.diffuseFGD * ltcValue;
-
-    UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    if (intensity != 0.0)
     {
-        // Flip the view vector and the normal. The bitangent stays the same.
-        float3x3 flipMatrix = float3x3(-1,  0,  0,
-                                        0,  1,  0,
-                                        0,  0, -1);
-
-        // Use the Lambertian approximation for performance reasons.
-        // The matrix multiplication should not generate any extra ALU on GCN.
-        // TODO: double evaluation is very inefficient! This is a temporary solution.
-        ltcValue  = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
+        lightData.diffuseDimmer  *= intensity;
+        lightData.specularDimmer *= intensity;
+    
+        // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+        lightData.positionRWS -= positionWS;
+    
+        // TODO: some of this could be precomputed.
+        float3 P1 = lightData.positionRWS - T * (0.5 * len);
+        float3 P2 = lightData.positionRWS + T * (0.5 * len);
+    
+        // Rotate the endpoints into the local coordinate system.
+        P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
+        P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
+    
+        // Compute the binormal in the local coordinate system.
+        float3 B = normalize(cross(P1, P2));
+    
+        float ltcValue;
+    
+        // Evaluate the diffuse part
+        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
         ltcValue *= lightData.diffuseDimmer;
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse += bsdfData.transmittance * ltcValue;
-    }
-
-    // Evaluate the specular part
-    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
-    ltcValue *= lightData.specularDimmer;
-    // We need to multiply by the magnitude of the integral of the BRDF
-    // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-    // This value is what we store in specularFGD, so reuse it
-    lighting.specular = preLightData.specularFGD * ltcValue;
-
-    // Evaluate the coat part
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-    {
-        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformCoat);
+    
+        // See comment for specular magnitude, it apply to diffuse as well
+        lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+    
+        UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+        {
+            // Flip the view vector and the normal. The bitangent stays the same.
+            float3x3 flipMatrix = float3x3(-1,  0,  0,
+                                            0,  1,  0,
+                                            0,  0, -1);
+    
+            // Use the Lambertian approximation for performance reasons.
+            // The matrix multiplication should not generate any extra ALU on GCN.
+            // TODO: double evaluation is very inefficient! This is a temporary solution.
+            ltcValue  = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
+            ltcValue *= lightData.diffuseDimmer;
+            // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+            // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+            lighting.diffuse += bsdfData.transmittance * ltcValue;
+        }
+    
+        // Evaluate the specular part
+        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
         ltcValue *= lightData.specularDimmer;
-        // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
-        lighting.diffuse *= (1.0 - preLightData.coatIblF);
-        lighting.specular *= (1.0 - preLightData.coatIblF);
-        lighting.specular += preLightData.coatIblF * ltcValue;
+        // We need to multiply by the magnitude of the integral of the BRDF
+        // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+        // This value is what we store in specularFGD, so reuse it
+        lighting.specular = preLightData.specularFGD * ltcValue;
+    
+        // Evaluate the coat part
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+        {
+            ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformCoat);
+            ltcValue *= lightData.specularDimmer;
+            // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
+            lighting.diffuse *= (1.0 - preLightData.coatIblF);
+            lighting.specular *= (1.0 - preLightData.coatIblF);
+            lighting.specular += preLightData.coatIblF * ltcValue;
+        }
+    
+        // Save ALU by applying 'lightData.color' only once.
+        lighting.diffuse *= lightData.color;
+        lighting.specular *= lightData.color;
+    
+    #ifdef DEBUG_DISPLAY
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+        {
+            // Only lighting, not BSDF
+            // Apply area light on lambert then multiply by PI to cancel Lambert
+            lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
+            lighting.diffuse *= PI * lightData.diffuseDimmer;
+        }
+    #endif
     }
-
-    // Save ALU by applying 'lightData.color' only once.
-    lighting.diffuse *= lightData.color;
-    lighting.specular *= lightData.color;
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
-        lighting.diffuse *= PI * lightData.diffuseDimmer;
-    }
-#endif
-
-#endif // LIT_DISPLAY_REFERENCE_AREA
+    
+    #endif // LIT_DISPLAY_REFERENCE_AREA
 
     return lighting;
 }
@@ -1383,126 +1383,125 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #else
     float3 unL = lightData.positionRWS - positionWS;
 
-    if (dot(lightData.forward, unL) >= 0.0001)
+    if (dot(lightData.forward, unL) < 0.0001)
     {
-        // The light is back-facing.
-        return lighting;
+
+        // Rotate the light direction into the light space.
+        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
+        unL = mul(unL, transpose(lightToWorld));
+
+        // TODO: This could be precomputed.
+        float halfWidth  = lightData.size.x * 0.5;
+        float halfHeight = lightData.size.y * 0.5;
+
+        // Define the dimensions of the attenuation volume.
+        // TODO: This could be precomputed.
+        float  range      = lightData.range;
+        float3 invHalfDim = rcp(float3(range + halfWidth,
+                                    range + halfHeight,
+                                    range));
+
+        // Compute the light attenuation.
+    #ifdef ELLIPSOIDAL_ATTENUATION
+        // The attenuation volume is an axis-aligned ellipsoid s.t.
+        // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
+        float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
+                                                        lightData.rangeAttenuationScale,
+                                                        lightData.rangeAttenuationBias);
+    #else
+        // The attenuation volume is an axis-aligned box s.t.
+        // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
+        float intensity = BoxDistanceAttenuation(unL, invHalfDim,
+                                                lightData.rangeAttenuationScale,
+                                                lightData.rangeAttenuationBias);
+    #endif
+
+        // Terminate if the shaded point is too far away.
+        if (intensity != 0.0)
+        {
+            lightData.diffuseDimmer  *= intensity;
+            lightData.specularDimmer *= intensity;
+
+            // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+            lightData.positionRWS -= positionWS;
+
+            float4x3 lightVerts;
+
+            // TODO: some of this could be precomputed.
+            lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+            lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+            lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+            lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+
+            // Rotate the endpoints into the local coordinate system.
+            lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
+
+            float ltcValue;
+
+            // Evaluate the diffuse part
+            // Polygon irradiance in the transformed configuration.
+            ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
+            ltcValue *= lightData.diffuseDimmer;
+            // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+            // See comment for specular magnitude, it apply to diffuse as well
+            lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+
+            UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+            {
+                // Flip the view vector and the normal. The bitangent stays the same.
+                float3x3 flipMatrix = float3x3(-1,  0,  0,
+                                                0,  1,  0,
+                                                0,  0, -1);
+
+                // Use the Lambertian approximation for performance reasons.
+                // The matrix multiplication should not generate any extra ALU on GCN.
+                float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
+
+                // Polygon irradiance in the transformed configuration.
+                // TODO: double evaluation is very inefficient! This is a temporary solution.
+                ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
+                ltcValue *= lightData.diffuseDimmer;
+                // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+                // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+                lighting.diffuse += bsdfData.transmittance * ltcValue;
+            }
+
+            // Evaluate the specular part
+            // Polygon irradiance in the transformed configuration.
+            ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
+            ltcValue *= lightData.specularDimmer;
+            // We need to multiply by the magnitude of the integral of the BRDF
+            // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+            // This value is what we store in specularFGD, so reuse it
+            lighting.specular += preLightData.specularFGD * ltcValue;
+
+            // Evaluate the coat part
+            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+            {
+                ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
+                ltcValue *= lightData.specularDimmer;
+                // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
+                lighting.diffuse *= (1.0 - preLightData.coatIblF);
+                lighting.specular *= (1.0 - preLightData.coatIblF);
+                lighting.specular += preLightData.coatIblF * ltcValue;
+            }
+
+            // Save ALU by applying 'lightData.color' only once.
+            lighting.diffuse *= lightData.color;
+            lighting.specular *= lightData.color;
+
+        #ifdef DEBUG_DISPLAY
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+            {
+                // Only lighting, not BSDF
+                // Apply area light on lambert then multiply by PI to cancel Lambert
+                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+                lighting.diffuse *= PI * lightData.diffuseDimmer;
+            }
+        #endif
+        }
+
     }
-
-    // Rotate the light direction into the light space.
-    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
-    unL = mul(unL, transpose(lightToWorld));
-
-    // TODO: This could be precomputed.
-    float halfWidth  = lightData.size.x * 0.5;
-    float halfHeight = lightData.size.y * 0.5;
-
-    // Define the dimensions of the attenuation volume.
-    // TODO: This could be precomputed.
-    float  range      = lightData.range;
-    float3 invHalfDim = rcp(float3(range + halfWidth,
-                                   range + halfHeight,
-                                   range));
-
-    // Compute the light attenuation.
-#ifdef ELLIPSOIDAL_ATTENUATION
-    // The attenuation volume is an axis-aligned ellipsoid s.t.
-    // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
-    float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
-                                                     lightData.rangeAttenuationScale,
-                                                     lightData.rangeAttenuationBias);
-#else
-    // The attenuation volume is an axis-aligned box s.t.
-    // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
-    float intensity = BoxDistanceAttenuation(unL, invHalfDim,
-                                             lightData.rangeAttenuationScale,
-                                             lightData.rangeAttenuationBias);
-#endif
-
-    // Terminate if the shaded point is too far away.
-    if (intensity == 0.0)
-        return lighting;
-
-    lightData.diffuseDimmer  *= intensity;
-    lightData.specularDimmer *= intensity;
-
-    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    lightData.positionRWS -= positionWS;
-
-    float4x3 lightVerts;
-
-    // TODO: some of this could be precomputed.
-    lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
-
-    // Rotate the endpoints into the local coordinate system.
-    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
-
-    float ltcValue;
-
-    // Evaluate the diffuse part
-    // Polygon irradiance in the transformed configuration.
-    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
-    ltcValue *= lightData.diffuseDimmer;
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    // See comment for specular magnitude, it apply to diffuse as well
-    lighting.diffuse = preLightData.diffuseFGD * ltcValue;
-
-    UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
-    {
-        // Flip the view vector and the normal. The bitangent stays the same.
-        float3x3 flipMatrix = float3x3(-1,  0,  0,
-                                        0,  1,  0,
-                                        0,  0, -1);
-
-        // Use the Lambertian approximation for performance reasons.
-        // The matrix multiplication should not generate any extra ALU on GCN.
-        float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
-
-        // Polygon irradiance in the transformed configuration.
-        // TODO: double evaluation is very inefficient! This is a temporary solution.
-        ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
-        ltcValue *= lightData.diffuseDimmer;
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse += bsdfData.transmittance * ltcValue;
-    }
-
-    // Evaluate the specular part
-    // Polygon irradiance in the transformed configuration.
-    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
-    ltcValue *= lightData.specularDimmer;
-    // We need to multiply by the magnitude of the integral of the BRDF
-    // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-    // This value is what we store in specularFGD, so reuse it
-    lighting.specular += preLightData.specularFGD * ltcValue;
-
-    // Evaluate the coat part
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-    {
-        ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
-        ltcValue *= lightData.specularDimmer;
-        // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
-        lighting.diffuse *= (1.0 - preLightData.coatIblF);
-        lighting.specular *= (1.0 - preLightData.coatIblF);
-        lighting.specular += preLightData.coatIblF * ltcValue;
-    }
-
-    // Save ALU by applying 'lightData.color' only once.
-    lighting.diffuse *= lightData.color;
-    lighting.specular *= lightData.color;
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
-        lighting.diffuse *= PI * lightData.diffuseDimmer;
-    }
-#endif
 
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
@@ -1601,12 +1600,16 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
 
     float2 samplingPositionNDC = hit.positionNDC;
 
-    if (hitLinearDepth < posInput.linearDepth)
-        samplingPositionNDC = posInput.positionNDC;
+    // This is an empirically set hack/modifier to reduce haloes of objects visible in the refraction.
+    float refractionOffsetMultiplier = max(0.0f, 1.0f - preLightData.transparentSSMipLevel * 0.08f);
+
+    // If the hit object is in front of the refracting object, we use posInput.positionNDC to sample the color pyramid
+    // This is equivalent of setting samplingPositionNDC = posInput.positionNDC when hitLinearDepth <= posInput.linearDepth
+    refractionOffsetMultiplier *= (hitLinearDepth > posInput.linearDepth);
 
     float3 preLD = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler,
                                         // Offset by half a texel to properly interpolate between this pixel and its mips
-                                        samplingPositionNDC * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5, preLightData.transparentSSMipLevel).rgb;
+                                        lerp(posInput.positionNDC, samplingPositionNDC, refractionOffsetMultiplier) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5, preLightData.transparentSSMipLevel).rgb;
 
     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness)
     float3 F = preLightData.specularFGD;

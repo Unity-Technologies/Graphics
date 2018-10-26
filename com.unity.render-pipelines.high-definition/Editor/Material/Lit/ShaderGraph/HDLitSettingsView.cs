@@ -232,6 +232,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Receives SSR", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.receiveSSR.isOn;
+                    toggle.OnToggleChanged(ChangeSSR);
+                });
+            });
+
             ps.Add(new PropertyRow(CreateLabel("Specular AA", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -407,6 +416,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             ToggleData td = m_Node.receiveDecals;
             td.isOn = evt.newValue;
             m_Node.receiveDecals = td;
+        }
+
+        void ChangeSSR(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("SSR Change");
+            ToggleData td = m_Node.receiveSSR;
+            td.isOn = evt.newValue;
+            m_Node.receiveSSR = td;
         }
 
         void ChangeSpecularAA(ChangeEvent<bool> evt)
