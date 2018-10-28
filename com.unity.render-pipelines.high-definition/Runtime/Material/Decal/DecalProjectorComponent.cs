@@ -44,8 +44,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Material == null)
             {
-                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
 #if UNITY_EDITOR
+                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
