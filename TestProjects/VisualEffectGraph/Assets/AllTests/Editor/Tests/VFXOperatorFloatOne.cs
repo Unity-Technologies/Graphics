@@ -1,3 +1,4 @@
+#if !UNITY_EDITOR_OSX
 using System;
 
 namespace UnityEditor.VFX.Test
@@ -28,3 +29,4 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
+#endif
