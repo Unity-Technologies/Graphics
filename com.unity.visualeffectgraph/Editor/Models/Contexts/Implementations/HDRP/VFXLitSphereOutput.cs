@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var orient = CreateInstance<Orient>();
+                var orient = VFXBlock.CreateImplicitBlock<Orient>(GetData());
                 orient.mode = Orient.Mode.FaceCameraPosition;
                 yield return orient;
             }
