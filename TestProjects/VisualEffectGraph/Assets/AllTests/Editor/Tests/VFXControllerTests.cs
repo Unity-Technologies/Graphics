@@ -1,3 +1,4 @@
+#if !UNITY_EDITOR_OSX
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -847,3 +848,4 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
+#endif

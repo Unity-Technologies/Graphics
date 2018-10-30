@@ -111,7 +111,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && XRGraphics.enabled;
 
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
-            aggregate.isFptlEnabled = !aggregateFrameSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
+            aggregate.isFptlEnabled = aggregateFrameSettings.shaderLitMode == LitShaderMode.Deferred || aggregate.enableFptlForForwardOpaque;
         }
 
         public static void RegisterDebug(LightLoopSettings lightLoopSettings, List<DebugUI.Widget> widgets)
