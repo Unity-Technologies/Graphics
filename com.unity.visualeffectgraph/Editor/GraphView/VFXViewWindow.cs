@@ -127,11 +127,13 @@ namespace  UnityEditor.VFX.UI
         {
             VFXManagerEditor.CheckVFXManager();
 
+            var root = this.GetRootVisualContainer();
+
             graphView = new VFXView();
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
 
-            this.GetRootVisualContainer().Add(graphView);
+            root.Add(graphView);
 
 
             var currentAsset = GetCurrentResource();
