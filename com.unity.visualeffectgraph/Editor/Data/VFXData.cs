@@ -48,12 +48,14 @@ namespace UnityEditor.VFX
         {
             get
             {
-                VFXGraph graph = GetGraph();
-
                 if ( m_Parent == null)
                 {
-                    Sanitize(graph.version);
+                    string assetPath = AssetDatabase.GetAssetPath(this);
+                    m_Parent = VisualEffectResource.GetResourceAtPath(assetPath).GetOrCreateGraph();
                 }
+                
+                VFXGraph graph = GetGraph();
+
                 HashSet<VFXData> datas = new HashSet<VFXData>();
 
                 foreach (var child in graph.children.OfType<VFXContext>())
