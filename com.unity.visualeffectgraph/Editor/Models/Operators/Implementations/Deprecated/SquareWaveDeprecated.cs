@@ -20,9 +20,9 @@ namespace UnityEditor.VFX.Operator
             return new[] { VFXOperatorUtility.Round(VFXOperatorUtility.Frac(expression)) };
         }
 
-        public sealed override void Sanitize()
+        public sealed override void Sanitize(int version)
         {
-            base.Sanitize();
+            base.Sanitize(version);
             SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SquareWave));
         }
     }

@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.Block
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             string newAttrib;
             VariadicChannelOptions channel;
@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.Block
                 Invalidate(InvalidationCause.kSettingChanged);
             }
 
-            base.Sanitize();
+            base.Sanitize(version);
         }
 
         protected override IEnumerable<string> filteredOutSettings

@@ -94,7 +94,7 @@ namespace UnityEditor.VFX.Operator
             return new[] { finalExpression };
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             Debug.Log("Sanitizing Graph: Automatically replace ComponentMask with Swizzle");
 
@@ -125,7 +125,7 @@ namespace UnityEditor.VFX.Operator
             VFXSlot.CopyLinksAndValue(swizzle.GetOutputSlot(0), GetOutputSlot(0), true);
 
             ReplaceModel(swizzle, this);
-            swizzle.Sanitize();
+            swizzle.Sanitize(version);
         }
     }
 }

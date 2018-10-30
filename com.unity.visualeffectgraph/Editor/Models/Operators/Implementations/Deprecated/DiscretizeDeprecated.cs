@@ -20,9 +20,9 @@ namespace UnityEditor.VFX.Operator
             return new[] { VFXOperatorUtility.Discretize(inputExpression[0], inputExpression[1]) };
         }
 
-        public sealed override void Sanitize()
+        public sealed override void Sanitize(int version)
         {
-            base.Sanitize();
+            base.Sanitize(version);
             SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(Discretize));
         }
     }

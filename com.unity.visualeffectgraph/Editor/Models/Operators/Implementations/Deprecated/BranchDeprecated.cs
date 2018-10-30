@@ -33,9 +33,9 @@ namespace UnityEditor.VFX.Operator
             return new[] { new VFXExpressionBranch(inputExpression[0], inputExpression[1], inputExpression[2]) };
         }
 
-        public sealed override void Sanitize()
+        public sealed override void Sanitize(int version)
         {
-            base.Sanitize();
+            base.Sanitize(version);
             SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(Branch));
         }
     }

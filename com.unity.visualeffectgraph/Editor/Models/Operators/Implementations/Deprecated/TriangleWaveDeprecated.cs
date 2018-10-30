@@ -23,9 +23,9 @@ namespace UnityEditor.VFX.Operator
             return new[] { two * (new VFXExpressionAbs(slope - dX)) };
         }
 
-        public sealed override void Sanitize()
+        public sealed override void Sanitize(int version)
         {
-            base.Sanitize();
+            base.Sanitize(version);
             SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(TriangleWave));
         }
     }

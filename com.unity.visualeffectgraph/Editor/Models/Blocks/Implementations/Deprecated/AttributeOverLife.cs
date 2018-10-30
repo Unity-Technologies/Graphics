@@ -202,7 +202,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             Debug.Log("Sanitizing Graph: Automatically replace AttributeOverLife with AttributeFromCurve");
 

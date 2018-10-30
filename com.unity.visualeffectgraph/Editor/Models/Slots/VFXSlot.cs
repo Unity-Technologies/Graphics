@@ -496,7 +496,7 @@ namespace UnityEditor.VFX
                 m_MasterData = null; // Non master slot will always have a null master data
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             // Remove invalid links (without owners)
             if (owner == null)

@@ -11,9 +11,9 @@ namespace UnityEditor.VFX.Operator
             return new[] { new VFXExpressionCos(inputExpression[0]) };
         }
 
-        public override sealed void Sanitize()
+        public override sealed void Sanitize(int version)
         {
-            base.Sanitize();
+            base.Sanitize(version);
             SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(Cosine));
         }
     }

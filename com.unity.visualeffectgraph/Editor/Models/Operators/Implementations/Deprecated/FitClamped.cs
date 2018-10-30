@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Operator
             return new[] { VFXOperatorUtility.Fit(clamped, inputExpression[1], inputExpression[2], inputExpression[3], inputExpression[4]) };
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             Debug.Log("Sanitizing Graph: Automatically replace FitClamped with Remap");
 
@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.Operator
             VFXSlot.CopyLinksAndValue(remap.GetOutputSlot(0), GetOutputSlot(0), true);
 
             ReplaceModel(remap, this);
-            remap.Sanitize();
+            remap.Sanitize(version);
         }
     }
 }

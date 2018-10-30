@@ -11,9 +11,9 @@ namespace UnityEditor.VFX.Operator
             return new[] { new VFXExpressionSign(inputExpression[0]) };
         }
 
-        public sealed override void Sanitize()
+        public sealed override void Sanitize(int version)
         {
-            base.Sanitize();
+            base.Sanitize(version);
             SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(Sign));
         }
     }

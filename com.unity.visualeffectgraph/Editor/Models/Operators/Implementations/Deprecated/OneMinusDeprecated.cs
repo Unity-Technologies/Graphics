@@ -13,9 +13,9 @@ namespace UnityEditor.VFX.Operator
             return new[] { one - input };
         }
 
-        public sealed override void Sanitize()
+        public sealed override void Sanitize(int version)
         {
-            base.Sanitize();
+            base.Sanitize(version);
             SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(OneMinus));
         }
     }

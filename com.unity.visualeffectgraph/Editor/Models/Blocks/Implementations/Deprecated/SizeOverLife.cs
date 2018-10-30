@@ -68,7 +68,7 @@ float sampledCurve = SampleCurve(curve, age/lifetime);
             }
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             Debug.Log("Sanitizing Graph: Automatically replace SizeOverLife with AttributeOverLife");
 
