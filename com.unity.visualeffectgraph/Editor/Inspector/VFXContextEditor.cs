@@ -24,6 +24,10 @@ public class VFXContextEditor : VFXSlotContainerEditor
 
     float m_Width;
 
+
+    VFXViewController m_ViewController;
+    VFXContextController m_ContextController;
+
     protected new void OnEnable()
     {
         UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
@@ -39,7 +43,26 @@ public class VFXContextEditor : VFXSlotContainerEditor
             spaceProperty = null;
         }
 
+        if (!serializedObject.isEditingMultipleObjects)
+        {
+            m_ViewController = VFXViewController.GetController(((VFXContext)target).GetGraph().GetResource());
+            m_ViewController.useCount++;
+
+            m_ContextController = m_ViewController.GetRootNodeController((VFXContext)target, 0) as VFXContextController;
+        }
+
         base.OnEnable();
+    }
+
+    private new void OnDisable()
+    {
+        base.OnDisable();
+
+        if(m_ViewController != null)
+        {
+            m_ViewController.useCount--;
+            m_ViewController = null;
+        }
     }
 
     public override void DoInspectorGUI()
@@ -117,6 +140,11 @@ public class VFXContextEditor : VFXSlotContainerEditor
         if (dataObject != null)
             dataObject.Update();
 
+        if (m_ContextController != null && m_ContextController.letter != '\0')
+        {
+            GUILayout.Label(m_ContextController.letter.ToString(),Styles.letter);
+        }
+
         base.OnInspectorGUI();
 
         if (dataObject != null)
@@ -130,6 +158,8 @@ public class VFXContextEditor : VFXSlotContainerEditor
             }
 
         if (serializedObject.isEditingMultipleObjects) return; // Summary Only visible for single selection
+
+
 
         // Context / SystemData
         if (dataObject == null) return;

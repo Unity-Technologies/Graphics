@@ -26,7 +26,7 @@ VFXContextUI > #node-border
 
 VFXContextUI > #node-border > #inside > #contents
 {
-    margin-top : 5;
+    margin-top : 0;
 }
 
 VFXContextUI > #node-border.empty > #inside > #contents
@@ -231,4 +231,80 @@ VFXContextUI #no-blocks
     height: 24;
     text-alignment: middle-center;
     border-radius:8;
+}
+
+VFXContextUI.graphElement #user-label
+{
+    border-top-width:1;
+    border-left-width:1;
+    border-right-width:1;
+    border-bottom-width:1;
+    border-top: 1;
+    border-left: 1;
+    border-right: 1;
+    border-bottom: 1;
+    margin-left:12;
+    margin-right:12;
+    margin-top:1;
+    margin-bottom:1;
+    padding-left:0;
+    padding-right:0;
+}
+
+#user-title
+{
+    flex-direction:column;
+    align-items:stretch;
+}
+
+VFXContextUI.graphElement #user-label:hover
+{
+    border-color: rgba(68,192,255, 0.5);
+}
+
+* Label#user-label, * TextField#user-title-textfield
+{
+    font:resource("GraphView/DummyFont(LucidaGrande).ttf");
+}
+
+TextField#user-title-textfield
+{
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
+    margin-left:1;
+    margin-right:0;
+    margin-top:2;
+    margin-bottom:0;
+    background-color:#000;
+    position-type:Absolute;
+    min-height:24;
+}
+
+#user-label, #user-title-textfield
+{
+    font-size:18;
+    word-wrap: true;
+}
+
+#user-label
+{
+    text-color:#c4c4c4;
+    min-height:24;
+}
+
+VFXContextUI.inputTypespawnevent #user-label
+{
+    text-color:#00ff8f;
+}
+VFXContextUI.inputTypeparticle #user-label
+{
+    text-color:#FFBC21;
+}
+
+#user-label.empty
+{
+    height : 4;
+    min-height:0;
 }
