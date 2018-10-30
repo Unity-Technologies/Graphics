@@ -58,7 +58,31 @@ namespace UnityEditor.Experimental.Rendering
             GUI.changed |= temp;
             return angleValue;
         }
-        
+
+        static int s_SliderSpotAngleId;
+
+        static float SizeSliderSpotAngle(Vector3 position, Vector3 forward, Vector3 axis, float range, float spotAngle)
+        {
+            if (Math.Abs(spotAngle) <= 0.05f && GUIUtility.hotControl != s_SliderSpotAngleId)
+                return spotAngle;
+            var angledForward = Quaternion.AngleAxis(Mathf.Max(spotAngle, 0.05f) * 0.5f, axis) * forward;
+            var centerToLeftOnSphere = (angledForward * range + position) - (position + forward * range);
+            bool temp = GUI.changed;
+            GUI.changed = false;
+            var newMagnitude = Mathf.Max(0f, SliderLineHandle(position + forward * range, centerToLeftOnSphere.normalized, centerToLeftOnSphere.magnitude));
+            if (GUI.changed)
+            {
+                s_SliderSpotAngleId = GUIUtility.hotControl;
+                centerToLeftOnSphere = centerToLeftOnSphere.normalized * newMagnitude;
+                angledForward = (centerToLeftOnSphere + (position + forward * range) - position).normalized;
+                spotAngle = Mathf.Clamp(Mathf.Acos(Vector3.Dot(forward, angledForward)) * Mathf.Rad2Deg * 2, 0f, 179f);
+                if (spotAngle <= 0.05f || float.IsNaN(spotAngle))
+                    spotAngle = 0f;
+            }
+            GUI.changed |= temp;
+            return spotAngle;
+        }
+
         public static Color GetLightHandleColor(Color wireframeColor)
         {
             Color color = wireframeColor;
@@ -216,7 +240,20 @@ namespace UnityEditor.Experimental.Rendering
             float innerAngle = outerAngleInnerAngleRange.y;
             float range = outerAngleInnerAngleRange.z;
 
-            //[TO BE COMPLETED] @martint I'll let you put your handle here when ready, I only redone the wireframe to patch as soon as possible
+            if (innerAngle > 0f)
+            {
+                innerAngle = SizeSliderSpotAngle(Vector3.zero, Vector3.forward, Vector3.right, range, innerAngle);
+                innerAngle = SizeSliderSpotAngle(Vector3.zero, Vector3.forward, Vector3.left, range, innerAngle);
+                innerAngle = SizeSliderSpotAngle(Vector3.zero, Vector3.forward, Vector3.up, range, innerAngle);
+                innerAngle = SizeSliderSpotAngle(Vector3.zero, Vector3.forward, Vector3.down, range, innerAngle);
+            }
+
+            outerAngle = SizeSliderSpotAngle(Vector3.zero, Vector3.forward, Vector3.right, range, outerAngle);
+            outerAngle = SizeSliderSpotAngle(Vector3.zero, Vector3.forward, Vector3.left, range, outerAngle);
+            outerAngle = SizeSliderSpotAngle(Vector3.zero, Vector3.forward, Vector3.up, range, outerAngle);
+            outerAngle = SizeSliderSpotAngle(Vector3.zero, Vector3.forward, Vector3.down, range, outerAngle);
+
+            range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
 
             return new Vector3(outerAngle, innerAngle, range);
         }

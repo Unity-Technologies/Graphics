@@ -1,3 +1,5 @@
+# Shader Graph Asset
+
 ## Description
 
 The **Shader Graph Asset** is the new **Asset** type introduced with the shader graph. You can create a **Shader Graph Asset** from the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html) from the **Create** menu.

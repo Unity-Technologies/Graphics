@@ -1,3 +1,5 @@
+# Round Node
+
 ## Description
 
 Returns the value of input **In** rounded to the nearest integer, or whole number. 
@@ -9,6 +11,13 @@ Returns the value of input **In** rounded to the nearest integer, or whole numbe
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = round(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Round_float4(float4 In, out float4 Out)
+{
+    Out = round(In);
+}
+```

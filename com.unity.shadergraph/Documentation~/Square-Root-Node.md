@@ -1,3 +1,5 @@
+# Square Root Node
+
 ## Description
 
 Returns the square root of input **In**.
@@ -9,6 +11,13 @@ Returns the square root of input **In**.
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = sqrt(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_SquareRoot_float4(float4 In, out float4 Out)
+{
+    Out = sqrt(In);
+}
+```

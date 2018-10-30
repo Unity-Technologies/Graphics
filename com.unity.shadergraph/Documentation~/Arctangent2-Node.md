@@ -1,6 +1,8 @@
+# Arctangent2 Node
+
 ## Description
 
-Returns the arctangent of the values of both input **A** and input **B**. The signs (whether they are positive or negative values) of the input values are used to determine whether the output components, or channels, are positive or negative within a value of -Pi to Pi.
+Returns the arctangent of the values of both input **A** and input **B**. The signs (whether they are positive or negative values) of the input values are used to determine whether the output components, or channels, are positive or negative within a range of -Pi to Pi.
 
 ## Ports
 
@@ -10,6 +12,13 @@ Returns the arctangent of the values of both input **A** and input **B**. The si
 | B      | Input | Dynamic Vector | Second input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = atan2(A, B)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Arctangent2_float4(float4 A, float4 B, out float4 Out)
+{
+    Out = atan2(A, B);
+}
+```

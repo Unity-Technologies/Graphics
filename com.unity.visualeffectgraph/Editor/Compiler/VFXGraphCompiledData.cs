@@ -482,8 +482,12 @@ namespace UnityEditor.VFX
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
                     var generated = generatedCodeData[i];
-                    var fileName = string.Format("Temp_{1}_{0}_{2}_{3}.{1}",  VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+                    var fileName = generated.context.fileName;
 
+                    if( ! generated.computeShader)
+                    {
+                        generated.content.Insert(0,"Shader \""+generated.context.shaderName + "\"\n") ;
+                    }
                     descs[i].source = generated.content.ToString();
                     descs[i].name = fileName;
                     descs[i].compute = generated.computeShader;

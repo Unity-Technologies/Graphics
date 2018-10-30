@@ -1,3 +1,5 @@
+# Scripting API
+
 ## Description
 
 This section of the documentation contains details of the scripting API that Shader Graph provides. To use this information, you should be familiar with the basic theory and practice of scripting in Unity which is explained in the [Scripting](https://docs.unity3d.com/Manual/ScriptingSection.html) section of our manual.

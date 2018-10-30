@@ -1,3 +1,5 @@
+# Smoothstep Node
+
 ## Description
 
 Returns the result of a smooth Hermite interpolation between 0 and 1, if the value of input **In** is between the values of inputs **Edge1** and **Edge2** respectively. Returns 0 if the value of input **In** is less than the value of input **Step1** and 1 if greater than the value of input **Step2**.
@@ -13,6 +15,13 @@ This node is similar to the [Lerp Node](Lerp-Node.md) but there are two notable 
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = smoothstep(Step1, Step2, In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Smoothstep_float4(float4 Edge1, float4 Edge2, float4 In, out float4 Out)
+{
+    Out = smoothstep(Step1, Step2, In);
+}
+```

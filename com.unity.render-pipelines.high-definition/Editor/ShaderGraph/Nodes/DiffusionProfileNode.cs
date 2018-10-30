@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
             text = "Goto",
             action = () =>
             {
-                var hdPipeline = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                var hdPipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
                 if (hdPipeline != null)
                 {
                     var diffusionProfileSettings = hdPipeline.diffusionProfileSettings;
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            var hdPipeline = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            var hdPipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
                 var diffusionProfileSettings = hdPipeline.diffusionProfileSettings;

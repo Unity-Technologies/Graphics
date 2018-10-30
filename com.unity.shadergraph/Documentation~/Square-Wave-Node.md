@@ -1,3 +1,5 @@
+# Square Wave Node
+
 ## Description
 
 Returns a square wave from the value of input **In**.
@@ -9,6 +11,13 @@ Returns a square wave from the value of input **In**.
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = 1.0 - 2.0 * round(frac(In));`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_SquareWave_float4(float4 In, out float4 Out)
+{
+    Out = 1.0 - 2.0 * round(frac(In));
+}
+```

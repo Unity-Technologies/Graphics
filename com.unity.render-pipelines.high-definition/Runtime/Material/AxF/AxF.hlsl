@@ -1550,11 +1550,10 @@ DirectLighting  EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // EvaluateBSDF_SSLighting for screen space lighting
 // ----------------------------------------------------------------------------
 
-
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
-    PreLightData   preLightData,
-    BSDFData       bsdfData,
-    inout float    reflectionHierarchyWeight)
+                                                    PreLightData   preLightData,
+                                                    BSDFData       bsdfData,
+                                                    inout float    reflectionHierarchyWeight)
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
@@ -1564,12 +1563,11 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     return lighting;
 }
 
-IndirectLighting    EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
-    float3 viewWS_Clearcoat, PositionInputs posInput,
-    PreLightData preLightData, BSDFData bsdfData,
-    EnvLightData _envLightData,
-    int _GPUImageBasedLightingType,
-    inout float hierarchyWeight)
+IndirectLighting    EvaluateBSDF_ScreenspaceRefraction( LightLoopContext lightLoopContext,
+                                                        float3 viewWS_Clearcoat, PositionInputs posInput,
+                                                        PreLightData preLightData, BSDFData bsdfData,
+                                                        EnvLightData _envLightData,
+                                                        inout float hierarchyWeight)
 {
 
     IndirectLighting lighting;

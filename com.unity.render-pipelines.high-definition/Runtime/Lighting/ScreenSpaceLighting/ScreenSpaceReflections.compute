@@ -37,12 +37,9 @@
 #endif
 
 #ifdef SSR_TRACE
-    // TEXTURE2D(        _NormalBufferTexture); // Declared in NormalBuffer.hlsl.
-    // TEXTURE2D(        _DepthPyramidTexture);  // Declared in ShaderVariablesScreenSpaceLighting.hlsl
+    TEXTURE2D(           _StencilTexture);
     RW_TEXTURE2D(float2, _SsrHitPointTexture);
 #else
-    // TEXTURE2D(        _NormalBufferTexture); // Declared in NormalBuffer.hlsl.
-    // TEXTURE2D(        _ColorPyramidTexture);  // Declared in ShaderVariablesScreenSpaceLighting.hlsl
        TEXTURE2D(        _VelocityTexture);
        TEXTURE2D(        _SsrHitPointTexture);
     RW_TEXTURE2D(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
@@ -59,6 +56,7 @@ CBUFFER_START(UnityScreenSpaceReflections)
     float _SsrRoughnessFadeEndTimesRcpLength;
     float _SsrEdgeFadeRcpLength;
     int   _SsrDepthPyramidMaxMip;
+    int   _SsrStencilExclusionValue;
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -77,14 +75,27 @@ void WriteDebugInfo(uint2 positionSS, float4 value)
 [numthreads(8, 8, 1)]
 void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 {
+    // If we are in forward only, the exclusion happens at a later stage. This is detected with _SsrStencilExclusionValue < 0
+    // TODO: It would be good to find a way to skip some work here even in forward.
+    UNITY_BRANCH if (_SsrStencilExclusionValue > 0)
+    {
+        uint stencilVal = UnpackByte(LOAD_TEXTURE2D(_StencilTexture, positionSS).r);
+        bool doesntReceiveSSR = (stencilVal & _SsrStencilExclusionValue) != 0;
+        // Skip SSR for unlit materials as well. 
+        doesntReceiveSSR = doesntReceiveSSR || (stencilVal == 0);
+        if (doesntReceiveSSR)
+        {
+            WriteDebugInfo(positionSS, -1);
+            return;
+        }
+    }
+
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
     float  deviceDepth = LOAD_TEXTURE2D(_DepthPyramidTexture, positionSS).r;
     float3 positionWS  = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP); // Jittered
     float3 V           = GetWorldSpaceNormalizeViewDir(positionWS);
 
-    // TODO: mark stencil during the G-Buffer pass with pixels which should receive SSR .
-    // Reading the stencil is faster than reading the depth and the G-Buffer.
-    bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
+     bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
 
     // Load normal and roughness.
     NormalData normalData;

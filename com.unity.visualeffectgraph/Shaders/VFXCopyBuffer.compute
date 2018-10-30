@@ -1,4 +1,6 @@
 #pragma kernel CSVFXCopyBuffer
+#pragma kernel CSVFXInitDeadListBuffer
+#pragma kernel CSVFXZeroInitBuffer
 
 #include "HLSLSupport.cginc"
 
@@ -6,12 +8,15 @@ CBUFFER_START(Uniform)
     uint dstOffset;
     uint srcOffset;
     uint size;
+    uint dispatchWidth;
 CBUFFER_END
 
 ByteAddressBuffer srcBuffer;
 RWByteAddressBuffer dstBuffer;
+RWStructuredBuffer<uint> dstStructBuffer;
 
 #define NB_THREADS_PER_GROUP 64
+
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXCopyBuffer(uint3 id : SV_DispatchThreadID)
 {
@@ -22,4 +27,20 @@ void CSVFXCopyBuffer(uint3 id : SV_DispatchThreadID)
         uint load = srcBuffer.Load(srcAddress);
         dstBuffer.Store(dstAddress, load);
     }
+}
+
+[numthreads(NB_THREADS_PER_GROUP, 1, 1)]
+void CSVFXInitDeadListBuffer(uint3 groupId : SV_GroupID, uint3 threadId : SV_DispatchThreadID)
+{
+    uint index = groupId.y * dispatchWidth * NB_THREADS_PER_GROUP + threadId.x;
+    if (index < size)
+        dstStructBuffer[index] = size - index - 1u;
+}
+
+[numthreads(NB_THREADS_PER_GROUP, 1, 1)]
+void CSVFXZeroInitBuffer(uint3 groupId : SV_GroupID, uint3 threadId : SV_DispatchThreadID)
+{
+    uint index = groupId.y * dispatchWidth * NB_THREADS_PER_GROUP + threadId.x;
+    if (index < size)
+        dstBuffer.Store(index << 2, 0u);
 }

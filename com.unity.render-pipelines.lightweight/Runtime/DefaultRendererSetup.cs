@@ -90,23 +90,27 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTextureDescriptor shadowDescriptor = baseDescriptor;
             shadowDescriptor.dimension = TextureDimension.Tex2D;
 
-            bool requiresDepthPrepass = renderingData.shadowData.requiresScreenSpaceShadowResolve || renderingData.cameraData.isSceneViewCamera ||
-                (renderingData.cameraData.requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData));
-
-            // For now VR requires a depth prepass until we figure out how to properly resolve texture2DMS in stereo
-            requiresDepthPrepass |= renderingData.cameraData.isStereoEnabled;
-
+            bool mainLightShadows = false;
             if (renderingData.shadowData.supportsMainLightShadows)
             {
-                m_MainLightShadowCasterPass.Setup(MainLightShadowmap);
-                renderer.EnqueuePass(m_MainLightShadowCasterPass);
+                mainLightShadows = m_MainLightShadowCasterPass.Setup(MainLightShadowmap, ref renderingData);
+                if (mainLightShadows)
+                    renderer.EnqueuePass(m_MainLightShadowCasterPass);
             }
 
             if (renderingData.shadowData.supportsAdditionalLightShadows)
             {
-                m_AdditionalLightsShadowCasterPass.Setup(AdditionalLightsShadowmap, renderer.maxVisibleAdditionalLights);
-                renderer.EnqueuePass(m_AdditionalLightsShadowCasterPass);
+                bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(AdditionalLightsShadowmap, ref renderingData, renderer.maxVisibleAdditionalLights);
+                if (additionalLightShadows)
+                    renderer.EnqueuePass(m_AdditionalLightsShadowCasterPass);
             }
+
+            bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
+            bool requiresDepthPrepass = resolveShadowsInScreenSpace || renderingData.cameraData.isSceneViewCamera ||
+                                        (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData) || renderingData.cameraData.isOffscreenRender));
+
+            // For now VR requires a depth prepass until we figure out how to properly resolve texture2DMS in stereo
+            requiresDepthPrepass |= renderingData.cameraData.isStereoEnabled;
 
             renderer.EnqueuePass(m_SetupForwardRenderingPass);
 
@@ -119,8 +123,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     renderer.EnqueuePass(pass.GetPassToEnqueue(m_DepthOnlyPass.descriptor, DepthTexture));
             }
 
-            if (renderingData.shadowData.supportsMainLightShadows &&
-                renderingData.shadowData.requiresScreenSpaceShadowResolve)
+            if (resolveShadowsInScreenSpace)
             {
                 m_ScreenSpaceShadowResolvePass.Setup(baseDescriptor, ScreenSpaceShadowmap);
                 renderer.EnqueuePass(m_ScreenSpaceShadowResolvePass);
@@ -144,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (renderingData.cameraData.isStereoEnabled)
                 renderer.EnqueuePass(m_BeginXrRenderingPass);
 
-            RendererConfiguration rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
+            var rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
 
             m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
             renderer.EnqueuePass(m_SetupLightweightConstants);

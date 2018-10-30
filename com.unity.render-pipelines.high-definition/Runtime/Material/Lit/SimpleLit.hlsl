@@ -128,7 +128,7 @@ void SimpleEvaluateLight_Directional(LightLoopContext lightLoopContext, Position
     UNITY_BRANCH if (lightData.cookieIndex >= 0)
     {
         float3 lightToSample = positionWS - lightData.positionRWS;
-        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
+        float3 cookie = SimpleEvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
 
         color *= cookie;
     }
@@ -146,6 +146,23 @@ void SimpleEvaluateLight_Directional(LightLoopContext lightLoopContext, Position
     attenuation *= shadow;
 }
 
+float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
+{
+    // Apply wrapped lighting to better handle thin objects at grazing angles.
+    float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
+
+    // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+#ifdef USE_DIFFUSE_LAMBERT_BRDF
+    attenuation *= Lambert();
+#else
+    attenuation *= DisneyDiffuse(NdotV, max(0, -NdotL), LdotV, bsdfData.perceptualRoughness);
+#endif
+
+    float intensity = attenuation * wrappedNdotL;
+    return intensity * transmittance;
+}
+
 DirectLighting SimpleEvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput, PreLightData preLightData,
                                         DirectionalLightData lightData, BSDFData bsdfData,
@@ -160,10 +177,11 @@ DirectLighting SimpleEvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 transmittance = float3(0.0, 0.0, 0.0);
 #if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
-    if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
     {
+        float3 a = 0; float b = 0;
         // Caution: This function modify N and contactShadowIndex
-        transmittance = PreEvaluateDirectionalLightTransmission(NdotL, lightData, bsdfData, N, lightData.contactShadowIndex); // contactShadowIndex is only modify for the code of this function
+        transmittance = PreEvaluateDirectionalLightTransmission(bsdfData, lightData, a, b); // contactShadowIndex is only modify for the code of this function
     }
 #endif
 
@@ -178,18 +196,18 @@ DirectLighting SimpleEvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     {
         SimpleBSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
-        lighting.diffuse  *= intensity * lightData.diffuseScale;
-        lighting.specular *= intensity * lightData.specularScale;
+        lighting.diffuse  *= intensity * lightData.diffuseDimmer;
+        lighting.specular *= intensity * lightData.specularDimmer;
     }
 
 #if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
     // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
-    if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
     {
         float  NdotV = ClampNdotV(preLightData.NdotV);
         float  LdotV = dot(L, V);
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseDimmer);
     }
 #endif
 
@@ -201,7 +219,7 @@ DirectLighting SimpleEvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
-        lighting.diffuse = color * intensity * lightData.diffuseScale;
+        lighting.diffuse = color * intensity * lightData.diffuseDimmer;
     }
 #endif
 
@@ -259,14 +277,7 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
     attenuation = PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
                                                  lightData.angleScale, lightData.angleOffset);
 
-#if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
-    // TODO: sample the extinction from the density V-buffer.
-    float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
-    attenuation *= TransmittanceHomogeneousMedium(_GlobalExtinction, distVol);
-#endif
-
     // Projector lights always have cookies, so we can perform clipping inside the if().
-#if HDRP_ENABLE_COOKIE
     UNITY_BRANCH if (lightData.cookieIndex >= 0)
     {
         float4 cookie = SimpleEvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample);
@@ -274,7 +285,6 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
         color       *= cookie.rgb;
         attenuation *= cookie.a;
     }
-#endif
 
 #if HDRP_ENABLE_SHADOWS
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
@@ -309,7 +319,7 @@ float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopCont
     // (Note: EvaluateLight_Punctual discard the fetch if NdotL < 0)
     if (NdotL < 0 && lightData.shadowIndex >= 0)
     {
-        if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
         {
             normalWS = -normalWS; // Flip normal for shadow bias
             lightData.contactShadowIndex = -1;  //  Disable shadow contact
@@ -363,8 +373,8 @@ DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
         SimpleBSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
-        lighting.diffuse  *= intensity * lightData.diffuseScale;
-        lighting.specular *= intensity * lightData.specularScale;
+        lighting.diffuse  *= intensity * lightData.diffuseDimmer;
+        lighting.specular *= intensity * lightData.specularDimmer;
     }
 
 #if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
@@ -373,7 +383,7 @@ DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         float  NdotV = ClampNdotV(preLightData.NdotV);
         float  LdotV = dot(L, V);
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseDimmer);
     }
 #endif
 
@@ -385,7 +395,7 @@ DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
-        lighting.diffuse = color * intensity * lightData.diffuseScale;
+        lighting.diffuse = color * intensity * lightData.diffuseDimmer;
     }
 #endif
 
@@ -488,10 +498,7 @@ void SimplePostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // Note: In deferred bakeDiffuseLighting also contain emissive and in this case emissiveColor is 0
     diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
 
-
-    specularLighting = lighting.indirect.specularReflected;
-    // Rescale the GGX to account for the multiple scattering.
-    // specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
+    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);

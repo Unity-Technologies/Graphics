@@ -157,7 +157,7 @@ float2 uvs = UVSpawn;
                 source += @"
 float2 projpos = uvs * 2.0f - 1.0f;
 				
-float depth = SampleTexture(DepthBuffer,uvs).r;
+float depth = LoadTexture(DepthBuffer,int3(uvs*Camera_pixelDimensions, 0)).r;
 #if UNITY_REVERSED_Z
 depth = 1.0f - depth; // reversed z
 #endif";

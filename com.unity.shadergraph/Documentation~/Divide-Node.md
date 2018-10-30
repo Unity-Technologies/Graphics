@@ -1,6 +1,8 @@
+# Divide Node
+
 ## Description
 
-Returns the result of input **A** divided by input **B**.
+Returns the result of input **A** (dividend) divided by input **B** (divisor).
 
 ## Ports
 
@@ -10,6 +12,13 @@ Returns the result of input **A** divided by input **B**.
 | B      | Input      |   Dynamic Vector | Second input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = A / B`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Divide_float4(float4 A, float4 B, out float4 Out)
+{
+    Out = A / B;
+}
+```

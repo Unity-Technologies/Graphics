@@ -1,3 +1,5 @@
+# Tiling And Offset Node
+
 ## Description
 
 Tiles and offsets the value of input **UV** by the inputs **Tiling** and **Offset** respectively. This is commonly used for detail maps and scrolling textures over [Time](Time-Node.md).
@@ -11,8 +13,13 @@ Tiles and offsets the value of input **UV** by the inputs **Tiling** and **Offse
 | Offset      | Input | Vector 2 | None | Amount of offset to apply per channel |
 | Out | Output      |    Vector 2 | None | Output UV value |
 
-## Shader Function
+## Generated Code Example
+
+The following example code represents one possible outcome of this node.
 
 ```
-Out = UV * Tiling + Offset;
+void Unity_TilingAndOffset_float(float2 UV, float2 Tiling, float2 Offset, out float2 Out)
+{
+    Out = UV * Tiling + Offset;
+}
 ```

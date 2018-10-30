@@ -633,7 +633,7 @@ namespace UnityEditor.VFX
                 EditorGUI.BeginChangeCheck();
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Gizmos", GUILayout.Width(45));
-                int result = EditorGUILayout.Popup(current, m_GizmoableParameters.Select(t => t.exposedName).ToArray(), GUILayout.Width(163));
+                int result = EditorGUILayout.Popup(current, m_GizmoableParameters.Select(t => t.exposedName).ToArray(), GUILayout.Width(140));
                 if (EditorGUI.EndChangeCheck() && result != current)
                 {
                     m_GizmoedParameter = m_GizmoableParameters[result];

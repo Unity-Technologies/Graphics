@@ -1,6 +1,4 @@
-//#define LOG_VARIANTS
-//#define LOG_ONLY_LWRP_VARIANTS
-
+using System;
 using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEditor.Rendering;
@@ -13,6 +11,18 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
     internal class ShaderPreprocessor : IPreprocessShaders
     {
+        [Flags]
+        enum ShaderFeatures
+        {
+            MainLight = (1 << 0),
+            MainLightShadows = (1 << 1),
+            AdditionalLights = (1 << 2),
+            AdditionalLightShadows = (1 << 3),
+            VertexLighting = (1 << 4),
+            SoftShadows = (1 << 5),
+            MixedLighting = (1 << 6),
+        }
+
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
@@ -28,10 +38,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         ShaderKeyword m_DeprecatedShadowsCascade = new ShaderKeyword("_SHADOWS_CASCADE");
         ShaderKeyword m_DeprecatedLocalShadowsEnabled = new ShaderKeyword("_LOCAL_SHADOWS_ENABLED");
 
-#if LOG_VARIANTS
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
-#endif
 
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
@@ -180,12 +188,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
-#if LOG_VARIANTS
-        void LogVariants(Shader shader, ShaderSnippetData snippetData, int prevVariantsCount, int currVariantsCount)
+        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, ShaderVariantLogLevel logLevel, int prevVariantsCount, int currVariantsCount)
         {
-#if LOG_ONLY_LWRP_VARIANTS
-            if (shader.name.Contains("LightweightRenderPipeline"))
-#endif
+            if (logLevel == ShaderVariantLogLevel.AllShaders || shader.name.Contains("Lightweight Render Pipeline"))
             {
                 float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
                 float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
@@ -199,18 +204,13 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             }
         }
 
-#endif
-
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
-            LightweightRenderPipeline lw = RenderPipelineManager.currentPipeline as LightweightRenderPipeline;
-            if (lw == null)
+            LightweightRenderPipelineAsset lwrpAsset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+            if (lwrpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
-            ShaderFeatures features = LightweightRenderPipeline.supportedShaderFeatures;
-
-            if (compilerDataList == null)
-                return;
+            ShaderFeatures features = GetSupportedShaderFeatures(lwrpAsset);
 
             int prevVariantCount = compilerDataList.Count;
 
@@ -223,12 +223,44 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 }
             }
 
-#if LOG_VARIANTS
-            m_TotalVariantsInputCount += prevVariantCount;
-            m_TotalVariantsOutputCount += compilerDataList.Count;
+            if (lwrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+            {
+                m_TotalVariantsInputCount += prevVariantCount;
+                m_TotalVariantsOutputCount += compilerDataList.Count;
+                LogShaderVariants(shader, snippetData, lwrpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count);
+            }
+        }
 
-            LogVariants(shader, snippetData, prevVariantCount, compilerDataList.Count);
-#endif
+        ShaderFeatures GetSupportedShaderFeatures(LightweightRenderPipelineAsset pipelineAsset)
+        {
+            ShaderFeatures shaderFeatures;
+            shaderFeatures = ShaderFeatures.MainLight;
+
+            if (pipelineAsset.supportsMainLightShadows)
+                shaderFeatures |= ShaderFeatures.MainLightShadows;
+
+            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
+            {
+                shaderFeatures |= ShaderFeatures.AdditionalLights;
+                shaderFeatures |= ShaderFeatures.VertexLighting;
+            }
+            else if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
+            {
+                shaderFeatures |= ShaderFeatures.AdditionalLights;
+
+                if (pipelineAsset.supportsAdditionalLightShadows)
+                    shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+            }
+
+            bool anyShadows = pipelineAsset.supportsMainLightShadows ||
+                              CoreUtils.HasFlag(shaderFeatures, ShaderFeatures.AdditionalLightShadows);
+            if (pipelineAsset.supportsSoftShadows && anyShadows)
+                shaderFeatures |= ShaderFeatures.SoftShadows;
+
+            if (pipelineAsset.supportsMixedLighting)
+                shaderFeatures |= ShaderFeatures.MixedLighting;
+
+            return shaderFeatures;
         }
     }
 }

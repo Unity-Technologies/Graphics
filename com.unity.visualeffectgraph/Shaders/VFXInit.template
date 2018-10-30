@@ -19,7 +19,7 @@ CBUFFER_START(initParams)
 CBUFFER_END
 
 #if VFX_USE_ALIVE_CURRENT
-ConsumeStructuredBuffer<uint> deadListIn;
+RWStructuredBuffer<uint> deadListIn;
 ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
 #endif
 
@@ -76,7 +76,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if VFX_USE_ALIVE_CURRENT
         if (alive)
         {
-            uint index = deadListIn.Consume();
+			uint deadIndex = deadListIn.DecrementCounter();
+            uint index = deadListIn[deadIndex];
             ${VFXStoreAttributes}
         }
 #else

@@ -1,3 +1,5 @@
+# Simple Noise Node
+
 ## Description
 
 Generates a simple, or [Value](https://en.wikipedia.org/wiki/Value_noise), noise based on input **UV**. The scale of the generated noise is controlled by input **Scale**.
@@ -10,7 +12,9 @@ Generates a simple, or [Value](https://en.wikipedia.org/wiki/Value_noise), noise
 | Scale      | Input | Vector 1 | None | Noise scale |
 | Out | Output      |    Vector 1 | None | Output value |
 
-## Shader Function
+## Generated Code Example
+
+The following example code represents one possible outcome of this node.
 
 ```
 inline float unity_noise_randomValue (float2 uv)
@@ -45,12 +49,22 @@ inline float unity_valueNoise (float2 uv)
     return t;
 }
 
-float t = 0.0;
-for(int i = 0; i < 3; i++)
+void Unity_SimpleNoise_float(float2 UV, float Scale, out float Out)
 {
-    float freq = pow(2.0, float(i));
-    float amp = pow(0.5, float(3-i));
+    float t = 0.0;
+
+    float freq = pow(2.0, float(0));
+    float amp = pow(0.5, float(3-0));
     t += unity_valueNoise(float2(UV.x*Scale/freq, UV.y*Scale/freq))*amp;
+
+    freq = pow(2.0, float(1));
+    amp = pow(0.5, float(3-1));
+    t += unity_valueNoise(float2(UV.x*Scale/freq, UV.y*Scale/freq))*amp;
+
+    freq = pow(2.0, float(2));
+    amp = pow(0.5, float(3-2));
+    t += unity_valueNoise(float2(UV.x*Scale/freq, UV.y*Scale/freq))*amp;
+
+    Out = t;
 }
-Out = t;
 ```

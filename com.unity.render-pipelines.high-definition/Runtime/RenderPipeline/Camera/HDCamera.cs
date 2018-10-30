@@ -236,9 +236,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var screenHeight = m_ActualHeight;
             textureWidthScaling = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
 
-            numEyes = m_frameSettings.enableStereo ? (uint)2 : (uint)1; // TODO VR: Generalize this when support for >2 eyes comes out with XR SDK
+            numEyes = camera.stereoEnabled ? (uint)2 : (uint)1; // TODO VR: Generalize this when support for >2 eyes comes out with XR SDK
 
-            if (m_frameSettings.enableStereo)
+            if (camera.stereoEnabled)
             {
                 textureWidthScaling = new Vector4(2.0f, 0.5f, 0.0f, 0.0f);
                 for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
@@ -272,10 +272,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 isFirstFrame = true; // So that mono vars can still update when stereo active
 
-                screenWidth = XRGraphicsConfig.eyeTextureWidth;
-                screenHeight = XRGraphicsConfig.eyeTextureHeight;
+                screenWidth = XRGraphics.eyeTextureWidth;
+                screenHeight = XRGraphics.eyeTextureHeight;
 
-                var xrDesc = XRGraphicsConfig.eyeTextureDesc;
+                var xrDesc = XRGraphics.eyeTextureDesc;
                 m_ActualWidth = xrDesc.width;
                 m_ActualHeight = xrDesc.height;
 
@@ -439,7 +439,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Stopgap method used to extract stereo combined matrix state.
         public void UpdateStereoDependentState(ref ScriptableCullingParameters cullingParams)
         {
-            if (!m_frameSettings.enableStereo)
+            if (!camera.stereoEnabled)
                 return;
 
             // What constants in UnityPerPass need updating for stereo considerations?
@@ -458,7 +458,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // I think using the cull matrices is valid, as long as I only use them for tess factors in shader.
             // Using them for other calculations (like light list generation) could be problematic.
 
-            var stereoCombinedViewMatrix = cullingParams.cullStereoView;
+            var stereoCombinedViewMatrix = cullingParams.stereoViewMatrix;
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -469,7 +469,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             viewMatrix = stereoCombinedViewMatrix;
-            var stereoCombinedProjMatrix = cullingParams.cullStereoProj;
+            var stereoCombinedProjMatrix = cullingParams.stereoProjectionMatrix;
             projMatrix = GL.GetGPUProjectionMatrix(stereoCombinedProjMatrix, true);
 
             Frustum.Create(frustum, viewProjMatrix, true, true);
@@ -483,7 +483,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void ConfigureStereoMatrices()
         {
-            if (frameSettings.enableStereo)
+            if (camera.stereoEnabled)
             {
                 for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {

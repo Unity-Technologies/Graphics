@@ -1,11 +1,11 @@
-#Procedural Nodes
+# Procedural Nodes
 
 | [Checkerboard](Checkerboard-Node.md) |
 | :-----------|
 | ![Image](images/CheckerboardNodeThumb.png) |
 | Generates a checkerboard of alternating colors between inputs Color A and Color B based on input UV. |
 
-##Noise
+## Noise
 
 | [Gradient Noise](Gradient-Noise.md) | [Simple Noise](Simple-Noise.md) |
 | :------------------------ | :---------------------------- |
@@ -15,7 +15,7 @@
 | ![Image](images/VoronoiNodeThumb.png) ||
 |Generates a Voronoi, or Worley, noise based on input UV.  ||
 
-##Shape
+## Shape
 
 | [Ellipse](Ellipse-Node.md) | [Polygon](Polygon-Node.md) |
 | :----------------------------------------------------------- | :----------------------------------------------------------- |

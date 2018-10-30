@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -17,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
         }
 
-        protected override IRenderPipeline InternalCreatePipeline()
+        protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
         {
             return new HDRenderPipeline(this);
         }
@@ -158,36 +160,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public override string[] GetRenderingLayerMaskNames()
+        public override string[] renderingLayerMaskNames
+        {
+            get
         {
             return renderingLayerNames;
         }
-
-        public override Shader GetDefaultShader()
-        {
-            return m_RenderPipelineResources.shaders.defaultPS;
         }
 
-        public override Material GetDefaultMaterial()
+        public override Material defaultMaterial
         {
-            return m_RenderPipelineResources.materials.defaultDiffuseMat;
+            get
+        {
+                return m_RenderPipelineResources.materials.defaultDiffuseMat;
+            }
+        }
+
+        public override Shader defaultShader
+        {
+            get
+            {
+
+                return m_RenderPipelineResources.shaders.defaultPS;
+            }
         }
 
         #if UNITY_EDITOR
         // call to GetAutodeskInteractiveShaderXXX are only from within editor
-        public override Shader GetAutodeskInteractiveShader()
+        public override Shader autodeskInteractiveShader
         {
-            return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph");
+            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph"); }
         }
 
-        public override Shader GetAutodeskInteractiveTransparentShader()
+        public override Shader autodeskInteractiveTransparentShader
         {
-            return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph");
+            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph"); }
         }
 
-        public override Shader GetAutodeskInteractiveMaskedShader()
+        public override Shader autodeskInteractiveMaskedShader
         {
-            return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph");
+            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph"); }
         }
         #endif
 
@@ -203,39 +215,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_RenderPipelineResources.materials.defaultMirrorMat;
         }
 
-        public override Material GetDefaultParticleMaterial()
+        public override Material defaultTerrainMaterial
         {
-            return null;
-        }
-
-        public override Material GetDefaultLineMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultTerrainMaterial()
+            get
         {
             return m_RenderPipelineResources.materials.defaultTerrainMat;
         }
-
-        public override Material GetDefaultUIMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultUIOverdrawMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultUIETC1SupportedMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefault2DMaterial()
-        {
-            return null;
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
@@ -255,5 +240,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Version = currentVersion;
             }
         }
+
+#if UNITY_EDITOR
+        // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
+        List<string> defineArray = new List<string>();
+
+        bool UpdateDefineList(bool flagValue, string defineMacroValue)
+        {
+            bool macroExists = defineArray.Contains(defineMacroValue);
+            if (flagValue)
+            {
+                if (!macroExists)
+                {
+                    defineArray.Add(defineMacroValue);
+                    return true;
+                }
+            }
+            else
+            {
+                if (macroExists)
+                {
+                    defineArray.Remove(defineMacroValue);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings
+        public void EvaluateSettings()
+        {
+#if REALTIME_RAYTRACING_SUPPORT
+            // Grab the current set of defines and split them
+            string currentDefineList = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone);
+            defineArray.Clear();
+            defineArray.AddRange(currentDefineList.Split(';'));
+
+            // Update all the individual defines
+            bool needUpdate = false;
+            needUpdate |= UpdateDefineList(renderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
+
+            // Only set if it changed
+            if(needUpdate)
+            {
+                UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
+            }
+#endif
+        }
+#endif
     }
 }

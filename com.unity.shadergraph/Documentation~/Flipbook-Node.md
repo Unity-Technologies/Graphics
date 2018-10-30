@@ -1,3 +1,5 @@
+# Flipbook Node
+
 ## Description
 
 Creates a flipbook, or texture sheet animation, of the UVs supplied to input **UV**. The amount of tiles on the sheet are defined by the values of the inputs **Width** and **Height**. The index of the current tile is defined by the value of the input **Tile**.
@@ -16,19 +18,26 @@ UV data is typically in the range of 0 to 1 starting from the bottom left of UV 
 | Tile      | Input | Vector 1 | None | Current tile index |
 | Out | Output      |    Vector 2 | None | Output UV value |
 
-## Parameters
+## Controls
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 | Invert X      | Toggle | True, False | If enabled tiles are iterated from right to left |
 | Invert Y      | Toggle | True, False | If enabled tiles are iterated from top to bottom |
 
-## Shader Function
+## Generated Code Example
+
+The following example code represents one possible outcome of this node.
 
 ```
-Tile = fmod(Tile, Width * Height);
-float2 tileCount = float2(1.0, 1.0) / float2(Width, Height);
-float tileY = abs(Invert.y * Height - (floor(Tile * tileCount.x) + Invert.y * 1));
-float tileX = abs(Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));
-Out = (UV + float2(tileX, tileY)) * tileCount;
+float2 _Flipbook_Invert = float2(FlipX, FlipY);
+
+void Unity_Flipbook_float(float2 UV, float Width, float Height, float Tile, float2 Invert, out float2 Out)
+{
+    Tile = fmod(Tile, Width * Height);
+    float2 tileCount = float2(1.0, 1.0) / float2(Width, Height);
+    float tileY = abs(Invert.y * Height - (floor(Tile * tileCount.x) + Invert.y * 1));
+    float tileX = abs(Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));
+    Out = (UV + float2(tileX, tileY)) * tileCount;
+}
 ```

@@ -1,3 +1,5 @@
+# Cosine Node
+
 ## Description
 
 Returns the cosine of the value of input **In**.
@@ -9,6 +11,13 @@ Returns the cosine of the value of input **In**.
 | In      | Input | Dynamic Vector | Input value |
 | Out | Output      |    Dynamic Vector | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = cos(In)`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Cosine_float4(float4 In, out float4 Out)
+{
+    Out = cos(In);
+}
+```

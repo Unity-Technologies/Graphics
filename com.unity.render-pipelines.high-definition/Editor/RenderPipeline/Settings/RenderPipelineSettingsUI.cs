@@ -90,14 +90,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.PropertyField(d.supportLightLayers, _.GetContent("LightLayers|Enable light layers. In deferred this imply an extra render target in memory and extra cost."));
-            EditorGUILayout.PropertyField(d.supportOnlyForward, _.GetContent("Forward Rendering Only|Remove all the memory and shader variant of GBuffer. The renderer cannot be switch to deferred anymore."));
             
+            EditorGUILayout.PropertyField(d.supportedLitShaderMode, _.GetContent("Supported Lit Shader Mode|Remove all the memory and shader variant of GBuffer of non used mode. The renderer cannot be switch to non selected path anymore."));
+
             // MSAA is an option that is only available in full forward but Camera can be set in Full Forward only. Thus MSAA have no dependency currently
-            EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing|This feature doesn't work currently."));
-            using (new EditorGUI.DisabledScope(!d.supportMSAA.boolValue))
+            //Note: do not use SerializedProperty.enumValueIndex here as this enum not start at 0 as it is used as flags.
+            bool isForwardOnly = d.supportedLitShaderMode.intValue == (int)UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
+            using (new EditorGUI.DisabledScope(!isForwardOnly))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
+                d.supportMSAA.boolValue = EditorGUILayout.Toggle(_.GetContent("Support Multi Sampling Anti-Aliasing|This feature only work when only ForwardOnly LitShaderMode is supported."), d.supportMSAA.boolValue && isForwardOnly);
+                using (new EditorGUI.DisabledScope(!d.supportMSAA.boolValue))
+                {
+                    ++EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
+                    --EditorGUI.indentLevel;
+                }
                 --EditorGUI.indentLevel;
             }
 
@@ -105,6 +113,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(d.supportMotionVectors, _.GetContent("Motion Vectors|Motion vector are use for Motion Blur, TAA, temporal re-projection of various effect like SSR."));
             EditorGUILayout.PropertyField(d.supportRuntimeDebugDisplay, _.GetContent("Runtime debug display|Remove all debug display shader variant only in the player. Allow faster build."));
             EditorGUILayout.PropertyField(d.supportDitheringCrossFade, _.GetContent("Dithering cross fade|Remove all dithering cross fade shader variant only in the player. Allow faster build."));
+
+            // Only display the support ray tracing feature if the platform supports it
+        #if REALTIME_RAYTRACING_SUPPORT
+            if(UnityEngine.SystemInfo.supportsRayTracing)
+            {
+                EditorGUILayout.PropertyField(d.supportRayTracing, _.GetContent("Support Realtime Raytracing."));
+            }
+            else
+        #endif
+            {
+                d.supportRayTracing.boolValue = false;
+            }
+            
             EditorGUILayout.Space();
         }
     }

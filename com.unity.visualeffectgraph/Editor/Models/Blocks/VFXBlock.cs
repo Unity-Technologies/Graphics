@@ -13,6 +13,15 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
+        public static T CreateImplicitBlock<T>(VFXData data) where T : VFXBlock
+        {
+            var block = ScriptableObject.CreateInstance<T>();
+            block.m_TransientData = data;
+            return block;
+        }
+
+        private VFXData m_TransientData = null;
+
         [SerializeField]
         protected bool m_Disabled = false;
 
@@ -37,7 +46,7 @@ namespace UnityEditor.VFX
         {
             if (GetParent() != null)
                 return GetParent().GetData();
-            return null;
+            return m_TransientData;
         }
 
         public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)

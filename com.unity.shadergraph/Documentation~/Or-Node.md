@@ -1,3 +1,5 @@
+# Or Node
+
 ## Description
 
 Returns true if either of the inputs **A** and **B** are true. This is useful for [Branching](Branch-Node.md).
@@ -10,6 +12,13 @@ Returns true if either of the inputs **A** and **B** are true. This is useful fo
 | B      | Input | Boolean | None | Second input value |
 | Out | Output      |    Boolean | None | Output value |
 
-## Shader Function
+## Generated Code Example
 
-`Out = A || B`
+The following example code represents one possible outcome of this node.
+
+```
+void Unity_Or_float(float In, out float Out)
+{
+    Out = A || B;
+}
+```

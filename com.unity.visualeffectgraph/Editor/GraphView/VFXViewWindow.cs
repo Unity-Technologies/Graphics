@@ -195,20 +195,6 @@ namespace  UnityEditor.VFX.UI
                 graphView.UpdateGlobalSelection();
         }
 
-        void OnSelectionChange()
-        {
-            var objs = Selection.objects;
-            VFXViewController controller = graphView.controller;
-
-            if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
-            {
-                if (controller == null || controller.model != objs[0] as VisualEffectAsset)
-                {
-                    LoadAsset(objs[0] as VisualEffectAsset, null);
-                }
-            }
-        }
-
         void OnEnterPanel(AttachToPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);

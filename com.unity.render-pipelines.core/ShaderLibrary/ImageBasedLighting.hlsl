@@ -542,6 +542,93 @@ real4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     return real4(lightInt / cbsdfInt, 1.0);
 }
 
+real4 IntegrateLDCharlie(TEXTURECUBE_ARGS(tex, sampl),
+                   real3 V,
+                   real3 N,
+                   real roughness,
+                   uint sampleCount,
+                   real invOmegaP,
+                   bool prefilter)
+{
+    // Local frame for the local to world sample transformation
+    real3x3 localToWorld = GetLocalFrame(N);
+    float NdotV = 1;
+
+    // Cumulative values
+    real3 lightInt = real3(0.0, 0.0, 0.0);
+    real  cbsdfInt = 0.0;
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        // Generate a new random number
+        real2 u = Hammersley2d(i, sampleCount);
+
+        // Generate the matching direction with a cosine importance sampling
+        float3 localL = SampleHemisphereCosine(u.x, u.y);
+
+        // Convert it to world space
+        real3 L = mul(localL, localToWorld);
+        float NdotL = saturate(dot(N, L));
+
+        // Are we in the hemisphere?
+        if (NdotL <= 0) continue; // Note that some samples will have 0 contribution
+
+        // The goal of this function is to use Monte-Carlo integration to find
+        // X = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
+        // Note: Integral{CBSDF(L, N, V) dL} is given by the FDG texture.
+        // CBSDF  = F * D * V * NdotL.
+        // PDF    =  1.0 / NdotL
+        // Weight = CBSDF / PDF = F * D * V
+        // Since we perform filtering with the assumption that (V == N),
+        // (LdotH == NdotH) && (NdotV == 1) && (Weight ==  F * D * V)
+        // Therefore, after the Monte Carlo expansion of the integrals,
+        // X = Sum(Radiance(L) * Weight) / Sum(Weight) = Sum(Radiance(L) * F * D * V) / Sum(F * D * V).
+
+        // We are in the supposition that N == V
+        float LdotV, NdotH, LdotH, invLenLV;
+        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+
+        // BRDF data
+        real F = 1;
+        real D = D_Charlie(NdotH, roughness);
+        real Vis = V_Charlie(NdotL, NdotV, roughness);
+
+        real mipLevel = 0;
+        if (prefilter) // Prefiltered BRDF importance sampling
+        {
+            // Use lower MIP-map levels for fetching samples with low probabilities
+            // in order to reduce the variance.
+            // Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
+            //
+            // - OmegaS: Solid angle associated with the sample
+            // - OmegaP: Solid angle associated with the texel of the cubemap
+
+            real omegaS;
+
+            // real PDF = 1.0f / NdotL
+            // Since (N == V), NdotH == LdotH.
+            real pdf = 1.0 /  NdotL;
+            // TODO: improve the accuracy of the sample's solid angle fit for GGX.
+            omegaS    = rcp(sampleCount) * rcp(pdf);
+
+            // 'invOmegaP' is precomputed on CPU and provided as a parameter to the function.
+            // real omegaP = FOUR_PI / (6.0 * cubemapWidth * cubemapWidth);
+            const real mipBias = roughness;
+            mipLevel = 0.5 * log2(omegaS * invOmegaP) + mipBias;
+        }
+
+        // TODO: use a Gaussian-like filter to generate the MIP pyramid.
+        real3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
+
+        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ≈ NdotL.
+        lightInt +=  val * F * D * Vis;
+        cbsdfInt += F * D * Vis;
+    }
+
+    return real4(lightInt / cbsdfInt, 1.0);
+}
+
+
 // Searches the row 'j' containing 'n' elements of 'haystack' and
 // returns the index of the first element greater or equal to 'needle'.
 uint BinarySearchRow(uint j, real needle, TEXTURE2D(haystack), uint n)

@@ -1,3 +1,5 @@
+# Polar Coordinates Node
+
 ## Description
 
 Converts the value of input **UV** to polar coordinates. In mathematics, the polar coordinate system is a two-dimensional coordinate system in which each point on a plane is determined by a distance from a reference point and an angle from a reference direction.
@@ -16,11 +18,16 @@ These values can be scaled by the values of inputs **Radial Scale** and **Length
 | Length Scale | Input      |    Vector 1 | None | Scale of angle value |
 | Out | Output      |    Vector 2 | None | Output value |
 
-## Shader Function
+## Generated Code Example
+
+The following example code represents one possible outcome of this node.
 
 ```
-float2 delta = UV - Center;
-float radius = length(delta) * 2 * RadialScale;
-float angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;
-Out = float2(radius, angle);
+void Unity_PolarCoordinates_float(float2 UV, float2 Center, float RadialScale, float LengthScale, out float2 Out)
+{
+    float2 delta = UV - Center;
+    float radius = length(delta) * 2 * RadialScale;
+    float angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;
+    Out = float2(radius, angle);
+}
 ```

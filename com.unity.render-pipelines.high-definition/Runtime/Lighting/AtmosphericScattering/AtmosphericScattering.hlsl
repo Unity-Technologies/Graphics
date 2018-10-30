@@ -23,7 +23,8 @@ float3 GetFogColor(PositionInputs posInput)
         // Based on Uncharted 4 "Mip Sky Fog" trick: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
         float mipLevel = (1.0 - _MipFogMaxMip * saturate((posInput.linearDepth - _MipFogNear) / (_MipFogFar - _MipFogNear))) * _SkyTextureMipCount;
         float3 dir = -GetWorldSpaceNormalizeViewDir(posInput.positionWS);
-        return SampleSkyTexture(dir, mipLevel).rgb;
+        // For the atmosphéric scattering, we use the GGX convoluted version of the cubemap. That matches the of the idnex 0
+        return SampleSkyTexture(dir, mipLevel, 0).rgb;
     }
     else // Should not be possible.
         return  float3(0.0, 0.0, 0.0);
@@ -70,7 +71,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
                                                      _VBufferDepthDecodingParams,
                                                      true, true);
 
-            fogFactor = 1 - volFog.a;                              // Opacity from transmittance
+            fogFactor = volFog.a;
             fogColor  = volFog.rgb * min(rcp(fogFactor), FLT_MAX); // Un-premultiply, clamp to avoid (0 * INF = NaN)
             break;
         }

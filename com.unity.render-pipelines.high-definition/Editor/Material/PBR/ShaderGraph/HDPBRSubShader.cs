@@ -5,6 +5,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -39,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -95,7 +96,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -130,7 +131,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CullOverride = "Cull Off",
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -173,7 +174,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -201,7 +202,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ColorMaskOverride = "ColorMask 0",
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -228,7 +229,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderPassName = "SHADERPASS_VELOCITY",
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -269,7 +270,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZWriteOverride = "ZWrite Off",
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -301,7 +302,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -341,7 +342,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -398,7 +399,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -437,7 +438,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             RequiredFields = new List<string>()
             {

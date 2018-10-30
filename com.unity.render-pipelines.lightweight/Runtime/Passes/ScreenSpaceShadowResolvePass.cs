@@ -42,9 +42,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             cmd.GetTemporaryRT(colorAttachmentHandle.id, descriptor, FilterMode.Bilinear);
 
-            VisibleLight shadowLight = renderingData.lightData.visibleLights[renderingData.lightData.mainLightIndex];
-            SetShadowCollectPassKeywords(cmd, ref shadowLight, ref renderingData.shadowData);
-
             // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that
             // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
             // stereo functionality, we use the screen-space shadow map as the source (until we have
@@ -78,12 +75,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.ReleaseTemporaryRT(colorAttachmentHandle.id);
                 colorAttachmentHandle = RenderTargetHandle.CameraTarget;
             }
-        }
-
-        void SetShadowCollectPassKeywords(CommandBuffer cmd, ref VisibleLight shadowLight, ref ShadowData shadowData)
-        {
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.supportsSoftShadows && shadowLight.light.shadows == LightShadows.Soft);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
         }
     }
 }

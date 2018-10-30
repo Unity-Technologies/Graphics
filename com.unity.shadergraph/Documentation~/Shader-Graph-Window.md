@@ -1,3 +1,5 @@
+# Shader Graoh Window
+
 ## Description
 
 The **Shader Graph Window** contains the workspace for creating shaders using the **Shader Graph** system. To open the **Shader Graph Window** you must first create a [Shader Graph Asset](Home.md). For more information see the [Getting Started](Getting-Started.md) section.

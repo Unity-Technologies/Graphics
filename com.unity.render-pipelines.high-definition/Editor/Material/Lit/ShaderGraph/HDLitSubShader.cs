@@ -3,6 +3,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -28,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -54,6 +55,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.EmissionSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.AnisotropySlotId,
@@ -107,7 +109,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CullOverride = "Cull Off",
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -135,6 +137,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.EmissionSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.AnisotropySlotId,
@@ -167,7 +170,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -195,7 +198,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ColorMaskOverride = "ColorMask 0",
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -224,7 +227,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ColorMaskOverride = "ColorMask 0",
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -252,7 +255,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -294,7 +297,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZWriteOverride = "ZWrite Off",
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -349,7 +352,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -386,7 +389,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -412,6 +415,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.EmissionSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.AnisotropySlotId,
@@ -450,7 +454,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -476,6 +480,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.EmissionSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.AnisotropySlotId,
@@ -544,7 +549,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -718,12 +723,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case SpecularOcclusionMode.Off:
                     break;
-                case SpecularOcclusionMode.On:
-                    activeFields.Add("SpecularOcclusion");
+                case SpecularOcclusionMode.FromAO:
+                    activeFields.Add("SpecularOcclusionFromAO");
                     break;
-                case SpecularOcclusionMode.OnUseBentNormal:
-                    activeFields.Add("BentNormalSpecularOcclusion");
+                case SpecularOcclusionMode.FromAOAndBentNormal:
+                    activeFields.Add("SpecularOcclusionFromAOBentNormal");
                     break;
+                case SpecularOcclusionMode.Custom:
+                    activeFields.Add("SpecularOcclusionCustom");
+                    break;
+
                 default:
                     break;
             }
@@ -733,7 +742,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.AmbientOcclusionSlotId);
                 if (occlusionSlot.value != occlusionSlot.defaultValue)
                 {
-                    activeFields.Add("Occlusion");
+                    activeFields.Add("AmbientOcclusion");
+                }
+            }
+
+            if (pass.PixelShaderUsesSlot(HDLitMasterNode.CoatMaskSlotId))
+            {
+                var coatMaskSlot = masterNode.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.CoatMaskSlotId);
+
+                bool connected = masterNode.IsSlotConnected(HDLitMasterNode.CoatMaskSlotId);
+                if (connected || coatMaskSlot.value > 0.0f)
+                {
+                    activeFields.Add("CoatMask");
                 }
             }
 

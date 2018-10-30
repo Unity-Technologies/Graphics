@@ -265,9 +265,14 @@ CBUFFER_START(UnityGlobal)
 
     // Volumetric lighting.
     float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
-    float  _GlobalAnisotropy;
-    float3 _GlobalScattering;
-    float  _GlobalExtinction;
+
+    float3 _HeightFogBaseScattering;
+    float  _HeightFogBaseExtinction;
+
+    float2 _HeightFogExponents;         // {a, 1/a}
+    float  _HeightFogBaseHeight;
+    float  _GlobalFogAnisotropy;
+
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
     float4 _VBufferSliceCount;          // { count, 1/count, 0, 0 }
     float4 _VBufferUvScaleAndLimit;     // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
@@ -347,7 +352,6 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
 float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
 {
     // To handle camera relative rendering we substract the camera position in the model matrix
-    // User must not use UNITY_MATRIX_M directly, unless they understand what they do
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
     modelMatrix._m03_m13_m23 -= _WorldSpaceCameraPos;
 #endif
@@ -368,12 +372,13 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
-float4x4 GetUnityObjectToWorld() { return unity_ObjectToWorld; }
-float4x4 GetUnityWorldToObject() { return unity_WorldToObject; }
+float4x4 GetRawUnityObjectToWorld() { return unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 
-#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetUnityObjectToWorld())
-#define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetUnityWorldToObject())
+#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
+#define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
 
+// To get instanding working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 

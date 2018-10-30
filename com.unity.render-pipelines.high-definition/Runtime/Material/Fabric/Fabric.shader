@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/Fabric"
+Shader "Hidden/HDRenderPipeline/Fabric"
 {
     Properties
     {
@@ -375,6 +375,4 @@ Shader "HDRenderPipeline/Fabric"
         }
 
     }
-
-    CustomEditor "Experimental.Rendering.HDPipeline.FabricGUI"
 }

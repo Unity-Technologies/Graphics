@@ -14,6 +14,6 @@ float shadergraph_HDSampleSceneDepth(float2 uv)
 
 // Always include Shader Graph version
 // Always include last to avoid double macros
-#include "ShaderGraphLibrary/Functions.hlsl" 
+#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl" 
 
 #endif // UNITY_GRAPHFUNCTIONS_HD_INCLUDED

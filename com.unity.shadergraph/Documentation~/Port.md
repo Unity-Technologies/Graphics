@@ -1,3 +1,5 @@
+# Port
+
 ## Description
 
 A **Port** defines an input or output on a [Node](Node.md). Connecting [Edges](Edge.md) to a **Port** allows data to flow through the [Shader Graph](Shader-Graph.md) node network.
@@ -10,4 +12,4 @@ You can open a contextual [Create Node Menu](Create-Node-Menu.md) by dragging an
 
 ### Default Inputs
 
-Each **Input Port**, a **Port** on the left side of a [Node](Node.md) implying that it is for inputting data into the [Node](Node.md), has a **Default Input**. This appears as a small field connected to the **Port** when there is no [Edge](Edge.md) connected. This field will display an input for the ports [Data Type](Data-Types.md) unless the **Port** has a [Port Binding](Port-Bindings.md).
+Each **Input Port**, a **Port** on the left side of a [Node](Node.md) implying that it is for inputting data into the [Node](Node.md), has a **Default Input**. This appears as a small field connected to the **Port** when there is no [Edge](Edge.md) connected. This field will display an input for the ports [Data Type](Data-Types.md) unless the **Port** has a [Port Binding](Port-Bindings.md). If a **Port** does have a [Port Binding](Port-Bindings.md) the default input field may display a special field, such as a dropdown for selecting UV channels, or just a label to help you undestand the intended input, such as coordindate space labels for geometry data.

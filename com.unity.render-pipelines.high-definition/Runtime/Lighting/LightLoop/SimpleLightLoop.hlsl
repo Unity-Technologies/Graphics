@@ -10,20 +10,45 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
                 out float3 specularLighting)
 {
     LightLoopContext context;
+
+    context.shadowContext    = InitShadowContext();
+    context.contactShadow    = 1;
+    context.shadowValue      = 1;
     context.sampleReflection = 0;
-    context.shadowContext = InitShadowContext();
-    context.contactShadow = 1;
-    context.shadowValue = 1;
-    
+
+    // First of all we compute the shadow value of the directional light to reduce the VGPR pressure
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {
-        UNITY_BRANCH if(_DirectionalShadowIndex != -1)
+        // Evaluate sun shadows.
+        if (_DirectionalShadowIndex >= 0)
         {
-            context.shadowValue = GetDirectionalShadowAttenuation(
-                context.shadowContext, posInput.positionWS, GetShadowNormalBias(bsdfData),
-                _DirectionalLightDatas[_DirectionalShadowIndex].shadowIndex,
-                -_DirectionalLightDatas[_DirectionalShadowIndex].forward
-            );
+            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+
+            // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
+            // Also, the light direction is not consistent with the sun disk highlight hack, which modifies the light vector.
+            float  NdotL            = dot(bsdfData.normalWS, -light.forward);
+            float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
+            bool   evaluateShadows  = (NdotL > 0);
+
+        #ifdef MATERIAL_INCLUDE_TRANSMISSION
+            if (MaterialSupportsTransmission(bsdfData))
+            {
+                // We support some kind of transmission.
+                if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+                {
+                    // We always evaluate shadows.
+                    evaluateShadows = true;
+
+                    // Care must be taken to bias in the direction of the light.
+                    shadowBiasNormal *= FastSign(NdotL);
+                }
+            }
+        #endif
+
+            if (evaluateShadows)
+            {
+                context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
+            }
         }
     }
 
@@ -68,31 +93,9 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
             }
         }
     }
-    
-    // We use punctual BSDF for area lights (cheaper)
-    if (featureFlags & LIGHTFEATUREFLAGS_AREA)
-    {
-        uint lightCount, lightStart;
 
-    #ifdef LIGHTLOOP_TILE_PASS
-        GetCountAndStart(posInput, LIGHTCATEGORY_AREA, lightStart, lightCount);
-    #else
-        lightCount = _AreaLightCount;
-        lightStart = _PunctualLightCount;
-    #endif
+    // We don't evaluate area lights in simple lit mode
 
-        for (i = 0; i < lightCount; i++)
-        {
-            LightData lightData = FetchLight(lightStart, i);
-
-            if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-            {
-                DirectLighting lighting = SimpleEvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-                AccumulateDirectLighting(lighting, aggregateLighting);
-            }
-        }
-    }
-    
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
@@ -163,7 +166,7 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
 #undef EVALUATE_BSDF_ENV_SKY    
 
     // Also Apply indiret diffuse (GI)
-    // SimplePostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
+    // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
     SimplePostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting,
                         diffuseLighting, specularLighting);
 

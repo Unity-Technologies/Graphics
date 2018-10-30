@@ -112,7 +112,11 @@ Light GetMainLight()
 {
     Light light;
     light.direction = _MainLightPosition.xyz;
+#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
     light.distanceAttenuation = _MainLightPosition.w;
+#else
+    light.distanceAttenuation = 1.0;
+#endif
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
@@ -359,8 +363,10 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     return SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
         TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
         lightmapUV, transformCoords, normalWS, encodedLightmap, decodeInstructions);
-#else
+#elif defined(LIGHTMAP_ON)
     return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
+#else
+    return half3(0.0, 0.0, 0.0);
 #endif
 }
 

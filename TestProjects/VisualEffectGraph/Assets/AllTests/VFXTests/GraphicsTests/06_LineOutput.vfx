@@ -2647,7 +2647,7 @@ VisualEffectResource:
       !VFX_USE_SPAWNER_FROM_GPU\n    uint nbSpawned;\t\t\t\t\t// Numbers of particle
       spawned\n    uint spawnIndex;\t\t\t\t// Index of the first particle spawned\n
       \   uint dispatchWidth;\n#else\n    uint offsetInAdditionalOutput;\n\tuint nbMax;\n#endif\n\tuint
-      systemSeed;\nCBUFFER_END\n\n#if VFX_USE_ALIVE_CURRENT\nConsumeStructuredBuffer<uint>
+      systemSeed;\nCBUFFER_END\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint>
       deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to
       fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if
       VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer
@@ -2684,31 +2684,32 @@ VisualEffectResource:
       = (uint)0;\n        float3 direction = float3(0,0,1);\n        uint particleId
       = (uint)0;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId
       = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex
-      ^ systemSeed);\n#endif\n        \n        {\n            float tmp_t = FixedRand(particleId
-      ^ asuint(uniform_c));\n            float tmp_v = max(tmp_t, (float)0);\n            float
-      tmp_x = min(tmp_v, (float)1);\n            float4 tmp_y = SampleGradient(uniform_b,tmp_x);\n
-      \           float tmp_z = (float)particleId;\n            float tmp_bb = tmp_z
-      / (float)24;\n            float tmp_bc = floor(tmp_bb);\n            float tmp_bd
-      = tmp_bb - tmp_bc;\n            float tmp_be = tmp_bd * (float)24;\n            float
-      tmp_bf = tmp_be / (float)24;\n            float tmp_bg = max(tmp_bf, (float)0);\n
-      \           float tmp_bh = min(tmp_bg, (float)1);\n            float4 tmp_bi
-      = SampleGradient(uniform_d,tmp_bh);\n            float4 tmp_bj = tmp_y + tmp_bi;\n
-      \           float4 tmp_bl = tmp_bj / float4(2,2,2,2);\n            float tmp_bm
-      = tmp_bl[0];\n            float tmp_bn = tmp_bl[1];\n            float tmp_bo
-      = tmp_bl[2];\n            float3 tmp_bp = float3(tmp_bm, tmp_bn, tmp_bo);\n
-      \           SetAttribute_CA95FE17( /*inout */color, tmp_bp);\n        }\n        {\n
-      \           float tmp_w = (float)particleId;\n            float tmp_y = tmp_w
-      / (float)24;\n            float tmp_z = floor(tmp_y);\n            float tmp_ba
-      = tmp_y - tmp_z;\n            float tmp_bb = tmp_ba * (float)24;\n            float
-      tmp_bc = tmp_bb / (float)24;\n            float tmp_be = max(tmp_bc, (float)0);\n
-      \           float tmp_bf = min(tmp_be, (float)1);\n            PositionSphere_1(
+      ^ systemSeed);\n#endif\n        \n        {\n            float tmp_v = FixedRand(particleId
+      ^ asuint(uniform_c));\n            float tmp_x = max(tmp_v, (float)0);\n            float
+      tmp_z = min(tmp_x, (float)1);\n            float4 tmp_ba = SampleGradient(uniform_b,tmp_z);\n
+      \           float tmp_bb = (float)particleId;\n            float tmp_bd = tmp_bb
+      / (float)24;\n            float tmp_be = floor(tmp_bd);\n            float tmp_bf
+      = tmp_bd - tmp_be;\n            float tmp_bg = tmp_bf * (float)24;\n            float
+      tmp_bh = tmp_bg / (float)24;\n            float tmp_bi = max(tmp_bh, (float)0);\n
+      \           float tmp_bj = min(tmp_bi, (float)1);\n            float4 tmp_bk
+      = SampleGradient(uniform_d,tmp_bj);\n            float4 tmp_bl = tmp_ba + tmp_bk;\n
+      \           float4 tmp_bn = tmp_bl / float4(2,2,2,2);\n            float tmp_bo
+      = tmp_bn[0];\n            float tmp_bp = tmp_bn[1];\n            float tmp_bq
+      = tmp_bn[2];\n            float3 tmp_br = float3(tmp_bo, tmp_bp, tmp_bq);\n
+      \           SetAttribute_CA95FE17( /*inout */color, tmp_br);\n        }\n        {\n
+      \           float tmp_y = (float)particleId;\n            float tmp_ba = tmp_y
+      / (float)24;\n            float tmp_bb = floor(tmp_ba);\n            float tmp_bc
+      = tmp_ba - tmp_bb;\n            float tmp_bd = tmp_bc * (float)24;\n            float
+      tmp_be = tmp_bd / (float)24;\n            float tmp_bg = max(tmp_be, (float)0);\n
+      \           float tmp_bh = min(tmp_bg, (float)1);\n            PositionSphere_1(
       /*inout */position,  /*inout */seed,  /*inout */direction, float3(0,0,0), (float)1,
-      (float)6.283185, tmp_bf, (float)1);\n        }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n
-      \       if (alive)\n        {\n            uint index = deadListIn.Consume();\n
-      \           attributeBuffer.Store3((index * 0x4 + 0x0) << 2,asuint(color));\n
-      \           attributeBuffer.Store3((index * 0x4 + 0x9D00) << 2,asuint(position));\n
-      \           \n\n        }\n#else\n        uint index = particleIndex;\n        attributeBuffer.Store3((index
-      * 0x4 + 0x0) << 2,asuint(color));\n        attributeBuffer.Store3((index * 0x4
+      (float)6.283185, tmp_bh, (float)1);\n        }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n
+      \       if (alive)\n        {\n\t\t\tuint deadIndex = deadListIn.DecrementCounter();\n
+      \           uint index = deadListIn[deadIndex];\n            attributeBuffer.Store3((index
+      * 0x4 + 0x0) << 2,asuint(color));\n            attributeBuffer.Store3((index
+      * 0x4 + 0x9D00) << 2,asuint(position));\n            \n\n        }\n#else\n
+      \       uint index = particleIndex;\n        attributeBuffer.Store3((index *
+      0x4 + 0x0) << 2,asuint(color));\n        attributeBuffer.Store3((index * 0x4
       + 0x9D00) << 2,asuint(position));\n        \n\n#endif\n    }\n}\n"
   - compute: 1
     name: Temp_compute_b_update_Runtime.compute
@@ -2716,10 +2717,9 @@ VisualEffectResource:
       64\n#define VFX_HAS_INDIRECT_DRAW 1\n#define VFX_LOCAL_SPACE 1\n\n\n\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
-      attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nAppendStructuredBuffer<uint>
-      deadListOut;\n#endif\n\n#if VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint>
-      indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n    uint nbMax;\n\tuint
-      dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint> deadListOut;\n#endif\n\n#if
+      VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint> indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n
+      \   uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
       CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId
       \   : SV_GroupThreadID)\n{\n\tuint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP
       + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif
@@ -2727,7 +2727,8 @@ VisualEffectResource:
       VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition = position;\n#endif\n\t\t\t\n\t\t\t\n\t\t\tif
       (alive)\n\t\t\t{\n\t\t\t\t\n#if VFX_HAS_INDIRECT_DRAW\n                uint
       indirectIndex = indirectBuffer.IncrementCounter();\n\t\t\t\tindirectBuffer[indirectIndex]
-      = index;\n#endif\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\t\n\t\t\t\tdeadListOut.Append(index);\n\t\t\t}\n\t\t}\n#else\n\t\t\n\t\t\n#if
+      = index;\n#endif\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\t\n\t\t\t\tuint deadIndex
+      = deadListOut.IncrementCounter();\n\t\t\t\tdeadListOut[deadIndex] = index;\n\t\t\t}\n\t\t}\n#else\n\t\t\n\t\t\n#if
       VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition = position;\n#endif\n\t\t\n\t\t\n\t\t\n#if
       VFX_HAS_INDIRECT_DRAW\n        uint indirectIndex = indirectBuffer.IncrementCounter();\n\t\tindirectBuffer[indirectIndex]
       = index;\n#endif\n#endif\n\t}\n}\n"
@@ -2741,15 +2742,16 @@ VisualEffectResource:
       1\n\t\t#endif\n\t\t\n\t\t#include \"HLSLSupport.cginc\"\n\t\t#define NB_THREADS_PER_GROUP
       64\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_POSITION_CURRENT
       1\n\t\t#define VFX_USE_ALPHA_CURRENT 1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define
-      VFX_USE_PIVOT_CURRENT 1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT
-      1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define
-      VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_SIZEX_CURRENT
-      1\n\t\t#define VFX_USE_TARGETPOSITION_CURRENT 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define TARGET_FROM_ATTRIBUTES 1\n\t\t\n\t\t\n\t\t\n\t\t#define
-      VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float Angle_a;\n\t\t
-      \   uint3 PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
-      (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define IS_TRANSPARENT_PARTICLE
-      (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
+      VFX_USE_PIVOTX_CURRENT 1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define
+      VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEY_CURRENT 1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define
+      VFX_USE_AXISX_CURRENT 1\n\t\t#define VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT
+      1\n\t\t#define VFX_USE_SIZEX_CURRENT 1\n\t\t#define VFX_USE_TARGETPOSITION_CURRENT
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      TARGET_FROM_ATTRIBUTES 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      \   float Angle_a;\n\t\t    uint3 PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define
+      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
+      IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
       indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
       deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
@@ -2773,12 +2775,14 @@ VisualEffectResource:
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       SetAttribute_A474681(inout float angleZ, float Angle) /*attribute:angle Composition:Overwrite
       Source:Slot Random:Off channels:Z */\n\t\t\t{\n\t\t\t    angleZ = Angle.x;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_8470CB66(inout float3 pivot, float3 Pivot) /*attribute:pivot Composition:Overwrite
-      Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    pivot = Pivot;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_FA287C3A(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
-      Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    alpha = Alpha;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_37814D91(inout float sizeX, float Size) /*attribute:size Composition:Overwrite
-      Source:Slot Random:Off channels:X */\n\t\t\t{\n\t\t\t    sizeX = Size.x;\n\t\t\t}\n\t\t\tvoid
+      SetAttribute_8470CB66(inout float pivotX, inout float pivotY, inout float pivotZ,
+      float3 Pivot) /*attribute:pivot Composition:Overwrite Source:Slot Random:Off
+      channels:XYZ */\n\t\t\t{\n\t\t\t    pivotX = Pivot.x;\n\t\t\t    pivotY = Pivot.y;\n\t\t\t
+      \   pivotZ = Pivot.z;\n\t\t\t}\n\t\t\tvoid SetAttribute_FA287C3A(inout float
+      alpha, float Alpha) /*attribute:alpha Composition:Overwrite Source:Slot Random:Off
+      channels:XYZ */\n\t\t\t{\n\t\t\t    alpha = Alpha;\n\t\t\t}\n\t\t\tvoid SetAttribute_37814D91(inout
+      float sizeX, float Size) /*attribute:size Composition:Overwrite Source:Slot
+      Random:Off channels:X */\n\t\t\t{\n\t\t\t    sizeX = Size.x;\n\t\t\t}\n\t\t\tvoid
       Orient_2(inout float3 axisX, inout float3 axisY, inout float3 axisZ, float3
       position, float3 Position) /*mode:LookAtPosition */\n\t\t\t{\n\t\t\t    \n\t\t\t
       \   axisZ = normalize(position - Position);\n\t\t\t    axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));\n\t\t\t
@@ -2791,7 +2795,8 @@ VisualEffectResource:
       = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3 color = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x0) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x9D00) << 2));\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
-      alive = (bool)true;\n\t\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat
+      alive = (bool)true;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
       angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
       angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
       axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
@@ -2800,22 +2805,24 @@ VisualEffectResource:
       alive = (bool)true;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif (!alive)\n\t\t\t\t\t\t\t\treturn
       o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 color = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x0) << 2));\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
-      * 0x4 + 0x9D00) << 2));\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
-      pivot = float3(0,0,0);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
+      * 0x4 + 0x9D00) << 2));\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat
+      pivotX = (float)0;\n\t\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
       angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
       axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat sizeX = (float)0.1;\n\t\t\t\t\t\t\tfloat3
       targetPosition = float3(0,0,0);\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tSetAttribute_A474681(
       /*inout */angleZ, Angle_a);\n\t\t\t\t{\n\t\t\t\t    SetAttribute_8470CB66( /*inout
-      */pivot, float3(0.5,0.5,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_FA287C3A(
-      /*inout */alpha, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_37814D91(
-      /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    Orient_2( /*inout
-      */axisX,  /*inout */axisY,  /*inout */axisZ, position, float3(0,0,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
-      (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\n\t\t\t\t#if TARGET_FROM_ATTRIBUTES\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      */pivotX,  /*inout */pivotY,  /*inout */pivotZ, float3(0.5,0.5,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_FA287C3A( /*inout */alpha, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_37814D91( /*inout */sizeX, (float)0.5);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   Orient_2( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position,
+      float3(0,0,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
+      o;\n\t\t\t\n\t\t\t\t#if TARGET_FROM_ATTRIBUTES\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
       = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
       = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\tfloat4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\n\t\t\t\n\t\t\t\tposition
+      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\n\t\t\t\tposition
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,0,-0.2);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
       = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
