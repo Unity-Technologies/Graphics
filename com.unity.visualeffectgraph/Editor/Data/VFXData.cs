@@ -48,13 +48,13 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if( m_Parent == null)
+                VFXGraph graph = GetGraph();
+
+                if ( m_Parent == null)
                 {
-                    Sanitize();
+                    Sanitize(graph.version);
                 }
                 HashSet<VFXData> datas = new HashSet<VFXData>();
-
-                VFXGraph graph = GetGraph();
 
                 foreach (var child in graph.children.OfType<VFXContext>())
                 {
@@ -85,7 +85,6 @@ namespace UnityEditor.VFX
 
         public static VFXData CreateDataType(VFXGraph graph,VFXDataType type)
         {
-
             VFXData newVFXData;
             switch (type)
             {

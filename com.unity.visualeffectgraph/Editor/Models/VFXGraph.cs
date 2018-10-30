@@ -421,6 +421,7 @@ namespace UnityEditor.VFX
                 return m_CompiledData;
             }
         }
+        public int version { get { return m_GraphVersion; } }
 
         [SerializeField]
         private int m_GraphVersion = CurrentVersion;
