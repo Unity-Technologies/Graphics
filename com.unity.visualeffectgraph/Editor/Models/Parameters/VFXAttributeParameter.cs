@@ -127,7 +127,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             if (attribute == "phase") // Replace old phase attribute with random operator
             {
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
             }
             else
             {
-                base.Sanitize();
+                base.Sanitize(version);
             }
         }
 

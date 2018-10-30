@@ -81,7 +81,7 @@ namespace UnityEditor.VFX
             return inputExpression;
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             if (type == null)
             {
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX
                 if (type == null)
                     m_Type = new SerializableType(typeof(int));
             }
-            base.Sanitize();
+            base.Sanitize(version);
         }
     }
 }
