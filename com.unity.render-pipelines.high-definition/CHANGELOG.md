@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.1.0-preview] - 2018-10-18
 
+### Added
+
+### Fixed
+
+### Changed
+- Renamed Line shaped lights to Tube light
+
 ## [5.0.0-preview] - 2018-09-28
 
 ### Added

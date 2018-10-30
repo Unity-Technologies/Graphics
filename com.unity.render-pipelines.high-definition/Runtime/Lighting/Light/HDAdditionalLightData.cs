@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         Punctual, // Fallback on LightShape type
         Rectangle,
-        Line,
+        Tube,
         // Sphere,
         // Disc,
     };
@@ -587,7 +587,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
             MeshFilter emissiveMeshFilter = GetComponent<MeshFilter>();
 
-            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && lightTypeExtent != LightTypeExtent.Line && displayAreaLightEmissiveMesh;
+            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && lightTypeExtent != LightTypeExtent.Tube && displayAreaLightEmissiveMesh;
 
             // Ensure that the emissive mesh components are here
             if (displayEmissiveMesh)
@@ -773,7 +773,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 break;
                         }
                         break;
-                    case LightTypeExtent.Line:
+                    case LightTypeExtent.Tube:
                     case LightTypeExtent.Rectangle:
                         lightUnit = LightUnit.Lumen;
                         intensity = areaIntensity;
