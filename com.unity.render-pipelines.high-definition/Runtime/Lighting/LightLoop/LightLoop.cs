@@ -2401,7 +2401,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return add;
         }
 
-        void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
+        void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd/*, ref LightLoopShaderVariables llVars*/)
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.TPPushGlobalParameters.GetSampler()))
             {
