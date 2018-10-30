@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change reflection probe data migration code (to update old reflection probe to new one)
 - Updated gizmo for ReflectionProbes
 - Updated UI and Gizmo of DensityVolume
+- Renamed Line shaped lights to Tube light
 
 ## [4.0.0-preview] - 2018-09-28
 
