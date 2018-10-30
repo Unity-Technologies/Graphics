@@ -108,17 +108,24 @@ namespace UnityEditor.VFX
 
         public string GetNameOfSystem(IEnumerable<VFXContext> contexts)
         {
-            foreach(var context in contexts)
+            if(systemInfos != null)
             {
-                var system = systemInfos.Find(t => t.contexts.Contains(context));
-                if (system != null)
-                    return system.title;
+                foreach(var context in contexts)
+                {
+                    var system = systemInfos.Find(t => t.contexts.Contains(context));
+                    if (system != null)
+                        return system.title;
+                }
             }
             return string.Empty;
         }
 
         public void SetNameOfSystem(IEnumerable<VFXContext> contexts, string name)
         {
+            if( systemInfos == null)
+            {
+                systemInfos = new List<SystemInfo>();
+            }
             foreach (var context in contexts)
             {
                 var system = systemInfos.Find(t => t.contexts.Contains(context));
