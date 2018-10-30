@@ -93,17 +93,62 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
             }
         }
     }
+//Note: We don't enable area lights yet because there are some issues with punctual light attenuation intensity for simple area lights
+#if 0
 
     // We don't evaluate area lights in simple lit mode
+    if (featureFlags & LIGHTFEATUREFLAGS_AREA)
+    {
+        uint lightCount, lightStart;
 
-    // Define macro for a better understanding of the loop
-    // TODO: this code is now much harder to understand...
-#define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
-        IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
-        AccumulateIndirectLighting(lighting, aggregateLighting);
+    #ifdef LIGHTLOOP_TILE_PASS
+        GetCountAndStart(posInput, LIGHTCATEGORY_AREA, lightStart, lightCount);
+    #else
+        lightCount = _AreaLightCount;
+        lightStart = _PunctualLightCount;
+    #endif
 
-// Environment cubemap test lightlayers, sky don't test it
-#define EVALUATE_BSDF_ENV(envLightData, TYPE, type) if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) }
+        // COMPILER BEHAVIOR WARNING!
+        // If rectangle lights are before line lights, the compiler will duplicate light matrices in VGPR because they are used differently between the two types of lights.
+        // By keeping line lights first we avoid this behavior and save substantial register pressure.
+        // TODO: This is based on the current Lit.shader and can be different for any other way of implementing area lights, how to be generic and ensure performance ?
+
+        if (lightCount > 0)
+        {
+            i = 0;
+
+            uint      last      = lightCount - 1;
+            LightData lightData = FetchLight(lightStart, i);
+
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_LINE)
+            {
+                lightData.lightType = GPULIGHTTYPE_LINE; // Enforce constant propagation
+
+                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
+                {
+                    DirectLighting lighting = SimpleEvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                    AccumulateDirectLighting(lighting, aggregateLighting);
+                }
+
+                lightData = FetchLight(lightStart, min(++i, last));
+            }
+
+            while (i <= last) // GPULIGHTTYPE_RECTANGLE
+            {
+                lightData.lightType = GPULIGHTTYPE_RECTANGLE; // Enforce constant propagation
+
+                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
+                {
+                    DirectLighting lighting = SimpleEvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                    AccumulateDirectLighting(lighting, aggregateLighting);
+                }
+
+                lightData = FetchLight(lightStart, min(++i, last));
+            }
+        }
+    }
+
+#endif // Area light disabled
 
 #if HDRP_ENABLE_ENV_LIGHT
     // First loop iteration
@@ -162,8 +207,6 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
         }
     }
 #endif // HDRP_ENABLE_ENV_LIGHT
-#undef EVALUATE_BSDF_ENV
-#undef EVALUATE_BSDF_ENV_SKY    
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting

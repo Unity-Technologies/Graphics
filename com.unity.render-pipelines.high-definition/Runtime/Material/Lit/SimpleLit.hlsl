@@ -403,6 +403,122 @@ DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
+// EvaluateBSDF_Area
+// ----------------------------------------------------------------------------
+
+// Area light axis aligned sdf
+float AALineSDF_Sq(float3 p, float3 right)
+{
+    float3 d = max(abs(p) - right, 0.0);
+    return dot(d, d);
+}
+
+float AARectSDF_Sq(float3 p, float3 size)
+{
+    float3 f = max(0, abs(p) - size);
+    return dot(f, f);
+}
+
+float AASDF_Sq(float3 p, LightData lightData)
+{
+    switch (lightData.lightType)
+    {
+        case GPULIGHTTYPE_LINE:
+            return AALineSDF_Sq(p, float3(lightData.size.x * 0.5, 0, 0));
+        case GPULIGHTTYPE_RECTANGLE:
+            return AARectSDF_Sq(p, float3(lightData.size.x * 0.5, lightData.size.y * 0.5, 0.0));
+        default:
+            return 1e20;
+    }
+}
+
+// Get the closest point on the light from a given direction
+float3 ConstructLightPosition(float3 positionLS, float3 normalLS, LightData lightData, out float lightDistance)
+{
+    lightDistance = sqrt(AASDF_Sq(positionLS, lightData));
+    float3 p = positionLS + normalLS * lightDistance;
+    float distSq = AASDF_Sq(p, lightData);
+    float2 delta = float2(0.01, 0);
+
+    // light direction from sdf normal approximation
+    float3 lightDirection = normalize(float3(
+        distSq - AASDF_Sq(p - delta.xyy, lightData),
+        distSq - AASDF_Sq(p - delta.yxy, lightData),
+        distSq - AASDF_Sq(p - delta.yyx, lightData)
+    ));
+
+    return p - lightDirection * sqrt(distSq);
+}
+
+// limit the attenation distance at 5cm to avoid super-bright spots on particles
+#define AREA_LIGHT_ATTENUATION_THRESHOLD 0.05
+
+float SimpleSmoothPunctualLightAttenuation(float4 distances, float rangeAttenuationScale, float rangeAttenuationBias)
+{
+    float distSq   = distances.y;
+    float distRcp  = distances.z;
+    
+    float attenuation = min(distRcp, 1.0 / AREA_LIGHT_ATTENUATION_THRESHOLD);
+    attenuation *= DistanceWindowing(distSq, rangeAttenuationScale, rangeAttenuationBias);
+
+    return Sq(attenuation);
+}
+
+float SimpleEvalutePunctualLightAttenuation(LightData lightData, float lightDistance)
+{
+    float   dist = lightDistance;
+    float   distSq = Sq(dist);
+    float   distRcp = rcp(dist);
+    float   scale = lightData.rangeAttenuationScale;
+    float4  distances = float4(dist, distSq, distRcp, 1.0);
+
+    if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
+        scale = rcp(lightData.range * lightData.range); // For area lights rangeAttenuation is not computed so we do it here
+
+    return SimpleSmoothPunctualLightAttenuation(distances, scale, 1.0);
+}
+
+// Note: Specular is not supported for simple lit area lights
+DirectLighting SimpleEvaluateBSDF_Area(LightLoopContext lightLoopContext,
+    float3 V, PositionInputs posInput,
+    PreLightData preLightData, LightData lightData,
+    BSDFData bsdfData, BuiltinData builtinData)
+{
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+
+    float3 positionLS = mul(lightToWorld, posInput.positionWS - lightData.positionRWS);
+    float3 normalLS = mul(lightToWorld, bsdfData.normalWS);
+
+    float lightDistance;
+    float3 lightPosition = ConstructLightPosition(positionLS, normalLS, lightData, lightDistance);
+    float3 lightToSample = positionLS - lightPosition;
+
+    float intensity = SimpleEvalutePunctualLightAttenuation(lightData, lightDistance);
+    
+    if (intensity == 0.0)
+        return lighting;
+
+    lightData.diffuseDimmer *= intensity;
+
+    lighting.diffuse = Lambert() * lightData.diffuseDimmer;
+
+    // Smooth the rectangle hard cut
+    if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
+    {
+        lighting.diffuse *= saturate(positionLS.z);
+    }
+
+    float NdotL = saturate(dot(normalLS, normalize(-lightToSample))); // no wrap lighting because it causes light leaking
+
+    lighting.diffuse *= NdotL * lightData.color;
+
+    return lighting;
+}
+
+//-----------------------------------------------------------------------------
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------
 
