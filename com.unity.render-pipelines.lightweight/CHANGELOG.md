@@ -4,6 +4,8 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.1.0-preview] - 2018-10-18
+
 ## [5.0.0-preview] - 2018-09-28
 ### Added
 - Added occlusion mesh rendering/hookup for VR
@@ -13,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed the `supportedShaderFeatures` property from LWRP core. The shader stripper now figures out which variants to strip based on the current assigned pipeline Asset in the Graphics settings.
 ### Fixed
+- When you select a material with the Lit shader, this no longer causes the following error in the console: ("Material doesn't have..."). [case 1092354](https://fogbugz.unity3d.com/f/cases/1092354/)
 - In the Simple Lit shader, per-vertex additional lights are now shaded properly.
 - Shader variant stripping now works when you're building a Project with Cloud Build. This greatly reduces build times from Cloud Build.
 - Dynamic Objects now receive lighting when the light mode is set to mixed.

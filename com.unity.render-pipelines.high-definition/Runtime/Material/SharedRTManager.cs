@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_MSAASupported = settings.supportMSAA;
             m_MSAASamples = m_MSAASupported ? settings.msaaSampleCount : MSAASamples.None;
             m_VelocitySupport = settings.supportMotionVectors;
-            m_ReuseGBufferMemory = !settings.supportOnlyForward;
+            m_ReuseGBufferMemory = settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
 
             // Create the depth/stencil buffer
             m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth32, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, name: "CameraDepthStencil");
@@ -78,7 +78,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Let's create the MSAA textures
                 m_CameraDepthStencilMSAABuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencilMSAA");
                 m_CameraDepthValuesBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false, name: "DepthValuesBuffer");
+                m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RFloat, sRGB: false, bindTextureMS: true, enableMSAA: true, name: "DepthAsColorMSAA");
 
+                // We need to allocate this texture as long as msaa is supported because on both mode, one of the cameras can be forward only using the framesettings
+                m_NormalMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableMSAA: true, bindTextureMS: true, name: "NormalBufferMSAA");
+                
                 // Create the required resolve materials
                 m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
                 m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
@@ -90,14 +94,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // In case of full forward we must allocate the render target for normal buffer (or reuse one already existing)
                 // TODO: Provide a way to reuse a render target
                 m_NormalRT = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableRandomWrite: true, name: "NormalBuffer");
-
-                // Is MSAA supported?
-                if (m_MSAASupported)
-                {
-                    // Allocate the two render textures we need in the MSAA case
-                    m_NormalMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableMSAA: true, bindTextureMS: true, name: "NormalBufferMSAA");
-                    m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RFloat, sRGB: false, bindTextureMS: true, enableMSAA: true, name: "DepthAsColorMSAA");
-                }
             }
             else
             {
@@ -245,11 +241,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_ReuseGBufferMemory)
             {
                 RTHandles.Release(m_NormalRT);
-                if (m_MSAASupported)
-                {
-                    RTHandles.Release(m_NormalMSAART);
-                    RTHandles.Release(m_DepthAsColorMSAART);
-                }
             }
 
             if (m_VelocitySupport)
@@ -269,6 +260,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 RTHandles.Release(m_CameraDepthStencilMSAABuffer);
                 RTHandles.Release(m_CameraDepthValuesBuffer);
+
+                RTHandles.Release(m_NormalMSAART);
+                RTHandles.Release(m_DepthAsColorMSAART);
 
                  // Do not forget to release the materials
                 CoreUtils.Destroy(m_DepthResolveMaterial);

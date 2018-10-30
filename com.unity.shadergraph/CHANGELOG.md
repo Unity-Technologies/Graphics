@@ -4,6 +4,8 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.1.0-preview] - 2018-10-18
+
 ## [5.0.0-preview] - 2018-09-28
 
 ## [4.0.0-preview] - 2018-09-28
@@ -85,4 +87,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Lightweight PBR subshader now generates the correct meta pass.
 - Both PBR subshaders can now generate indirect light from emission.
 - Shader graphs now support the SRP batcher.
+- Fixed an issue where floatfield would be parsed according to OS locale settings with .NET 4.6
 

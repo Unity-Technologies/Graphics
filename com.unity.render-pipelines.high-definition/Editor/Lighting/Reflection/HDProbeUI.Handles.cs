@@ -70,25 +70,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case EditInfluenceShape:
                     InfluenceVolumeUI.DrawGizmos(
-                    s.influenceVolume,
-                    d.influenceVolume,
-                    mat,
-                    InfluenceVolumeUI.HandleType.Influence,
-                    InfluenceVolumeUI.HandleType.All);
+                        s.influenceVolume,
+                        d.influenceVolume,
+                        mat,
+                        InfluenceVolumeUI.HandleType.Influence,
+                        InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceNormalShape:
                     InfluenceVolumeUI.DrawGizmos(
-                    s.influenceVolume,
-                    d.influenceVolume,
-                    mat,
-                    InfluenceVolumeUI.HandleType.InfluenceNormal,
-                    InfluenceVolumeUI.HandleType.All);
+                        s.influenceVolume,
+                        d.influenceVolume,
+                        mat,
+                        InfluenceVolumeUI.HandleType.InfluenceNormal,
+                        InfluenceVolumeUI.HandleType.All);
                     break;
                 default:
                 {
                     var showedHandles = s.influenceVolume.showInfluenceHandles
                         ? InfluenceVolumeUI.HandleType.All
-                        : InfluenceVolumeUI.HandleType.Base;
+                        : InfluenceVolumeUI.HandleType.Base | InfluenceVolumeUI.HandleType.Influence;
                     InfluenceVolumeUI.DrawGizmos(
                         s.influenceVolume,
                         d.influenceVolume,
