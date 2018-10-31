@@ -2,7 +2,11 @@
     "name": "Unity.RenderPipelines.Lightweight.Runtime",
     "references": [
         "Unity.Postprocessing.Runtime",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.2D.Shape.Runtime",
+        "Unity.2D.Common.Runtime",
+        "Unity.InternalAPIEditorBridge.001",
+        "Unity.Mathematics"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

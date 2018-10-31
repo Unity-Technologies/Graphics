@@ -6,7 +6,10 @@
         "Unity.Postprocessing.Editor",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Editor",
-        "Unity.ShaderGraph.Editor"
+        "Unity.ShaderGraph.Editor",
+        "Unity.2D.Common.Editor",
+        "Unity.2D.Shape.Editor",
+        "Unity.InternalAPIEngineBridge.001"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [

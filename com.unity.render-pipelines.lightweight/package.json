@@ -7,6 +7,8 @@
     "dependencies": {
         "com.unity.postprocessing": "2.0.16-preview",
         "com.unity.render-pipelines.core": "5.1.0-preview",
-        "com.unity.shadergraph": "5.1.0-preview"
+        "com.unity.shadergraph": "5.1.0-preview",
+        "com.unity.2d.common": "1.0.10-preview",
+        "com.unity.mathematics": "0.0.12-preview.19"
     }
 }
