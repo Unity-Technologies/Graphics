@@ -15,11 +15,9 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-#if WORKAROUND_TIMELINE
-    class FakeObject : MonoBehaviour
-#else
+#if ! WORKAROUND_TIMELINE
     class FakeObject : ScriptableObject
-#endif
+
     {
         public float aFloat;
         public Vector2 aVector2;
@@ -33,7 +31,7 @@ namespace UnityEditor.VFX
         public long anUInt;
         public bool aBool;
     }
-
+#endif
 
     public static class VisualEffectControl
     {
