@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.1.0-preview] - 2018-10-30
 ### Changed
+- Moved `NormalBlendRNM` node to a dropdown option on `Normal Blend` node.
 - `Sample Cubemap` node now has a `SamplerState` slot.
 - New Sub Graph assets now default to the "Sub Graphs" path in the Create Node menu.
 - New Shader Graph assets now default to the "Shader Graphs" path in the Shader menu.
