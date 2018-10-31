@@ -282,11 +282,11 @@ namespace UnityEditor.VFX.UI
                 Add(m_Blackboard);
             toggleBlackboard.value = blackboardVisible;
 
-
+            /*
             bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, false);
             if (componentBoardVisible)
                 ShowComponentBoard();
-            toggleComponentBoard.value = componentBoardVisible;
+            toggleComponentBoard.value = componentBoardVisible;*/
 
             Add(m_Toolbar);
 
