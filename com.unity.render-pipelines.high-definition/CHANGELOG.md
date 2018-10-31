@@ -31,7 +31,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some null pointer exceptions when disabling motion vectors support
 - Fixed layered lit UI issue with scrollbar
 
-
 ### Changed
 - Renamed "Line" shaped lights to "Tube" light
 - Use the "mean height" fog parametrization
