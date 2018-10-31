@@ -40,7 +40,6 @@
     TEXTURE2D(           _StencilTexture);
     RW_TEXTURE2D(float2, _SsrHitPointTexture);
 #else
-       TEXTURE2D(        _VelocityTexture);
        TEXTURE2D(        _SsrHitPointTexture);
     RW_TEXTURE2D(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
 #endif
@@ -302,7 +301,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
 
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
-    float2 velocityNDC  = SAMPLE_TEXTURE2D_LOD(_VelocityTexture, s_linear_clamp_sampler, hitPositionNDC * _ScreenToTargetScale.zw, 0).xy;
+    float2 velocityNDC  = SAMPLE_TEXTURE2D_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, hitPositionNDC * _ScreenToTargetScale.zw, 0).xy;
     float2 prevFrameNDC = hitPositionNDC - velocityNDC;
     float2 prevFrameUV  = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
