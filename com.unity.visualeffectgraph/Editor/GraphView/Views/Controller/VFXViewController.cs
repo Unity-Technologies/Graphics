@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 
 using UnityObject = UnityEngine.Object;
-using Branch = UnityEditor.VFX.Operator.Branch;
+using Branch = UnityEditor.VFX.Operator.VFXOperatorDynamicBranch;
 
 namespace UnityEditor.VFX.UI
 {
