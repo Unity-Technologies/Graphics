@@ -292,7 +292,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         
         protected override bool showBlendModePopup
         {
-            get { return refractionModel == null || refractionModel.floatValue == 0f; }
+            get { return refractionModel == null || refractionModel.floatValue == 0f || preRefractionPass.floatValue > 0.0f; }
         }
 
         protected void FindMaterialLayerProperties(MaterialProperty[] props)
@@ -806,8 +806,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             && !isPrepass)
                         {
                             m_MaterialEditor.ShaderProperty(refractionModel, Styles.refractionModelText);
-                            var mode = (ScreenSpaceLighting.RefractionModel)refractionModel.floatValue;
-                            if (mode != ScreenSpaceLighting.RefractionModel.None)
+                            var mode = (ScreenSpaceRefraction.RefractionModel)refractionModel.floatValue;
+                            if (mode != ScreenSpaceRefraction.RefractionModel.None)
                             {
                                 m_MaterialEditor.ShaderProperty(ior, Styles.refractionIorText);
 
@@ -972,11 +972,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_IRIDESCENCE", materialId == BaseLitGUI.MaterialId.LitIridescence);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == BaseLitGUI.MaterialId.LitSpecular);
 
-            var refractionModelValue = (ScreenSpaceLighting.RefractionModel)material.GetFloat(kRefractionModel);
+            var refractionModelValue = (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel);
             // We can't have refraction in pre-refraction queue
             var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
-            CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceLighting.RefractionModel.Plane) && canHaveRefraction);
-            CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceLighting.RefractionModel.Sphere) && canHaveRefraction);
+            CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
+            CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
             CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
         }
     }
