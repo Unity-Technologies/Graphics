@@ -9,13 +9,14 @@ namespace UnityEditor.ShaderGraph
         public static void CreateMaterialSubGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateShaderSubGraph>(),
-                "New Shader Sub-Graph.ShaderSubGraph", null, null);
+                string.Format("New Shader Sub Graph.{0}", ShaderSubGraphImporter.Extension), null, null);
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var graph = new SubGraph();
             graph.AddNode(new SubGraphOutputNode());
+            graph.path = "Sub Graphs";
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
             AssetDatabase.Refresh();
         }
