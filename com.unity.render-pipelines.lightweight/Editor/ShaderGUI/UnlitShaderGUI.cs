@@ -74,8 +74,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         static void SetMaterialKeywords(Material material)
         {
             bool sampleGI = material.GetFloat("_SampleGI") >= 1.0f;
-            CoreUtils.SetKeyword(material, "_SAMPLE_GI", sampleGI);
-            CoreUtils.SetKeyword(material, "_NORMAL_MAP", sampleGI && material.GetTexture("_BumpMap"));
+            bool normalMap = material.GetTexture("_BumpMap");
+
+            CoreUtils.SetKeyword(material, "_SAMPLE_GI", sampleGI && !normalMap);
+            CoreUtils.SetKeyword(material, "_SAMPLE_GI_NORMALMAP", sampleGI && normalMap);
         }
     }
 }

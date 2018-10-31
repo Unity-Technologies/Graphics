@@ -130,7 +130,6 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
 
             #define _METALLICSPECGLOSSMAP 1
             #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
-            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "TerrainLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitMetaPass.hlsl"
