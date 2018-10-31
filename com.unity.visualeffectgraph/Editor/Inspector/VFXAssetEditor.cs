@@ -252,6 +252,8 @@ public class VisualEffectAssetEditor : Editor
         resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
         cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
         motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
+        prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
+        prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
     }
 
     PreviewRenderUtility m_PreviewUtility;
@@ -392,11 +394,12 @@ public class VisualEffectAssetEditor : Editor
     SerializedProperty resourceUpdateModeProperty;
     SerializedProperty cullingFlagsProperty;
     SerializedProperty motionVectorRenderModeProperty;
+    SerializedProperty prewarmDeltaTime;
+    SerializedProperty prewarmStepCount;
 
     public override void OnInspectorGUI()
     {
         resourceObject.Update();
-
 
         bool enable = GUI.enabled; //Everything in external asset is disabled by default
         GUI.enabled = true;
@@ -414,7 +417,7 @@ public class VisualEffectAssetEditor : Editor
         EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
         EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
         EditorGUI.BeginChangeCheck();
-        int newOption =  EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
+        int newOption = EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
         if (EditorGUI.EndChangeCheck())
         {
             cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
@@ -423,8 +426,6 @@ public class VisualEffectAssetEditor : Editor
         EditorGUILayout.EndHorizontal();
 
         bool needRecompile = false;
-        EditorGUI.BeginChangeCheck();
-
 
         EditorGUI.showMixedValue = motionVectorRenderModeProperty.hasMultipleDifferentValues;
         EditorGUI.BeginChangeCheck();
@@ -434,6 +435,20 @@ public class VisualEffectAssetEditor : Editor
             motionVectorRenderModeProperty.intValue = motionVector ? (int)MotionVectorGenerationMode.Object : (int)MotionVectorGenerationMode.Camera;
             resourceObject.ApplyModifiedProperties();
             needRecompile = true;
+        }
+
+        if (prewarmDeltaTime!= null && prewarmStepCount != null)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(prewarmDeltaTime);
+            EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(prewarmStepCount);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                resourceObject.ApplyModifiedProperties();
+            }
         }
 
         if (needRecompile)
