@@ -159,7 +159,8 @@ namespace UnityEditor.ShaderGraph
                 if (m_Path == value)
                     return;
                 m_Path = value;
-                owner.RegisterCompleteObjectUndo("Change Path");
+                if(owner != null)
+                    owner.RegisterCompleteObjectUndo("Change Path");
             }
         }
 
