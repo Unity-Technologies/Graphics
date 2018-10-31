@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
                              length(float3(UNITY_MATRIX_M[0].y, UNITY_MATRIX_M[1].y, UNITY_MATRIX_M[2].y)),
                              length(float3(UNITY_MATRIX_M[0].z, UNITY_MATRIX_M[1].z, UNITY_MATRIX_M[2].z)))";
                 default:
-                    return "UNITY_MATRIX_M._m03_m13_m23";
+                    return "SHADERGRAPH_OBJECT_POSITION";
             }
         }
     }

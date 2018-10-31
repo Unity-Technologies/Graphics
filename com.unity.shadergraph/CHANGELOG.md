@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Sample Cubemap` node now has a `SamplerState` slot.
 - New Sub Graph assets now default to the "Sub Graphs" path in the Create Node menu.
 - New Shader Graph assets now default to the "Shader Graphs" path in the Shader menu.
+- The `Light Probe` node is now a `Baked GI` node. When you use LWRP with lightmaps, this node now returns the correct lightmap data. This node is supported in HDRP.
+- `Reflection Probe` nodes now only work with LWRP. This solves compilation errors in HDRP.
+- `Ambient` nodes now only work with LWRP. This solves compilation errors in HDRP.
+- `Fog` nodes now only work with LWRP. This solves compilation errors in HDRP.
+- In HDRP, the `Position` port for the `Object` node now returns the absolute world position.
+- The `Baked GI`, `Reflection Probe`, and `Ambient` nodes are now in the `Input/Lighting` category.
 
 ### Fixed
 - Shadow projection is now correct when using the `Unlit` master node with HD Render Pipeline.
