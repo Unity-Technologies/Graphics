@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.1.0-preview] - 2018-10-18
 ### Changed
-- Removed the preview from the Master Node.
+- The Master Node no longer has its own preview. You can see the results for the master node in the bottom-right corner preview.
 
 ## [5.0.0-preview] - 2018-09-28
 
