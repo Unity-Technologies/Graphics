@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.Operator
             public uint hash = 0u;
         }
 
-        public class ManualRandom
+        public class ManualRandomProperties
         {
             [Tooltip("Random Value")]
             public float rand = 0.0f;
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX.Operator
                 }
                 else
                 {
-                    var manualRandomProperties = PropertiesFromType("ManualRandom");
+                    var manualRandomProperties = PropertiesFromType("ManualRandomProperties");
                     foreach (var property in manualRandomProperties)
                         yield return property;
                 }
