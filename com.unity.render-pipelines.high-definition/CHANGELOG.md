@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed depth pyramid debug view mode
 - Fixed sphere shaped influence handles clamping in reflection probes
 - Fixed reflection probes data migration for project created before using hdrp
+- Fixed ambient occlusion for Lit Master Node when slot is connected
 
 ### Changed
 - Use samplerunity_ShadowMask instead of samplerunity_samplerLightmap for shadow mask

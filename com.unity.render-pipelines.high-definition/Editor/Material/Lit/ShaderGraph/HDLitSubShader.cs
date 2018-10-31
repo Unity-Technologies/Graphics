@@ -771,7 +771,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (pass.PixelShaderUsesSlot(HDLitMasterNode.AmbientOcclusionSlotId))
             {
                 var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.AmbientOcclusionSlotId);
-                if (occlusionSlot.value != occlusionSlot.defaultValue)
+
+                bool connected = masterNode.IsSlotConnected(HDLitMasterNode.AmbientOcclusionSlotId);
+                if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
                 {
                     activeFields.Add("AmbientOcclusion");
                 }
