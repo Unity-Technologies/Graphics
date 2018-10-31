@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Scene", "Reflection Probe")]
+    [Title("Input", "Lighting", "Reflection Probe")]
     public class ReflectionProbeNode : CodeFunctionNode
     {
         public ReflectionProbeNode()
@@ -16,13 +16,7 @@ namespace UnityEditor.ShaderGraph
             get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Reflection-Probe-Node"; }
         }
 
-        public override PreviewMode previewMode
-        {
-            get
-            {
-                return PreviewMode.Preview3D;
-            }
-        }
+        public override bool hasPreview { get { return false; } }
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -39,8 +33,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}3 reflectVec = reflect(-ViewDir, Normal);
-    Out = DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVec, LOD), unity_SpecCube0_HDR);
+    Out = SHADERGRAPH_REFLECTION_PROBE(ViewDir, Normal, LOD);
 }
 ";
         }
