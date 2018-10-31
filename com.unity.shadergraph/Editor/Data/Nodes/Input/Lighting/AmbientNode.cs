@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Scene", "Ambient")]
+    [Title("Input", "Lighting", "Ambient")]
     public class AmbientNode : AbstractMaterialNode
     {
         const string kOutputSlotName = "Color/Sky";
@@ -38,11 +38,11 @@ namespace UnityEditor.ShaderGraph
             switch (slotId)
             {
                 case OutputSlot1Id:
-                    return "unity_AmbientEquator";
+                    return "SHADERGRAPH_AMBIENT_EQUATOR";
                 case OutputSlot2Id:
-                    return "unity_AmbientGround";
+                    return "SHADERGRAPH_AMBIENT_GROUND";
                 default:
-                    return "unity_AmbientSky";
+                    return "SHADERGRAPH_AMBIENT_SKY";
             }
         }
     }
