@@ -47,7 +47,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
     // TODO: we must not access bsdfData here, it break the genericity of the code!
     float4 outColor = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);
-    outColor = EvaluateAtmosphericScattering(posInput, outColor);
+    outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
 
 #ifdef DEBUG_DISPLAY
     // Same code in ShaderPassForward.shader
