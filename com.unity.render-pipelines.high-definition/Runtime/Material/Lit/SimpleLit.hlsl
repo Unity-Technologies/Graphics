@@ -406,7 +406,7 @@ DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 // EvaluateBSDF_Area
 // ----------------------------------------------------------------------------
 
-// Area light axis aligned sdf
+// Area light squared axis aligned SDF
 float AALineSDF_Sq(float3 p, float3 right)
 {
     float3 d = max(abs(p) - right, 0.0);
@@ -435,24 +435,33 @@ float AASDF_Sq(float3 p, LightData lightData)
 // Get the closest point on the light from a given direction
 float3 ConstructLightPosition(float3 positionLS, float3 normalLS, LightData lightData, out float lightDistance)
 {
+    // Normally to find the closest point from an SDF to a ray we would have to raymarch
+    // in the direction of the normal and stops when we hit the light or when the distance
+    // of the last step is smallter than our current. But this is expansive so instead
+    // we only evaluate one point on the normal ray at the initial light distance
+
     lightDistance = sqrt(AASDF_Sq(positionLS, lightData));
     float3 p = positionLS + normalLS * lightDistance;
+
+    // Then we reconstruct the light normal from the SDF, it normally takes 6 sample of the SDF
+    // to have a correct result but it's too expansive so we approximate this with only 4
     float distSq = AASDF_Sq(p, lightData);
     float2 delta = float2(0.01, 0);
-
-    // light direction from sdf normal approximation
     float3 lightDirection = normalize(float3(
         distSq - AASDF_Sq(p - delta.xyy, lightData),
         distSq - AASDF_Sq(p - delta.yxy, lightData),
         distSq - AASDF_Sq(p - delta.yyx, lightData)
     ));
 
+    // Finally create the point on the light using the direction of the light
     return p - lightDirection * sqrt(distSq);
 }
 
 // limit the attenation distance at 5cm to avoid super-bright spots on particles
 #define AREA_LIGHT_ATTENUATION_THRESHOLD 0.05
 
+// Simple version of PunctualLightAttenuation, without AngleAttenuation and with a reduced max intensity to avoid
+// Super bright spots when an object crosses the area light
 float SimpleSmoothPunctualLightAttenuation(float4 distances, float rangeAttenuationScale, float rangeAttenuationBias)
 {
     float distSq   = distances.y;
@@ -473,12 +482,14 @@ float SimpleEvalutePunctualLightAttenuation(LightData lightData, float lightDist
     float4  distances = float4(dist, distSq, distRcp, 1.0);
 
     if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
-        scale = rcp(lightData.range * lightData.range); // For area lights rangeAttenuation is not computed so we do it here
+        scale = rcp(lightData.range * lightData.range); // For rectangle lights rangeAttenuation is not computed so we do it here
 
     return SimpleSmoothPunctualLightAttenuation(distances, scale, 1.0);
 }
 
 // Note: Specular is not supported for simple lit area lights
+// Simplified area lighting model based of axis aligned SDF, since they are cheap to evaluate
+// and give the distance to the light so we can compute the attenuation
 DirectLighting SimpleEvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 V, PositionInputs posInput,
     PreLightData preLightData, LightData lightData,
@@ -489,13 +500,17 @@ DirectLighting SimpleEvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
     float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
 
+    // Transform the position and normal (for light position computing) into light space so we can use axis aligned SDFs
     float3 positionLS = mul(lightToWorld, posInput.positionWS - lightData.positionRWS);
     float3 normalLS = mul(lightToWorld, bsdfData.normalWS);
 
+    // We find the point on the light that is the closest to the normal ray, so when we do the N dot L
+    // it automaticallly matches the shape of the area light
     float lightDistance;
     float3 lightPosition = ConstructLightPosition(positionLS, normalLS, lightData, lightDistance);
     float3 lightToSample = positionLS - lightPosition;
 
+    // Compute a punctual attenuation from the light distance
     float intensity = SimpleEvalutePunctualLightAttenuation(lightData, lightDistance);
     
     if (intensity == 0.0)
@@ -505,7 +520,7 @@ DirectLighting SimpleEvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
     lighting.diffuse = Lambert() * lightData.diffuseDimmer;
 
-    // Smooth the rectangle hard cut
+    // Smooth the rectangle hard cut and remove the -z part of the rectangle light
     if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
     {
         lighting.diffuse *= saturate(positionLS.z);
