@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Fog` nodes now only work with LWRP. This solves compilation errors in HDRP.
 - In HDRP, the `Position` port for the `Object` node now returns the absolute world position.
 - The `Baked GI`, `Reflection Probe`, and `Ambient` nodes are now in the `Input/Lighting` category.
-- The Master Node no longer has its own preview. You can see the results for the master node in the bottom-right corner preview.
+- The master node no longer has it's own preview, because it was redundant. You can see the results for the master node in the Main Preview.
 
 ### Fixed
 - Shadow projection is now correct when using the `Unlit` master node with HD Render Pipeline.
