@@ -226,14 +226,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 renderer.Clear();
                 setupToUse.Setup(renderer, ref renderingData);
                 renderer.Execute(context, ref renderingData);
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
-                context.Submit();
-#if UNITY_EDITOR
-                Handles.DrawGizmos(camera);
-#endif
             }
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+            context.Submit();
+#if UNITY_EDITOR
+            Handles.DrawGizmos(camera);
+#endif
         }
 
         static void SetSupportedRenderingFeatures()
@@ -285,27 +285,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cameraData.renderScale = (Mathf.Abs(1.0f - usedRenderScale) < kRenderScaleThreshold) ? 1.0f : usedRenderScale;
             cameraData.renderScale = (camera.cameraType == CameraType.Game) ? cameraData.renderScale : 1.0f;
 
-            cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture || cameraData.isSceneViewCamera;
-            cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
             cameraData.opaqueTextureDownsampling = settings.opaqueDownsampling;
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = (anyShadowsEnabled) ? settings.shadowDistance : 0.0f;
 
-            AdditionalCameraData additionalCameraData = camera.gameObject.GetComponent<AdditionalCameraData>();
+            LWRPAdditionalCameraData additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
             if (additionalCameraData != null)
             {
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
-                cameraData.requiresDepthTexture &= additionalCameraData.requiresDepthTexture;
-                cameraData.requiresOpaqueTexture &= additionalCameraData.requiresColorTexture;
+                cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
+                cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
             }
-            else if (!cameraData.isSceneViewCamera && camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
+            else
             {
-                cameraData.requiresDepthTexture = false;
-                cameraData.requiresOpaqueTexture = false;
+                cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
+                cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
             }
 
-            cameraData.requiresDepthTexture |= cameraData.postProcessEnabled;
+            cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.postProcessEnabled;
 
             var commonOpaqueFlags = SortingCriteria.CommonOpaque;
             var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;

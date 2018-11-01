@@ -119,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Point,
             //Area, <= offline base type not displayed in our case but used for GI of our area light
             Rectangle,
-            Line,
+            Tube,
             //Sphere,
             //Disc,
         }
@@ -408,7 +408,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                     break;
                 case LightTypeExtent.Rectangle:
-                case LightTypeExtent.Line:
+                case LightTypeExtent.Tube:
                     bool withYAxis = src.lightTypeExtent == LightTypeExtent.Rectangle;
                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                     {
@@ -431,7 +431,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         widthHeight = CoreLightEditorUtilities.DrawAreaLightHandle(widthHeight, withYAxis);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObjects(new UnityEngine.Object[] { target, src }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Line Light");
+                            Undo.RecordObjects(new UnityEngine.Object[] { target, src }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");
                             light.areaSize = withYAxis ? widthHeight : new Vector2(widthHeight.x, light.areaSize.y);
                             light.range = range;
                         }
@@ -462,7 +462,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void DrawFeatures()
         {
-            bool disabledScope = m_LightShape == LightShape.Line || (m_LightShape == LightShape.Rectangle && settings.isRealtime);
+            bool disabledScope = m_LightShape == LightShape.Tube || (m_LightShape == LightShape.Rectangle && settings.isRealtime);
 
             using (new EditorGUI.DisabledScope(disabledScope))
             {
@@ -555,13 +555,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         settings.shadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
 
-                case LightShape.Line:
+                case LightShape.Tube:
                     // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
                     //m_BaseData.type.enumValueIndex = (int)LightType.Rectangle;
                     settings.lightType.enumValueIndex = (int)LightType.Point;
-                    m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Line;
+                    m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Tube;
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthLine);
+                    EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthTube);
                     if (EditorGUI.EndChangeCheck())
                     {
                         // Fake line with a small rectangle in vanilla unity for GI
@@ -812,7 +812,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            EditorGUILayout.PropertyField(m_AdditionalShadowData.resolution, s_Styles.shadowResolution);
+            EditorGUILayout.DelayedIntField(m_AdditionalShadowData.resolution, s_Styles.shadowResolution);
             //EditorGUILayout.Slider(settings.shadowsBias, 0.001f, 1f, s_Styles.shadowBias);
             //EditorGUILayout.Slider(settings.shadowsNormalBias, 0.001f, 1f, s_Styles.shadowNormalBias);
             EditorGUILayout.Slider(m_AdditionalShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
@@ -944,8 +944,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     case LightTypeExtent.Rectangle:
                         m_LightShape = LightShape.Rectangle;
                         break;
-                    case LightTypeExtent.Line:
-                        m_LightShape = LightShape.Line;
+                    case LightTypeExtent.Tube:
+                        m_LightShape = LightShape.Tube;
                         break;
                 }
             }

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -31,10 +31,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_SceneDepth(
-            [Slot(0, Binding.ScreenPosition)] Vector3 UV,
-            [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector3 Out)
+            [Slot(0, Binding.ScreenPosition)] Vector4 UV,
+            [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
-            Out = Vector3.one;
             return
                 @"
 {

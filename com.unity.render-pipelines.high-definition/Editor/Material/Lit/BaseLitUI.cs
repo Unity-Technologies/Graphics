@@ -341,6 +341,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        private void DrawDelayedFloatProperty(MaterialProperty prop, GUIContent content)
+        {
+            Rect position = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prop.hasMixedValue;
+            float newValue = EditorGUI.DelayedFloatField(position, content, prop.floatValue);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                prop.floatValue = newValue;
+        }
+
         protected virtual void MaterialTesselationPropertiesGUI()
         {
             // Display tessellation option if it exist
@@ -352,8 +363,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         TessellationModePopup();
                         m_MaterialEditor.ShaderProperty(tessellationFactor, StylesBaseLit.tessellationFactorText);
-                        m_MaterialEditor.ShaderProperty(tessellationFactorMinDistance, StylesBaseLit.tessellationFactorMinDistanceText);
-                        m_MaterialEditor.ShaderProperty(tessellationFactorMaxDistance, StylesBaseLit.tessellationFactorMaxDistanceText);
+                        DrawDelayedFloatProperty(tessellationFactorMinDistance, StylesBaseLit.tessellationFactorMinDistanceText);
+                        DrawDelayedFloatProperty(tessellationFactorMaxDistance, StylesBaseLit.tessellationFactorMaxDistanceText);
                         // clamp min distance to be below max distance
                         tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
                         m_MaterialEditor.ShaderProperty(tessellationFactorTriangleSize, StylesBaseLit.tessellationFactorTriangleSizeText);

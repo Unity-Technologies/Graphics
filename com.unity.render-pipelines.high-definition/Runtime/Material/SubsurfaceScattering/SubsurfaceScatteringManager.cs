@@ -225,7 +225,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraFilteringBuffer);  // Cannot set a RT on a material
 
                     // Additively blend diffuse and specular lighting into 'm_CameraColorBufferRT'.
-                    CoreUtils.DrawFullScreen(cmd, m_CombineLightingPass, colorBufferRT, depthStencilBufferRT);
+                    HDUtils.DrawFullScreen(cmd, hdCamera, m_CombineLightingPass, colorBufferRT, depthStencilBufferRT);
                 }
                 else
                 {

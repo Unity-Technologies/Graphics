@@ -40,7 +40,6 @@
     TEXTURE2D(           _StencilTexture);
     RW_TEXTURE2D(float2, _SsrHitPointTexture);
 #else
-       TEXTURE2D(        _VelocityTexture);
        TEXTURE2D(        _SsrHitPointTexture);
     RW_TEXTURE2D(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
 #endif
@@ -61,6 +60,7 @@ CBUFFER_START(UnityScreenSpaceReflections)
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
 
     int    _SsrDepthPyramidMaxMip;
+    int    _SsrReflectsSky;         // bool...
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -156,8 +156,9 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         float3 bounds;
         bounds.x = (rcpRayDir.x >= 0) ? _ScreenSize.x - halfTexel : halfTexel;
         bounds.y = (rcpRayDir.y >= 0) ? _ScreenSize.y - halfTexel : halfTexel;
-        // Since we do not want to intersect the skybox, it is more efficient to not trace too far.
-        bounds.z = (rcpRayDir.z >= 0) ? 1 : 0.00000012; // 2^-23
+        // If we do not want to intersect the skybox, it is more efficient to not trace too far.
+        float maxDepth = (_SsrReflectsSky != 0) ? -0.00000024 : 0.00000024; // 2^-22
+        bounds.z = (rcpRayDir.z >= 0) ? 1 : maxDepth;
 
         float3 dist = bounds * rcpRayDir - (rayOrigin * rcpRayDir);
         tMax = Min3(dist.x, dist.y, dist.z);
@@ -257,7 +258,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
     }
 
     // Treat intersections with the sky as misses.
-    miss = miss || (rayPos.z == 0);
+    miss = miss || ((_SsrReflectsSky == 0) && (rayPos.z == 0));
     hit  = hit && !miss;
 
     if (hit)
@@ -302,7 +303,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
 
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
-    float2 velocityNDC  = SAMPLE_TEXTURE2D_LOD(_VelocityTexture, s_linear_clamp_sampler, hitPositionNDC * _ScreenToTargetScale.zw, 0).xy;
+    float2 velocityNDC  = SAMPLE_TEXTURE2D_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, hitPositionNDC * _ScreenToTargetScale.zw, 0).xy;
     float2 prevFrameNDC = hitPositionNDC - velocityNDC;
     float2 prevFrameUV  = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 

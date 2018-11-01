@@ -112,6 +112,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return HDUtils.ComputeUvScaleAndLimit(new Vector2Int(viewportSize.x, viewportSize.y), bufferSize);
             }
 
+            public float ComputeMaxLinearDepth()
+            {
+                // DecodeLogarithmicDepthGeneralized(1 - 0.5 / sliceCount)
+                float d   = 1.0f - 0.5f / viewportSize.z;
+                float ln2 = 0.69314718f;
+                float z   = depthDecodingParams.x * Mathf.Exp(ln2 * d * depthDecodingParams.y) + depthDecodingParams.z;
+
+                return z;
+            }
         } // struct Parameters
 
         public VolumetricLightingPreset preset = VolumetricLightingPreset.Off;
@@ -268,6 +277,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             vBufferDepthRange.x = Mathf.Max(vBufferDepthRange.x, n);                           // max near
             vBufferDepthRange.y = Mathf.Min(vBufferDepthRange.y, f);                           // min far
             vBufferDepthRange.y = Mathf.Max(vBufferDepthRange.x + 0.01f, vBufferDepthRange.y); // near < far
+
             float vBufferDepthDistributionUniformity = controller.depthDistributionUniformity.value;
 
             return new VBufferParameters(viewportResolution, vBufferDepthRange, vBufferDepthDistributionUniformity);
@@ -482,6 +492,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevDepthEncodingParams, prevFrameParams.depthEncodingParams);
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevDepthDecodingParams, prevFrameParams.depthDecodingParams);
 
+            // Compute the linear depth of the log-center of the last slice.
+            cmd.SetGlobalFloat(  HDShaderIDs._VBufferMaxLinearDepth,          currFrameParams.ComputeMaxLinearDepth());
             cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                m_LightingBufferHandle);
         }
 
