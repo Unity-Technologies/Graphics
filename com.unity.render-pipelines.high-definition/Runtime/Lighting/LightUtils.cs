@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             switch (areaLightType)
             {
-                case LightTypeExtent.Line:
+                case LightTypeExtent.Tube:
                     return LightUtils.CalculateLineLightLumenToLuminance(lumen, width);
                 case LightTypeExtent.Rectangle:
                     return LightUtils.ConvertRectLightLumenToLuminance(lumen, width, height);
@@ -119,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             switch (areaLightType)
             {
-                case LightTypeExtent.Line:
+                case LightTypeExtent.Tube:
                     return LightUtils.CalculateLineLightLuminanceToLumen(luminance, width);
                 case LightTypeExtent.Rectangle:
                     return LightUtils.ConvertRectLightLuminanceToLumen(luminance, width, height);
@@ -154,7 +154,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //radiance = differential_power / (differrential_area * differential_solid_angle * <N, L>),
             //power = Integral{area, Integral{hemisphere, radiance * <N, L>}}.
 
-            //Unlike tube lights, our line lights have no surface area, so the integral becomes:
+            //Unlike line lights, our line lights have no surface area, so the integral becomes:
 
             //power = Integral{length, Integral{sphere, radiance}}.
 

@@ -80,7 +80,6 @@ Varyings LitPassVertexSimple(Attributes input)
     Varyings output = (Varyings)0;
 
     UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
@@ -123,7 +122,7 @@ Varyings LitPassVertexSimple(Attributes input)
 // Used for StandardSimpleLighting shader
 half4 LitPassFragmentSimple(Varyings input) : SV_Target
 {
-    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
     half4 diffuseAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));

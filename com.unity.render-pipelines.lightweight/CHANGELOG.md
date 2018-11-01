@@ -4,20 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [4.1.0-preview] - 2018-09-28
+## [4.1.0-preview] - 2018-10-18
 ### Added
 - Added occlusion mesh rendering/hookup for VR
 - You can now configure default depth and normal shadow bias values in the pipeline asset.
 - You can now add the `LWRPAdditionalLightData` component to a `Light` to override the default depth and normal shadow bias.
 - You can now log the amount of shader variants in your build. To do so, go to the `Pipeline Asset`. Under `Advanced`, select and set the `Shader Variant Log Level`.
 ### Changed
+- Renamed `AdditionalCameraData` to `LWRPAdditionalCameraData`.
 - Removed the `supportedShaderFeatures` property from LWRP core. The shader stripper now figures out which variants to strip based on the current assigned pipeline Asset in the Graphics settings.
 ### Fixed
+- The following error does not appear in console anymore: ("Begin/End Profiler section mismatch")
+- When you select a material with the Lit shader, this no longer causes the following error in the console: ("Material doesn't have..."). [case 1092354](https://fogbugz.unity3d.com/f/cases/1092354/)
 - In the Simple Lit shader, per-vertex additional lights are now shaded properly.
 - Shader variant stripping now works when you're building a Project with Cloud Build. This greatly reduces build times from Cloud Build.
 - Dynamic Objects now receive lighting when the light mode is set to mixed.
 - MSAA now works on Desktop platforms.
 - The shadow bias value is now computed correctly for shadow cascades and different shadow resolutions. [case 1076285](https://issuetracker.unity3d.com/issues/lwrp-realtime-directional-light-shadow-maps-exhibit-artifacts)
+- When you use __Area Light__ with LWRP, __Cast Shadows__ no longer overlaps with other UI elements in the Inspector. [case 1085363](https://issuetracker.unity3d.com/issues/inspector-area-light-cast-shadows-ui-option-is-obscured-by-render-mode-for-lwrp-regression-in-2018-dot-3a3)
 
 ### Changed
 Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings. 

@@ -437,6 +437,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 });
             }
 
+            list.Add(new DebugUI.BoolField { displayName = "Override Emissive Color", getter = () => lightingDebugSettings.overrideEmissiveColor, setter = value => lightingDebugSettings.overrideEmissiveColor = value, onValueChanged = RefreshLightingDebug });
+            if (lightingDebugSettings.overrideEmissiveColor)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.ColorField { displayName = "Emissive Color", getter = () => lightingDebugSettings.overrideEmissiveColorValue, setter = value => lightingDebugSettings.overrideEmissiveColorValue = value, showAlpha = false, hdr = true }
+                    }
+                });
+            }
+
             list.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug", getter = () => (int)lightingDebugSettings.tileClusterDebug, setter = value => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value, autoEnum = typeof(LightLoop.TileClusterDebug), onValueChanged = RefreshLightingDebug });
             if (lightingDebugSettings.tileClusterDebug != LightLoop.TileClusterDebug.None && lightingDebugSettings.tileClusterDebug != LightLoop.TileClusterDebug.MaterialFeatureVariants)
             {

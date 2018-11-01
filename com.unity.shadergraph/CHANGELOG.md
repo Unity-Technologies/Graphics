@@ -4,7 +4,28 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [4.1.0-preview] - 2018-09-28
+## [4.1.0-preview] - 2018-10-30
+### Changed
+- Moved `NormalBlendRNM` node to a dropdown option on `Normal Blend` node.
+- `Sample Cubemap` node now has a `SamplerState` slot.
+- New Sub Graph assets now default to the "Sub Graphs" path in the Create Node menu.
+- New Shader Graph assets now default to the "Shader Graphs" path in the Shader menu.
+- The `Light Probe` node is now a `Baked GI` node. When you use LWRP with lightmaps, this node now returns the correct lightmap data. This node is supported in HDRP.
+- `Reflection Probe` nodes now only work with LWRP. This solves compilation errors in HDRP.
+- `Ambient` nodes now only work with LWRP. This solves compilation errors in HDRP.
+- `Fog` nodes now only work with LWRP. This solves compilation errors in HDRP.
+- In HDRP, the `Position` port for the `Object` node now returns the absolute world position.
+- The `Baked GI`, `Reflection Probe`, and `Ambient` nodes are now in the `Input/Lighting` category.
+
+### Fixed
+- Shadow projection is now correct when using the `Unlit` master node with HD Render Pipeline.
+- Removed all direct references to matrices
+- `Matrix Construction` nodes with different `Mode` values now evaluate correctly.
+- `Is Front Face` node now works correctly when connected to `Alpha` and `AlphaThreshold` slots on the `PBR` master node.
+- Corrected some instances of incorrect port dimensions on several nodes.
+- `Scene Depth` and `Scene Color` nodes now work in single pass stereo in Lightweight Render Pipeline.
+- `Channel Mask` node controls are now aligned correctly.
+- In Lightweight Render Pipeline, Pre-multiply surface type now matches the Lit shader. 
 
 ## [4.0.0-preview] - 2018-09-28
 ### Added
@@ -85,4 +106,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Lightweight PBR subshader now generates the correct meta pass.
 - Both PBR subshaders can now generate indirect light from emission.
 - Shader graphs now support the SRP batcher.
+- Fixed an issue where floatfield would be parsed according to OS locale settings with .NET 4.6
 

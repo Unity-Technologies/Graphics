@@ -40,9 +40,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
-
-        // TEMP: See comment later for motion vector pass
-        [HideInInspector] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0
     }
 
     HLSLINCLUDE
@@ -230,41 +227,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
             #include "TerrainLitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
-
-            ENDHLSL
-        }
-
-        // TEMP: Until this PR is in trunk: https://ono.unity3d.com/unity/unity/pull-request/74509/_/graphics/fix-motion-vectors-exclusion
-        // We need to add a motion vector pass that is disabled, otherwise the terrain is not send in the prepass
-        // So add a motion vector pass that do nothing. Don't forget to remove _EnableMotionVectorForVertexAnimation property as well in this shader
-        Pass
-        {
-            Name "Motion Vectors"
-            Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
-
-            HLSLPROGRAM
-
-            struct Attributes
-            {
-                float4 positionCS : POSITION;
-            };
-
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-            };
-
-            Varyings Vert(Attributes input)
-            {
-                Varyings output;
-                output.positionCS = input.positionCS;
-                return output;
-            }
-
-            float4 Frag(Varyings input) : SV_Target
-            {
-                return float4(0.0, 0.0, 0.0, 0.0);
-            }
 
             ENDHLSL
         }

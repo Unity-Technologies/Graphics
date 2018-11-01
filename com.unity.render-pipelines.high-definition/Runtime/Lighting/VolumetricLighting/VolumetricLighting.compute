@@ -85,7 +85,7 @@ struct DualRay
     float3 jitterDirWS;       // Normalized, voxel-jittered in the screen space
     float3 centerDirWS;       // Normalized, voxel-centered in the screen space
     float  jitterDirInvViewZ; // 1 / ViewSpace(jitterDirWS).z
-    float  twoDirRatioViewZ;  // ViewSpace(jitterDirWS).z / ViewSpace(centerDirWS).z
+    float  centerDirInvViewZ; // 1 / ViewSpace(centerDirWS).z
 };
 
 float ConvertLinearDepthToJitterRayDist(DualRay ray, float z)
@@ -93,9 +93,9 @@ float ConvertLinearDepthToJitterRayDist(DualRay ray, float z)
     return z * ray.jitterDirInvViewZ;
 }
 
-float ConvertJitterDistToCenterRayDist(DualRay ray, float t)
+float ConvertLinearDepthToCenterRayDist(DualRay ray, float z)
 {
-    return t * ray.twoDirRatioViewZ;
+    return z * ray.centerDirInvViewZ;
 }
 
 // Returns a point along the jittered direction.
@@ -105,9 +105,9 @@ float3 GetPointAtDistance(DualRay ray, float t)
 }
 
 // Returns a point along the centered direction.
-float3 GetCenterAtDistance(DualRay ray, float s)
+float3 GetCenterAtDistance(DualRay ray, float c)
 {
-    return ray.originWS + s * ray.centerDirWS;
+    return ray.originWS + c * ray.centerDirWS;
 }
 
 struct VoxelLighting
@@ -525,11 +525,12 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         lightClusters[1] = GetLightClusterIndex(posInput.tileCoord, z1);
     #endif
 
-        // Compute the -exact- position of the center of the voxel.
-        // It's important since the accumulated value of the integral is stored at the center.
+        // Accurately compute the center of the voxel in the log space. It's important to perform
+        // the inversion exactly, since the accumulated value of the integral is stored at the center.
         // We will use it for participating media sampling, asymmetric scattering and reprojection.
-        float  s        = ConvertJitterDistToCenterRayDist(ray, t0 + 0.5 * dt);
-        float3 centerWS = GetCenterAtDistance(ray, s);
+        float  z        = DecodeLogarithmicDepthGeneralized(e1 - 0.5 * de, _VBufferDepthDecodingParams);
+        float  c        = ConvertLinearDepthToCenterRayDist(ray, z);
+        float3 centerWS = GetCenterAtDistance(ray, c);
 
         // Sample the participating medium at the center of the voxel.
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
@@ -599,7 +600,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                            _VBufferPrevUvScaleAndLimit.zw,
                                            _VBufferPrevDepthEncodingParams,
                                            _VBufferPrevDepthDecodingParams,
-                                           false, false, true);
+                                           false, true);
 
         bool reprojSuccess = (_VBufferLightingHistoryIsValid != 0) && (reprojValue.a != 0);
 
@@ -641,7 +642,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #endif // ENABLE_REPROJECTION
 
         // Compute the transmittance from the camera to 't0'.
-        float transmittance = Transmittance(opticalDepth);
+        float transmittance = TransmittanceFromOpticalDepth(opticalDepth);
         float phase         = _CornetteShanksConstant;
 
         // Integrate the contribution of the probe over the interval.
@@ -728,7 +729,7 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     ray.jitterDirWS       = jitterDirWS * jitterDirLenRcp;  // Normalize
     ray.centerDirWS       = centerDirWS * centerDirLenRcp;  // Normalize
     ray.jitterDirInvViewZ = jitterDirLen;                   // View space Z
-    ray.twoDirRatioViewZ  = centerDirLen * jitterDirLenRcp; // View space Z ratio
+    ray.centerDirInvViewZ = centerDirLen;                   // View space Z
 
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
 

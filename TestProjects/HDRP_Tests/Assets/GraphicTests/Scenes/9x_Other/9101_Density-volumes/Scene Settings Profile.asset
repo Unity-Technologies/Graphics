@@ -180,7 +180,7 @@ MonoBehaviour:
   active: 1
   depthRange:
     m_OverrideState: 1
-    m_Value: {x: 0, y: 170}
+    m_Value: {x: 145, y: 155}
     min: 0.01
     max: 10000
   depthDistributionUniformity:

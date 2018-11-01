@@ -312,9 +312,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Create all HDShadowDatas and update them with shadow request datas
             for (int i = 0; i < m_ShadowRequestCount; i++)
             {
-                var atlas = m_ShadowRequests[i].allowResize ? m_Atlas : m_CascadeAtlas;
-                m_ShadowDatas.Add(CreateShadowData(m_ShadowRequests[i], atlas));
-                m_ShadowRequests[i].shadowIndex = shadowIndex++;
+                if (m_ShadowRequests[i] != null)
+                {
+                    var atlas = m_ShadowRequests[i].allowResize ? m_Atlas : m_CascadeAtlas;
+                    m_ShadowDatas.Add(CreateShadowData(m_ShadowRequests[i], atlas));
+                    m_ShadowRequests[i].shadowIndex = shadowIndex++;
+                }
             }
 
             int first = k_DirectionalShadowCascadeCount, second = k_DirectionalShadowCascadeCount;

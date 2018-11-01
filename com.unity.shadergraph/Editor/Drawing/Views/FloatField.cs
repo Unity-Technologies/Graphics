@@ -1,4 +1,5 @@
 using UnityEditor.Experimental.UIElements;
+using System.Globalization;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -6,7 +7,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         protected override string ValueToString(double v)
         {
-            return ((float)v).ToString();
+            return ((float)v).ToString(CultureInfo.InvariantCulture.NumberFormat);
         }
     }
 }
