@@ -4,7 +4,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public struct RenderTargetHandle
     {
-        public int id { private set; get; }
+        public int id { set; get; }
 
         public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1};
 

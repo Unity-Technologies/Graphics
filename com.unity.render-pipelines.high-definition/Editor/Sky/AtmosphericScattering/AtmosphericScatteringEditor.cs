@@ -9,7 +9,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class AtmosphericScatteringEditor : VolumeComponentEditor
     {
-        SerializedDataParameter m_Density;
         SerializedDataParameter m_ColorMode;
         SerializedDataParameter m_Color;
         SerializedDataParameter m_MipFogNear;
@@ -19,8 +18,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnEnable()
         {
             var o = new PropertyFetcher<AtmosphericScattering>(serializedObject);
-
-            m_Density = Unpack(o.Find(x => x.density));
 
             // Fog Color
             m_ColorMode = Unpack(o.Find(x => x.colorMode));
@@ -32,7 +29,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_Density);
             PropertyField(m_ColorMode);
             EditorGUI.indentLevel++;
             if (!m_ColorMode.value.hasMultipleDifferentValues && (FogColorMode)m_ColorMode.value.intValue == FogColorMode.ConstantColor)

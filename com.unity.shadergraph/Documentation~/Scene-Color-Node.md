@@ -17,7 +17,7 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| UV     | Input | Vector 2 | Screen Position | Normalized screen coordinates |
+| UV     | Input | Vector 4 | Screen Position | Normalized screen coordinates |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Generated Code Example
@@ -25,7 +25,7 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 The following example code represents one possible outcome of this node.
 
 ```
-void Unity_SceneColor_float(float2 UV, out float3 Out)
+void Unity_SceneColor_float(float4 UV, out float3 Out)
 {
     Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV);
 }

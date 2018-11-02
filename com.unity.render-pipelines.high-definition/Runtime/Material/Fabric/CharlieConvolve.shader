@@ -19,7 +19,8 @@ Shader "Hidden/HDRenderPipeline/CharlieConvolve"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+            SAMPLER(s_trilinear_clamp_sampler);
 
             TEXTURECUBE(_MainTex);
             float _InvOmegaP;

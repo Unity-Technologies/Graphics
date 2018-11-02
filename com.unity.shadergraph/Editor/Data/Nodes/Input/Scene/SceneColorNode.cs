@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_SceneColor(
-            [Slot(0, Binding.ScreenPosition)] Vector3 UV,
+            [Slot(0, Binding.ScreenPosition)] Vector4 UV,
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector3 Out)
         {
             Out = Vector3.one;

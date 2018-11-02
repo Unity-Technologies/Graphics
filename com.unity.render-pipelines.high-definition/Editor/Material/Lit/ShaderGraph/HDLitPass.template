@@ -54,6 +54,7 @@ Pass
         $RefractionPlane:                    #define _REFRACTION_PLANE 1
         $RefractionSphere:                   #define _REFRACTION_SPHERE 1
         $Decals:                             #define _DECALS 1
+        $DisableSSR:                         #define _DISABLE_SSR 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -109,7 +110,6 @@ $splice(Defines)
     //-------------------------------------------------------------------------------------
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
     #ifdef DEBUG_DISPLAY
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
     #endif
@@ -125,6 +125,7 @@ $splice(Defines)
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
 
     //Used by SceneSelectionPass
     int _ObjectId;

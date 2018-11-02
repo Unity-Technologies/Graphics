@@ -134,10 +134,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 area.Add(p.litShaderMode, litShaderModeContent, () => p.overridesShaderLitMode, a => p.overridesShaderLitMode = a,
                     () => !GL.wireframe && hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.Both,
                     defaultValue: defaultShaderLitMode);
+
+                bool assetAllowMSAA = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && hdrpSettings.supportMSAA;
+                bool frameSettingsAllowMSAA = p.litShaderMode.enumValueIndex == (int)LitShaderMode.Forward && p.overridesShaderLitMode || !p.overridesShaderLitMode && defaultShaderLitMode == LitShaderMode.Forward;
                 area.Add(p.enableMSAA, msaaContent, () => p.overridesMSAA, a => p.overridesMSAA = a,
-                    () => hdrpSettings.supportMSAA && !GL.wireframe
-                    && ((p.litShaderMode.enumValueIndex == (int)LitShaderMode.Forward && p.overridesShaderLitMode || !p.overridesShaderLitMode && defaultShaderLitMode == LitShaderMode.Forward)
-                        && hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.Both || hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly) ,
+                    () => !GL.wireframe
+                    && assetAllowMSAA && frameSettingsAllowMSAA,
                     defaultValue: defaultFrameSettings.enableMSAA && hdrpSettings.supportMSAA && !GL.wireframe && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly) != 0 && (p.overridesShaderLitMode && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Forward || !p.overridesShaderLitMode && defaultFrameSettings.shaderLitMode == (int)LitShaderMode.Forward));
                 area.Add(p.enableDepthPrepassWithDeferredRendering, depthPrepassWithDeferredRenderingContent, () => p.overridesDepthPrepassWithDeferredRendering, a => p.overridesDepthPrepassWithDeferredRendering = a,
                     () => (defaultFrameSettings.shaderLitMode == LitShaderMode.Deferred && !p.overridesShaderLitMode || p.overridesShaderLitMode && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred) && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly) != 0,

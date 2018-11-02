@@ -246,6 +246,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
         {
+            RenderPostProcess(cmd, ref cameraData, colorFormat, source, dest, opaqueOnly, !cameraData.isStereoEnabled && cameraData.camera.targetTexture == null);
+        }
+
+        public void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly, bool flip)
+        {
             Camera camera = cameraData.camera;
             postProcessingContext.Reset();
             postProcessingContext.camera = camera;
@@ -253,7 +258,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             postProcessingContext.sourceFormat = colorFormat;
             postProcessingContext.destination = dest;
             postProcessingContext.command = cmd;
-            postProcessingContext.flip = !cameraData.isStereoEnabled && camera.targetTexture == null;
+            postProcessingContext.flip = flip;
 
             if (opaqueOnly)
                 cameraData.postProcessLayer.RenderOpaqueOnly(postProcessingContext);
@@ -302,18 +307,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
             return desc;
-        }
-
-        public static bool RequiresIntermediateColorTexture(ref CameraData cameraData, RenderTextureDescriptor baseDescriptor)
-        {
-            if (cameraData.isOffscreenRender)
-                return false;
-
-            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
-            bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
-            bool noAutoResolveMsaa = cameraData.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
-            return noAutoResolveMsaa || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;
         }
 
         public static ClearFlag GetCameraClearFlag(Camera camera)
