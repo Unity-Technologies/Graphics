@@ -47,8 +47,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ReferenceNameField.isDelayed = true;
             m_ReferenceNameField.OnValueChanged(newName =>
                 {
-                    string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue, property.guid);
-                    property.overrideReferenceName = newReferenceName;
+                    if (m_ReferenceNameField.value != m_Property.referenceName)
+                    {
+                        string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue, property.guid);
+                        property.overrideReferenceName = newReferenceName;
+                    }
                     m_ReferenceNameField.value = property.referenceName;
 
                     if (string.IsNullOrEmpty(property.overrideReferenceName))
