@@ -7,7 +7,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         enum Version
         {
             First,
-            HDProbeChild = 2,
+            RemoveUsageOfLegacyProbeParamsForStocking,
+            HDProbeChild,
             UseInfluenceVolume,
             MergeEditors,
             AddCaptureSettingsAndFrameSettings,
@@ -16,14 +17,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static readonly MigrationDescription<Version, HDAdditionalReflectionData> k_Migration
             = MigrationDescription.New(
-                MigrationStep.New(Version.MergeEditors, (HDAdditionalReflectionData t) =>
+                MigrationStep.New(Version.RemoveUsageOfLegacyProbeParamsForStocking, (HDAdditionalReflectionData t) =>
                 {
-                    t.infiniteProjection = !t.reflectionProbe.boxProjection;
-                    t.reflectionProbe.boxProjection = false;
+#pragma warning disable 618 // Type or member is obsolete
+                    t.m_ObsoleteBlendDistancePositive = t.m_ObsoleteBlendDistanceNegative = Vector3.one * t.reflectionProbe.blendDistance;
+                    t.weight = t.reflectionProbe.importance;
+                    t.multiplier = t.reflectionProbe.intensity;
+                    // size and center were kept in legacy until Version.UseInfluenceVolume
+                    //   and mode until Version.ModeAndTextures
+                    //   and all capture settings are done in Version.AddCaptureSettingsAndFrameSettings
+#pragma warning restore 618 // Type or member is obsolete
                 }),
                 MigrationStep.New(Version.UseInfluenceVolume, (HDAdditionalReflectionData t) =>
                 {
                     t.influenceVolume.boxSize = t.reflectionProbe.size;
+                    t.influenceVolume.offset = t.reflectionProbe.center;
 #pragma warning disable 618 // Type or member is obsolete
                     t.influenceVolume.sphereRadius = t.m_ObsoleteInfluenceSphereRadius;
                     t.influenceVolume.shape = t.m_ObsoleteInfluenceShape;
@@ -38,6 +46,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #pragma warning restore 618 // Type or member is obsolete
                     //Note: former editor parameters will be recreated as if non existent.
                     //User will lose parameters corresponding to non used mode between simplified and advanced
+                }),
+                MigrationStep.New(Version.MergeEditors, (HDAdditionalReflectionData t) =>
+                {
+                    t.infiniteProjection = !t.reflectionProbe.boxProjection;
+                    t.reflectionProbe.boxProjection = false;
                 }),
                 MigrationStep.New(Version.AddCaptureSettingsAndFrameSettings, (HDAdditionalReflectionData t) =>
                 {

@@ -491,9 +491,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     Color originalContentColor = GUI.contentColor;
 
-                    Rect headerLabelRect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight, GUILayout.Width(90));
-                    Rect headerMaterialDropRect = new Rect(headerLabelRect.x + headerLabelRect.width, headerLabelRect.y, Screen.width - 150, headerLabelRect.height);
-                    Rect headerUVRect = new Rect(headerMaterialDropRect.x + headerMaterialDropRect.width - 12, headerLabelRect.y, 35, headerLabelRect.height);
+                    float indentOffset = EditorGUI.indentLevel * 15f;
+                    float colorWidth = 14;
+                    float UVWidth = 30;
+                    float copyButtonWidth = EditorGUIUtility.singleLineHeight;
+                    float endOffset = 5f;
+
+                    Rect headerLineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+                    Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset, headerLineRect.height);
+                    Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - 48 - endOffset, headerLineRect.y, UVWidth + 5, headerLineRect.height);
+                    Rect headerMaterialDropRect = new Rect(headerLineRect.x + headerLabelRect.width, headerLineRect.y, headerLineRect.width - headerLabelRect.width - headerUVRect.width, headerLineRect.height);
 
                     EditorGUI.LabelField(headerLabelRect, styles.layerNameHeader, EditorStyles.centeredGreyMiniLabel);
                     EditorGUI.LabelField(headerMaterialDropRect, styles.materialToCopyHeader, EditorStyles.centeredGreyMiniLabel);
@@ -505,10 +512,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         {
                             EditorGUI.BeginChangeCheck();
 
-                            Rect colorRect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight, GUILayout.Width(14));
-                            Rect materialRect = new Rect(colorRect.x + colorRect.width, colorRect.y, Screen.width-69, colorRect.height);
-                            Rect uvRect = new Rect(materialRect.x + materialRect.width - 14, colorRect.y, 30, colorRect.height);
-                            Rect copyRect = new Rect(uvRect.x + uvRect.width, colorRect.y, colorRect.height, colorRect.height + 1);
+                            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+                            Rect colorRect = new Rect(lineRect.x, lineRect.y, colorWidth, lineRect.height);
+                            Rect materialRect = new Rect(lineRect.x + colorRect.width, lineRect.y, lineRect.width - UVWidth - colorWidth - copyButtonWidth + endOffset, lineRect.height);
+                            Rect uvRect = new Rect(lineRect.x + lineRect.width - copyButtonWidth - UVWidth - endOffset, lineRect.y, UVWidth, lineRect.height);
+                            Rect copyRect = new Rect(lineRect.x + lineRect.width - copyButtonWidth - endOffset, lineRect.y, copyButtonWidth, lineRect.height);
 
                             m_MaterialLayers[layerIndex] = EditorGUI.ObjectField(materialRect, styles.layerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
                             if (EditorGUI.EndChangeCheck())

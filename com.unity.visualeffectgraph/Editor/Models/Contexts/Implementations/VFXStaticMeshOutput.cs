@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         [VFXSetting]
         private Shader shader; // not serialized here but in VFXDataMesh
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Rendering Options")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options")]
         protected int sortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -22,6 +22,21 @@ namespace UnityEditor.VFX
         // IVFXSubRenderer interface
         // TODO Could we derive this directly by looking at the shader to know if a shadow pass is present?
         public virtual bool hasShadowCasting { get { return castShadows; } }
+        int IVFXSubRenderer.sortPriority
+        {
+            get
+            {
+                return sortPriority;
+            }
+            set
+            {
+                if (sortPriority != value)
+                {
+                    sortPriority = value;
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
+            }
+        }
 
         protected VFXStaticMeshOutput() : base(VFXContextType.kOutput, VFXDataType.kMesh, VFXDataType.kNone) {}
 

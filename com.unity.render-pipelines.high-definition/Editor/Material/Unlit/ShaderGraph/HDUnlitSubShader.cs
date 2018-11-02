@@ -43,7 +43,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderPassName = "SHADERPASS_FORWARD_UNLIT",
             ExtraDefines = new List<string>()
             {
-                "#pragma multi_compile _ DEBUG_DISPLAY"
+                "#pragma multi_compile _ DEBUG_DISPLAY",
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
             },
             Includes = new List<string>()
             {
@@ -91,6 +94,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             VertexShaderSlots = new List<int>()
             {
                 //PBRMasterNode.PositionSlotId
+            }
+        };
+
+        Pass m_PassShadowCaster = new Pass()
+        {
+            Name = "ShadowCaster",
+            LightMode = "ShadowCaster",
+            TemplateName = "HDPBRPass.template",
+            MaterialName = "PBR",
+            ShaderPassName = "SHADERPASS_SHADOWS",
+            ColorMaskOverride = "ColorMask 0",
+            ExtraDefines = new List<string>()
+            {
+                "#define USE_LEGACY_UNITY_MATRIX_VARIABLES",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
             }
         };
 
@@ -225,6 +258,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 GenerateShaderPassUnlit(masterNode, m_PassDepthOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassUnlit(masterNode, m_PassForward, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassUnlit(masterNode, m_PassShadowCaster, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassUnlit(masterNode, m_PassMETA, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 if (distortionActive)
                 {

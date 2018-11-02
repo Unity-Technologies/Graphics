@@ -293,7 +293,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         
         protected override bool showBlendModePopup
         {
-            get { return refractionModel == null || refractionModel.floatValue == 0f; }
+            get { return refractionModel == null || refractionModel.floatValue == 0f || preRefractionPass.floatValue > 0.0f; }
         }
 
         protected void FindMaterialLayerProperties(MaterialProperty[] props)

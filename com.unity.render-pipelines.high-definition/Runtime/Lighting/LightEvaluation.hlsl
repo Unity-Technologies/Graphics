@@ -61,9 +61,8 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     {
         float cosZenithAngle = L.y;
         float fragmentHeight = posInput.positionWS.y;
-        attenuation *= Transmittance(OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                                           _HeightFogExponents, cosZenithAngle,
-                                                           fragmentHeight));
+        attenuation *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                              _HeightFogExponents, cosZenithAngle, fragmentHeight);
     }
 
     if (light.cookieIndex >= 0)
@@ -226,9 +225,9 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         float cosZenithAngle = L.y;
         float distToLight    = (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
         float fragmentHeight = posInput.positionWS.y;
-        attenuation *= Transmittance(OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                                           _HeightFogExponents, cosZenithAngle,
-                                                           fragmentHeight, distToLight));
+        attenuation *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                              _HeightFogExponents, cosZenithAngle,
+                                              fragmentHeight, distToLight);
     }
 
     // Projector lights always have cookies, so we can perform clipping inside the if().

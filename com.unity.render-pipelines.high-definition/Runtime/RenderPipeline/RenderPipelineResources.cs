@@ -7,18 +7,8 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public class RenderPipelineResources : ScriptableObject
+    public partial class RenderPipelineResources : ScriptableObject
     {
-        const int currentVersion = 4;
-        [SerializeField]
-        // Silent the warning
-        // "The private field `UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineResources.m_Version' is assigned but its value is never used"
-        // As it is used only in editor currently and when building a player we get this warning.
-#pragma warning disable 414
-        [FormerlySerializedAs("version")]
-        int m_Version = 1;
-#pragma warning restore 414
-
         [Serializable]
         public sealed class ShaderResources
         {
@@ -131,16 +121,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShaderGraphResources shaderGraphs;
 
 #if UNITY_EDITOR
-        public void UpgradeIfNeeded()
-        {
-            if (m_Version != currentVersion)
-            {
-                Init();
-
-                m_Version = currentVersion;
-            }
-        }
-
         // Note: move this to a static using once we can target C#6+
         T Load<T>(string path) where T : UnityEngine.Object
         {
@@ -241,11 +221,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Materials
             materials = new MaterialResources
             {
-                // Defaults
-                defaultDiffuseMat = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/Material/DefaultHDMaterial.mat"),
-                defaultMirrorMat = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/Material/DefaultHDMirrorMaterial.mat"),
-                defaultDecalMat = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/Material/DefaultHDDecalMaterial.mat"),
-                defaultTerrainMat = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat"),
             };
 
             // Textures

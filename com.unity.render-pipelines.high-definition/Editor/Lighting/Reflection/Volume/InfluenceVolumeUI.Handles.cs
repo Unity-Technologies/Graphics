@@ -198,6 +198,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void DrawSphereFadeHandle(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Object sourceAsset, HierarchicalSphere sphere, SerializedProperty blend)
         {
+            //init parent sphere for clamping
+            s.sphereBaseHandle.center = d.offset.vector3Value;
+            s.sphereBaseHandle.radius = d.sphereRadius.floatValue;
             sphere.center = d.offset.vector3Value;
             sphere.radius = d.sphereRadius.floatValue - blend.floatValue;
 

@@ -36,6 +36,7 @@ namespace UnityEditor.ShaderGraph
             set { m_Name = value; }
         }
 
+        [SerializeField]
         string m_DefaultReferenceName;
 
         public string referenceName

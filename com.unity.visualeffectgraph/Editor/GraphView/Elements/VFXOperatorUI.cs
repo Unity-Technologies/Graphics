@@ -9,7 +9,7 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
-using Branch = UnityEditor.VFX.Operator.Branch;
+using Branch = UnityEditor.VFX.Operator.VFXOperatorDynamicBranch;
 
 namespace UnityEditor.VFX.UI
 {

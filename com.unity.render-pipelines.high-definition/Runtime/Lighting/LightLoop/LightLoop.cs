@@ -1079,7 +1079,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.size = new Vector2(additionalLightData.shapeRadius * additionalLightData.shapeRadius, 0);
             }
 
-            if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Line)
+            if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Tube)
             {
                 lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight);
             }
@@ -1259,7 +1259,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightVolumeData.radiusSq = range * range;
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
             }
-            else if (gpuLightType == GPULightType.Line)
+            else if (gpuLightType == GPULightType.Tube)
             {
                 Vector3 dimensions = new Vector3(lightDimensions.x + 2 * range, 2 * range, 2 * range); // Omni-directional
                 Vector3 extents = 0.5f * dimensions;
@@ -1727,10 +1727,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     lightVolumeType = LightVolumeType.Box;
                                     break;
 
-                                case LightTypeExtent.Line:
+                                case LightTypeExtent.Tube:
                                     if (areaLightCount >= m_MaxAreaLightsOnScreen)
                                         continue;
-                                    gpuLightType = GPULightType.Line;
+                                    gpuLightType = GPULightType.Tube;
                                     lightVolumeType = LightVolumeType.Box;
                                     break;
 
