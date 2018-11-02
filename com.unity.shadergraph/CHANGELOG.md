@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Scene Depth` and `Scene Color` nodes now work in single pass stereo in Lightweight Render Pipeline.
 - `Channel Mask` node controls are now aligned correctly.
 - In Lightweight Render Pipeline, Pre-multiply surface type now matches the Lit shader. 
+- Default reference name for shader properties are now serialized. You cannot change them after initial creation.
 
 ## [5.0.0-preview] - 2018-09-28
 
@@ -110,4 +111,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Both PBR subshaders can now generate indirect light from emission.
 - Shader graphs now support the SRP batcher.
 - Fixed an issue where floatfield would be parsed according to OS locale settings with .NET 4.6
-
