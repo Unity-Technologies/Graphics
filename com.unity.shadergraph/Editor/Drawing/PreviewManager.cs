@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class PreviewManager : IDisposable
+    class PreviewManager : IDisposable
     {
         AbstractMaterialGraph m_Graph;
         List<PreviewRenderData> m_RenderDatas = new List<PreviewRenderData>();

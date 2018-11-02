@@ -15,7 +15,7 @@ using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
-    public class MasterPreviewView : VisualElement
+    class MasterPreviewView : VisualElement
     {
         PreviewManager m_PreviewManager;
         AbstractMaterialGraph m_Graph;

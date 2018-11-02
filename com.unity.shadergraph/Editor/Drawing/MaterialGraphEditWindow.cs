@@ -124,6 +124,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (materialGraph == null)
                     return;
 
+                materialGraph.DispatchNodeChangeEvents();
+
                 if (graphEditorView == null)
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));

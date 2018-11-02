@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Vector2 masterPreviewSize = new Vector2(400, 400);
     }
 
-    public class GraphEditorView : VisualElement, IDisposable
+    class GraphEditorView : VisualElement, IDisposable
     {
         MaterialGraphView m_GraphView;
         MasterPreviewView m_MasterPreviewView;

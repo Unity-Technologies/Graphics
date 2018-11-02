@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Sub-graph")]
-    public class SubGraphNode : AbstractMaterialNode
+    class SubGraphNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IOnAssetEnabled
         , IGeneratesFunction
@@ -267,7 +267,7 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var slot in NodeExtensions.GetInputSlots<MaterialSlot>(outputNode))
                 {
-                    AddSlot(MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(), 
+                    AddSlot(MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
                         slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage));
                     validNames.Add(slot.id);
                 }
@@ -302,7 +302,7 @@ namespace UnityEditor.ShaderGraph
                     break;
                 }
             }
-            
+
             foreach(MaterialSlot slot in slots)
                 slot.stageCapability = effectiveStage;
         }

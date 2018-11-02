@@ -89,7 +89,10 @@ namespace UnityEditor.Graphing
 
         public static T Deserialize<T>(JSONSerializedElement item, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper,  params object[] constructorArgs) where T : class
         {
-            if (!item.typeInfo.IsValid() || string.IsNullOrEmpty(item.JSONnodeData))
+            if (!item.typeInfo.IsValid())
+                return null;
+
+            if (string.IsNullOrEmpty(item.JSONnodeData))
                 throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item));
 
             TypeSerializationInfo info = item.typeInfo;

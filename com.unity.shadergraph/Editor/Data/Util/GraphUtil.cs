@@ -560,7 +560,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             if (command.Is("include"))
                             {
-                                ProcessIncludeCommand(command, end);                                
+                                ProcessIncludeCommand(command, end);
                                 break;      // include command always ignores the rest of the line, error or not
                             }
                             else if (command.Is("splice"))
@@ -859,7 +859,7 @@ namespace UnityEditor.ShaderGraph
         }
     };
 
-    public static class GraphUtil
+    static class GraphUtil
     {
         internal static string ConvertCamelCase(string text, bool preserveAcronyms)
         {

@@ -7,6 +7,8 @@ using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements;
 
 [assembly: InternalsVisibleTo("Unity.ShaderGraph.EditorTests")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Lightweight.Editor")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor")]
 
 namespace UnityEditor.ShaderGraph
 {

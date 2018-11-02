@@ -16,7 +16,7 @@ using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public sealed class MaterialGraphView : GraphView
+    sealed class MaterialGraphView : GraphView
     {
         public MaterialGraphView()
         {

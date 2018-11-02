@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -28,6 +29,8 @@ namespace UnityEditor.ShaderGraph
 
         public static PortValue Vector4(Vector4 value) => new PortValue(PortValueType.Vector4) { m_Vector = value };
 
+        public PortValueType type => m_Type;
+
         public float vector1Value => m_Vector.x;
 
         public Vector2 vector2Value => m_Vector;
@@ -35,5 +38,29 @@ namespace UnityEditor.ShaderGraph
         public Vector3 vector3Value => m_Vector;
 
         public Vector4 vector4Value => m_Vector;
+
+        public override string ToString()
+        {
+            string value;
+            switch (type)
+            {
+                case PortValueType.Vector1:
+                    value = vector1Value.ToString();
+                    break;
+                case PortValueType.Vector2:
+                    value = vector2Value.ToString();
+                    break;
+                case PortValueType.Vector3:
+                    value = vector3Value.ToString();
+                    break;
+                case PortValueType.Vector4:
+                    value = vector4Value.ToString();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return $"type={type}, value={value}";
+        }
     }
 }

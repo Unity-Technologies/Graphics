@@ -5,11 +5,12 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using Random = UnityEngine.Random;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class AbstractMaterialGraph : IGraph, ISerializationCallbackReceiver, IGenerateProperties
+    abstract class AbstractMaterialGraph : IGraph, ISerializationCallbackReceiver, IGenerateProperties
     {
         public IGraphObject owner { get; set; }
 
@@ -163,15 +164,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        [NonSerialized]
-        List<IShaderNode> m_ShaderNodes = new List<IShaderNode>();
+        public List<ShaderNodeState> shaderNodeStates { get; } = new List<ShaderNodeState>();
 
-        [NonSerialized]
-        List<NodeType> m_NodeTypes = new List<NodeType>();
+        int m_CurrentContextId = 1;
 
-        int m_CurrentSetupContextId = 1;
-
-        internal int currentSetupContextId => m_CurrentSetupContextId;
+        public int currentContextId => m_CurrentContextId;
 
         public AbstractMaterialGraph()
         {
@@ -179,7 +176,7 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var type in assembly.GetTypes())
                 {
-                    if (type == typeof(IShaderNode) || type == typeof(object) || !type.IsAssignableFrom(typeof(IShaderNode)))
+                    if (type == typeof(IShaderNode) || type == typeof(object) || !typeof(IShaderNode).IsAssignableFrom(type))
                     {
                         continue;
                     }
@@ -193,18 +190,14 @@ namespace UnityEditor.ShaderGraph
 
                     try
                     {
-                        var shaderNode = (IShaderNode)constructor.Invoke(null);
-                        var context = new NodeSetupContext(this, m_CurrentSetupContextId, shaderNode);
-                        shaderNode.Setup(ref context);
-                        m_ShaderNodes.Add(shaderNode);
-
-                        // A node is allowed to not provide a type, but in that case it will always use the serialized
-                        // values.
-                        // TODO: Is that sensible???
-                        if (context.type.HasValue)
+                        var state = new ShaderNodeState { id = shaderNodeStates.Count, shaderNode = (IShaderNode)constructor.Invoke(null) };
+                        var context = new NodeSetupContext(this, m_CurrentContextId, state);
+                        state.shaderNode.Setup(ref context);
+                        if (!context.nodeTypeCreated)
                         {
-                            m_NodeTypes.Add(context.type.Value);
+                            throw new InvalidOperationException($"An {nameof(IShaderNode)} must provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
                         }
+                        shaderNodeStates.Add(state);
                     }
                     catch (Exception e)
                     {
@@ -213,7 +206,31 @@ namespace UnityEditor.ShaderGraph
                     finally
                     {
                         // We only want the context to be usable for the call to Setup. See NodeSetupContext.Validate().
-                        m_CurrentSetupContextId++;
+                        m_CurrentContextId = Math.Max(m_CurrentContextId + 1, 1);
+                    }
+                }
+            }
+        }
+
+        public void DispatchNodeChangeEvents()
+        {
+            foreach (var state in shaderNodeStates)
+            {
+                if (state.isDirty)
+                {
+                    var context = new NodeChangeContext(this, m_CurrentContextId, state);
+                    try
+                    {
+                        state.shaderNode.OnChange(ref context);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+                    finally
+                    {
+                        state.ClearChanges();
+                        m_CurrentContextId = Math.Max(m_CurrentContextId + 1, 1);
                     }
                 }
             }
@@ -231,6 +248,7 @@ namespace UnityEditor.ShaderGraph
             m_MovedProperties.Clear();
         }
 
+        // TODO: Handle copy paste
         public virtual void AddNode(INode node)
         {
             if (node is AbstractMaterialNode)

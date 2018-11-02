@@ -62,7 +62,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode)))
                         && type != typeof(PropertyNode)
-                        && type != typeof(SubGraphNode))
+                        && type != typeof(SubGraphNode)
+                        && type != typeof(ProxyShaderNode))
                     {
                         var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
                         if (attrs != null && attrs.Length > 0)
@@ -95,6 +96,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.propertyGuid = property1.guid;
                 node.owner = null;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
+            }
+
+            foreach (var state in m_Graph.shaderNodeStates)
+            {
+                Debug.Log($"{state.type.path}/{state.type.name}");
+                var node = new ProxyShaderNode(state);
+                AddEntries(node, state.type.path.Split('/').Append(state.type.name).ToArray(), nodeEntries);
             }
 
             // Sort the entries lexicographically by group then title with the requirement that items always comes before sub-groups in the same group.
@@ -245,6 +253,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
             m_Graph.AddNode(node);
+
+            // Register the IShaderNode to receive a callback later.
+            if (node is ProxyShaderNode proxyNode)
+            {
+                proxyNode.state.createdNodes.Add(proxyNode);
+            }
 
             if (connectedPort != null)
             {

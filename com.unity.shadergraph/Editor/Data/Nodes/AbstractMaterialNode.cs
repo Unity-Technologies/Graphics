@@ -608,7 +608,6 @@ namespace UnityEditor.ShaderGraph
             m_SerializableSlots = null;
             foreach (var s in m_Slots)
                 s.owner = this;
-            UpdateNodeAfterDeserialization();
         }
 
         public virtual void UpdateNodeAfterDeserialization()
