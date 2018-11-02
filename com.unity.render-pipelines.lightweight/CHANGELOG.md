@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.1.0-preview] - 2018-10-18
 
+### Added
+
+* The user documentation for LWRP is now in this GitHub repo, instead of in the separate GitHub wiki. You can find the most up-to-date pages in the [TableOfContents.md](TableOfCotents.md) file. Pages not listed in that file are still in progress.
+
 ## [5.0.0-preview] - 2018-09-28
 ### Added
 - Added occlusion mesh rendering/hookup for VR
