@@ -26,7 +26,7 @@ namespace UnityEngine.TestTools.Graphics
         public static void AreEqual(Texture2D expected, Camera camera, ImageComparisonSettings settings = null)
         {
             if (camera == null)
-                throw new ArgumentNullException(nameof(camera));
+                throw new ArgumentNullException("Camera");
 
             AreEqual(expected, new List<Camera>{camera}, settings);
         }
@@ -40,7 +40,7 @@ namespace UnityEngine.TestTools.Graphics
         public static void AreEqual(Texture2D expected, IEnumerable<Camera> cameras, ImageComparisonSettings settings = null)
         {
             if (cameras == null)
-                throw new ArgumentNullException(nameof(cameras));
+                throw new ArgumentNullException("cameras");
 
             if (settings == null)
                 settings = new ImageComparisonSettings();
