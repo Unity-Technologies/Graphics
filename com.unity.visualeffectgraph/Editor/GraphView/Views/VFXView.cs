@@ -76,11 +76,16 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveElement(element);
             }
+            foreach (var system in m_Systems)
+            {
+                RemoveElement(system);
+            }
 
             groupNodes.Clear();
             stickyNotes.Clear();
             rootNodes.Clear();
             rootGroupNodeElements.Clear();
+            m_Systems.Clear();
             VFXExpression.ClearCache();
             m_NodeProvider = null;
         }
@@ -485,6 +490,9 @@ namespace UnityEditor.VFX.UI
             }
 
             m_InControllerChanged = false;
+            if(change != VFXViewController.Change.dataEdge)
+                UpdateSystems();
+
             if (m_UpdateUIBounds)
             {
                 Profiler.BeginSample("VFXView.UpdateUIBounds");
@@ -1245,6 +1253,7 @@ namespace UnityEditor.VFX.UI
             if (objectSelected.Length > 0)
             {
                 Selection.objects = objectSelected;
+                Selection.objects = objectSelected;
                 return;
             }
 
@@ -1563,6 +1572,33 @@ namespace UnityEditor.VFX.UI
                 evt.menu.AppendSeparator();
             }
         }
+
+
+        List<VFXSystemBorder> m_Systems = new List<VFXSystemBorder>();
+
+        public void UpdateSystems()
+        {
+            while (m_Systems.Count() > controller.systems.Count())
+            {
+                VFXSystemBorder border = m_Systems.Last();
+                m_Systems.RemoveAt(m_Systems.Count - 1);
+                border.RemoveFromHierarchy();
+            }
+
+            foreach(var system in m_Systems)
+            {
+                system.Update();
+            }
+
+            while (m_Systems.Count() < controller.systems.Count())
+            {
+                VFXSystemBorder border = new VFXSystemBorder();
+                m_Systems.Add(border);
+                border.controller = controller.systems[m_Systems.Count()-1];
+                AddElement(border);
+            }
+        }
+        
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
         {

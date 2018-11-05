@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionTRSToMatrix(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnGPU, parents)
+        public VFXExpressionTRSToMatrix(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
         {
         }
 
@@ -41,6 +41,11 @@ namespace UnityEditor.VFX
             matrix.SetTRS(pos, quat, scale);
 
             return VFXValue.Constant(matrix);
+        }
+		
+		public override string GetCodeString(string[] parents)
+        {
+            return string.Format("GetTRSMatrix({0}, {1}, {2})", parents[0], parents[1], parents[2]);
         }
     }
 

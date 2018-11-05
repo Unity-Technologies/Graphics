@@ -37,7 +37,7 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
     #endif
 
     float4 outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
-    outColor = EvaluateAtmosphericScattering(posInput, outColor);
+    outColor = EvaluateAtmosphericScattering(posInput, GetWorldSpaceNormalizeViewDir(posRWS), outColor);
 
     #ifdef DEBUG_DISPLAY
     // Same code in ShaderPassForwardUnlit.shader
