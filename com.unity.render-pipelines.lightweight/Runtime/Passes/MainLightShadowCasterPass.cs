@@ -26,7 +26,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         int m_ShadowCasterCascadesCount;
 
         RenderTexture m_MainLightShadowmapTexture;
-        RenderTextureFormat m_ShadowmapFormat;
 
         Matrix4x4[] m_MainLightShadowMatrices;
         ShadowSliceData[] m_CascadeSlices;
@@ -56,10 +55,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             MainLightShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_MainLightShadowOffset2");
             MainLightShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_MainLightShadowOffset3");
             MainLightShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
-
-            m_ShadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
-                ? RenderTextureFormat.Shadowmap
-                : RenderTextureFormat.Depth;
         }
 
         public bool Setup(RenderTargetHandle destination, ref RenderingData renderingData)
@@ -153,10 +148,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
 
-                m_MainLightShadowmapTexture = RenderTexture.GetTemporary(shadowData.mainLightShadowmapWidth,
-                    shadowData.mainLightShadowmapHeight, k_ShadowmapBufferBits, m_ShadowmapFormat);
-                m_MainLightShadowmapTexture.filterMode = FilterMode.Bilinear;
-                m_MainLightShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
+                m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(shadowData.mainLightShadowmapWidth,
+                    shadowData.mainLightShadowmapHeight, k_ShadowmapBufferBits);
                 SetRenderTarget(cmd, m_MainLightShadowmapTexture, RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.Store, ClearFlag.Depth, Color.black, TextureDimension.Tex2D);
 
