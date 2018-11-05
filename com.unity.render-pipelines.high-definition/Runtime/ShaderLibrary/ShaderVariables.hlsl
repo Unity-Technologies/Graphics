@@ -128,7 +128,7 @@ CBUFFER_END
 #elif defined(UNITY_SINGLE_PASS_STEREO)
 #if SHADER_STAGE_COMPUTE
     // Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
-    // Instead, we manually update _ComputeEyeIndex in SRP code. 
+    // Instead, we manually update _ComputeEyeIndex in SRP code.
     #define unity_StereoEyeIndex _ComputeEyeIndex
 #else
     CBUFFER_START(UnityStereoEyeIndex)
@@ -289,7 +289,6 @@ CBUFFER_START(UnityGlobal)
     float4 _VBufferPrevDepthDecodingParams;
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/ShaderVariablesAtmosphericScattering.hlsl"
 
     #define DEFAULT_LIGHT_LAYERS 0xFF
@@ -300,6 +299,7 @@ CBUFFER_END
 CBUFFER_START(HDRPGlobalCB)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderVariablesDecal.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/ShaderVariablesSubsurfaceScattering.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"
 CBUFFER_END
 
 CBUFFER_START(HDRPPerCameraCB)
@@ -319,7 +319,7 @@ float4x4 _PrevViewProjMatrixStereo[2];
 float4   _WorldSpaceCameraPosStereo[2];
 #if SHADER_STAGE_COMPUTE
 // Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
-// Instead, we manually update _ComputeEyeIndex in SRP code. 
+// Instead, we manually update _ComputeEyeIndex in SRP code.
 float _ComputeEyeIndex;
 #endif
 CBUFFER_END

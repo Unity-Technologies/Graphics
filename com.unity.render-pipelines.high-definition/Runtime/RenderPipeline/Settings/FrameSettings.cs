@@ -127,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool useConstantBuffers = false;
 
         // GC.Alloc
-        // FrameSettings..ctor() 
+        // FrameSettings..ctor()
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
         public FrameSettings() {
@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             toCopy.CopyTo(this);
         }
-        
+
         public void CopyTo(FrameSettings frameSettings)
         {
             frameSettings.enableShadow = this.enableShadow;
@@ -165,10 +165,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableTransparentPostpass = this.enableTransparentPostpass;
             frameSettings.enableDistortion = this.enableDistortion;
             frameSettings.enablePostprocess = this.enablePostprocess;
-            
+
             frameSettings.enableOpaqueObjects = this.enableOpaqueObjects;
             frameSettings.enableTransparentObjects = this.enableTransparentObjects;
-            frameSettings.enableRealtimePlanarReflection = this.enableRealtimePlanarReflection;            
+            frameSettings.enableRealtimePlanarReflection = this.enableRealtimePlanarReflection;
 
             frameSettings.enableAsyncCompute = this.enableAsyncCompute;
 
@@ -280,17 +280,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
-                        
+
             aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
 
             aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
-            aggregate.enableRealtimePlanarReflection = srcFrameSettings.enableRealtimePlanarReflection;       
+            aggregate.enableRealtimePlanarReflection = srcFrameSettings.enableRealtimePlanarReflection;
 
             //MSAA only supported in forward
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA && aggregate.shaderLitMode == LitShaderMode.Forward;
 
-            aggregate.useConstantBuffers = /*srcFrameSettings.useConstantBuffers*/ true && SystemInfo.supportsSetConstantBuffer;
+            aggregate.useConstantBuffers = /*srcFrameSettings.useConstantBuffers*/ false && SystemInfo.supportsSetConstantBuffer;
 
             aggregate.ConfigureMSAADependentSettings();
             aggregate.ConfigureStereoDependentSettings(camera);
@@ -383,7 +383,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Async Compute", getter = () => frameSettings.enableAsyncCompute, setter = value => frameSettings.enableAsyncCompute = value },
                         new DebugUI.BoolField { displayName = "Enable Opaque Objects", getter = () => frameSettings.enableOpaqueObjects, setter = value => frameSettings.enableOpaqueObjects = value },
                         new DebugUI.BoolField { displayName = "Enable Transparent Objects", getter = () => frameSettings.enableTransparentObjects, setter = value => frameSettings.enableTransparentObjects = value },
-                        new DebugUI.BoolField { displayName = "Enable Realtime Planar Reflection", getter = () => frameSettings.enableRealtimePlanarReflection, setter = value => frameSettings.enableRealtimePlanarReflection = value },                        
+                        new DebugUI.BoolField { displayName = "Enable Realtime Planar Reflection", getter = () => frameSettings.enableRealtimePlanarReflection, setter = value => frameSettings.enableRealtimePlanarReflection = value },
                         new DebugUI.BoolField { displayName = "Enable MSAA", getter = () => frameSettings.enableMSAA, setter = value => frameSettings.enableMSAA = value },
                     }
                 },

@@ -10,5 +10,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 //        public LightLoopShaderVariables m_LightLoopVars;
         public DecalShaderVariables m_DecalVars;
         public SubsurfaceScatteringShaderVariables m_SSSVars;
+        public ShaderVariablesScreenSpaceLighting m_SSLVars;
     }
 }

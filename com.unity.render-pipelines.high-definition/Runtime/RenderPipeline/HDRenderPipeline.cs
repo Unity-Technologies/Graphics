@@ -355,7 +355,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //Note: renderPipelineResources can be migrated at deserialisation time too to have a more unified API
 #endif
         }
-        
+
         void InitializeRenderTextures()
         {
             RenderPipelineSettings settings = m_Asset.renderPipelineSettings;
@@ -672,38 +672,94 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 var ssRefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
                     ?? ScreenSpaceRefraction.@default;
-                ssRefraction.PushShaderParameters(cmd);
                 var ssReflection = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>()
                     ?? ScreenSpaceReflection.@default;
-                ssReflection.PushShaderParameters(cmd);
+
+                var currentColorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+
+                if (hdCamera.frameSettings.useConstantBuffers)
+                {
+                    shaderVars.m_SSLVars._SSRefractionInvScreenWeightDistance =
+                        1f / ssRefraction.screenWeightDistance.value;
+                    shaderVars.m_SSLVars._SSReflectionInvScreenWeightDistance =
+                        1f / ssReflection.screenWeightDistance.value;
+                    shaderVars.m_SSLVars._IndirectLightingMultiplier = new Vector4(
+                        VolumeManager.instance.stack.GetComponent<IndirectLightingController>()
+                            .indirectDiffuseIntensity, 0, 0, 0);
+
+                    // Caution: Component.GetComponent() generate 0.6KB of garbage at each frame here !
+                    var postProcessLayer = hdCamera.camera.GetComponent<PostProcessLayer>();
+                    var aopSet = false;
+                    if (hdCamera.frameSettings.enableSSAO && postProcessLayer != null && postProcessLayer.enabled)
+                    {
+                        var settings = postProcessLayer.GetSettings<AmbientOcclusion>();
+
+                        if (settings.IsEnabledAndSupported(null))
+                        {
+                            shaderVars.m_SSLVars._AmbientOcclusionParam = new Vector4(settings.color.value.r,
+                                settings.color.value.g, settings.color.value.b, settings.directLightingStrength.value);
+                            aopSet = true;
+                        }
+                    }
+
+                    if (!aopSet)
+                        shaderVars.m_SSLVars._AmbientOcclusionParam = Vector4.zero;
+
+                    PushGlobalRTHandle(
+                        cmd,
+                        m_SharedRTManager.GetDepthTexture(),
+                        HDShaderIDs._DepthPyramidTexture,
+                        ref shaderVars.m_SSLVars._DepthPyramidSize,
+                        ref shaderVars.m_SSLVars._DepthPyramidScale
+                    );
+                    PushGlobalRTHandle(
+                        cmd,
+                        currentColorPyramid,
+                        HDShaderIDs._ColorPyramidTexture,
+                        ref shaderVars.m_SSLVars._ColorPyramidSize,
+                        ref shaderVars.m_SSLVars._ColorPyramidScale
+                    );
+                    PushGlobalRTHandle(
+                        cmd,
+                        m_SharedRTManager.GetVelocityBuffer(),
+                        HDShaderIDs._CameraMotionVectorsTexture,
+                        ref shaderVars.m_SSLVars._CameraMotionVectorsSize,
+                        ref shaderVars.m_SSLVars._CameraMotionVectorsScale
+                    );
+
+                }
+                else
+                {
+                    ssRefraction.PushShaderParameters(cmd);
+                    ssReflection.PushShaderParameters(cmd);
+                    cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier, new Vector4(VolumeManager.instance.stack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity, 0, 0, 0));
+
+                    PushGlobalRTHandle(
+                        cmd,
+                        m_SharedRTManager.GetDepthTexture(),
+                        HDShaderIDs._DepthPyramidTexture,
+                        HDShaderIDs._DepthPyramidSize,
+                        HDShaderIDs._DepthPyramidScale
+                    );
+                    PushGlobalRTHandle(
+                        cmd,
+                        currentColorPyramid,
+                        HDShaderIDs._ColorPyramidTexture,
+                        HDShaderIDs._ColorPyramidSize,
+                        HDShaderIDs._ColorPyramidScale
+                    );
+                    PushGlobalRTHandle(
+                        cmd,
+                        m_SharedRTManager.GetVelocityBuffer(),
+                        HDShaderIDs._CameraMotionVectorsTexture,
+                        HDShaderIDs._CameraMotionVectorsSize,
+                        HDShaderIDs._CameraMotionVectorsScale
+                    );
+
+                }
 
                 // Set up UnityPerView CBuffer.
                 hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
-
-                cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier, new Vector4(VolumeManager.instance.stack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity, 0, 0, 0));
-
-                PushGlobalRTHandle(
-                    cmd,
-                    m_SharedRTManager.GetDepthTexture(),
-                    HDShaderIDs._DepthPyramidTexture,
-                    HDShaderIDs._DepthPyramidSize,
-                    HDShaderIDs._DepthPyramidScale
-                );
-                var currentColorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
-                PushGlobalRTHandle(
-                    cmd,
-                    currentColorPyramid,
-                    HDShaderIDs._ColorPyramidTexture,
-                    HDShaderIDs._ColorPyramidSize,
-                    HDShaderIDs._ColorPyramidScale
-                );
-                PushGlobalRTHandle(
-                    cmd,
-                    m_SharedRTManager.GetVelocityBuffer(),
-                    HDShaderIDs._CameraMotionVectorsTexture,
-                    HDShaderIDs._CameraMotionVectorsSize,
-                    HDShaderIDs._CameraMotionVectorsScale
-                );
 
                 // Light loop stuff...
                 if (hdCamera.frameSettings.enableSSR)
@@ -813,7 +869,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-        
+
         ReflectionProbeCullResults m_ReflectionProbeCullResults;
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
@@ -1110,7 +1166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // If objects velocity if enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
                         // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
                         RenderObjectsVelocity(cullingResults, hdCamera, renderContext, cmd);
-                    }                    
+                    }
 
                     // Now that all depths have been rendered, resolve the depth buffer
                     m_SharedRTManager.ResolveSharedRT(cmd, hdCamera);
@@ -1681,13 +1737,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
 
                             XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.camera.stereoEnabled);
-                            
+
                             // First deferred alpha tested materials. Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
                             var renderQueueRange = new RenderQueueRange { lowerBound = (int)RenderQueue.AlphaTest, upperBound = (int)RenderQueue.GeometryLast - 1 };
                             RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
 
                             HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
-                            
+
                             // Then forward only material that output normal buffer
                             RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                         }
@@ -1744,8 +1800,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var drawSettings = new DrawingSettings(HDShaderPassNames.s_EmptyName, sortingSettings)
                 {
                     perObjectData = PerObjectData.None
-                }; 
-                
+                };
+
                 if (rtCount4)
                 {
                     drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsMName);
@@ -2580,5 +2636,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVector(scaleID, Vector4.one);
             }
         }
+
+        void PushGlobalRTHandle(CommandBuffer cmd, RTHandleSystem.RTHandle rth, int textureID, ref Vector4 size, ref Vector4 scale)
+        {
+            if (rth != null)
+            {
+                cmd.SetGlobalTexture(textureID, rth);
+                size = new Vector4(
+                    rth.referenceSize.x,
+                    rth.referenceSize.y,
+                    1f / rth.referenceSize.x,
+                    1f / rth.referenceSize.y
+                );
+                scale = new Vector4(
+                        rth.referenceSize.x / (float)rth.rt.width,
+                        rth.referenceSize.y / (float)rth.rt.height,
+                        Mathf.Log(Mathf.Min(rth.rt.width, rth.rt.height), 2),
+                        0.0f
+                    );
+            }
+            else
+            {
+                cmd.SetGlobalTexture(textureID, Texture2D.blackTexture);
+                size = Vector4.one;
+                scale = Vector4.one;
+            }
+        }
+
     }
 }
