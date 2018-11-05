@@ -562,12 +562,6 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-        private enum RecordEvent
-        {
-            Add,
-            Remove
-        }
-
         public ReadOnlyCollection<VFXDataEdgeController> dataEdges
         {
             get { return m_DataEdges.AsReadOnly(); }

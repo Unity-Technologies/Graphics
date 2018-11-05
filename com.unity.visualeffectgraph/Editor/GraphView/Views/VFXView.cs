@@ -512,12 +512,6 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
-        public override void OnPersistentDataReady()
-        {
-            // warning : default could messes with view restoration from the VFXViewWindow (TODO : check this)
-            base.OnPersistentDataReady();
-        }
-
         void NewControllerSet()
         {
             m_Blackboard.controller = controller;
@@ -974,24 +968,6 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
-        {
-            if (controller == null) return null;
-            return controller.AddVFXContext(pos, desc);
-        }
-
-        VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
-        {
-            if (controller == null) return null;
-            return controller.AddVFXOperator(pos, desc);
-        }
-
-        VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
-        {
-            if (controller == null) return null;
-            return controller.AddVFXParameter(pos, desc);
-        }
-
         void AddVFXParameter(Vector2 pos, VFXParameterController parameterController, VFXGroupNode groupNode)
         {
             if (controller == null || parameterController == null) return;
@@ -1143,11 +1119,6 @@ namespace UnityEditor.VFX.UI
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
             }
 
-            foreach (var groupNode in groupNodes.Values)
-            {
-                groupNode.UpdateControllerFromContent();
-            }
-
             return change;
         }
 
@@ -1233,32 +1204,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
             return null;
-        }
-
-        public IEnumerable<VFXDataEdge> GetAllDataEdges()
-        {
-            foreach (var layer in contentViewContainer.Children())
-            {
-                foreach (var element in layer)
-                {
-                    if (element is VFXDataEdge)
-                    {
-                        yield return element as VFXDataEdge;
-                    }
-                }
-            }
-        }
-
-        public IEnumerable<Port> GetAllPorts(bool input, bool output)
-        {
-            foreach (var anchor in GetAllDataAnchors(input, output))
-            {
-                yield return anchor;
-            }
-            foreach (var anchor in GetAllFlowAnchors(input, output))
-            {
-                yield return anchor;
-            }
         }
 
         public void UpdateGlobalSelection()

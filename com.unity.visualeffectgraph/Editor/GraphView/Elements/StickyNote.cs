@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    public class ResizableElementFactory : UxmlFactory<ResizableElement>
+    class ResizableElementFactory : UxmlFactory<ResizableElement>
     {}
     class ElementResizer : Manipulator
     {

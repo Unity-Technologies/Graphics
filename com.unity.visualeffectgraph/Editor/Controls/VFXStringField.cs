@@ -65,11 +65,6 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
-        void OnIgnoreEvent(EventBase e)
-        {
-            e.StopPropagation();
-        }
-
         protected override void ValueToGUI(bool force)
         {
             if (indeterminate)

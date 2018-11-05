@@ -784,7 +784,7 @@ namespace UnityEditor.VFX.UI
 
             m_TextField.style.positionTop = rect.yMin;
             m_TextField.style.positionLeft = rect.xMin;
-            m_TextField.style.positionRight = m_Label.style.marginRight.value + m_Label.style.borderRight.value;
+            m_TextField.style.positionRight = m_Label.style.marginRight.value + m_Label.style.borderRightWidth.value;
             m_TextField.style.height = rect.height - m_Label.style.marginTop - m_Label.style.marginBottom;
         }
 
