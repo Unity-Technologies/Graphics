@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-
+using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
@@ -173,9 +173,42 @@ public class VisualEffectAssetEditor : Editor
         return false;
     }
 
+    ReorderableList m_ReorderableList;
+    List<IVFXSubRenderer> m_OutputContexts = new List<IVFXSubRenderer>();
+
+    void OnReorder(ReorderableList list)
+    {
+        for(int i = 0; i < m_OutputContexts.Count(); ++i)
+        {
+            m_OutputContexts[i].sortPriority =i;
+        }
+    }
+    private void DrawOutputContextItem(Rect rect, int index, bool isActive, bool isFocused)
+    {
+        EditorGUI.LabelField(rect, EditorGUIUtility.TempContent((m_OutputContexts[index] as VFXContext).fileName));
+    }
+
+    private void DrawHeader(Rect rect)
+    {
+        EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent("Output Render Order"));
+    }
+
     static Mesh s_CubeWireFrame;
     void OnEnable()
     {
+        VisualEffectAsset target = this.target as VisualEffectAsset;
+
+        m_OutputContexts.Clear();
+        m_OutputContexts.AddRange(target.GetResource().GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+
+        m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
+        m_ReorderableList.displayRemove = false;
+        m_ReorderableList.displayAdd = false;
+        m_ReorderableList.onReorderCallback = OnReorder;
+        m_ReorderableList.drawHeaderCallback = DrawHeader;
+
+        m_ReorderableList.drawElementCallback = DrawOutputContextItem;
+
         if (m_VisualEffectGO == null)
         {
             m_PreviewUtility = new PreviewRenderUtility();
@@ -198,7 +231,7 @@ public class VisualEffectAssetEditor : Editor
             m_VisualEffectGO.transform.localRotation = Quaternion.identity;
             m_VisualEffectGO.transform.localScale = Vector3.one;
 
-            m_VisualEffect.visualEffectAsset = target as VisualEffectAsset;
+            m_VisualEffect.visualEffectAsset = target;
 
             m_CurrentBounds = new Bounds(Vector3.zero, Vector3.one);
             m_FrameCount = 0;
@@ -335,10 +368,8 @@ public class VisualEffectAssetEditor : Editor
             m_Distance *= 1 + (Event.current.delta.y * .015f);
         }
 
-        if (m_Mat == null)
-        {
+        if(m_Mat == null)
             m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
-        }
 
         if (isRepaint)
         {
@@ -451,12 +482,17 @@ public class VisualEffectAssetEditor : Editor
 
         if (!serializedObject.isEditingMultipleObjects)
         {
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
             VisualEffectAsset asset = (VisualEffectAsset)target;
             VisualEffectResource resource = asset.GetResource();
 
-            var shaderSources = resource.shaderSources;
+            m_OutputContexts.Clear();
+            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
 
+            m_ReorderableList.DoLayoutList();
+
+            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
+
+            var shaderSources = resource.shaderSources;
 
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);

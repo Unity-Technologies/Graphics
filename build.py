@@ -6,6 +6,7 @@ def packages_list():
     return [
         #ORDER IS IMPORTANT
         ("com.unity.shadergraph", os.path.join("com.unity.shadergraph")),
+        ("com.unity.visualeffectgraph", os.path.join("com.unity.visualeffectgraph")),
         ("com.unity.render-pipelines.core", os.path.join("com.unity.render-pipelines.core")),
         ("com.unity.render-pipelines.lightweight", os.path.join("com.unity.render-pipelines.lightweight")),
         ("com.unity.render-pipelines.high-definition", os.path.join("com.unity.render-pipelines.high-definition")),
