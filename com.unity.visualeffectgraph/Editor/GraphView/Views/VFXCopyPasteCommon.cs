@@ -96,6 +96,7 @@ namespace UnityEditor.VFX.UI
         {
             public Node node;
             public int dataIndex;
+            public string label;
             public Node[] blocks;
         }
 

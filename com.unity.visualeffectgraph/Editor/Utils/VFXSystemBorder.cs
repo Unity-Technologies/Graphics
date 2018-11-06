@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
             AddStyleSheetPath("VFXSystemBorder");
 
             this.clippingOptions = ClippingOptions.NoClipping;
-            this.pickingMode = PickingMode.Ignore;
+            //this.pickingMode = PickingMode.Ignore;
 
             m_Title = this.Query<Label>("title");
             m_TitleField = this.Query<TextField>("title-field");
@@ -41,6 +41,22 @@ namespace UnityEditor.VFX.UI
             m_TitleField.RegisterCallback<BlurEvent>(OnTitleBlur);
             m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
             m_Title.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+        }
+
+        public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+        }
+
+        public void OnRename()
+        {
+            m_TitleField.RemoveFromClassList("empty");
+            m_TitleField.value = m_Title.text;
+            m_TitleField.visible = true;
+            UpdateTitleFieldRect();
+
+            m_TitleField.Focus();
+            m_TitleField.SelectAll();
         }
 
 
@@ -52,14 +68,7 @@ namespace UnityEditor.VFX.UI
         {
             if (e.clickCount == 2)
             {
-                m_TitleField.RemoveFromClassList("empty");
-                m_TitleField.value = m_Title.text;
-                m_TitleField.visible = true;
-                UpdateTitleFieldRect();
-
-                m_TitleField.Focus();
-                m_TitleField.SelectAll();
-
+                OnRename();
                 e.StopPropagation();
                 e.PreventDefault();
             }

@@ -1876,6 +1876,13 @@ namespace UnityEditor.VFX.UI
                             contextToController[prevContext].letter = letter;
                             prevContext = null;
                         }
+
+                        if (letter == 'Z') // loop back to A in the unlikely event that there are more than 26 contexts
+                            letter = 'a';
+                        else if( letter == 'z')
+                            letter = 'α';
+                        else if( letter == 'ω')
+                            letter = 'A';
                         contextToController[context].letter = ++letter;
                     }
                     else
