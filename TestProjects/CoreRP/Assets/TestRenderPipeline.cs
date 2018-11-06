@@ -52,6 +52,16 @@ class CullerStatisticsDebug
     }
 }
 
+class CullingDebugParameters
+{
+    public bool                     useNewCulling = false;
+    public bool                     freeVisibility = false;
+    public bool                     enableJobs = false;
+    public bool                     gatherStats = false;
+    public CullingTestMask          disabledTests = 0;
+    public CullerStatisticsDebug    statistics = new CullerStatisticsDebug();
+}
+
 [ExecuteInEditMode]
 public class TestRenderPipeline : RenderPipeline
 {
@@ -63,13 +73,13 @@ public class TestRenderPipeline : RenderPipeline
                                                             new RendererListSettings(renderQueueMin: (int)RenderQueue.Transparent, renderQueueMax: (int)RenderQueue.Transparent + 100, shaderPassNames: m_PassNames),
                                                             };
     RendererList[]                  m_RendererLists = { new RendererList(), new RendererList() };
-    LightCullingResult m_LightResult = new LightCullingResult();
+    LightCullingResult              m_LightResult = new LightCullingResult();
     ReflectionProbeCullingResult    m_ProbeResult = new ReflectionProbeCullingResult();
-
-    bool m_GatherStats = false;
-    CullerStatisticsDebug m_Statistics = new CullerStatisticsDebug();
+    CullingDebugParameters          m_CullingDebug = new CullingDebugParameters();
+    CullingParameters               m_CullingParameters = new CullingParameters();
 
     TestRenderPipelineAsset m_Asset;
+
     public TestRenderPipeline(TestRenderPipelineAsset asset)
     {
         m_Asset = asset;
@@ -78,11 +88,14 @@ public class TestRenderPipeline : RenderPipeline
         widgets.AddRange(
             new DebugUI.Widget[]
             {
-                new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => m_Asset.useNewCulling, setter = value => m_Asset.useNewCulling = value },
-                new DebugUI.BoolField { displayName = "Gather Statistics", getter = () => m_GatherStats, setter = value => m_GatherStats = value },
+                new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => m_CullingDebug.useNewCulling, setter = value => m_CullingDebug.useNewCulling = value },
+                new DebugUI.BoolField { displayName = "Enable Culling Jobs", getter = () => m_CullingDebug.enableJobs, setter = value => m_CullingDebug.enableJobs = value },
+                new DebugUI.BitField  { displayName = "Disabled Tests", getter = () => m_CullingDebug.disabledTests, setter = value => m_CullingDebug.disabledTests = (CullingTestMask)value, enumType = typeof(CullingTestMask) },
+                new DebugUI.BoolField { displayName = "Gather Statistics", getter = () => m_CullingDebug.gatherStats, setter = value => m_CullingDebug.gatherStats = value },
+                new DebugUI.BoolField { displayName = "Freeze Visibility", getter = () => m_CullingDebug.freeVisibility, setter = value => m_CullingDebug.freeVisibility = value },
             });
 
-        m_Statistics.RegisterCullingStatsDebug(widgets);
+        m_CullingDebug.statistics.RegisterCullingStatsDebug(widgets);
 
         var panel = DebugManager.instance.GetPanel("Culling", true);
         panel.flags |= DebugUI.Flags.EditorForceUpdate;
@@ -99,13 +112,14 @@ public class TestRenderPipeline : RenderPipeline
 
             renderContext.SetupCameraProperties(camera);
 
-            CullingParameters cullingParameters = new CullingParameters();
-            ScriptableCulling.FillCullingParameters(camera, ref cullingParameters);
+            if (!m_CullingDebug.freeVisibility)
+                ScriptableCulling.FillCullingParameters(camera, ref m_CullingParameters);
 
-            cullingParameters.enableJobs = false;
-            cullingParameters.extractLightProbes = true;
-            cullingParameters.gatherStatistics = m_GatherStats;
-            cullingParameters.testMask = CullingTestMask.CullingMask | CullingTestMask.LODMask;// | CullingTest.SceneMask;
+            m_CullingParameters.enableJobs = m_CullingDebug.enableJobs;
+            m_CullingParameters.extractLightProbes = true;
+            m_CullingParameters.gatherStatistics = m_CullingDebug.gatherStats;
+            m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.CullingMask | CullingTestMask.LODMask;// | CullingTest.SceneMask;
+            m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
 
             //if (camera.useOcclusionCulling)
             //    cullingParameters.parameters.cullingFlags |= CullFlag.OcclusionCull;
@@ -115,15 +129,18 @@ public class TestRenderPipeline : RenderPipeline
 
             Light dirLight = null;
 
-            if (m_Asset.useNewCulling)
+            if (m_CullingDebug.useNewCulling)
             {
-                m_Culler.CullRenderers(cullingParameters, m_Result);
+                m_Culler.CullRenderers(m_CullingParameters, m_Result);
 
-                cullingParameters.testMask = CullingTestMask.CullingMask;
-                m_Culler.CullLights(cullingParameters, m_LightResult);
-                m_Culler.CullReflectionProbes(cullingParameters, m_ProbeResult);
+                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.CullingMask | CullingTestMask.ComputeScreenRect;
+                m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
+                m_Culler.CullLights(m_CullingParameters, m_LightResult);
+                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.CullingMask;
+                m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
+                m_Culler.CullReflectionProbes(m_CullingParameters, m_ProbeResult);
 
-                m_Statistics.stats = m_Culler.GetStatistics();
+                m_CullingDebug.statistics.stats = m_Culler.GetStatistics();
 
                 m_Culler.PreparePerObjectData(m_Result, m_LightResult, m_ProbeResult);
 
@@ -172,7 +189,7 @@ public class TestRenderPipeline : RenderPipeline
             }
 
             // Render Objects
-            if (m_Asset.useNewCulling)
+            if (m_CullingDebug.useNewCulling)
             {
                 RendererList.PrepareRendererLists(m_Result, m_RendererListSettings, m_RendererLists);
             }
@@ -183,7 +200,7 @@ public class TestRenderPipeline : RenderPipeline
             CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, texID);
             cmd.ClearRenderTarget(true, true, Color.grey);
 
-            if (m_Asset.useNewCulling)
+            if (m_CullingDebug.useNewCulling)
             {
                 // Opaque
                 cmd.DrawRenderers(m_RendererLists[0], new DrawRendererSettings_New());
