@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.UIElements;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
 using Branch = UnityEditor.VFX.Operator.VFXOperatorDynamicBranch;
@@ -19,7 +17,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXOperatorUI()
         {
-            AddStyleSheetPath("VFXOperator");
+            this.AddStyleSheetPath("VFXOperator");
 
             m_Middle = new VisualElement();
             m_Middle.name = "middle";
@@ -133,12 +131,12 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.target == this && controller != null && controller.model is VFXInlineOperator)
             {
-                evt.menu.AppendAction("Convert to Parameter", OnConvertToParameter, e => DropdownMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendAction("Convert to Parameter", OnConvertToParameter, e => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendSeparator();
             }
         }
 
-        void OnConvertToParameter(DropdownMenu.MenuAction evt)
+        void OnConvertToParameter(DropdownMenuAction evt)
         {
             controller.ConvertToParameter();
         }
@@ -212,7 +210,7 @@ namespace UnityEditor.VFX.UI
 
                 float newMinWidth = Mathf.Max(settingsLabelWidth + settingsControlWidth, labelWidth + controlWidth) + 20;
 
-                if (style.minWidth != newMinWidth)
+                if (resolvedStyle.minWidth != newMinWidth)
                 {
                     style.minWidth = newMinWidth;
                 }
@@ -223,9 +221,9 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if (style.minWidth != 0)
+                if (resolvedStyle.minWidth != 0f)
                 {
-                    style.minWidth = 0;
+                    style.minWidth = 0f;
                 }
             }
         }

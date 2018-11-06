@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
@@ -140,8 +139,8 @@ namespace UnityEditor.VFX.UI
                 m_StringField = new VFXStringField(m_Label);
                 if (isDelayed)
                 {
-                    m_StringField.textfield.RegisterCallback<BlurEvent>(OnFocusLost);
-                    m_StringField.textfield.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                    m_StringField.textfield.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
+                    m_StringField.textfield.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
                 }
                 return m_StringField;
             }

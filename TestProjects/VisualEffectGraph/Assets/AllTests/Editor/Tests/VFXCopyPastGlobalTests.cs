@@ -102,7 +102,7 @@ public class VFXCopyPastGlobalTests
 
         //Copy partially in two passes
         var indexOffset = cutBeforeSource.Select((o, i) => new { o = o, i = i }).Where(o => o.o.taskType == curBeforeSource).Select(o => o.i).First();
-        var contextToCopy_A = arrayOfContext.Skip(indexOffset).Select(o => m_View.GetAllContexts().Where(u => u.controller.model == o).First() as UnityEditor.Experimental.UIElements.GraphView.GraphElement);
+        var contextToCopy_A = arrayOfContext.Skip(indexOffset).Select(o => m_View.GetAllContexts().Where(u => u.controller.model == o).First() as UnityEditor.Experimental.GraphView.GraphElement);
         foreach (var graphElement in contextToCopy_A)
             m_View.AddToSelection(graphElement);
         m_View.DuplicateSelectionCallback();
@@ -111,7 +111,7 @@ public class VFXCopyPastGlobalTests
 
         if (indexOffset > 0)
         {
-            var contextToCopy_B = arrayOfContext.Take(indexOffset).Select(o => m_View.GetAllContexts().Where(u => u.controller.model == o).First() as UnityEditor.Experimental.UIElements.GraphView.GraphElement);
+            var contextToCopy_B = arrayOfContext.Take(indexOffset).Select(o => m_View.GetAllContexts().Where(u => u.controller.model == o).First() as UnityEditor.Experimental.GraphView.GraphElement);
             foreach (var graphElement in contextToCopy_B)
                 m_View.AddToSelection(graphElement);
             m_View.DuplicateSelectionCallback();

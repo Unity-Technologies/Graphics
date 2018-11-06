@@ -1,8 +1,7 @@
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using Object = UnityEngine.Object;
 using System.Reflection;
 using System.Linq;
@@ -45,7 +44,6 @@ namespace UnityEditor.VFX.UI
 
 
         static FieldInfo s_m_ValueNull = typeof(CurveField).GetField("m_ValueNull", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
-        static FieldInfo s_m_Value = typeof(CurveField).GetField("m_Value", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
         static FieldInfo s_m_TextureDirty = typeof(CurveField).GetField("m_TextureDirty", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
         static FieldInfo s_m_Content = typeof(CurveField).GetField("m_Content", BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
 
@@ -53,7 +51,7 @@ namespace UnityEditor.VFX.UI
         {
             s_m_ValueNull.SetValue(this, newValue == null);
 
-            AnimationCurve mValue = (AnimationCurve)s_m_Value.GetValue(this);
+            AnimationCurve mValue = rawValue;
             if (newValue != null)
             {
                 mValue.keys = newValue.keys;
@@ -69,9 +67,9 @@ namespace UnityEditor.VFX.UI
 
             s_m_TextureDirty.SetValue(this, true);
 
-            if (value != null && CurveEditorWindow.visible && Object.ReferenceEquals(CurveEditorWindow.curve, m_Value))
+            if (value != null && CurveEditorWindow.visible && Object.ReferenceEquals(CurveEditorWindow.curve, value))
             {
-                CurveEditorWindow.curve = m_Value;
+                CurveEditorWindow.curve = value;
                 CurveEditorWindow.instance.Repaint();
             }
             MarkDirtyRepaint();
@@ -91,7 +89,8 @@ namespace UnityEditor.VFX.UI
 
             m_CurveField.style.flexDirection = FlexDirection.Column;
             m_CurveField.style.alignItems = Align.Stretch;
-            m_CurveField.style.flex = new Flex(1, 0);
+            m_CurveField.style.flexGrow = 1f;
+            m_CurveField.style.flexShrink = 0f;
 
             Add(m_CurveField);
         }

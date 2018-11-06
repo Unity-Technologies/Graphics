@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor.VFX.UI
 {

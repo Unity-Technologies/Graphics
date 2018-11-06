@@ -3,15 +3,16 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
+
+using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
@@ -200,13 +201,13 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new FreehandSelector());
 
-            AddStyleSheetPath("VFXView");
+            styleSheets.Add(Resources.Load<StyleSheet>("VFXView"));
 
             AddLayer(-1);
             AddLayer(1);
             AddLayer(2);
 
-            focusIndex = 0;
+            focusable = true;
 
             m_Toolbar = new VisualElement();
             m_Toolbar.AddToClassList("toolbar");
@@ -239,7 +240,7 @@ namespace UnityEditor.VFX.UI
 
 
             spacer = new VisualElement();
-            spacer.style.flex = new Flex(1);
+            spacer.style.flexGrow = 1f;
             m_Toolbar.Add(spacer);
 
             Toggle toggleRuntimeMode = new Toggle();
@@ -273,13 +274,13 @@ namespace UnityEditor.VFX.UI
 
 
             m_NoAssetLabel = new Label("Please Select An Asset");
-            m_NoAssetLabel.style.positionType = PositionType.Absolute;
-            m_NoAssetLabel.style.positionLeft = 0;
-            m_NoAssetLabel.style.positionRight = 0;
-            m_NoAssetLabel.style.positionTop = 0;
-            m_NoAssetLabel.style.positionBottom = 0;
+            m_NoAssetLabel.style.position = PositionType.Absolute;
+            m_NoAssetLabel.style.left = 0f;
+            m_NoAssetLabel.style.right = new StyleLength(0f);
+            m_NoAssetLabel.style.top = new StyleLength(0f);
+            m_NoAssetLabel.style.bottom = new StyleLength(0f);
             m_NoAssetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-            m_NoAssetLabel.style.fontSize = 72;
+            m_NoAssetLabel.style.fontSize = new StyleLength(72f);
             m_NoAssetLabel.style.color = Color.white * 0.75f;
 
             Add(m_NoAssetLabel);
@@ -311,8 +312,7 @@ namespace UnityEditor.VFX.UI
 
             Undo.undoRedoPerformed = OnUndoPerformed;
 
-            persistenceKey = "VFXView";
-
+            viewDataKey = "VFXView";
 
             RegisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
@@ -338,7 +338,7 @@ namespace UnityEditor.VFX.UI
                 Insert(childCount - 1, m_Blackboard);
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
                 m_Blackboard.RegisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
-                m_Blackboard.style.positionType = PositionType.Absolute;
+                m_Blackboard.style.position = PositionType.Absolute;
             }
             else
             {
@@ -675,7 +675,7 @@ namespace UnityEditor.VFX.UI
         {
             if (graphElement.IsResizable())
             {
-                graphElement.shadow.Add(new Resizer());
+                graphElement.hierarchy.Add(new Resizer());
                 graphElement.style.borderBottomWidth = 6;
             }
 
@@ -1021,7 +1021,7 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var layer in contentViewContainer.Children())
             {
-                foreach (var element in layer)
+                foreach (var element in layer.Children())
                 {
                     if (element is VFXContextUI)
                     {
@@ -1035,7 +1035,7 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var layer in contentViewContainer.Children())
             {
-                foreach (var element in layer)
+                foreach (var element in layer.Children())
                 {
                     if (element is VFXNodeUI)
                     {
@@ -1167,7 +1167,7 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var layer in contentViewContainer.Children())
             {
-                foreach (var element in layer)
+                foreach (var element in layer.Children())
                 {
                     if (element is VFXNodeUI)
                     {
@@ -1193,7 +1193,7 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var layer in contentViewContainer.Children())
             {
-                foreach (var element in layer)
+                foreach (var element in layer.Children())
                 {
                     if (element is VFXDataEdge)
                     {
@@ -1489,7 +1489,7 @@ namespace UnityEditor.VFX.UI
             controller.AddStickyNote(position, group != null ? group.controller : null);
         }
 
-        void OnCreateNodeInGroupNode(DropdownMenu.MenuAction e)
+        void OnCreateNodeInGroupNode(DropdownMenuAction e)
         {
             //The targeted groupnode will be determined by a PickAll later
             VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
@@ -1498,9 +1498,9 @@ namespace UnityEditor.VFX.UI
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             var targetSystem = evt.target as VFXSystemBorder;
-            if( evt.target is VFXGroupNode || evt.target is VFXSystemBorder) // Default behaviour only shows the OnCreateNode if the target is the view itself.
+            if (evt.target is VFXGroupNode || evt.target is VFXSystemBorder) // Default behaviour only shows the OnCreateNode if the target is the view itself.
                 evt.target = this;
-            
+
             base.BuildContextualMenu(evt);
 
             Vector2 mousePosition = evt.mousePosition;
@@ -1509,29 +1509,26 @@ namespace UnityEditor.VFX.UI
             if (evt.target is VFXNodeUI)
             {
                 evt.menu.InsertAction(evt.target is VFXContextUI ? 1 : 0, "Group Selection", (e) => { GroupSelection(); },
-                    (e) => { return canGroupSelection ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Disabled; });
-                hasMenu = true;
+                    (e) => { return canGroupSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
             }
 
-            if (evt.target is VFXView )
+            if (evt.target is VFXView)
             {
-                evt.menu.InsertAction(1,"Create Sticky Note", (e) => { AddStickyNote(mousePosition); },
-                    (e) => { return DropdownMenu.MenuAction.StatusFlags.Normal; });
+                evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); },
+                    (e) => { return DropdownMenuAction.Status.Normal; });
                 hasMenu = true;
             }
             if (targetSystem != null)
             {
-                if (hasMenu)
-                {
-                    evt.menu.AppendSeparator();
-                }
-                evt.menu.InsertAction(2,string.IsNullOrEmpty(targetSystem.controller.title) ? "Name System" : "Rename System", a => targetSystem.OnRename(), e => DropdownMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.InsertSeparator("", 2);
+                evt.menu.InsertAction(3, string.IsNullOrEmpty(targetSystem.controller.title) ? "Name System" : "Rename System", a => targetSystem.OnRename(), e => DropdownMenuAction.Status.Normal);
             }
 
             if (evt.target is VFXContextUI)
             {
                 var context = evt.target as VFXContextUI;
-                evt.menu.InsertAction(2,string.IsNullOrEmpty(context.controller.model.label) ? "Name Context" : "Rename Context", a => context.OnRename(), e => DropdownMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.InsertSeparator("", 2);
+                evt.menu.InsertAction(3, string.IsNullOrEmpty(context.controller.model.label) ? "Name Context" : "Rename Context", a => context.OnRename(), e => DropdownMenuAction.Status.Normal);
             }
         }
 

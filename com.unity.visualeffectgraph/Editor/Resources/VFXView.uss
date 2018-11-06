@@ -5,9 +5,9 @@ VFXView
 
 .dragdisplay
 {
-    position-type:absolute;
-    position-left:0;
-    position-right: 0;
+    position:absolute;
+    left:0;
+    right: 0;
     height:4;
     margin-top:-2;
     background-color: rgb(210, 152, 0);
@@ -15,44 +15,47 @@ VFXView
 
 .toolbar {
     background-image: resource("Builtin Skins/DarkSkin/Images/Toolbar.png");
-    slice-top:2;
-    slice-bottom:2;
+    -unity-slice-top:2;
+    -unity-slice-bottom:2;
     height:17;
-    position-type:absolute;
-    position-top:0;
-    position-left:0;
-    position-right:0;
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
     flex-direction:row;
 }
 
 .toolbarItem, .toolbarItem *
 {
-    text-color:#ababab;
+    color:#ababab;
     font-size:11;
 }
 
-Button.toolbarItem
+.unity-button.toolbarItem
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button.png");
-    slice-left:6;
-    slice-right:6;
+    -unity-slice-left:6;
+    -unity-slice-right:6;
     height:17;
+    min-height:17;
     margin-left:0;
     margin-right:0;
     margin-bottom:0;
     margin-top:0;
+    padding-left:12;
+    padding-right:12;
 }
 
-Button.toolbarItem:hover:active
+.unity-button.toolbarItem:hover:active
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button act.png");
 }
 
-Toggle.toolbarItem
+.unity-toggle.toolbarItem
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button.png");
-    slice-left:6;
-    slice-right:6;
+    -unity-slice-left:6;
+    -unity-slice-right:6;
     height:17;
     margin-left:0;
     margin-right:0;
@@ -64,29 +67,29 @@ Toggle.toolbarItem
     padding-right:12;
 }
 
-Toggle.toolbarItem > #Checkmark,Toggle.toolbarItem:checked > #Checkmark,Toggle.toolbarItem:hover:active > #Checkmark,Toggle.toolbarItem:hover:active:checked > #Checkmark
+.unity-toggle.toolbarItem >* > #unity-checkmark,.unity-toggle.toolbarItem:checked >* > #unity-checkmark,.unity-toggle.toolbarItem:hover:active >* > #unity-checkmark,.unity-toggle.toolbarItem:hover:active:checked >* > #unity-checkmark
 {
     background-image:none;
     width:0;
 }
 
-Toggle.toolbarItem > Label.textElement
+.unity-toggle.toolbarItem > .unity-label.textElement
 {
     margin-left:0;
-    text-alignment:middle-center;
+    -unity-text-align:middle-center;
 }
 
-Toggle.toolbarItem:hover:active
+.unity-toggle.toolbarItem:hover:active
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button act.png");
 }
 
-Toggle.toolbarItem:checked
+.unity-toggle.toolbarItem:checked
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button on.png");
 }
 
-Toggle.toolbarItem:checked:hover:active
+.unity-toggle.toolbarItem:checked:hover:active
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button act on.png");
 }

@@ -9,8 +9,12 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.VFX;
 
+
 using UnityEditor.Experimental.VFX;
 
+using UnityEditor.VFX;
+using UnityEditor.VFX.UI;
+using EditMode = UnityEditorInternal.EditMode;
 using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
