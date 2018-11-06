@@ -146,7 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
-                HDLitMasterNode.SmoothnessSlotId,
+                FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AlphaSlotId,
                 FabricMasterNode.AlphaThresholdSlotId
             },
@@ -224,7 +224,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
-                HDLitMasterNode.SmoothnessSlotId,
+                FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AlphaSlotId,
                 FabricMasterNode.AlphaThresholdSlotId
             },
