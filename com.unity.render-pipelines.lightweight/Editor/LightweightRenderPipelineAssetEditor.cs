@@ -254,9 +254,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 ShadowCascadesOption cascades = (ShadowCascadesOption)m_ShadowCascadesProp.intValue;
                 if (cascades == ShadowCascadesOption.FourCascades)
-                    CoreEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
+                    LightweightRenderPipelineEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
                 else if (cascades == ShadowCascadesOption.TwoCascades)
-                    CoreEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
+                    LightweightRenderPipelineEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
 
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, k_MaxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, k_MaxShadowBias);
