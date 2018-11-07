@@ -180,9 +180,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             uint      last      = lightCount - 1;
             LightData lightData = FetchLight(lightStart, i);
 
-            while (i <= last && lightData.lightType == GPULIGHTTYPE_LINE)
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_TUBE)
             {
-                lightData.lightType = GPULIGHTTYPE_LINE; // Enforce constant propagation
+                lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
 
                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
                 {
