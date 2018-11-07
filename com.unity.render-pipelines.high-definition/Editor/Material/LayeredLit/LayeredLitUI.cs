@@ -9,9 +9,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class LayeredLitGUI : LitGUI
     {
-        //Be sure to start after last BaseUnlitGUI.Expendable
+        //Be sure to start after last BaseUnlitGUI.Expandable
         [Flags]
-        protected enum LayerExpendable : uint
+        protected enum LayerExpandable : uint
         {
             LayeringOptionMain = 1 << 15,
             ShowLayer1 = 1 << 16,
@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LayeringOption3 = 1 << 30
         }
 
-        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Other | Expendable.Tesselation) + (uint)(LayerExpendable.MaterialReferences | LayerExpendable.MainInput | LayerExpendable.MainDetail); } }
+        protected override uint defaultExpandedState { get { return (uint)(Expandable.Base | Expandable.Input | Expandable.VertexAnimation | Expandable.Detail | Expandable.Emissive | Expandable.Transparency | Expandable.Other | Expandable.Tesselation) + (uint)(LayerExpandable.MaterialReferences | LayerExpandable.MainInput | LayerExpandable.MainDetail); } }
         
         public enum VertexColorMode
         {
@@ -212,13 +212,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (layerNumber == 4)
             {
-                SetExpendedAreas((uint)LayerExpendable.ShowLayer3, true);
+                SetExpandedAreas((uint)LayerExpandable.ShowLayer3, true);
             }
             if (layerNumber >= 3)
             {
-                SetExpendedAreas((uint)LayerExpendable.ShowLayer2, true);
+                SetExpandedAreas((uint)LayerExpandable.ShowLayer2, true);
             }
-            SetExpendedAreas((uint)LayerExpendable.ShowLayer1, true);
+            SetExpandedAreas((uint)LayerExpandable.ShowLayer1, true);
         }
 
         int numLayer
@@ -352,13 +352,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool result = false;
 
             int paramIndex = -1;
-            Array values = Enum.GetValues(typeof(LayerExpendable));
+            Array values = Enum.GetValues(typeof(LayerExpandable));
             if (layerIndex > 0)
             {
                 paramIndex = layerIndex - 1;
 
-                int startShowVal = Array.IndexOf(values, LayerExpendable.ShowLayer1);
-                if (!GetExpendedAreas((uint)values.GetValue(startShowVal + paramIndex)))
+                int startShowVal = Array.IndexOf(values, LayerExpandable.ShowLayer1);
+                if (!GetExpandedAreas((uint)values.GetValue(startShowVal + paramIndex)))
                 {
                     return false;
                 }
@@ -373,10 +373,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Main layer does not have any options but height base blend.
             if (layerIndex > 0)
             {
-                int startLayeringOptionValue = Array.IndexOf(values, LayerExpendable.LayeringOption1);
+                int startLayeringOptionValue = Array.IndexOf(values, LayerExpandable.LayeringOption1);
                 using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)values.GetValue(startLayeringOptionValue + paramIndex), this, colorDot: s_Styles.layerColors[layerIndex]))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                     {
                         m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
 
@@ -394,15 +394,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
             {
-                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)LayerExpendable.LayeringOptionMain, this, colorDot: s_Styles.layerColors[layerIndex]))
+                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)LayerExpandable.LayeringOptionMain, this, colorDot: s_Styles.layerColors[layerIndex]))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                         m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
                 }
             }
 
-            int startInputValue = Array.IndexOf(values, LayerExpendable.Layer1Input);
-            int startDetailValue = Array.IndexOf(values, LayerExpendable.Layer1Detail);
+            int startInputValue = Array.IndexOf(values, LayerExpandable.Layer1Input);
+            int startDetailValue = Array.IndexOf(values, LayerExpandable.Layer1Detail);
             DoLayerGUI(material, layerIndex, true, m_UseHeightBasedBlend, s_Styles.layerLabels[layerIndex].text + " ", (uint)values.GetValue(startInputValue + paramIndex), (uint)values.GetValue(startDetailValue + paramIndex), colorDot: s_Styles.layerColors[layerIndex]);
 
             return result;
@@ -410,9 +410,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void DoLayeringInputGUI()
         {
-            using (var header = new HeaderScope(styles.layersText.text, (uint)Expendable.Input, this))
+            using (var header = new HeaderScope(styles.layersText.text, (uint)Expandable.Input, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     EditorGUI.showMixedValue = layerCount.hasMixedValue;
                     EditorGUI.BeginChangeCheck();
@@ -480,9 +480,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             bool layersChanged = false;
 
-            using (var header = new HeaderScope(styles.materialReferencesText.text, (uint)LayerExpendable.MaterialReferences, this))
+            using (var header = new HeaderScope(styles.materialReferencesText.text, (uint)LayerExpandable.MaterialReferences, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     var width = EditorGUIUtility.labelWidth;
                     EditorGUIUtility.labelWidth = 90;
@@ -749,7 +749,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor = materialEditor;
 
             // We should always register the key used to keep collapsable state
-            InitExpendableState(materialEditor);
+            InitExpandableState(materialEditor);
 
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
@@ -762,9 +762,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
             {
-                using (var header = new HeaderScope(StylesBaseUnlit.optionText, (uint)Expendable.Base, this))
+                using (var header = new HeaderScope(StylesBaseUnlit.optionText, (uint)Expandable.Base, this))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                         BaseMaterialPropertiesGUI();
                 }
                 MaterialTesselationPropertiesGUI();
@@ -827,9 +827,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             DoEmissionArea(material);
 
-            using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expendable.Advance, this))
+            using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expandable.Advance, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
                     m_MaterialEditor.EnableInstancingField();
