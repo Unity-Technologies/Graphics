@@ -118,8 +118,9 @@ public class TestRenderPipeline : RenderPipeline
             m_CullingParameters.enableJobs = m_CullingDebug.enableJobs;
             m_CullingParameters.extractLightProbes = true;
             m_CullingParameters.gatherStatistics = m_CullingDebug.gatherStats;
-            m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.LODMask;// | CullingTest.SceneMask;
+            m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.LODMask | CullingTestMask.FlagMaskNot;// | CullingTest.SceneMask;
             m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
+            m_CullingParameters.cullingTestParameters.cullingFlagsMaskNot = CullingFlags.CastShadowsOnly;
 
             //if (camera.useOcclusionCulling)
             //    cullingParameters.parameters.cullingFlags |= CullFlag.OcclusionCull;
