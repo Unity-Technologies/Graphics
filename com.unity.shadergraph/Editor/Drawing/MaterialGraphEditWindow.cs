@@ -12,7 +12,6 @@ using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Rendering;
 
@@ -193,6 +192,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
+
+                bool VCSEnabled = (VersionControl.Provider.enabled && VersionControl.Provider.isActive);
+                CheckoutIfValid(path, VCSEnabled);
 
                 if (m_GraphObject.graph.GetType() == typeof(MaterialGraph))
                     UpdateShaderGraphOnDisk(path);
@@ -539,6 +541,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FrameAllAfterLayout = false;
             foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
                 node.Dirty(ModificationScope.Node);
+        }
+
+        void CheckoutIfValid(string path, bool VCSEnabled)
+        {
+            if (VCSEnabled)
+            {
+                var asset = VersionControl.Provider.GetAssetByPath(path);
+                if (asset != null)
+                {
+                    if (VersionControl.Provider.CheckoutIsValid(asset))
+                    {
+                        var task = VersionControl.Provider.Checkout(asset, VersionControl.CheckoutMode.Both);
+                        task.Wait();
+
+                        if (!task.success)
+                            Debug.Log(task.text + " " + task.resultCode);
+                    }
+                }
+            }
         }
     }
 }
