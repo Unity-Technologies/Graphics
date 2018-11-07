@@ -38,6 +38,11 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         // Serialization helpers
+        /// <summary>
+        /// To use with extreme caution. It not really get the property but try to find a field with similar name
+        /// Hence inheritance override of property is not supported.
+        /// Also variable rename will silently break the search.
+        /// </summary>
         public static string FindProperty<T, TValue>(Expression<Func<T, TValue>> expr)
         {
             // Get the field path as a string
