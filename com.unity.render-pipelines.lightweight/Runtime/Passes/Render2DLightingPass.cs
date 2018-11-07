@@ -30,8 +30,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         const string k_UseRimTexture = "USE_RIM_TEXTURE";
 
         const float k_OverbrightMultiplier = 8.0f;
-        const string k_CreateShapeLightTag = "Render 2D Shape Light Pass";
-
+        const string k_Render2DLightingPassTag = "Render 2D Shape Light Pass";
 
         static SortingLayer[] m_SortingLayers;
 
@@ -95,7 +94,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                             {
                                 if (!renderedFirstLight)
                                 {
-                                    SetRenderTarget(cmdBuffer, renderTargetHandle.id, RenderBufferLoadAction.Clear, RenderBufferStoreAction.Resolve, ClearFlag.Color, clearColor, TextureDimension.Tex2D);
+                                    cmdBuffer.SetRenderTarget(renderTargetHandle.id);
+                                    //SetRenderTarget(cmdBuffer, renderTargetHandle.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, clearColor, TextureDimension.Tex2D);
                                     renderedFirstLight = true;
                                 }
 
@@ -133,6 +133,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         //==========================================================================================================================
         public void Setup(Color defaultAmbientColor, RenderTextureDescriptor ambientRTDescriptor, RenderTextureDescriptor specularRTDescriptor, RenderTextureDescriptor rimRTDescriptor, FilterMode ambientFilterMode, FilterMode specularFilterMode, FilterMode rimFilterMode)
         {
+            RegisterShaderPassName("LightweightForward");
+
+
             // This should probably come from the Light2D. Maybe this value should be assigned to the Light2D when the pipeline is created
             m_DefaultAmbientColor = defaultAmbientColor / k_OverbrightMultiplier;
             m_DefaultSpecularColor = Color.black;
@@ -149,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = null;
+            CommandBuffer cmd = CommandBufferPool.Get(k_Render2DLightingPassTag);
             CreateRenderTextures(cmd);
 
             cmd.SetGlobalColor("_AmbientColor", m_DefaultAmbientColor);
@@ -170,15 +173,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 FilteringSettings filterSettings = new FilteringSettings();
                 filterSettings.layerMask = ~0;
                 filterSettings.renderingLayerMask = 0xFFFFFFFF;
-                filterSettings.sortingLayerRange = new SortingLayerRange(layerValue, layerValue);
-
+                filterSettings.sortingLayerRange = SortingLayerRange.all;
                 DrawingSettings drawSettings = new DrawingSettings();
                 drawSettings.enableInstancing = true;
                 drawSettings.enableDynamicBatching = true;
                 drawSettings.sortingSettings = sortingSettings;
 
                 RenderLights(cmd, layerToRender);
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                //context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
             }
 
             ReleaseRenderTextures(cmd);

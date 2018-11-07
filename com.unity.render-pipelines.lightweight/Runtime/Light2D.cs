@@ -111,7 +111,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Sprite m_LightCookieSprite;
         private Sprite m_PreviousLightCookieSprite = null;
 
-        static List<Light2D>[] m_Lights;
+        static List<Light2D>[] m_Lights = SetupLightArray();
 
         public Mesh m_ShapeLightMesh;
 
@@ -123,11 +123,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     m_ShapeLightMesh = new Mesh();
                 return m_ShapeLightMesh;
             }
-        }
-
-        void OnEnable()
-        {
-            m_Lights = SetupLightArray();
         }
 
         static public List<Light2D>[] SetupLightArray()

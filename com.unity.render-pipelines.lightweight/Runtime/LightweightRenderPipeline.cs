@@ -201,12 +201,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (cameraData.isSceneViewCamera)
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
-
                 var cullResults = context.Cull(ref cullingParameters);
 
                 InitializeRenderingData(settings, ref cameraData, ref cullResults,
                     renderer.maxVisibleAdditionalLights, renderer.maxPerObjectAdditionalLights, out var renderingData);
-
                 
                 renderer.Clear();
                 cameraData.rendererSetup?.Setup(renderer, ref renderingData);

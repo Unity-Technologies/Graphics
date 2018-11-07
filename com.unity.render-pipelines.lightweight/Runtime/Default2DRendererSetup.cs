@@ -8,14 +8,33 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    internal class Default2DRendererSetup : ScriptableObject, IRendererSetup
+    internal class Default2DRendererSetup : LightweightRendererSetup
     {
-        public RenderTextureDescriptor m_AmbientRTDescriptor;
-        public FilterMode m_AmbientRTFilterMode;
-        public RenderTextureDescriptor m_SpecularRTDescriptor;
-        public FilterMode m_SpecularRTFilterMode;
-        public RenderTextureDescriptor m_RimRTDescriptor;
-        public FilterMode m_RimRTFilterMode;
+        [Serializable]
+        public class RenderTextureInfo
+        {
+            public int width = 512;
+            public int height = 512;
+            public int msaaSamples = 1;
+            public FilterMode filterMode = FilterMode.Bilinear;
+
+            // This probably needs to be changed...
+            public static implicit operator RenderTextureDescriptor(RenderTextureInfo info)
+            {
+                RenderTextureDescriptor desc = new RenderTextureDescriptor();
+                desc.width = info.width;
+                desc.height = info.height;
+                desc.msaaSamples = info.msaaSamples;
+                desc.dimension = TextureDimension.Tex2D;
+                desc.colorFormat = RenderTextureFormat.RGB111110Float;
+                desc.depthBufferBits = 0;
+                return desc;
+            }
+        }
+
+        public RenderTextureInfo m_AmbientRenderTextureInfo;
+        public RenderTextureInfo m_SpecularRenderTextureInfo;
+        public RenderTextureInfo m_RimRenderTextureInfo;
         public Color m_AmbientDefaultColor;
 
         private RenderTextureFormat m_RenderTextureFormatToUse;
@@ -53,17 +72,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
                 m_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
 
+
+
+
             m_Render2DLightingPass = new Render2DLightingPass();
 
             m_Initialized = true;
         }
 
-
-        public void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
+        public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             Init();
 
-            m_Render2DLightingPass.Setup(m_AmbientDefaultColor, m_AmbientRTDescriptor, m_SpecularRTDescriptor, m_RimRTDescriptor, m_AmbientRTFilterMode, m_SpecularRTFilterMode, m_RimRTFilterMode);
+            RenderTextureDescriptor ambientRTDescriptor = m_AmbientRenderTextureInfo;
+            RenderTextureDescriptor specularRTDescriptor = m_SpecularRenderTextureInfo;
+            RenderTextureDescriptor rimRTDescriptor = m_RimRenderTextureInfo;
+
+            m_Render2DLightingPass.Setup(m_AmbientDefaultColor, ambientRTDescriptor, specularRTDescriptor, rimRTDescriptor, m_AmbientRenderTextureInfo.filterMode, m_SpecularRenderTextureInfo.filterMode, m_RimRenderTextureInfo.filterMode);
             renderer.EnqueuePass(m_Render2DLightingPass);
         }
 
@@ -85,3 +110,4 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         #endif
     }
 }
+
