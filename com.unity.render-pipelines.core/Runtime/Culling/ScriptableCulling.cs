@@ -17,6 +17,16 @@ namespace UnityEngine.Experimental.Rendering
             Num,
         };
 
+        static Plane MakeFrustumPlane(float a, float b, float c, float d)
+        {
+            Plane result = new Plane();
+            Vector3 normal = new Vector3(a, b, c);
+            float l = normal.magnitude;
+            result.normal = normal / l;
+            result.distance = d / l;
+            return result;
+        }
+
         static unsafe void ExtractMatrixPlanes(in Matrix4x4 matrix, Plane *outPlanes)
         {
             Vector4 tmpVec;
@@ -33,8 +43,8 @@ namespace UnityEngine.Experimental.Rendering
             otherVec.w = matrix.m03;
 
             // left & right
-            outPlanes[(int)FrustumPlanes.Left] = new Plane(new Vector3(otherVec[0] + tmpVec[0], otherVec[1] + tmpVec[1], otherVec[2] + tmpVec[2]), otherVec[3] + tmpVec[3]);
-            outPlanes[(int)FrustumPlanes.Right] = new Plane(new Vector3(-otherVec[0] + tmpVec[0], -otherVec[1] + tmpVec[1], -otherVec[2] + tmpVec[2]), -otherVec[3] + tmpVec[3]);
+            outPlanes[(int)FrustumPlanes.Left] = MakeFrustumPlane(otherVec[0] + tmpVec[0], otherVec[1] + tmpVec[1], otherVec[2] + tmpVec[2], otherVec[3] + tmpVec[3]);
+            outPlanes[(int)FrustumPlanes.Right] = MakeFrustumPlane(-otherVec[0] + tmpVec[0], -otherVec[1] + tmpVec[1], -otherVec[2] + tmpVec[2], -otherVec[3] + tmpVec[3]);
 
             // bottom & top
             otherVec.x = matrix.m10;
@@ -42,8 +52,8 @@ namespace UnityEngine.Experimental.Rendering
             otherVec.z = matrix.m12;
             otherVec.w = matrix.m13;
 
-            outPlanes[(int)FrustumPlanes.Bottom] = new Plane(new Vector3(otherVec[0] + tmpVec[0], otherVec[1] + tmpVec[1], otherVec[2] + tmpVec[2]), otherVec[3] + tmpVec[3]);
-            outPlanes[(int)FrustumPlanes.Top] = new Plane(new Vector3(-otherVec[0] + tmpVec[0], -otherVec[1] + tmpVec[1], -otherVec[2] + tmpVec[2]), -otherVec[3] + tmpVec[3]);
+            outPlanes[(int)FrustumPlanes.Bottom] = MakeFrustumPlane(otherVec[0] + tmpVec[0], otherVec[1] + tmpVec[1], otherVec[2] + tmpVec[2], otherVec[3] + tmpVec[3]);
+            outPlanes[(int)FrustumPlanes.Top] = MakeFrustumPlane(-otherVec[0] + tmpVec[0], -otherVec[1] + tmpVec[1], -otherVec[2] + tmpVec[2], -otherVec[3] + tmpVec[3]);
 
             otherVec.x = matrix.m20;
             otherVec.y = matrix.m21;
@@ -51,8 +61,8 @@ namespace UnityEngine.Experimental.Rendering
             otherVec.w = matrix.m23;
 
             // near & far
-            outPlanes[(int)FrustumPlanes.Near] = new Plane(new Vector3(otherVec[0] + tmpVec[0], otherVec[1] + tmpVec[1], otherVec[2] + tmpVec[2]), otherVec[3] + tmpVec[3]);
-            outPlanes[(int)FrustumPlanes.Far] = new Plane(new Vector3(-otherVec[0] + tmpVec[0], -otherVec[1] + tmpVec[1], -otherVec[2] + tmpVec[2]), -otherVec[3] + tmpVec[3]);
+            outPlanes[(int)FrustumPlanes.Near] = MakeFrustumPlane(otherVec[0] + tmpVec[0], otherVec[1] + tmpVec[1], otherVec[2] + tmpVec[2], otherVec[3] + tmpVec[3]);
+            outPlanes[(int)FrustumPlanes.Far] = MakeFrustumPlane(-otherVec[0] + tmpVec[0], -otherVec[1] + tmpVec[1], -otherVec[2] + tmpVec[2], -otherVec[3] + tmpVec[3]);
         }
 
         public static void FillCullingParameters(Camera camera, ref CullingParameters parameters)

@@ -55,7 +55,7 @@ class CullerStatisticsDebug
 class CullingDebugParameters
 {
     public bool                     useNewCulling = false;
-    public bool                     freeVisibility = false;
+    public bool                     freezeVisibility = false;
     public bool                     enableJobs = false;
     public bool                     gatherStats = false;
     public CullingTestMask          disabledTests = 0;
@@ -92,7 +92,7 @@ public class TestRenderPipeline : RenderPipeline
                 new DebugUI.BoolField { displayName = "Enable Culling Jobs", getter = () => m_CullingDebug.enableJobs, setter = value => m_CullingDebug.enableJobs = value },
                 new DebugUI.BitField  { displayName = "Disabled Tests", getter = () => m_CullingDebug.disabledTests, setter = value => m_CullingDebug.disabledTests = (CullingTestMask)value, enumType = typeof(CullingTestMask) },
                 new DebugUI.BoolField { displayName = "Gather Statistics", getter = () => m_CullingDebug.gatherStats, setter = value => m_CullingDebug.gatherStats = value },
-                new DebugUI.BoolField { displayName = "Freeze Visibility", getter = () => m_CullingDebug.freeVisibility, setter = value => m_CullingDebug.freeVisibility = value },
+                new DebugUI.BoolField { displayName = "Freeze Visibility", getter = () => m_CullingDebug.freezeVisibility, setter = value => m_CullingDebug.freezeVisibility = value },
             });
 
         m_CullingDebug.statistics.RegisterCullingStatsDebug(widgets);
@@ -112,13 +112,13 @@ public class TestRenderPipeline : RenderPipeline
 
             renderContext.SetupCameraProperties(camera);
 
-            if (!m_CullingDebug.freeVisibility)
+            if (!m_CullingDebug.freezeVisibility)
                 ScriptableCulling.FillCullingParameters(camera, ref m_CullingParameters);
 
             m_CullingParameters.enableJobs = m_CullingDebug.enableJobs;
             m_CullingParameters.extractLightProbes = true;
             m_CullingParameters.gatherStatistics = m_CullingDebug.gatherStats;
-            m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.CullingMask | CullingTestMask.LODMask;// | CullingTest.SceneMask;
+            m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.LODMask;// | CullingTest.SceneMask;
             m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
 
             //if (camera.useOcclusionCulling)
@@ -133,10 +133,10 @@ public class TestRenderPipeline : RenderPipeline
             {
                 m_Culler.CullRenderers(m_CullingParameters, m_Result);
 
-                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.CullingMask | CullingTestMask.ComputeScreenRect;
+                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.ComputeScreenRect;
                 m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
                 m_Culler.CullLights(m_CullingParameters, m_LightResult);
-                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.CullingMask;
+                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask;
                 m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
                 m_Culler.CullReflectionProbes(m_CullingParameters, m_ProbeResult);
 
