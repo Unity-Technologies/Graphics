@@ -8,7 +8,7 @@
     "com.unity.textmeshpro": "1.2.4"
   },
   "testables": [
-    "com.unity.render-pipelines.shadergraph",
+    "com.unity.shadergraph",
     "com.unity.testframework.graphics"
   ]
 }
