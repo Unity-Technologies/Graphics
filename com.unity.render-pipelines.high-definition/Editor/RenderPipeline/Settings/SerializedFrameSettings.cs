@@ -33,6 +33,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty enablePostprocess;
 
         public SerializedProperty enableAsyncCompute;
+        public SerializedProperty runBuildLightListAsync;
+        public SerializedProperty runSSRAsync;
+        public SerializedProperty runSSAOAsync;
 
         public SerializedProperty enableOpaqueObjects;
         public SerializedProperty enableTransparentObjects;
@@ -287,6 +290,44 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     overrides.intValue &= ~(int)FrameSettingsOverrides.AsyncCompute;
             }
         }
+
+        public bool overrideLightListInAsync
+        {
+            get { return (overrides.intValue & (int)FrameSettingsOverrides.LightListAsync) > 0; }
+            set
+            {
+                if (value)
+                    overrides.intValue |= (int)FrameSettingsOverrides.LightListAsync;
+                else
+                    overrides.intValue &= ~(int)FrameSettingsOverrides.LightListAsync;
+            }
+        }
+
+        public bool overrideSSRInAsync
+        {
+            get { return (overrides.intValue & (int)FrameSettingsOverrides.SSRAsync) > 0; }
+            set
+            {
+                if (value)
+                    overrides.intValue |= (int)FrameSettingsOverrides.SSRAsync;
+                else
+                    overrides.intValue &= ~(int)FrameSettingsOverrides.SSRAsync;
+            }
+        }
+
+        public bool overrideSSAOInAsync
+        {
+            get { return (overrides.intValue & (int)FrameSettingsOverrides.SSAOAsync) > 0; }
+            set
+            {
+                if (value)
+                    overrides.intValue |= (int)FrameSettingsOverrides.SSAOAsync;
+                else
+                    overrides.intValue &= ~(int)FrameSettingsOverrides.SSAOAsync;
+            }
+        }
+
+
         public bool overridesOpaqueObjects
         {
             get { return (overrides.intValue & (int)FrameSettingsOverrides.OpaqueObjects) > 0; }
@@ -361,6 +402,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             enableDistortion = root.Find((FrameSettings d) => d.enableDistortion);
             enablePostprocess = root.Find((FrameSettings d) => d.enablePostprocess);
             enableAsyncCompute = root.Find((FrameSettings d) => d.enableAsyncCompute);
+            runBuildLightListAsync = root.Find((FrameSettings d) => d.runLightListAsync);
+            runSSRAsync = root.Find((FrameSettings d) => d.runSSRAsync);
+            runSSAOAsync = root.Find((FrameSettings d) => d.runSSAOAsync);
             enableOpaqueObjects = root.Find((FrameSettings d) => d.enableOpaqueObjects);
             enableTransparentObjects = root.Find((FrameSettings d) => d.enableTransparentObjects);
             enableRealtimePlanarReflection = root.Find((FrameSettings d) => d.enableRealtimePlanarReflection);
