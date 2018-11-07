@@ -4,7 +4,7 @@ float2  _DecalAtlasResolution;
 uint    _DecalCount;
 #else
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal//Decal.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.cs.hlsl"
 
 StructuredBuffer<DecalData> _DecalDatas;
 
