@@ -49,6 +49,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public ScriptableRenderer renderer { get; private set; }
         PipelineSettings settings { get; set; }
 
+        public static float maxShadowBias
+        {
+            get { return 10.0f; }
+        }
+
+        public static float minRenderScale
+        {
+            get { return 0.1f; }
+        }
+
+        public static float maxRenderScale
+        {
+            get { return 4.0f; }
+        }
+
+        public static int maxPerObjectLightCount
+        {
+            get { return 4; }
+        }
+
         internal struct PipelineSettings
         {
             public bool supportsCameraDepthTexture { get; private set; }
@@ -65,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public bool supportsAdditionalLightShadows { get; private set; }
             public int additionalLightsShadowmapResolution { get; private set; }
             public float shadowDistance { get; private set; }
-            public int cascadeCount { get; private set; }
+            public ShadowCascadesOption shadowCascadeOption { get; private set; }
             public float cascade2Split { get; private set; }
             public Vector3 cascade4Split { get; private set; }
             public float shadowDepthBias { get; private set; }
@@ -100,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 // Shadow settings
                 cache.shadowDistance = asset.shadowDistance;
-                cache.cascadeCount = asset.cascadeCount;
+                cache.shadowCascadeOption = asset.shadowCascadeOption;
                 cache.cascade2Split = asset.cascade2Split;
                 cache.cascade4Split = asset.cascade4Split;
                 cache.shadowDepthBias = asset.shadowDepthBias;
@@ -378,8 +398,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             shadowData.supportsMainLightShadows = settings.supportsMainLightShadows && mainLightCastShadows;
 
             // we resolve shadows in screenspace when cascades are enabled to save ALU as computing cascade index + shadowCoord on fragment is expensive
-            shadowData.requiresScreenSpaceShadowResolve = shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.cascadeCount > 1;
-            shadowData.mainLightShadowCascadesCount = (shadowData.requiresScreenSpaceShadowResolve) ? settings.cascadeCount : 1;
+            shadowData.requiresScreenSpaceShadowResolve = shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
+            shadowData.mainLightShadowCascadesCount = (shadowData.requiresScreenSpaceShadowResolve) ? (int)settings.shadowCascadeOption : 1;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
 
