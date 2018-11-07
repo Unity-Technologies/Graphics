@@ -131,7 +131,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/049_Lighting_Mixed_Subtractive.unity
     guid: ffaad23a2c7fc41b48e4e7ab7e9273e4
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/050_Shader_Graphs.unity
     guid: 6e7a83866a1e446b3becf7972371c5d0
   - enabled: 1
