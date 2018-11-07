@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added distant (fallback) volumetric fog + improved fog evaluation precision
 - Add an option to reflect sky in SSR
 - Add y offset for PlanarReflectionProbe and offset tool
+- Expose option to run SSR and SSAO on async compute. 
 
 ### Fixed
 - Fixed sphere shaped influence handles clamping in reflection probes
