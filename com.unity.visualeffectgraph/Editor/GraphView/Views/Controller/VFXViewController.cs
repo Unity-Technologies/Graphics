@@ -1759,6 +1759,11 @@ namespace UnityEditor.VFX.UI
 
         public void GroupNodes(IEnumerable<VFXNodeController> nodes)
         {
+
+            foreach( var g in groupNodes) // remove nodes from other exisitings groups
+            {
+                g.RemoveNodes(nodes);
+            }
             VFXUI.GroupInfo info = PrivateAddGroupNode(Vector2.zero);
 
             info.contents = nodes.Select(t => new VFXNodeID(t.model, t.id)).ToArray();

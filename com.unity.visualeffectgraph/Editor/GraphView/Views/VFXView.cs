@@ -1504,7 +1504,6 @@ namespace UnityEditor.VFX.UI
             base.BuildContextualMenu(evt);
 
             Vector2 mousePosition = evt.mousePosition;
-            bool hasMenu = false;
 
             if (evt.target is VFXNodeUI)
             {
@@ -1514,9 +1513,7 @@ namespace UnityEditor.VFX.UI
 
             if (evt.target is VFXView)
             {
-                evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); },
-                    (e) => { return DropdownMenuAction.Status.Normal; });
-                hasMenu = true;
+                evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); },(e) => DropdownMenuAction.Status.Normal);
             }
             if (targetSystem != null)
             {
