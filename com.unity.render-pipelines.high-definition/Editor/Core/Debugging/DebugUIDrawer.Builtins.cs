@@ -158,6 +158,26 @@ namespace UnityEditor.Experimental.Rendering
         }
     }
 
+    [DebugUIDrawer(typeof(DebugUI.BitField))]
+    public sealed class DebugUIDrawerBitField : DebugUIDrawer
+    {
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.BitField>(widget);
+            var s = Cast<DebugStateFlags>(state);
+
+            EditorGUI.BeginChangeCheck();
+            Enum value = w.GetValue();
+            var rect = PrepareControlRect();
+            value = EditorGUI.EnumFlagsField(rect, CoreEditorUtils.GetContent(w.displayName), value);
+
+            if (EditorGUI.EndChangeCheck())
+                Apply(w, s, value);
+
+            return true;
+        }
+    }
+
     [DebugUIDrawer(typeof(DebugUI.Foldout))]
     public sealed class DebugUIDrawerFoldout : DebugUIDrawer
     {
