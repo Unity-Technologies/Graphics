@@ -1536,7 +1536,7 @@ DirectLighting  EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     BSDFData bsdfData, BuiltinData builtinData)
 {
 
-    if (lightData.lightType == GPULIGHTTYPE_LINE)
+    if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {
         return EvaluateBSDF_Line(lightLoopContext, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
     }
