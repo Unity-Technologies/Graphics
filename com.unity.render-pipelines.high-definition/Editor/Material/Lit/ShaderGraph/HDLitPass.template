@@ -51,7 +51,7 @@ Pass
         $Specular.EnergyConserving:          #define _ENERGY_CONSERVING_SPECULAR 1
         $Specular.AA:                        #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
         $Refraction:                         #define _HAS_REFRACTION 1
-        $RefractionPlane:                    #define _REFRACTION_PLANE 1
+        $RefractionBox:                      #define _REFRACTION_PLANE 1
         $RefractionSphere:                   #define _REFRACTION_SPHERE 1
         $Decals:                             #define _DECALS 1
         $DisableSSR:                         #define _DISABLE_SSR 1

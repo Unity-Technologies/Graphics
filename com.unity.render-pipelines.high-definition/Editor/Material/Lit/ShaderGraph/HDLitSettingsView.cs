@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     ps.Add(new PropertyRow(CreateLabel("Refraction Model", indentLevel)), (row) =>
                     {
-                        row.Add(new EnumField(ScreenSpaceLighting.RefractionModel.None), (field) =>
+                        row.Add(new EnumField(ScreenSpaceRefraction.RefractionModel.None), (field) =>
                         {
                             field.value = m_Node.refractionModel;
                             field.OnValueChanged(ChangeRefractionModel);
@@ -339,7 +339,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Refraction Model Change");
-            m_Node.refractionModel = (ScreenSpaceLighting.RefractionModel)evt.newValue;
+            m_Node.refractionModel = (ScreenSpaceRefraction.RefractionModel)evt.newValue;
         }
 
         void ChangeDistortion(ChangeEvent<bool> evt)
