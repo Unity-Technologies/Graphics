@@ -282,6 +282,17 @@ namespace UnityEditor.ShaderGraph
             }
             m_NodeDictionary.Add(materialNode.guid, materialNode);
             m_AddedNodes.Add(materialNode);
+
+            if (node is ProxyShaderNode proxyNode)
+            {
+                proxyNode.UpdateNodeAfterDeserialization();
+
+                if (proxyNode.isNew)
+                {
+                    proxyNode.state.createdNodes.Add(proxyNode);
+                    proxyNode.isNew = false;
+                }
+            }
         }
 
         public void RemoveNode(INode node)
@@ -302,6 +313,7 @@ namespace UnityEditor.ShaderGraph
             m_FreeNodeTempIds.Push(materialNode.tempId);
             m_NodeDictionary.Remove(materialNode.guid);
             m_RemovedNodes.Add(materialNode);
+            materialNode.owner = null;
         }
 
         void AddEdgeToNodeEdges(ShaderEdge edge)
@@ -687,10 +699,8 @@ namespace UnityEditor.ShaderGraph
                 nodeGuidMap[oldGuid] = newGuid;
 
                 // Check if the property nodes need to be made into a concrete node.
-                if (node is PropertyNode)
+                if (node is PropertyNode propertyNode)
                 {
-                    PropertyNode propertyNode = (PropertyNode)node;
-
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
                     if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
@@ -700,10 +710,14 @@ namespace UnityEditor.ShaderGraph
                         if (pastedGraphMetaProperties.Any())
                         {
                             pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
-                            pastedNode.drawState = node.drawState;
+                            pastedNode.drawState = propertyNode.drawState;
                             nodeGuidMap[oldGuid] = pastedNode.guid;
                         }
                     }
+                }
+                else if (node is ProxyShaderNode proxyNode)
+                {
+                    proxyNode.isNew = true;
                 }
 
                 var drawState = node.drawState;
@@ -778,6 +792,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.OnEnable();
             }
+            DispatchNodeChangeEvents();
         }
     }
 

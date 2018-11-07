@@ -262,12 +262,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
             m_Graph.AddNode(node);
 
-            // Register the IShaderNode to receive a callback later.
-            if (node is ProxyShaderNode proxyNode)
-            {
-                proxyNode.state.createdNodes.Add(proxyNode);
-            }
-
             if (connectedPort != null)
             {
                 var connectedSlot = connectedPort.slot;

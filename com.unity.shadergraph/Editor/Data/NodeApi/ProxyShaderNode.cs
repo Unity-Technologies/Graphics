@@ -22,7 +22,9 @@ namespace UnityEditor.ShaderGraph
 
         public HlslFunctionDescriptor function { get; set; }
 
-        public ShaderNodeState state { get; set; }
+        public ShaderNodeState state { get; private set; }
+
+        public bool isNew { get; set; }
 
         public object data
         {
@@ -39,7 +41,9 @@ namespace UnityEditor.ShaderGraph
         public ProxyShaderNode(ShaderNodeState state)
         {
             this.state = state;
+            m_Type = state.shaderNode.GetType().FullName;
             name = state.type.name;
+            isNew = true;
 
             UpdateSlots();
         }
@@ -62,12 +66,16 @@ namespace UnityEditor.ShaderGraph
 
         public override void UpdateNodeAfterDeserialization()
         {
-            m_Data = SerializationHelper.Deserialize<object>(m_SerializedData, GraphUtil.GetLegacyTypeRemapping());
-            m_SerializedData = default;
+            if (m_SerializedData.typeInfo.IsValid())
+            {
+                m_Data = SerializationHelper.Deserialize<object>(m_SerializedData, GraphUtil.GetLegacyTypeRemapping());
+                m_SerializedData = default;
+            }
 
             var materialOwner = (AbstractMaterialGraph)owner;
-            Debug.Log($"{nameof(materialOwner)}:{materialOwner == null}");
+
             state = materialOwner.shaderNodeStates.FirstOrDefault(x => x.shaderNode.GetType().FullName == shaderNodeTypeName);
+            m_Type = state?.shaderNode.GetType().FullName;
             if (state == null)
             {
                 throw new InvalidOperationException($"Cannot find an {nameof(IShaderNode)} with type name {shaderNodeTypeName}");
@@ -134,8 +142,6 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
-            Debug.Log(Environment.StackTrace);
-
             var builder = new ShaderStringBuilder();
 
             // Declare variables for output ports.
@@ -203,9 +209,7 @@ namespace UnityEditor.ShaderGraph
 
             builder.Append(");");
 
-            var s = builder.ToString();
-            Debug.Log(s);
-            visitor.AddShaderChunk(s);
+            visitor.AddShaderChunk(builder.ToString());
         }
 
         // TODO: This should be inserted at a higher level, but it will do for now
