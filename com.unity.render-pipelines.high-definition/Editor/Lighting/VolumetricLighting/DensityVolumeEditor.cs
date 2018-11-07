@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     class DensityVolumeEditor : Editor
     {
         [System.Flags]
-        enum Expendable
+        enum Expandable
         {
             Volume = 1 << 0,
             DensityMaskTexture = 1 << 1
@@ -130,7 +130,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //init save of state if first time
             if (!EditorPrefs.HasKey(k_StateKey))
             {
-                EditorPrefs.SetInt(k_StateKey, (int)(Expendable.Volume | Expendable.DensityMaskTexture));
+                EditorPrefs.SetInt(k_StateKey, (int)(Expandable.Volume | Expandable.DensityMaskTexture));
             }
         }
 
@@ -146,10 +146,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreEditorUtils.DrawSplitter();
             EditorGUI.BeginChangeCheck();
-            bool expendedVolume = CoreEditorUtils.DrawHeaderFoldout(Styles.k_VolumeHeader, GetExpendedAreas((uint)Expendable.Volume));
+            bool expendedVolume = CoreEditorUtils.DrawHeaderFoldout(Styles.k_VolumeHeader, GetExpendedAreas((uint)Expandable.Volume));
             if (EditorGUI.EndChangeCheck())
             {
-                SetExpendedAreas((uint)Expendable.Volume, expendedVolume);
+                SetExpendedAreas((uint)Expandable.Volume, expendedVolume);
             }
             if (expendedVolume)
             {
@@ -242,10 +242,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreEditorUtils.DrawSplitter();
             EditorGUI.BeginChangeCheck();
-            bool expendedDensityMaskTexture = CoreEditorUtils.DrawHeaderFoldout(Styles.k_DensityMaskTextureHeader, GetExpendedAreas((uint)Expendable.DensityMaskTexture));
+            bool expendedDensityMaskTexture = CoreEditorUtils.DrawHeaderFoldout(Styles.k_DensityMaskTextureHeader, GetExpendedAreas((uint)Expandable.DensityMaskTexture));
             if (EditorGUI.EndChangeCheck())
             {
-                SetExpendedAreas((uint)Expendable.DensityMaskTexture, expendedDensityMaskTexture);
+                SetExpendedAreas((uint)Expandable.DensityMaskTexture, expendedDensityMaskTexture);
             }
             if (expendedDensityMaskTexture)
             {

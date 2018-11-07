@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     ps.Add(new PropertyRow(CreateLabel("Refraction Model", indentLevel)), (row) =>
                     {
-                        row.Add(new EnumField(ScreenSpaceLighting.RefractionModel.None), (field) =>
+                        row.Add(new EnumField(ScreenSpaceRefraction.RefractionModel.None), (field) =>
                         {
                             field.value = m_Node.refractionModel;
                             field.OnValueChanged(ChangeRefractionModel);
@@ -232,6 +232,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Receives SSR", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.receiveSSR.isOn;
+                    toggle.OnToggleChanged(ChangeSSR);
+                });
+            });
+
             ps.Add(new PropertyRow(CreateLabel("Specular AA", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -330,7 +339,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Refraction Model Change");
-            m_Node.refractionModel = (ScreenSpaceLighting.RefractionModel)evt.newValue;
+            m_Node.refractionModel = (ScreenSpaceRefraction.RefractionModel)evt.newValue;
         }
 
         void ChangeDistortion(ChangeEvent<bool> evt)
@@ -407,6 +416,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             ToggleData td = m_Node.receiveDecals;
             td.isOn = evt.newValue;
             m_Node.receiveDecals = td;
+        }
+
+        void ChangeSSR(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("SSR Change");
+            ToggleData td = m_Node.receiveSSR;
+            td.isOn = evt.newValue;
+            m_Node.receiveSSR = td;
         }
 
         void ChangeSpecularAA(ChangeEvent<bool> evt)

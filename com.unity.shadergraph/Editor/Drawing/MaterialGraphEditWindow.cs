@@ -213,7 +213,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ToSubGraph()
         {
-            var path = EditorUtility.SaveFilePanelInProject("Save subgraph", "New SubGraph", ShaderSubGraphImporter.Extension, "");
+            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "");
             path = path.Replace(Application.dataPath, "Assets");
             if (path.Length == 0)
                 return;
@@ -251,6 +251,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             var subGraph = new SubGraph();
+            subGraph.path = "Sub Graphs";
             var subGraphOutputNode = new SubGraphOutputNode();
             {
                 var drawState = subGraphOutputNode.drawState;

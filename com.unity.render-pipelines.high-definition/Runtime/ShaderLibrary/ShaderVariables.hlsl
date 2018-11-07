@@ -287,6 +287,8 @@ CBUFFER_START(UnityGlobal)
     float4 _VBufferPrevUvScaleAndLimit;
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
+    float  _VBufferMaxLinearDepth;      // The Z coordinate of the middle of the last slice
+    int    _EnableDistantFog;           // bool...
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"

@@ -35,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 || overrideAlbedo
                 || overrideNormal
                 || overrideSpecularColor
+                || overrideEmissiveColor
                 || shadowDebugMode == ShadowMapDebugMode.SingleShadow;
         }
 
@@ -61,6 +62,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 overrideNormal = false;
         public bool                 overrideSpecularColor = false;
         public Color                overrideSpecularColorValue = new Color(1.0f, 1.0f, 1.0f);
+        public bool                 overrideEmissiveColor = false;
+        public Color                overrideEmissiveColorValue = new Color(1.0f, 1.0f, 1.0f);
 
 
         public bool                 displaySkyReflection = false;

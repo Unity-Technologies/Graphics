@@ -48,6 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void OnSceneGUI()
         {
             base.OnSceneGUI();
+            PlanarReflectionProbeUI.DrawHandlesOverride(m_UIState as PlanarReflectionProbeUI, m_SerializedHDProbe as SerializedPlanarReflectionProbe, this);
 
             SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
         }

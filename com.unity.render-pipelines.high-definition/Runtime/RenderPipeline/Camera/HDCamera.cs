@@ -28,6 +28,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int       volumeLayerMask;
         public Transform volumeAnchor;
 
+        public bool colorPyramidHistoryIsValid = false;
+        public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
         public VolumetricLightingSystem.VBufferParameters[] vBufferParams; // Double-buffered
 
         public PostProcessRenderContext postprocessRenderContext;
@@ -37,8 +39,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4      centerEyeTranslationOffset;
         public Vector4      textureWidthScaling; // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
         public uint         numEyes; // 2+ when rendering stereo, 1 otherwise
-
-        public bool         colorPyramidIsValid;
 
         Matrix4x4[] viewProjStereo;
         Matrix4x4[] invViewStereo;
@@ -57,9 +57,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // This is the size actually used for this camera (as it can be altered by VR for example)
+        // This is the viewport size actually used for this camera (as it can be altered by VR for example)
         int m_ActualWidth;
         int m_ActualHeight;
+        // And for the previous frame...
+        Vector2Int m_ViewportSizePrevFrame;
+
         // This is the scale of the camera viewport compared to the reference size of our Render Targets (RTHandle.maxSize)
         Vector2 m_ViewportScaleCurrentFrame;
         Vector2 m_ViewportScalePreviousFrame;
@@ -70,6 +73,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int actualWidth { get { return m_ActualWidth; } }
         public int actualHeight { get { return m_ActualHeight; } }
         public Vector2 viewportScale { get { return m_ViewportScaleCurrentFrame; } }
+        public Vector2Int viewportSizePrevFrame { get { return m_ViewportSizePrevFrame; } }
         public Vector4 doubleBufferedViewportScale { get { return new Vector4(m_ViewportScaleCurrentFrame.x, m_ViewportScaleCurrentFrame.y, m_ViewportScalePreviousFrame.x, m_ViewportScalePreviousFrame.y); } }
         public MSAASamples msaaSamples { get { return m_msaaSamples; } }
 
@@ -170,6 +174,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         BufferedRTHandleSystem m_HistoryRTSystem = new BufferedRTHandleSystem();
 
+        int numColorPyramidBuffersAllocated = 0;
+        int numVolumetricBuffersAllocated   = 0;
+
         public HDCamera(Camera cam)
         {
             camera = cam;
@@ -194,8 +201,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_AdditionalCameraData = null; // Init in Update
 
-            colorPyramidIsValid = false;
-
             Reset();
         }
 
@@ -208,6 +213,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_AdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
             m_frameSettings = currentFrameSettings;
+
+            // Handle memory allocation.
+            {
+                bool isColorPyramidHistoryRequired = m_frameSettings.enableSSR; // TODO: TAA as well
+                bool isVolumetricHistoryRequired   = m_frameSettings.enableVolumetrics && m_frameSettings.enableReprojectionForVolumetrics;
+
+                int numColorPyramidBuffersRequired = isColorPyramidHistoryRequired ? 2 : 1; // TODO: 1 -> 0
+                int numVolumetricBuffersRequired   = isVolumetricHistoryRequired   ? 2 : 0; // History + feedback
+
+                if ((numColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
+                    (numVolumetricBuffersAllocated   != numVolumetricBuffersRequired))
+                {
+                    // Reinit the system.
+                    colorPyramidHistoryIsValid = false;
+                    vlSys.DeinitializePerCameraData(this);
+
+                    // The history system only supports the "nuke all" option.
+                    m_HistoryRTSystem.Dispose();
+                    m_HistoryRTSystem = new BufferedRTHandleSystem();
+
+                    if (numColorPyramidBuffersRequired != 0)
+                    {
+                        AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
+                        colorPyramidHistoryIsValid = false;
+                    }
+
+                    vlSys.InitializePerCameraData(this, numVolumetricBuffersRequired);
+
+                    // Mark as init.
+                    numColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
+                    numVolumetricBuffersAllocated   = numVolumetricBuffersRequired;
+                }
+            }
 
             // In stereo, this corresponds to the center eye position
             var pos = camera.transform.position;
@@ -230,8 +268,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuView = camera.worldToCameraMatrix;
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
 
+            // Update viewport sizes.
+            m_ViewportSizePrevFrame = new Vector2Int(m_ActualWidth, m_ActualHeight);
             m_ActualWidth = camera.pixelWidth;
             m_ActualHeight = camera.pixelHeight;
+
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
             textureWidthScaling = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
@@ -314,7 +355,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
-            
+
             ConfigureStereoMatrices();
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
@@ -359,7 +400,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LastFrameActive = Time.frameCount;
 
-            Vector2 lastTextureSize = new Vector2(RTHandles.maxWidth, RTHandles.maxHeight);
+            // TODO: cache this, or make the history system spill the beans...
+            Vector2Int prevColorPyramidBufferSize = Vector2Int.zero;
+
+            if (numColorPyramidBuffersAllocated > 0)
+            {
+                var rt = GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain).rt;
+
+                prevColorPyramidBufferSize.x = rt.width;
+                prevColorPyramidBufferSize.y = rt.height;
+            }
+
+            // TODO: cache this, or make the history system spill the beans...
+            Vector3Int prevVolumetricBufferSize = Vector3Int.zero;
+
+            if (numVolumetricBuffersAllocated != 0)
+            {
+                var rt = GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting).rt;
+
+                prevVolumetricBufferSize.x = rt.width;
+                prevVolumetricBufferSize.y = rt.height;
+                prevVolumetricBufferSize.z = rt.volumeDepth;
+            }
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = msaaSamples;
@@ -367,15 +429,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
             m_HistoryRTSystem.Swap();
 
+            Vector3Int currColorPyramidBufferSize = Vector3Int.zero;
+
+            if (numColorPyramidBuffersAllocated != 0)
+            {
+                var rt = GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain).rt;
+
+                currColorPyramidBufferSize.x = rt.width;
+                currColorPyramidBufferSize.y = rt.height;
+
+                if ((currColorPyramidBufferSize.x != prevColorPyramidBufferSize.x) ||
+                    (currColorPyramidBufferSize.y != prevColorPyramidBufferSize.y))
+                {
+                    // A reallocation has happened, so the new texture likely contains garbage.
+                    colorPyramidHistoryIsValid = false;
+                }
+            }
+
+            Vector3Int currVolumetricBufferSize = Vector3Int.zero;
+
+            if (numVolumetricBuffersAllocated != 0)
+            {
+                var rt = GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting).rt;
+
+                currVolumetricBufferSize.x = rt.width;
+                currVolumetricBufferSize.y = rt.height;
+                currVolumetricBufferSize.z = rt.volumeDepth;
+
+                if ((currVolumetricBufferSize.x != prevVolumetricBufferSize.x) ||
+                    (currVolumetricBufferSize.y != prevVolumetricBufferSize.y) ||
+                    (currVolumetricBufferSize.z != prevVolumetricBufferSize.z))
+                {
+                    // A reallocation has happened, so the new texture likely contains garbage.
+                    volumetricHistoryIsValid = false;
+                }
+            }
+
             int maxWidth  = RTHandles.maxWidth;
             int maxHeight = RTHandles.maxHeight;
 
-            Vector2 lastByCurrentTextureSizeRatio = lastTextureSize / new Vector2(maxWidth, maxHeight);
+            Vector2 rcpTextureSize = Vector2.one / new Vector2(maxWidth, maxHeight);
 
-            // Double-buffer. Note: this should be (LastViewportSize / CurrentTextureSize).
-            m_ViewportScalePreviousFrame  = m_ViewportScaleCurrentFrame * lastByCurrentTextureSizeRatio;
-            m_ViewportScaleCurrentFrame.x = (float)m_ActualWidth / maxWidth;
-            m_ViewportScaleCurrentFrame.y = (float)m_ActualHeight / maxHeight;
+            m_ViewportScalePreviousFrame = m_ViewportSizePrevFrame * rcpTextureSize;
+            m_ViewportScaleCurrentFrame  = new Vector2Int(m_ActualWidth, m_ActualHeight) * rcpTextureSize;
 
             screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
@@ -574,18 +670,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return hdCamera;
         }
 
+        // BufferedRTHandleSystem API expects an allocator function. We define it here.
+        static RTHandleSystem.RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            frameIndex &= 1;
+
+            return rtHandleSystem.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf,
+                                        sRGB: false, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false,
+                                        name: string.Format("CameraColorBufferMipChain{0}", frameIndex));
+        }
+
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
-        public static HDCamera Create(Camera camera, VolumetricLightingSystem vlSys)
+        public static HDCamera Create(Camera camera)
         {
             HDCamera hdCamera = new HDCamera(camera);
             s_Cameras.Add(camera, hdCamera);
-
-            if (vlSys != null)
-            {
-                // Have to perform a NULL check here because the Reflection System internally allocates HDCameras.
-                vlSys.InitializePerCameraData(hdCamera);
-            }
 
             return hdCamera;
         }
@@ -695,9 +795,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Allocate buffers frames and return current frame
-        public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator)
+        public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator, int bufferCount)
         {
-            const int bufferCount = 2; // Hard-coded for now. Will have to see if this is enough...
             m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), bufferCount);
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }

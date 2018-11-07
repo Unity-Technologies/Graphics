@@ -252,9 +252,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        ScreenSpaceLighting.RefractionModel m_RefractionModel;
+        ScreenSpaceRefraction.RefractionModel m_RefractionModel;
 
-        public ScreenSpaceLighting.RefractionModel refractionModel
+        public ScreenSpaceRefraction.RefractionModel refractionModel
         {
             get { return m_RefractionModel; }
             set
@@ -457,6 +457,20 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
+        bool m_ReceivesSSR = true;
+        public ToggleData receiveSSR
+        {
+            get { return new ToggleData(m_ReceivesSSR); }
+            set
+            {
+                if (m_ReceivesSSR == value.isOn)
+                    return;
+                m_ReceivesSSR = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_EnergyConservingSpecular = true;
 
         public ToggleData energyConservingSpecular
@@ -562,7 +576,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool HasRefraction()
         {
-            return (surfaceType == SurfaceType.Transparent && !drawBeforeRefraction.isOn && refractionModel != ScreenSpaceLighting.RefractionModel.None);
+            return (surfaceType == SurfaceType.Transparent && !drawBeforeRefraction.isOn && refractionModel != ScreenSpaceRefraction.RefractionModel.None);
         }
 
         public bool HasDistortion()
@@ -790,6 +804,29 @@ namespace UnityEditor.ShaderGraph
             });
 
             base.CollectShaderProperties(collector, generationMode);
+        }
+
+        public int GetStencilWriteMask()
+        {
+            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
+            if (!m_ReceivesSSR)
+            {
+                stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+            }
+            return stencilWriteMask;
+        }
+        public int GetStencilRef()
+        {
+            int stencilRef = (int)StencilLightingUsage.RegularLighting;
+            if (RequiresSplitLighting())
+            {
+                stencilRef = (int)StencilLightingUsage.SplitLighting;
+            }
+            if (!m_ReceivesSSR)
+            {
+                stencilRef |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+            }
+            return stencilRef;
         }
     }
 }

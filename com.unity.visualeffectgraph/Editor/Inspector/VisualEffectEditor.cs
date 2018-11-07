@@ -323,7 +323,10 @@ namespace UnityEditor.VFX
                     prop.vector2Value = (Vector2)value;
                     return;
                 case SerializedPropertyType.Vector4:
-                    prop.vector4Value = (Vector4)value;
+                    if (value is Color)
+                        prop.vector4Value = (Vector4)(Color)value;
+                    else
+                        prop.vector4Value = (Vector4)value;
                     return;
                 case SerializedPropertyType.ObjectReference:
                     prop.objectReferenceValue = (UnityEngine.Object)value;

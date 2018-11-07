@@ -116,7 +116,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
                             }
                             break;
-                        case LightTypeExtent.Line:
+                        case LightTypeExtent.Tube:
                             {
                                 m_MaterialProperty.SetColor(_ColorShaderID, new Color(1.0f, 0.0f, 0.5f, 1.0f));
                                 m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));

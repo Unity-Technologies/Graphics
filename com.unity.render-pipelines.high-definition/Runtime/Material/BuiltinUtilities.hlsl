@@ -152,26 +152,40 @@ void InitBuiltinData(   float alpha, float3 normalWS, float3 backNormalWS, float
     builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
 }
 
-// InitBuiltinData must be call before calling PostInitBuiltinData
-void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
-                            inout BuiltinData builtinData)
+// This function is similar to ApplyDebugToSurfaceData but for BuiltinData
+void ApplyDebugToBuiltinData(inout BuiltinData builtinData)
 {
 #ifdef DEBUG_DISPLAY
+    bool overrideEmissiveColor = _DebugLightingEmissiveColor.x != 0.0f &&
+        any(builtinData.emissiveColor != 0.0f);
+
+    if (overrideEmissiveColor)
+    {
+        float3 overrideEmissiveColor = _DebugLightingEmissiveColor.yzw;
+        builtinData.emissiveColor = overrideEmissiveColor;
+
+    }
+
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // The lighting in SH or lightmap is assume to contain bounced light only (i.e no direct lighting),
         // and is divide by PI (i.e Lambert is apply), so multiply by PI here to get back the illuminance
         builtinData.bakeDiffuseLighting *= PI; // don't take into account backBakeDiffuseLighting
     }
-    else
+
 #endif
-    {
-        // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive 
-        // color in case of lit deferred for example and avoid material to have to deal with it
-        builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
-        builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+}
+
+// InitBuiltinData must be call before calling PostInitBuiltinData
+void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
+                            inout BuiltinData builtinData)
+{
+    // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive 
+    // color in case of lit deferred for example and avoid material to have to deal with it
+    builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+    builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
-        ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
+    ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
 #endif
-    }
+    ApplyDebugToBuiltinData(builtinData);
 }

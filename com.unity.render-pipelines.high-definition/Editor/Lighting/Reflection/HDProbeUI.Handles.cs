@@ -17,6 +17,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case EditBaseShape:
                     //important: following will init the container for box.
                     //This must be done before drawing the contained handles
+                    if(o is PlanarReflectionProbeEditor && (InfluenceShape)d.influenceVolume.shape.intValue == InfluenceShape.Box)
+                    {
+                        //Planar need to update its transform position.
+                        //Let PlanarReflectionProbeUI.Handle do this work.
+                        break;
+                    }
                     InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, d.influenceVolume, o, mat, probe);
                     break;
                 case EditInfluenceShape:
@@ -27,6 +33,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case EditCenter:
                     {
+                        if (o is PlanarReflectionProbeEditor && (InfluenceShape)d.influenceVolume.shape.intValue == InfluenceShape.Box)
+                        {
+                            //Planar need to update its transform position.
+                            //Let PlanarReflectionProbeUI.Handle do this work.
+                            break;
+                        }
                         using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one)))
                         {
                             EditorGUI.BeginChangeCheck();
@@ -63,6 +75,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             switch (EditMode.editMode)
             {
                 case EditBaseShape:
+                    if (d is PlanarReflectionProbe && (InfluenceShape)d.influenceVolume.shape == InfluenceShape.Box)
+                    {
+                        //Planar need to update its transform position.
+                        //Let PlanarReflectionProbeUI.Handle do this work.
+                        break;
+                    }
                     InfluenceVolumeUI.DrawGizmos(
                         s.influenceVolume, d.influenceVolume, mat,
                         InfluenceVolumeUI.HandleType.Base,
@@ -70,25 +88,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case EditInfluenceShape:
                     InfluenceVolumeUI.DrawGizmos(
-                    s.influenceVolume,
-                    d.influenceVolume,
-                    mat,
-                    InfluenceVolumeUI.HandleType.Influence,
-                    InfluenceVolumeUI.HandleType.All);
+                        s.influenceVolume,
+                        d.influenceVolume,
+                        mat,
+                        InfluenceVolumeUI.HandleType.Influence,
+                        InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceNormalShape:
                     InfluenceVolumeUI.DrawGizmos(
-                    s.influenceVolume,
-                    d.influenceVolume,
-                    mat,
-                    InfluenceVolumeUI.HandleType.InfluenceNormal,
-                    InfluenceVolumeUI.HandleType.All);
+                        s.influenceVolume,
+                        d.influenceVolume,
+                        mat,
+                        InfluenceVolumeUI.HandleType.InfluenceNormal,
+                        InfluenceVolumeUI.HandleType.All);
                     break;
                 default:
                 {
                     var showedHandles = s.influenceVolume.showInfluenceHandles
                         ? InfluenceVolumeUI.HandleType.All
-                        : InfluenceVolumeUI.HandleType.Base;
+                        : InfluenceVolumeUI.HandleType.Base | InfluenceVolumeUI.HandleType.Influence;
                     InfluenceVolumeUI.DrawGizmos(
                         s.influenceVolume,
                         d.influenceVolume,

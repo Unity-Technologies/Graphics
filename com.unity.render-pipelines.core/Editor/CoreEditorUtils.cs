@@ -38,6 +38,11 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         // Serialization helpers
+        /// <summary>
+        /// To use with extreme caution. It not really get the property but try to find a field with similar name
+        /// Hence inheritance override of property is not supported.
+        /// Also variable rename will silently break the search.
+        /// </summary>
         public static string FindProperty<T, TValue>(Expression<Func<T, TValue>> expr)
         {
             // Get the field path as a string
@@ -360,46 +365,6 @@ namespace UnityEditor.Experimental.Rendering
             mode = EditorGUILayout.Popup(label, mode, options);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = mode;
-        }
-
-        public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit)
-        {
-            float[] cascadePartitionSizes = null;
-
-            System.Type type = typeof(T);
-            if (type == typeof(float))
-            {
-                cascadePartitionSizes = new float[] { shadowCascadeSplit.floatValue };
-            }
-            else if (type == typeof(Vector3))
-            {
-                Vector3 splits = shadowCascadeSplit.vector3Value;
-                cascadePartitionSizes = new float[]
-                {
-                    Mathf.Clamp(splits[0], 0.0f, 1.0f),
-                    Mathf.Clamp(splits[1] - splits[0], 0.0f, 1.0f),
-                    Mathf.Clamp(splits[2] - splits[1], 0.0f, 1.0f)
-                };
-            }
-
-            if (cascadePartitionSizes != null)
-            {
-                EditorGUI.BeginChangeCheck();
-                ShadowCascadeSplitGUI.HandleCascadeSliderGUI(ref cascadePartitionSizes);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (type == typeof(float))
-                        shadowCascadeSplit.floatValue = cascadePartitionSizes[0];
-                    else
-                    {
-                        Vector3 updatedValue = new Vector3();
-                        updatedValue[0] = cascadePartitionSizes[0];
-                        updatedValue[1] = updatedValue[0] + cascadePartitionSizes[1];
-                        updatedValue[2] = updatedValue[1] + cascadePartitionSizes[2];
-                        shadowCascadeSplit.vector3Value = updatedValue;
-                    }
-                }
-            }
         }
 
         public static void RemoveMaterialKeywords(Material material)
