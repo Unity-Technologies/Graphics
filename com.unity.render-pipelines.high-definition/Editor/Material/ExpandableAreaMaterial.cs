@@ -4,12 +4,12 @@ using UnityEngine;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     //should be base for al material in hdrp. It will add the collapsable mecanisme on them
-    abstract class ExpendableAreaMaterial : ShaderGUI
+    abstract class ExpandableAreaMaterial : ShaderGUI
     {
         private const string k_KeyPrefix = "HDRP:Material:UI_State:";
         private string m_StateKey;
         
-        protected virtual uint expendedState
+        protected virtual uint expandedState
         {
             get
             {
@@ -20,17 +20,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorPrefs.SetInt(m_StateKey, (int)value);
             }
         }
-
-        protected virtual uint defaultExpendedState { get { return 0xFFFFFFFF; } } //all opened by default
+        
+        protected virtual uint defaultExpandedState { get { return 0xFFFFFFFF; } } //all opened by default
 
         protected struct HeaderScope : IDisposable
         {
-            public readonly bool expended;
+            public readonly bool expanded;
             private bool spaceAtEnd;
 
-            public HeaderScope(string title, uint bitExpended, ExpendableAreaMaterial owner, bool spaceAtEnd = true, Color colorDot = default(Color))
+            public HeaderScope(string title, uint bitExpanded, ExpandableAreaMaterial owner, bool spaceAtEnd = true, Color colorDot = default(Color))
             {
-                bool beforeExpended = owner.GetExpendedAreas(bitExpended);
+                bool beforeExpended = owner.GetExpandedAreas(bitExpanded);
 
                 this.spaceAtEnd = spaceAtEnd;
                 CoreEditorUtils.DrawSplitter();
@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool saveChangeState = GUI.changed;
                 if (colorDot != default(Color))
                     title = "   " + title;
-                expended = CoreEditorUtils.DrawHeaderFoldout(title, beforeExpended);
+                expanded = CoreEditorUtils.DrawHeaderFoldout(title, beforeExpended);
                 if (colorDot != default(Color))
                 {
                     Color previousColor = GUI.contentColor;
@@ -49,20 +49,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUI.LabelField(headerRect, "■");
                     GUI.contentColor = previousColor;
                 }
-                if (expended ^ beforeExpended)
+                if (expanded ^ beforeExpended)
                 {
-                    owner.SetExpendedAreas((uint)bitExpended, expended);
+                    owner.SetExpandedAreas((uint)bitExpanded, expanded);
                     saveChangeState = true;
                 }
                 GUI.changed = saveChangeState;
 
-                if (expended)
+                if (expanded)
                     ++EditorGUI.indentLevel;
             }
 
             void IDisposable.Dispose()
             {
-                if (expended)
+                if (expanded)
                 {
                     if (spaceAtEnd)
                         EditorGUILayout.Space();
@@ -72,16 +72,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        protected bool GetExpendedAreas(uint mask)
+        protected bool GetExpandedAreas(uint mask)
         {
-            uint state = expendedState;
+            uint state = expandedState;
             bool result = (state & mask) > 0;
             return result;
         }
 
-        protected void SetExpendedAreas(uint mask, bool value)
+        protected void SetExpandedAreas(uint mask, bool value)
         {
-            uint state = expendedState;
+            uint state = expandedState;
 
             if (value)
             {
@@ -93,15 +93,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 state &= mask;
             }
 
-            expendedState = state;
+            expandedState = state;
         }
 
-        protected void InitExpendableState(MaterialEditor editor)
+        protected void InitExpandableState(MaterialEditor editor)
         {
             m_StateKey = k_KeyPrefix + ((Material)editor.target).shader.name;
             if(!EditorPrefs.HasKey(m_StateKey))
             {
-                EditorPrefs.SetInt(m_StateKey, (int)defaultExpendedState);
+                EditorPrefs.SetInt(m_StateKey, (int)defaultExpandedState);
             }
         }
     }

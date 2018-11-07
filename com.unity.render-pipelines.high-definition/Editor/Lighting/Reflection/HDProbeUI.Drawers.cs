@@ -12,6 +12,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class HDProbeUI
     {
+        protected enum Expandable
+        {
+            ProjectionSettings = 1 << 0,
+            InfluenceVolume = 1 << 1,
+            CaptureSettings = 1 << 2,
+            AdditionalSettings = 1 << 3
+        }
+
+        protected readonly static ExpandedState<Expandable, HDProbe> k_ExpandedState = new ExpandedState<Expandable, HDProbe>(Expandable.ProjectionSettings | Expandable.InfluenceVolume | Expandable.CaptureSettings, "HDRP");
+        
         public static readonly CED.IDrawer[] Inspector;
         
         static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
@@ -33,30 +43,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static readonly CED.IDrawer SectionProxyVolumeSettings = CED.FoldoutGroup(
             proxySettingsHeader,
-            (s, d, o) => s.isSectionExpendedProxyVolume,
-            FoldoutOption.Indent,
-            CED.Action(Drawer_SectionProxySettings)
+            Expandable.ProjectionSettings,
+            k_ExpandedState,
+            Drawer_SectionProxySettings
             );
         
-        public static readonly CED.IDrawer SectionInfluenceVolume = CED.Select(
-            (s, d, o) => s.influenceVolume,
-            (s, d, o) => d.influenceVolume,
-            InfluenceVolumeUI.SectionFoldoutShape
+        public static readonly CED.IDrawer SectionInfluenceVolume = CED.FoldoutGroup(
+            InfluenceVolumeUI.influenceVolumeHeader,
+            Expandable.InfluenceVolume,
+            k_ExpandedState,
+            CED.Select(
+                (s, d, o) => s.influenceVolume,
+                (s, d, o) => d.influenceVolume,
+                InfluenceVolumeUI.InnerInspector(UnityEngine.Experimental.Rendering.HDPipeline.ReflectionProbeType.ReflectionProbe)
+                )
             );
 
         public static readonly CED.IDrawer SectionShapeCheck = CED.Action(Drawer_DifferentShapeError);
 
-        public static readonly CED.IDrawer SectionCaptureSettings = CED.Select(
-            (s, d, o) => s.captureSettings,
-            (s, d, o) => d.captureSettings,
-            CaptureSettingsUI.SectionCaptureSettings
+        public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
+            CaptureSettingsUI.captureSettingsHeaderContent,
+            Expandable.CaptureSettings,
+            k_ExpandedState,
+            CED.Select(
+                (s, d, o) => s.captureSettings,
+                (s, d, o) => d.captureSettings,
+                CaptureSettingsUI.SectionCaptureSettings
+                )
             );
 
         public static readonly CED.IDrawer SectionFrameSettings = CED.Action((s, d, o) =>
         {
-            if (s.captureSettings.isSectionExpandedCaptureSettings.target)
+            if (k_ExpandedState[Expandable.CaptureSettings])
             {
-                if (s.isFrameSettingsOverriden.target && s.captureSettings.isSectionExpandedCaptureSettings.target)
+                if (s.isFrameSettingsOverriden.target)
                     FrameSettingsUI.Inspector(withOverride: true).Draw(s.frameSettings, d.frameSettings, o);
                 else
                     EditorGUILayout.Space();
@@ -66,10 +86,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static readonly CED.IDrawer SectionFoldoutAdditionalSettings = CED.FoldoutGroup(
             additionnalSettingsHeader,
-            (s, d, o) => s.isSectionExpendedAdditionalSettings,
-            FoldoutOption.Indent,
-            CED.Action(Drawer_SectionCustomSettings),
-            CED.space
+            Expandable.AdditionalSettings,
+            k_ExpandedState,
+            Drawer_SectionCustomSettings
             );
 
         static HDProbeUI()

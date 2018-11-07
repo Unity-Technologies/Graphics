@@ -44,17 +44,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Inspector[Inspector.Length - 1] = CED.noop; //hide bake button
 
             //override SectionInfluenceVolume to remove normals settings
-            Inspector[3] = CED.Select(
-                (s, d, o) => s.influenceVolume,
-                (s, d, o) => d.influenceVolume,
-                InfluenceVolumeUI.SectionFoldoutShapePlanar
+            Inspector[3] = CED.FoldoutGroup(
+                InfluenceVolumeUI.influenceVolumeHeader,
+                Expandable.InfluenceVolume,
+                k_ExpandedState,
+                CED.Select(
+                    (s, d, o) => s.influenceVolume,
+                    (s, d, o) => d.influenceVolume,
+                    InfluenceVolumeUI.InnerInspector(UnityEngine.Experimental.Rendering.HDPipeline.ReflectionProbeType.PlanarReflection)
+                    )
                 );
         }
 
         internal PlanarReflectionProbeUI()
         {
             //remove normal edition tool and capture point for planar
-            toolBars = new[] { ToolBar.InfluenceShape | ToolBar.Blend }; 
+            toolBars = new[] { ToolBar.InfluenceShape | ToolBar.Blend, ToolBar.CapturePosition }; 
         }
     }
 }

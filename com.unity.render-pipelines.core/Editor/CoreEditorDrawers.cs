@@ -216,6 +216,43 @@ namespace UnityEditor.Experimental.Rendering
                 GUILayout.EndVertical();
             }
         }
+        
+        /// <summary> Create an IDrawer foldout header using an ExpandedState </summary>
+        /// <param name="title">Title wanted for this foldout header</param>
+        /// <param name="mask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
+        /// <param name="state">The ExpandedState describing the component</param>
+        /// <param name="contentDrawer">The content of the foldout header</param>
+        public static IDrawer FoldoutGroup<TEnum, TState>(string title, TEnum mask, ExpandedState<TEnum, TState> state, params ActionDrawer[] contentDrawer)
+            where TEnum : struct, IConvertible
+        {
+            return Action((uiState, data, editor) =>
+            {
+                CoreEditorUtils.DrawSplitter();
+                bool expended = state[mask];
+                bool newExpended = CoreEditorUtils.DrawHeaderFoldout(title, expended);
+                if (newExpended ^ expended)
+                    state[mask] = newExpended;
+                if (newExpended)
+                {
+                    ++EditorGUI.indentLevel;
+                    for (var i = 0; i < contentDrawer.Length; i++)
+                        contentDrawer[i](uiState, data, editor);
+                    --EditorGUI.indentLevel;
+                    EditorGUILayout.Space();
+                }
+            });
+        }
+
+        /// <summary> Create an IDrawer foldout header using an ExpandedState </summary>
+        /// <param name="title">Title wanted for this foldout header</param>
+        /// <param name="mask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
+        /// <param name="state">The ExpandedState describing the component</param>
+        /// <param name="contentDrawer">The content of the foldout header</param>
+        public static IDrawer FoldoutGroup<TEnum, TState>(string title, TEnum mask, ExpandedState<TEnum, TState> state, params IDrawer[] contentDrawer)
+            where TEnum : struct, IConvertible
+        {
+            return FoldoutGroup(title, mask, state, contentDrawer.Draw);
+        }
     }
 
     public static class CoreEditorDrawersExtensions
