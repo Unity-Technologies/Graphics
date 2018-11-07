@@ -40,10 +40,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //rendering settings
         ShaderLitMode = 1 << 21,
         DepthPrepassWithDeferredRendering = 1 << 22,
-        AsyncCompute = 1 << 23,
         OpaqueObjects = 1 << 24,
         TransparentObjects = 1 << 25,
         RealtimePlanarReflection = 1 << 26,
+
+        // Async settings
+        AsyncCompute = 1 << 23,
+        LightListAsync = 1 << 27,
+        SSRAsync = 1 << 28,
+        SSAOAsync = 1 << 29,
     }
 
     // The settings here are per frame settings.
@@ -80,6 +85,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {FrameSettingsOverrides.OpaqueObjects, (a, b) => { a.enableOpaqueObjects = b.enableOpaqueObjects; } },
             {FrameSettingsOverrides.TransparentObjects, (a, b) => { a.enableTransparentObjects = b.enableTransparentObjects; } },
             {FrameSettingsOverrides.RealtimePlanarReflection, (a, b) => { a.enableRealtimePlanarReflection = b.enableRealtimePlanarReflection; } },
+            {FrameSettingsOverrides.LightListAsync, (a, b) => { a.runLightListAsync = b.runLightListAsync; } },
+            {FrameSettingsOverrides.SSRAsync, (a, b) => { a.runSSRAsync= b.runSSRAsync; } },
+            {FrameSettingsOverrides.SSAOAsync, (a, b) => { a.runSSAOAsync = b.runSSAOAsync; } }
+
         };
 
         public FrameSettingsOverrides overrides;
@@ -116,13 +125,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableDistortion = true;
         public bool enablePostprocess = true;
 
-        public bool enableAsyncCompute = true;
-
         public bool enableOpaqueObjects = true;
         public bool enableTransparentObjects = true;
         public bool enableRealtimePlanarReflection = true;
 
         public bool enableMSAA = false;
+
+        // Async Compute
+        public bool enableAsyncCompute = true;
+        public bool runLightListAsync = true;
+        public bool runSSRAsync = true;
+        public bool runSSAOAsync = true;
 
         // GC.Alloc
         // FrameSettings..ctor() 
@@ -169,6 +182,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableRealtimePlanarReflection = this.enableRealtimePlanarReflection;            
 
             frameSettings.enableAsyncCompute = this.enableAsyncCompute;
+            frameSettings.runLightListAsync = this.runLightListAsync;
+            frameSettings.runSSAOAsync = this.runSSAOAsync;
+            frameSettings.runSSRAsync = this.runSSRAsync;
 
             frameSettings.enableMSAA = this.enableMSAA;
 
@@ -279,6 +295,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
                         
             aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
+            aggregate.runLightListAsync = aggregate.enableAsyncCompute && srcFrameSettings.runLightListAsync;
+            aggregate.runSSRAsync = aggregate.enableAsyncCompute && srcFrameSettings.runSSRAsync;
+            aggregate.runSSAOAsync = aggregate.enableAsyncCompute && srcFrameSettings.runSSAOAsync;
 
             aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
@@ -313,6 +332,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
         }
+
+        public bool BuildLightListRunsAsync()
+        {
+            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runLightListAsync;
+        }
+
+        public bool SSRRunsAsync()
+        {
+            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runSSRAsync;
+        }
+
+        public bool SSAORunsAsync()
+        {
+            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runSSAOAsync;
+        }
+
 
         public void ConfigureMSAADependentSettings()
         {
@@ -375,7 +410,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         new DebugUI.EnumField { displayName = "Lit Shader Mode", getter = () => (int)frameSettings.shaderLitMode, setter = value => frameSettings.shaderLitMode = (LitShaderMode)value, autoEnum = typeof(LitShaderMode)},
                         new DebugUI.BoolField { displayName = "Deferred Depth Prepass", getter = () => frameSettings.enableDepthPrepassWithDeferredRendering, setter = value => frameSettings.enableDepthPrepassWithDeferredRendering = value },
-                        new DebugUI.BoolField { displayName = "Enable Async Compute", getter = () => frameSettings.enableAsyncCompute, setter = value => frameSettings.enableAsyncCompute = value },
                         new DebugUI.BoolField { displayName = "Enable Opaque Objects", getter = () => frameSettings.enableOpaqueObjects, setter = value => frameSettings.enableOpaqueObjects = value },
                         new DebugUI.BoolField { displayName = "Enable Transparent Objects", getter = () => frameSettings.enableTransparentObjects, setter = value => frameSettings.enableTransparentObjects = value },
                         new DebugUI.BoolField { displayName = "Enable Realtime Planar Reflection", getter = () => frameSettings.enableRealtimePlanarReflection, setter = value => frameSettings.enableRealtimePlanarReflection = value },                        
@@ -398,6 +432,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Volumetrics", getter = () => frameSettings.enableVolumetrics, setter = value => frameSettings.enableVolumetrics = value },
                         new DebugUI.BoolField { displayName = "Enable Reprojection For Volumetrics", getter = () => frameSettings.enableReprojectionForVolumetrics, setter = value => frameSettings.enableReprojectionForVolumetrics = value },
                         new DebugUI.BoolField { displayName = "Enable LightLayers", getter = () => frameSettings.enableLightLayers, setter = value => frameSettings.enableLightLayers = value },
+                    }
+                },
+                new DebugUI.Foldout
+                {
+                    displayName = "Async Compute Settings",
+                    children =
+                    {
+                        new DebugUI.BoolField { displayName = "Enable Async Compute", getter = () => frameSettings.enableAsyncCompute, setter = value => frameSettings.enableAsyncCompute = value },
+                        new DebugUI.BoolField { displayName = "Run Build Light List Async", getter = () => frameSettings.runLightListAsync, setter = value => frameSettings.runLightListAsync = value },
+                        new DebugUI.BoolField { displayName = "Run SSR Async", getter = () => frameSettings.runSSRAsync, setter = value => frameSettings.runSSRAsync = value },
+                        new DebugUI.BoolField { displayName = "Run SSAO Async", getter = () => frameSettings.runSSAOAsync, setter = value => frameSettings.runSSAOAsync = value },
                     }
                 }
             });

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Add y offset for PlanarReflectionProbe and offset tool
+- Expose option to run SSR and SSAO on async compute. 
 
 ### Fixed
 - Fix cubemap assignation on custom ReflectionProbe
