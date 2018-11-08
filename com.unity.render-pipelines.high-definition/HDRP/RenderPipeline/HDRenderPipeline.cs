@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
             }
 
-            static void OnCameraPostForward(ScriptableRenderContext renderContext, HDCamera camera, CommandBuffer commandBuffer)
+            static void OnCameraPostRenderForward(ScriptableRenderContext renderContext, HDCamera camera, CommandBuffer commandBuffer)
             {
                 // TODO: Do cool graphics stuff by appending to the commandBuffer here.
             }
@@ -55,14 +55,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static void OnConfigure()
             {
                 // Subscribe to a callback.
-                // ExampleCustomRenderingManager.OnCameraPostForward() will now be invoked by HDRenderPipeline
+                // ExampleCustomRenderingManager.OnCameraPostRenderForward() will now be invoked by HDRenderPipeline
                 // at said location in the render loop.
                 HDRenderPipeline.OnBuild += ExampleCustomRenderingManager.OnBuild;
                 HDRenderPipeline.OnAllocate += ExampleCustomRenderingManager.OnAllocate;
                 HDRenderPipeline.OnFree += ExampleCustomRenderingManager.OnFree;
                 HDRenderPipeline.OnPushGlobalParameters += ExampleCustomRenderingManager.OnPushGlobalParameters;
                 HDRenderPipeline.OnCameraPostRenderGBuffer += ExampleCustomRenderingManager.OnCameraPostRenderGBuffer;
-                HDRenderPipeline.OnCameraPostForward += ExampleCustomRenderingManager.OnCameraPostForward;
+                HDRenderPipeline.OnCameraPostRenderForward += ExampleCustomRenderingManager.OnCameraPostRenderForward;
             }
         }
         */
@@ -76,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnCameraPostRenderGBuffer;
 
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier> OnCameraPostRenderDeferredLighting;
-        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnCameraPostForward;
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPostRenderForward;
 
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnCameraPreRenderPostProcess;
 
@@ -89,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             OnPushGlobalParameters = null;
             OnCameraPostRenderGBuffer = null;
             OnCameraPostRenderDeferredLighting = null;
-            OnCameraPostForward = null;
+            OnCameraPostRenderForward = null;
             OnCameraPreRenderPostProcess = null;
             HDRPCallbackAttribute.ConfigureAllLoadedCallbacks();
         }
@@ -1188,8 +1188,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Render All forward error
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd);
 
-                        if (OnCameraPostForward != null)
-                            OnCameraPostForward(renderContext, hdCamera, cmd);
+                        if (OnCameraPostRenderForward != null)
+                            OnCameraPostRenderForward(renderContext, hdCamera, cmd, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
 
                         // Fill depth buffer to reduce artifact for transparent object during postprocess
                         RenderTransparentDepthPostpass(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
