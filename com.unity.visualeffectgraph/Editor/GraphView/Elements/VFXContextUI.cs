@@ -771,7 +771,7 @@ namespace UnityEditor.VFX.UI
 
             if (evt.target is VFXContextUI && controller.model is VFXAbstractParticleOutput)
             {
-                evt.menu.InsertAction(0, "Convert Output", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.InsertAction(1,"Convert Output", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
             }
         }
 
@@ -792,21 +792,38 @@ namespace UnityEditor.VFX.UI
         {
             if (e.clickCount == 2)
             {
-                m_Label.RemoveFromClassList("empty");
-                m_TextField.value = m_Label.text;
-                m_TextField.visible = true;
-                UpdateTitleFieldRect();
-
-                m_TextField.Focus();
-                m_TextField.SelectAll();
-
+                OnRename();
                 e.StopPropagation();
                 e.PreventDefault();
             }
         }
+
+        public void OnRename()
+        {
+            m_Label.RemoveFromClassList("empty");
+            m_TextField.value = m_Label.text;
+            m_TextField.visible = true;
+            UpdateTitleFieldRect();
+
+            m_TextField.Focus();
+            m_TextField.SelectAll();
+
+        }
+
         void OnTitleBlur(BlurEvent e)
         {
-            controller.model.label = m_TextField.value;
+            controller.model.label = m_TextField.value
+                .Trim()
+                .Replace("/","")
+                .Replace("\\", "")
+                .Replace(":", "")
+                .Replace("<", "")
+                .Replace(">", "")
+                .Replace("*", "")
+                .Replace("?", "")
+                .Replace("\"", "")
+                .Replace("|", "")
+                ;
             m_TextField.visible = false;
         }
         void OnTitleRelayout(GeometryChangedEvent e)

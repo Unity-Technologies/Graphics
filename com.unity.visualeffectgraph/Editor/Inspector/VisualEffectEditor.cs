@@ -230,17 +230,22 @@ namespace UnityEditor.VFX
                     Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
                     c = EditorGUILayout.ColorField(nameContent, c, true, true, true);
 
-                    if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
+                    if (GUI.changed)
                         property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
+                }
+                else if (parameter.realType == typeof(Gradient).Name)
+                {
+                    Gradient newGradient = EditorGUILayout.GradientField(nameContent, property.gradientValue, true);
+
+                    if (GUI.changed)
+                        property.gradientValue = newGradient;
                 }
                 else if (property.propertyType == SerializedPropertyType.Vector4)
                 {
                     var oldVal = property.vector4Value;
                     var newVal = EditorGUILayout.Vector4Field(nameContent, oldVal);
                     if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
-                    {
                         property.vector4Value = newVal;
-                    }
                 }
                 else if (property.propertyType == SerializedPropertyType.ObjectReference)
                 {
