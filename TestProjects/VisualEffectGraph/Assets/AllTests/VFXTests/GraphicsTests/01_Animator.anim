@@ -50,7 +50,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: color.x
+    attribute: vfx.Vector3.color.x
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -87,7 +87,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: color.y
+    attribute: vfx.Vector3.color.y
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -124,7 +124,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: color.z
+    attribute: vfx.Vector3.color.z
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -161,7 +161,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: velocity
+    attribute: vfx.float.velocity
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -198,7 +198,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: a_int
+    attribute: vfx.int.a_int
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -235,7 +235,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: an_uint
+    attribute: vfx.uint.an_uint
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -281,7 +281,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: a_bool
+    attribute: vfx.bool.a_bool
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -293,7 +293,7 @@ AnimationClip:
       value: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
     - time: 1
       value: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
-    attribute: a_mesh
+    attribute: vfx.Object.a_mesh
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -304,7 +304,7 @@ AnimationClip:
       value: {fileID: 2800000, guid: 7a371224af202974e93f00c4f5a8eb38, type: 3}
     - time: 1.0166667
       value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
-    attribute: a_texture
+    attribute: vfx.Object.a_texture
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -439,7 +439,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: color.x
+    attribute: vfx.Vector3.color.x
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -476,7 +476,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: color.y
+    attribute: vfx.Vector3.color.y
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -513,7 +513,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: color.z
+    attribute: vfx.Vector3.color.z
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -550,7 +550,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: velocity
+    attribute: vfx.float.velocity
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -587,7 +587,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: a_int
+    attribute: vfx.int.a_int
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -624,7 +624,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: an_uint
+    attribute: vfx.uint.an_uint
     path: 
     classID: 2083052967
     script: {fileID: 0}
@@ -670,7 +670,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: a_bool
+    attribute: vfx.bool.a_bool
     path: 
     classID: 2083052967
     script: {fileID: 0}
