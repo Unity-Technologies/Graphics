@@ -97,13 +97,6 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        public enum IconType
-        {
-            plus,
-            minus,
-            simple
-        }
-
         bool m_EdgeDragging;
         public override void OnStartEdgeDragging()
         {
@@ -132,25 +125,6 @@ namespace UnityEditor.VFX.UI
         public override bool collapsed
         {
             get { return !controller.expandedInHierachy; }
-        }
-
-        public static Texture2D GetTypeIcon(Type type, IconType iconType)
-        {
-            string suffix = "";
-            switch (iconType)
-            {
-                case IconType.plus:
-                    suffix = "_plus";
-                    break;
-                case IconType.minus:
-                    suffix = "_minus";
-                    break;
-            }
-
-            Texture2D result = Resources.Load<Texture2D>("VFX/" + type.Name + suffix);
-            if (result == null)
-                return Resources.Load<Texture2D>("VFX/Default" + suffix);
-            return result;
         }
 
         IEnumerable<VFXDataEdge> GetAllEdges()

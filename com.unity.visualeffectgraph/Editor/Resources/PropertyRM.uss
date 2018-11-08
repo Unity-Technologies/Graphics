@@ -6,9 +6,35 @@
 
 .propertyrm #icon
 {
-    margin-top:6;
-    width:6;
-    height:6;
+    width:13;
+    height:13;
+}
+
+.propertyrm.icon-expandable #icon
+{
+    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout.png");
+}
+.propertyrm.icon-expandable #icon:hover
+{
+    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout focus.png");
+}
+.propertyrm.icon-expandable #icon:hover:active
+{
+    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout act.png");
+}
+
+
+.propertyrm.icon-expandable.icon-expanded #icon
+{
+    background-image:resource("IN foldout on.png");
+}
+.propertyrm.icon-expandable.icon-expanded #icon:hover
+{
+    background-image:resource("IN foldout focus on.png");
+}
+.propertyrm.icon-expandable.icon-expanded #icon:active
+{
+    background-image:resource("IN foldout act on.png");
 }
 
 .propertyrm #spacebutton

@@ -231,21 +231,20 @@ namespace UnityEditor.VFX.UI
         {
             if (m_Provider.expandable)
             {
-                if (m_IconStates == null)
-                {
-                    m_IconStates = new Texture2D[]
-                    {
-                        Resources.Load<Texture2D>("VFX/plus"),
-                        Resources.Load<Texture2D>("VFX/minus")
-                    };
-                }
                 if (!m_IconClickableAdded)
                 {
                     m_Icon.AddManipulator(m_IconClickable);
                     m_IconClickableAdded = false;
                 }
-
-                m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded ? 1 : 0];
+                if (m_Provider.expanded)
+                {
+                    AddToClassList("icon-expanded");
+                }
+                else
+                {
+                    RemoveFromClassList("icon-expanded");
+                }
+                    AddToClassList("icon-expandable");
             }
             else
             {
@@ -267,9 +266,6 @@ namespace UnityEditor.VFX.UI
             m_Provider = provider;
             m_labelWidth = labelWidth;
 
-            m_Icon = new VisualElement() { name = "icon" };
-            Add(m_Icon);
-
             m_IconClickable = new Clickable(OnExpand);
 
             isDelayed = VFXPropertyAttribute.IsDelayed(m_Provider.attributes);
@@ -290,12 +286,15 @@ namespace UnityEditor.VFX.UI
                     VisualElement line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft =  0.5f * depthOffset + (i == 0 ? -2 : 0);
-                    line.style.marginRight = depthOffset * 0.5f + ((i == provider.depth - 1) ? 2 : 0);
+                    line.style.marginLeft =  depthOffset + (i == 0 ? -2 : 0);
+                    line.style.marginRight = ((i == provider.depth - 1) ? 2 : 0);
 
                     Add(line);
                 }
             }
+            m_Icon = new VisualElement() { name = "icon" };
+            Add(m_Icon);
+
             m_Label.style.width = effectiveLabelWidth - provider.depth * depthOffset;
             Add(m_Label);
 
