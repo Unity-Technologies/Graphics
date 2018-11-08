@@ -16,12 +16,15 @@ namespace UnityEditor.ShaderGraph
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
         public const string PositionName = "Position";
+        public const string VertexColorName = "VertexColor";
+        public const string EnableAlphaTexName = "EnableAlphaTexture";
 
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
         public const int PositionSlotId = 9;
-
+        public const int VertexColorSlotId = 10;
+        public const int EnableAlphaTexSlotId = 11;
 
         // [SerializeField]
         // SurfaceType m_SurfaceType;
@@ -51,15 +54,19 @@ namespace UnityEditor.ShaderGraph
             name = "Sprite Unlit Master";
 
             AddSlot(new PositionMaterialSlot(PositionSlotId, PositionName, PositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            AddSlot(new ColorRGBAMaterialSlot(VertexColorSlotId, VertexColorName, VertexColorName, SlotType.Input, Color.white, ShaderStageCapability.Vertex));
             AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey, ColorMode.Default, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(EnableAlphaTexSlotId, EnableAlphaTexName, EnableAlphaTexName, SlotType.Input, 0, ShaderStageCapability.Fragment));
 
             RemoveSlotsNameNotMatching(
                 new[]
             {
                 PositionSlotId,
+                VertexColorSlotId,
                 ColorSlotId,
-                AlphaSlotId
+                AlphaSlotId,
+                EnableAlphaTexSlotId
             });
         }
 
