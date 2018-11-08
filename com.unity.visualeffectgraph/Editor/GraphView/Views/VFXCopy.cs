@@ -321,6 +321,8 @@ namespace UnityEditor.VFX.UI
 
             var blocks = controller.blockControllers;
 
+            context.label = controller.model.label;
+
             if (controller.model.GetData() != null)
                 context.dataIndex = Array.IndexOf(datas, controller.model.GetData());
             else

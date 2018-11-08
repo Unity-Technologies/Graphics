@@ -223,6 +223,8 @@ namespace UnityEditor.VFX.UI
             if (m_UI.groupInfos[m_Index].contents == null)
                 return;
 
+            bool oneFound = false;
+
             foreach (var nodeController in nodeControllers)
             {
                 int id = nodeController.id;
@@ -230,9 +232,10 @@ namespace UnityEditor.VFX.UI
                 if (!m_UI.groupInfos[m_Index].contents.Any(t => t.model == model && t.id == id))
                     continue;
                 m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => t.model != model || t.id != id).ToArray();
+                oneFound = true;
             }
-
-            Modified();
+            if(oneFound)
+                Modified();
         }
 
         public void RemoveNode(VFXNodeController nodeController)

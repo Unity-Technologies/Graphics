@@ -194,6 +194,8 @@ namespace UnityEditor.VFX.UI
                 return null;
             }
 
+            newContext.label = context.label;
+
             List<VFXBlock> blocks = new List<VFXBlock>();
             foreach (var block in context.blocks)
             {
