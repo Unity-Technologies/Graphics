@@ -19,7 +19,7 @@
     margin-left:4;
     margin-right:8;
 }
-.propertyrm Button
+.propertyrm .unity-button
 {
     margin-top:1;
     margin-bottom:1;
@@ -29,7 +29,7 @@
 
 .propertyrm #label
 {
-    text-color: rgb(153,153,153);
+    color: rgb(153,153,153);
     height:16;
     margin-left:0;
     padding-left:1;
@@ -54,7 +54,7 @@
     background-image:resource("vfx/spaceworld");
 }
 
-.propertyrm > FloatField
+.propertyrm > .unity-float-field
 {
     margin-bottom:3;
 }
@@ -65,15 +65,14 @@
 }
 .propertyrm .textfield::disabled
 {
-    text-color:#666;
+    color:#666;
 }
 
 .propertyrm .label
 {
-    text-color:#888;
+    color:#888;
     flex:0 0 auto;
-    padding-left:2;
-    text-alignment:middle-center;
+    -unity-text-align:middle-center;
     margin-left:0;
     padding-left:4;
     margin-right:2;
@@ -85,7 +84,7 @@
     padding-left:0;
 }
 
-.propertyrm .fieldContainer, .propertyrm FloatField
+.propertyrm .fieldContainer, .propertyrm .unity-float-field
 {
     -align-items: center;
     flex-direction:row;
@@ -98,7 +97,7 @@
     height:16;
 }
 
-BoolPropertyRM > Toggle
+BoolPropertyRM > .unity-toggle
 {
     padding-top:0;
     padding-bottom:0;
@@ -135,10 +134,6 @@ ColorPropertyRM .colorcontainer, Vector3PropertyRM .colorcontainer
     border-right-width:1;
     border-top-width:1;
     border-bottom-width:1;
-    border-top:1;
-    border-bottom:1;
-    border-left:1;
-    border-right:1;
     border-color:#000;
     margin-top:2;
     margin-bottom:2;
@@ -149,28 +144,18 @@ ColorPropertyRM > .maincontainer > .fieldContainer
     flex:0 0 auto;
 }
 
-ColorPropertyRM FloatField
+ColorPropertyRM .unity-float-field
 {
     flex:1 0 auto;
 }
 
-FloatPropertyRM FloatField
-{
-    align-self:flex-end;
-    flex:1 0 auto;
-}
-
-IntPropertyRM IntegerField
+FloatPropertyRM .unity-float-field
 {
     align-self:flex-end;
-    margin-left:0;
-    margin-right:0;
-    margin-top:0;
-    margin-bottom:0;
     flex:1 0 auto;
 }
 
-UintPropertyRM LongField
+IntPropertyRM .unity-integer-field
 {
     align-self:flex-end;
     margin-left:0;
@@ -180,7 +165,17 @@ UintPropertyRM LongField
     flex:1 0 auto;
 }
 
-CurvePropertyRM CurveField
+UintPropertyRM .unity-long-field
+{
+    align-self:flex-end;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+    flex:1 0 auto;
+}
+
+CurvePropertyRM .unity-curve-field
 {
     flex:1 0 auto;
 }
@@ -191,7 +186,7 @@ CurvePropertyRM
     min-width:100;
 }
 
-StringPropertyRM VFXStringField TextField
+StringPropertyRM VFXStringField .unity-text-field
 {
     margin-left:0;
     margin-right:0;
@@ -208,10 +203,10 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
 .propertyrm #indeterminate
 {
     flex:1 1 auto;
-    slice-left: 3;
-    slice-top: 3;
-    slice-right: 3;
-    slice-bottom: 3;
+    -unity-slice-left: 3;
+    -unity-slice-top: 3;
+    -unity-slice-right: 3;
+    -unity-slice-bottom: 3;
     margin-top:0;
     margin-bottom:0;
     margin-left:0;
@@ -232,7 +227,7 @@ VFXCurveField {
     margin-right: 4;
     margin-bottom: 2;
     background-color:rgb(86,86,86);
-    curve-color: #00ff00;
+    --unity-curve-color: #00ff00;
 }
 
 VFXCurveField > CurveFieldContent{
@@ -244,7 +239,7 @@ VFXCurveField > CurveFieldContent{
     overflow:hidden;
 }
 
-VFXCurveField > #border
+VFXCurveField > #unity-border
 {
     position:absolute;
     left:0;
@@ -259,7 +254,7 @@ VFXCurveField > #border
     background-image: resource("Builtin Skins/Processed/Images/colorpickerbox.png");
 }
 
-VFXCurveField:focus > #border
+VFXCurveField:focus > #unity-border
 {
     background-image: resource("Builtin Skins/Processed/Images/colorpickerboxfocused.png");
 }

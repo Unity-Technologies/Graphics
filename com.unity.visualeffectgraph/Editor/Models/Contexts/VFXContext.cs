@@ -461,9 +461,9 @@ namespace UnityEditor.VFX
                 if (letter != '\0')
                 {
                     if (string.IsNullOrEmpty(label))
-                        return string.Format("{2}/{0} {1}", letter, libraryName, prefix);
+                        return string.Format("{2}/({0}) {1}", letter, libraryName, prefix);
                     else
-                        return string.Format("{2}/{0} {1}", letter, label, prefix);
+                        return string.Format("{2}/({0}) {1}", letter, label, prefix);
                 }
                 else
                 {

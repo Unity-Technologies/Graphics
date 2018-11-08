@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 using System.Reflection;
 
 using NodeID = System.UInt32;
@@ -320,6 +320,8 @@ namespace UnityEditor.VFX.UI
             NodeID id = CopyNode(ref context.node, controller.model, (NodeID)index);
 
             var blocks = controller.blockControllers;
+
+            context.label = controller.model.label;
 
             if (controller.model.GetData() != null)
                 context.dataIndex = Array.IndexOf(datas, controller.model.GetData());

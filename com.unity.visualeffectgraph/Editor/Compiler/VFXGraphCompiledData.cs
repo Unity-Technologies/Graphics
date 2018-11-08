@@ -578,8 +578,22 @@ namespace UnityEditor.VFX
             }
         }
 
+        static public Action<VisualEffectResource, bool> k_FnVFXResource_SetCompileInitialVariants = Find_FnVFXResource_SetCompileInitialVariants();
 
-        public void Compile(VFXCompilationMode compilationMode)
+        static Action<VisualEffectResource, bool> Find_FnVFXResource_SetCompileInitialVariants()
+        {
+            var property = typeof(VisualEffectResource).GetProperty("compileInitialVariants");
+            if (property != null)
+            {
+                return delegate (VisualEffectResource rsc, bool value)
+                {
+                    property.SetValue(rsc, value, null);
+                };
+            }
+            return null;
+        }
+
+        public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
             // Prevent doing anything ( and especially showing progesses ) in an empty graph.
             if (m_Graph.children.Count() < 1)
@@ -718,6 +732,11 @@ namespace UnityEditor.VFX
 
                 m_Graph.visualEffectResource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = expressionSheet.values;
+
+                if (k_FnVFXResource_SetCompileInitialVariants != null)
+                {
+                    k_FnVFXResource_SetCompileInitialVariants(m_Graph.visualEffectResource, forceShaderValidation);
+                }
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Importing VFX", 11 / nbSteps);
                 Profiler.BeginSample("VFXEditor.CompileAsset:ImportAsset");

@@ -1,12 +1,12 @@
 #define USE_EXIT_WORKAROUND_FOGBUGZ_1062258
 using System;
 using System.Linq;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.UIElements;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
@@ -127,13 +127,11 @@ namespace  UnityEditor.VFX.UI
         {
             VFXManagerEditor.CheckVFXManager();
 
-            var root = this.GetRootVisualContainer();
-
             graphView = new VFXView();
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
 
-            root.Add(graphView);
+            rootVisualElement.Add(graphView);
 
 
             var currentAsset = GetCurrentResource();
@@ -148,8 +146,6 @@ namespace  UnityEditor.VFX.UI
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
-
-            VisualElement rootVisualElement = this.GetRootVisualContainer();
             if (rootVisualElement.panel != null)
             {
                 rootVisualElement.AddManipulator(m_ShortcutHandler);
@@ -199,13 +195,11 @@ namespace  UnityEditor.VFX.UI
 
         void OnEnterPanel(AttachToPanelEvent e)
         {
-            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.AddManipulator(m_ShortcutHandler);
         }
 
         void OnLeavePanel(DetachFromPanelEvent e)
         {
-            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
             rootVisualElement.RemoveManipulator(m_ShortcutHandler);
         }
 

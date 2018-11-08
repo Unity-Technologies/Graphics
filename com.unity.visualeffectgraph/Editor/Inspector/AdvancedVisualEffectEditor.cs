@@ -10,7 +10,7 @@ using UnityEngine.Experimental.VFX;
 
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 using EditMode = UnityEditorInternal.EditMode;
 using UnityObject = UnityEngine.Object;
 using System.Reflection;
