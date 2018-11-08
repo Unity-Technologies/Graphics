@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         RenderTargetHandle m_NormalMapRTHandle;
         RenderTargetHandle m_PointLightRTHandle;  // Probably able to be combined with another texture
         RenderTargetHandle m_ShadowMapRTHandle;   // This will be something we can't combine
+        RenderTargetHandle m_DepthRTHandle;
 
         RenderTextureDescriptor m_AmbientRTDescriptor;
         RenderTextureDescriptor m_SpecularRTDescriptor;
@@ -44,8 +45,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (handle != RenderTargetHandle.CameraTarget)
             {
-                var rtDescriptor = descriptor;
-                cmd.GetTemporaryRT(handle.id, rtDescriptor, filterMode);
+                cmd.GetTemporaryRT(handle.id, descriptor, filterMode);
+                //cmd.GetTemporaryRT(handle.id, 512, 512, 32, FilterMode.Bilinear);            }
+                //cmd.GetTemporaryRT(handle.id, )
             }
         }
 
@@ -74,6 +76,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
+        void PrepareToRenderSprites(CommandBuffer cmdBuffer)
+        {
+            cmdBuffer.SetRenderTarget(RenderTargetHandle.CameraTarget.id);
+        }
+
         void RenderLightSet(CommandBuffer cmdBuffer, int layerToRender, RenderTargetHandle renderTargetHandle, Color clearColor, string shaderKeyword, List<Light2D> lights)
         {
             // This should only be called if we have a valid renderTargetHandle
@@ -96,6 +103,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                                 {
                                     cmdBuffer.SetRenderTarget(renderTargetHandle.id);
                                     //SetRenderTarget(cmdBuffer, renderTargetHandle.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, clearColor, TextureDimension.Tex2D);
+                                    cmdBuffer.ClearRenderTarget(false, true, m_DefaultSpecularColor);
+                                    cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
+
                                     renderedFirstLight = true;
                                 }
 
@@ -152,39 +162,51 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            Camera camera = renderingData.cameraData.camera;
+
+            context.SetupCameraProperties(renderingData.cameraData.camera, renderingData.cameraData.isStereoEnabled);
+
+
+            SortingSettings sortingSettings = new SortingSettings(camera);
+            SortingCriteria criteria = sortingSettings.criteria | SortingCriteria.BackToFront;
+            sortingSettings.criteria = criteria;
+
+            FilteringSettings filterSettings = new FilteringSettings();
+            filterSettings.layerMask = ~0;
+            filterSettings.renderingLayerMask = 0xFFFFFFFF;
+            filterSettings.sortingLayerRange = SortingLayerRange.all;
+            DrawingSettings drawSettings = new DrawingSettings(new ShaderTagId("CombinedShapeLight"), sortingSettings);
+            drawSettings.enableInstancing = true;
+            drawSettings.enableDynamicBatching = true;
+            //context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+
+
+
             CommandBuffer cmd = CommandBufferPool.Get(k_Render2DLightingPassTag);
             CreateRenderTextures(cmd);
 
             cmd.SetGlobalColor("_AmbientColor", m_DefaultAmbientColor);
 
             // Do my light culling here...
-            Camera camera = renderingData.cameraData.camera;
             SortingLayer[] sortingLayers = SortingLayer.layers;
             for (int i = 0; i < sortingLayers.Length; i++)
             {
+                cmd.Clear();
+
                 //bool isLitLayer = true; // We need to check the to see if any of the lights are using this layer
                 int layerToRender = sortingLayers[i].id;
                 short layerValue = (short)sortingLayers[i].value;
 
-                SortingSettings sortingSettings = new SortingSettings(camera);
-                SortingCriteria criteria = sortingSettings.criteria | SortingCriteria.BackToFront;
-                sortingSettings.criteria = criteria;
-
-                FilteringSettings filterSettings = new FilteringSettings();
-                filterSettings.layerMask = ~0;
-                filterSettings.renderingLayerMask = 0xFFFFFFFF;
-                filterSettings.sortingLayerRange = SortingLayerRange.all;
-                DrawingSettings drawSettings = new DrawingSettings();
-                drawSettings.enableInstancing = true;
-                drawSettings.enableDynamicBatching = true;
-                drawSettings.sortingSettings = sortingSettings;
-
                 RenderLights(cmd, layerToRender);
+
+                //PrepareToRenderSprites(cmd);
+                context.ExecuteCommandBuffer(cmd);
+
+
                 //context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
             }
 
             ReleaseRenderTextures(cmd);
-            context.ExecuteCommandBuffer(cmd);
         }
     }
 }

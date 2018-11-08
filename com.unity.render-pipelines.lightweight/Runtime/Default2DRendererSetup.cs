@@ -39,7 +39,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private RenderTextureFormat m_RenderTextureFormatToUse;
 
+
         Render2DLightingPass m_Render2DLightingPass;
+
+
+        private RenderTargetHandle m_DepthTexture;
+#if UNITY_EDITOR
+        private SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
+#endif
 
         //Render2DFallbackPass   m_Render2DFallbackPass;
 
@@ -73,10 +80,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
 
 
-
-
+            m_DepthTexture.Init("_CameraDepthTexture");
             m_Render2DLightingPass = new Render2DLightingPass();
 
+
+
+#if UNITY_EDITOR
+            m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass();
+#endif
             m_Initialized = true;
         }
 
@@ -90,11 +101,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_Render2DLightingPass.Setup(m_AmbientDefaultColor, ambientRTDescriptor, specularRTDescriptor, rimRTDescriptor, m_AmbientRenderTextureInfo.filterMode, m_SpecularRenderTextureInfo.filterMode, m_RimRenderTextureInfo.filterMode);
             renderer.EnqueuePass(m_Render2DLightingPass);
+
+            #if UNITY_EDITOR
+                if (renderingData.cameraData.isSceneViewCamera)
+                {
+                    m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
+                    renderer.EnqueuePass(m_SceneViewDepthCopyPass);
+                }
+            #endif
         }
 
 
         #if UNITY_EDITOR
-            [MenuItem("Assets/Create/Rendering/Create 2D Render Setup")]
+        [MenuItem("Assets/Create/Rendering/Create 2D Render Setup")]
             static void Create2DRenderSetup()
             {
                 Default2DRendererSetup asset = ScriptableObject.CreateInstance<Default2DRendererSetup>();

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 6106becf56dd2a24d911b2ee46928648
+guid: e722ca9ab51e1424ba28455ca608f68b
 TextureImporter:
   fileIDToRecycleName: {}
   externalObjects: {}
@@ -80,7 +80,6 @@ TextureImporter:
     indices: 
     edges: []
     weights: []
-    secondaryTextures: []
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
