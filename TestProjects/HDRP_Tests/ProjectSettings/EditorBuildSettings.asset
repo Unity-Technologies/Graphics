@@ -168,9 +168,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/9x_Other/9201_Camera-relative-rendering.unity
     guid: b15afca992049604dbb5071c393dd355
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9202_Multi-Cam-RT.unity
-    guid: 056c2ab6145cabb41863e05c92c627db
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2304_Contact_Shadow_DirectionalLight.unity
     guid: 0bd95465e38213946bb84218fa502976
   - enabled: 1
