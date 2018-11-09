@@ -125,7 +125,6 @@ Shader "HDRenderPipeline/StackLit"
         _EmissiveColorMapUVLocal("Emissive Color Map UV Local", Float) = 0.0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
-        [ToggleUI] _EnableSubsurfaceScattering("Enable Subsurface Scattering", Float) = 0.0
         _DiffusionProfile("Diffusion Profile", Int) = 0
         [HideInInspector] _SubsurfaceMaskMapShow("Subsurface Mask Map Show", Float) = 0
         _SubsurfaceMask("Subsurface Mask", Range(0.0, 1.0)) = 1.0
