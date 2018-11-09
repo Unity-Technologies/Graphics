@@ -81,8 +81,8 @@ CBUFFER_START(UnityPerDraw)
     // z = Texel size on U texture coordinate
     float4 unity_ProbeVolumeParams;
     float4x4 unity_ProbeVolumeWorldToObject;
-    float3 unity_ProbeVolumeSizeInv;
-    float3 unity_ProbeVolumeMin;
+    float4 unity_ProbeVolumeSizeInv; // Note: This variable is float4 and not float3 (compare to builtin unity) to be compatible with SRP batcher
+    float4 unity_ProbeVolumeMin; // Note: This variable is float4 and not float3 (compare to builtin unity) to be compatible with SRP batcher
 
     // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
     float4 unity_ProbesOcclusion;
