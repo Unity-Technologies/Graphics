@@ -42,16 +42,16 @@ namespace UnityEditor.VFX
         {
             if (m_LoopCurrentIndex != m_LoopMaxCount && state.totalTime > m_WaitingForTotalTime)
             {
-                state.totalTime = 0.0f;
                 if (state.playing)
                 {
-                    m_WaitingForTotalTime = vfxValues.GetFloat(delayPropertyID); 
+                    m_WaitingForTotalTime = state.totalTime + vfxValues.GetFloat(delayPropertyID); 
                     state.playing = false; //We are in playing state, if m_LoopCurrentIndex + 1 == m_LoopMaxCount, we have finish here
                     m_LoopCurrentIndex = m_LoopCurrentIndex + 1 > 0 ? m_LoopCurrentIndex + 1 : 0; //It's possible to count to infinite if m_LoopMaxCount < 0
                 }
                 else
                 {
                     m_WaitingForTotalTime = vfxValues.GetFloat(loopDurationPropertyID);
+                    state.totalTime = 0.0f;
                     state.playing = true; //We are in not playing state, we was waiting for the moment when restart will be launch
                 }
             }
