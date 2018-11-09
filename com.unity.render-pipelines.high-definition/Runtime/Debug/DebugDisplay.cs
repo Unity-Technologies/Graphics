@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -433,6 +434,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     children =
                     {
                         new DebugUI.ColorField { displayName = "Specular Color", getter = () => lightingDebugSettings.overrideSpecularColorValue, setter = value => lightingDebugSettings.overrideSpecularColorValue = value, showAlpha = false, hdr = false }
+                    }
+                });
+            }
+
+            list.Add(new DebugUI.BoolField { displayName = "Override Emissive Color", getter = () => lightingDebugSettings.overrideEmissiveColor, setter = value => lightingDebugSettings.overrideEmissiveColor = value, onValueChanged = RefreshLightingDebug });
+            if (lightingDebugSettings.overrideEmissiveColor)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.ColorField { displayName = "Emissive Color", getter = () => lightingDebugSettings.overrideEmissiveColorValue, setter = value => lightingDebugSettings.overrideEmissiveColorValue = value, showAlpha = false, hdr = true }
                     }
                 });
             }

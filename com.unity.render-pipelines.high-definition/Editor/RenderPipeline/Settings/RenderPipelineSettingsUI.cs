@@ -90,14 +90,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.PropertyField(d.supportLightLayers, _.GetContent("LightLayers|Enable light layers. In deferred this imply an extra render target in memory and extra cost."));
-            EditorGUILayout.PropertyField(d.supportOnlyForward, _.GetContent("Forward Rendering Only|Remove all the memory and shader variant of GBuffer. The renderer cannot be switch to deferred anymore."));
             
+            EditorGUILayout.PropertyField(d.supportedLitShaderMode, _.GetContent("Supported Lit Shader Mode|Remove all the memory and shader variant of GBuffer of non used mode. The renderer cannot be switch to non selected path anymore."));
+
             // MSAA is an option that is only available in full forward but Camera can be set in Full Forward only. Thus MSAA have no dependency currently
-            EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing|This feature doesn't work currently."));
-            using (new EditorGUI.DisabledScope(!d.supportMSAA.boolValue))
+            //Note: do not use SerializedProperty.enumValueIndex here as this enum not start at 0 as it is used as flags.
+            bool msaaAllowed = d.supportedLitShaderMode.intValue == (int)UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly || d.supportedLitShaderMode.intValue == (int)UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineSettings.SupportedLitShaderMode.Both;
+            using (new EditorGUI.DisabledScope(!msaaAllowed))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
+                d.supportMSAA.boolValue = EditorGUILayout.Toggle(_.GetContent("Support Multi Sampling Anti-Aliasing|This feature only work when only ForwardOnly LitShaderMode is supported."), d.supportMSAA.boolValue && msaaAllowed);
+                using (new EditorGUI.DisabledScope(!d.supportMSAA.boolValue))
+                {
+                    ++EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
+                    --EditorGUI.indentLevel;
+                }
                 --EditorGUI.indentLevel;
             }
 

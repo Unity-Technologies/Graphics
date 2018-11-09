@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Serialization;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {

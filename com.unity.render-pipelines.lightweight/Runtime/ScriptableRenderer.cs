@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Unity.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -98,14 +99,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>();
 
-        List<ShaderPassName> m_LegacyShaderPassNames = new List<ShaderPassName>()
+        List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
         {
-            new ShaderPassName("Always"),
-            new ShaderPassName("ForwardBase"),
-            new ShaderPassName("PrepassBase"),
-            new ShaderPassName("Vertex"),
-            new ShaderPassName("VertexLMRGBM"),
-            new ShaderPassName("VertexLM"),
+            new ShaderTagId("Always"),
+            new ShaderTagId("ForwardBase"),
+            new ShaderTagId("PrepassBase"),
+            new ShaderTagId("Vertex"),
+            new ShaderTagId("VertexLMRGBM"),
+            new ShaderTagId("VertexLM"),
         };
 
         const string k_ReleaseResourcesTag = "Release Resources";
@@ -142,6 +143,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Keywords are enabled while executing passes.
+            CommandBuffer cmd = CommandBufferPool.Get("Clear Pipeline Keywords");
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 m_ActiveRenderPassQueue[i].Execute(this, context, ref renderingData);
 
@@ -171,21 +184,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ActiveRenderPassQueue.Add(pass);
         }
 
-        public void SetupPerObjectLightIndices(ref CullResults cullResults, ref LightData lightData)
+        public void SetupPerObjectLightIndices(ref CullingResults cullResults, ref LightData lightData)
         {
             if (lightData.additionalLightsCount == 0)
                 return;
 
-            List<VisibleLight> visibleLights = lightData.visibleLights;
-            int[] perObjectLightIndexMap = cullResults.GetLightIndexMap();
+            var visibleLights = lightData.visibleLights;
+            var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
 
             int directionalLightsCount = 0;
-            int localLightsCount = 0;    
+            int additionalLightsCount = 0;
 
             // Disable all directional lights from the perobject light indices
             // Pipeline handles them globally.
-            for (int i = 0; i < visibleLights.Count && localLightsCount < lightData.additionalLightIndices.Count; ++i)
-            {    
+            for (int i = 0; i < visibleLights.Length; ++i)
+            {
+                if (additionalLightsCount >= maxVisibleAdditionalLights)
+                    break;
+
                 VisibleLight light = visibleLights[i];
                 if (light.lightType == LightType.Directional)
                 {
@@ -195,21 +211,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 else
                 {
                     perObjectLightIndexMap[i] -= directionalLightsCount;
-                    ++localLightsCount;
+                    ++additionalLightsCount;
                 }
             }
 
             // Disable all remaining lights we cannot fit into the global light buffer.
-            for (int i = directionalLightsCount + localLightsCount; i < visibleLights.Count; ++i)
+            for (int i = directionalLightsCount + additionalLightsCount; i < visibleLights.Length; ++i)
                 perObjectLightIndexMap[i] = -1;
 
             cullResults.SetLightIndexMap(perObjectLightIndexMap);
+            perObjectLightIndexMap.Dispose();
 
             // if not using a compute buffer, engine will set indices in 2 vec4 constants
             // unity_4LightIndices0 and unity_4LightIndices1
             if (useStructuredBufferForLights)
             {
-                int lightIndicesCount = cullResults.GetLightIndicesCount();
+                int lightIndicesCount = cullResults.lightAndReflectionProbeIndexCount;
                 if (lightIndicesCount > 0)
                 {
                     if (perObjectLightIndices == null)
@@ -222,12 +239,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         perObjectLightIndices = new ComputeBuffer(lightIndicesCount, sizeof(int));
                     }
 
-                    cullResults.FillLightIndices(perObjectLightIndices);
+                    cullResults.FillLightAndReflectionProbeIndices(perObjectLightIndices);
                 }
             }
         }
 
         public void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
+        {
+            RenderPostProcess(cmd, ref cameraData, colorFormat, source, dest, opaqueOnly, !cameraData.isStereoEnabled && cameraData.camera.targetTexture == null);
+        }
+
+        public void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly, bool flip)
         {
             Camera camera = cameraData.camera;
             postProcessingContext.Reset();
@@ -236,7 +258,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             postProcessingContext.sourceFormat = colorFormat;
             postProcessingContext.destination = dest;
             postProcessingContext.command = cmd;
-            postProcessingContext.flip = !cameraData.isStereoEnabled && camera.targetTexture == null;
+            postProcessingContext.flip = flip;
 
             if (opaqueOnly)
                 cameraData.postProcessLayer.RenderOpaqueOnly(postProcessingContext);
@@ -245,19 +267,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        public void RenderObjectsWithError(ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
+        public void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
         {
             Material errorMaterial = GetMaterial(MaterialHandle.Error);
             if (errorMaterial != null)
             {
-                DrawRendererSettings errorSettings = new DrawRendererSettings(camera, m_LegacyShaderPassNames[0]);
+                SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
+                DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
+                {
+                    perObjectData = PerObjectData.None,
+                    overrideMaterial = errorMaterial,
+                    overrideMaterialPassIndex = 0
+                };
                 for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
                     errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
 
-                errorSettings.sorting.flags = sortFlags;
-                errorSettings.rendererConfiguration = RendererConfiguration.None;
-                errorSettings.SetOverrideMaterial(errorMaterial, 0);
-                context.DrawRenderers(cullResults.visibleRenderers, ref errorSettings, filterSettings);
+                context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
             }
         }
 
@@ -269,7 +294,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (cameraData.isStereoEnabled)
             {
-                return XRGraphicsConfig.eyeTextureDesc;
+                return XRGraphics.eyeTextureDesc;
             }
             else
             {
@@ -282,18 +307,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
             return desc;
-        }
-
-        public static bool RequiresIntermediateColorTexture(ref CameraData cameraData, RenderTextureDescriptor baseDescriptor)
-        {
-            if (cameraData.isOffscreenRender)
-                return false;
-
-            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
-            bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
-            bool noAutoResolveMsaa = cameraData.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
-            return noAutoResolveMsaa || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;
         }
 
         public static ClearFlag GetCameraClearFlag(Camera camera)
@@ -313,15 +326,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return clearFlag;
         }
 
-        public static RendererConfiguration GetRendererConfiguration(int additionalLightsCount)
+        public static PerObjectData GetRendererConfiguration(int additionalLightsCount)
         {
-            RendererConfiguration configuration = RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
+            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe;
             if (additionalLightsCount > 0)
             {
                 if (useStructuredBufferForLights)
-                    configuration |= RendererConfiguration.ProvideLightIndices;
+                    configuration |= PerObjectData.LightIndices;
                 else
-                    configuration |= RendererConfiguration.PerObjectLightIndices8;
+                    configuration |= PerObjectData.LightIndices8;
             }
 
             return configuration;

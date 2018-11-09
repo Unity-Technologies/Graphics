@@ -50,7 +50,6 @@ LightmapSettings:
     m_BounceScale: 1
     m_IndirectOutputScale: 1
     m_AlbedoBoost: 1
-    m_TemporalCoherenceThreshold: 1
     m_EnvironmentLightingMode: 0
     m_EnableBakedLightmaps: 0
     m_EnableRealtimeLightmaps: 0
@@ -281,9 +280,11 @@ MonoBehaviour:
   m_ShowCustomSorter: 0
   breakBeforeColorGrading: 0
   m_BeforeTransparentBundles:
-  - assemblyQualifiedName: InvertOpaque, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - assemblyQualifiedName: InvertOpaque, LWGraphicsTests, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
   m_BeforeStackBundles:
-  - assemblyQualifiedName: HalfToneOpaque, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - assemblyQualifiedName: HalfToneOpaque, LWGraphicsTests, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
   m_AfterStackBundles: []
 --- !u!114 &127406276
 MonoBehaviour:
@@ -301,7 +302,7 @@ MonoBehaviour:
     TargetWidth: 640
     TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.005
-    AverageCorrectnessThreshold: 0.005
+    AverageCorrectnessThreshold: 0.001
   WaitFrames: 2
 --- !u!1 &203150636
 GameObject:

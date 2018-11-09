@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class StackLitGUI : BaseMaterialGUI
     {
-        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Other); } }
+        protected override uint defaultExpandedState { get { return (uint)(Expandable.Base | Expandable.Input | Expandable.VertexAnimation | Expandable.Detail | Expandable.Emissive | Expandable.Transparency | Expandable.Other); } }
 
         protected static class StylesStackLit
         {
@@ -300,9 +300,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //    Debug.Log(_materialProperties.ToShaderPropertiesStringInternal());
             //}
             
-            using (var header = new HeaderScope(StylesStackLit.stackOptionText, (uint)Expendable.Input, this, spaceAtEnd: false))
+            using (var header = new HeaderScope(StylesStackLit.stackOptionText, (uint)Expandable.Input, this, spaceAtEnd: false))
             {
-                if (header.expended)
+                if (header.expanded)
                     _materialProperties.OnGUI();
             }
         }

@@ -38,6 +38,11 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         // Serialization helpers
+        /// <summary>
+        /// To use with extreme caution. It not really get the property but try to find a field with similar name
+        /// Hence inheritance override of property is not supported.
+        /// Also variable rename will silently break the search.
+        /// </summary>
         public static string FindProperty<T, TValue>(Expression<Func<T, TValue>> expr)
         {
             // Get the field path as a string
@@ -262,39 +267,39 @@ namespace UnityEditor.Experimental.Rendering
         const int k_DrawVector6Slider_LabelSize = 60;
         const int k_DrawVector6Slider_FieldSize = 80;
 
-        public static void DrawVector6(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max, Color[][] colors = null)
+        public static void DrawVector6(GUIContent label, ref Vector3 positive, ref Vector3 negative, Vector3 min, Vector3 max, Color[] colors = null)
         {
-            if (colors != null && (colors.Length != 2 || colors[0].Length != 3 || colors[1].Length != 3))
-                    throw new System.ArgumentException("Colors must be a 2x3 array.");
+            if (colors != null && (colors.Length != 6))
+                    throw new System.ArgumentException("Colors must be a 6 element array. [+X, +Y, +X, -X, -Y, -Z]");
 
             GUILayout.BeginVertical();
             Rect rect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight));
             if (label != GUIContent.none)
             {
                 var labelRect = rect;
-                labelRect.x -= 12f;
+                labelRect.x -= 11f * EditorGUI.indentLevel;
                 labelRect.width = EditorGUIUtility.labelWidth;
                 EditorGUI.LabelField(labelRect, label);
-                rect.x += EditorGUIUtility.labelWidth - 12f;
-                rect.width -= EditorGUIUtility.labelWidth - 12f;
+                rect.x += EditorGUIUtility.labelWidth - 1f - 11f * EditorGUI.indentLevel;
+                rect.width -= EditorGUIUtility.labelWidth - 1f - 11f * EditorGUI.indentLevel;
             }
             
-            var v = positive.vector3Value;
+            var v = positive;
             EditorGUI.BeginChangeCheck();
-            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, false, colors == null ? null : colors[0]);
+            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, false, colors == null ? null : new Color[] { colors[0], colors[1], colors[2] });
             if (EditorGUI.EndChangeCheck())
-                positive.vector3Value = v;
+                positive = v;
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
             rect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight));
-            rect.x += EditorGUIUtility.labelWidth - 12f;
-            rect.width -= EditorGUIUtility.labelWidth - 12f;
-            v = negative.vector3Value;
+            rect.x += EditorGUIUtility.labelWidth - 1f - 11f * EditorGUI.indentLevel;
+            rect.width -= EditorGUIUtility.labelWidth - 1f - 11f * EditorGUI.indentLevel;
+            v = negative;
             EditorGUI.BeginChangeCheck();
-            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, true, colors == null ? null : colors[1]);
+            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, true, colors == null ? null : new Color[] { colors[3], colors[4], colors[5] });
             if (EditorGUI.EndChangeCheck())
-                negative.vector3Value = v;
+                negative = v;
             GUILayout.EndVertical();
         }
 
@@ -315,7 +320,7 @@ namespace UnityEditor.Experimental.Rendering
             //Suffix is a hack as sublabel only work with 1 character
             if(addMinusPrefix)
             {
-                Rect suffixRect = new Rect(rect.x-19, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x - 4 - 15 * EditorGUI.indentLevel, rect.y, 100, rect.height);
                 for(int i = 0; i < 3; ++i)
                 {
                     EditorGUI.LabelField(suffixRect, "-");
@@ -329,7 +334,7 @@ namespace UnityEditor.Experimental.Rendering
                 if (colors.Length != 3)
                     throw new System.ArgumentException("colors must have 3 elements.");
 
-                Rect suffixRect = new Rect(rect.x - 8, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x + 7 - 15 * EditorGUI.indentLevel, rect.y, 100, rect.height);
                 GUIStyle colorMark = new GUIStyle(EditorStyles.label);
                 colorMark.normal.textColor = colors[0];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
@@ -340,7 +345,7 @@ namespace UnityEditor.Experimental.Rendering
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
                 suffixRect.x += 1;
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
-                suffixRect.x += fieldWidth  + .5f;
+                suffixRect.x += fieldWidth;
                 colorMark.normal.textColor = colors[2];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
                 suffixRect.x += 1;
@@ -360,46 +365,6 @@ namespace UnityEditor.Experimental.Rendering
             mode = EditorGUILayout.Popup(label, mode, options);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = mode;
-        }
-
-        public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit)
-        {
-            float[] cascadePartitionSizes = null;
-
-            System.Type type = typeof(T);
-            if (type == typeof(float))
-            {
-                cascadePartitionSizes = new float[] { shadowCascadeSplit.floatValue };
-            }
-            else if (type == typeof(Vector3))
-            {
-                Vector3 splits = shadowCascadeSplit.vector3Value;
-                cascadePartitionSizes = new float[]
-                {
-                    Mathf.Clamp(splits[0], 0.0f, 1.0f),
-                    Mathf.Clamp(splits[1] - splits[0], 0.0f, 1.0f),
-                    Mathf.Clamp(splits[2] - splits[1], 0.0f, 1.0f)
-                };
-            }
-
-            if (cascadePartitionSizes != null)
-            {
-                EditorGUI.BeginChangeCheck();
-                ShadowCascadeSplitGUI.HandleCascadeSliderGUI(ref cascadePartitionSizes);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if (type == typeof(float))
-                        shadowCascadeSplit.floatValue = cascadePartitionSizes[0];
-                    else
-                    {
-                        Vector3 updatedValue = new Vector3();
-                        updatedValue[0] = cascadePartitionSizes[0];
-                        updatedValue[1] = updatedValue[0] + cascadePartitionSizes[1];
-                        updatedValue[2] = updatedValue[1] + cascadePartitionSizes[2];
-                        shadowCascadeSplit.vector3Value = updatedValue;
-                    }
-                }
-            }
         }
 
         public static void RemoveMaterialKeywords(Material material)

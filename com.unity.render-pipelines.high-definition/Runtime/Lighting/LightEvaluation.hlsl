@@ -55,7 +55,15 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     float  shadowMask = 1.0;
 
     color       = light.color;
-    attenuation = 1.0; // TODO: implement volumetric attenuation along shadow rays for directional lights
+    attenuation = 1.0;
+
+    // Height fog attenuation.
+    {
+        float cosZenithAngle = L.y;
+        float fragmentHeight = posInput.positionWS.y;
+        attenuation *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                              _HeightFogExponents, cosZenithAngle, fragmentHeight);
+    }
 
     if (light.cookieIndex >= 0)
     {
@@ -212,9 +220,15 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     attenuation = PunctualLightAttenuation(distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
                                            light.angleScale, light.angleOffset);
 
-    // TODO: sample the extinction from the density V-buffer.
-    float distVol = (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
-    attenuation *= TransmittanceHomogeneousMedium(_GlobalExtinction, distVol);
+    // Height fog attenuation.
+    {
+        float cosZenithAngle = L.y;
+        float distToLight    = (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
+        float fragmentHeight = posInput.positionWS.y;
+        attenuation *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                              _HeightFogExponents, cosZenithAngle,
+                                              fragmentHeight, distToLight);
+    }
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
     if (light.cookieIndex >= 0)
@@ -233,7 +247,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
 
         // Transparents have no contact shadow information
     #ifndef _SURFACE_TYPE_TRANSPARENT

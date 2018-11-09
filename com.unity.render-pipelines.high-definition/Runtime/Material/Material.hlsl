@@ -61,22 +61,26 @@ float4 ApplyBlendMode(float3 color, float opacity)
 
 // Used for transparent object. input color is color + alpha of the original transparent pixel.
 // This must be call after ApplyBlendMode to work correctly
-float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
+float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 inputColor)
 {
     float4 result = inputColor;
 
 #ifdef _ENABLE_FOG_ON_TRANSPARENT
-    float4 fog = EvaluateAtmosphericScattering(posInput);
+    float4 fog = EvaluateAtmosphericScattering(posInput, V); // Premultiplied alpha
 
     #if defined(_BLENDMODE_ALPHA)
-    // Regular alpha blend need to multiply fog color by opacity (as we do src * src_a inside the shader)
-    result.rgb = lerp(result.rgb, fog.rgb * result.a, fog.a);
+        // Regular alpha blend need to multiply fog color by opacity (as we do src * src_a inside the shader)
+        // result.rgb = lerp(result.rgb, unpremul_fog.rgb * result.a, fog.a);
+        // result.rgb = result.rgb + fog.a * (unpremul_fog.rgb * result.a - result.rgb);
+        // result.rgb = result.rgb + fog.rgb * result.a - result.rgb * fog.a;
+        result.rgb = result.rgb * (1 - fog.a) + fog.rgb * result.a;
     #elif defined(_BLENDMODE_ADD)
-    // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
-    result.rgb = result.rgb * (1.0 - fog.a);
+        // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
+        result.rgb = result.rgb * (1.0 - fog.a);
     #elif defined(_BLENDMODE_PRE_MULTIPLY)
-    // For Pre-Multiplied Alpha Blend, we need to multiply fog color by src alpha to match regular alpha blending formula.
-    result.rgb = lerp(result.rgb, fog.rgb * result.a, fog.a);
+        // For Pre-Multiplied Alpha Blend, we need to multiply fog color by src alpha to match regular alpha blending formula.
+        // result.rgb = lerp(result.rgb, unpremul_fog.rgb * result.a, fog.a);
+        result.rgb = result.rgb * (1 - fog.a) + fog.rgb * result.a;
     #endif
 #else
     // Evaluation of fog for opaque objects is currently done in a full screen pass independent from any material parameters.
@@ -135,7 +139,11 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 // Only one deferred layout is allowed for a HDRenderPipeline, this will be detect by the redefinition of GBUFFERMATERIAL_COUNT
 // If GBUFFERMATERIAL_COUNT is define two time, the shaders will not compile
 #ifdef UNITY_MATERIAL_LIT
+#if HDRP_MATERIAL_TYPE_SIMPLE
+#include "Lit/SimpleLit.hlsl"
+#else
 #include "Lit/Lit.hlsl"
+#endif
 #elif defined(UNITY_MATERIAL_UNLIT)
 #include "Unlit/Unlit.hlsl"
 #elif defined(UNITY_MATERIAL_STACKLIT)

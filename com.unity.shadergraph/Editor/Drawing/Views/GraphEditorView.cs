@@ -22,6 +22,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Vector2 masterPreviewSize = new Vector2(400, 400);
     }
 
+    [Serializable]
+    class ToggleSettings
+    {
+        public bool isBlackboardVisible = true;
+        public bool isPreviewVisible = true;
+    }
+
     public class GraphEditorView : VisualElement, IDisposable
     {
         MaterialGraphView m_GraphView;
@@ -32,6 +39,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
+
+        const string k_ToggleSettings = "UnityEditor.ShaderGraph.ToggleSettings";
+        ToggleSettings m_ToggleSettings;
 
         const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout";
         FloatingWindowsLayout m_FloatingWindowsLayout;
@@ -63,7 +73,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             set
             {
                 m_BlackboardProvider.assetName = value;
-                m_MasterPreviewView.assetName = value;
             }
         }
 
@@ -72,6 +81,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             AddStyleSheetPath("Styles/GraphEditorView");
             previewManager = new PreviewManager(graph);
+
+            string serializedToggle = EditorUserSettings.GetConfigValue(k_ToggleSettings);
+            if (!string.IsNullOrEmpty(serializedToggle))
+            {
+                m_ToggleSettings = JsonUtility.FromJson<ToggleSettings>(serializedToggle);
+            }
 
             string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
             if (!string.IsNullOrEmpty(serializedWindowLayout))
@@ -82,7 +97,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
-
             var toolbar = new IMGUIContainer(() =>
                 {
                     GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -97,7 +111,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (showInProjectRequested != null)
                             showInProjectRequested();
                     }
+
                     GUILayout.FlexibleSpace();
+
+                    EditorGUI.BeginChangeCheck();
+                    m_ToggleSettings.isBlackboardVisible = GUILayout.Toggle(m_ToggleSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
+
+                    GUILayout.Space(6);
+
+                    m_ToggleSettings.isPreviewVisible = GUILayout.Toggle(m_ToggleSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_MasterPreviewView.visible = m_ToggleSettings.isPreviewVisible;
+                        m_BlackboardProvider.blackboard.visible = m_ToggleSettings.isBlackboardVisible;
+                        string serializedToggleables = JsonUtility.ToJson(m_ToggleSettings);
+                        EditorUserSettings.SetConfigValue(k_ToggleSettings, serializedToggleables);
+                    }
                     GUILayout.EndHorizontal();
                 });
             Add(toolbar);
@@ -120,6 +149,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 blackboardLayout.y = 10f;
                 m_BlackboardProvider.blackboard.layout = blackboardLayout;
 
+                // Initialize toggle settings if it doesnt exist.
+                if (m_ToggleSettings == null)
+                {
+                    m_ToggleSettings = new ToggleSettings();
+                }
+                m_BlackboardProvider.blackboard.visible = m_ToggleSettings.isBlackboardVisible;
+
                 m_MasterPreviewView = new MasterPreviewView(previewManager, graph) { name = "masterPreview" };
 
                 WindowDraggable masterPreviewViewDraggable = new WindowDraggable(null, this);
@@ -130,6 +166,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 //m_BlackboardProvider.onResizeFinished += UpdateSerializedWindowLayout;
                 masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
                 m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+                m_MasterPreviewView.visible = m_ToggleSettings.isPreviewVisible;
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 

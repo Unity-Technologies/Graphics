@@ -12,7 +12,6 @@ using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Rendering;
 
@@ -194,6 +193,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
+                bool VCSEnabled = (VersionControl.Provider.enabled && VersionControl.Provider.isActive);
+                CheckoutIfValid(path, VCSEnabled);
+
                 if (m_GraphObject.graph.GetType() == typeof(MaterialGraph))
                     UpdateShaderGraphOnDisk(path);
 
@@ -211,7 +213,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ToSubGraph()
         {
-            var path = EditorUtility.SaveFilePanelInProject("Save subgraph", "New SubGraph", ShaderSubGraphImporter.Extension, "");
+            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "");
             path = path.Replace(Application.dataPath, "Assets");
             if (path.Length == 0)
                 return;
@@ -249,6 +251,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             var subGraph = new SubGraph();
+            subGraph.path = "Sub Graphs";
             var subGraphOutputNode = new SubGraphOutputNode();
             {
                 var drawState = subGraphOutputNode.drawState;
@@ -538,6 +541,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FrameAllAfterLayout = false;
             foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
                 node.Dirty(ModificationScope.Node);
+        }
+
+        void CheckoutIfValid(string path, bool VCSEnabled)
+        {
+            if (VCSEnabled)
+            {
+                var asset = VersionControl.Provider.GetAssetByPath(path);
+                if (asset != null)
+                {
+                    if (VersionControl.Provider.CheckoutIsValid(asset))
+                    {
+                        var task = VersionControl.Provider.Checkout(asset, VersionControl.CheckoutMode.Both);
+                        task.Wait();
+
+                        if (!task.success)
+                            Debug.Log(task.text + " " + task.resultCode);
+                    }
+                }
+            }
         }
     }
 }

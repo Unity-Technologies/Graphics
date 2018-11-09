@@ -81,8 +81,8 @@ CBUFFER_START(UnityPerDraw)
     // z = Texel size on U texture coordinate
     float4 unity_ProbeVolumeParams;
     float4x4 unity_ProbeVolumeWorldToObject;
-    float3 unity_ProbeVolumeSizeInv;
-    float3 unity_ProbeVolumeMin;
+    float4 unity_ProbeVolumeSizeInv; // Note: This variable is float4 and not float3 (compare to builtin unity) to be compatible with SRP batcher
+    float4 unity_ProbeVolumeMin; // Note: This variable is float4 and not float3 (compare to builtin unity) to be compatible with SRP batcher
 
     // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
     float4 unity_ProbesOcclusion;
@@ -253,8 +253,9 @@ CBUFFER_START(UnityGlobal)
 
     float4 _FrustumPlanes[6];           // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
-    // TAA Frame Index ranges from 0 to 7. This gives you two rotations per cycle.
-    float4 _TaaFrameRotation;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), 0, 0 }
+    // TAA Frame Index ranges from 0 to 7.
+    // First two channels of this gives you two rotations per cycle. 
+    float4 _TaaFrameInfo;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), taaFrame, taaEnabled ? 1 : 0 }
     // t = animateMaterials ? Time.realtimeSinceStartup : 0.
     float4 _Time;                       // { t/20, t, t*2, t*3 }
     float4 _LastTime;                   // { t/20, t, t*2, t*3 }
@@ -265,9 +266,14 @@ CBUFFER_START(UnityGlobal)
 
     // Volumetric lighting.
     float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
-    float  _GlobalAnisotropy;
-    float3 _GlobalScattering;
-    float  _GlobalExtinction;
+
+    float3 _HeightFogBaseScattering;
+    float  _HeightFogBaseExtinction;
+
+    float2 _HeightFogExponents;         // {a, 1/a}
+    float  _HeightFogBaseHeight;
+    float  _GlobalFogAnisotropy;
+
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
     float4 _VBufferSliceCount;          // { count, 1/count, 0, 0 }
     float4 _VBufferUvScaleAndLimit;     // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
@@ -282,6 +288,8 @@ CBUFFER_START(UnityGlobal)
     float4 _VBufferPrevUvScaleAndLimit;
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
+    float  _VBufferMaxLinearDepth;      // The Z coordinate of the middle of the last slice
+    int    _EnableDistantFog;           // bool...
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"
@@ -373,6 +381,7 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
 #define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
 
+// To get instanding working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 

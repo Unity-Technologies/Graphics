@@ -1,0 +1,11 @@
+Shader "Hidden/VFX/ParticleCubes"
+{
+	SubShader
+	{	
+		Cull Back
+		
+		${VFXInclude("Shaders/VFXParticleHeader.template")}
+		${VFXInclude("Shaders/ParticleHexahedron/PassForward.template")}
+		${VFXInclude("Shaders/ParticleHexahedron/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+	}
+}

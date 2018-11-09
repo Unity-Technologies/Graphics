@@ -9,23 +9,23 @@
 #endif
 
 #ifdef PUNCTUAL_SHADOW_LOW
-#define PUNCTUAL_FILTER_ALGORITHM(sd, posTC, sampleBias, tex, samp) SampleShadow_PCF_Tent_3x3(_ShadowAtlasSize.zwxy, posTC, sampleBias, tex, samp)
+#define PUNCTUAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_PCF_Tent_3x3(_ShadowAtlasSize.zwxy, posTC, sampleBias, tex, samp)
 #endif
 #ifdef PUNCTUAL_SHADOW_MEDIUM
-#define PUNCTUAL_FILTER_ALGORITHM(sd, posTC, sampleBias, tex, samp) SampleShadow_PCF_Tent_5x5(_ShadowAtlasSize.zwxy, posTC, sampleBias, tex, samp)
+#define PUNCTUAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_PCF_Tent_5x5(_ShadowAtlasSize.zwxy, posTC, sampleBias, tex, samp)
 #endif
 #ifdef PUNCTUAL_SHADOW_HIGH
-#define PUNCTUAL_FILTER_ALGORITHM(sd, posTC, sampleBias, tex, samp) SampleShadow_PCSS(posTC, sd.shadowMapSize.xy * _ShadowAtlasSize.zw, sd.atlasOffset, sampleBias, sd.shadowFilterParams0.x, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, samp, s_point_clamp_sampler)
+#define PUNCTUAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_PCSS(posTC, posSS, sd.shadowMapSize.xy * _ShadowAtlasSize.zw, sd.atlasOffset, sampleBias, sd.shadowFilterParams0.x, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, samp, s_point_clamp_sampler)
 #endif
 
 #ifdef DIRECTIONAL_SHADOW_LOW
-#define DIRECTIONAL_FILTER_ALGORITHM(sd, posTC, sampleBias, tex, samp) SampleShadow_PCF_Tent_5x5(_CascadeShadowAtlasSize.zwxy, posTC, sampleBias, tex, samp)
+#define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_PCF_Tent_5x5(_CascadeShadowAtlasSize.zwxy, posTC, sampleBias, tex, samp)
 #endif
 #ifdef DIRECTIONAL_SHADOW_MEDIUM
-#define DIRECTIONAL_FILTER_ALGORITHM(sd, posTC, sampleBias, tex, samp) SampleShadow_PCF_Tent_7x7(_CascadeShadowAtlasSize.zwxy, posTC, sampleBias, tex, samp)
+#define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_PCF_Tent_7x7(_CascadeShadowAtlasSize.zwxy, posTC, sampleBias, tex, samp)
 #endif
 #ifdef DIRECTIONAL_SHADOW_HIGH
-#define DIRECTIONAL_FILTER_ALGORITHM(sd, posTC, sampleBias, tex, samp) SampleShadow_PCSS(posTC, sd.shadowMapSize.xy * _CascadeShadowAtlasSize.zw, sd.atlasOffset, sampleBias, sd.shadowFilterParams0.x, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, samp, s_point_clamp_sampler)
+#define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_PCSS(posTC, posSS, sd.shadowMapSize.xy * _CascadeShadowAtlasSize.zw, sd.atlasOffset, sampleBias, sd.shadowFilterParams0.x, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, samp, s_point_clamp_sampler)
 #endif
 
 #ifndef PUNCTUAL_FILTER_ALGORITHM
@@ -256,7 +256,7 @@ float2 EvalShadow_SampleBias_Ortho(float3 normalWS)                             
 //
 //  Point shadows
 //
-float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparisonState samp, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
+float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
     /* bias the world position */
     float recvBiasWeight = EvalShadow_ReceiverBiasWeight(sd, _ShadowAtlasSize.zw, sd.atlasOffset, sd.viewBias, sd.edgeTolerance, sd.flags, tex, samp, positionWS, normalWS, L, L_dist, perspective);
@@ -266,7 +266,7 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
     /* get the per sample bias */
     float2 sampleBias = EvalShadow_SampleBias_Persp(positionWS, normalWS, posTC);
     /* sample the texture */
-    return PUNCTUAL_FILTER_ALGORITHM(sd, posTC, sampleBias, tex, samp);
+    return PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, sampleBias, tex, samp);
 }
 
 //
@@ -316,50 +316,52 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
     sd.atlasOffset = shadowContext.shadowDatas[index].atlasOffset;
 }
 
-float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float3 positionWS, float3 normalWS, int index, float3 L)
+float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
 {
-    float alpha;
-    int  cascadeCount;
-    int  shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
+    float   alpha;
+    int     cascadeCount;
+    float   shadow = 1.0;
+    int     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
 
-    if (shadowSplitIndex < 0)
-        return 1.0;
-
-    HDShadowData sd = shadowContext.shadowDatas[index];
-    LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
-
-    /* normal based bias */
-    float3 orig_pos = positionWS;
-    float recvBiasWeight = EvalShadow_ReceiverBiasWeight(sd, _CascadeShadowAtlasSize.zw, sd.atlasOffset, sd.viewBias, sd.edgeTolerance, sd.flags, tex, samp, positionWS, normalWS, L, 1.0, false);
-    positionWS = EvalShadow_ReceiverBias(sd.viewBias, sd.normalBias, positionWS, normalWS, L, 1.0, recvBiasWeight, false);
-
-    /* get shadowmap texcoords */
-    float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, positionWS, false);
-    /* evalute the first cascade */
-    float2 sampleBias = EvalShadow_SampleBias_Ortho(normalWS);
-    float  shadow     = DIRECTIONAL_FILTER_ALGORITHM(sd, posTC, sampleBias, tex, samp);
-    float  shadow1    = 1.0;
-
-    shadowSplitIndex++;
-    if (shadowSplitIndex < cascadeCount)
+    if (shadowSplitIndex >= 0.0)
     {
-        shadow1 = shadow;
-
-        if (alpha > 0.0)
+        HDShadowData sd = shadowContext.shadowDatas[index];
+        LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
+    
+        /* normal based bias */
+        float3 orig_pos = positionWS;
+        float recvBiasWeight = EvalShadow_ReceiverBiasWeight(sd, _CascadeShadowAtlasSize.zw, sd.atlasOffset, sd.viewBias, sd.edgeTolerance, sd.flags, tex, samp, positionWS, normalWS, L, 1.0, false);
+        positionWS = EvalShadow_ReceiverBias(sd.viewBias, sd.normalBias, positionWS, normalWS, L, 1.0, recvBiasWeight, false);
+    
+        /* get shadowmap texcoords */
+        float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, positionWS, false);
+        /* evalute the first cascade */
+        float2 sampleBias = EvalShadow_SampleBias_Ortho(normalWS);
+        shadow            = DIRECTIONAL_FILTER_ALGORITHM(sd, positionSS, posTC, sampleBias, tex, samp);
+        float  shadow1    = 1.0;
+    
+        shadowSplitIndex++;
+        if (shadowSplitIndex < cascadeCount)
         {
-            LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
-            positionWS = EvalShadow_ReceiverBias(sd.viewBias, sd.normalBias, orig_pos, normalWS, L, 1.0, recvBiasWeight, false);
-            float3 posNDC;
-            posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, positionWS, posNDC, false);
-            /* sample the texture */
-            sampleBias = EvalShadow_SampleBias_Ortho(normalWS);
-
-            UNITY_BRANCH
-            if (all(abs(posNDC.xy) <= (1.0 - sd.shadowMapSize.zw * 0.5)))
-                shadow1 = DIRECTIONAL_FILTER_ALGORITHM(sd, posTC, sampleBias, tex, samp);
+            shadow1 = shadow;
+    
+            if (alpha > 0.0)
+            {
+                LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
+                positionWS = EvalShadow_ReceiverBias(sd.viewBias, sd.normalBias, orig_pos, normalWS, L, 1.0, recvBiasWeight, false);
+                float3 posNDC;
+                posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, positionWS, posNDC, false);
+                /* sample the texture */
+                sampleBias = EvalShadow_SampleBias_Ortho(normalWS);
+    
+                UNITY_BRANCH
+                if (all(abs(posNDC.xy) <= (1.0 - sd.shadowMapSize.zw * 0.5)))
+                    shadow1 = DIRECTIONAL_FILTER_ALGORITHM(sd, positionSS, posTC, sampleBias, tex, samp);
+            }
         }
+        shadow = lerp(shadow, shadow1, alpha);
     }
-    shadow = lerp(shadow, shadow1, alpha);
+
     return shadow;
 }
 

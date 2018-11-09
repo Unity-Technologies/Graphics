@@ -16,7 +16,8 @@ namespace UnityEditor.ShaderGraph
             m_LineStarts = new List<int>();
             m_Nodes = new List<INode>();
 
-            var line = 0;
+            // File line numbers are 1-based
+            var line = 1;
             var currentIndex = 0;
             foreach (var mapping in mappings)
             {
@@ -37,12 +38,14 @@ namespace UnityEditor.ShaderGraph
                     break;
             }
 
-            m_LineCount = line;
+            m_LineCount = line-1;
         }
 
+        // Binary search that behaves like C++'s std::lower_bound()
         public INode FindNode(int line)
         {
-            if (line >= m_LineCount || line < 0)
+            // line is 1-based throughout this function
+            if (line > m_LineCount || line <= 0)
                 return null;
             var l = 0;
             var r = m_LineStarts.Count - 1;
@@ -50,7 +53,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var m = (l + r) / 2;
                 var lineStart = m_LineStarts[m];
-                var lineStop = m == m_LineStarts.Count ? m_LineCount : m_LineStarts[m + 1];
+                var lineStop = m == m_LineStarts.Count-1 ? m_LineCount+1 : m_LineStarts[m + 1];
                 if (line >= lineStop)
                     l = m + 1;
                 else if (line < lineStart)

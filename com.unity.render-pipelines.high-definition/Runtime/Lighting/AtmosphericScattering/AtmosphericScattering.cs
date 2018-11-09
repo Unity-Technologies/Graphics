@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Fog Color
         public FogColorParameter       colorMode = new FogColorParameter(FogColorMode.SkyColor);
         [Tooltip("Constant Fog Color")]
-        public ColorParameter          color = new ColorParameter(Color.grey);
+        public ColorParameter          color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
         public ClampedFloatParameter   density = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         [Tooltip("Maximum mip map used for mip fog (0 being lowest and 1 highest mip).")]
         public ClampedFloatParameter   mipFogMaxMip = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
@@ -36,9 +36,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var data = DensityVolumeEngineData.GetNeutralValues();
 
-                cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, data.scattering);
-                cmd.SetGlobalFloat(HDShaderIDs._GlobalExtinction, data.extinction);
-                cmd.SetGlobalFloat(HDShaderIDs._GlobalAnisotropy, 0.0f);
+                cmd.SetGlobalVector(HDShaderIDs._HeightFogBaseScattering, data.scattering);
+                cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseExtinction, data.extinction);
+
+                cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents, Vector2.one);
+                cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseHeight, 0.0f);
+                cmd.SetGlobalFloat(HDShaderIDs._GlobalFogAnisotropy, 0.0f);
             }
         }
 

@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/Fabric"
+Shader "Hidden/HDRenderPipeline/Fabric"
 {
     Properties
     {
@@ -75,7 +75,6 @@ Shader "HDRenderPipeline/Fabric"
         [ToggleUI]  _EnableTransmission("_EnableTransmission", Float) = 0.0
 
         // Subsurface Data
-        [ToggleUI]  _EnableSubsurfaceScattering("_EnableSubsurfaceScattering", Float) = 0.0
         _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMaskMap("Subsurface Radius Map", 2D) = "white" {}
 
@@ -375,6 +374,4 @@ Shader "HDRenderPipeline/Fabric"
         }
 
     }
-
-    CustomEditor "Experimental.Rendering.HDPipeline.FabricGUI"
 }

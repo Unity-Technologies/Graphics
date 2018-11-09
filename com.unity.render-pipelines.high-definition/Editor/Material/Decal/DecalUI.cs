@@ -6,14 +6,14 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class DecalUI : ExpendableAreaMaterial
+    class DecalUI : ExpandableAreaMaterial
     {
         [Flags]
-        enum Expendable : uint
+        enum Expandable : uint
         {
             Input = 1 << 0
         }
-        protected override uint defaultExpendedState { get { return (uint)Expendable.Input; } }
+        protected override uint defaultExpandedState { get { return (uint)Expandable.Input; } }
 
         protected static class Styles
         {
@@ -187,9 +187,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
 
-            using (var header = new HeaderScope(Styles.InputsText, (uint)Expendable.Input, this))
+            using (var header = new HeaderScope(Styles.InputsText, (uint)Expandable.Input, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     // Detect any changes to the material
                     EditorGUI.BeginChangeCheck();
@@ -270,7 +270,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor = materialEditor;
 
             // We should always register the key used to keep collapsable state
-            InitExpendableState(materialEditor);
+            InitExpandableState(materialEditor);
 
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();

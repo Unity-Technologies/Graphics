@@ -4,6 +4,49 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.1.0-preview] - 2018-10-18
+
+### Added
+- Added separate editor resources file for those resources to not be taken in player builds.
+- Added support for disabling SSR on materials in shader graph
+- Added support of MSAA when Both ListShaderMode is enabled (previously only Forward mode was supported)
+- Added support of emissive color override in debug mode
+- Exposed max light for lightloop settings in hdrp asset UI
+- Disable NormalDBuffer pass update if no there is no decal
+- Added distant (fallback) volumetric fog + improved fog evaluation precision
+- Add an option to reflect sky in SSR
+- Add y offset for PlanarReflectionProbe and offset tool
+- Expose option to run SSR and SSAO on async compute. 
+
+### Fixed
+- Fixed sphere shaped influence handles clamping in reflection probes
+- Fixed reflection probes data migration for project created before using hdrp
+- Fixed UI of layered material where scrollbar was rendered above copy button.
+- Fixed material tesselation's parameters "start fade distance" and "end fade distance" that were clamped while being modified.
+- Fixed various distortion and refraction issues - handle a better fallback
+- Fixed SSR for multiple views
+- Fixed SSR issues related to self-intersections
+- Fixed shape density volume handle speed
+- Fixed density volume shape handle moving too fast
+- Fixed camera velocity pass that was remove by mistake
+- Fixed some null pointer exceptions when disabling motion vectors support
+- Fixed viewports for both SSS combine pass and transparent depth prepass
+- Fixed blend mode pop up in UI not appearing when pre refraction is on
+- Fixed some null pointer exceptions when disabling motion vectors support
+- Fixed layered lit UI issue with scrollbar
+- Fixed cubemap assignation on custom ReflectoinProbe
+- Fixed reflection probe's capture settings's shadow distance
+- Fixed an issue with the SRP batcher and shader variables declaration
+- Fixed thickness and subsurface slots for fabric shader master node that wan't appearing with the right combination of flags
+
+### Changed
+- Renamed "Line" shaped lights to "Tube" light
+- Use the "mean height" fog parametrization
+- Shadow quality settings are setup to "All" when using HDRP (Not visile in UI when using SRP). Avoid to have disabled shadow.
+- Internally use premultiplied alpha for all fog
+- Updated default FrameSettings used for realtime reflection probe (at HDRenderPipelineAsset creation)
+- Improved PCSS sampling quality. 
+
 ## [5.0.0-preview] - 2018-09-28
 
 ### Added
@@ -21,6 +64,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to clear the shadow atlases in the debug menu
 - Added a color visualization of the shadow atlas rescale in debug mode
 - Added support for disabling SSR on materials
+- Added intrinsic for XBone
+- Added new light volume debugging tool
+- Added a new SSR debug view mode
+- Added translaction's scale invariance on DensityVolume
+- Added multiple supported LitShadermode and per renderer choice in case of both Forward and Deferred supported
+- Added custom specular occlusion mode to Lit Shader Graph Master node
 
 ### Fixed
 - Fixed a normal bias issue with Stacklit (Was causing light leaking)
@@ -39,7 +88,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow cascade sampling outside of the atlas when cascade count is inferior to 4
 - Fixed shadow filter width in deferred rendering not matching shader config
 - Fixed stereo sampling of depth texture in MSAA DepthValues.shader
-- Fix box light UI which allowed negative and zero sizes, thus causing NaNs
+- Fixed box light UI which allowed negative and zero sizes, thus causing NaNs
+- Fixed stereo rendering in HDRISky.shader (VR)
+- Fixed normal blend and blend sphere influence for reflection probe
+- Fixed distortion filtering (was point filtering, now trilinear)
+- Fixed contact shadow for large distance
+- Fixed depth pyramid debug view mode
+- Fixed sphere shaped influence handles clamping in reflection probes
+- Fixed reflection probes data migration for project created before using hdrp
+- Fixed ambient occlusion for Lit Master Node when slot is connected
 
 ### Changed
 - Use samplerunity_ShadowMask instead of samplerunity_samplerLightmap for shadow mask
@@ -50,6 +107,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Expose frameSettings and Capture settings for reflection and planar probe
 - Update UI for reflection probe, planar probe, camera and HDRP Asset
 - Implement proper linear blending for volumetric lighting via deep compositing as described in the paper "Deep Compositing Using Lie Algebras"
+- Changed  planar mapping to match terrain convention (XZ instead of ZX)
+- XRGraphicsConfig is no longer Read/Write. Instead, it's read-only. This improves consistency of XR behavior between the legacy render pipeline and SRP
+- Change reflection probe data migration code (to update old reflection probe to new one)
+- Updated gizmo for ReflectionProbes
+- Updated UI and Gizmo of DensityVolume
 
 ## [4.0.0-preview] - 2018-09-28
 

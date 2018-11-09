@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
@@ -13,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public struct RenderingData
     {
-        public CullResults cullResults;
+        public CullingResults cullResults;
         public CameraData cameraData;
         public LightData lightData;
         public ShadowData shadowData;
@@ -22,11 +24,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public struct LightData
     {
-        public int additionalLightsCount;
-        public bool shadeAdditionalLightsPerVertex;
         public int mainLightIndex;
-        public List<VisibleLight> visibleLights;
-        public List<int> additionalLightIndices;
+        public int additionalLightsCount;
+        public int maxPerObjectAdditionalLightsCount;
+        public NativeArray<VisibleLight> visibleLights;
+        public bool shadeAdditionalLightsPerVertex;
         public bool supportsMixedLighting;
     }
 
@@ -37,13 +39,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int msaaSamples;
         public bool isSceneViewCamera;
         public bool isDefaultViewport;
-        public bool isOffscreenRender;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
         public Downsampling opaqueTextureDownsampling;
 
-        public SortFlags defaultOpaqueSortFlags;
+        public SortingCriteria defaultOpaqueSortFlags;
 
         public bool isStereoEnabled;
 
@@ -93,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 throw new ArgumentNullException("camera");
 
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRGraphicsConfig.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            return XRGraphics.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         void SortCameras(Camera[] cameras)

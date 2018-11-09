@@ -7,7 +7,9 @@
     "com.unity.textmeshpro": "1.2.4"
   },
   "testables": [
+    "com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition",
+    "com.unity.shadergraph",
     "com.unity.testframework.graphics"
   ]
 }

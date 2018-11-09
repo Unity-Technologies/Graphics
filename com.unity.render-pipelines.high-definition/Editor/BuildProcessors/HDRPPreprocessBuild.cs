@@ -1,7 +1,7 @@
+using UnityEngine;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
 
             // If platform is supported all good
-            if (HDUtils.IsSupportedBuildTarget(report.summary.platform))
+            if (HDUtils.IsSupportedBuildTarget(report.summary.platform) && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
                 return;
 
             string msg = "The platform " + report.summary.platform.ToString() + " is not supported with Hight Definition Render Pipeline";

@@ -341,19 +341,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        private void DrawDelayedFloatProperty(MaterialProperty prop, GUIContent content)
+        {
+            Rect position = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prop.hasMixedValue;
+            float newValue = EditorGUI.DelayedFloatField(position, content, prop.floatValue);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                prop.floatValue = newValue;
+        }
+
         protected virtual void MaterialTesselationPropertiesGUI()
         {
             // Display tessellation option if it exist
             if (tessellationMode != null)
             {
-                using (var header = new HeaderScope(StylesBaseLit.tessellationText.text, (uint)Expendable.Tesselation, this))
+                using (var header = new HeaderScope(StylesBaseLit.tessellationText.text, (uint)Expandable.Tesselation, this))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                     {
                         TessellationModePopup();
                         m_MaterialEditor.ShaderProperty(tessellationFactor, StylesBaseLit.tessellationFactorText);
-                        m_MaterialEditor.ShaderProperty(tessellationFactorMinDistance, StylesBaseLit.tessellationFactorMinDistanceText);
-                        m_MaterialEditor.ShaderProperty(tessellationFactorMaxDistance, StylesBaseLit.tessellationFactorMaxDistanceText);
+                        DrawDelayedFloatProperty(tessellationFactorMinDistance, StylesBaseLit.tessellationFactorMinDistanceText);
+                        DrawDelayedFloatProperty(tessellationFactorMaxDistance, StylesBaseLit.tessellationFactorMaxDistanceText);
                         // clamp min distance to be below max distance
                         tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
                         m_MaterialEditor.ShaderProperty(tessellationFactorTriangleSize, StylesBaseLit.tessellationFactorTriangleSizeText);
@@ -379,18 +390,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
             {
-                using (var header = new HeaderScope(StylesBaseUnlit.optionText, (uint)Expendable.Base, this))
+                using (var header = new HeaderScope(StylesBaseUnlit.optionText, (uint)Expandable.Base, this))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                         BaseMaterialPropertiesGUI();
                 }
                 MaterialTesselationPropertiesGUI();
                 VertexAnimationPropertiesGUI();
                 MaterialPropertiesGUI(material);
                 DoEmissionArea(material);
-                using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expendable.Advance, this))
+                using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expandable.Advance, this))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                     {
                         m_MaterialEditor.EnableInstancingField();
                         MaterialPropertiesAdvanceGUI(material);
@@ -407,9 +418,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void VertexAnimationPropertiesGUI()
         {
-            using (var header = new HeaderScope(StylesBaseLit.vertexAnimation, (uint)Expendable.VertexAnimation, this))
+            using (var header = new HeaderScope(StylesBaseLit.vertexAnimation, (uint)Expandable.VertexAnimation, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     if (windEnable != null)
                     {

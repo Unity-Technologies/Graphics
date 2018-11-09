@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return string.Format("Unity_MatrixConstruction_{0}", precision);
+            return string.Format("Unity_MatrixConstruction_{0}_{1}", axis, precision);
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

@@ -100,6 +100,7 @@ MonoBehaviour:
   shutterSpeed: 0.005
   iso: 400
   m_FrameSettings:
+    overrides: 0
     enableShadow: 1
     enableContactShadows: 1
     enableShadowMask: 1
@@ -109,10 +110,11 @@ MonoBehaviour:
     enableTransmission: 1
     enableAtmosphericScattering: 1
     enableVolumetrics: 1
+    enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    enableForwardRenderingOnly: 0
+    shaderLitMode: 1
     enableDepthPrepassWithDeferredRendering: 0
     enableTransparentPrepass: 1
     enableMotionVectors: 1
@@ -122,17 +124,13 @@ MonoBehaviour:
     enableTransparentPostpass: 1
     enableDistortion: 1
     enablePostprocess: 1
-    enableStereo: 1
-    xrGraphicsConfig:
-      renderScale: 0
-      viewportScale: 0
-      useOcclusionMesh: 0
-      occlusionMaskScale: 0
     enableAsyncCompute: 1
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
+    enableRealtimePlanarReflection: 1
     enableMSAA: 0
     lightLoopSettings:
+      overrides: 0
       enableTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1

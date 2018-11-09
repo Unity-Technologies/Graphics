@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class FrameSettingsUI
     {
-        internal static CED.IDrawer Inspector(bool withOverride = true, bool withXR = true)
+        internal static CED.IDrawer Inspector(bool withOverride = true)
         {
             return CED.Group(
                 CED.Action((s, d, o) =>
@@ -18,22 +18,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.BeginVertical("box");
                     EditorGUILayout.LabelField(FrameSettingsUI.frameSettingsHeaderContent, EditorStyles.boldLabel);
                 }),
-                InspectorInnerbox(withOverride, withXR),
+                InspectorInnerbox(withOverride),
                 CED.Action((s, d, o) => EditorGUILayout.EndVertical())
                 );
         }
 
         //separated to add enum popup on default frame settings
-        internal static CED.IDrawer InspectorInnerbox(bool withOverride = true, bool withXR = true)
+        internal static CED.IDrawer InspectorInnerbox(bool withOverride = true)
         {
             return CED.Group(
                 SectionRenderingPasses(withOverride),
                 SectionRenderingSettings(withOverride),
-                CED.FadeGroup(
-                    (s, d, o, i) => new AnimBool(withXR),
-                    FadeOption.None,
-                    SectionXRSettings(withOverride)),
                 SectionLightingSettings(withOverride),
+                SectionAsyncComputeSettings(withOverride),
                 CED.Select(
                     (s, d, o) => s.lightLoopSettings,
                     (s, d, o) => d.lightLoopSettings,
@@ -59,24 +56,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 renderingSettingsHeaderContent,
                 (s, p, o) => s.isSectionExpandedRenderingSettings,
                 FoldoutOption.Indent | FoldoutOption.Boxed,
-                CED.LabelWidth(300, CED.Action((s, p, o) => Drawer_SectionRenderingSettings(s, p, o, withOverride))),
+                CED.LabelWidth(250, CED.Action((s, p, o) => Drawer_SectionRenderingSettings(s, p, o, withOverride))),
                 CED.space
                 );
         }
 
-        public static CED.IDrawer SectionXRSettings(bool withOverride)
+        public static CED.IDrawer SectionAsyncComputeSettings(bool withOverride)
         {
-            return CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedXRSupported,
-                FadeOption.None,
-                CED.FoldoutGroup(
-                    xrSettingsHeaderContent,
-                    (s, p, o) => s.isSectionExpandedXRSettings,
-                    FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.LabelWidth(200, CED.Action((s, p, o) => Drawer_FieldStereoEnabled(s, p, o, withOverride))),
-                    CED.space));
+            return CED.FoldoutGroup(
+                asyncComputeSettingsHeaderContent,
+                (s, p, o) => s.isSectionExpandedAsyncComputeSettings,
+                FoldoutOption.Indent | FoldoutOption.Boxed,
+                CED.LabelWidth(250, CED.Action((s, p, o) => Drawer_SectionAsyncComputeSettings(s, p, o, withOverride))),
+                CED.space
+                );
         }
-
+        
         public static CED.IDrawer SectionLightingSettings(bool withOverride)
         {
             return CED.FoldoutGroup(
@@ -132,17 +127,58 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 RenderPipelineSettings hdrpSettings = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineSettings;
                 FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
                 OverridableSettingsArea area = new OverridableSettingsArea(6);
-                area.Add(p.enableForwardRenderingOnly, forwardRenderingOnlyContent, () => p.overridesForwardRenderingOnly, a => p.overridesForwardRenderingOnly = a, () => !GL.wireframe && !hdrpSettings.supportOnlyForward, defaultValue: defaultFrameSettings.enableForwardRenderingOnly || hdrpSettings.supportOnlyForward);
-                area.Add(p.enableMSAA, msaaContent, () => p.overridesMSAA, a => p.overridesMSAA = a, () => hdrpSettings.supportMSAA && (p.enableForwardRenderingOnly.boolValue || (GL.wireframe || hdrpSettings.supportOnlyForward) && (defaultFrameSettings.enableForwardRenderingOnly || hdrpSettings.supportOnlyForward)), defaultValue: defaultFrameSettings.enableMSAA && hdrpSettings.supportMSAA && !GL.wireframe && !hdrpSettings.supportOnlyForward && p.enableForwardRenderingOnly.boolValue, indent: 1);
-                area.Add(p.enableDepthPrepassWithDeferredRendering, depthPrepassWithDeferredRenderingContent, () => p.overridesDepthPrepassWithDeferredRendering, a => p.overridesDepthPrepassWithDeferredRendering = a, () => (!defaultFrameSettings.enableForwardRenderingOnly && !p.overridesForwardRenderingOnly || p.overridesForwardRenderingOnly && !p.enableForwardRenderingOnly.boolValue) && !hdrpSettings.supportOnlyForward, defaultValue: defaultFrameSettings.enableDepthPrepassWithDeferredRendering && !hdrpSettings.supportOnlyForward && !p.enableForwardRenderingOnly.boolValue);
-                area.Add(p.enableAsyncCompute, asyncComputeContent, () => p.overridesAsyncCompute, a => p.overridesAsyncCompute = a, () => SystemInfo.supportsAsyncCompute, defaultValue: defaultFrameSettings.enableAsyncCompute);
+                LitShaderMode defaultShaderLitMode;
+                switch(hdrpSettings.supportedLitShaderMode)
+                {
+                    case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                        defaultShaderLitMode = LitShaderMode.Forward;
+                        break;
+                    case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                        defaultShaderLitMode = LitShaderMode.Deferred;
+                        break;
+                    case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                        defaultShaderLitMode = defaultFrameSettings.shaderLitMode;
+                        break;
+                    default:
+                        throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
+                }
+                
+                area.Add(p.litShaderMode, litShaderModeContent, () => p.overridesShaderLitMode, a => p.overridesShaderLitMode = a,
+                    () => !GL.wireframe && hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.Both,
+                    defaultValue: defaultShaderLitMode);
+
+                bool assetAllowMSAA = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && hdrpSettings.supportMSAA;
+                bool frameSettingsAllowMSAA = p.litShaderMode.enumValueIndex == (int)LitShaderMode.Forward && p.overridesShaderLitMode || !p.overridesShaderLitMode && defaultShaderLitMode == LitShaderMode.Forward;
+                area.Add(p.enableMSAA, msaaContent, () => p.overridesMSAA, a => p.overridesMSAA = a,
+                    () => !GL.wireframe
+                    && assetAllowMSAA && frameSettingsAllowMSAA,
+                    defaultValue: defaultFrameSettings.enableMSAA && hdrpSettings.supportMSAA && !GL.wireframe && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly) != 0 && (p.overridesShaderLitMode && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Forward || !p.overridesShaderLitMode && defaultFrameSettings.shaderLitMode == (int)LitShaderMode.Forward));
+                area.Add(p.enableDepthPrepassWithDeferredRendering, depthPrepassWithDeferredRenderingContent, () => p.overridesDepthPrepassWithDeferredRendering, a => p.overridesDepthPrepassWithDeferredRendering = a,
+                    () => (defaultFrameSettings.shaderLitMode == LitShaderMode.Deferred && !p.overridesShaderLitMode || p.overridesShaderLitMode && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred) && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly) != 0,
+                    defaultValue: defaultFrameSettings.enableDepthPrepassWithDeferredRendering && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly) != 0 && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred);
                 area.Add(p.enableOpaqueObjects, opaqueObjectsContent, () => p.overridesOpaqueObjects, a => p.overridesOpaqueObjects = a, defaultValue: defaultFrameSettings.enableOpaqueObjects);
                 area.Add(p.enableTransparentObjects, transparentObjectsContent, () => p.overridesTransparentObjects, a => p.overridesTransparentObjects = a, defaultValue: defaultFrameSettings.enableTransparentObjects);
                 area.Add(p.enableRealtimePlanarReflection, realtimePlanarReflectionContent, () => p.overridesRealtimePlanarReflection, a => p.overridesRealtimePlanarReflection = a, defaultValue: defaultFrameSettings.enableRealtimePlanarReflection);
                 area.Draw(withOverride);
             }
         }
-        
+
+        static void Drawer_SectionAsyncComputeSettings(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
+        {
+            //disable temporarily as FrameSettings are not supported for Baked probe at the moment
+            using (new EditorGUI.DisabledScope((owner is HDProbeEditor) && (owner as HDProbeEditor).GetTarget(owner.target).mode != ReflectionProbeMode.Realtime || (owner is HDRenderPipelineEditor) && HDRenderPipelineUI.selectedFrameSettings == HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection))
+            {
+                OverridableSettingsArea area = new OverridableSettingsArea(4);
+                FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
+
+                area.Add(p.enableAsyncCompute, asyncComputeContent, () => p.overridesAsyncCompute, a => p.overridesAsyncCompute = a, defaultValue: defaultFrameSettings.enableAsyncCompute);
+                area.Add(p.runBuildLightListAsync, lightListAsyncContent, () => p.overrideLightListInAsync, a => p.overrideLightListInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runLightListAsync, indent: 1);
+                area.Add(p.runSSRAsync, SSRAsyncContent, () => p.overrideSSRInAsync, a => p.overrideSSRInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runSSRAsync, indent: 1);
+                area.Add(p.runSSAOAsync, SSAOAsyncContent, () => p.overrideSSAOInAsync, a => p.overrideSSAOInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runSSAOAsync, indent: 1);
+                area.Draw(withOverride);
+            }
+        }
+
         static void Drawer_SectionLightingSettings(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
         {
             //disable temporarily as FrameSettings are not supported for Baked probe at the moment
@@ -164,16 +200,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 area.Add(p.enableLightLayers, lightLayerContent, () => p.overridesLightLayers, a => p.overridesLightLayers = a, () => hdrpSettings.supportLightLayers, defaultValue: defaultFrameSettings.enableLightLayers);
                 area.Draw(withOverride);
             }
-        }
-
-        static void Drawer_FieldStereoEnabled(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
-        {
-            OverridableSettingsArea area = new OverridableSettingsArea(2);
-            FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
-            area.Add(p.enableStereo, stereoContent, () => p.overridesStereo, a => p.overridesStereo = a, defaultValue: defaultFrameSettings.enableStereo);
-            //need to add support for xrGraphicConfig to show it
-            area.Add(p.xrGraphicsConfig, xrGraphicConfigContent, () => p.overridesXrGraphicSettings, a => p.overridesXrGraphicSettings = a, () => XRGraphicsConfig.tryEnable, defaultValue: defaultFrameSettings.xrGraphicsConfig);
-            area.Draw(withOverride);
         }
     }
 }
