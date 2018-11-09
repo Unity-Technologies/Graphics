@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Updated default FrameSettings used for realtime reflection probe (at HDRenderPipelineAsset creation)
+- Improved PCSS sampling quality. 
 
 ## [4.1.0-preview] - 2018-10-18
 

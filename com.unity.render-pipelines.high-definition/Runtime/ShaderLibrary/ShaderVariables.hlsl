@@ -253,8 +253,9 @@ CBUFFER_START(UnityGlobal)
 
     float4 _FrustumPlanes[6];           // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
-    // TAA Frame Index ranges from 0 to 7. This gives you two rotations per cycle.
-    float4 _TaaFrameRotation;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), 0, 0 }
+    // TAA Frame Index ranges from 0 to 7.
+    // First two channels of this gives you two rotations per cycle. 
+    float4 _TaaFrameInfo;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), taaFrame, taaEnabled ? 1 : 0 }
     // t = animateMaterials ? Time.realtimeSinceStartup : 0.
     float4 _Time;                       // { t/20, t, t*2, t*3 }
     float4 _LastTime;                   // { t/20, t, t*2, t*3 }
