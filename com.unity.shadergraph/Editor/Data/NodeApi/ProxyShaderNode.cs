@@ -18,11 +18,21 @@ namespace UnityEditor.ShaderGraph
         SerializationHelper.JSONSerializedElement m_SerializedData;
 
         [SerializeField]
-        string m_Type;
+        string m_ShaderNodeTypeName;
+
+        ShaderNodeState m_State;
 
         public HlslFunctionDescriptor function { get; set; }
 
-        public ShaderNodeState state { get; private set; }
+        public ShaderNodeState state
+        {
+            get => m_State;
+            set
+            {
+                m_State = value;
+                m_ShaderNodeTypeName = value?.shaderNode.GetType().FullName;
+            }
+        }
 
         public bool isNew { get; set; }
 
@@ -32,23 +42,49 @@ namespace UnityEditor.ShaderGraph
             set => m_Data = value;
         }
 
-        public string shaderNodeTypeName => m_Type;
+        public string shaderNodeTypeName => m_ShaderNodeTypeName;
+
+        public override bool hasPreview => true;
 
         public ProxyShaderNode()
         {
         }
 
+        // This one is only really used in SearchWindowProvider, as we need a dummy node with slots for the code there.
+        // Eventually we can make the code in SWP nicer, and remove this constructor.
         public ProxyShaderNode(ShaderNodeState state)
         {
             this.state = state;
-            m_Type = state.shaderNode.GetType().FullName;
             name = state.type.name;
             isNew = true;
 
             UpdateSlots();
         }
 
-        public override bool hasPreview => true;
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+
+            var errorDetected = true;
+            if (owner == null)
+            {
+                Debug.LogError($"{name} ({guid}) has a null owner.");
+            }
+            else if (state == null)
+            {
+                Debug.LogError($"{name} ({guid}) has a null state.");
+            }
+            else if (state.owner != owner)
+            {
+                Debug.LogError($"{name} ({guid}) has an invalid state.");
+            }
+            else
+            {
+                errorDetected = false;
+            }
+
+            hasError |= errorDetected;
+        }
 
         public override void OnBeforeSerialize()
         {
@@ -60,7 +96,7 @@ namespace UnityEditor.ShaderGraph
 
             if (state != null)
             {
-                m_Type = state.shaderNode.GetType().FullName;
+                m_ShaderNodeTypeName = state.shaderNode.GetType().FullName;
             }
         }
 
@@ -72,41 +108,42 @@ namespace UnityEditor.ShaderGraph
                 m_SerializedData = default;
             }
 
-            var materialOwner = (AbstractMaterialGraph)owner;
+            UpdateStateReference();
+        }
 
+        public void UpdateStateReference()
+        {
+            var materialOwner = (AbstractMaterialGraph)owner;
             state = materialOwner.shaderNodeStates.FirstOrDefault(x => x.shaderNode.GetType().FullName == shaderNodeTypeName);
-            m_Type = state?.shaderNode.GetType().FullName;
             if (state == null)
             {
                 throw new InvalidOperationException($"Cannot find an {nameof(IShaderNode)} with type name {shaderNodeTypeName}");
             }
-
             UpdateSlots();
-
-            state.deserializedNodes.Add(this);
         }
 
         void UpdateSlots()
         {
             var validSlotIds = new List<int>();
 
-            // TODO: Properly handle shaderOutputName
+            // TODO: Properly handle shaderOutputName (i.e.
             foreach (var portRef in state.type.inputs)
             {
                 var port = state.inputPorts[portRef.index];
+                var displayName = $"{NodeUtils.GetHLSLSafeName(port.displayName)}{port.id}";
                 switch (port.value.type)
                 {
                     case PortValueType.Vector1:
-                        AddSlot(new Vector1MaterialSlot(port.id, port.displayName, port.displayName, SlotType.Input, port.value.vector1Value));
+                        AddSlot(new Vector1MaterialSlot(port.id, port.displayName, displayName, SlotType.Input, port.value.vector1Value));
                         break;
                     case PortValueType.Vector2:
-                        AddSlot(new Vector2MaterialSlot(port.id, port.displayName, port.displayName, SlotType.Input, port.value.vector2Value));
+                        AddSlot(new Vector2MaterialSlot(port.id, port.displayName, displayName, SlotType.Input, port.value.vector2Value));
                         break;
                     case PortValueType.Vector3:
-                        AddSlot(new Vector3MaterialSlot(port.id, port.displayName, port.displayName, SlotType.Input, port.value.vector3Value));
+                        AddSlot(new Vector3MaterialSlot(port.id, port.displayName, displayName, SlotType.Input, port.value.vector3Value));
                         break;
                     case PortValueType.Vector4:
-                        AddSlot(new Vector4MaterialSlot(port.id, port.displayName, port.displayName, SlotType.Input, port.value.vector4Value));
+                        AddSlot(new Vector4MaterialSlot(port.id, port.displayName, displayName, SlotType.Input, port.value.vector4Value));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -117,19 +154,20 @@ namespace UnityEditor.ShaderGraph
             foreach (var portRef in state.type.outputs)
             {
                 var port = state.outputPorts[portRef.index];
+                var displayName = $"{NodeUtils.GetHLSLSafeName(port.displayName)}{port.id}";
                 switch (port.type)
                 {
                     case PortValueType.Vector1:
-                        AddSlot(new Vector1MaterialSlot(port.id, port.displayName, port.displayName, SlotType.Output, default));
+                        AddSlot(new Vector1MaterialSlot(port.id, port.displayName, displayName, SlotType.Output, default));
                         break;
                     case PortValueType.Vector2:
-                        AddSlot(new Vector2MaterialSlot(port.id, port.displayName, port.displayName, SlotType.Output, default));
+                        AddSlot(new Vector2MaterialSlot(port.id, port.displayName, displayName, SlotType.Output, default));
                         break;
                     case PortValueType.Vector3:
-                        AddSlot(new Vector3MaterialSlot(port.id, port.displayName, port.displayName, SlotType.Output, default));
+                        AddSlot(new Vector3MaterialSlot(port.id, port.displayName, displayName, SlotType.Output, default));
                         break;
                     case PortValueType.Vector4:
-                        AddSlot(new Vector4MaterialSlot(port.id, port.displayName, port.displayName, SlotType.Output, default));
+                        AddSlot(new Vector4MaterialSlot(port.id, port.displayName, displayName, SlotType.Output, default));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

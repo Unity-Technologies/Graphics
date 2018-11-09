@@ -30,7 +30,6 @@ namespace UnityEditor.ShaderGraph
 
         public void OnChange(ref NodeChangeContext context)
         {
-            Debug.Log("OnChange");
             // TODO: Figure out what should cause the user to create the hlsl source
             // TODO: How does sharing files between multiple node types work?
             if (!m_Source.isValid)
@@ -40,7 +39,6 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var node in context.createdNodes.Concat(context.deserializedNodes))
             {
-                Debug.Log("setting node dataaaa");
 //                var data = new HueData();
 //                data.modeValue = context.CreateHlslValue(GetOffsetFactor(data));
                 context.SetHlslFunction(node, new HlslFunctionDescriptor
@@ -50,6 +48,8 @@ namespace UnityEditor.ShaderGraph
                     arguments = new HlslArgumentList { m_InPort, m_OffsetPort, 1/360f },
                     returnValue = m_OutPort
                 });
+                context.CreateControl(node, "Test", 1234f);
+
 //                context.SetData(node, data);
             }
 

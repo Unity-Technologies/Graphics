@@ -191,7 +191,7 @@ namespace UnityEditor.ShaderGraph
 
                     try
                     {
-                        var state = new ShaderNodeState { id = shaderNodeStates.Count, shaderNode = (IShaderNode)constructor.Invoke(null) };
+                        var state = new ShaderNodeState { id = shaderNodeStates.Count, owner = this, shaderNode = (IShaderNode)constructor.Invoke(null) };
                         var context = new NodeSetupContext(this, m_CurrentContextId, state);
                         state.shaderNode.Setup(ref context);
                         if (!context.nodeTypeCreated)
@@ -285,7 +285,7 @@ namespace UnityEditor.ShaderGraph
 
             if (node is ProxyShaderNode proxyNode)
             {
-                proxyNode.UpdateNodeAfterDeserialization();
+                proxyNode.UpdateStateReference();
 
                 if (proxyNode.isNew)
                 {
@@ -679,7 +679,14 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
 
             foreach (var node in other.GetNodes<INode>())
+            {
                 AddNodeNoValidate(node);
+                if (node is ProxyShaderNode shaderNode)
+                {
+                    shaderNode.UpdateStateReference();
+                    shaderNode.state.deserializedNodes.Add(shaderNode);
+                }
+            }
 
             foreach (var edge in other.edges)
                 ConnectNoValidate(edge.outputSlot, edge.inputSlot);
@@ -772,6 +779,10 @@ namespace UnityEditor.ShaderGraph
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
+                if (node is ProxyShaderNode shaderNode)
+                {
+                    shaderNode.state.deserializedNodes.Add(shaderNode);
+                }
                 node.tempId = new Identifier(m_Nodes.Count);
                 m_Nodes.Add(node);
                 m_NodeDictionary.Add(node.guid, node);

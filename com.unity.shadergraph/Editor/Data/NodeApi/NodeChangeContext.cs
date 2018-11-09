@@ -10,12 +10,14 @@ namespace UnityEditor.ShaderGraph
         readonly AbstractMaterialGraph m_Graph;
         readonly int m_CurrentSetupContextId;
         readonly ShaderNodeState m_State;
+        readonly List<ControlDescriptor> m_CreatedControls;
 
-        internal NodeChangeContext(AbstractMaterialGraph graph, int currentSetupContextId, ShaderNodeState state)
+        internal NodeChangeContext(AbstractMaterialGraph graph, int currentSetupContextId, ShaderNodeState state, List<ControlDescriptor> createdControls)
         {
             m_Graph = graph;
             m_CurrentSetupContextId = currentSetupContextId;
             m_State = state;
+            m_CreatedControls = createdControls;
         }
 
         public IEnumerable<NodeRef> createdNodes
@@ -87,6 +89,27 @@ namespace UnityEditor.ShaderGraph
         public HlslValueRef CreateHlslValue(float value)
         {
             return default;
+        }
+
+        public ControlRef CreateControl(NodeRef nodeRef, string label, float value)
+        {
+            nodeRef.node.controls.Add(new ControlDescriptor { label = label, value = value });
+            return new ControlRef { id = nodeRef.node.controls.Count };
+        }
+
+        public void DestroyControl(ControlRef controlRef)
+        {
+
+        }
+
+        public float GetControlValue(ControlRef controlRef)
+        {
+            return default;
+        }
+
+        public void SetControlValue(ControlRef controlRef, float value)
+        {
+
         }
 
         void Validate()

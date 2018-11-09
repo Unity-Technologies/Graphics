@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph
         public virtual bool hasError
         {
             get { return m_HasError; }
-            protected set { m_HasError = value; }
+            internal set { m_HasError = value; }
         }
 
         string m_DefaultVariableName;

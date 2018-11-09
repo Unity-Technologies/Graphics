@@ -6,6 +6,7 @@ namespace UnityEditor.ShaderGraph
     class ShaderNodeState
     {
         public int id;
+        public AbstractMaterialGraph owner;
         public IShaderNode shaderNode;
         public NodeTypeDescriptor type;
         public List<InputPortDescriptor> inputPorts = new List<InputPortDescriptor>();
