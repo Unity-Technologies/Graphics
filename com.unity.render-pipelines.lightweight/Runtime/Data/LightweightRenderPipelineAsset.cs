@@ -3,6 +3,7 @@ using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
@@ -483,7 +484,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         int ValidatePerObjectLights(int value)
         {
-            return Math.Max(0, Math.Min(value, LightweightRenderPipeline.maxPerObjectLightCount));
+            return System.Math.Max(0, System.Math.Min(value, LightweightRenderPipeline.maxPerObjectLightCount));
         }
 
         float ValidateRenderScale(float value)
