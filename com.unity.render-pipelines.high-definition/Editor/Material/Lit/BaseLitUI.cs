@@ -261,7 +261,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void BaseMaterialPropertiesGUI()
         {
             base.BaseMaterialPropertiesGUI();
-            
+
             // This follow double sided option
             if (doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
             {
@@ -285,7 +285,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (supportDecals != null)
             {
                 m_MaterialEditor.ShaderProperty(supportDecals, StylesBaseLit.supportDecalsText);
-            }            
+            }
 
             if (enableGeometricSpecularAA != null)
             {
@@ -451,6 +451,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             SetupBaseUnlitKeywords(material);
 
+            int materialInstanceFlags = 0;
+
             bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) ? material.GetFloat(kDoubleSidedEnable) > 0.0f : false;
             if (doubleSidedEnable)
             {
@@ -507,8 +509,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
                 // Tessellation reuse vertex flag.
                 CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
-                CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
                 CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
+
+                bool ppdLockObjectScale = enablePixelDisplacement && displacementLockObjectScale;
+                materialInstanceFlags |= ppdLockObjectScale ? (int)MaterialInstanceFlags.PerPixelDisplacementLockObjectScale : 0;
 
                 // Depth offset is only enabled if per pixel displacement is
                 bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
@@ -530,6 +534,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0);
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0);
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
+
+            material.SetInt("_MaterialInstanceFlags", materialInstanceFlags);
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

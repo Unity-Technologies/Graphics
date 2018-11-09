@@ -19,11 +19,19 @@ float3 GetDisplacementObjectScale(bool vertexDisplacement)
     }
 
     objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-    // In the specific case of pixel displacement mapping, to get a consistent behavior compare to tessellation we require to not take into account y scale if lock object scale is not enabled
-#if !defined(_PIXEL_DISPLACEMENT) || (defined(_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE))
-    objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
-#endif
     objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+
+    // In the specific case of pixel displacement mapping, to get a consistent behavior compare to tessellation we require to not take into account y scale if lock object scale is not enabled
+#if defined(_PIXEL_DISPLACEMENT)
+    bool lockObjectScale = HasFlag(asuint(_MaterialInstanceFlags), MATERIALINSTANCEFLAGS_PER_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE);
+#else
+    bool lockObjectScale = true;
+#endif
+
+    if (lockObjectScale)
+    {
+        objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+    }
 
     return objectScale;
 }

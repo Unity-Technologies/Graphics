@@ -5,6 +5,9 @@ Shader "HDRenderPipeline/Lit"
         // Versioning of material to help for upgrading
         [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 
+        // A bitfield containing up to 24 bits. See the "MaterialInstanceFlags" enum.
+        [HideInInspector] _MaterialInstanceFlags("_MaterialInstanceFlags", Int) = 0
+
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -222,7 +225,6 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
     #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
-    #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature _VERTEX_WIND
     #pragma shader_feature _ _REFRACTION_PLANE _REFRACTION_SPHERE
 
