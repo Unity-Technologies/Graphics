@@ -16,13 +16,9 @@ namespace UnityEditor.VFX
             public float Delay = 1.0f;
         }
 
-        bool m_Waiting;
-        bool m_Playing;
-
-        float m_WaitTTL;
-        int m_RemainingLoops;
-        int m_LoopCount;
-        float m_Duration;
+        int m_LoopMaxCount;
+        int m_LoopCurrentIndex;
+        float m_WaitingForTotalTime;
 
         static private readonly int loopCountPropertyID = Shader.PropertyToID("LoopCount");
         static private readonly int loopDurationPropertyID = Shader.PropertyToID("LoopDuration");
@@ -33,65 +29,37 @@ namespace UnityEditor.VFX
             // Evaluate Loop Count only when hitting start;
             // LoopCount < 0 means infinite mode
             // LoopCount == 0 means no spawn
-
-            m_LoopCount = vfxValues.GetInt(loopCountPropertyID);
-
-            if(m_LoopCount != 0)
+            m_LoopMaxCount = vfxValues.GetInt(loopCountPropertyID);
+            m_WaitingForTotalTime = vfxValues.GetFloat(loopDurationPropertyID);
+            m_LoopCurrentIndex = 0;
+            if (m_LoopMaxCount == m_LoopCurrentIndex)
             {
-                m_RemainingLoops = m_LoopCount - 1;
-                m_Duration = vfxValues.GetFloat(loopDurationPropertyID);
-                m_Playing = true;
-                m_Waiting = false;
-            }
-            else // no loops, no play
-            {
-                m_Playing = false;
                 state.playing = false;
             }
         }
 
         public sealed override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            if (state.totalTime > m_Duration && m_Playing) // When we are past the loop duration (and we need to loop)...
+            if (m_LoopCurrentIndex != m_LoopMaxCount && state.totalTime > m_WaitingForTotalTime)
             {
-                if (!m_Waiting) // We need to wait
+                state.totalTime = 0.0f;
+                if (state.playing)
                 {
-                    m_WaitTTL = vfxValues.GetFloat(delayPropertyID); // Fetch Value for this loop
-                    m_Waiting = true;
-                    state.playing = false; // Stop the Spawn context for the duration of the delay
+                    m_WaitingForTotalTime = vfxValues.GetFloat(delayPropertyID); 
+                    state.playing = false; //We are in playing state, if m_LoopCurrentIndex + 1 == m_LoopMaxCount, we have finish here
+                    m_LoopCurrentIndex = m_LoopCurrentIndex + 1 > 0 ? m_LoopCurrentIndex + 1 : 0; //It's possible to count to infinite if m_LoopMaxCount < 0
                 }
-                else // If we are in a wait loop....
+                else
                 {
-                    // Countdown... 
-                    m_WaitTTL -= state.deltaTime;
-
-                    // ....until delay expired
-                    if (m_WaitTTL < 0.0f)
-                    {
-                        if (m_RemainingLoops > 0 || m_LoopCount < 0) // if remaining loops (or infinite), restart a loop
-                        {
-                            if (m_LoopCount >= 0) // only process remaining loops if we have a positive loop count
-                                m_RemainingLoops--;
-
-                            // ...Then restart a spawn loop
-                            m_Waiting = false;
-                            state.totalTime = 0.0f;
-                            state.playing = true; // Re-enable the spawn context
-                            m_Duration = vfxValues.GetFloat(loopDurationPropertyID); // Recompute a loop duration
-                        }
-                        else
-                        {
-                            m_Playing = false;
-                        }
-
-                    }
+                    m_WaitingForTotalTime = vfxValues.GetFloat(loopDurationPropertyID);
+                    state.playing = true; //We are in not playing state, we was waiting for the moment when restart will be launch
                 }
             }
         }
 
         public sealed override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            m_Playing = false;
+            m_LoopCurrentIndex = m_LoopMaxCount;
         }
     }
 }
