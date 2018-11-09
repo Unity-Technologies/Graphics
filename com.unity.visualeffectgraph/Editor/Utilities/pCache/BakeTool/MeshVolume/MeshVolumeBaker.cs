@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.Utils
 			var previousRP = GraphicsSettings.renderPipelineAsset;
 			GraphicsSettings.renderPipelineAsset = null;
 		
-			string csPath = System.IO.Path.Combine( "Assets", "VoxelizeCS.compute");
+			string csPath = "Packages/com.unity.visualeffectgraph/Editor/Utilities/pCache/BakeTool/MeshVolume/GetVoxelsFromSlice.compute";
 
 			if (computeShader == null)
 				computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>( csPath );

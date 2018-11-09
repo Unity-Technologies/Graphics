@@ -1,0 +1,38 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel FilterVoxels
+
+RWStructuredBuffer<float3> filteredVoxelsBuffer;
+
+Texture2D<float> slices;
+
+float3 minP;
+float3 maxP;
+float zValue;
+bool keepInside;
+
+float2 textureSize;
+
+[numthreads(8,8,1)]
+void FilterVoxels (uint3 id : SV_DispatchThreadID)
+{
+    uint t_Width;
+    uint t_Height;
+    
+    if ( id.x>(textureSize.x-1) || id.y>(textureSize.y-1) ) return;
+    
+    uint2 uv = uint2(id.x, id.y);
+    uv = id.xy;
+    
+    float colorValue = slices[ uv ];
+    
+    if ( colorValue > 0.5 )
+    {
+        float3 pos = float3(0,0,0);
+        pos.x = lerp( (float) minP.x, (float) maxP.x, (float) id.x / (float) textureSize.x );
+        pos.y = lerp( (float) minP.y, (float) maxP.y, (float) id.y / (float) textureSize.y );
+        pos.z = zValue;
+        
+        uint counter = filteredVoxelsBuffer.IncrementCounter();
+        filteredVoxelsBuffer[counter] = pos;
+    }
+}
