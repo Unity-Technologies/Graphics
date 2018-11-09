@@ -34,8 +34,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed blend mode pop up in UI not appearing when pre refraction is on
 - Fixed some null pointer exceptions when disabling motion vectors support
 - Fixed layered lit UI issue with scrollbar
-- Fix cubemap assignation on custom ReflectoinProbe
-- Fix reflection probe's capture settings's shadow distance
+- Fixed cubemap assignation on custom ReflectoinProbe
+- Fixed reflection probe's capture settings's shadow distance
+- Fixed an issue with the SRP batcher and shader variables declaration
+- Fixed thickness and subsurface slots for fabric shader master node that wan't appearing with the right combination of flags
 
 ### Changed
 - Renamed "Line" shaped lights to "Tube" light
