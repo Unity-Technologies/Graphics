@@ -8,7 +8,7 @@
 // UnityEditor.Experimental.Rendering.HDPipeline.MaterialInstanceFlags:  static fields
 //
 #define MATERIALINSTANCEFLAGS_PER_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE (1)
-#define MATERIALINSTANCEFLAGS_BLA (2)
+#define MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_TILING_SCALE (2)
 
 
 #endif

@@ -509,10 +509,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
                 // Tessellation reuse vertex flag.
                 CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
-                CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
 
                 bool ppdLockObjectScale = enablePixelDisplacement && displacementLockObjectScale;
                 materialInstanceFlags |= ppdLockObjectScale ? (int)MaterialInstanceFlags.PerPixelDisplacementLockObjectScale : 0;
+
+                bool lockTilingScale = enableDisplacement && displacementLockTilingScale;
+                materialInstanceFlags |= lockTilingScale ? (int)MaterialInstanceFlags.DisplacementLockTilingScale : 0;
 
                 // Depth offset is only enabled if per pixel displacement is
                 bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;

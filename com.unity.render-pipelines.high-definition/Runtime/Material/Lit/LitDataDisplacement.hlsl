@@ -21,8 +21,8 @@ float3 GetDisplacementObjectScale(bool vertexDisplacement)
     objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
     objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
 
-    // In the specific case of pixel displacement mapping, to get a consistent behavior compare to tessellation we require to not take into account y scale if lock object scale is not enabled
 #if defined(_PIXEL_DISPLACEMENT)
+    // In the specific case of pixel displacement mapping, to get a consistent behavior compare to tessellation we require to not take into account y scale if lock object scale is not enabled
     bool lockObjectScale = HasFlag(asuint(_MaterialInstanceFlags), MATERIALINSTANCEFLAGS_PER_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE);
 #else
     bool lockObjectScale = true;
@@ -85,11 +85,15 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 
 void ApplyDisplacementTileScale(inout float height)
 {
-    // Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y)
-    // Inverse tiling scale *= (1 / _TexWorldScale) if planar or triplanar
-#ifdef _DISPLACEMENT_LOCK_TILING_SCALE
-    height *= _InvTilingScale;
-#endif
+    // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
+    bool lockTilingScale = HasFlag(asuint(_MaterialInstanceFlags), MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_TILING_SCALE);
+
+    if (lockTilingScale)
+    {
+        // Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y)
+        // Inverse tiling scale *= (1 / _TexWorldScale) if planar or triplanar
+        height *= _InvTilingScale;
+    }
 }
 
 float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)

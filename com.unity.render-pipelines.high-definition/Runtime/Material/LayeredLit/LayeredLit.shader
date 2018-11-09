@@ -362,7 +362,6 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
     #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature _VERTEX_WIND
 
     #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR

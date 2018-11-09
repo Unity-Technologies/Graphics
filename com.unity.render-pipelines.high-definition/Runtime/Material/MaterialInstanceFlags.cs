@@ -6,6 +6,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public enum MaterialInstanceFlags
     {
         PerPixelDisplacementLockObjectScale = 1,
-        Bla = 2
+        DisplacementLockTilingScale = 2
     }
 } // namespace UnityEditor
