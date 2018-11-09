@@ -15,10 +15,11 @@ namespace UnityEditor.VFX.Utils
         public enum BakeMode
         {
             Texture,
-            Mesh
+            MeshSurface,
+            MeshVolume
         }
 
-        public BakeMode mode = BakeMode.Mesh;
+        public BakeMode mode = BakeMode.MeshSurface;
 
         private void OnGUI()
         {
@@ -26,7 +27,8 @@ namespace UnityEditor.VFX.Utils
             mode = (BakeMode)EditorGUILayout.EnumPopup(Contents.mode, mode);
             switch (mode)
             {
-                case BakeMode.Mesh: OnGUI_Mesh(); break;
+                case BakeMode.MeshSurface: OnGUI_MeshSurface(); break;
+                case BakeMode.MeshVolume: OnGUI_MeshVolume(); break;
                 case BakeMode.Texture: OnGUI_Texture(); break;
             }
         }
