@@ -484,7 +484,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Diffusion Profile
-            if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile))
+            if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile) && (subsurfaceScattering.isOn || transmission.isOn))
             {
                 AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileSlotId, DiffusionProfileSlotName, DiffusionProfileSlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(DiffusionProfileSlotId);
