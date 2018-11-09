@@ -184,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(1, 64)]
         public int      blockerSampleCount = 24;
         [Range(1, 64)]
-        public int      filterSampleCount = 32;
+        public int      filterSampleCount = 16;
 
         HDShadowRequest[]   shadowRequests;
         bool                m_WillRenderShadows;

@@ -88,11 +88,7 @@ static const float2 fibonacciSpiralDirection[DISK_SAMPLE_COUNT] =
 
 real2 ComputeFibonacciSpiralDiskSample(const in int sampleIndex, const in real diskRadius, const in real sampleCountInverse, const in real sampleCountBias)
 {
-    // Note: To sample uniformly within the disk we would compute radius as:
-    // radius = lightArea * sqrt((real)i * sampleCountInverse + sampleCountBias);
-    // For performance we drop the sqrt(), resulting in a higher sample density toward the center of the disk.
-    // Visually resulting in a curved falloff function.
-    real sampleRadius = diskRadius * ((real)sampleIndex * sampleCountInverse + sampleCountBias);
+    real sampleRadius = diskRadius * sqrt((real)sampleIndex * sampleCountInverse + sampleCountBias);
     real2 sampleDirection = fibonacciSpiralDirection[sampleIndex];
     return sampleDirection * sampleRadius;
 }

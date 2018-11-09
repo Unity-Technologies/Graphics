@@ -33,8 +33,8 @@ Pass
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
         $Material.CottonWool:               #define _MATERIAL_FEATURE_COTTON_WOOL 1
-        $Material.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
-        $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
+        $SurfaceDescription.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
+        $SurfaceDescription.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
         $SurfaceDescription.Emission:       #define _EMISSION 1
         $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
         $BlendMode.Alpha:                   #define _BLENDMODE_ALPHA 1
