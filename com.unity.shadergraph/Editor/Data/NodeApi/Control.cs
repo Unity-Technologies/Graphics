@@ -1,6 +1,6 @@
 namespace UnityEditor.ShaderGraph
 {
-    public struct ControlDescriptor
+    struct ControlDescriptor
     {
         public string label { get; set; }
         public float value { get; set; }

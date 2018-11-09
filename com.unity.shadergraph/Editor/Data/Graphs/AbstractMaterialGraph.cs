@@ -219,7 +219,8 @@ namespace UnityEditor.ShaderGraph
             {
                 if (state.isDirty)
                 {
-                    var context = new NodeChangeContext(this, m_CurrentContextId, state);
+                    var createdControls = ListPool<ControlDescriptor>.Get();
+                    var context = new NodeChangeContext(this, m_CurrentContextId, state, createdControls);
                     try
                     {
                         state.shaderNode.OnChange(ref context);
@@ -230,6 +231,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     finally
                     {
+                        ListPool<ControlDescriptor>.Release(createdControls);
                         state.ClearChanges();
                         m_CurrentContextId = Math.Max(m_CurrentContextId + 1, 1);
                     }

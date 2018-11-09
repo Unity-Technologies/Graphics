@@ -93,8 +93,9 @@ namespace UnityEditor.ShaderGraph
 
         public ControlRef CreateControl(NodeRef nodeRef, string label, float value)
         {
-            nodeRef.node.controls.Add(new ControlDescriptor { label = label, value = value });
-            return new ControlRef { id = nodeRef.node.controls.Count };
+            m_CreatedControls.Add(new ControlDescriptor { label = label, value = value });
+            // TODO: Figure out IDs
+            return new ControlRef { id = 1 };
         }
 
         public void DestroyControl(ControlRef controlRef)
