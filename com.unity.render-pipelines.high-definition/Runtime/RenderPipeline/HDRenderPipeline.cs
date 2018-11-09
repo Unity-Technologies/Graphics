@@ -1184,7 +1184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             buildLightListTask.Start(cmd, renderContext, (CommandBuffer asyncCmd) =>
                             {
-                                m_LightLoop.BuildGPULightListsCommon(hdCamera, asyncCmd, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetStencilBufferCopy(), m_SkyManager.IsLightingSkyValid());
+                                m_LightLoop.BuildGPULightListsCommon(hdCamera, asyncCmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA), m_SharedRTManager.GetStencilBufferCopy(), m_SkyManager.IsLightingSkyValid());
                             }, !haveAsyncTaskWithShadows);
 
                             haveAsyncTaskWithShadows = true;
@@ -1252,7 +1252,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             using (new ProfilingSample(cmd, "Build Light list", CustomSamplerId.BuildLightList.GetSampler()))
                             {
-                                m_LightLoop.BuildGPULightLists(hdCamera, cmd, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetStencilBufferCopy(), m_SkyManager.IsLightingSkyValid());
+                                m_LightLoop.BuildGPULightLists(hdCamera, cmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA), m_SharedRTManager.GetStencilBufferCopy(), m_SkyManager.IsLightingSkyValid());
                             }
                         }
 
