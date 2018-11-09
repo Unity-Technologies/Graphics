@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return VFXAttribute.Find(attribute);
+                return VFXAttribute.Find(attribute,GetGraph());
             }
         }
 

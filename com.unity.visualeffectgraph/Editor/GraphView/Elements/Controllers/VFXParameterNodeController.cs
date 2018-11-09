@@ -172,6 +172,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        VFXGraph IPropertyRMProvider.graph { get { return m_ParentController.graph; } }
+
         public bool spaceableAndMasterOfSpace
         {
             get

@@ -10,5 +10,6 @@ VFXBoardAttribute #name
 VFXBoardAttribute #type-dropdown
 {
     width:50;
+    height:18;
 }
 

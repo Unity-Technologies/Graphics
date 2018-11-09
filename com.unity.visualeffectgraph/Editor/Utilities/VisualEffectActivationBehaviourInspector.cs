@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                 var menu = new GenericMenu();
                 foreach (var attributeName in VFXAttribute.AllIncludingVariadicReadWritable.Except(existingAttribute).OrderBy(o => o))
                 {
-                    var attribute = VFXAttribute.Find(attributeName);
+                    var attribute = VFXAttribute.Find(attributeName,null); //TODO how to get the graph from here
                     menu.AddItem(new GUIContent(attribute.name), false, () =>
                     {
                         serializedObject.Update();

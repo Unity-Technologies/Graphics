@@ -47,7 +47,7 @@ public class VFXSlotContainerEditor : Editor
             var attrs = prop.Key.GetCustomAttributes(typeof(StringProviderAttribute), true);
             if (attrs.Length > 0)
             {
-                var strings = StringPropertyRM.FindStringProvider(attrs)();
+                var strings = StringPropertyRM.FindStringProvider(attrs,slotContainer.GetGraph())();
 
                 int selected = prop.Value.hasMultipleDifferentValues ? -1 : System.Array.IndexOf(strings, prop.Value.stringValue);
                 int result = EditorGUILayout.Popup(ObjectNames.NicifyVariableName(prop.Value.name), selected, strings);

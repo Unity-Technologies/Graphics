@@ -49,6 +49,7 @@ namespace UnityEditor.VFX.UI
                 m_Owner.SetSettingValue(name, VFXConverter.ConvertTo(value, portType));
             }
         }
+        VFXGraph IPropertyRMProvider.graph { get { return (m_Owner as VFXModel).GetGraph(); } }
 
 
         public string path

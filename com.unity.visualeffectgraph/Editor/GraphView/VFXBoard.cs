@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.UIElements;
+using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
@@ -82,8 +77,8 @@ namespace UnityEditor.VFX.UI
             }
 
             Vector2 maxSizeInView = viewrect.max - rect.position - sizeMargin;
-            float newWidth = Mathf.Max(element.style.minWidth, Mathf.Min(rect.width, maxSizeInView.x));
-            float newHeight = Mathf.Max(element.style.minHeight, Mathf.Min(rect.height, maxSizeInView.y));
+            float newWidth = Mathf.Max(element.resolvedStyle.minWidth.value, Mathf.Min(rect.width, maxSizeInView.x));
+            float newHeight = Mathf.Max(element.resolvedStyle.minHeight.value, Mathf.Min(rect.height, maxSizeInView.y));
 
             if (Mathf.Abs(newWidth - rect.width) > 1)
             {
@@ -148,9 +143,9 @@ namespace UnityEditor.VFX.UI
 
             var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXBoard");
 
-            tpl.CloneTree(this, new Dictionary<string, VisualElement>());
+            tpl.CloneTree(this);
 
-            AddStyleSheetPath("VFXBoard");
+            this.AddStyleSheetPath("VFXBoard");
             AddToClassList("VFXBoard");
 
             m_ScrollView = this.Q<ScrollView>("scrollView");
@@ -160,19 +155,19 @@ namespace UnityEditor.VFX.UI
             
             this.AddManipulator(new Dragger { clampToParentEdges = true });
             RegisterCallback<MouseDownEvent>(OnMouseClick, TrickleDown.TrickleDown);
-            style.positionType = PositionType.Absolute;
+            style.position = UnityEngine.UIElements.Position.Absolute;
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.componentBoard, defaultRect));
         }
 
         public override Rect GetPosition()
         {
-            return new Rect(style.positionLeft, style.positionTop, style.width, style.height);
+            return new Rect(resolvedStyle.left, resolvedStyle.top, resolvedStyle.width, resolvedStyle.height);
         }
 
         public override void SetPosition(Rect newPos)
         {
-            style.positionLeft = newPos.xMin;
-            style.positionTop = newPos.yMin;
+            style.left = newPos.xMin;
+            style.top = newPos.yMin;
             style.width = newPos.width;
             style.height = newPos.height;
         }

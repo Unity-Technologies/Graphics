@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.UIElements;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
@@ -30,9 +28,9 @@ namespace UnityEditor.VFX.UI
 
             var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXBoard-attribute");
             this.AddStyleSheetPathWithSkinVariant("VFXControls");
-            AddStyleSheetPath("VFXBoardAttribute");
+            this.AddStyleSheetPath("VFXBoardAttribute");
 
-            tpl.CloneTree(this, new Dictionary<string, VisualElement>());
+            tpl.CloneTree(this);
 
             m_NameField = this.Q<TextField>("name");
             m_NameField.RegisterCallback<ChangeEvent<string>>(OnNameChange);
@@ -133,11 +131,12 @@ namespace UnityEditor.VFX.UI
             title = "Custom Attributes";
             subTitle = "List your own per particle attributes";
 
-            AddStyleSheetPath("VFXCustomAttributesBoard");
+            this.AddStyleSheetPath("VFXCustomAttributesBoard");
             
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.customAttributeBoard, defaultRect));
 
-            clippingOptions = ClippingOptions.ClipContents;
+            style.overflow = Overflow.Hidden;
+            cacheAsBitmap = false;
 
             var header = this.Q("header");
 

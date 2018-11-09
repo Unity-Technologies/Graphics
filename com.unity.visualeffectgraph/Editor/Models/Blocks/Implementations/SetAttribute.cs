@@ -67,13 +67,13 @@ namespace UnityEditor.VFX.Block
         private string ComposeName(string variadicName)
         {
             string attributeName = ObjectNames.NicifyVariableName(attribute) + variadicName;
-            switch (Source)
-            {
-                case ValueSource.Slot: return VFXBlockUtility.GetNameString(Composition) + " " + attributeName + " " + VFXBlockUtility.GetNameString(Random);
+                switch (Source)
+                {
+                    case ValueSource.Slot: return VFXBlockUtility.GetNameString(Composition) + " " + attributeName + " " + VFXBlockUtility.GetNameString(Random);
                 case ValueSource.Source: return "Inherit Source " + attributeName + " (" + VFXBlockUtility.GetNameString(Composition) + ")";
-                default: return "NOT IMPLEMENTED : " + Source;
+                    default: return "NOT IMPLEMENTED : " + Source;
+                }
             }
-        }
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.Block
                 {
                     string channelsString = channels.ToString();
                     for (int i = 0; i < channelsString.Length; i++)
-                        yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                        yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i], GetGraph()), attributeMode);
                 }
                 else
                 {
@@ -191,13 +191,13 @@ namespace UnityEditor.VFX.Block
                 if (Source == ValueSource.Source)
                 {
                     VFXExpression sourceExpression = null;
-                    var attrib = currentAttribute;
+                    var attrib = VFXAttribute.Find(attribute);
                     if (attrib.variadic == VFXVariadic.True)
                     {
                         var currentChannels = channels.ToString().Select(c => char.ToUpper(c));
                         var currentChannelsExpression = currentChannels.Select(o =>
                         {
-                            var subAttrib = VFXAttribute.Find(attribute + o);
+                            var subAttrib = VFXAttribute.Find(attribute + o, GetGraph());
                             return new VFXAttributeExpression(subAttrib, VFXAttributeLocation.Source);
                         }).ToArray();
 
@@ -287,7 +287,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return VFXAttribute.Find(attribute);
+                return VFXAttribute.Find(attribute, GetGraph());
             }
         }
     }

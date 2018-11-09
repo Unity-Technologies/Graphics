@@ -502,17 +502,6 @@ namespace UnityEditor.VFX
         {
             return m_CustomAttributes[index].type;
         }
-        public VFXAttribute FindAttribute(string attributeName)
-        {
-            CustomAttribute customAttribute = m_CustomAttributes.FirstOrDefault(t => t.name == attributeName);
-
-            if( customAttribute.name != null)
-            {
-                return new VFXAttribute(customAttribute.name, customAttribute.type);
-            }
-
-            return VFXAttribute.Find(attributeName);
-        }
 
         public void SetCustomAttributeName(int index,string newName)
         {
@@ -528,9 +517,14 @@ namespace UnityEditor.VFX
                 }
             }
 
+
+            string oldName = m_CustomAttributes[index].name;
+
             m_CustomAttributes[index] = new CustomAttribute { name = newName, type = m_CustomAttributes[index].type };
 
             Invalidate(InvalidationCause.kSettingChanged);
+
+            RenameAttribute(oldName, newName);
         }
 
         public void SetCustomAttributeType(int index, VFXValueType newType)
@@ -540,6 +534,14 @@ namespace UnityEditor.VFX
             //TODO check that newType is an anthorized type for custom attributes.
 
             m_CustomAttributes[index] = new CustomAttribute { name = m_CustomAttributes[index].name, type = newType };
+
+            string name = m_CustomAttributes[index].name;
+            ForEachSettingUsingAttribute((model, setting) =>
+            {
+                if (name == (string)setting.GetValue(model))
+                    model.Invalidate(InvalidationCause.kSettingChanged);
+                return false;
+            });
 
             Invalidate(InvalidationCause.kSettingChanged);
         }
@@ -551,11 +553,73 @@ namespace UnityEditor.VFX
             string name = "Attribute";
             int cpt = 1;
             while (m_CustomAttributes.Any(t => t.name == name))
-            {
+            {   
                 name = string.Format("Attribute{0}", cpt++);
             }
             m_CustomAttributes.Add(new CustomAttribute { name = name, type = VFXValueType.Float });
             Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        //Execute action on each settings used to store an attribute, until one return true;
+        bool ForEachSettingUsingAttributeInModel(VFXModel model, Func<FieldInfo,bool> action)
+        {
+            var settings = model.GetSettings(true);
+
+            foreach (var setting in settings)
+            {
+                if (setting.FieldType == typeof(string))
+                {
+                    var attribute = setting.GetCustomAttributes().OfType<StringProviderAttribute>().FirstOrDefault();
+                    if (attribute != null && (typeof(ReadWritableAttributeProvider).IsAssignableFrom(attribute.providerType) || typeof(AttributeProvider).IsAssignableFrom(attribute.providerType)))
+                    {
+                        if (action(setting))
+                            return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        bool ForEachSettingUsingAttribute(Func<VFXModel,FieldInfo, bool> action)
+        {
+            foreach (var child in children)
+            {
+                if (child is VFXOperator)
+                {
+                    if (ForEachSettingUsingAttributeInModel(child, s => action(child, s)))
+                        return true;
+                }
+                else if (child is VFXContext)
+                {
+                    if (ForEachSettingUsingAttributeInModel(child, s => action(child, s)))
+                        return true;
+                    foreach (var block in (child as VFXContext).children)
+                    {
+                        if (ForEachSettingUsingAttributeInModel(child, s => action(block, s)))
+                            return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool HasCustomAttributeUses(string name)
+        {
+            return ForEachSettingUsingAttribute((model,setting)=> name == (string)setting.GetValue(model));
+        }
+
+        public void RenameAttribute(string oldName,string newName)
+        {
+            ForEachSettingUsingAttribute((model, setting) =>
+            {
+                if (oldName == (string)setting.GetValue(model))
+                {
+                    setting.SetValue(model, newName);
+                    model.Invalidate(InvalidationCause.kUIChanged);
+                }
+                return false;
+            });
         }
 
         public void RemoveCustomAttribute(int index)

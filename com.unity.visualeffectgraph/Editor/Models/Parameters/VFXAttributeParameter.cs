@@ -5,19 +5,19 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    class AttributeProvider : IStringProvider
+    class AttributeProvider : IGraphStringProvider
     {
-        public string[] GetAvailableString()
+        public string[] GetAvailableString(VFXGraph graph)
         {
-            return VFXAttribute.AllIncludingVariadicExceptLocalOnly.ToArray();
+            return VFXAttribute.AllIncludingVariadicExceptLocalOnly.Concat(graph.customAttributes).ToArray();
         }
     }
 
-    class ReadWritableAttributeProvider : IStringProvider
+    class ReadWritableAttributeProvider : IGraphStringProvider
     {
-        public string[] GetAvailableString()
+        public string[] GetAvailableString(VFXGraph graph)
         {
-            return VFXAttribute.AllIncludingVariadicReadWritable.ToArray();
+            return VFXAttribute.AllIncludingVariadicReadWritable.Concat(graph.customAttributes).ToArray();
         }
     }
 
@@ -80,7 +80,7 @@ namespace UnityEditor.VFX
             get
             {
                 foreach (string setting in base.filteredOutSettings) yield return setting;
-                var attribute = VFXAttribute.Find(this.attribute);
+                var attribute = VFXAttribute.Find(this.attribute,GetGraph());
                 if (attribute.variadic == VFXVariadic.False) yield return "mask";
             }
         }
@@ -89,7 +89,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var attribute = VFXAttribute.Find(this.attribute);
+                var attribute = VFXAttribute.Find(this.attribute, GetGraph());
                 if (attribute.variadic == VFXVariadic.True)
                 {
                     Type slotType = null;
@@ -121,7 +121,7 @@ namespace UnityEditor.VFX
 
                 try
                 {
-                    var attrib = VFXAttribute.Find(this.attribute);
+                    var attrib = VFXAttribute.Find(this.attribute, GetGraph());
                     if (attrib.variadic == VFXVariadic.True)
                         result += "." + mask;
                 }
@@ -146,10 +146,10 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var attribute = VFXAttribute.Find(this.attribute);
+            var attribute = VFXAttribute.Find(this.attribute, GetGraph());
             if (attribute.variadic == VFXVariadic.True)
             {
-                var attributes = new VFXAttribute[] { VFXAttribute.Find(attribute.name + "X"), VFXAttribute.Find(attribute.name + "Y"), VFXAttribute.Find(attribute.name + "Z") };
+                var attributes = new VFXAttribute[] { VFXAttribute.Find(attribute.name + "X", GetGraph()), VFXAttribute.Find(attribute.name + "Y", GetGraph()), VFXAttribute.Find(attribute.name + "Z", GetGraph()) };
                 var expressions = attributes.Select(a => new VFXAttributeExpression(a, location)).ToArray();
 
                 var componentStack = new Stack<VFXExpression>();

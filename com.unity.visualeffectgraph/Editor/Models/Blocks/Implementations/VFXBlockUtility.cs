@@ -127,9 +127,9 @@ namespace UnityEditor.VFX.Block
             return res.TrimEnd(new[] { '\n' });
         }
 
-        public static bool ConvertToVariadicAttributeIfNeeded(ref string attribName, out VariadicChannelOptions outChannel)
+        public static bool ConvertToVariadicAttributeIfNeeded(ref string attribName,VFXGraph graph, out VariadicChannelOptions outChannel)
         {
-            var attrib = VFXAttribute.Find(attribName);
+            var attrib = VFXAttribute.Find(attribName, graph);
 
             if (attrib.variadic == VFXVariadic.BelongsToVariadic)
             {
@@ -150,7 +150,7 @@ namespace UnityEditor.VFX.Block
                         throw new InvalidOperationException(string.Format("Cannot convert {0} to variadic version", attrib.name));
                 }
 
-                attribName = VFXAttribute.Find(attrib.name.Substring(0, attrib.name.Length - 1)).name; // Just to ensure the attribute can be found
+                outAttribName = VFXAttribute.Find(attrib.name.Substring(0, attrib.name.Length - 1)).name; // Just to ensure the attribute can be found
                 outChannel = channel;
 
                 return true;

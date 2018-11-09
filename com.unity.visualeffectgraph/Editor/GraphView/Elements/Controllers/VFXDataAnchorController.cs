@@ -137,6 +137,8 @@ namespace UnityEditor.VFX.UI
             base.OnDisable();
         }
 
+        VFXGraph IPropertyRMProvider.graph { get { return model.GetGraph(); } }
+
         public virtual bool HasLink()
         {
             return model.HasLink();

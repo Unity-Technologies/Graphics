@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.Block
                 {
                     string channelsString = channels.ToString();
                     for (int i = 0; i < channelsString.Length; i++)
-                        yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                        yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i],GetGraph()), attributeMode);
                 }
                 else
                 {
@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.Block
             get
             {
                 foreach (string setting in base.filteredOutSettings) yield return setting;
-                var attrib = VFXAttribute.Find(attribute);
+                var attrib = VFXAttribute.Find(attribute,GetGraph());
                 if (attrib.variadic == VFXVariadic.False) yield return "channels";
             }
         }
@@ -309,7 +309,7 @@ uint x = id - y * width;
             public Vector4 valueScale = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
         }
 
-        private VFXAttribute currentAttribute { get { return VFXAttribute.Find(attribute); } }
+        private VFXAttribute currentAttribute { get { return VFXAttribute.Find(attribute,GetGraph()); } }
 
         private static string GetCompatTypeString(VFXValueType valueType)
         {

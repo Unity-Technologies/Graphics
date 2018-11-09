@@ -18,13 +18,17 @@ namespace UnityEditor.VFX
     {
         string[] GetAvailableString();
     }
+    interface IGraphStringProvider
+    {
+        string[] GetAvailableString(VFXGraph graph);
+    }
 
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     public class StringProviderAttribute : PropertyAttribute
     {
         public StringProviderAttribute(Type providerType)
         {
-            if (!typeof(IStringProvider).IsAssignableFrom(providerType))
+            if (!typeof(IStringProvider).IsAssignableFrom(providerType) && !typeof(IGraphStringProvider).IsAssignableFrom(providerType))
                 throw new InvalidCastException("StringProviderAttribute excepts a type which implements interface IStringProvider : " + providerType);
             this.providerType = providerType;
         }
@@ -66,7 +70,7 @@ namespace UnityEditor.VFX.UI
             return 140;
         }
 
-        public static Func<string[]> FindStringProvider(object[] customAttributes)
+        public static Func<string[]> FindStringProvider(object[] customAttributes, VFXGraph graph)
         {
             if (customAttributes != null)
             {
@@ -75,8 +79,16 @@ namespace UnityEditor.VFX.UI
                     if (attribute is StringProviderAttribute)
                     {
                         var instance = Activator.CreateInstance((attribute as StringProviderAttribute).providerType);
-                        var stringProvider = instance as IStringProvider;
-                        return () => stringProvider.GetAvailableString();
+                        if( instance is IStringProvider)
+                        {
+                            var stringProvider = instance as IStringProvider;
+                            return () => stringProvider.GetAvailableString();
+                        }
+                        else
+                        {
+                            var stringProvider = instance as IGraphStringProvider;
+                            return () => stringProvider.GetAvailableString(graph);
+                        }
                     }
                 }
             }
@@ -122,7 +134,7 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<string> CreateField()
         {
-            var stringProvider = FindStringProvider(m_Provider.customAttributes);
+            var stringProvider = FindStringProvider(m_Provider.customAttributes, m_Provider.graph);
             var pushButtonProvider = FindPushButtonBehavior(m_Provider.customAttributes);
             if (stringProvider != null)
             {
@@ -176,7 +188,7 @@ namespace UnityEditor.VFX.UI
         {
             if (!base.IsCompatible(provider)) return false;
 
-            var stringProvider = FindStringProvider(m_Provider.customAttributes);
+            var stringProvider = FindStringProvider(m_Provider.customAttributes,m_Provider.graph);
             var pushButtonInfo = FindPushButtonBehavior(m_Provider.customAttributes);
 
             if (stringProvider != null)

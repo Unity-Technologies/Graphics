@@ -153,7 +153,7 @@ namespace  UnityEditor.VFX.UI
 
             if (m_ExposedProperty == null)
             {
-                m_ExposedProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Exposed", () => controller.exposed, t => controller.exposed = t), 55);
+                m_ExposedProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Exposed", () => controller.exposed, t => controller.exposed = t,controller.model.GetGraph()), 55);
                 Insert(insertIndex++, m_ExposedProperty);
             }
             else
@@ -174,7 +174,7 @@ namespace  UnityEditor.VFX.UI
                     RecreateSubproperties(ref insertIndex);
                     if (m_TooltipProperty == null)
                     {
-                        m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
+                        m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t, controller.model.GetGraph()), 55);
                         TextField field = m_TooltipProperty.Query<TextField>();
                         field.multiline = true;
                     }
@@ -207,7 +207,7 @@ namespace  UnityEditor.VFX.UI
 
                 if (m_RangeProperty == null)
                 {
-                    m_RangeProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Range", () => controller.hasRange, t => controller.hasRange = t), 55);
+                    m_RangeProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Range", () => controller.hasRange, t => controller.hasRange = t, controller.model.GetGraph()), 55);
                 }
                 Insert(insertIndex++, m_RangeProperty);
 

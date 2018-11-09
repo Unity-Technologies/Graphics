@@ -112,7 +112,7 @@ namespace UnityEditor.VFX
             this.variadic = variadic;
         }
 
-        public static VFXAttribute Find(string attributeName)
+        public static VFXAttribute Find(string attributeName,VFXGraph graph)
         {
             int index = Array.FindIndex(AllAttribute, e => e.name == attributeName);
             if (index != -1)
@@ -121,6 +121,9 @@ namespace UnityEditor.VFX
             index = Array.FindIndex(AllVariadicAttribute, e => e.name == attributeName);
             if (index != -1)
                 return AllVariadicAttribute[index];
+
+            if( graph != null && graph.HasCustomAttribute(attributeName))
+                return new VFXAttribute(attributeName, graph.GetCustomAttributeType(attributeName),VFXVariadic.False);
 
             throw new ArgumentException(string.Format("Unable to find attribute expression : {0}", attributeName));
         }

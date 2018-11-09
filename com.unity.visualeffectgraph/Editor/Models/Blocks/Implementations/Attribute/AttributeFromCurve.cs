@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.Block
                     {
                         string channelsString = channels.ToString();
                         for (int i = 0; i < channelsString.Length; i++)
-                            yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                            yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i],GetGraph()), attributeMode);
                     }
                     else
                     {
@@ -397,7 +397,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return VFXAttribute.Find(attribute);
+                return VFXAttribute.Find(attribute,GetGraph());
             }
         }
     }
