@@ -363,6 +363,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_Transmission == value.isOn)
                     return;
                 m_Transmission = value.isOn;
+                UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -378,6 +379,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_SubsurfaceScattering == value.isOn)
                     return;
                 m_SubsurfaceScattering = value.isOn;
+                UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -489,14 +491,14 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Subsurface mask
-            if (MaterialTypeUsesSlotMask(SlotMask.SubsurfaceMask))
+            if (MaterialTypeUsesSlotMask(SlotMask.SubsurfaceMask) && subsurfaceScattering.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(SubsurfaceMaskSlotId, SubsurfaceMaskSlotName, SubsurfaceMaskSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(SubsurfaceMaskSlotId);
             }
 
             // Thickness
-            if ((MaterialTypeUsesSlotMask(SlotMask.Thickness) && (subsurfaceScattering.isOn || transmission.isOn)))
+            if (MaterialTypeUsesSlotMask(SlotMask.Thickness) &&  transmission.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(ThicknessSlotId, ThicknessSlotName, ThicknessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(ThicknessSlotId);
