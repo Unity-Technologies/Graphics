@@ -8,17 +8,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Add y offset for PlanarReflectionProbe and offset tool
-- Expose option to run SSR and SSAO on async compute. 
+- Expose option to run SSR and SSAO on async compute
 
 ### Fixed
 - Fixed cubemap assignation on custom ReflectionProbe
 - Fixed reflection probe's capture settings's shadow distance
 - Fixed an issue with the SRP batcher and shader variables declaration
 - Fixed thickness and subsurface slots for fabric shader master node that wan't appearing with the right combination of flags
+- Fixed d3d debug layer warning
+- Fixed PCSS sampling quality
+- Fixed the Subsurface and transmission material feature enabling for fabric shader
 
 ### Changed
 - Updated default FrameSettings used for realtime reflection probe (at HDRenderPipelineAsset creation)
-- Improved PCSS sampling quality. 
+- Remove multi-camera support (this will not be supported by LW or HDRP)
 
 ## [4.1.0-preview] - 2018-10-18
 
