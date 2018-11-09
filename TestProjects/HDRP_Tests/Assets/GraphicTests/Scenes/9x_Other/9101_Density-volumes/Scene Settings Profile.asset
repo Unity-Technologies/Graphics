@@ -9,6 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
   m_Name: Scene Settings Profile
   m_EditorClassIdentifier: 
@@ -27,6 +28,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7ddcec8a8eb2d684d833ac8f5d26aebd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -80,6 +82,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -99,6 +102,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 3df29e7cc05fbec4aa43e06ea875565d, type: 3}
   m_Name: ProceduralSky
   m_EditorClassIdentifier: 
@@ -174,13 +178,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 4910d90e50201484ba448b791a192696, type: 3}
   m_Name: VolumetricLightingController
   m_EditorClassIdentifier: 
   active: 1
   depthRange:
     m_OverrideState: 1
-    m_Value: {x: 0, y: 170}
+    m_Value: {x: 147, y: 153}
     min: 0.01
     max: 10000
   depthDistributionUniformity:
@@ -197,6 +202,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 29b00527f85bb3346a4d2cb710971587, type: 3}
   m_Name: VolumetricFog
   m_EditorClassIdentifier: 
@@ -241,11 +247,10 @@ MonoBehaviour:
   baseHeight:
     m_OverrideState: 1
     m_Value: -100
-  heightExponent:
+  meanHeight:
     m_OverrideState: 0
-    m_Value: 0.5
-    min: 0.001
-    max: 1
+    m_Value: 10
+    min: 1
   anisotropy:
     m_OverrideState: 1
     m_Value: 0
@@ -256,3 +261,6 @@ MonoBehaviour:
     m_Value: 1
     min: 0
     max: 1
+  enableDistantFog:
+    m_OverrideState: 0
+    m_Value: 0
