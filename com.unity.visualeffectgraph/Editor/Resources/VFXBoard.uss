@@ -54,12 +54,15 @@
     flex:1 0 auto;
     flex-direction: column;
     align-items: stretch;
+    margin-left:4;
 }
 #header > #labelContainer > #titleLabel {
     font-size : 14;
     text-color: #c1c1c1;
+    margin-top:4;
 }
 #header > #labelContainer > #subTitleLabel {
+    margin-top:3;
     font-size: 11;
     text-color: #606060;
     word-wrap:true;

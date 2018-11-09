@@ -595,7 +595,7 @@ namespace UnityEditor.VFX
                         return true;
                     foreach (var block in (child as VFXContext).children)
                     {
-                        if (ForEachSettingUsingAttributeInModel(child, s => action(block, s)))
+                        if (ForEachSettingUsingAttributeInModel(block, s => action(block, s)))
                             return true;
                     }
                 }
