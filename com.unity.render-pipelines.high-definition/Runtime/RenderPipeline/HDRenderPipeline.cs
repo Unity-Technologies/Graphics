@@ -8,6 +8,81 @@ using UnityEngine.Experimental.GlobalIllumination;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    // TODO: Move back to core once debug menu is there.
+    class CullingDebugParameters
+    {
+        public bool useNewCulling = false;
+        public bool freezeVisibility = false;
+        public bool enableJobs = false;
+        public bool gatherStats = false;
+        public CullingTestMask disabledTests = 0;
+        public CullerStatistics statistics;
+
+        public void RegisterDebug()
+        {
+            List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
+            widgets.AddRange(
+                new DebugUI.Widget[]
+                {
+                new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => useNewCulling, setter = value => useNewCulling = value },
+                new DebugUI.BoolField { displayName = "Enable Culling Jobs", getter = () => enableJobs, setter = value => enableJobs = value },
+                new DebugUI.BitField  { displayName = "Disabled Tests", getter = () => disabledTests, setter = value => disabledTests = (CullingTestMask)value, enumType = typeof(CullingTestMask) },
+                new DebugUI.BoolField { displayName = "Gather Statistics", getter = () => gatherStats, setter = value => gatherStats = value },
+                new DebugUI.BoolField { displayName = "Freeze Visibility", getter = () => freezeVisibility, setter = value => freezeVisibility = value },
+                });
+
+
+            widgets.AddRange(
+                new DebugUI.Widget[]
+                {
+                new DebugUI.Foldout
+                {
+                    displayName = "Renderers",
+                    children =
+                    {
+                        new DebugUI.Value { displayName = "Tested Objects", getter = () => statistics.renderers.culling.testedObjects },
+                        new DebugUI.Value { displayName = "Visible Objects", getter = () => statistics.renderers.culling.visibleObjects},
+                        new DebugUI.Value { displayName = "Main thread Objects", getter = () => statistics.renderers.mainThreadObjectCount},
+                    }
+                 },
+                });
+            widgets.AddRange(
+                new DebugUI.Widget[]
+                {
+                new DebugUI.Foldout
+                {
+                    displayName = "Lights",
+                    children =
+                    {
+                        new DebugUI.Value { displayName = "Tested Objects", getter = () => statistics.lights.culling.testedObjects },
+                        new DebugUI.Value { displayName = "Visible Objects", getter = () => statistics.lights.culling.visibleObjects},
+                    }
+                 },
+                });
+            widgets.AddRange(
+                new DebugUI.Widget[]
+                {
+                new DebugUI.Foldout
+                {
+                    displayName = "Reflection Probes",
+                    children =
+                    {
+                        new DebugUI.Value { displayName = "Tested Objects", getter = () => statistics.reflectionProbes.culling.testedObjects },
+                        new DebugUI.Value { displayName = "Visible Objects", getter = () => statistics.reflectionProbes.culling.visibleObjects},
+                    }
+                 },
+                });
+
+            var panel = DebugManager.instance.GetPanel("Culling", true);
+            panel.flags |= DebugUI.Flags.EditorForceUpdate;
+            panel.children.Add(widgets.ToArray());
+        }
+        public void UnregisterDebug()
+        {
+            DebugManager.instance.RemovePanel("Culling");
+        }
+    }
+
     public class HDRenderPipeline : UnityEngine.Rendering.RenderPipeline
     {
         const string k_OldQualityShadowKey = "HDRP:oldQualityShadows";
@@ -157,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbeCullResults m_ReflectionProbeCullResults;
 
         // TEST NEW CULLING
-        bool m_UseNewCulling = false;
+        CullingDebugParameters          m_CullingDebug = new CullingDebugParameters();
         Culler                          m_Culler = new Culler();
         RenderersCullingResult          m_RenderersCullingResult = new RenderersCullingResult();
         LightCullingResult              m_LightCullingResult = new LightCullingResult();
@@ -360,6 +435,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_VolumetricLightingSystem.Build(asset);
 
             m_DebugDisplaySettings.RegisterDebug();
+
+            m_CullingDebug.RegisterDebug();
 #if UNITY_EDITOR
             // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
             FrameSettings.RegisterDebug("Scene View", m_Asset.GetFrameSettings());
@@ -377,8 +454,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // TEMP
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
-            widgets.AddRange(new DebugUI.Widget[] { new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => m_UseNewCulling, setter = value => m_UseNewCulling = value },
-                                                    new DebugUI.BoolField { displayName = "Enable SRP batcher", getter = () => GraphicsSettings.useScriptableRenderPipelineBatching, setter = value => GraphicsSettings.useScriptableRenderPipelineBatching = value }} );
+            widgets.AddRange(new DebugUI.Widget[] { new DebugUI.BoolField { displayName = "Enable SRP batcher", getter = () => GraphicsSettings.useScriptableRenderPipelineBatching, setter = value => GraphicsSettings.useScriptableRenderPipelineBatching = value }} );
             var panel = DebugManager.instance.GetPanel("Culling", true);
             panel.children.Add(widgets.ToArray());
 
@@ -821,6 +897,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RayTracingManager.ReleaseAccelerationStructures();
 #endif
             m_DebugDisplaySettings.UnregisterDebug();
+            m_CullingDebug.UnregisterDebug();
 
             m_LightLoop.Cleanup();
 
@@ -1212,9 +1289,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     hdCamera.UpdateStereoDependentState(ref cullingParams);
 
                     CullingParameters cullingParametersNew = new CullingParameters();
-                    if (m_UseNewCulling)
+                    if (m_CullingDebug.useNewCulling)
                     {
-                        ScriptableCulling.FillCullingParameters(hdCamera.camera, ref cullingParametersNew);
+                        if (!m_CullingDebug.freezeVisibility)
+                            ScriptableCulling.FillCullingParameters(hdCamera.camera, ref cullingParametersNew);
+
+                        cullingParametersNew.gatherStatistics = m_CullingDebug.gatherStats;
+                        cullingParametersNew.enableJobs = m_CullingDebug.enableJobs;
                         //m_LightLoop.UpdateCullingParameters(ref cullingParametersNew.parameters);
                         //hdCamera.UpdateStereoDependentState(ref cullingParametersNew.parameters);
                     }
@@ -1245,11 +1326,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         cullingResults = renderContext.Cull(ref cullingParams);
 
-                        if (m_UseNewCulling)
+                        if (m_CullingDebug.useNewCulling)
                         {
+                            cullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.LODMask | CullingTestMask.FlagMaskNot;// | CullingTest.SceneMask;
+                            cullingParametersNew.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
+                            cullingParametersNew.cullingTestParameters.cullingFlagsMaskNot = CullingFlags.CastShadowsOnly;
                             m_Culler.CullRenderers(cullingParametersNew, m_RenderersCullingResult);
+
+                            cullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.ComputeScreenRect;
+                            cullingParametersNew.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
                             m_Culler.CullLights(cullingParametersNew, m_LightCullingResult);
+
+                            cullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask;
+                            cullingParametersNew.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
                             m_Culler.CullReflectionProbes(cullingParametersNew, m_ReflectionProbeCullingResult);
+
+                            m_CullingDebug.statistics = m_Culler.GetStatistics();
 
                             PrepareRendererLists(hdCamera, m_RenderersCullingResult);
                         }
@@ -1291,7 +1383,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool enableBakeShadowMask;
                     using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
                     {
-                        if (m_UseNewCulling)
+                        if (m_CullingDebug.useNewCulling)
                             enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, cullingResults, m_LightCullingResult, m_ReflectionProbeCullingResult, m_ReflectionProbeCullResults, densityVolumes, m_DebugDisplaySettings);
                         else
                             enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, cullingResults, null, null, m_ReflectionProbeCullResults, densityVolumes, m_DebugDisplaySettings);
@@ -1713,50 +1805,50 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!hdCamera.frameSettings.enableOpaqueObjects)
                 return;
 
-            if (m_UseNewCulling && (rendererList != null))
+            if (m_CullingDebug.useNewCulling && (rendererList != null))
             {
                 DisplayRendererList(cmd, rendererList, rendererConfiguration, stateBlock);
             }
             else
             {
-                // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
-                renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
 
                 var sortingSettings = new SortingSettings(hdCamera.camera)
-                {
+            {
                     criteria = SortingCriteria.CommonOpaque
-                };
+            };
 
                 var drawSettings = new DrawingSettings(HDShaderPassNames.s_EmptyName, sortingSettings)
                 {
                     perObjectData = rendererConfiguration
                 };
 
-                for (int i = 0; i < passNames.Length; ++i)
-                {
-                    drawSettings.SetShaderPassName(i, passNames[i]);
-                }
+            for (int i = 0; i < passNames.Length; ++i)
+            {
+                drawSettings.SetShaderPassName(i, passNames[i]);
+            }
 
-                if (overrideMaterial != null)
+            if (overrideMaterial != null)
                 {
                     drawSettings.overrideMaterial = overrideMaterial;
                     drawSettings.overrideMaterialPassIndex = 0;
                 }
 
                 var filterSettings = new FilteringSettings(inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllOpaque : inRenderQueueRange.Value)
-                {
-                    excludeMotionVectorObjects = excludeMotionVector
-                };
+            {
+                excludeMotionVectorObjects = excludeMotionVector
+            };
 
-                if (stateBlock == null)
+            if (stateBlock == null)
                     renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
-                else
+            else
                 {
                     var renderStateBlock = stateBlock.Value;
                     renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings, ref renderStateBlock);
-                }
-            }
+        }
+        }
         }
 
         void RenderTransparentRenderList(CullingResults cull,
@@ -1793,50 +1885,50 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!hdCamera.frameSettings.enableTransparentObjects)
                 return;
 
-            if (m_UseNewCulling && (rendererList != null))
+            if (m_CullingDebug.useNewCulling && (rendererList != null))
             {
                 DisplayRendererList(cmd, rendererList, rendererConfiguration, stateBlock);
             }
             else
             {
-                // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
-                renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
 
                 var sortingSettings = new SortingSettings(hdCamera.camera)
-                {
+            {
                     criteria = SortingCriteria.CommonTransparent | SortingCriteria.RendererPriority
-                };
+            };
 
                 var drawSettings = new DrawingSettings(HDShaderPassNames.s_EmptyName, sortingSettings)
                 {
                     perObjectData = rendererConfiguration
                 };
 
-                for (int i = 0; i < passNames.Length; ++i)
-                {
-                    drawSettings.SetShaderPassName(i, passNames[i]);
-                }
+            for (int i = 0; i < passNames.Length; ++i)
+            {
+                drawSettings.SetShaderPassName(i, passNames[i]);
+            }
 
-                if (overrideMaterial != null)
+            if (overrideMaterial != null)
                 {
                     drawSettings.overrideMaterial = overrideMaterial;
                     drawSettings.overrideMaterialPassIndex = 0;
                 }
 
                 var filterSettings = new FilteringSettings(inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllTransparent : inRenderQueueRange.Value)
-                {
-                    excludeMotionVectorObjects = excludeMotionVectorObjects
-                };
+            {
+                excludeMotionVectorObjects = excludeMotionVectorObjects
+            };
 
-                if (stateBlock == null)
+            if (stateBlock == null)
                     renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
-                else
+            else
                 {
                     var renderStateBlock = stateBlock.Value;
                     renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings, ref renderStateBlock);
-                }
-            }
+        }
+        }
         }
 
         void AccumulateDistortion(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
