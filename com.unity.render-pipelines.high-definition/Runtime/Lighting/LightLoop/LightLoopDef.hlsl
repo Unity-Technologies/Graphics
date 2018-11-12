@@ -262,11 +262,22 @@ LightData FetchLight(uint start, uint i)
     return _LightDatas[j];
 }
 
+LightData FetchLight(uint index)
+{
+    return _LightDatas[index];
+}
+
+
 EnvLightData FetchEnvLight(uint start, uint i)
 {
     int j = FetchIndex(start, i);
 
     return _EnvLightDatas[j];
+}
+
+EnvLightData FetchEnvLight(uint index)
+{
+    return _EnvLightDatas[index];
 }
 
 // We always fetch the screen space shadow texture to reduce the number of shader variant, overhead is negligible,
