@@ -130,6 +130,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
         }
 
+        public static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
+        {
+            float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
+            return tanHalfVertFoV * (2.0f / resolutionY) * planeDepth;
+        }
+
         private static void SetViewportAndClear(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag, Color clearColor)
         {
             // Clearing a partial viewport currently does not go through the hardware clear.
@@ -539,7 +545,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int b = Convert.ToInt32(parts[1]);
                     // In case in the future there's a need to disable specific patch releases
                     // int c = Convert.ToInt32(parts[2]);
-    
+
                     if (a < 10 || b < 13)
                         return false;
                 }

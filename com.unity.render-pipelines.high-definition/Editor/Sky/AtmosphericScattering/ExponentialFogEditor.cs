@@ -32,6 +32,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_FogDistance);
             PropertyField(m_FogBaseHeight);
             PropertyField(m_FogHeightAttenuation);
+            PropertyField(m_MaxFogDistance);
             base.OnInspectorGUI(); // Color
         }
     }
