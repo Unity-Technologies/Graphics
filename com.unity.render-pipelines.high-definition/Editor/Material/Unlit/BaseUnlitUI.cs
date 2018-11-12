@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string TransparencyInputsText = "Transparency Inputs";
             public static string optionText = "Surface Options";
             public static string surfaceTypeText = "Surface Type";
-            public static string blendModeText = "Blend Mode";
+            public static string blendModeText = "Blending Mode";
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
