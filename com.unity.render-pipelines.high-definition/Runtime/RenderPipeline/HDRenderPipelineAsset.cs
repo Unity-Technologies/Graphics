@@ -66,7 +66,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         FrameSettings m_BakedOrCustomReflectionFrameSettings = new FrameSettings();
 
         [SerializeField]
-        FrameSettings m_RealtimeReflectionFrameSettings = new FrameSettings();
+        FrameSettings m_RealtimeReflectionFrameSettings = new FrameSettings()
+        {
+            //deactivating some feature by for default realtime probe framesettings
+            enableRoughRefraction = false,
+            enableDistortion = false,
+            enablePostprocess = false,
+            enableContactShadows = false,
+            enableShadowMask = false,
+            enableSSAO = false,
+            enableAtmosphericScattering = false
+        };
         
         bool m_frameSettingsIsDirty = true;
         public bool frameSettingsIsDirty

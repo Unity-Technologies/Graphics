@@ -9,6 +9,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class AtmosphericScatteringEditor : VolumeComponentEditor
     {
+        protected SerializedDataParameter m_MaxFogDistance;
         SerializedDataParameter m_ColorMode;
         SerializedDataParameter m_Color;
         SerializedDataParameter m_MipFogNear;
@@ -18,6 +19,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnEnable()
         {
             var o = new PropertyFetcher<AtmosphericScattering>(serializedObject);
+
+            m_MaxFogDistance = Unpack(o.Find(x => x.maxFogDistance));
 
             // Fog Color
             m_ColorMode = Unpack(o.Find(x => x.colorMode));

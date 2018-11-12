@@ -24,6 +24,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public static class ShadowUtils
     {
+        private static readonly RenderTextureFormat m_ShadowmapFormat;
+        private static readonly bool m_ForceShadowPointSampling;
+
+        static ShadowUtils()
+        {
+            m_ShadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+                ? RenderTextureFormat.Shadowmap
+                : RenderTextureFormat.Depth;
+            m_ForceShadowPointSampling = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal &&
+                GraphicsSettings.HasShaderDefine(Graphics.activeTier, BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
+        }
+
         public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
         {
             ShadowSplitData splitData;
@@ -152,6 +164,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
             cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+        }
+
+        public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
+        {
+            var shadowTexture = RenderTexture.GetTemporary(width, height, bits, m_ShadowmapFormat);
+            shadowTexture.filterMode = m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear;
+            shadowTexture.wrapMode = TextureWrapMode.Clamp;
+
+            return shadowTexture;
         }
 
         [Obsolete("SetupShadowCasterConstants is deprecated, use SetupShadowCasterConstantBuffer instead")]

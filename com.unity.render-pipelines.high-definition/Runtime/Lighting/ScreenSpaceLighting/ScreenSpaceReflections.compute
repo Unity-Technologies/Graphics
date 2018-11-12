@@ -20,6 +20,8 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+
 
 #ifdef DEBUG_DISPLAY
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
@@ -276,13 +278,6 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 
 #else // SSR_REPROJECT
 
-float EdgeFade(float2 coordNDC, float fadeRcpLength)
-{
-    float2 coordCS = coordNDC * 2 - 1;
-    float2 t = Remap10(abs(coordCS), fadeRcpLength, fadeRcpLength);
-    return Smoothstep01(t.x) * Smoothstep01(t.y);
-}
-
 float RoughnessFade(float roughness, float fadeRcpLength, float fadeEndTimesRcpLength)
 {
     float t = Remap10(roughness, fadeRcpLength, fadeEndTimesRcpLength);
@@ -325,7 +320,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
 
     // Note that the color pyramid uses it's own viewport scale, since it lives on the camera.
     float3 color    = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
-    float  opacity  = EdgeFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
+    float  opacity  = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
                     * RoughnessFade(roughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
     // Use premultiplied alpha.

@@ -48,7 +48,7 @@ RefractionModelResult RefractionModelSphere(real3 V, float3 positionWS, real3 no
     return result;
 }
 
-RefractionModelResult RefractionModelPlane(real3 V, float3 positionWS, real3 normalWS, real ior, real thickness)
+RefractionModelResult RefractionModelBox(real3 V, float3 positionWS, real3 normalWS, real ior, real thickness)
 {
     // Plane shape model:
     //  We approximate locally the shape of the object as a plane with normal {normalWS} at {positionWS}

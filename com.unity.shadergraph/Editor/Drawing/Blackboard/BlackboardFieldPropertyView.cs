@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardFieldPropertyView : VisualElement
     {
+        readonly BlackboardField m_BlackboardField;
         readonly AbstractMaterialGraph m_Graph;
 
         IShaderProperty m_Property;
@@ -25,9 +27,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         IManipulator m_ResetReferenceMenu;
 
-        public BlackboardFieldPropertyView(AbstractMaterialGraph graph, IShaderProperty property)
+        public BlackboardFieldPropertyView(BlackboardField blackboardField, AbstractMaterialGraph graph, IShaderProperty property)
         {
             AddStyleSheetPath("Styles/ShaderGraphBlackboard");
+            m_BlackboardField = blackboardField;
             m_Graph = graph;
             m_Property = property;
 
@@ -35,6 +38,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ExposedToogle.OnToggleChanged(evt =>
             {
                 property.generatePropertyBlock = evt.newValue;
+                if (property.generatePropertyBlock)
+                {
+                    m_BlackboardField.icon = BlackboardProvider.exposedIcon;
+                }
+                else
+                {
+                    m_BlackboardField.icon = null;
+                }
                 DirtyNodes(ModificationScope.Graph);
             });
             m_ExposedToogle.value = property.generatePropertyBlock;

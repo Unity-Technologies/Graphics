@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     class BlackboardProvider
     {
         readonly AbstractMaterialGraph m_Graph;
-        readonly Texture2D m_ExposedIcon;
+        public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
         readonly Dictionary<Guid, BlackboardRow> m_PropertyRows;
         readonly BlackboardSection m_Section;
         //WindowDraggable m_WindowDraggable;
@@ -47,7 +47,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardProvider(AbstractMaterialGraph graph)
         {
             m_Graph = graph;
-            m_ExposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
             m_PropertyRows = new Dictionary<Guid, BlackboardRow>();
 
             blackboard = new Blackboard()
@@ -238,8 +237,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (create)
                 property.displayName = m_Graph.SanitizePropertyName(property.displayName);
 
-            var field = new BlackboardField(m_ExposedIcon, property.displayName, property.propertyType.ToString()) { userData = property };
-            var row = new BlackboardRow(field, new BlackboardFieldPropertyView(m_Graph, property));
+            var icon = property.generatePropertyBlock ? exposedIcon : null;
+
+            var field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
+            var row = new BlackboardRow(field, new BlackboardFieldPropertyView(field, m_Graph, property));
+
             row.userData = property;
             if (index < 0)
                 index = m_PropertyRows.Count;

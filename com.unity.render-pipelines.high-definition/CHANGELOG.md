@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support of emissive color override in debug mode
 - Exposed max light for lightloop settings in hdrp asset UI
 - Disable NormalDBuffer pass update if no there is no decal
+- Added distant (fallback) volumetric fog + improved fog evaluation precision
+- Add an option to reflect sky in SSR
+- Add y offset for PlanarReflectionProbe and offset tool
+- Expose option to run SSR and SSAO on async compute
 
 ### Fixed
 - Fixed sphere shaped influence handles clamping in reflection probes
@@ -30,11 +34,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed blend mode pop up in UI not appearing when pre refraction is on
 - Fixed some null pointer exceptions when disabling motion vectors support
 - Fixed layered lit UI issue with scrollbar
+- Fixed cubemap assignation on custom ReflectoinProbe
+- Fixed reflection probe's capture settings's shadow distance
+- Fixed an issue with the SRP batcher and shader variables declaration
+- Fixed thickness and subsurface slots for fabric shader master node that wan't appearing with the right combination of flags
+- Fixed d3d debug layer warning
+- Fixed PCSS sampling quality
+- Fixed the Subsurface and transmission material feature enabling for fabric shader
 
 ### Changed
 - Renamed "Line" shaped lights to "Tube" light
 - Use the "mean height" fog parametrization
 - Shadow quality settings are setup to "All" when using HDRP (Not visile in UI when using SRP). Avoid to have disabled shadow.
+- Internally use premultiplied alpha for all fog
+- Updated default FrameSettings used for realtime reflection probe (at HDRenderPipelineAsset creation)
+- Remove multi-camera support (this will not be supported by LW or HDRP)
 
 ## [5.0.0-preview] - 2018-09-28
 

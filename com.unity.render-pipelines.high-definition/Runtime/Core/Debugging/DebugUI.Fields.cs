@@ -160,6 +160,34 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public class BitField : Field<Enum>
+        {
+            public GUIContent[] enumNames { get; private set; }
+            public int[] enumValues { get; private set; }
+
+            internal Type m_EnumType;
+
+            public Type enumType
+            {
+                set
+                {
+                    enumNames = Enum.GetNames(value).Select(x => new GUIContent(x)).ToArray();
+
+                    // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
+                    //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
+
+                    var values = Enum.GetValues(value);
+                    enumValues = new int[values.Length];
+                    for (int i = 0; i < values.Length; i++)
+                        enumValues[i] = (int)values.GetValue(i);
+
+                    m_EnumType = value;
+                }
+
+                get => m_EnumType;
+            }
+        }
+
         public class ColorField : Field<Color>
         {
             public bool hdr = false;

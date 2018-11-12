@@ -20,11 +20,18 @@ Material:
   - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - Texture2D_D39A4978:
+        m_Texture: {fileID: 2800000, guid: f4cdd55f297172544a3762c656528dd0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
     - Vector1_94EF1A0C: 0.95
     - Vector1_A20A5B58: 0.95
     - Vector1_C439D8D5: 0.95
+    - _CoatMask: 0.95
+    - _Metallic: 0.75
+    - _Smoothness: 1
     - _SpecularAAScreenSpaceVariance: 0.8
     - _SpecularAAThreshold: 0.8
     m_Colors:
