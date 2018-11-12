@@ -154,7 +154,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
 
         // Culling
-        CullResults m_CullResults;
         ReflectionProbeCullResults m_ReflectionProbeCullResults;
 
         // TEST NEW CULLING
@@ -477,81 +476,81 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Depth passes
-            m_RendererListSettings[(int)HDRendererList.DepthFull] = new RendererListSettings(   renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.min,
-                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.max,
-                                                                                                sortFlags: SortFlags.CommonOpaque,
+            m_RendererListSettings[(int)HDRendererList.DepthFull] = new RendererListSettings(   renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.lowerBound,
+                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.upperBound,
+                                                                                                sortingCriteria: SortingCriteria.CommonOpaque,
                                                                                                 shaderPassNames: m_DepthOnlyAndDepthForwardOnlyPassNames);
-            m_RendererListSettings[(int)HDRendererList.DepthForwardOnly] = new RendererListSettings(    renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.min,
-                                                                                                        renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.max,
-                                                                                                        sortFlags: SortFlags.CommonOpaque,
+            m_RendererListSettings[(int)HDRendererList.DepthForwardOnly] = new RendererListSettings(    renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.lowerBound,
+                                                                                                        renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.upperBound,
+                                                                                                        sortingCriteria: SortingCriteria.CommonOpaque,
                                                                                                         shaderPassNames: m_DepthForwardOnlyPassNames);
-            m_RendererListSettings[(int)HDRendererList.DepthOnly] = new RendererListSettings(   renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.min,
-                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.max,
-                                                                                                sortFlags: SortFlags.CommonOpaque,
+            m_RendererListSettings[(int)HDRendererList.DepthOnly] = new RendererListSettings(   renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.lowerBound,
+                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.upperBound,
+                                                                                                sortingCriteria: SortingCriteria.CommonOpaque,
                                                                                                 shaderPassNames: m_DepthOnlyPassNames);
             m_RendererListSettings[(int)HDRendererList.DepthAlphaTest] = new RendererListSettings(  renderQueueMin: (int)RenderQueue.AlphaTest,
                                                                                                     renderQueueMax: (int)RenderQueue.GeometryLast - 1,
-                                                                                                    sortFlags: SortFlags.CommonOpaque,
+                                                                                                    sortingCriteria: SortingCriteria.CommonOpaque,
                                                                                                     shaderPassNames: m_DepthOnlyPassNames);
-            m_RendererListSettings[(int)HDRendererList.TransparentDepthPrepass] = new RendererListSettings( renderQueueMin: HDRenderQueue.k_RenderQueue_AllTransparent.min,
-                                                                                                            renderQueueMax: HDRenderQueue.k_RenderQueue_AllTransparent.max,
-                                                                                                            sortFlags: SortFlags.CommonTransparent,
+            m_RendererListSettings[(int)HDRendererList.TransparentDepthPrepass] = new RendererListSettings( renderQueueMin: HDRenderQueue.k_RenderQueue_AllTransparent.lowerBound,
+                                                                                                            renderQueueMax: HDRenderQueue.k_RenderQueue_AllTransparent.upperBound,
+                                                                                                            sortingCriteria: SortingCriteria.CommonTransparent,
                                                                                                             shaderPassNames: m_TransparentDepthPrepassNames);
 
             // Velocity
-            m_RendererListSettings[(int)HDRendererList.ObjectVelocity] = new RendererListSettings(  renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.min,
-                                                                                                    renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.max,
-                                                                                                    sortFlags: SortFlags.CommonOpaque,
+            m_RendererListSettings[(int)HDRendererList.ObjectVelocity] = new RendererListSettings(  renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.lowerBound,
+                                                                                                    renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.upperBound,
+                                                                                                    sortingCriteria: SortingCriteria.CommonOpaque,
                                                                                                     shaderPassNames: m_ObjectVelocityPassNames,
                                                                                                     preparePerObjectMotion: true);
 
             // GBuffer
-            m_RendererListSettings[(int)HDRendererList.GBuffer] = new RendererListSettings( renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.min,
-                                                                                            renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.max,
-                                                                                            sortFlags: SortFlags.CommonOpaque,
+            m_RendererListSettings[(int)HDRendererList.GBuffer] = new RendererListSettings( renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.lowerBound,
+                                                                                            renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.upperBound,
+                                                                                            sortingCriteria: SortingCriteria.CommonOpaque,
                                                                                             shaderPassNames: m_GBufferPassNames);
 
             // Forward
-            m_RendererListSettings[(int)HDRendererList.ForwardOnlyOpaque] = new RendererListSettings(   renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.min,
-                                                                                                        renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.max,
-                                                                                                        sortFlags: SortFlags.CommonOpaque,
+            m_RendererListSettings[(int)HDRendererList.ForwardOnlyOpaque] = new RendererListSettings(   renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.lowerBound,
+                                                                                                        renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.upperBound,
+                                                                                                        sortingCriteria: SortingCriteria.CommonOpaque,
                                                                                                         shaderPassNames: m_ForwardOnlyPassNames);
-            m_RendererListSettings[(int)HDRendererList.ForwardOpaque] = new RendererListSettings(   renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.min,
-                                                                                                    renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.max,
-                                                                                                    sortFlags: SortFlags.CommonOpaque,
+            m_RendererListSettings[(int)HDRendererList.ForwardOpaque] = new RendererListSettings(   renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.lowerBound,
+                                                                                                    renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.upperBound,
+                                                                                                    sortingCriteria: SortingCriteria.CommonOpaque,
                                                                                                     shaderPassNames: m_ForwardAndForwardOnlyPassNames);
-            m_RendererListSettings[(int)HDRendererList.ForwardTransparent] = new RendererListSettings(  renderQueueMin: HDRenderQueue.k_RenderQueue_Transparent.min,
-                                                                                                        renderQueueMax: HDRenderQueue.k_RenderQueue_Transparent.max,
-                                                                                                        sortFlags: SortFlags.CommonTransparent,
+            m_RendererListSettings[(int)HDRendererList.ForwardTransparent] = new RendererListSettings(  renderQueueMin: HDRenderQueue.k_RenderQueue_Transparent.lowerBound,
+                                                                                                        renderQueueMax: HDRenderQueue.k_RenderQueue_Transparent.upperBound,
+                                                                                                        sortingCriteria: SortingCriteria.CommonTransparent,
                                                                                                         shaderPassNames: m_AllTransparentPassNames);
-            m_RendererListSettings[(int)HDRendererList.ForwardPreRefraction] = new RendererListSettings(    renderQueueMin: HDRenderQueue.k_RenderQueue_PreRefraction.min,
-                                                                                                            renderQueueMax: HDRenderQueue.k_RenderQueue_PreRefraction.max,
-                                                                                                            sortFlags: SortFlags.CommonTransparent,
+            m_RendererListSettings[(int)HDRendererList.ForwardPreRefraction] = new RendererListSettings(    renderQueueMin: HDRenderQueue.k_RenderQueue_PreRefraction.lowerBound,
+                                                                                                            renderQueueMax: HDRenderQueue.k_RenderQueue_PreRefraction.upperBound,
+                                                                                                            sortingCriteria: SortingCriteria.CommonTransparent,
                                                                                                             shaderPassNames: m_AllTransparentPassNames);
             m_RendererListSettings[(int)HDRendererList.ForwardError] = new RendererListSettings(    renderQueueMin: 0,
-                                                                                                    renderQueueMax: RenderQueueRange.maximumUpperBound,
+                                                                                                    renderQueueMax: RenderQueueRange.maximumBound,
                                                                                                     shaderPassNames: m_ForwardErrorPassNames,
                                                                                                     overrideMaterial: m_ErrorMaterial,
                                                                                                     overrideeMaterialPassIdx: 0);
-            m_RendererListSettings[(int)HDRendererList.ForwardTransparentPostPass] = new RendererListSettings(  renderQueueMin: HDRenderQueue.k_RenderQueue_AllTransparent.min,
-                                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllTransparent.max,
-                                                                                                                sortFlags: SortFlags.CommonTransparent,
+            m_RendererListSettings[(int)HDRendererList.ForwardTransparentPostPass] = new RendererListSettings(  renderQueueMin: HDRenderQueue.k_RenderQueue_AllTransparent.lowerBound,
+                                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllTransparent.upperBound,
+                                                                                                                sortingCriteria: SortingCriteria.CommonTransparent,
                                                                                                                 shaderPassNames: m_TransparentDepthPostpassNames);
 
             // Distortion
-            m_RendererListSettings[(int)HDRendererList.Distortion] = new RendererListSettings(  renderQueueMin: HDRenderQueue.k_RenderQueue_AllTransparent.min,
-                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllTransparent.max,
-                                                                                                sortFlags: SortFlags.CommonTransparent,
+            m_RendererListSettings[(int)HDRendererList.Distortion] = new RendererListSettings(  renderQueueMin: HDRenderQueue.k_RenderQueue_AllTransparent.lowerBound,
+                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllTransparent.upperBound,
+                                                                                                sortingCriteria: SortingCriteria.CommonTransparent,
                                                                                                 shaderPassNames: m_DistortionPassNames);
 
             // Debug
-            m_RendererListSettings[(int)HDRendererList.OpaqueDebug] = new RendererListSettings( renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.min,
-                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.max,
-                                                                                                sortFlags: SortFlags.CommonOpaque,
+            m_RendererListSettings[(int)HDRendererList.OpaqueDebug] = new RendererListSettings( renderQueueMin: HDRenderQueue.k_RenderQueue_AllOpaque.lowerBound,
+                                                                                                renderQueueMax: HDRenderQueue.k_RenderQueue_AllOpaque.upperBound,
+                                                                                                sortingCriteria: SortingCriteria.CommonOpaque,
                                                                                                 shaderPassNames: m_AllForwardOpaquePassNames);
-            m_RendererListSettings[(int)HDRendererList.TransparentDebug] = new RendererListSettings(    renderQueueMin: HDRenderQueue.k_RenderQueue_AllTransparent.min,
-                                                                                                        renderQueueMax: HDRenderQueue.k_RenderQueue_AllTransparent.max,
-                                                                                                        sortFlags: SortFlags.CommonTransparent,
+            m_RendererListSettings[(int)HDRendererList.TransparentDebug] = new RendererListSettings(    renderQueueMin: HDRenderQueue.k_RenderQueue_AllTransparent.lowerBound,
+                                                                                                        renderQueueMax: HDRenderQueue.k_RenderQueue_AllTransparent.upperBound,
+                                                                                                        sortingCriteria: SortingCriteria.CommonTransparent,
                                                                                                         shaderPassNames: m_AllTransparentPassNames);
 
         }
@@ -575,7 +574,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RendererListsToPrepare.Clear();
 
             // Depth pass. For detail on the logic, see RenderDepthPrepass
-            if (hdCamera.frameSettings.enableForwardRenderingOnly)
+            if (hdCamera.frameSettings.shaderLitMode == LitShaderMode.Forward)
             {
                 AddPrepareRendererList(HDRendererList.DepthFull, hdCamera);
             }
@@ -600,11 +599,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 AddPrepareRendererList(HDRendererList.ObjectVelocity, hdCamera);
 
             // GBuffer
-            if (NeedGBufferPass(hdCamera))
+            if (hdCamera.frameSettings.shaderLitMode == LitShaderMode.Deferred)
                 AddPrepareRendererList(HDRendererList.GBuffer, hdCamera);
 
             // Forward
-            if (hdCamera.frameSettings.enableForwardRenderingOnly)
+            if (hdCamera.frameSettings.shaderLitMode == LitShaderMode.Forward)
                 AddPrepareRendererList(HDRendererList.ForwardOpaque, hdCamera);
             else
                 AddPrepareRendererList(HDRendererList.ForwardOnlyOpaque, hdCamera);
@@ -944,11 +943,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return hdCamera.frameSettings.enableMotionVectors && hdCamera.frameSettings.enableObjectMotionVectors;
         }
 
-        bool NeedGBufferPass(HDCamera hdCamera)
-        {
-            return !hdCamera.frameSettings.enableForwardRenderingOnly;
-        }
-
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)
         {
             if (!m_IsDepthBufferCopyValid)
@@ -1212,7 +1206,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     if (camera.useOcclusionCulling)
-                        cullingParams.cullingFlags |= CullFlag.OcclusionCull;
+                        cullingParams.cullingOptions |= CullingOptions.OcclusionCull;
 
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
                     hdCamera.UpdateStereoDependentState(ref cullingParams);
@@ -1425,7 +1419,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     m_CopyStencil.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.DoesntReceiveSSR);
                                     m_CopyStencil.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.DoesntReceiveSSR);
 
-                                    // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes. 
+                                    // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes.
                                     CoreUtils.DrawFullScreen(cmd, m_CopyStencil, null, 4);
                                     cmd.ClearRandomWriteTargets();
                                 }
@@ -1674,7 +1668,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             } // For each camera
         }
 
-        void DisplayRendererList(CommandBuffer cmd, RendererList rendererList, RendererConfiguration conf, RenderStateBlock? stateBlock = null)
+        void DisplayRendererList(CommandBuffer cmd, RendererList rendererList, PerObjectData conf, RenderStateBlock? stateBlock = null)
         {
             DrawRendererSettings_New settings = new DrawRendererSettings_New() { rendererConfiguration = conf };
             if (stateBlock == null)
@@ -1720,43 +1714,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+                // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
-            var sortingSettings = new SortingSettings(hdCamera.camera)
-            {
-                criteria = SortingCriteria.CommonOpaque
-            };
+                var sortingSettings = new SortingSettings(hdCamera.camera)
+                {
+                    criteria = SortingCriteria.CommonOpaque
+                };
 
-            var drawSettings = new DrawingSettings(HDShaderPassNames.s_EmptyName, sortingSettings)
-            {
-                perObjectData = rendererConfiguration
-            };
+                var drawSettings = new DrawingSettings(HDShaderPassNames.s_EmptyName, sortingSettings)
+                {
+                    perObjectData = rendererConfiguration
+                };
 
-            for (int i = 0; i < passNames.Length; ++i)
-            {
-                drawSettings.SetShaderPassName(i, passNames[i]);
+                for (int i = 0; i < passNames.Length; ++i)
+                {
+                    drawSettings.SetShaderPassName(i, passNames[i]);
+                }
+
+                if (overrideMaterial != null)
+                {
+                    drawSettings.overrideMaterial = overrideMaterial;
+                    drawSettings.overrideMaterialPassIndex = 0;
+                }
+
+                var filterSettings = new FilteringSettings(inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllOpaque : inRenderQueueRange.Value)
+                {
+                    excludeMotionVectorObjects = excludeMotionVector
+                };
+
+                if (stateBlock == null)
+                    renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
+                else
+                {
+                    var renderStateBlock = stateBlock.Value;
+                    renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings, ref renderStateBlock);
+                }
             }
-
-            if (overrideMaterial != null)
-            {
-                drawSettings.overrideMaterial = overrideMaterial;
-                drawSettings.overrideMaterialPassIndex = 0;
-            }
-
-            var filterSettings = new FilteringSettings(inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllOpaque : inRenderQueueRange.Value)
-            {
-                excludeMotionVectorObjects = excludeMotionVector
-            };
-
-            if (stateBlock == null)
-                renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
-            else
-            {
-                var renderStateBlock = stateBlock.Value;
-                renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings, ref renderStateBlock);
-        }
         }
 
         void RenderTransparentRenderList(CullingResults cull,
@@ -1799,43 +1794,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+                // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
-            var sortingSettings = new SortingSettings(hdCamera.camera)
-            {
-                criteria = SortingCriteria.CommonTransparent | SortingCriteria.RendererPriority
-            };
+                var sortingSettings = new SortingSettings(hdCamera.camera)
+                {
+                    criteria = SortingCriteria.CommonTransparent | SortingCriteria.RendererPriority
+                };
 
-            var drawSettings = new DrawingSettings(HDShaderPassNames.s_EmptyName, sortingSettings)
-            {
-                perObjectData = rendererConfiguration
-            };
+                var drawSettings = new DrawingSettings(HDShaderPassNames.s_EmptyName, sortingSettings)
+                {
+                    perObjectData = rendererConfiguration
+                };
 
-            for (int i = 0; i < passNames.Length; ++i)
-            {
-                drawSettings.SetShaderPassName(i, passNames[i]);
+                for (int i = 0; i < passNames.Length; ++i)
+                {
+                    drawSettings.SetShaderPassName(i, passNames[i]);
+                }
+
+                if (overrideMaterial != null)
+                {
+                    drawSettings.overrideMaterial = overrideMaterial;
+                    drawSettings.overrideMaterialPassIndex = 0;
+                }
+
+                var filterSettings = new FilteringSettings(inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllTransparent : inRenderQueueRange.Value)
+                {
+                    excludeMotionVectorObjects = excludeMotionVectorObjects
+                };
+
+                if (stateBlock == null)
+                    renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
+                else
+                {
+                    var renderStateBlock = stateBlock.Value;
+                    renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings, ref renderStateBlock);
+                }
             }
-
-            if (overrideMaterial != null)
-            {
-                drawSettings.overrideMaterial = overrideMaterial;
-                drawSettings.overrideMaterialPassIndex = 0;
-            }
-
-            var filterSettings = new FilteringSettings(inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllTransparent : inRenderQueueRange.Value)
-            {
-                excludeMotionVectorObjects = excludeMotionVectorObjects
-            };
-
-            if (stateBlock == null)
-                renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
-            else
-            {
-                var renderStateBlock = stateBlock.Value;
-                renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings, ref renderStateBlock);
-        }
         }
 
         void AccumulateDistortion(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -2226,7 +2222,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var passNames = hdCamera.frameSettings.shaderLitMode == LitShaderMode.Forward
                         ? m_ForwardAndForwardOnlyPassNames
                         : m_ForwardOnlyPassNames;
-                    var rendererList = m_RendererLists[hdCamera.frameSettings.enableForwardRenderingOnly ? (int)HDRendererList.ForwardOpaque : (int)HDRendererList.ForwardOnlyOpaque];
+                    var rendererList = m_RendererLists[(hdCamera.frameSettings.shaderLitMode == LitShaderMode.Forward) ? (int)HDRendererList.ForwardOpaque : (int)HDRendererList.ForwardOnlyOpaque];
                     RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, passNames, rendererList, m_currentRendererConfigurationBakedLighting);
                 }
                 else
@@ -2254,7 +2250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Render Forward Error", CustomSamplerId.RenderForwardError.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
-                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, m_RendererLists[(int)HDRendererList.ForwardError], 0, new RenderQueueRange() { min = RenderQueueRange.minimumLowerBound, max = RenderQueueRange.maximumUpperBound }, null, m_ErrorMaterial);
+                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, m_RendererLists[(int)HDRendererList.ForwardError], 0, new RenderQueueRange() { lowerBound = RenderQueueRange.minimumBound, upperBound = RenderQueueRange.maximumBound }, null, m_ErrorMaterial);
             }
         }
 
@@ -2295,7 +2291,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetVelocityPassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
-                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, m_RendererLists[(int)HDRendererList.ObjectVelocity], PerObjectData.PerObjectMotionVectors);
+                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, m_RendererLists[(int)HDRendererList.ObjectVelocity], PerObjectData.MotionVectors);
             }
         }
 
