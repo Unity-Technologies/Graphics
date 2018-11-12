@@ -99,6 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int g_vLayeredLightList = Shader.PropertyToID("g_vLayeredLightList");
         public static readonly int g_LayeredOffset = Shader.PropertyToID("g_LayeredOffset");
         public static readonly int g_vBigTileLightList = Shader.PropertyToID("g_vBigTileLightList");
+        public static readonly int g_vLightListGlobal = Shader.PropertyToID("g_vLightListGlobal");
         public static readonly int g_logBaseBuffer = Shader.PropertyToID("g_logBaseBuffer");
         public static readonly int g_vBoundsBuffer = Shader.PropertyToID("g_vBoundsBuffer");
         public static readonly int _LightVolumeData = Shader.PropertyToID("_LightVolumeData");
@@ -129,10 +130,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
         public static readonly int _PunctualLightCount = Shader.PropertyToID("_PunctualLightCount");
         public static readonly int _AreaLightCount = Shader.PropertyToID("_AreaLightCount");
-        public static readonly int g_vLightListGlobal = Shader.PropertyToID("g_vLightListGlobal");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
         public static readonly int _EnvLightCount = Shader.PropertyToID("_EnvLightCount");
         public static readonly int _EnvProxyCount = Shader.PropertyToID("_EnvProxyCount");
+        public static readonly int _NumTileBigTileX = Shader.PropertyToID("_NumTileBigTileX");
+        public static readonly int _NumTileBigTileY = Shader.PropertyToID("_NumTileBigTileY");
         public static readonly int _NumTileFtplX = Shader.PropertyToID("_NumTileFtplX");
         public static readonly int _NumTileFtplY = Shader.PropertyToID("_NumTileFtplY");
         public static readonly int _NumTileClusteredX = Shader.PropertyToID("_NumTileClusteredX");
@@ -229,6 +231,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
+        public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
         public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
         public static readonly int _ProjMatrix = Shader.PropertyToID("_ProjMatrix");
@@ -255,6 +258,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _InvViewProjMatrixStereo = Shader.PropertyToID("_InvViewProjMatrixStereo");
         public static readonly int _PrevViewProjMatrixStereo = Shader.PropertyToID("_PrevViewProjMatrixStereo");
         public static readonly int _WorldSpaceCameraPosStereo = Shader.PropertyToID("_WorldSpaceCameraPosStereo");
+        public static readonly int _PrevCamPosRWSStereo = Shader.PropertyToID("_PrevCamPosRWSStereo");
         public static readonly int _TextureWidthScaling = Shader.PropertyToID("_TextureWidthScaling"); // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
         public static readonly int _ComputeEyeIndex = Shader.PropertyToID("_ComputeEyeIndex");
 
@@ -385,6 +389,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
         public static readonly int _AtmosphericScatteringType      = Shader.PropertyToID("_AtmosphericScatteringType");
+        public static readonly int _MaxFogDistance                 = Shader.PropertyToID("_MaxFogDistance");
         public static readonly int _AmbientProbeCoeffs             = Shader.PropertyToID("_AmbientProbeCoeffs");
         public static readonly int _HeightFogBaseExtinction        = Shader.PropertyToID("_HeightFogBaseExtinction");
         public static readonly int _HeightFogBaseScattering        = Shader.PropertyToID("_HeightFogBaseScattering");
@@ -395,16 +400,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CornetteShanksConstant         = Shader.PropertyToID("_CornetteShanksConstant");
         public static readonly int _VBufferResolution              = Shader.PropertyToID("_VBufferResolution");
         public static readonly int _VBufferSliceCount              = Shader.PropertyToID("_VBufferSliceCount");
+        public static readonly int _VBufferRcpSliceCount           = Shader.PropertyToID("_VBufferRcpSliceCount");
         public static readonly int _VBufferUvScaleAndLimit         = Shader.PropertyToID("_VBufferUvScaleAndLimit");
-        public static readonly int _VBufferDepthEncodingParams     = Shader.PropertyToID("_VBufferDepthEncodingParams");
-        public static readonly int _VBufferDepthDecodingParams     = Shader.PropertyToID("_VBufferDepthDecodingParams");
+        public static readonly int _VBufferDistanceEncodingParams  = Shader.PropertyToID("_VBufferDistanceEncodingParams");
+        public static readonly int _VBufferDistanceDecodingParams  = Shader.PropertyToID("_VBufferDistanceDecodingParams");
         public static readonly int _VBufferPrevResolution          = Shader.PropertyToID("_VBufferPrevResolution");
-        public static readonly int _VBufferPrevSliceCount          = Shader.PropertyToID("_VBufferPrevSliceCount");
         public static readonly int _VBufferPrevUvScaleAndLimit     = Shader.PropertyToID("_VBufferPrevUvScaleAndLimit");
         public static readonly int _VBufferPrevDepthEncodingParams = Shader.PropertyToID("_VBufferPrevDepthEncodingParams");
         public static readonly int _VBufferPrevDepthDecodingParams = Shader.PropertyToID("_VBufferPrevDepthDecodingParams");
-        public static readonly int _VBufferMaxLinearDepth          = Shader.PropertyToID("_VBufferMaxLinearDepth");
+        public static readonly int _VBufferLastSliceDist          = Shader.PropertyToID("_VBufferLastSliceDist");
         public static readonly int _VBufferCoordToViewDirWS        = Shader.PropertyToID("_VBufferCoordToViewDirWS");
+        public static readonly int _VBufferUnitDepthTexelSpacing   = Shader.PropertyToID("_VBufferUnitDepthTexelSpacing");
         public static readonly int _VBufferDensity                 = Shader.PropertyToID("_VBufferDensity");
         public static readonly int _VBufferLighting                = Shader.PropertyToID("_VBufferLighting");
         public static readonly int _VBufferLightingIntegral        = Shader.PropertyToID("_VBufferLightingIntegral");
