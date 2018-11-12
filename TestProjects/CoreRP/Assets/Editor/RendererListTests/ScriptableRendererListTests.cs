@@ -1,7 +1,7 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
@@ -83,10 +83,10 @@ public class ScriptableRendererListTests
         List<RendererListSettings> settingsList = new List<RendererListSettings>();
         RendererListSettings settingsOpaque = new RendererListSettings(camera: m_TestCamera);
         settingsOpaque.renderQueueRange = RenderQueueRange.opaque;
-        settingsOpaque.SetShaderTag(0, new ShaderPassName("Forward"));
+        settingsOpaque.SetShaderTag(0, new ShaderTagId("Forward"));
         RendererListSettings settingsTransparent = new RendererListSettings(camera: m_TestCamera);
         settingsTransparent.renderQueueRange = RenderQueueRange.transparent;
-        settingsTransparent.SetShaderTag(0, new ShaderPassName("Forward"));
+        settingsTransparent.SetShaderTag(0, new ShaderTagId("Forward"));
         settingsList.Add(settingsOpaque);
         settingsList.Add(settingsTransparent);
 

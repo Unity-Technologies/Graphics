@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering.HDPipeline.Internal;
@@ -1634,26 +1635,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     rightEyeWorldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Right);
                 }
 
-                List<VisibleLight> visibleLights = null;
-                List<VisibleReflectionProbe> visibleReflectionProbes = null;
-                // Temporary bridge to new culling
-                if (lightCullingResult != null && reflectionProbeCullingResult != null)
-                {
-                    visibleLights = new List<VisibleLight>(lightCullingResult.visibleLights.Length);
-                    Debug.Assert(lightCullingResult.visibleLights.Length == cullResults.visibleLights.Count);
-                    for (int i = 0; i < lightCullingResult.visibleLights.Length; ++i)
-                        visibleLights.Add(lightCullingResult.visibleLights[i]);
-
-                    visibleReflectionProbes = new List<VisibleReflectionProbe>(reflectionProbeCullingResult.visibleReflectionProbes.Length);
-                    Debug.Assert(reflectionProbeCullingResult.visibleReflectionProbes.Length == cullResults.visibleReflectionProbes.Count);
-                    for (int i = 0; i < reflectionProbeCullingResult.visibleReflectionProbes.Length; ++i)
-                        visibleReflectionProbes.Add(reflectionProbeCullingResult.visibleReflectionProbes[i]);
-                }
-                else
-                {
-                    visibleLights = cullResults.visibleLights;
-                    visibleReflectionProbes = cullResults.visibleReflectionProbes;
-                }
+                var visibleLights = (lightCullingResult != null) ? lightCullingResult.visibleLights : cullResults.visibleLights;
+                var visibleReflectionProbes = (reflectionProbeCullingResult != null) ? reflectionProbeCullingResult.visibleReflectionProbes : cullResults.visibleReflectionProbes;
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();

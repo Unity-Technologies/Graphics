@@ -118,8 +118,8 @@ public class ScriptableCullingTests
         var visibleProbes = result.visibleReflectionProbes;
 
         Assert.AreEqual(2, result.visibleReflectionProbes.Length);
-        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Inside"));
-        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Partial"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.reflectionProbe.gameObject.name == "ReflectionProbe Inside"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.reflectionProbe.gameObject.name == "ReflectionProbe Partial"));
 
         TearDown();
     }
@@ -179,7 +179,7 @@ public class ScriptableCullingTests
         var visibleProbes = result.visibleReflectionProbes;
 
         Assert.AreEqual(1, result.visibleReflectionProbes.Length);
-        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.reflectionProbe.gameObject.name == "Reflection Probe"));
 
         TearDown();
     }
@@ -198,8 +198,8 @@ public class ScriptableCullingTests
         m_Culler.CullReflectionProbes(cullingParams, result);
 
         Assert.AreEqual(2, result.visibleReflectionProbes.Length);
-        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe 1"));
-        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe 2"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.reflectionProbe.gameObject.name == "Reflection Probe 1"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.reflectionProbe.gameObject.name == "Reflection Probe 2"));
 
         SetupTestCamera("ReuseResultCamera 2");
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
@@ -207,7 +207,7 @@ public class ScriptableCullingTests
         m_Culler.CullReflectionProbes(cullingParams, result);
 
         Assert.AreEqual(1, result.visibleReflectionProbes.Length);
-        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe 2"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.reflectionProbe.gameObject.name == "Reflection Probe 2"));
 
         TearDown();
     }

@@ -3,54 +3,54 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
-class CullerStatisticsDebug
-{
-    public CullerStatistics stats;
+//class CullerStatisticsDebug
+//{
+//    public CullerStatistics stats;
 
-    public void RegisterCullingStatsDebug(List<DebugUI.Widget> widgets)
-    {
-        widgets.AddRange(
-            new DebugUI.Widget[]
-            {
-                new DebugUI.Foldout
-                {
-                    displayName = "Renderers",
-                    children =
-                    {
-                        new DebugUI.Value { displayName = "Tested Objects", getter = () => stats.renderers.culling.testedObjects },
-                        new DebugUI.Value { displayName = "Visible Objects", getter = () => stats.renderers.culling.visibleObjects},
-                        new DebugUI.Value { displayName = "Main thread Objects", getter = () => stats.renderers.mainThreadObjectCount},
-                    }
-                 },
-            });
-        widgets.AddRange(
-            new DebugUI.Widget[]
-            {
-                new DebugUI.Foldout
-                {
-                    displayName = "Lights",
-                    children =
-                    {
-                        new DebugUI.Value { displayName = "Tested Objects", getter = () => stats.lights.culling.testedObjects },
-                        new DebugUI.Value { displayName = "Visible Objects", getter = () => stats.lights.culling.visibleObjects},
-                    }
-                 },
-            });
-        widgets.AddRange(
-            new DebugUI.Widget[]
-            {
-                new DebugUI.Foldout
-                {
-                    displayName = "Reflection Probes",
-                    children =
-                    {
-                        new DebugUI.Value { displayName = "Tested Objects", getter = () => stats.reflectionProbes.culling.testedObjects },
-                        new DebugUI.Value { displayName = "Visible Objects", getter = () => stats.reflectionProbes.culling.visibleObjects},
-                    }
-                 },
-            });
-    }
-}
+//    public void RegisterCullingStatsDebug(List<DebugUI.Widget> widgets)
+//    {
+//        widgets.AddRange(
+//            new DebugUI.Widget[]
+//            {
+//                new DebugUI.Foldout
+//                {
+//                    displayName = "Renderers",
+//                    children =
+//                    {
+//                        new DebugUI.Value { displayName = "Tested Objects", getter = () => stats.renderers.culling.testedObjects },
+//                        new DebugUI.Value { displayName = "Visible Objects", getter = () => stats.renderers.culling.visibleObjects},
+//                        new DebugUI.Value { displayName = "Main thread Objects", getter = () => stats.renderers.mainThreadObjectCount},
+//                    }
+//                 },
+//            });
+//        widgets.AddRange(
+//            new DebugUI.Widget[]
+//            {
+//                new DebugUI.Foldout
+//                {
+//                    displayName = "Lights",
+//                    children =
+//                    {
+//                        new DebugUI.Value { displayName = "Tested Objects", getter = () => stats.lights.culling.testedObjects },
+//                        new DebugUI.Value { displayName = "Visible Objects", getter = () => stats.lights.culling.visibleObjects},
+//                    }
+//                 },
+//            });
+//        widgets.AddRange(
+//            new DebugUI.Widget[]
+//            {
+//                new DebugUI.Foldout
+//                {
+//                    displayName = "Reflection Probes",
+//                    children =
+//                    {
+//                        new DebugUI.Value { displayName = "Tested Objects", getter = () => stats.reflectionProbes.culling.testedObjects },
+//                        new DebugUI.Value { displayName = "Visible Objects", getter = () => stats.reflectionProbes.culling.visibleObjects},
+//                    }
+//                 },
+//            });
+//    }
+//}
 
 class CullingDebugParameters
 {
@@ -59,15 +59,15 @@ class CullingDebugParameters
     public bool                     enableJobs = false;
     public bool                     gatherStats = false;
     public CullingTestMask          disabledTests = 0;
-    public CullerStatisticsDebug    statistics = new CullerStatisticsDebug();
+    //public CullerStatisticsDebug    statistics = new CullerStatisticsDebug();
 }
 
 [ExecuteInEditMode]
-public class TestRenderPipeline : RenderPipeline
+public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
 {
     Culler                          m_Culler = new Culler();
     RenderersCullingResult          m_Result = new RenderersCullingResult();
-    static ShaderPassName[]         m_PassNames = { new ShaderPassName("Forward") };
+    static ShaderTagId[]            m_PassNames = { new ShaderTagId("Forward") };
     RendererListSettings[]          m_RendererListSettings = {
                                                             new RendererListSettings(renderQueueMin: (int)RenderQueue.Geometry, renderQueueMax: (int)RenderQueue.GeometryLast, shaderPassNames: m_PassNames),
                                                             new RendererListSettings(renderQueueMin: (int)RenderQueue.Transparent, renderQueueMax: (int)RenderQueue.Transparent + 100, shaderPassNames: m_PassNames),
@@ -84,28 +84,26 @@ public class TestRenderPipeline : RenderPipeline
     {
         m_Asset = asset;
 
-        List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
-        widgets.AddRange(
-            new DebugUI.Widget[]
-            {
-                new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => m_CullingDebug.useNewCulling, setter = value => m_CullingDebug.useNewCulling = value },
-                new DebugUI.BoolField { displayName = "Enable Culling Jobs", getter = () => m_CullingDebug.enableJobs, setter = value => m_CullingDebug.enableJobs = value },
-                new DebugUI.BitField  { displayName = "Disabled Tests", getter = () => m_CullingDebug.disabledTests, setter = value => m_CullingDebug.disabledTests = (CullingTestMask)value, enumType = typeof(CullingTestMask) },
-                new DebugUI.BoolField { displayName = "Gather Statistics", getter = () => m_CullingDebug.gatherStats, setter = value => m_CullingDebug.gatherStats = value },
-                new DebugUI.BoolField { displayName = "Freeze Visibility", getter = () => m_CullingDebug.freezeVisibility, setter = value => m_CullingDebug.freezeVisibility = value },
-            });
+        //List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
+        //widgets.AddRange(
+        //    new DebugUI.Widget[]
+        //    {
+        //        new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => m_CullingDebug.useNewCulling, setter = value => m_CullingDebug.useNewCulling = value },
+        //        new DebugUI.BoolField { displayName = "Enable Culling Jobs", getter = () => m_CullingDebug.enableJobs, setter = value => m_CullingDebug.enableJobs = value },
+        //        new DebugUI.BitField  { displayName = "Disabled Tests", getter = () => m_CullingDebug.disabledTests, setter = value => m_CullingDebug.disabledTests = (CullingTestMask)value, enumType = typeof(CullingTestMask) },
+        //        new DebugUI.BoolField { displayName = "Gather Statistics", getter = () => m_CullingDebug.gatherStats, setter = value => m_CullingDebug.gatherStats = value },
+        //        new DebugUI.BoolField { displayName = "Freeze Visibility", getter = () => m_CullingDebug.freezeVisibility, setter = value => m_CullingDebug.freezeVisibility = value },
+        //    });
 
-        m_CullingDebug.statistics.RegisterCullingStatsDebug(widgets);
+        //m_CullingDebug.statistics.RegisterCullingStatsDebug(widgets);
 
-        var panel = DebugManager.instance.GetPanel("Culling", true);
-        panel.flags |= DebugUI.Flags.EditorForceUpdate;
-        panel.children.Add(widgets.ToArray());
+        //var panel = DebugManager.instance.GetPanel("Culling", true);
+        //panel.flags |= DebugUI.Flags.EditorForceUpdate;
+        //panel.children.Add(widgets.ToArray());
     }
 
-    public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+    protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
-        base.Render(renderContext, cameras);
-
         foreach (var camera in cameras)
         {
             var cmd = CommandBufferPool.Get("");
@@ -125,13 +123,36 @@ public class TestRenderPipeline : RenderPipeline
             //if (camera.useOcclusionCulling)
             //    cullingParameters.parameters.cullingFlags |= CullFlag.OcclusionCull;
 
-            CullResults oldResult = new CullResults();
+            CullingResults oldResult;
             ScriptableCullingParameters oldCullingParameters = new ScriptableCullingParameters();
 
             Light dirLight = null;
 
+            if (!camera.TryGetCullingParameters(camera.stereoEnabled, out oldCullingParameters)) // Fixme remove stereo passdown?
+            {
+                renderContext.Submit();
+                continue;
+            }
+
+            if (camera.useOcclusionCulling)
+                oldCullingParameters.cullingOptions |= CullingOptions.OcclusionCull;
+
+            oldResult = renderContext.Cull(ref oldCullingParameters);
+
+            foreach (var light in oldResult.visibleLights)
+            {
+                if (light.lightType == LightType.Directional)
+                {
+                    dirLight = light.light;
+                }
+
+                break;
+            }
+
             if (m_CullingDebug.useNewCulling)
             {
+                dirLight = null;
+
                 m_Culler.CullRenderers(m_CullingParameters, m_Result);
 
                 m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.ComputeScreenRect;
@@ -141,7 +162,7 @@ public class TestRenderPipeline : RenderPipeline
                 m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
                 m_Culler.CullReflectionProbes(m_CullingParameters, m_ProbeResult);
 
-                m_CullingDebug.statistics.stats = m_Culler.GetStatistics();
+                //m_CullingDebug.statistics.stats = m_Culler.GetStatistics();
 
                 m_Culler.PreparePerObjectData(m_Result, m_LightResult, m_ProbeResult);
 
@@ -155,24 +176,6 @@ public class TestRenderPipeline : RenderPipeline
                             break;
                         }
                     }
-                }
-            }
-            else
-            {
-                CullResults.GetCullingParameters(camera, false, out oldCullingParameters);
-                if (camera.useOcclusionCulling)
-                    oldCullingParameters.cullingFlags |= CullFlag.OcclusionCull;
-
-                CullResults.Cull(ref oldCullingParameters, renderContext, ref oldResult);
-
-                foreach (var light in oldResult.visibleLights)
-                {
-                    if (light.lightType == LightType.Directional)
-                    {
-                        dirLight = light.light;
-                    }
-
-                    break;
                 }
             }
 
@@ -213,29 +216,29 @@ public class TestRenderPipeline : RenderPipeline
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                var drawSettings = new DrawRendererSettings(camera, new ShaderPassName("Forward"))
+                var sortingSettings = new SortingSettings(camera)
                 {
-                    rendererConfiguration = 0,
-                    sorting = { flags = SortFlags.CommonOpaque }
+                    criteria = SortingCriteria.CommonOpaque
                 };
-                var filterSettings = new FilterRenderersSettings(true)
-                {
-                    renderQueueRange = new RenderQueueRange()
+
+                var drawSettings = new DrawingSettings(new ShaderTagId("Forward"), sortingSettings);
+                var filterSettings = new FilteringSettings(
+                    new RenderQueueRange()
                     {
-                        max = (int)RenderQueue.GeometryLast,
-                        min = (int)RenderQueue.Geometry
+                        upperBound = (int)RenderQueue.GeometryLast,
+                        lowerBound = (int)RenderQueue.Geometry
                     }
-                };
-                var filterSettingsTransparent = new FilterRenderersSettings(true)
-                {
-                    renderQueueRange = new RenderQueueRange()
+                );
+                var filterSettingsTransparent = new FilteringSettings(
+                new RenderQueueRange()
                     {
-                        max = (int)RenderQueue.Transparent + 100,
-                        min = (int)RenderQueue.Transparent
+                        upperBound = (int)RenderQueue.Transparent + 100,
+                        lowerBound = (int)RenderQueue.Transparent
                     }
-                };
-                renderContext.DrawRenderers(oldResult.visibleRenderers, ref drawSettings, filterSettings);
-                renderContext.DrawRenderers(oldResult.visibleRenderers, ref drawSettings, filterSettingsTransparent);
+                );
+
+                renderContext.DrawRenderers(oldResult, ref drawSettings, ref filterSettings);
+                renderContext.DrawRenderers(oldResult, ref drawSettings, ref filterSettingsTransparent);
             }
 
             renderContext.ExecuteCommandBuffer(cmd);
@@ -246,8 +249,9 @@ public class TestRenderPipeline : RenderPipeline
         renderContext.Submit();
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        DebugManager.instance.RemovePanel("Culling");
+        base.Dispose(disposing);
+        //DebugManager.instance.RemovePanel("Culling");
     }
 }

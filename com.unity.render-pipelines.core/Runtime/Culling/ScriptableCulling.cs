@@ -92,6 +92,7 @@ namespace UnityEngine.Experimental.Rendering
             parameters.cullingTestParameters.cullingMask = (uint)camera.cullingMask;
             parameters.cullingTestParameters.sceneMask = 0xFFFFFFFFFFFFFFFF;
             parameters.cullingTestParameters.accurateOcclusionThreshold = -1.0f;
+            parameters.cullingTestParameters.occlusionCullingJobCount = 6;
 
             unsafe
             {

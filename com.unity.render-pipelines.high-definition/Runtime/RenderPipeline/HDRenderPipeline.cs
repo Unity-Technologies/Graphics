@@ -1672,9 +1672,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             DrawRendererSettings_New settings = new DrawRendererSettings_New() { rendererConfiguration = conf };
             if (stateBlock == null)
+            {
                 cmd.DrawRenderers(rendererList, settings);
+            }
             else
-                cmd.DrawRenderers(rendererList, settings, stateBlock.Value);
+            {
+                var renderStateBlock = stateBlock.Value;
+                cmd.DrawRenderers(rendererList, settings, ref renderStateBlock);
+            }
         }
 
         void RenderOpaqueRenderList(CullingResults cull,
