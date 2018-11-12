@@ -7,18 +7,24 @@ public class TestRenderPipelineAsset : RenderPipelineAsset
     public TestRenderPipelineResources renderPipelineResources;
     public bool useNewCulling = false;
 
-    protected override IRenderPipeline InternalCreatePipeline()
+    protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
     {
         return new TestRenderPipeline(this);
     }
 
-    public override Shader GetDefaultShader()
+    public override Shader defaultShader
     {
-        return renderPipelineResources.defaultShader;
+        get
+        {
+            return renderPipelineResources.defaultShader;
+        }
     }
 
-    public override Material GetDefaultMaterial()
+    public override Material defaultMaterial
     {
-        return renderPipelineResources.defaultMaterial;
+        get
+        {
+            return renderPipelineResources.defaultMaterial;
+        }
     }
 }

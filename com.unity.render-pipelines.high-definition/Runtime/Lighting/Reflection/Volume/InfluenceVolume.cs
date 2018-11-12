@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public class InfluenceVolume
+    public partial class InfluenceVolume
     {
         HDProbe m_Probe;
 
@@ -13,10 +13,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         InfluenceShape m_Shape = InfluenceShape.Box;
         [SerializeField, FormerlySerializedAs("m_BoxBaseOffset")]
         Vector3 m_Offset;
-#pragma warning disable 649 //never assigned
-        [SerializeField, Obsolete("Kept only for compatibility. Use m_Offset instead")]
-        Vector3 m_SphereBaseOffset;
-#pragma warning restore 649 //never assigned
 
         // Box
         [SerializeField, FormerlySerializedAs("m_BoxBaseSize")]
@@ -202,11 +198,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case InfluenceShape.Sphere:
                     return new BoundingSphere(probeTransform.TransformPoint(offset), sphereRadius);
                 case InfluenceShape.Box:
-                {
-                    var position = probeTransform.TransformPoint(offset);
-                    var radius = Mathf.Max(boxSize.x, Mathf.Max(boxSize.y, boxSize.z));
-                    return new BoundingSphere(position, radius);
-                }
+                    {
+                        var position = probeTransform.TransformPoint(offset);
+                        var radius = Mathf.Max(boxSize.x, Mathf.Max(boxSize.y, boxSize.z));
+                        return new BoundingSphere(position, radius);
+                    }
             }
         }
 
@@ -218,10 +214,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case InfluenceShape.Sphere:
                     return new Bounds(probeTransform.position, Vector3.one * sphereRadius);
                 case InfluenceShape.Box:
-                {
-                    var position = probeTransform.TransformPoint(offset);
-                    return new Bounds(position, boxSize);
-                }
+                    {
+                        var position = probeTransform.TransformPoint(offset);
+                        return new Bounds(position, boxSize);
+                    }
             }
         }
 
@@ -257,16 +253,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case InfluenceShape.Sphere:
                         return EnvShapeType.Sphere;
                 }
-            }
-        }
-
-        internal void MigrateOffsetSphere()
-        {
-            if (shape == InfluenceShape.Sphere)
-            {
-#pragma warning disable CS0618 // Type or member is obsolete
-                m_Offset = m_SphereBaseOffset;
-#pragma warning restore CS0618 // Type or member is obsolete
             }
         }
     }
