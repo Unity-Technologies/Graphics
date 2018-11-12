@@ -109,6 +109,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (smoothnessMap != null)
                 {
                     hasSmoothness = true;
+                    
+                    dstMaterial.SetFloat("_SmoothnessRemapMax", srcMaterial.GetFloat("_GlossMapScale"));
 
                     if (!TextureCombiner.TextureHasAlpha(smoothnessMap))
                     {
