@@ -3,6 +3,13 @@
     border-color: rgba(35,35,35,0.8);
 }
 
+#collapse-button >#icon 
+{
+
+    visibility: visible;
+}
+   
+
 #divider.horizontal {
     height:0.01;
     border-bottom-width: 1;
@@ -110,8 +117,4 @@
 {
     height:0;
     border-bottom-width: 0;
-}
-#collapse-button:hover:enabled > #icon {
-    background-color:#DDD;
-    visibility:visible;
 }
