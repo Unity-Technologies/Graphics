@@ -174,12 +174,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-            if (cameras == null || cameras.Length == 0)
-            {
-                Debug.LogWarning("The camera list passed to the render pipeline is either null or empty.");
-                return;
-            }
-
             BeginFrameRendering(cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = true;
@@ -205,6 +199,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
             }
 
+            ScriptableCullingParameters cullingParameters;    
+            if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out cullingParameters))
+                return;
+
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
             using (new ProfilingSample(cmd, k_RenderCameraTag))
             {
@@ -213,13 +211,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 ScriptableRenderer renderer = pipelineInstance.renderer;
                 InitializeCameraData(settings, camera, out cameraData);
                 SetupPerCameraShaderConstants(cameraData);
-
-                ScriptableCullingParameters cullingParameters;
-                if (!camera.TryGetCullingParameters(cameraData.isStereoEnabled, out cullingParameters))
-                {
-                    CommandBufferPool.Release(cmd);
-                    return;
-                }
 
                 cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
 
