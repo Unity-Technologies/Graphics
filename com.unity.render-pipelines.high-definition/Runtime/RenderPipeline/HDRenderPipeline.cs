@@ -9,7 +9,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     // TODO: Move back to core once debug menu is there.
-    class CullingDebugParameters
+    public class CullingDebugParameters
     {
         public bool useNewCulling = false;
         public bool freezeVisibility = false;
@@ -237,6 +237,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderersCullingResult          m_RenderersCullingResult = new RenderersCullingResult();
         LightCullingResult              m_LightCullingResult = new LightCullingResult();
         ReflectionProbeCullingResult    m_ReflectionProbeCullingResult = new ReflectionProbeCullingResult();
+        CullingParameters               m_CullingParametersNew = new CullingParameters();
+
 
         // RendererLists
         enum HDRendererList
@@ -1288,20 +1290,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
                     hdCamera.UpdateStereoDependentState(ref cullingParams);
 
-                    CullingParameters cullingParametersNew = new CullingParameters();
                     if (m_CullingDebug.useNewCulling)
                     {
                         if (!m_CullingDebug.freezeVisibility)
-                            ScriptableCulling.FillCullingParameters(hdCamera.camera, ref cullingParametersNew);
+                            ScriptableCulling.FillCullingParameters(hdCamera.camera, ref m_CullingParametersNew);
 
-                        cullingParametersNew.gatherStatistics = m_CullingDebug.gatherStats;
-                        cullingParametersNew.enableJobs = m_CullingDebug.enableJobs;
-                        //m_LightLoop.UpdateCullingParameters(ref cullingParametersNew.parameters);
-                        //hdCamera.UpdateStereoDependentState(ref cullingParametersNew.parameters);
+                        m_CullingParametersNew.gatherStatistics = m_CullingDebug.gatherStats;
+                        m_CullingParametersNew.enableJobs = m_CullingDebug.enableJobs;
+                        //m_LightLoop.UpdateCullingParameters(ref m_CullingParametersNew.parameters);
+                        //hdCamera.UpdateStereoDependentState(ref m_CullingParametersNew.parameters);
                     }
 
                     //if (camera.useOcclusionCulling)
-                    //    cullingParametersNew.parameters.cullingFlags |= CullFlag.OcclusionCull;
+                    //    m_CullingParametersNew.parameters.cullingFlags |= CullFlag.OcclusionCull;
 
 #if UNITY_EDITOR
                     // emit scene view UI
@@ -1328,18 +1329,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (m_CullingDebug.useNewCulling)
                         {
-                            cullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.LODMask | CullingTestMask.FlagMaskNot;// | CullingTest.SceneMask;
-                            cullingParametersNew.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
-                            cullingParametersNew.cullingTestParameters.cullingFlagsMaskNot = CullingFlags.CastShadowsOnly;
-                            m_Culler.CullRenderers(cullingParametersNew, m_RenderersCullingResult);
+                            m_CullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.LODMask | CullingTestMask.FlagMaskNot;// | CullingTest.SceneMask;
+                            m_CullingParametersNew.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
+                            m_CullingParametersNew.cullingTestParameters.cullingFlagsMaskNot = CullingFlags.CastShadowsOnly;
+                            m_Culler.CullRenderers(m_CullingParametersNew, m_RenderersCullingResult);
 
-                            cullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.ComputeScreenRect;
-                            cullingParametersNew.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
-                            m_Culler.CullLights(cullingParametersNew, m_LightCullingResult);
+                            m_CullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.ComputeScreenRect;
+                            m_CullingParametersNew.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
+                            m_Culler.CullLights(m_CullingParametersNew, m_LightCullingResult);
 
-                            cullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask;
-                            cullingParametersNew.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
-                            m_Culler.CullReflectionProbes(cullingParametersNew, m_ReflectionProbeCullingResult);
+                            m_CullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask;
+                            m_CullingParametersNew.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
+                            m_Culler.CullReflectionProbes(m_CullingParametersNew, m_ReflectionProbeCullingResult);
 
                             m_CullingDebug.statistics = m_Culler.GetStatistics();
 

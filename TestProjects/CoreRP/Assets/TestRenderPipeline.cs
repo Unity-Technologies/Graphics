@@ -3,64 +3,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
-//class CullerStatisticsDebug
-//{
-//    public CullerStatistics stats;
-
-//    public void RegisterCullingStatsDebug(List<DebugUI.Widget> widgets)
-//    {
-//        widgets.AddRange(
-//            new DebugUI.Widget[]
-//            {
-//                new DebugUI.Foldout
-//                {
-//                    displayName = "Renderers",
-//                    children =
-//                    {
-//                        new DebugUI.Value { displayName = "Tested Objects", getter = () => stats.renderers.culling.testedObjects },
-//                        new DebugUI.Value { displayName = "Visible Objects", getter = () => stats.renderers.culling.visibleObjects},
-//                        new DebugUI.Value { displayName = "Main thread Objects", getter = () => stats.renderers.mainThreadObjectCount},
-//                    }
-//                 },
-//            });
-//        widgets.AddRange(
-//            new DebugUI.Widget[]
-//            {
-//                new DebugUI.Foldout
-//                {
-//                    displayName = "Lights",
-//                    children =
-//                    {
-//                        new DebugUI.Value { displayName = "Tested Objects", getter = () => stats.lights.culling.testedObjects },
-//                        new DebugUI.Value { displayName = "Visible Objects", getter = () => stats.lights.culling.visibleObjects},
-//                    }
-//                 },
-//            });
-//        widgets.AddRange(
-//            new DebugUI.Widget[]
-//            {
-//                new DebugUI.Foldout
-//                {
-//                    displayName = "Reflection Probes",
-//                    children =
-//                    {
-//                        new DebugUI.Value { displayName = "Tested Objects", getter = () => stats.reflectionProbes.culling.testedObjects },
-//                        new DebugUI.Value { displayName = "Visible Objects", getter = () => stats.reflectionProbes.culling.visibleObjects},
-//                    }
-//                 },
-//            });
-//    }
-//}
-
-class CullingDebugParameters
-{
-    public bool                     useNewCulling = false;
-    public bool                     freezeVisibility = false;
-    public bool                     enableJobs = false;
-    public bool                     gatherStats = false;
-    public CullingTestMask          disabledTests = 0;
-    //public CullerStatisticsDebug    statistics = new CullerStatisticsDebug();
-}
+// Temp debug
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 [ExecuteInEditMode]
 public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
@@ -84,22 +28,7 @@ public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
     {
         m_Asset = asset;
 
-        //List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
-        //widgets.AddRange(
-        //    new DebugUI.Widget[]
-        //    {
-        //        new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => m_CullingDebug.useNewCulling, setter = value => m_CullingDebug.useNewCulling = value },
-        //        new DebugUI.BoolField { displayName = "Enable Culling Jobs", getter = () => m_CullingDebug.enableJobs, setter = value => m_CullingDebug.enableJobs = value },
-        //        new DebugUI.BitField  { displayName = "Disabled Tests", getter = () => m_CullingDebug.disabledTests, setter = value => m_CullingDebug.disabledTests = (CullingTestMask)value, enumType = typeof(CullingTestMask) },
-        //        new DebugUI.BoolField { displayName = "Gather Statistics", getter = () => m_CullingDebug.gatherStats, setter = value => m_CullingDebug.gatherStats = value },
-        //        new DebugUI.BoolField { displayName = "Freeze Visibility", getter = () => m_CullingDebug.freezeVisibility, setter = value => m_CullingDebug.freezeVisibility = value },
-        //    });
-
-        //m_CullingDebug.statistics.RegisterCullingStatsDebug(widgets);
-
-        //var panel = DebugManager.instance.GetPanel("Culling", true);
-        //panel.flags |= DebugUI.Flags.EditorForceUpdate;
-        //panel.children.Add(widgets.ToArray());
+        m_CullingDebug.RegisterDebug();
     }
 
     protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -123,7 +52,7 @@ public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
             //if (camera.useOcclusionCulling)
             //    cullingParameters.parameters.cullingFlags |= CullFlag.OcclusionCull;
 
-            CullingResults oldResult;
+            CullingResults oldResult = new CullingResults();
             ScriptableCullingParameters oldCullingParameters = new ScriptableCullingParameters();
 
             Light dirLight = null;
@@ -137,22 +66,8 @@ public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
             if (camera.useOcclusionCulling)
                 oldCullingParameters.cullingOptions |= CullingOptions.OcclusionCull;
 
-            oldResult = renderContext.Cull(ref oldCullingParameters);
-
-            foreach (var light in oldResult.visibleLights)
-            {
-                if (light.lightType == LightType.Directional)
-                {
-                    dirLight = light.light;
-                }
-
-                break;
-            }
-
             if (m_CullingDebug.useNewCulling)
             {
-                dirLight = null;
-
                 m_Culler.CullRenderers(m_CullingParameters, m_Result);
 
                 m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.ComputeScreenRect;
@@ -162,19 +77,29 @@ public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
                 m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
                 m_Culler.CullReflectionProbes(m_CullingParameters, m_ProbeResult);
 
-                //m_CullingDebug.statistics.stats = m_Culler.GetStatistics();
+                m_CullingDebug.statistics = m_Culler.GetStatistics();
 
                 m_Culler.PreparePerObjectData(m_Result, m_LightResult, m_ProbeResult);
 
-                if (dirLight == null)
+                foreach (var light in m_LightResult.visibleLights)
                 {
-                    foreach (var light in m_LightResult.visibleLights)
+                    if (light.lightType == LightType.Directional)
                     {
-                        if (light.lightType == LightType.Directional)
-                        {
-                            dirLight = light.light;
-                            break;
-                        }
+                        dirLight = light.light;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                oldResult = renderContext.Cull(ref oldCullingParameters);
+
+                foreach (var light in oldResult.visibleLights)
+                {
+                    if (light.lightType == LightType.Directional)
+                    {
+                        dirLight = light.light;
+                        break;
                     }
                 }
             }
@@ -199,7 +124,7 @@ public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
             }
 
             int texID = Shader.PropertyToID("_CameraDepthBuffer");
-            cmd.GetTemporaryRT(texID, camera.pixelWidth, camera.pixelHeight, 1, FilterMode.Point, RenderTextureFormat.Depth);
+            cmd.GetTemporaryRT(texID, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
 
             CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, texID);
             cmd.ClearRenderTarget(true, true, Color.grey);
@@ -252,6 +177,6 @@ public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        //DebugManager.instance.RemovePanel("Culling");
+        m_CullingDebug.UnregisterDebug();
     }
 }

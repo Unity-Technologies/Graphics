@@ -5,7 +5,6 @@ using UnityEngine.Experimental.Rendering;
 public class TestRenderPipelineAsset : RenderPipelineAsset
 {
     public TestRenderPipelineResources renderPipelineResources;
-    public bool useNewCulling = false;
 
     protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
     {
