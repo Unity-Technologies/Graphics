@@ -39,8 +39,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private RenderTextureFormat m_RenderTextureFormatToUse;
 
+        private DrawSkyboxPass m_DrawSkyboxPass;
 
-        Render2DLightingPass m_Render2DLightingPass;
+
+        private Render2DLightingPass m_Render2DLightingPass;
+        private SetupForwardRenderingPass m_SetupForwardRenderingPass;
 
 
         private RenderTargetHandle m_DepthTexture;
@@ -52,19 +55,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [NonSerialized]
         private bool m_Initialized = false;
-
-        //static void SetShaderGlobals(CommandBuffer cmdBuffer)
-        //{
-
-        //    cmdBuffer.SetGlobalColor("_AmbientColor", m_DefaultAmbientColor);
-        //    cmdBuffer.SetGlobalColor("_RimColor", Color.black);
-        //    cmdBuffer.SetGlobalColor("_SpecularColor", Color.black);
-
-        //    cmdBuffer.SetGlobalTexture("_SpecularLightingTex", m_SpecularLightRTHandle);
-        //    cmdBuffer.SetGlobalTexture("_AmbientLightingTex", m_AmbientLightRTHandle);
-        //    cmdBuffer.SetGlobalTexture("_RimLightingTex", m_FullScreenRimLightTexture);
-        //    cmdBuffer.SetGlobalTexture("_ShadowTex", m_FullScreenShadowTexture);
-        //}
 
         private void Init()
         {
@@ -82,7 +72,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_DepthTexture.Init("_CameraDepthTexture");
             m_Render2DLightingPass = new Render2DLightingPass();
+            m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
 
+            m_DrawSkyboxPass = new DrawSkyboxPass();
 
 
 #if UNITY_EDITOR
@@ -99,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTextureDescriptor specularRTDescriptor = m_SpecularRenderTextureInfo;
             RenderTextureDescriptor rimRTDescriptor = m_RimRenderTextureInfo;
 
-            m_Render2DLightingPass.Setup(m_AmbientDefaultColor, ambientRTDescriptor, specularRTDescriptor, rimRTDescriptor, m_AmbientRenderTextureInfo.filterMode, m_SpecularRenderTextureInfo.filterMode, m_RimRenderTextureInfo.filterMode);
+            renderer.EnqueuePass(m_SetupForwardRenderingPass);
             renderer.EnqueuePass(m_Render2DLightingPass);
 
             #if UNITY_EDITOR
@@ -111,21 +103,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             #endif
         }
 
-
         #if UNITY_EDITOR
         [MenuItem("Assets/Create/Rendering/Create 2D Render Setup")]
-            static void Create2DRenderSetup()
-            {
-                Default2DRendererSetup asset = ScriptableObject.CreateInstance<Default2DRendererSetup>();
-                asset.name = "2D Render Setup";
+        static void Create2DRenderSetup()
+        {
+            Default2DRendererSetup asset = ScriptableObject.CreateInstance<Default2DRendererSetup>();
+            asset.name = "2D Render Setup";
 
-                AssetDatabase.CreateAsset(asset, "Assets/NewScripableObject.asset");
-                AssetDatabase.SaveAssets();
+            AssetDatabase.CreateAsset(asset, "Assets/NewScripableObject.asset");
+            AssetDatabase.SaveAssets();
 
-                EditorUtility.FocusProjectWindow();
+            EditorUtility.FocusProjectWindow();
 
-                Selection.activeObject = asset;
-            }
+            Selection.activeObject = asset;
+        }
         #endif
     }
 }

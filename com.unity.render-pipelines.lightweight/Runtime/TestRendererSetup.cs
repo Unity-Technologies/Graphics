@@ -242,7 +242,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(512, 512, RenderTextureFormat.RGB111110Float, 32);
-            m_Render2DLightingPass.Setup(Color.black, descriptor, descriptor, descriptor, FilterMode.Bilinear, FilterMode.Bilinear, FilterMode.Bilinear);
+            //m_Render2DLightingPass.Setup(Color.black, descriptor, descriptor, descriptor, FilterMode.Bilinear, FilterMode.Bilinear, FilterMode.Bilinear);
             renderer.EnqueuePass(m_Render2DLightingPass);
 
             m_RenderTransparentForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, rendererConfiguration);

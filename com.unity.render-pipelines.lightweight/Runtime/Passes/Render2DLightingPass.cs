@@ -1,212 +1,125 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class Render2DLightingPass : ScriptableRenderPass
     {
-        RenderTargetHandle m_SpecularLightRTHandle;
-        RenderTargetHandle m_AmbientLightRTHandle;
-        RenderTargetHandle m_RimLightRTHandle;
-        RenderTargetHandle m_NormalMapRTHandle;
-        RenderTargetHandle m_PointLightRTHandle;  // Probably able to be combined with another texture
-        RenderTargetHandle m_ShadowMapRTHandle;   // This will be something we can't combine
-        RenderTargetHandle m_DepthRTHandle;
+        [SerializeField]
+        private Light2DRTInfo m_AmbientRenderTextureInfo = new Light2DRTInfo(true, 64, 64, FilterMode.Bilinear);
+        [SerializeField]
+        private Light2DRTInfo m_SpecularRenderTextureInfo = new Light2DRTInfo(true, 1024, 512, FilterMode.Bilinear);
+        [SerializeField]
+        private Light2DRTInfo m_RimRenderTextureInfo = new Light2DRTInfo(false, 64, 64, FilterMode.Bilinear);
+        //[SerializeField]
+        //private Light2DRTInfo m_ShadowRenderTextureInfo = new Light2DRTInfo(true, 1024, 512, FilterMode.Bilinear);
+        [SerializeField]
+        private Light2DRTInfo m_PointLightNormalRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
+        [SerializeField]
+        private Light2DRTInfo m_PointLightColorRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
 
-        RenderTextureDescriptor m_AmbientRTDescriptor;
-        RenderTextureDescriptor m_SpecularRTDescriptor;
-        RenderTextureDescriptor m_RimRTDescriptor;
+        public RenderTexture m_NormalMapRT;
+        public RenderTexture m_PointLightingRT;
 
-        FilterMode m_AmbientFilterMode;
-        FilterMode m_SpecularFilterMode;
-        FilterMode m_RimFilterMode;
+        public Color DefaultAmbientColor = new Color(0, 0, 0, 1.0f);
+        public Color DefaultRimColor = Color.clear;
+        public Color DefaultSpecularColor = Color.clear;
 
-        static Color m_DefaultAmbientColor;
-        static Color m_DefaultRimColor;
-        static Color m_DefaultSpecularColor;
-
-        const string k_UseSpecularTexture = "USE_SPECULAR_TEXTURE";
-        const string k_UseAmbientTexture = "USE_AMBIENT_TEXTURE";
-        const string k_UseRimTexture = "USE_RIM_TEXTURE";
-
-        const float k_OverbrightMultiplier = 8.0f;
-        const string k_Render2DLightingPassTag = "Render 2D Shape Light Pass";
-
+        static CommandBuffer m_CommandBuffer;
         static SortingLayer[] m_SortingLayers;
+        static SortingLayerRange m_SortingLayerRange;
 
-        //==========================================================================================================================
-        // private functions
-        //==========================================================================================================================
-        void CreateRenderTexture(CommandBuffer cmd, string identifier, ref RenderTargetHandle handle, RenderTextureDescriptor descriptor, FilterMode filterMode)
+        static ShaderTagId m_CombinedShapeLightPassName = new ShaderTagId("CombinedShapeLight");
+
+        public Render2DLightingPass()
         {
-            handle = new RenderTargetHandle();
-            handle.Init(identifier);
+            m_CommandBuffer = new CommandBuffer();
+            m_CommandBuffer.name = "Lights and Shadows Command Buffer";
+            m_SortingLayers = SortingLayer.layers;
 
-            if (handle != RenderTargetHandle.CameraTarget)
-            {
-                cmd.GetTemporaryRT(handle.id, descriptor, filterMode);
-                //cmd.GetTemporaryRT(handle.id, 512, 512, 32, FilterMode.Bilinear);            }
-                //cmd.GetTemporaryRT(handle.id, )
-            }
+            Texture lightLookupTexture = Light2DLookupTexture.CreateLightLookupTexture();
+            RendererPointLights.Initialize(lightLookupTexture);
+            RendererShapeLights.Initialize(DefaultAmbientColor, DefaultSpecularColor, DefaultRimColor);
         }
 
-        void CreateRenderTextures(CommandBuffer cmd)
-        {
-            // Render textures for shape lights
-            CreateRenderTexture(cmd, "_SpecularLightingTex", ref m_SpecularLightRTHandle, m_SpecularRTDescriptor, m_SpecularFilterMode);
-            CreateRenderTexture(cmd, "_AmbientLightingTex", ref m_AmbientLightRTHandle, m_AmbientRTDescriptor, m_AmbientFilterMode);
-            CreateRenderTexture(cmd, "_RimLightingTex", ref m_RimLightRTHandle, m_RimRTDescriptor, m_RimFilterMode);
-        }
-
-        void ReleaseRenderTextures(CommandBuffer cmd)
-        {
-            cmd.ReleaseTemporaryRT(m_SpecularLightRTHandle.id);
-            cmd.ReleaseTemporaryRT(m_AmbientLightRTHandle.id);
-            cmd.ReleaseTemporaryRT(m_RimLightRTHandle.id);
-        }
-
-        void ClearTarget(CommandBuffer cmdBuffer, RenderTexture renderTexture, Color color, string shaderKeyword)
-        { 
-            cmdBuffer.DisableShaderKeyword(shaderKeyword);
-            if (renderTexture != null)
-            {
-                cmdBuffer.SetRenderTarget(renderTexture);
-                cmdBuffer.ClearRenderTarget(false, true, color, 1.0f);
-            }
-        }
-
-        void PrepareToRenderSprites(CommandBuffer cmdBuffer)
-        {
-            cmdBuffer.SetRenderTarget(RenderTargetHandle.CameraTarget.id);
-        }
-
-        void RenderLightSet(CommandBuffer cmdBuffer, int layerToRender, RenderTargetHandle renderTargetHandle, Color clearColor, string shaderKeyword, List<Light2D> lights)
-        {
-            // This should only be called if we have a valid renderTargetHandle
-            cmdBuffer.DisableShaderKeyword(shaderKeyword);
-            bool renderedFirstLight = false;
-            if (lights.Count > 0)
-            {
-                for (int i = 0; i < lights.Count; i++)
-                {
-                    Light2D light = lights[i];
-                    if (light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.m_LightIntensity > 0)
-                    {
-                        Material shapeLightMaterial = light.GetMaterial();
-                        if (shapeLightMaterial != null)
-                        {
-                            Mesh lightMesh = light.GetMesh();
-                            if (lightMesh != null)
-                            {
-                                if (!renderedFirstLight)
-                                {
-                                    cmdBuffer.SetRenderTarget(renderTargetHandle.id);
-                                    //SetRenderTarget(cmdBuffer, renderTargetHandle.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, clearColor, TextureDimension.Tex2D);
-                                    cmdBuffer.ClearRenderTarget(false, true, m_DefaultSpecularColor);
-                                    cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
-
-                                    renderedFirstLight = true;
-                                }
-
-                                cmdBuffer.EnableShaderKeyword(shaderKeyword);
-                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        void RenderLights(CommandBuffer cmdBuffer, int layerToRender)
-        {
-            cmdBuffer.SetGlobalFloat("_LightIntensityScale", Light2D.GetIntensityScale());
-
-            cmdBuffer.BeginSample("2D Shape Lights - Specular Lights");
-            List<Light2D> specularLights = Light2D.GetSpecularLights();
-            RenderLightSet(cmdBuffer, layerToRender, m_SpecularLightRTHandle, m_DefaultSpecularColor, k_UseSpecularTexture, specularLights);
-            cmdBuffer.EndSample("2D Shape Lights - Specular Lights");
-
-            cmdBuffer.BeginSample("2D Shape Lights - Ambient Lights");
-            List<Light2D> ambientLights = Light2D.GetAmbientLights();
-            RenderLightSet(cmdBuffer, layerToRender, m_AmbientLightRTHandle, m_DefaultAmbientColor, k_UseAmbientTexture, ambientLights);
-            cmdBuffer.EndSample("2D Shape Lights - Ambient Lights");
-
-            cmdBuffer.BeginSample("2D Shape Lights - Rim Lights");
-            List<Light2D> rimLights = Light2D.GetRimLights();
-            RenderLightSet(cmdBuffer, layerToRender, m_RimLightRTHandle, m_DefaultRimColor, k_UseRimTexture, rimLights);
-            cmdBuffer.EndSample("2D Shape Lights - Rim Lights");
-        }
-
-        //==========================================================================================================================
-        // public functions
-        //==========================================================================================================================
-        public void Setup(Color defaultAmbientColor, RenderTextureDescriptor ambientRTDescriptor, RenderTextureDescriptor specularRTDescriptor, RenderTextureDescriptor rimRTDescriptor, FilterMode ambientFilterMode, FilterMode specularFilterMode, FilterMode rimFilterMode)
-        {
-            RegisterShaderPassName("LightweightForward");
-
-
-            // This should probably come from the Light2D. Maybe this value should be assigned to the Light2D when the pipeline is created
-            m_DefaultAmbientColor = defaultAmbientColor / k_OverbrightMultiplier;
-            m_DefaultSpecularColor = Color.black;
-            m_DefaultRimColor = Color.black;
-
-            m_AmbientRTDescriptor = ambientRTDescriptor;
-            m_SpecularRTDescriptor = specularRTDescriptor;
-            m_RimRTDescriptor = rimRTDescriptor;
-
-            m_AmbientFilterMode = ambientFilterMode;
-            m_SpecularFilterMode = specularFilterMode;
-            m_RimFilterMode = rimFilterMode;
-        }
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+#if UNITY_EDITOR
+            //    if(!Application.isPlaying)
+            //        m_SortingLayers = SortingLayer.layers;
+#endif
             Camera camera = renderingData.cameraData.camera;
 
-            context.SetupCameraProperties(renderingData.cameraData.camera, renderingData.cameraData.isStereoEnabled);
-
-
             SortingSettings sortingSettings = new SortingSettings(camera);
-            SortingCriteria criteria = sortingSettings.criteria | SortingCriteria.BackToFront;
-            sortingSettings.criteria = criteria;
+            sortingSettings.criteria = SortingCriteria.BackToFront;
 
+            Profiler.BeginSample("RenderSpritesWithLighting - Prepare");
+            DrawingSettings drawSettings = new DrawingSettings(new ShaderTagId("SRPDefaultUnlit"), sortingSettings);
             FilteringSettings filterSettings = new FilteringSettings();
-            filterSettings.layerMask = ~0;
+            filterSettings.renderQueueRange = RenderQueueRange.all;
+            filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
             filterSettings.sortingLayerRange = SortingLayerRange.all;
-            DrawingSettings drawSettings = new DrawingSettings(new ShaderTagId("CombinedShapeLight"), sortingSettings);
-            drawSettings.enableInstancing = true;
-            drawSettings.enableDynamicBatching = true;
-            //context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+            bool renderBuffersDirty = true;
+            Profiler.EndSample();
 
+            Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
+            RendererPointLights.CreateRenderTextures(m_PointLightNormalRenderTextureInfo, m_PointLightColorRenderTextureInfo);
+            RendererShapeLights.CreateRenderTextures(m_AmbientRenderTextureInfo, m_SpecularRenderTextureInfo, m_RimRenderTextureInfo);
+            Profiler.EndSample();
 
+            m_CommandBuffer.Clear();
+            RendererPointLights.SetShaderGlobals(m_CommandBuffer);
+            RendererShapeLights.SetShaderGlobals(m_CommandBuffer);
+            RendererShapeLights.Clear(m_CommandBuffer);
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_Render2DLightingPassTag);
-            CreateRenderTextures(cmd);
+            context.ExecuteCommandBuffer(m_CommandBuffer);
 
-            cmd.SetGlobalColor("_AmbientColor", m_DefaultAmbientColor);
-
-            // Do my light culling here...
-            SortingLayer[] sortingLayers = SortingLayer.layers;
-            for (int i = 0; i < sortingLayers.Length; i++)
+            for (int i = 0; i < m_SortingLayers.Length; i++)
             {
-                cmd.Clear();
+                m_CommandBuffer.Clear();
+                bool isLitLayer = true;
+                int layerToRender = m_SortingLayers[i].id;
+                short layerValue = (short)m_SortingLayers[i].value;
 
-                //bool isLitLayer = true; // We need to check the to see if any of the lights are using this layer
-                int layerToRender = sortingLayers[i].id;
-                short layerValue = (short)sortingLayers[i].value;
+                m_SortingLayerRange = new SortingLayerRange(layerValue, layerValue);
+                filterSettings.sortingLayerRange = m_SortingLayerRange;
 
-                RenderLights(cmd, layerToRender);
+                if (isLitLayer)
+                {
+                    RendererPointLights.RenderLights(m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender, camera);
+                    RendererShapeLights.RenderLights(m_CommandBuffer, layerToRender);
+                    renderBuffersDirty = true;
+                }
+                else if (renderBuffersDirty)
+                {
+                    RendererShapeLights.Clear(m_CommandBuffer);
+                    renderBuffersDirty = false;
+                }
 
-                //PrepareToRenderSprites(cmd);
-                context.ExecuteCommandBuffer(cmd);
+                m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                context.ExecuteCommandBuffer(m_CommandBuffer);
 
+                // This should have an optimization where I can determine if this needs to be called
+                Profiler.BeginSample("RenderSpritesWithLighting - Draw Renderers");
+                drawSettings.SetShaderPassName(0, m_CombinedShapeLightPassName);
 
-                //context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                context.ExecuteCommandBuffer(m_CommandBuffer);
+
+                Profiler.BeginSample("RenderSpritesWithLighting - Draw Renderers");
+                drawSettings.SetShaderPassName(0, m_CombinedShapeLightPassName);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                Profiler.EndSample();
             }
 
-            ReleaseRenderTextures(cmd);
+            Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
+            RendererPointLights.ReleaseRenderTextures();
+            RendererShapeLights.ReleaseRenderTextures();
+            Profiler.EndSample();
         }
     }
 }
