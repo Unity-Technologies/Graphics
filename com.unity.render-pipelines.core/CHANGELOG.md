@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.1.0-preview] - 2018-10-18
+### Added
+- Added a define for determining if any instancing path is taken.
 
 ## [5.0.0-preview] - 2018-10-18
 ### Changed

@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Internally use premultiplied alpha for all fog
 - Updated default FrameSettings used for realtime reflection probe (at HDRenderPipelineAsset creation)
 - Remove multi-camera support (this will not be supported by LW or HDRP)
+- Updated Shader Graph subshaders to use the new instancing define
 
 ## [5.0.0-preview] - 2018-09-28
 
