@@ -1,6 +1,8 @@
+using System;
+
 namespace UnityEditor.ShaderGraph
 {
-    public struct Identifier
+    public struct Identifier : IEquatable<Identifier>
     {
         uint m_Version;
         int m_Index;
@@ -32,6 +34,35 @@ namespace UnityEditor.ShaderGraph
         public bool valid
         {
             get { return m_Version != 0; }
+        }
+
+        public bool Equals(Identifier other)
+        {
+            return m_Version == other.m_Version && m_Index == other.m_Index;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            return obj is Identifier other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return ((int)m_Version * 397) ^ m_Index;
+            }
+        }
+
+        public static bool operator ==(Identifier left, Identifier right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Identifier left, Identifier right)
+        {
+            return !left.Equals(right);
         }
     }
 }

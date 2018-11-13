@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             set
             {
                 m_State = value;
-                m_ShaderNodeTypeName = value?.shaderNode.GetType().FullName;
+                m_ShaderNodeTypeName = value?.shaderNodeType.GetType().FullName;
             }
         }
 
@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
 
             if (state != null)
             {
-                m_ShaderNodeTypeName = state.shaderNode.GetType().FullName;
+                m_ShaderNodeTypeName = state.shaderNodeType.GetType().FullName;
             }
         }
 
@@ -114,10 +114,10 @@ namespace UnityEditor.ShaderGraph
         public void UpdateStateReference()
         {
             var materialOwner = (AbstractMaterialGraph)owner;
-            state = materialOwner.shaderNodeStates.FirstOrDefault(x => x.shaderNode.GetType().FullName == shaderNodeTypeName);
+            state = materialOwner.shaderNodeStates.FirstOrDefault(x => x.shaderNodeType.GetType().FullName == shaderNodeTypeName);
             if (state == null)
             {
-                throw new InvalidOperationException($"Cannot find an {nameof(IShaderNode)} with type name {shaderNodeTypeName}");
+                throw new InvalidOperationException($"Cannot find an {nameof(IShaderNodeType)} with type name {shaderNodeTypeName}");
             }
             UpdateSlots();
         }
@@ -256,7 +256,7 @@ namespace UnityEditor.ShaderGraph
             var i = 0;
             foreach (var source in state.hlslSources)
             {
-                var name = $"{state.shaderNode.GetType().FullName?.Replace(".", "_")}_{i}";
+                var name = $"{state.shaderNodeType.GetType().FullName?.Replace(".", "_")}_{i}";
                 registry.ProvideFunction(name, builder =>
                 {
                     switch (source.type)

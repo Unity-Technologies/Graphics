@@ -170,6 +170,10 @@ namespace UnityEditor.ShaderGraph
         int m_CurrentContextId = 1;
 
         public int currentContextId => m_CurrentContextId;
+        
+        List<ControlDescriptor> m_CreatedControls = new List<ControlDescriptor>();
+
+        public IEnumerable<ControlDescriptor> createdControls => m_CreatedControls;
 
         public AbstractMaterialGraph()
         {
@@ -177,7 +181,7 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var type in assembly.GetTypes())
                 {
-                    if (type == typeof(IShaderNode) || type == typeof(object) || !typeof(IShaderNode).IsAssignableFrom(type))
+                    if (type == typeof(IShaderNodeType) || type == typeof(object) || !typeof(IShaderNodeType).IsAssignableFrom(type))
                     {
                         continue;
                     }
@@ -185,18 +189,18 @@ namespace UnityEditor.ShaderGraph
                     var constructor = type.GetConstructor(Type.EmptyTypes);
                     if (constructor == null)
                     {
-                        Debug.LogError($"{type.FullName} implements {nameof(IShaderNode)}, but does not have a public, parameterless constructor.");
+                        Debug.LogError($"{type.FullName} implements {nameof(IShaderNodeType)}, but does not have a public, parameterless constructor.");
                         continue;
                     }
 
                     try
                     {
-                        var state = new ShaderNodeState { id = shaderNodeStates.Count, owner = this, shaderNode = (IShaderNode)constructor.Invoke(null) };
+                        var state = new ShaderNodeState { id = shaderNodeStates.Count, owner = this, shaderNodeType = (IShaderNodeType)constructor.Invoke(null) };
                         var context = new NodeSetupContext(this, m_CurrentContextId, state);
-                        state.shaderNode.Setup(ref context);
+                        state.shaderNodeType.Setup(ref context);
                         if (!context.nodeTypeCreated)
                         {
-                            throw new InvalidOperationException($"An {nameof(IShaderNode)} must provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
+                            throw new InvalidOperationException($"An {nameof(IShaderNodeType)} must provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
                         }
                         shaderNodeStates.Add(state);
                     }
@@ -219,11 +223,10 @@ namespace UnityEditor.ShaderGraph
             {
                 if (state.isDirty)
                 {
-                    var createdControls = ListPool<ControlDescriptor>.Get();
-                    var context = new NodeChangeContext(this, m_CurrentContextId, state, createdControls);
+                    var context = new NodeTypeChangeContext(this, m_CurrentContextId, state, m_CreatedControls);
                     try
                     {
-                        state.shaderNode.OnChange(ref context);
+                        state.shaderNodeType.OnChange(ref context);
                     }
                     catch (Exception e)
                     {
@@ -231,7 +234,6 @@ namespace UnityEditor.ShaderGraph
                     }
                     finally
                     {
-                        ListPool<ControlDescriptor>.Release(createdControls);
                         state.ClearChanges();
                         m_CurrentContextId = Math.Max(m_CurrentContextId + 1, 1);
                     }
@@ -249,6 +251,7 @@ namespace UnityEditor.ShaderGraph
             m_AddedProperties.Clear();
             m_RemovedProperties.Clear();
             m_MovedProperties.Clear();
+            m_CreatedControls.Clear();
         }
 
         // TODO: Handle copy paste

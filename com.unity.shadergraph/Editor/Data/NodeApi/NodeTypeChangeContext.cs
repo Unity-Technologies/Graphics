@@ -5,14 +5,14 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public struct NodeChangeContext
+    public struct NodeTypeChangeContext
     {
         readonly AbstractMaterialGraph m_Graph;
         readonly int m_CurrentSetupContextId;
         readonly ShaderNodeState m_State;
         readonly List<ControlDescriptor> m_CreatedControls;
 
-        internal NodeChangeContext(AbstractMaterialGraph graph, int currentSetupContextId, ShaderNodeState state, List<ControlDescriptor> createdControls)
+        internal NodeTypeChangeContext(AbstractMaterialGraph graph, int currentSetupContextId, ShaderNodeState state, List<ControlDescriptor> createdControls)
         {
             m_Graph = graph;
             m_CurrentSetupContextId = currentSetupContextId;
@@ -93,9 +93,9 @@ namespace UnityEditor.ShaderGraph
 
         public ControlRef CreateControl(NodeRef nodeRef, string label, float value)
         {
-            m_CreatedControls.Add(new ControlDescriptor { label = label, value = value });
+            m_CreatedControls.Add(new ControlDescriptor { nodeId = nodeRef.node.tempId, label = label, value = value });
             // TODO: Figure out IDs
-            return new ControlRef { id = 1 };
+            return default;// new ControlRef { id = 1 };
         }
 
         public void DestroyControl(ControlRef controlRef)
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_CurrentSetupContextId != m_Graph.currentContextId)
             {
-                throw new InvalidOperationException($"{nameof(NodeChangeContext)} is only valid during the call to {nameof(IShaderNode)}.{nameof(IShaderNode.OnChange)} it was provided for.");
+                throw new InvalidOperationException($"{nameof(NodeTypeChangeContext)} is only valid during the call to {nameof(IShaderNodeType)}.{nameof(IShaderNodeType.OnChange)} it was provided for.");
             }
         }
     }

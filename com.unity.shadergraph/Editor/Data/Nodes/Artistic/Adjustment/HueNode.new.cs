@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    class NewHueNode : IShaderNode
+    class NewHueNode : IShaderNodeType
     {
         PortRef m_InPort;
         PortRef m_OffsetPort;
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         HlslSourceRef m_Source;
 
-        public void OnChange(ref NodeChangeContext context)
+        public void OnChange(ref NodeTypeChangeContext context)
         {
             // TODO: Figure out what should cause the user to create the hlsl source
             // TODO: How does sharing files between multiple node types work?

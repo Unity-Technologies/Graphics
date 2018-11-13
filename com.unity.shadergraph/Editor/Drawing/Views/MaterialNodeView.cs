@@ -33,7 +33,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_SettingsButton;
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
-
+        VisualElement m_Contents;
+        VisualElement m_ControlsContainer;
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -43,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (inNode == null)
                 return;
 
-            var contents = this.Q("contents");
+            m_Contents = this.Q("contents");
 
             m_ConnectorListener = connectorListener;
             node = inNode;
@@ -51,21 +52,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateTitle();
 
             // Add controls container
-            var controlsContainer = new VisualElement { name = "controls" };
+            m_ControlsContainer = new VisualElement { name = "controls" };
             {
                 m_ControlsDivider = new VisualElement { name = "divider" };
                 m_ControlsDivider.AddToClassList("horizontal");
-                controlsContainer.Add(m_ControlsDivider);
+                m_ControlsContainer.Add(m_ControlsDivider);
                 m_ControlItems = new VisualElement { name = "items" };
-                controlsContainer.Add(m_ControlItems);
+                m_ControlsContainer.Add(m_ControlItems);
 
                 // Instantiate control views from node
                 foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                     foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
-                        m_ControlItems.Add(attribute.InstantiateControl(node, propertyInfo));
+                        AddControl(attribute.InstantiateControl(node, propertyInfo));
             }
-            if (m_ControlItems.childCount > 0)
-                contents.Add(controlsContainer);
 
             if (node.hasPreview)
             {
@@ -117,7 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }));
                     m_PreviewFiller.Add(expandPreviewButton);
                 }
-                contents.Add(m_PreviewFiller);
+                m_Contents.Add(m_PreviewFiller);
 
                 UpdatePreviewExpandedState(node.previewExpanded);
             }
@@ -193,6 +192,29 @@ namespace UnityEditor.ShaderGraph.Drawing
                 //titleButtonContainer.Add(m_CollapseButton);
 
                 RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            }
+        }
+
+        public void AddControl(VisualElement control)
+        {
+            m_ControlItems.Add(control);
+            if (m_ControlsContainer.parent != m_Contents)
+            {
+                m_Contents.Add(m_ControlsContainer);
+                m_ControlsContainer.PlaceBehind(m_PreviewFiller);
+            }
+        }
+
+        public void RemoveControl(VisualElement control)
+        {
+            if (control.parent != m_ControlsContainer)
+            {
+                throw new ArgumentException($"{nameof(control)} is not a child of {nameof(m_ControlsContainer)}");
+            }
+            control.RemoveFromHierarchy();
+            if (m_ControlsContainer.childCount == 0)
+            {
+                m_ControlsContainer.RemoveFromHierarchy();
             }
         }
 

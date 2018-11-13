@@ -1,8 +1,8 @@
 namespace UnityEditor.ShaderGraph
 {
-    public interface IShaderNode
+    public interface IShaderNodeType
     {
         void Setup(ref NodeSetupContext context);
-        void OnChange(ref NodeChangeContext context);
+        void OnChange(ref NodeTypeChangeContext context);
     }
 }

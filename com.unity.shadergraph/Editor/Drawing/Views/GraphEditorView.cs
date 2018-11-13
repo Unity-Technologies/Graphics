@@ -5,6 +5,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
@@ -350,6 +351,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.UpdatePortInputVisibilities();
 
             UpdateEdgeColors(nodesToUpdate);
+
+            foreach (var controlDescriptor in m_Graph.createdControls)
+            {
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().First(x => x.node.tempId == controlDescriptor.nodeId);
+                var node = nodeView.node;
+                var controlView = new MultiFloatControlView(controlDescriptor.label, "", "", "", "", node, typeof(float),
+                    () => new Vector4(controlDescriptor.value, 0, 0, 0), value => { });
+                nodeView.AddControl(controlView);
+            }
         }
 
         void AddNode(INode node)

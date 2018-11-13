@@ -23,7 +23,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (propertyInfo.PropertyType == typeof(Texture3D))
                 return new Texture3DControlView(null, node, propertyInfo);
             if (MultiFloatControlView.validTypes.Contains(propertyInfo.PropertyType))
-                return new MultiFloatControlView(null, "X", "Y", "Z", "W", node, propertyInfo);
+                return new MultiFloatControlView(null, "X", "Y", "Z", "W", node, propertyInfo.PropertyType,
+                    MultiFloatControlAttribute.Getter(node, propertyInfo), MultiFloatControlAttribute.Setter(node, propertyInfo));
             if (typeof(Object).IsAssignableFrom(propertyInfo.PropertyType))
                 return new ObjectControlView(null, node, propertyInfo);
             return null;
