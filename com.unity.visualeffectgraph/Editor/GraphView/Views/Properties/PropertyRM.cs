@@ -437,11 +437,6 @@ namespace UnityEditor.VFX.UI
         public abstract bool showsEverything { get; }
     }
 
-    interface IFloatNAffector<T>
-    {
-        T GetValue(object floatN);
-    }
-
     abstract class PropertyRM<T> : PropertyRM
     {
         public PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
@@ -450,11 +445,7 @@ namespace UnityEditor.VFX.UI
         {
             if (obj != null)
             {
-                if (obj is FloatN)
-                {
-                    m_Value = ((IFloatNAffector<T>)FloatNAffector.Default).GetValue(obj);
-                }
-                else if (m_Provider.portType == typeof(Transform) && obj is Matrix4x4)
+                if (m_Provider.portType == typeof(Transform) && obj is Matrix4x4)
                 {
                     // do nothing
                 }

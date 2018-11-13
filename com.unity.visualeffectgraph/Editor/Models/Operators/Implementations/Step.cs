@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.Operator
             {
                 VFXOperatorUtility.Saturate(VFXOperatorUtility.Ceil(inputExpression[0] - inputExpression[1])),
 
-                // TODO : It would be nice to have inverted step output (1 if below threshold), but we need to be able to define multiple FloatN output slots.
+                // TODO : It would be nice to have inverted step output (1 if below threshold), but we need to be able to define multiple output slots.
                 //VFXOperatorUtility.Clamp( new VFXExpressionFloor(inputExpression[0])-inputExpression[1], VFXValue.Constant(0.0f), VFXValue.Constant(1.0f)),
             };
         }
