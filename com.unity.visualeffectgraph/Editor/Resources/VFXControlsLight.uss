@@ -12,14 +12,14 @@
     background-image: resource("Builtin Skins/LightSkin/Images/mini popup focus.png");
 }
 
-Button.MiniDropDown {
+.unity-button.MiniDropDown {
     background-image: resource("Builtin Skins/LightSkin/Images/mini pulldown.png");
 }
 
-Button.MiniDropDown:hover {
+.unity-button.MiniDropDown:hover {
     background-image: resource("Builtin Skins/LightSkin/Images/mini pulldown focus.png");
 }
 
-Button.MiniDropDown:hover:active {
+.unity-button.MiniDropDown:hover:active {
     background-image: resource("Builtin Skins/LightSkin/Images/mini pulldown act.png");
 }

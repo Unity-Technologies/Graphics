@@ -202,9 +202,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
-            base.Sanitize();
+            base.Sanitize(version);
             if (ResyncSlots(true))
                 Debug.Log(string.Format("Slots have been resynced in {0} of type {1}", name, GetType()));
         }

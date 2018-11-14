@@ -2,28 +2,26 @@
 
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.Experimental;
-using UnityEditor.SceneManagement;
+using System.Reflection;
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.VFX;
 
+
+using UnityEditor.Experimental.VFX;
+
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
-using UnityEditor.Experimental.UIElements.GraphView;
 using EditMode = UnityEditorInternal.EditMode;
 using UnityObject = UnityEngine.Object;
-using System.Reflection;
+
 namespace UnityEditor.VFX
 {
-#if WORKAROUND_TIMELINE
-    class FakeObject : MonoBehaviour
-#else
+#if ! WORKAROUND_TIMELINE
     class FakeObject : ScriptableObject
-#endif
+
     {
         public float aFloat;
         public Vector2 aVector2;
@@ -37,7 +35,7 @@ namespace UnityEditor.VFX
         public long anUInt;
         public bool aBool;
     }
-
+#endif
 
     public static class VisualEffectControl
     {
@@ -233,17 +231,22 @@ namespace UnityEditor.VFX
                     Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
                     c = EditorGUILayout.ColorField(nameContent, c, true, true, true);
 
-                    if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
+                    if (GUI.changed)
                         property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
+                }
+                else if (parameter.realType == typeof(Gradient).Name)
+                {
+                    Gradient newGradient = EditorGUILayout.GradientField(nameContent, property.gradientValue, true);
+
+                    if (GUI.changed)
+                        property.gradientValue = newGradient;
                 }
                 else if (property.propertyType == SerializedPropertyType.Vector4)
                 {
                     var oldVal = property.vector4Value;
                     var newVal = EditorGUILayout.Vector4Field(nameContent, oldVal);
                     if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
-                    {
                         property.vector4Value = newVal;
-                    }
                 }
                 else if (property.propertyType == SerializedPropertyType.ObjectReference)
                 {
@@ -406,6 +409,14 @@ namespace UnityEditor.VFX
                 Event.current.type = savedEventType;
                 menu.DropDown(buttonRect);
             }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            
+            GUILayout.Label("Show Bounds", GUILayout.Width(192));
+
+            VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
+
             GUILayout.EndHorizontal();
         }
 

@@ -39,19 +39,67 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
+        public string title
+        {
+            get;set;
+        }
+
+        public int index
+        {
+            get
+            {
+                if ( m_Parent == null)
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(this);
+                    m_Parent = VisualEffectResource.GetResourceAtPath(assetPath).GetOrCreateGraph();
+                }
+                
+                VFXGraph graph = GetGraph();
+
+                HashSet<VFXData> datas = new HashSet<VFXData>();
+
+                foreach (var child in graph.children.OfType<VFXContext>())
+                {
+                        VFXData data = (child as VFXContext).GetData();
+                        if (data != null)
+                            datas.Add(data);
+                        if (data == this)
+                            return datas.Count();
+                }
+                throw new InvalidOperationException("Can't determine index of a VFXData without context");
+            }
+        }
+
+        public string fileName {
+            get {
+
+                int i = this.index;
+                if (i < 0)
+                    return string.Empty;
+                return string.IsNullOrEmpty(title)?string.Format("System {0}",index):title;
+            }
+        }
+
         public IEnumerable<VFXContext> implicitContexts
         {
             get { return Enumerable.Empty<VFXContext>(); }
         }
 
-        public static VFXData CreateDataType(VFXDataType type)
+        public static VFXData CreateDataType(VFXGraph graph,VFXDataType type)
         {
+            VFXData newVFXData;
             switch (type)
             {
-                case VFXDataType.kParticle:     return ScriptableObject.CreateInstance<VFXDataParticle>();
-                case VFXDataType.kMesh:         return ScriptableObject.CreateInstance<VFXDataMesh>();
+                case VFXDataType.kParticle:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataParticle>();
+                    break;
+                case VFXDataType.kMesh:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataMesh>();
+                    break;
                 default:                        return null;
             }
+            newVFXData.m_Parent = graph;
+            return newVFXData;
         }
 
         public override void OnEnable()
@@ -75,6 +123,17 @@ namespace UnityEditor.VFX
 
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} owners that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
+            }
+        }
+
+        public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+
+            if( m_Parent == null)
+            {
+                string assetPath = AssetDatabase.GetAssetPath(this);
+                m_Parent = VisualEffectResource.GetResourceAtPath(assetPath).GetOrCreateGraph();
             }
         }
 

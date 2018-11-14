@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual void Sanitize() {}
+        public virtual void Sanitize(int version) {}
 
         public virtual void OnUnknownChange()
         {

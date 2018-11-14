@@ -1,6 +1,6 @@
 VFXFlowEdge.edge
 {
-    edge-width:4;
+    --edge-width:4;
     border-color : rgba(146,146,146,255);
 }
 
@@ -11,5 +11,5 @@ VFXFlowEdge.edge.selected
 
 VFXFlowEdge.edge:hover
 {
-    edge-width:6;
+    --edge-width:6;
 }

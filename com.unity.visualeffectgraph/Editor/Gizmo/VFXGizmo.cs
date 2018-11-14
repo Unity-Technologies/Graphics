@@ -41,6 +41,7 @@ namespace UnityEditor.VFX
         protected const float arcHandleSizeMultiplier = 1.25f;
 
         public VFXCoordinateSpace currentSpace { get; set; }
+        public bool spaceLocalByDefault { get; set; }
         public VisualEffect component {get; set; }
 
         public bool PositionGizmo(ref Vector3 position, bool always)
@@ -220,10 +221,22 @@ namespace UnityEditor.VFX
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
-            if (currentSpace == VFXCoordinateSpace.Local)
+            if( !spaceLocalByDefault)
             {
-                if (component == null) return;
-                Handles.matrix = component.transform.localToWorldMatrix;
+                if (currentSpace == VFXCoordinateSpace.Local)
+                {
+                    if (component == null) return;
+                    Handles.matrix = component.transform.localToWorldMatrix;
+                }
+            }
+            else
+            {
+                if (currentSpace != VFXCoordinateSpace.Local)
+                {
+                    if (component == null) return;
+                    Handles.matrix = component.transform.worldToLocalMatrix;
+                }
+
             }
 
             OnDrawSpacedGizmo(value);
@@ -247,7 +260,7 @@ namespace UnityEditor.VFX
 
         public override bool needsComponent
         {
-            get { return currentSpace == VFXCoordinateSpace.Local; }
+            get { return (currentSpace == VFXCoordinateSpace.Local) != spaceLocalByDefault; }
         }
 
         public abstract void OnDrawSpacedGizmo(T value);
