@@ -4,8 +4,8 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
                     if(stage != ShaderStageCapability.All)
                         return stage;
                 }
-                
+
                 return ShaderStageCapability.All;
             }
         }
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph
                 slot.stageCapability = ShaderStageCapability.All;
 
             var effectiveStage = effectiveShaderStage;
-            
+
             foreach(MaterialSlot slot in slots)
                 slot.stageCapability = effectiveStage;
         }

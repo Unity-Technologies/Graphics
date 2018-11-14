@@ -2,9 +2,9 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (components == -1)
                 throw new ArgumentException("Property must be of type float, Vector2, Vector3 or Vector4.", "propertyInfo");
 
-            AddStyleSheetPath("Styles/Controls/MultiFloatControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/MultiFloatControlView"));
             m_Node = node;
             m_PropertyInfo = propertyInfo;
 
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             dragger.SetDragZone(label);
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
-            field.OnValueChanged(evt =>
+            field.RegisterValueChangedCallback(evt =>
                 {
                     var value = GetValue();
                     value[index] = (float)evt.newValue;
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_UndoGroup = -1;
                     this.MarkDirtyRepaint();
                 });
-            field.RegisterCallback<InputEvent>(evt =>
+            field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
                 {
                     if (m_UndoGroup == -1)
                     {
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     SetValue(value);
                     this.MarkDirtyRepaint();
                 });
-            field.RegisterCallback<KeyDownEvent>(evt =>
+            field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
                 {
                     if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
                     {

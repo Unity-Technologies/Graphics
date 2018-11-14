@@ -20,10 +20,14 @@ DielectricSpecularControlView > #enumPanel > Label {
     width: 60;
 }
 
-DielectricSpecularControlView > #enumPanel > EnumField {
+DielectricSpecularControlView > #enumPanel > EnumField .unity-base-field__input {
     flex-grow: 1;
     margin-left: 0;
     margin-right: 0;
+}
+DielectricSpecularControlView .unity-enum-field__text {
+    margin-left: 5;
+    margin-right: 10;
 }
 
 DielectricSpecularControlView > #sliderPanel {
@@ -45,10 +49,17 @@ DielectricSpecularControlView > #sliderPanel > Slider {
     flex-grow: 1;
     margin-left: 0;
     margin-right: 0;
+    overflow:visible;
+}
+
+DielectricSpecularControlView > #sliderPanel > Slider .unity-base-field__input {
+    overflow:visible;
 }
 
 DielectricSpecularControlView > #sliderPanel > FloatField {
-    width: 30;
+    width: 35;
+}
+DielectricSpecularControlView > #sliderPanel > FloatField > .unity-base-field__input{
     margin-left: 4;
     margin-right: 0;
 }

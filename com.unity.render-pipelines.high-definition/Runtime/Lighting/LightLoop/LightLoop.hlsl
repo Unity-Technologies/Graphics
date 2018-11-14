@@ -148,8 +148,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 #if SCALARIZE_LIGHT_LOOP
         // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-        uint lightStartLane0 = WaveReadFirstLane(lightStart);
-        fastPath = all(Ballot(lightStart == lightStartLane0) == ~0);
+        uint lightStartLane0 = WaveReadLaneFirst(lightStart);
+        fastPath = WaveActiveAllTrue(lightStart == lightStartLane0); 
 #endif
 
 #else   // LIGHTLOOP_TILE_PASS
@@ -180,22 +180,22 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             if (!fastPath)
             {
                 // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave. 
-                s_lightIdx = WaveMinUint(v_lightIdx);
-                // If WaveMinUint returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-               // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveMin
+                s_lightIdx = WaveActiveMin(v_lightIdx);
+                // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+               // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
                 if (s_lightIdx == -1)
                 {
                     break;
                 }
             }
-            // Note that the WaveReadFirstLane should not be needed, but the compiler might insist in putting the result in VGPR.
+            // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
             // However, we are certain at this point that the index is scalar.
-            s_lightIdx = WaveReadFirstLane(s_lightIdx);
+            s_lightIdx = WaveReadLaneFirst(s_lightIdx);
 #endif
             LightData s_lightData = FetchLight(s_lightIdx);
 
             // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
-            // Note that the following should really be ==, however, since helper lanes are not considered by WaveMinUint, such helper lanes could
+            // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
             // end up with a unique v_lightIdx value that is smaller than s_lightIdx hence being stuck in a loop. All the active lanes will not have this problem.
             if (s_lightIdx >= v_lightIdx)
             {
@@ -284,8 +284,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     #if SCALARIZE_LIGHT_LOOP
         // Fast path is when we all pixels in a wave is accessing same tile or cluster.
-        uint envStartFirstLane = WaveReadFirstLane(envLightStart);
-        fastPath = all(Ballot(envLightStart == envStartFirstLane) == ~0);
+        uint envStartFirstLane = WaveReadLaneFirst(envLightStart);
+        fastPath = WaveActiveAllTrue(envLightStart == envStartFirstLane); 
     #endif
 
 #else   // LIGHTLOOP_TILE_PASS
@@ -345,25 +345,25 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             #if SCALARIZE_LIGHT_LOOP
                 if (!fastPath)
                 {
-                    s_envLightIdx = WaveMinUint(v_envLightIdx);
+                    s_envLightIdx = WaveActiveMin(v_envLightIdx);
                     // If we are not in fast path, s_envLightIdx is not scalar
-                   // If WaveMinUint returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-                   // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveMin
+                   // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+                   // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
                     if (s_envLightIdx == -1)
                     {
                         break;
                     }
                 }
-                // Note that the WaveReadFirstLane should not be needed, but the compiler might insist in putting the result in VGPR.
+                // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
                 // However, we are certain at this point that the index is scalar.
-                s_envLightIdx = WaveReadFirstLane(s_envLightIdx);
+                s_envLightIdx = WaveReadLaneFirst(s_envLightIdx);
 
             #endif
 
                 EnvLightData s_envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
 
                 // If current scalar and vector light index match, we process the light. The v_envLightListOffset for current thread is increased.
-                // Note that the following should really be ==, however, since helper lanes are not considered by WaveMinUint, such helper lanes could
+                // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
                 // end up with a unique v_envLightIdx value that is smaller than s_envLightIdx hence being stuck in a loop. All the active lanes will not have this problem.
                 if (s_envLightIdx >= v_envLightIdx)
                 {

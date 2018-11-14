@@ -8,7 +8,9 @@ Shader "Hidden/Lightweight Render Pipeline/Blit"
         Pass
         {
             Name "Blit"
-            ZTest Always ZWrite Off
+            ZTest Always
+            ZWrite Off
+            Cull Off
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library

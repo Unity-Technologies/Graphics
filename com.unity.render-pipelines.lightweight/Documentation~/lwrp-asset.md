@@ -1,4 +1,4 @@
-**Note:** While LWRP is in preview, this documentation might not reflect the end-result 100%, and is therefore subject to change.
+**Note:** This page is subject to change during the 2019.1 beta cycle.
 
 # Lightweight Render Pipeline Asset
 To use the Lightweight Render Pipeline (LWRP), you have to [create a LWRP Asset and assign the asset in the Graphics settings](Configuring-LWRP-for-use.md). 

@@ -1,8 +1,8 @@
 using System;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 Add(new Label(label));
 
             var textureField = new ObjectField { value = (Texture)m_PropertyInfo.GetValue(m_Node, null), objectType = typeof(Texture) };
-            textureField.OnValueChanged(OnChange);
+            textureField.RegisterValueChangedCallback(OnChange);
             Add(textureField);
         }
 
