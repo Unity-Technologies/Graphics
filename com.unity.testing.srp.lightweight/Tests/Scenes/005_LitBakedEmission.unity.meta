@@ -1,8 +1,9 @@
 fileFormatVersion: 2
 guid: e23c793ace3c4a146a73360af1600fbd
-timeCreated: 1493306791
-licenseType: Pro
+labels:
+- TestRunnerBake
 DefaultImporter:
+  externalObjects: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

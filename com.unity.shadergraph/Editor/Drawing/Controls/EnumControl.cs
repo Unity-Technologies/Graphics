@@ -1,8 +1,8 @@
 using System;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -29,14 +29,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public EnumControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
-            AddStyleSheetPath("Styles/Controls/EnumControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/EnumControlView"));
             m_Node = node;
             m_PropertyInfo = propertyInfo;
             if (!propertyInfo.PropertyType.IsEnum)
                 throw new ArgumentException("Property must be an enum.", "propertyInfo");
             Add(new Label(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name)));
             var enumField = new EnumField((Enum)m_PropertyInfo.GetValue(m_Node, null));
-            enumField.OnValueChanged(OnValueChanged);
+            enumField.RegisterValueChangedCallback(OnValueChanged);
             Add(enumField);
         }
 

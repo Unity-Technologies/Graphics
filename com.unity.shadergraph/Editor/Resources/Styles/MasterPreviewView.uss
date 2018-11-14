@@ -1,8 +1,8 @@
 MasterPreviewView {
     flex-direction: column;
-    position-type: absolute;
-    position-right: 10;
-    position-bottom: 10;
+    position: absolute;
+    right: 10;
+    bottom: 10;
     background-color: rgb(79, 79, 79);
     justify-content: flex-start;
     border-radius: 6;
@@ -27,7 +27,7 @@ MasterPreviewView > #top {
 
 MasterPreviewView > #top > #title {
     font-size: 12;
-    text-color: rgb(180, 180, 180);
+    color: rgb(180, 180, 180);
     padding-top: 1;
     padding-bottom: 2;
     padding-left: 2;
@@ -64,15 +64,11 @@ MasterPreviewView > #top > #collapse-container > #icon.expanded {
 
 MasterPreviewView > #middle {
     flex-grow: 1;
-    border-width: 10;
     flex-direction: row;
-    border-color: rgb(0,10,190);
 }
 
 MasterPreviewView > #middle > #preview {
     flex-grow: 1;
-    border-width: 10;
-    border-color: rgb(200,10,190);
     width: 200;
     height: 200;
 }

@@ -1,7 +1,7 @@
 using System;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         ShaderPort(Orientation portOrientation, Direction portDirection, Capacity portCapacity, Type type)
             : base(portOrientation, portDirection, portCapacity, type)
         {
-            AddStyleSheetPath("Styles/ShaderPort");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderPort"));
         }
 
         MaterialSlot m_Slot;

@@ -26,9 +26,9 @@ MaterialNodeView #controls > #items {
 }
 
 MaterialNodeView > #previewContainer {
-    position-type: absolute;
-    position-bottom: 4;
-    position-left: 4;
+    position: absolute;
+    bottom: 4;
+    left: 4;
     border-radius: 6;
     padding-top: 6;
 }
@@ -96,19 +96,19 @@ MaterialNodeView #previewFiller.expanded > #expand {
 
 MaterialNodeView > #resize {
     background-image : resource("GraphView/Nodes/NodeChevronLeft.png");
-    position-type: absolute;
-    position-right: 5;
-    position-bottom: 5;
+    position: absolute;
+    right: 5;
+    bottom: 5;
     width: 10;
     height: 10;
     cursor: resize-up-left;
 }
 
 MaterialNodeView > #portInputContainer {
-    position-type: absolute;
-    width: 212;
-    position-left: -200;
-    position-top: 46;
+    position: absolute;
+    width: 232;
+    left: -220;
+    top: 46;
 }
 
 MaterialNodeView > #settings-container {

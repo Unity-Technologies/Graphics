@@ -1,16 +1,12 @@
 using System;
 using System.Linq;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleSheets;
-using Toggle = UnityEngine.Experimental.UIElements.Toggle;
-#if UNITY_2018_3_OR_NEWER
-using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
-#endif
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
+using Toggle = UnityEngine.UIElements.Toggle;
+using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -23,13 +19,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         Toggle m_ExposedToogle;
         TextField m_ReferenceNameField;
 
-        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
+        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
 
         IManipulator m_ResetReferenceMenu;
 
         public BlackboardFieldPropertyView(BlackboardField blackboardField, AbstractMaterialGraph graph, IShaderProperty property)
         {
-            AddStyleSheetPath("Styles/ShaderGraphBlackboard");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_BlackboardField = blackboardField;
             m_Graph = graph;
             m_Property = property;
@@ -52,11 +48,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Exposed", m_ExposedToogle);
 
             m_ReferenceNameField = new TextField(512, false, false, ' ');
-            m_ReferenceNameField.AddStyleSheetPath("Styles/PropertyNameReferenceField");
+            m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
             AddRow("Reference", m_ReferenceNameField);
             m_ReferenceNameField.value = property.referenceName;
             m_ReferenceNameField.isDelayed = true;
-            m_ReferenceNameField.OnValueChanged(newName =>
+            m_ReferenceNameField.RegisterValueChangedCallback(newName =>
                 {
                     if (m_ReferenceNameField.value != m_Property.referenceName)
                     {
@@ -91,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (floatProperty.floatType == FloatType.Integer)
                 {
                     var field = new IntegerField { value = (int)floatProperty.value };
-                    field.OnValueChanged(intEvt =>
+                    field.RegisterValueChangedCallback(intEvt =>
                         {
                             floatProperty.value = (float)intEvt.newValue;
                             DirtyNodes();
@@ -101,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     floatField = new FloatField { value = floatProperty.value };
-                    floatField.OnValueChanged(evt =>
+                    floatField.RegisterValueChangedCallback(evt =>
                         {
                             floatProperty.value = (float)evt.newValue;
                             DirtyNodes();
@@ -111,7 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var floatModeField = new EnumField((Enum)floatProperty.floatType);
                 floatModeField.value = floatProperty.floatType;
-                floatModeField.OnValueChanged(evt =>
+                floatModeField.RegisterValueChangedCallback(evt =>
                     {
                         if (floatProperty.floatType == (FloatType)evt.newValue)
                             return;
@@ -123,7 +119,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 RemoveElements(new VisualElement[] {floatRow, intRow, modeRow, minRow, maxRow});
                                 var field = new FloatField { value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x) };
                                 floatProperty.value = (float)field.value;
-                                field.OnValueChanged(defaultEvt =>
+                                field.RegisterValueChangedCallback(defaultEvt =>
                             {
                                 floatProperty.value = Mathf.Max(Mathf.Min((float)defaultEvt.newValue, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
                                 field.value = floatProperty.value;
@@ -133,7 +129,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 field.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
                                 modeRow = AddRow("Mode", floatModeField);
                                 var minField = new FloatField { value = floatProperty.rangeValues.x };
-                                minField.OnValueChanged(minEvt =>
+                                minField.RegisterValueChangedCallback(minEvt =>
                             {
                                 floatProperty.rangeValues = new Vector2((float)minEvt.newValue, floatProperty.rangeValues.y);
                                 floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
@@ -142,7 +138,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             });
                                 minRow = AddRow("Min", minField);
                                 var maxField = new FloatField { value = floatProperty.rangeValues.y };
-                                maxField.OnValueChanged(maxEvt =>
+                                maxField.RegisterValueChangedCallback(maxEvt =>
                             {
                                 floatProperty.rangeValues = new Vector2(floatProperty.rangeValues.x, (float)maxEvt.newValue);
                                 floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
@@ -154,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             case FloatType.Integer:
                                 RemoveElements(new VisualElement[] {floatRow, intRow, modeRow, minRow, maxRow});
                                 var intField = new IntegerField { value = (int)floatProperty.value };
-                                intField.OnValueChanged(intEvt =>
+                                intField.RegisterValueChangedCallback(intEvt =>
                             {
                                 floatProperty.value = (float)intEvt.newValue;
                                 DirtyNodes();
@@ -165,7 +161,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             default:
                                 RemoveElements(new VisualElement[] {floatRow, intRow, modeRow, minRow, maxRow});
                                 field = new FloatField { value = floatProperty.value };
-                                field.OnValueChanged(defaultEvt =>
+                                field.RegisterValueChangedCallback(defaultEvt =>
                             {
                                 floatProperty.value = (float)defaultEvt.newValue;
                                 DirtyNodes();
@@ -181,7 +177,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (floatProperty.floatType == FloatType.Slider)
                 {
                     var minField = new FloatField { value = floatProperty.rangeValues.x };
-                    minField.OnValueChanged(minEvt =>
+                    minField.RegisterValueChangedCallback(minEvt =>
                         {
                             floatProperty.rangeValues = new Vector2((float)minEvt.newValue, floatProperty.rangeValues.y);
                             floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
@@ -190,7 +186,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         });
                     minRow = AddRow("Min", minField);
                     var maxField = new FloatField { value = floatProperty.rangeValues.y };
-                    maxField.OnValueChanged(maxEvt =>
+                    maxField.RegisterValueChangedCallback(maxEvt =>
                         {
                             floatProperty.rangeValues = new Vector2(floatProperty.rangeValues.x, (float)maxEvt.newValue);
                             floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
@@ -204,7 +200,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var vectorProperty = (Vector2ShaderProperty)property;
                 var field = new Vector2Field { value = vectorProperty.value };
-                field.OnValueChanged(evt =>
+                field.RegisterValueChangedCallback(evt =>
                     {
                         vectorProperty.value = evt.newValue;
                         DirtyNodes();
@@ -215,7 +211,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var vectorProperty = (Vector3ShaderProperty)property;
                 var field = new Vector3Field { value = vectorProperty.value };
-                field.OnValueChanged(evt =>
+                field.RegisterValueChangedCallback(evt =>
                     {
                         vectorProperty.value = evt.newValue;
                         DirtyNodes();
@@ -226,7 +222,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var vectorProperty = (Vector4ShaderProperty)property;
                 var field = new Vector4Field { value = vectorProperty.value };
-                field.OnValueChanged(evt =>
+                field.RegisterValueChangedCallback(evt =>
                     {
                         vectorProperty.value = evt.newValue;
                         DirtyNodes();
@@ -237,14 +233,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var colorProperty = (ColorShaderProperty)property;
                 var colorField = new ColorField { value = property.defaultValue, showEyeDropper = false, hdr = colorProperty.colorMode == ColorMode.HDR };
-                colorField.OnValueChanged(evt =>
+                colorField.RegisterValueChangedCallback(evt =>
                     {
                         colorProperty.value = evt.newValue;
                         DirtyNodes();
                     });
                 AddRow("Default", colorField);
                 var colorModeField = new EnumField((Enum)colorProperty.colorMode);
-                colorModeField.OnValueChanged(evt =>
+                colorModeField.RegisterValueChangedCallback(evt =>
                     {
                         if (colorProperty.colorMode == (ColorMode)evt.newValue)
                             return;
@@ -259,14 +255,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var textureProperty = (TextureShaderProperty)property;
                 var field = new ObjectField { value = textureProperty.value.texture, objectType = typeof(Texture) };
-                field.OnValueChanged(evt =>
+                field.RegisterValueChangedCallback(evt =>
                     {
                         textureProperty.value.texture = (Texture)evt.newValue;
                         DirtyNodes();
                     });
                 AddRow("Default", field);
                 var defaultModeField = new EnumField((Enum)textureProperty.defaultType);
-                defaultModeField.OnValueChanged(evt =>
+                defaultModeField.RegisterValueChangedCallback(evt =>
                     {
                         if (textureProperty.defaultType == (TextureShaderProperty.DefaultType)evt.newValue)
                             return;
@@ -279,7 +275,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var textureProperty = (Texture2DArrayShaderProperty)property;
                 var field = new ObjectField { value = textureProperty.value.textureArray, objectType = typeof(Texture2DArray) };
-                field.OnValueChanged(evt =>
+                field.RegisterValueChangedCallback(evt =>
                     {
                         textureProperty.value.textureArray = (Texture2DArray)evt.newValue;
                         DirtyNodes();
@@ -290,7 +286,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var textureProperty = (Texture3DShaderProperty)property;
                 var field = new ObjectField { value = textureProperty.value.texture, objectType = typeof(Texture3D) };
-                field.OnValueChanged(evt =>
+                field.RegisterValueChangedCallback(evt =>
                     {
                         textureProperty.value.texture = (Texture3D)evt.newValue;
                         DirtyNodes();
@@ -301,7 +297,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var cubemapProperty = (CubemapShaderProperty)property;
                 var field = new ObjectField { value = cubemapProperty.value.cubemap, objectType = typeof(Cubemap) };
-                field.OnValueChanged(evt =>
+                field.RegisterValueChangedCallback(evt =>
                     {
                         cubemapProperty.value.cubemap = (Cubemap)evt.newValue;
                         DirtyNodes();
@@ -355,7 +351,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ReferenceNameField.value = m_Property.referenceName;
                     m_ReferenceNameField.RemoveFromClassList("modified");
                     DirtyNodes(ModificationScope.Graph);
-                }, ContextualMenu.MenuAction.AlwaysEnabled);
+                }, DropdownMenuAction.AlwaysEnabled);
         }
 
         VisualElement AddRow(string labelText, VisualElement control)

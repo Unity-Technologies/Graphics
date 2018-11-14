@@ -1,9 +1,10 @@
 using System;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using Color = UnityEditor.ShaderGraph.ColorNode.Color;
+
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -37,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             m_Node = node;
             m_PropertyInfo = propertyInfo;
-            AddStyleSheetPath("Styles/Controls/ColorControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ColorControlView"));
             if (propertyInfo.PropertyType != typeof(Color))
                 throw new ArgumentException("Property must be of type Color.", "propertyInfo");
             label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
@@ -48,13 +49,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 Add(new Label(label));
 
             m_ColorField = new ColorField { value = m_Color.color, hdr = m_Color.mode == ColorMode.HDR, showEyeDropper = false };
-            m_ColorField.OnValueChanged(OnChange);
+            m_ColorField.RegisterValueChangedCallback(OnChange);
             Add(m_ColorField);
 
             VisualElement enumPanel = new VisualElement { name = "enumPanel" };
             enumPanel.Add(new Label("Mode"));
             var enumField = new EnumField(m_Color.mode);
-            enumField.OnValueChanged(OnModeChanged);
+            enumField.RegisterValueChangedCallback(OnModeChanged);
             enumPanel.Add(enumField);
             Add(enumPanel);
         }

@@ -1,7 +1,8 @@
-using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
@@ -11,14 +12,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public ColorRGBSlotControlView(ColorRGBMaterialSlot slot)
         {
-            AddStyleSheetPath("Styles/Controls/ColorRGBSlotControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ColorRGBSlotControlView"));
             m_Slot = slot;
             var colorField = new ColorField
             {
                 value = new Color(slot.value.x, slot.value.y, slot.value.z, 0),
                 showEyeDropper = false, showAlpha = false, hdr = (slot.colorMode == ColorMode.HDR)
             };
-            colorField.OnValueChanged(OnValueChanged);
+            colorField.RegisterValueChangedCallback(OnValueChanged);
             Add(colorField);
         }
 

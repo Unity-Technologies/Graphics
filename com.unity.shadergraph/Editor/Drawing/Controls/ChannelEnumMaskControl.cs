@@ -2,7 +2,8 @@ using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEngine.Experimental.UIElements;
+
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -34,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public ChannelEnumMaskControlView(string label, int slotId, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
-            AddStyleSheetPath("Styles/Controls/ChannelEnumMaskControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ChannelEnumMaskControlView"));
             m_Node = node;
             m_PropertyInfo = propertyInfo;
             m_SlotId = slotId;
