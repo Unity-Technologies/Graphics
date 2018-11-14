@@ -13,9 +13,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Inspector = CED.Group(SectionDecalSettings);
         }
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer Inspector;
 
         public static readonly CED.IDrawer SectionDecalSettings = CED.FoldoutGroup(
+#pragma warning disable 618
             "Decals",
             (s, d, o) => s.isSectionExpendedDecalSettings,
             FoldoutOption.None,

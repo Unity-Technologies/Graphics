@@ -10,7 +10,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class FrameSettingsUI
     {
+#pragma warning disable 618 //CED
         internal static CED.IDrawer Inspector(bool withOverride = true)
+#pragma warning restore 618
         {
             return CED.Group(
                 CED.Action((s, d, o) =>
@@ -24,7 +26,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         //separated to add enum popup on default frame settings
+#pragma warning disable 618 //CED
         internal static CED.IDrawer InspectorInnerbox(bool withOverride = true)
+#pragma warning restore 618
         {
             return CED.Group(
                 SectionRenderingPasses(withOverride),
@@ -39,7 +43,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 );
         }
 
+#pragma warning disable 618 //CED
         public static CED.IDrawer SectionRenderingPasses(bool withOverride)
+#pragma warning restore 618
         {
             return CED.FoldoutGroup(
                 renderingPassesHeaderContent,
@@ -49,8 +55,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.space
                 );
         }
-        
+
+#pragma warning disable 618 //CED
         public static CED.IDrawer SectionRenderingSettings(bool withOverride)
+#pragma warning restore 618
         {
             return CED.FoldoutGroup(
                 renderingSettingsHeaderContent,
@@ -61,7 +69,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 );
         }
 
+#pragma warning disable 618 //CED
         public static CED.IDrawer SectionAsyncComputeSettings(bool withOverride)
+#pragma warning restore 618
         {
             return CED.FoldoutGroup(
                 asyncComputeSettingsHeaderContent,
@@ -72,7 +82,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 );
         }
         
+#pragma warning disable 618 //CED
         public static CED.IDrawer SectionLightingSettings(bool withOverride)
+#pragma warning restore 618
         {
             return CED.FoldoutGroup(
                 lightSettingsHeaderContent,
