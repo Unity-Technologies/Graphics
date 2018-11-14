@@ -1204,7 +1204,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             SSAOTask.Start(cmd, renderContext, (CommandBuffer asyncCmd) =>
                             {
-                                RenderSSAO(asyncCmd, hdCamera, renderContext, postProcessLayer);
+                                SSAODispatch(asyncCmd, hdCamera, renderContext, postProcessLayer);
                             }, !haveAsyncTaskWithShadows);
 
                             haveAsyncTaskWithShadows = true;
@@ -1274,7 +1274,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (hdCamera.frameSettings.SSAORunsAsync())
                         {
-                            SSAOTask.End(cmd);
+                            SSAOTask.EndWithPostWork(cmd, () =>
+                            {
+                                SSAOPostDispatchWork(cmd, hdCamera, renderContext, postProcessLayer);
+                            }
+                            );
                         }
 
                         if (hdCamera.frameSettings.SSRRunsAsync())
@@ -1788,6 +1792,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderSSAO(CommandBuffer cmd, HDCamera hdCamera, ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer)
         {
+            SSAODispatch(cmd, hdCamera, renderContext, postProcessLayer);
+            SSAOPostDispatchWork(cmd, hdCamera, renderContext, postProcessLayer);
+        }
+
+        void SSAODispatch(CommandBuffer cmd, HDCamera hdCamera, ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer)
+        {
             var camera = hdCamera.camera;
 
             // Apply SSAO from PostProcessLayer
@@ -1806,7 +1816,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         HDUtils.CheckRTCreated(aoTarget.rt);
                         postProcessLayer.BakeMSVOMap(cmd, camera, aoTarget, depthTexture, true, hdCamera.frameSettings.enableMSAA);
                     }
+                }
+            }
 
+        }
+
+        void SSAOPostDispatchWork(CommandBuffer cmd, HDCamera hdCamera, ScriptableRenderContext renderContext, PostProcessLayer postProcessLayer)
+        {
+            if (hdCamera.frameSettings.enableSSAO && postProcessLayer != null && postProcessLayer.enabled)
+            {
+                var settings = postProcessLayer.GetSettings<AmbientOcclusion>();
+
+                if (settings.IsEnabledAndSupported(null))
+                {
                     if (hdCamera.frameSettings.enableMSAA)
                     {
                         using (new ProfilingSample(cmd, "Resolve AO Buffer", CustomSamplerId.BlitDebugViewMaterialDebug.GetSampler()))
