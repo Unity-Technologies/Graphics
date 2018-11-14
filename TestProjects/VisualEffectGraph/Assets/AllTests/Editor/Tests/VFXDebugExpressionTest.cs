@@ -1,4 +1,4 @@
-#if !UNITY_EDITOR_OSX
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.Test
             UnityEngine.Object.DestroyImmediate(gameObj);
             UnityEngine.Object.DestroyImmediate(cameraObj);
         }
-
+        /*
         [UnityTest]
         public IEnumerator CreateAsset_And_Check_Exception_On_Invalid_Graph()
         {
@@ -148,6 +148,7 @@ namespace UnityEditor.VFX.Test
 
             yield return null;
         }
+        */
     }
 }
 #endif

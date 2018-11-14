@@ -35,7 +35,9 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
-        public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.Float);
+        public static readonly VFXAttribute AngularVelocityX    = new VFXAttribute("angularVelocityX", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute AngularVelocityY    = new VFXAttribute("angularVelocityY", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute AngularVelocityZ    = new VFXAttribute("angularVelocityZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.Float);
         public static readonly VFXAttribute PivotX              = new VFXAttribute("pivotX", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute PivotY              = new VFXAttribute("pivotY", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
@@ -68,7 +70,8 @@ namespace UnityEditor.VFX
         {
             new VFXAttribute("size", VFXValue.Constant(new Vector3(kDefaultSize, kDefaultSize, kDefaultSize)), VFXVariadic.True),
             new VFXAttribute("angle", VFXValueType.Float3, VFXVariadic.True),
-            new VFXAttribute("pivot", VFXValueType.Float3, VFXVariadic.True)
+            new VFXAttribute("angularVelocity", VFXValueType.Float3, VFXVariadic.True),
+            new VFXAttribute("pivot", VFXValueType.Float3, VFXVariadic.True),
         };
 
         public static readonly string[] AllVariadic = AllVariadicAttribute.Select(e => e.name).ToArray();

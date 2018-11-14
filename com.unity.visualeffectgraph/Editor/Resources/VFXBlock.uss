@@ -52,7 +52,7 @@ VFXContextUI VFXBlockUI.node #node-border #title.disabled #title-label
     opacity:0.5;
 }
 
-VFXBlockUI.node #title Toggle
+VFXBlockUI.node #title .unity-toggle
 {
     -margin-right:0;
 }

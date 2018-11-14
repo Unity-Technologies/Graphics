@@ -1,11 +1,9 @@
 using System;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.UIElements;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.Experimental.UIElements;
-
-using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
@@ -34,8 +32,8 @@ namespace  UnityEditor.VFX.UI
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenu.MenuAction.AlwaysEnabled);
-            evt.menu.AppendAction("Delete", (a) => GetFirstAncestorOfType<VFXView>().DeleteElements(new GraphElement[] { this }), DropdownMenu.MenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Delete", (a) => GetFirstAncestorOfType<VFXView>().DeleteElements(new GraphElement[] { this }), DropdownMenuAction.AlwaysEnabled);
 
             evt.StopPropagation();
         }
@@ -69,7 +67,7 @@ namespace  UnityEditor.VFX.UI
             {
                 foreach (var parameter in view.graphElements.ToList().OfType<VFXParameterUI>().Where(t => t.controller.parentController == controller))
                 {
-                    if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
+                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
                         parameter.AddToClassList("hovered");
                     else
                         parameter.RemoveFromClassList("hovered");

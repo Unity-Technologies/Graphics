@@ -1,4 +1,4 @@
-<UXML xmlns:ui="UnityEngine.Experimental.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
   <ui:VisualElement name="node-border" pickingMode="Ignore" >
     <ui:Label name="title" />
     <ui:TextField name="title-field" />

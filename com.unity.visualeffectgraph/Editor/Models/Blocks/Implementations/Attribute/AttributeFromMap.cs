@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             string newAttrib;
             VariadicChannelOptions channel;
@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.Block
                 Invalidate(InvalidationCause.kSettingChanged);
             }
 
-            base.Sanitize();
+            base.Sanitize(version);
         }
 
         protected override IEnumerable<string> filteredOutSettings

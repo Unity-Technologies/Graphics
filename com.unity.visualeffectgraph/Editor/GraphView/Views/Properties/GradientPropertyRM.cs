@@ -1,15 +1,14 @@
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using GradientField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.GradientField, UnityEngine.Gradient>;
+using GradientField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.UIElements.GradientField, UnityEngine.Gradient>;
 
 namespace UnityEditor.VFX.UI
 {
@@ -22,7 +21,8 @@ namespace UnityEditor.VFX.UI
 
             m_GradientField.style.flexDirection = FlexDirection.Column;
             m_GradientField.style.alignItems = Align.Stretch;
-            m_GradientField.style.flex = new Flex(1, 0);
+            m_GradientField.style.flexGrow = 1f;
+            m_GradientField.style.flexShrink = 0f;
 
             Add(m_GradientField);
         }

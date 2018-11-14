@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
         }
         private static VFXResources s_Instance;
 
-        private const string defaultFileName = "Editor/VFXDefaultResources.asset";
+        private const string defaultFileName = "VFXDefaultResources.asset";
         private static string defaultPath { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/"; } } // Change this to a getter once we handle package mode paths
 
         private static T SafeLoadAssetAtPath<T>(string assetPath) where T : Object
@@ -37,7 +37,8 @@ namespace UnityEditor.VFX
 
         private static void Initialize()
         {
-            var asset = SafeLoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
+
+            var asset = Object.FindObjectOfType<VFXResources>();
             if (asset == null)
             {
                 Debug.LogWarning("Could not find " + defaultFileName + ", creating...");
@@ -72,8 +73,8 @@ namespace UnityEditor.VFX
                     new GradientAlphaKey(0.0f, 1.0f),
                 };
 
-                AssetDatabase.CreateAsset(newAsset, defaultPath + defaultFileName);
-                asset = SafeLoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
+                AssetDatabase.CreateAsset(newAsset, "Assets/" + defaultFileName);
+                asset = SafeLoadAssetAtPath<VFXResources>("Assets/" + defaultFileName);
             }
             s_Instance = asset;
         }
