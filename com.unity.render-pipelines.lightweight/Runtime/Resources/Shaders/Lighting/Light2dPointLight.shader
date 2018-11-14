@@ -1,4 +1,4 @@
-Shader "Internal/Light2DPointLight"
+﻿Shader "Internal/Light2DPointLight"
 {
     Properties
     {
@@ -79,30 +79,23 @@ Shader "Internal/Light2DPointLight"
 				normalUnpacked.z = 0;
 				normalUnpacked = normalize(normalUnpacked);
 
-
-
 				// Inner Radius
 				half  attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
 				attenuation = attenuation * attenuation;
-
-                return attenuation * _LightColor * _LightIntensity; // finalColor;
 
 				// Spotlight
 				half  spotAttenuation = saturate((_OuterAngle-lookupValue.g)*_InnerAngleMult);
 				spotAttenuation = spotAttenuation * spotAttenuation;
 				attenuation = attenuation * spotAttenuation;
 
+				// Calculate final color
+				half2 dirToLight = half2(lookupValueNoRot.b, lookupValueNoRot.a);
+				half2 normal = half2(normalUnpacked.x, normalUnpacked.y);
+				half cosAngle = saturate(dot(dirToLight, normal));
+				half4 color = main.a *_LightColor * _LightIntensity * attenuation;
+				fixed4 finalColor = color * cosAngle; /*  +color * main.z * attenuation); */
 
-    //            
-
-				//// Calculate final color
-				//half2 dirToLight = half2(lookupValueNoRot.b, lookupValueNoRot.a);
-				//half2 normal = half2(normalUnpacked.x, normalUnpacked.y);
-				//half cosAngle = saturate(dot(dirToLight, normal));
-				//half4 color = main.a *_LightColor * _LightIntensity * attenuation;
-				//fixed4 finalColor = color * cosAngle; /*  +color * main.z * attenuation); */
-
-                
+				return finalColor;
 			}
             ENDCG
         }
