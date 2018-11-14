@@ -182,6 +182,8 @@
 
 // On everything but GCN consoles we error on cross-lane operations
 #ifndef SUPPORTS_WAVE_INTRINSICS
+#define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNC(WaveActiveAllTrue)
+#define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNC(WaveActiveAnyTrue)
 #define WaveActiveMin ERROR_ON_UNSUPPORTED_FUNC(WaveActiveMin)
 #define WaveActiveMax ERROR_ON_UNSUPPORTED_FUNC(WaveActiveMax)
 #define WaveActiveBallot ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBallot)
