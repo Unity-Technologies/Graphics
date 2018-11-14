@@ -551,6 +551,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (int i = 0; i < rendererListCount; ++i)
             {
                 m_RendererLists[i] = new RendererList();
+                m_RendererLists[i].name = ((HDRendererList)i).ToString();
             }
 
             // Depth passes
@@ -656,7 +657,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 AddPrepareRendererList(HDRendererList.DepthFull, hdCamera);
             }
-            else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || m_DbufferManager.enableDecals)
+            else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || hdCamera.frameSettings.enableDecals)
             {
                 AddPrepareRendererList(HDRendererList.DepthOnly, hdCamera);
                 AddPrepareRendererList(HDRendererList.DepthForwardOnly, hdCamera);
@@ -1277,18 +1278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ApplyDebugDisplaySettings(hdCamera, cmd);
                     m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
-                    ScriptableCullingParameters cullingParams;
-                    if (!camera.TryGetCullingParameters(camera.stereoEnabled, out cullingParams)) // Fixme remove stereo passdown?
-                    {
-                        renderContext.Submit();
-                        continue;
-                    }
-
-                    if (camera.useOcclusionCulling)
-                        cullingParams.cullingOptions |= CullingOptions.OcclusionCull;
-
-                    m_LightLoop.UpdateCullingParameters(ref cullingParams);
-                    hdCamera.UpdateStereoDependentState(ref cullingParams);
+                    ScriptableCullingParameters cullingParams = new ScriptableCullingParameters();
 
                     if (m_CullingDebug.useNewCulling)
                     {
@@ -1300,9 +1290,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         //m_LightLoop.UpdateCullingParameters(ref m_CullingParametersNew.parameters);
                         //hdCamera.UpdateStereoDependentState(ref m_CullingParametersNew.parameters);
                     }
+                    else
+                    {
+                        if (!camera.TryGetCullingParameters(camera.stereoEnabled, out cullingParams)) // Fixme remove stereo passdown?
+                        {
+                            renderContext.Submit();
+                            continue;
+                        }
 
-                    //if (camera.useOcclusionCulling)
-                    //    m_CullingParametersNew.parameters.cullingFlags |= CullFlag.OcclusionCull;
+                        if (camera.useOcclusionCulling)
+                            cullingParams.cullingOptions |= CullingOptions.OcclusionCull;
+
+                        m_LightLoop.UpdateCullingParameters(ref cullingParams);
+                        hdCamera.UpdateStereoDependentState(ref cullingParams);
+                    }
 
 #if UNITY_EDITOR
                     // emit scene view UI
@@ -1322,11 +1323,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ReflectionSystem.PrepareCull(camera, m_ReflectionProbeCullResults);
 
 
-                    CullingResults cullingResults;
+                    CullingResults cullingResults = new CullingResults();
                     using (new ProfilingSample(cmd, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
                     {
-                        cullingResults = renderContext.Cull(ref cullingParams);
-
                         if (m_CullingDebug.useNewCulling)
                         {
                             m_CullingParametersNew.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.LODMask | CullingTestMask.FlagMaskNot;// | CullingTest.SceneMask;
@@ -1346,18 +1345,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             PrepareRendererLists(hdCamera, m_RenderersCullingResult);
                         }
+                        else
+                        {
+                            cullingResults = renderContext.Cull(ref cullingParams);
+                        }
                     }
 
                     m_IsDepthBufferCopyValid = false; // this is a new render frame
                     m_ReflectionProbeCullResults.Cull();
 
-                    m_DbufferManager.enableDecals = false;
                     if (hdCamera.frameSettings.enableDecals)
                     {
                         using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
                         {
                             DecalSystem.instance.EndCull();
-                            m_DbufferManager.enableDecals = true;              // mesh decals are renderers managed by c++ runtime and we have no way to query if any are visible, so set to true
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
                             DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                             DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
@@ -1409,15 +1410,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Now that all depths have been rendered, resolve the depth buffer
                     m_SharedRTManager.ResolveSharedRT(cmd, hdCamera);
 
-                    // This will bind the depth buffer if needed for DBuffer)
-                    RenderDBuffer(hdCamera, cmd, renderContext, cullingResults);
+                    if (!m_CullingDebug.useNewCulling)
+                    {
+                        // This will bind the depth buffer if needed for DBuffer)
+                        RenderDBuffer(hdCamera, cmd, renderContext, cullingResults);
+                    }
 
                     RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
                     // We can now bind the normal buffer to be use by any effect
                     m_SharedRTManager.BindNormalBuffer(cmd);
 
-                    if (m_DbufferManager.enableDecals && !hdCamera.frameSettings.enableMSAA) // MSAA not supported
+                    if (hdCamera.frameSettings.enableDecals && !hdCamera.frameSettings.enableMSAA) // MSAA not supported
                     {
                         using (new ProfilingSample(cmd, "DBuffer Normal (forward)", CustomSamplerId.DBufferNormal.GetSampler()))
                         {
@@ -2006,56 +2010,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (hdCamera.frameSettings.shaderLitMode)
             {
                 case LitShaderMode.Forward:
-                using (new ProfilingSample(cmd, "Depth Prepass (forward)", CustomSamplerId.DepthPrepass.GetSampler()))
-                {
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
+                    using (new ProfilingSample(cmd, "Depth Prepass (forward)", CustomSamplerId.DepthPrepass.GetSampler()))
+                    {
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
 
                         XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.camera.stereoEnabled);
 
-                    // Full forward: Output normal buffer for both forward and forwardOnly
-                    // Exclude object that render velocity (if motion vector are enabled)
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthFull], 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector : excludeMotion);
-                }
+                        // Full forward: Output normal buffer for both forward and forwardOnly
+                        // Exclude object that render velocity (if motion vector are enabled)
+                        RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthFull], 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector: excludeMotion);
+                    }
                     break;
                 case LitShaderMode.Deferred:
-            // If we enable DBuffer, we need a full depth prepass
-                    if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || m_DbufferManager.enableDecals)
-            {
-                using (new ProfilingSample(cmd, m_DbufferManager.enableDecals ? "Depth Prepass (deferred) force by Decals" : "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
-                {
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
+                    // If we enable DBuffer, we need a full depth prepass
+                    if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || hdCamera.frameSettings.enableDecals)
+                    {
+                        using (new ProfilingSample(cmd, hdCamera.frameSettings.enableDecals ? "Depth Prepass (deferred) force by Decals" : "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
+                        {
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
 
                             XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.camera.stereoEnabled);
 
-                    // First deferred material
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthOnly], 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector: excludeMotion);
+                            // First deferred material
+                            RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthOnly], 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector: excludeMotion);
 
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
 
-                    // Then forward only material that output normal buffer
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthForwardOnly], 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector: excludeMotion);
-                }
-            }
-            else // Deferred with partial depth prepass
-            {
-                using (new ProfilingSample(cmd, "Depth Prepass (deferred incomplete)", CustomSamplerId.DepthPrepass.GetSampler()))
-                {
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
+                            // Then forward only material that output normal buffer
+                            RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthForwardOnly], 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector: excludeMotion);
+                        }
+                    }
+                    else // Deferred with partial depth prepass
+                    {
+                        using (new ProfilingSample(cmd, "Depth Prepass (deferred incomplete)", CustomSamplerId.DepthPrepass.GetSampler()))
+                        {
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
 
                             XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.camera.stereoEnabled);
 
-                    // First deferred alpha tested materials. Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
-                    var renderQueueRange = new RenderQueueRange { lowerBound = (int)RenderQueue.AlphaTest, upperBound = (int)RenderQueue.GeometryLast - 1 };
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthAlphaTest], 0, renderQueueRange);
+                            // First deferred alpha tested materials. Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
+                            var renderQueueRange = new RenderQueueRange { lowerBound = (int)RenderQueue.AlphaTest, upperBound = (int)RenderQueue.GeometryLast - 1 };
+                            RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthAlphaTest], 0, renderQueueRange);
 
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
 
-                    // Then forward only material that output normal buffer
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthForwardOnly], 0, HDRenderQueue.k_RenderQueue_AllOpaque);
+                            // Then forward only material that output normal buffer
+                            RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthForwardOnly], 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                         }
 
                         shouldRenderMotionVectorAfterGBuffer = true;
-                }
+                    }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("Unknown ShaderLitMode");

@@ -1642,7 +1642,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowManager.Clear();
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
-                if (cullResults.visibleLights.Length != 0 || cullResults.visibleReflectionProbes.Length != 0)
+                if (visibleLights.Length != 0 || visibleReflectionProbes.Length != 0)
                 {
                     // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
                     // If we reach maximum of lights available on screen, then we discard the light.
@@ -1651,12 +1651,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int punctualLightcount = 0;
                     int areaLightCount = 0;
 
-                    int lightCount = Math.Min(cullResults.visibleLights.Length, m_MaxLightsOnScreen);
+                    int lightCount = Math.Min(visibleLights.Length, m_MaxLightsOnScreen);
                     UpdateSortKeysArray(lightCount);
                     int sortCount = 0;
-                    for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
+                    for (int lightIndex = 0, numLights = visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
-                        var light = cullResults.visibleLights[lightIndex];
+                        var light = visibleLights[lightIndex];
                         var lightComponent = light.light;
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
@@ -1775,7 +1775,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
                         int lightIndex = (int)(sortKey & 0xFFFF);
 
-                        var light = cullResults.visibleLights[lightIndex];
+                        var light = visibleLights[lightIndex];
                         var lightComponent = light.light;
 
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
@@ -1881,16 +1881,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Debug.Assert(m_MaxEnvLightsOnScreen <= 256); //for key construction
                     int envLightCount = 0;
 
-                    var totalProbes = cullResults.visibleReflectionProbes.Length + reflectionProbeCullResults.visiblePlanarReflectionProbeCount;
+                    var totalProbes = visibleReflectionProbes.Length + reflectionProbeCullResults.visiblePlanarReflectionProbeCount;
                     int probeCount = Math.Min(totalProbes, m_MaxEnvLightsOnScreen);
                     UpdateSortKeysArray(probeCount);
                     sortCount = 0;
 
                     for (int probeIndex = 0, numProbes = totalProbes; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
-                        if (probeIndex < cullResults.visibleReflectionProbes.Length)
+                        if (probeIndex < visibleReflectionProbes.Length)
                         {
-                            VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
+                            VisibleReflectionProbe probe = visibleReflectionProbes[probeIndex];
                             HDAdditionalReflectionData additional = probe.reflectionProbe.GetComponent<HDAdditionalReflectionData>();
 
                             // probe.texture can be null when we are adding a reflection probe in the editor
@@ -1919,7 +1919,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            var planarProbeIndex = probeIndex - cullResults.visibleReflectionProbes.Length;
+                            var planarProbeIndex = probeIndex - visibleReflectionProbes.Length;
                             var probe = reflectionProbeCullResults.visiblePlanarReflectionProbes[planarProbeIndex];
 
                             // probe.texture can be null when we are adding a reflection probe in the editor
@@ -1952,7 +1952,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         PlanarReflectionProbe planarProbe = null;
                         VisibleReflectionProbe probe = default(VisibleReflectionProbe);
                         if (listType == 0)
-                            probe = cullResults.visibleReflectionProbes[probeIndex];
+                            probe = visibleReflectionProbes[probeIndex];
                         else
                             planarProbe = reflectionProbeCullResults.visiblePlanarReflectionProbes[probeIndex];
 

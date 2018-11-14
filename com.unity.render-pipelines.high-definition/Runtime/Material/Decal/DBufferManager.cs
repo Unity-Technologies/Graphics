@@ -5,8 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class DBufferManager : MRTBufferManager
     {
-        public bool enableDecals { get; set; }
-
         RTHandleSystem.RTHandle m_HTile;
 
         // because number of render targets is not passed explicitly to SetRenderTarget, but rather deduces it from array size
@@ -51,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // to avoid temporary allocations, because number of render targets is not passed explicitly to SetRenderTarget, but rather deduces it from array size
             RenderTargetIdentifier[] RTIDs = rtCount4 ? m_RTIDs4 : m_RTIDs3;
-            
+
             // this clears the targets
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
             Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
@@ -90,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (hdCamera.frameSettings.enableDecals)
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableDecals, enableDecals ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableDecals, hdCamera.frameSettings.enableDecals ? 1 : 0);
                 cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight));
                 BindBufferAsTextures(cmd);
             }
