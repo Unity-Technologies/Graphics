@@ -1,8 +1,8 @@
 using System;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public IntegerControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
-            AddStyleSheetPath("Styles/Controls/IntegerControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/IntegerControlView"));
             m_Node = node;
             m_PropertyInfo = propertyInfo;
             if (propertyInfo.PropertyType != typeof(int))
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 Add(new Label(label));
 
             var intField = new IntegerField { value = (int)m_PropertyInfo.GetValue(m_Node, null) };
-            intField.OnValueChanged(OnChange);
+            intField.RegisterValueChangedCallback(OnChange);
 
             Add(intField);
         }

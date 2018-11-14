@@ -1,9 +1,9 @@
 using System;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
             var value = (Object)m_PropertyInfo.GetValue(m_Node, null);
             var objectField = new ObjectField { objectType = propertyInfo.PropertyType, value = value };
-            objectField.OnValueChanged(OnValueChanged);
+            objectField.RegisterValueChangedCallback(OnValueChanged);
             Add(objectField);
         }
 

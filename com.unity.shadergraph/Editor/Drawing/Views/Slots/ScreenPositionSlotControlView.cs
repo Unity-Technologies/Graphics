@@ -1,7 +1,8 @@
 using System;
 using UnityEditor.Graphing;
-using UnityEditor.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
@@ -11,10 +12,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public ScreenPositionSlotControlView(ScreenPositionMaterialSlot slot)
         {
-            AddStyleSheetPath("Styles/Controls/ScreenPositionSlotControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ScreenPositionSlotControlView"));
             m_Slot = slot;
             var enumField = new EnumField(slot.screenSpaceType);
-            enumField.OnValueChanged(OnValueChanged);
+            enumField.RegisterValueChangedCallback(OnValueChanged);
             Add(enumField);
         }
 

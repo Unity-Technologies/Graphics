@@ -1,7 +1,8 @@
 using System;
 using UnityEditor.Graphing;
-using UnityEditor.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine;
+using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
@@ -14,14 +15,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public DiffusionProfileSlotControlView(DiffusionProfileInputMaterialSlot slot)
         {
-            AddStyleSheetPath("DiffusionProfileSlotControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("DiffusionProfileSlotControlView"));
             m_Slot = slot;
             popupField = new PopupField<string>(m_Slot.diffusionProfile.popupEntries, m_Slot.diffusionProfile.selectedEntry);
-            popupField.OnValueChanged(OnValueChanged);
+            popupField.RegisterValueChangedCallback(RegisterValueChangedCallback);
             Add(popupField);
         }
 
-        void OnValueChanged(ChangeEvent<string> evt)
+        void RegisterValueChangedCallback(ChangeEvent<string> evt)
         {
             var selectedIndex = popupField.index;
 
