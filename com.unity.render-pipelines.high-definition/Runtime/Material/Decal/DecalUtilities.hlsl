@@ -217,7 +217,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     #if SCALARIZE_LIGHT_LOOP
     // Fast path is when we all pixels in a wave are accessing same tile or cluster.
     uint decalStartLane0 = WaveReadLaneFirst(decalStart);
-    bool fastPath = all(WaveActiveBallot(decalStart == decalStartLane0) == ~0);
+    bool fastPath = WaveActiveAllTrue(decalStart == decalStartLane0);
     #endif
 
 #else // LIGHTLOOP_TILE_PASS

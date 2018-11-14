@@ -49,6 +49,18 @@
 #define WaveActiveBitAnd __XB_WaveAND
 #define WaveActiveBitOr __XB_WaveOR
 
+#define INTRINSIC_WAVE_ACTIVE_ALL_ANY
+bool WaveActiveAllTrue(bool expression)
+{
+    return all(WaveActiveBallot(true) == WaveActiveBallot(expression));
+}
+
+bool WaveActiveAnyTrue(bool expression)
+{
+    return (__XB_S_BCNT1_U64(WaveActiveBallot(expression))) != 0;
+}
+
+
 #define INTRINSIC_MINMAX3
 GENERATE_INTRINSIC_VARIANTS_3_ARGS(Min3, __XB_Min3_, a, b, c);
 GENERATE_INTRINSIC_VARIANTS_3_ARGS(Max3, __XB_Max3_, a, b, c);

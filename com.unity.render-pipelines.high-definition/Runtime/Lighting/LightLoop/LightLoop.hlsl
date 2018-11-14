@@ -149,7 +149,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if SCALARIZE_LIGHT_LOOP
         // Fast path is when we all pixels in a wave are accessing same tile or cluster.
         uint lightStartLane0 = WaveReadLaneFirst(lightStart);
-        fastPath = all(WaveActiveBallot(lightStart == lightStartLane0) == ~0);
+        fastPath = WaveActiveAllTrue(lightStart == lightStartLane0); 
 #endif
 
 #else   // LIGHTLOOP_TILE_PASS
@@ -285,7 +285,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     #if SCALARIZE_LIGHT_LOOP
         // Fast path is when we all pixels in a wave is accessing same tile or cluster.
         uint envStartFirstLane = WaveReadLaneFirst(envLightStart);
-        fastPath = all(WaveActiveBallot(envLightStart == envStartFirstLane) == ~0);
+        fastPath = WaveActiveAllTrue(envLightStart == envStartFirstLane); 
     #endif
 
 #else   // LIGHTLOOP_TILE_PASS
