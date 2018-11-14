@@ -6,9 +6,35 @@
 
 .propertyrm #icon
 {
-    margin-top:6;
-    width:6;
-    height:6;
+    width:13;
+    height:13;
+}
+
+.propertyrm.icon-expandable #icon
+{
+    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout.png");
+}
+.propertyrm.icon-expandable #icon:hover
+{
+    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout focus.png");
+}
+.propertyrm.icon-expandable #icon:hover:active
+{
+    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout act.png");
+}
+
+
+.propertyrm.icon-expandable.icon-expanded #icon
+{
+    background-image:resource("IN foldout on.png");
+}
+.propertyrm.icon-expandable.icon-expanded #icon:hover
+{
+    background-image:resource("IN foldout focus on.png");
+}
+.propertyrm.icon-expandable.icon-expanded #icon:active
+{
+    background-image:resource("IN foldout act on.png");
 }
 
 .propertyrm #spacebutton
@@ -221,45 +247,4 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
 .propertyrm .sliderField #indeterminate
 {
     flex:0 0 auto;
-}
-
-/** Temporary copy of CurveField styles for VFXCurveField**/
-
-VFXCurveField {
-    min-height: 18;
-    margin-left: 4;
-    margin-top: 2;
-    margin-right: 4;
-    margin-bottom: 2;
-    background-color:rgb(86,86,86);
-    curve-color: #00ff00;
-}
-
-VFXCurveField > CurveFieldContent{
-    position:absolute;
-    left:1;
-    right:1;
-    bottom:1;
-    top:1;
-    overflow:hidden;
-}
-
-VFXCurveField > #border
-{
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:0;
-    top:0;
-    -unity-slice-left: 3;
-    -unity-slice-top: 3;
-    -unity-slice-right: 3;
-    -unity-slice-bottom: 3;
-
-    background-image: resource("Builtin Skins/Processed/Images/colorpickerbox.png");
-}
-
-VFXCurveField:focus > #border
-{
-    background-image: resource("Builtin Skins/Processed/Images/colorpickerboxfocused.png");
 }

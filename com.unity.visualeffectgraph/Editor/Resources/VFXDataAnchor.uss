@@ -123,14 +123,40 @@ VFXDataAnchor.Output #type
 
 .VFXOutputDataAnchor #icon
 {
-    margin-top:6;
-    width:6;
-    height:6;
+    width:13;
+    height:13;
 }
+.VFXOutputDataAnchor.icon-expandable #icon
+{
+    background-image:resource("IN foldout@2x.png");
+}
+.VFXOutputDataAnchor.icon-expandable #icon:hover
+{
+    background-image:resource("IN foldout focus@2x.png");
+}
+.VFXOutputDataAnchor.icon-expandable #icon:hover:active
+{
+    background-image:resource("IN foldout act@2x.png");
+}
+
+.VFXOutputDataAnchor.icon-expandable.icon-expanded #icon
+{
+    background-image:resource("IN foldout on@2x.png");
+}
+.VFXOutputDataAnchor.icon-expandable.icon-expanded #icon:hover
+{
+    background-image:resource("IN foldout focus on@2x.png");
+}
+.VFXOutputDataAnchor.icon-expandable.icon-expanded #icon:hover:active
+{
+    background-image:resource("IN foldout act on@2x.png");
+}
+
 .VFXOutputDataAnchor #type
 {
     text-color:#c4c4c4;
     margin-right:12;
+    flex-grow:1;
 }
 
 /*Default*/
