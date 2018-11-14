@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed d3d debug layer warning
 - Fixed PCSS sampling quality
 - Fixed the Subsurface and transmission material feature enabling for fabric shader
+- Fixed Shader Graph UV node dimension when used in vertex shader
 
 ### Changed
 - Updated default FrameSettings used for realtime reflection probe (at HDRenderPipelineAsset creation)
