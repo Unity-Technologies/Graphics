@@ -52,6 +52,8 @@ half4       _AdditionalShadowOffset3;
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 CBUFFER_END
 
+float4 _ShadowBias; // x: depth bias, y: normal bias
+
 #if UNITY_REVERSED_Z
 #define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= UNITY_RAW_FAR_CLIP_VALUE
 #else
@@ -216,6 +218,17 @@ float4 GetShadowCoord(VertexPositionInputs vertexInput)
 #else
     return TransformWorldToShadowCoord(vertexInput.positionWS);
 #endif
+}
+
+float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)
+{
+    float invNdotL = 1.0 - saturate(dot(lightDirection, normalWS));
+    float scale = invNdotL * _ShadowBias.y;
+
+    // normal bias is negative since we want to apply an inset normal offset
+    positionWS = lightDirection * _ShadowBias.xxx + positionWS;
+    positionWS = normalWS * scale.xxx + positionWS;
+    return positionWS;
 }
 
 #endif
