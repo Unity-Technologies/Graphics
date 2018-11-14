@@ -207,7 +207,7 @@ namespace UnityEditor.VFX
                 m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
                 m_OperatorDescs = LoadModels<VFXOperator>();
-                m_ParametersDescs = m_SlotDescs.Where(s => s.Key != typeof(FloatN)).Select(s =>
+                m_ParametersDescs = m_SlotDescs.Select(s =>
                 {
                     var desc = new VFXModelDescriptorParameters(s.Key);
                     return desc;

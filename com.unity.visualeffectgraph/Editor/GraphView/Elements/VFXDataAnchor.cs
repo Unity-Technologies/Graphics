@@ -294,20 +294,8 @@ namespace UnityEditor.VFX.UI
         bool ProviderFilter(VFXNodeProvider.Descriptor d)
         {
             var mySlot = controller.model;
-
-            IEnumerable<Type> validTypes = null;
-
-            if (mySlot == null)
-            {
-                var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnified;
-                if (op != null)
-                {
-                    validTypes = op.validTypes;
-                }
-            }
             var parameterDescriptor = d.modelDescriptor as VFXParameterController;
             IVFXSlotContainer container = null;
-
             if (parameterDescriptor != null)
             {
                 container = parameterDescriptor.model;
@@ -320,39 +308,34 @@ namespace UnityEditor.VFX.UI
 
                 container = desc.model as IVFXSlotContainer;
                 if (container == null)
-                {
                     return false;
-                }
+
+                if (    direction == Direction.Output
+                    &&  mySlot != null
+                    && container is VFXOperatorDynamicOperand
+                    && (container as VFXOperatorDynamicOperand).validTypes.Contains(mySlot.property.type))
+                        return true;
+            }
+
+            IEnumerable<Type> validTypes = null;
+            if (mySlot == null)
+            {
+                var op = controller.sourceNode.model as VFXOperatorDynamicOperand;
+                if (op != null)
+                    validTypes = op.validTypes;
             }
 
             var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)container.GetOutputSlot : (System.Func<int, VFXSlot>)container.GetInputSlot;
-
             int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
-
-            bool oneFound = false;
             for (int i = 0; i < count; ++i)
             {
-                VFXSlot slot = getSlots(i);
-
-                if (mySlot != null)
-                {
-                    if (slot.CanLink(mySlot))
-                    {
-                        oneFound = true;
-                        break;
-                    }
-                }
-                else if (validTypes != null)
-                {
-                    if (validTypes.Contains(slot.property.type))
-                    {
-                        oneFound = true;
-                        break;
-                    }
-                }
+                var slot = getSlots(i);
+                if (mySlot != null && slot.CanLink(mySlot))
+                    return true;
+                else if (validTypes != null && validTypes.Contains(slot.property.type))
+                    return true;
             }
-
-            return oneFound;
+            return false;
         }
 
         void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
