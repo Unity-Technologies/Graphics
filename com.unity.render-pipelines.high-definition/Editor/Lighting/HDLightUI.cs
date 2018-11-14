@@ -158,11 +158,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var paramLabel = Expression.Parameter(typeof(GUIContent), "label");
             var paramProperty = Expression.Parameter(typeof(SerializedProperty), "property");
             var paramSettings = Expression.Parameter(typeof(LightEditor.Settings), "settings");
-            var varSliderMin = Expression.Variable(typeof(float), "sliderMin");
-            var varSliderMax = Expression.Variable(typeof(float), "sliderMax");
-            var varPower = Expression.Variable(typeof(float), "power");
-            var varBackground = Expression.Variable(typeof(Texture2D), "sliderBackground");
-            var varLayoutOption = Expression.Variable(typeof(GUILayoutOption[]), "layoutOptions");
             System.Reflection.MethodInfo sliderWithTextureInfo = typeof(EditorGUILayout)
                 .GetMethod(
                     "SliderWithTexture",
@@ -171,17 +166,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     System.Reflection.CallingConventions.Any,
                     new[] { typeof(GUIContent), typeof(SerializedProperty), typeof(float), typeof(float), typeof(float), typeof(Texture2D), typeof(GUILayoutOption[]) },
                     null);
-            System.Reflection.MethodInfo DebugLog = typeof(Debug).GetMethod("Log", new[] { typeof(object) });
-            var block = Expression.Block(
-                new[] { varSliderMin, varSliderMax, varPower, varBackground, varLayoutOption },
-                Expression.Assign(varSliderMin, Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMinKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue())),
-                Expression.Assign(varSliderMax, Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMaxKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue())),
-                Expression.Assign(varPower, Expression.Constant((float)typeof(LightEditor.Settings).GetField("kSliderPower", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue())),
-                Expression.Assign(varLayoutOption, Expression.Constant(null, typeof(GUILayoutOption[]))),
-                Expression.Assign(varBackground, Expression.Field(paramSettings, typeof(LightEditor.Settings).GetField("m_KelvinGradientTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))),
-                Expression.Call(sliderWithTextureInfo, paramLabel, paramProperty, varSliderMin, varSliderMax, varPower, varBackground, varLayoutOption)
-            );
-            var lambda = Expression.Lambda<Action<GUIContent, SerializedProperty, LightEditor.Settings>>(block, paramLabel, paramProperty, paramSettings);
+            var sliderWithTextureCall = Expression.Call(
+                sliderWithTextureInfo,
+                paramLabel,
+                paramProperty,
+                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMinKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
+                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMaxKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
+                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kSliderPower", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
+                Expression.Field(paramSettings, typeof(LightEditor.Settings).GetField("m_KelvinGradientTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)),
+                Expression.Constant(null, typeof(GUILayoutOption[])));
+            var lambda = Expression.Lambda<Action<GUIContent, SerializedProperty, LightEditor.Settings>>(sliderWithTextureCall, paramLabel, paramProperty, paramSettings);
             SliderWithTexture = lambda.Compile();
         }
 
