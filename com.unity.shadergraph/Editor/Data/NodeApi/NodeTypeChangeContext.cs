@@ -9,14 +9,14 @@ namespace UnityEditor.ShaderGraph
     {
         readonly AbstractMaterialGraph m_Graph;
         readonly int m_CurrentSetupContextId;
-        readonly ShaderNodeState m_State;
+        readonly NodeTypeState m_TypeState;
         readonly List<ControlDescriptor> m_CreatedControls;
 
-        internal NodeTypeChangeContext(AbstractMaterialGraph graph, int currentSetupContextId, ShaderNodeState state, List<ControlDescriptor> createdControls)
+        internal NodeTypeChangeContext(AbstractMaterialGraph graph, int currentSetupContextId, NodeTypeState typeState, List<ControlDescriptor> createdControls)
         {
             m_Graph = graph;
             m_CurrentSetupContextId = currentSetupContextId;
-            m_State = state;
+            m_TypeState = typeState;
             m_CreatedControls = createdControls;
         }
 
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             {
                 Validate();
                 // TODO: Create non-allocating version of this.
-                foreach (var node in m_State.createdNodes)
+                foreach (var node in m_TypeState.createdNodes)
                 {
                     yield return new NodeRef(m_Graph, m_CurrentSetupContextId, node);
                 }
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
             {
                 Validate();
                 // TODO: Create non-allocating version of this.
-                foreach (var node in m_State.deserializedNodes)
+                foreach (var node in m_TypeState.deserializedNodes)
                 {
                     yield return new NodeRef(m_Graph, m_CurrentSetupContextId, node);
                 }
@@ -72,8 +72,8 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentException($"Cannot open file at \"{source}\"");
             }
 
-            m_State.hlslSources.Add(new HlslSource { source = source, type = type });
-            return new HlslSourceRef(m_State.hlslSources.Count);
+            m_TypeState.hlslSources.Add(new HlslSource { source = source, type = type });
+            return new HlslSourceRef(m_TypeState.hlslSources.Count);
         }
 
         public void SetHlslFunction(NodeRef nodeRef, HlslFunctionDescriptor functionDescriptor)

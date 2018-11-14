@@ -20,16 +20,16 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         string m_ShaderNodeTypeName;
 
-        ShaderNodeState m_State;
+        NodeTypeState m_TypeState;
 
         public HlslFunctionDescriptor function { get; set; }
 
-        public ShaderNodeState state
+        public NodeTypeState typeState
         {
-            get => m_State;
+            get => m_TypeState;
             set
             {
-                m_State = value;
+                m_TypeState = value;
                 m_ShaderNodeTypeName = value?.shaderNodeType.GetType().FullName;
             }
         }
@@ -52,10 +52,10 @@ namespace UnityEditor.ShaderGraph
 
         // This one is only really used in SearchWindowProvider, as we need a dummy node with slots for the code there.
         // Eventually we can make the code in SWP nicer, and remove this constructor.
-        public ProxyShaderNode(ShaderNodeState state)
+        public ProxyShaderNode(NodeTypeState typeState)
         {
-            this.state = state;
-            name = state.type.name;
+            this.typeState = typeState;
+            name = typeState.type.name;
             isNew = true;
 
             UpdateSlots();
@@ -70,11 +70,11 @@ namespace UnityEditor.ShaderGraph
             {
                 Debug.LogError($"{name} ({guid}) has a null owner.");
             }
-            else if (state == null)
+            else if (typeState == null)
             {
                 Debug.LogError($"{name} ({guid}) has a null state.");
             }
-            else if (state.owner != owner)
+            else if (typeState.owner != owner)
             {
                 Debug.LogError($"{name} ({guid}) has an invalid state.");
             }
@@ -94,9 +94,9 @@ namespace UnityEditor.ShaderGraph
                 m_SerializedData = SerializationHelper.Serialize(data);
             }
 
-            if (state != null)
+            if (typeState != null)
             {
-                m_ShaderNodeTypeName = state.shaderNodeType.GetType().FullName;
+                m_ShaderNodeTypeName = typeState.shaderNodeType.GetType().FullName;
             }
         }
 
@@ -114,8 +114,8 @@ namespace UnityEditor.ShaderGraph
         public void UpdateStateReference()
         {
             var materialOwner = (AbstractMaterialGraph)owner;
-            state = materialOwner.shaderNodeStates.FirstOrDefault(x => x.shaderNodeType.GetType().FullName == shaderNodeTypeName);
-            if (state == null)
+            typeState = materialOwner.shaderNodeStates.FirstOrDefault(x => x.shaderNodeType.GetType().FullName == shaderNodeTypeName);
+            if (typeState == null)
             {
                 throw new InvalidOperationException($"Cannot find an {nameof(IShaderNodeType)} with type name {shaderNodeTypeName}");
             }
@@ -127,9 +127,9 @@ namespace UnityEditor.ShaderGraph
             var validSlotIds = new List<int>();
 
             // TODO: Properly handle shaderOutputName (i.e.
-            foreach (var portRef in state.type.inputs)
+            foreach (var portRef in typeState.type.inputs)
             {
-                var port = state.inputPorts[portRef.index];
+                var port = typeState.inputPorts[portRef.index];
                 var displayName = $"{NodeUtils.GetHLSLSafeName(port.displayName)}{port.id}";
                 switch (port.value.type)
                 {
@@ -151,9 +151,9 @@ namespace UnityEditor.ShaderGraph
                 validSlotIds.Add(port.id);
             }
 
-            foreach (var portRef in state.type.outputs)
+            foreach (var portRef in typeState.type.outputs)
             {
-                var port = state.outputPorts[portRef.index];
+                var port = typeState.outputPorts[portRef.index];
                 var displayName = $"{NodeUtils.GetHLSLSafeName(port.displayName)}{port.id}";
                 switch (port.type)
                 {
@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph
                     continue;
                 }
 
-                var slotId = state.outputPorts[argument.portRef.index].id;
+                var slotId = typeState.outputPorts[argument.portRef.index].id;
                 var slot = FindSlot<MaterialSlot>(slotId);
                 var typeStr = NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
                 var variableStr = GetVariableNameForSlot(slotId);
@@ -200,7 +200,7 @@ namespace UnityEditor.ShaderGraph
             // Declare variable for return value, and set it to the return value from the following function call.
             if (function.returnValue.isValid)
             {
-                var slotId = state.outputPorts[function.returnValue.index].id;
+                var slotId = typeState.outputPorts[function.returnValue.index].id;
                 var slot = FindSlot<MaterialSlot>(slotId);
                 var typeStr = NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
                 builder.Append($"{typeStr} {GetVariableNameForSlot(slotId)} = ");
@@ -225,12 +225,12 @@ namespace UnityEditor.ShaderGraph
                         int slotId;
                         if (argument.portRef.isInput)
                         {
-                            slotId = state.inputPorts[argument.portRef.index].id;
+                            slotId = typeState.inputPorts[argument.portRef.index].id;
                             builder.Append(GetSlotValue(slotId, generationMode));
                         }
                         else
                         {
-                            slotId = state.outputPorts[argument.portRef.index].id;
+                            slotId = typeState.outputPorts[argument.portRef.index].id;
                             builder.Append(GetVariableNameForSlot(slotId));
                         }
                         break;
@@ -254,9 +254,9 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             var i = 0;
-            foreach (var source in state.hlslSources)
+            foreach (var source in typeState.hlslSources)
             {
-                var name = $"{state.shaderNodeType.GetType().FullName?.Replace(".", "_")}_{i}";
+                var name = $"{typeState.shaderNodeType.GetType().FullName?.Replace(".", "_")}_{i}";
                 registry.ProvideFunction(name, builder =>
                 {
                     switch (source.type)
@@ -278,7 +278,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetSourceAssetDependencies(List<string> paths)
         {
-            foreach (var source in state.hlslSources)
+            foreach (var source in typeState.hlslSources)
             {
                 if (source.type == HlslSourceType.File)
                 {

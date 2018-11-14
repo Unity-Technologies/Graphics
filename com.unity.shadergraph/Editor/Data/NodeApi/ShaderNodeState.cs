@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace UnityEditor.ShaderGraph
 {
-    class ShaderNodeState
+    class NodeTypeState
     {
         public int id;
         public AbstractMaterialGraph owner;
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         public List<NodeRef> changedNodes = new List<NodeRef>();
 
         #endregion
-        
+
         public bool isDirty => createdNodes.Any() || deserializedNodes.Any();
 
         public void ClearChanges()

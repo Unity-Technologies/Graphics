@@ -201,7 +201,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_ControlsContainer.parent != m_Contents)
             {
                 m_Contents.Add(m_ControlsContainer);
-                m_ControlsContainer.PlaceBehind(m_PreviewFiller);
+                if (m_PreviewFiller != null)
+                {
+                    m_ControlsContainer.PlaceBehind(m_PreviewFiller);
+                }
             }
         }
 

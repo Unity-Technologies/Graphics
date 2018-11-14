@@ -165,12 +165,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public List<ShaderNodeState> shaderNodeStates { get; } = new List<ShaderNodeState>();
+        public List<NodeTypeState> shaderNodeStates { get; } = new List<NodeTypeState>();
 
         int m_CurrentContextId = 1;
 
         public int currentContextId => m_CurrentContextId;
-        
+
         List<ControlDescriptor> m_CreatedControls = new List<ControlDescriptor>();
 
         public IEnumerable<ControlDescriptor> createdControls => m_CreatedControls;
@@ -195,7 +195,7 @@ namespace UnityEditor.ShaderGraph
 
                     try
                     {
-                        var state = new ShaderNodeState { id = shaderNodeStates.Count, owner = this, shaderNodeType = (IShaderNodeType)constructor.Invoke(null) };
+                        var state = new NodeTypeState { id = shaderNodeStates.Count, owner = this, shaderNodeType = (IShaderNodeType)constructor.Invoke(null) };
                         var context = new NodeSetupContext(this, m_CurrentContextId, state);
                         state.shaderNodeType.Setup(ref context);
                         if (!context.nodeTypeCreated)
@@ -294,7 +294,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (proxyNode.isNew)
                 {
-                    proxyNode.state.createdNodes.Add(proxyNode);
+                    proxyNode.typeState.createdNodes.Add(proxyNode);
                     proxyNode.isNew = false;
                 }
             }
@@ -689,7 +689,7 @@ namespace UnityEditor.ShaderGraph
                 if (node is ProxyShaderNode shaderNode)
                 {
                     shaderNode.UpdateStateReference();
-                    shaderNode.state.deserializedNodes.Add(shaderNode);
+                    shaderNode.typeState.deserializedNodes.Add(shaderNode);
                 }
             }
 
@@ -786,7 +786,7 @@ namespace UnityEditor.ShaderGraph
                 node.UpdateNodeAfterDeserialization();
                 if (node is ProxyShaderNode shaderNode)
                 {
-                    shaderNode.state.deserializedNodes.Add(shaderNode);
+                    shaderNode.typeState.deserializedNodes.Add(shaderNode);
                 }
                 node.tempId = new Identifier(m_Nodes.Count);
                 m_Nodes.Add(node);
