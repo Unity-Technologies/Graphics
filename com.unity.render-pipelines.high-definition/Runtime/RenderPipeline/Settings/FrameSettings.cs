@@ -252,10 +252,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableVolumetrics = srcFrameSettings.enableVolumetrics && renderPipelineSettings.supportVolumetrics && aggregate.enableAtmosphericScattering;
             aggregate.enableReprojectionForVolumetrics = srcFrameSettings.enableReprojectionForVolumetrics;
 
-            // TODO: Add support of volumetric in planar reflection
-            if (camera.cameraType == CameraType.Reflection)
-                aggregate.enableVolumetrics = false;
-
             aggregate.enableLightLayers = srcFrameSettings.enableLightLayers && renderPipelineSettings.supportLightLayers;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
