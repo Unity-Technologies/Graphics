@@ -45,7 +45,6 @@
 			uniform half4x4			_LightInvMatrix;
 			uniform half4x4			_LightNoRotInvMatrix;
 			uniform sampler2D_float	_LightLookup;
-			uniform half			_LightIntensity;
 			uniform half			_OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			uniform half			_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			uniform half			_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
@@ -92,7 +91,7 @@
 				half2 dirToLight = half2(lookupValueNoRot.b, lookupValueNoRot.a);
 				half2 normal = half2(normalUnpacked.x, normalUnpacked.y);
 				half cosAngle = saturate(dot(dirToLight, normal));
-				half4 color = main.a *_LightColor * _LightIntensity * attenuation;
+				half4 color = main.a *_LightColor * attenuation;
 				fixed4 finalColor = color * cosAngle; /*  +color * main.z * attenuation); */
 
 				return finalColor;

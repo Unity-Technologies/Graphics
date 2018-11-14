@@ -235,7 +235,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         // Consolidate these later...
 
                         cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
-                        cmdBuffer.SetGlobalFloat("_LightIntensity", light.m_LightIntensity * Light2D.GetIntensityScaleInv());
 
                         //=====================================================================================
                         //                          Old stuff

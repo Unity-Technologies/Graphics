@@ -45,7 +45,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Point
         }
 
-
         public enum ShapeLightTypes
         {
             Specular,
@@ -99,14 +98,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         static Material m_ShapeCookieSpriteMaterial = null;
         static Material m_ShapeVertexColoredMaterial = null;
 
+        [ColorUsageAttribute(false,true)]
         public Color m_LightColor = Color.white;
         private Color m_PreviousLightColor = Color.white;
 
         public Vector2 m_ShapeLightOffset;
         private Vector2 m_PreviousShapeLightOffset;
-
-        public float m_LightIntensity = 1.0f;
-        private float m_PreviousLightIntensity = -1.0f;
 
         public Sprite m_LightCookieSprite;
         private Sprite m_PreviousLightCookieSprite = null;
@@ -313,20 +310,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return null;
         }
 
-        static public float GetIntensityScale()
-        {
-            return 8.0f;
-        }
-
-        static public float GetIntensityScaleInv()
-        {
-            return 0.125f;
-        }
-
         public Mesh GenerateParametricMesh(float radius, int sides, float feathering, Color color)
         {
             float savedA = color.a;
-            Color adjColor = GetIntensityScaleInv() * m_LightIntensity * color;
+            Color adjColor = color;
 
             // This is done so we don't start going white on a non white light if the intensity is high enough
             float maxColor = adjColor.r > adjColor.b ? adjColor.r : adjColor.b;
@@ -439,7 +426,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public Mesh GenerateSpriteMesh(Sprite sprite, Color color)
         {
-            Color adjColor = GetIntensityScaleInv() * m_LightIntensity * color;
+            Color adjColor = color;
 
             // This is done so we don't start going white on a non white light if the intensity is high enough
             float maxColor = adjColor.r > adjColor.b ? adjColor.r : adjColor.b;
@@ -642,7 +629,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             rebuildMesh |= CheckForChange<float>(m_ShapeLightFeathering, ref m_PreviousShapeLightFeathering);
             rebuildMesh |= CheckForVector2Change(m_ShapeLightOffset, ref m_PreviousShapeLightOffset);
             rebuildMesh |= CheckForChange<int>(m_ParametricSides, ref m_PreviousParametricSides);
-            rebuildMesh |= CheckForChange<float>(m_LightIntensity, ref m_PreviousLightIntensity);
+            
             //rebuildMesh |= CheckForChange<>
             if (rebuildMesh)
             {

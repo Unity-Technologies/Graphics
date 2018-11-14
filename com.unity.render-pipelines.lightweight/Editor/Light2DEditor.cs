@@ -423,7 +423,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             SerializedProperty lightProjectionType = serializedObject.FindProperty("m_LightProjectionType");
             SerializedProperty lightColor = serializedObject.FindProperty("m_LightColor");
-            SerializedProperty lightIntensity = serializedObject.FindProperty("m_LightIntensity");
             SerializedProperty applyToLayers = serializedObject.FindProperty("m_ApplyToLayers");
 
             bool updateMesh = false;
@@ -445,10 +444,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Color previousColor = lightColor.colorValue;
             EditorGUILayout.PropertyField(lightColor, EditorGUIUtility.TrTextContent("Light Color", "Specify the light color"));
             updateMesh = updateMesh || (previousColor != lightColor.colorValue);
-
-            float previousIntensity = lightIntensity.floatValue;
-            EditorGUILayout.PropertyField(lightIntensity, EditorGUIUtility.TrTextContent("Light Intensity", "Specify the light color"));
-            updateMesh = updateMesh || (previousIntensity != lightIntensity.floatValue);
 
             InternalEditorBridge.SortingLayerField(EditorGUIUtility.TrTextContent("Target Sorting Layer", "Apply this light to the specifed layer"), applyToLayers, EditorStyles.popup, EditorStyles.label);
 

@@ -10,32 +10,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     internal class Default2DRendererSetup : LightweightRendererSetup
     {
-        [Serializable]
-        public class RenderTextureInfo
-        {
-            public int width = 512;
-            public int height = 512;
-            public int msaaSamples = 1;
-            public FilterMode filterMode = FilterMode.Bilinear;
-
-            // This probably needs to be changed...
-            public static implicit operator RenderTextureDescriptor(RenderTextureInfo info)
-            {
-                RenderTextureDescriptor desc = new RenderTextureDescriptor();
-                desc.width = info.width;
-                desc.height = info.height;
-                desc.msaaSamples = info.msaaSamples;
-                desc.dimension = TextureDimension.Tex2D;
-                desc.colorFormat = RenderTextureFormat.RGB111110Float;
-                desc.depthBufferBits = 0;
-                return desc;
-            }
-        }
-
-        public RenderTextureInfo m_AmbientRenderTextureInfo;
-        public RenderTextureInfo m_SpecularRenderTextureInfo;
-        public RenderTextureInfo m_RimRenderTextureInfo;
-        public Color m_AmbientDefaultColor;
+        [SerializeField]
+        private Light2DRTInfo m_AmbientRenderTextureInfo = new Light2DRTInfo(true, 64, 64, FilterMode.Bilinear);
+        [SerializeField]
+        private Light2DRTInfo m_SpecularRenderTextureInfo = new Light2DRTInfo(true, 1024, 512, FilterMode.Bilinear);
+        [SerializeField]
+        private Light2DRTInfo m_RimRenderTextureInfo = new Light2DRTInfo(false, 64, 64, FilterMode.Bilinear);
+        //[SerializeField]
+        //private Light2DRTInfo m_ShadowRenderTextureInfo = new Light2DRTInfo(true, 1024, 512, FilterMode.Bilinear);
+        [SerializeField]
+        private Light2DRTInfo m_PointLightNormalRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
+        [SerializeField]
+        private Light2DRTInfo m_PointLightColorRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
 
         private RenderTextureFormat m_RenderTextureFormatToUse;
 
@@ -69,7 +55,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
                 m_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
 
-
             m_DepthTexture.Init("_CameraDepthTexture");
             m_Render2DLightingPass = new Render2DLightingPass();
             m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
@@ -87,11 +72,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Init();
 
-            RenderTextureDescriptor ambientRTDescriptor = m_AmbientRenderTextureInfo;
-            RenderTextureDescriptor specularRTDescriptor = m_SpecularRenderTextureInfo;
-            RenderTextureDescriptor rimRTDescriptor = m_RimRenderTextureInfo;
-
             renderer.EnqueuePass(m_SetupForwardRenderingPass);
+
+            m_Render2DLightingPass.Setup(RenderSettings.ambientLight, m_AmbientRenderTextureInfo, m_SpecularRenderTextureInfo, m_RimRenderTextureInfo, m_PointLightNormalRenderTextureInfo, m_PointLightColorRenderTextureInfo);
             renderer.EnqueuePass(m_Render2DLightingPass);
 
             #if UNITY_EDITOR

@@ -25,19 +25,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         const string k_UseAmbientTexture = "USE_AMBIENT_TEXTURE";
         const string k_UseRimTexture = "USE_RIM_TEXTURE";
 
-        const float k_OverbrightMultiplier = 8.0f;
-
-        static public void Initialize(Color defaultAmbientColor, Color defaultSpecularColor, Color defaultRimColor)
+        static public void Setup(Color defaultAmbientColor, Color defaultSpecularColor, Color defaultRimColor)
         {
-            m_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
+            m_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
             if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
                 m_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
-            else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBFloat))
-                m_RenderTextureFormatToUse = RenderTextureFormat.ARGBFloat;
-
-            m_DefaultSpecularColor = defaultSpecularColor / k_OverbrightMultiplier;
-            m_DefaultAmbientColor = defaultAmbientColor / k_OverbrightMultiplier;
-            m_DefaultRimColor = defaultRimColor / k_OverbrightMultiplier;
+            
+            m_DefaultSpecularColor = defaultSpecularColor;
+            m_DefaultAmbientColor = defaultAmbientColor;
+            m_DefaultRimColor = defaultRimColor;
         }
 
         static public void CreateRenderTextures(Light2DRTInfo ambientLightRTInfo, Light2DRTInfo specularLightRTInfo, Light2DRTInfo rimLightRTInfo)
@@ -98,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     for (int i = 0; i < lights.Count; i++)
                     {
                         Light2D light = lights[i];
-                        if (light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.m_LightIntensity > 0)
+                        if (light.IsLitLayer(layerToRender) && light.isActiveAndEnabled)
                         {
                             Material shapeLightMaterial = light.GetMaterial();
                             if (shapeLightMaterial != null)
@@ -123,10 +119,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-
         static public void SetShaderGlobals(CommandBuffer cmdBuffer)
         {
-
             cmdBuffer.SetGlobalColor("_AmbientColor", m_DefaultAmbientColor);
             cmdBuffer.SetGlobalColor("_RimColor", m_DefaultRimColor);
             cmdBuffer.SetGlobalTexture("_SpecularLightingTex", m_FullScreenSpecularLightTexture);
@@ -138,8 +132,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         static public void RenderLights(CommandBuffer cmdBuffer, int layerToRender)
         {
-            cmdBuffer.SetGlobalFloat("_LightIntensityScale", Light2D.GetIntensityScale());
-
             cmdBuffer.BeginSample("2D Shape Lights - Specular Lights");
             List<Light2D> specularLights = Light2D.GetSpecularLights();
             RenderLightSet(cmdBuffer, layerToRender, m_FullScreenSpecularLightTexture, m_DefaultSpecularColor, k_UseSpecularTexture, specularLights);

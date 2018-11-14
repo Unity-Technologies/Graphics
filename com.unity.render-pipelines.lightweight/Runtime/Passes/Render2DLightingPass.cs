@@ -7,25 +7,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class Render2DLightingPass : ScriptableRenderPass
     {
-        [SerializeField]
-        private Light2DRTInfo m_AmbientRenderTextureInfo = new Light2DRTInfo(true, 64, 64, FilterMode.Bilinear);
-        [SerializeField]
-        private Light2DRTInfo m_SpecularRenderTextureInfo = new Light2DRTInfo(true, 1024, 512, FilterMode.Bilinear);
-        [SerializeField]
-        private Light2DRTInfo m_RimRenderTextureInfo = new Light2DRTInfo(false, 64, 64, FilterMode.Bilinear);
-        //[SerializeField]
-        //private Light2DRTInfo m_ShadowRenderTextureInfo = new Light2DRTInfo(true, 1024, 512, FilterMode.Bilinear);
-        [SerializeField]
-        private Light2DRTInfo m_PointLightNormalRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
-        [SerializeField]
-        private Light2DRTInfo m_PointLightColorRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
+        private Light2DRTInfo m_AmbientRenderTextureInfo;
+        private Light2DRTInfo m_SpecularRenderTextureInfo;
+        private Light2DRTInfo m_RimRenderTextureInfo;
+        private Light2DRTInfo m_PointLightNormalRenderTextureInfo;
+        private Light2DRTInfo m_PointLightColorRenderTextureInfo;
 
         public RenderTexture m_NormalMapRT;
         public RenderTexture m_PointLightingRT;
 
-        public Color DefaultAmbientColor = new Color(0, 0, 0, 1.0f);
-        public Color DefaultRimColor = Color.clear;
-        public Color DefaultSpecularColor = Color.clear;
+        public Color m_DefaultRimColor = Color.clear;
+        public Color m_DefaultSpecularColor = Color.clear;
 
         static CommandBuffer m_CommandBuffer;
         static SortingLayer[] m_SortingLayers;
@@ -41,9 +33,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             Texture lightLookupTexture = Light2DLookupTexture.CreateLightLookupTexture();
             RendererPointLights.Initialize(lightLookupTexture);
-            RendererShapeLights.Initialize(DefaultAmbientColor, DefaultSpecularColor, DefaultRimColor);
         }
 
+        public void Setup(Color ambientColor, Light2DRTInfo ambientRTInfo, Light2DRTInfo specularRTInfo, Light2DRTInfo rimRTInfo, Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo)
+        {
+            m_AmbientRenderTextureInfo = ambientRTInfo;
+            m_SpecularRenderTextureInfo = specularRTInfo;
+            m_RimRenderTextureInfo = rimRTInfo;
+            m_PointLightNormalRenderTextureInfo = pointLightNormalRTInfo;
+            m_PointLightColorRenderTextureInfo = pointLightColorRTInfo;
+
+            RendererShapeLights.Setup(ambientColor, m_DefaultSpecularColor, m_DefaultRimColor);
+        }
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -52,6 +53,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             //        m_SortingLayers = SortingLayer.layers;
 #endif
             Camera camera = renderingData.cameraData.camera;
+
+
+            
 
             SortingSettings sortingSettings = new SortingSettings(camera);
             sortingSettings.criteria = SortingCriteria.BackToFront;

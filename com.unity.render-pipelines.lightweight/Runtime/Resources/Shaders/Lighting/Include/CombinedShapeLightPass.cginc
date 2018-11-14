@@ -43,9 +43,6 @@ uniform sampler2D _PointLightCookieTex;
 uniform fixed4 _MainTex_ST;
 uniform fixed4 _AmbientColor;
 uniform fixed4 _RimColor;
-uniform fixed _LightIntensity;
-
-
 
 uniform float4 _PointLightPosition;
 uniform float4 _PointLightColor;
@@ -57,7 +54,6 @@ uniform float  _PointLightInnerAngle;
 uniform float  _PointLightOuterAngle;
 uniform float4 _PointLightForward;
 uniform float4 _PointLightOrigin;
-uniform fixed  _LightIntensityScale;  // [0-1] color values are scaled to [0 - 1/_IntensityScale]. We will use this value to scale them back to [0-1]
 
 v2f CombinedShapeLightVertex(appdata v)
 {
@@ -90,7 +86,6 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 	fixed4 shapeLight = 0;
 	#if USE_SPECULAR_TEXTURE
 		shapeLight = tex2D(_SpecularLightingTex, i.lightingUV);
-		shapeLight.rgb = _LightIntensityScale * shapeLight.rgb;
 	#else
 		shapeLight.rgb = 0;
 		shapeLight.a = 0;
@@ -101,7 +96,7 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 
 	fixed4 ambientColor;
 	#if USE_AMBIENT_TEXTURE
-		ambientColor = _LightIntensityScale * tex2D(_AmbientLightingTex, i.lightingUV);
+		ambientColor = tex2D(_AmbientLightingTex, i.lightingUV);
 	#else
 		ambientColor = _AmbientColor;
 	#endif
@@ -124,13 +119,13 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 	// Diffuse calculation
 	fixed3 diffuseAmbientLight = ambientColor.rgb * main.rgb;
 	fixed3 diffuseShapeLight = clamp(shapeLight.rgb * shapeLight.a * main.rgb, 0, shapeLightClampColor);  // Clamp is pretty expensive
-	fixed3 diffusePointLight = clamp(_LightIntensityScale * pointLightColor * main.rgb, 0, pointLightClampColor);   // Clamp is pretty expensive
+	fixed3 diffusePointLight = clamp(pointLightColor * main.rgb, 0, pointLightClampColor);   // Clamp is pretty expensive
 	fixed3 diffuseColor = diffuseShapeLight + diffusePointLight + diffuseAmbientLight;
 
 	// Specular calculation
 	fixed specularAlpha = mask.r;
 	fixed3 specularShapeLight = clamp(shapeLight.a * shapeLight.rgb, 0, shapeLightClampColor);
-	fixed3 specularPointLight = clamp(_LightIntensity * pointLightColor, 0, pointLightClampColor);
+	fixed3 specularPointLight = clamp(pointLightColor, 0, pointLightClampColor);
 	fixed3 specularColor = (specularAlpha * _SpecularMultiplier * (specularShapeLight + specularPointLight)) + diffuseColor.rgb;
 
 	fixed rimAlpha = rimColor.a * mask.g;
