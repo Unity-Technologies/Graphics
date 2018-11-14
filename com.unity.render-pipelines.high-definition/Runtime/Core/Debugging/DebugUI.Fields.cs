@@ -219,7 +219,7 @@ namespace UnityEngine.Experimental.Rendering
                     m_EnumType = value;
                 }
 
-                get => m_EnumType;
+                get { return m_EnumType; }
             }
         }
 
