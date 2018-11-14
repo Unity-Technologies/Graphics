@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add an option to reflect sky in SSR
 - Add y offset for PlanarReflectionProbe and offset tool
 - Expose option to run SSR and SSAO on async compute
+- Added support of "_GlossMapScale" in upgrader
+- Added instruction for wave intrinsic (for AMD GCN)
+
 
 ### Fixed
 - Fixed sphere shaped influence handles clamping in reflection probes
@@ -42,6 +45,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed PCSS sampling quality
 - Fixed the Subsurface and transmission material feature enabling for fabric shader
 - Fixed Shader Graph UV node dimension when used in vertex shader
+- Fixed planar reflection mirror gizmo's rotation
+- Fixed HDRenderPipelineAsset's FrameSettings not showing the one selected in the enum at inspector opening.
+- Fixed an error with async compute
+- Fixed support of MSAA for transparent
+- Fixed mettalic value not converted correctly in upgrader tool
+- Fixed volumetric not rendering in reflection probe
 
 ### Changed
 - Renamed "Line" shaped lights to "Tube" light
@@ -51,6 +60,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated default FrameSettings used for realtime reflection probe (at HDRenderPipelineAsset creation)
 - Remove multi-camera support (this will not be supported by LW or HDRP)
 - Updated Shader Graph subshaders to use the new instancing define
+- Changed fog distance calculation from distance to plane to distance to sphere
+- Optimization: Scalarize the light loop for forward rendering for AMD GCN
+- Changed UI of the light editor
+- Change ordering of include in material (Lit, LayeredLit etc...) in order to have reduce iteration time. Faster compilation.
 
 ## [5.0.0-preview] - 2018-09-28
 
