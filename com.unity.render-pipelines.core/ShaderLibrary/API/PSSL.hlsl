@@ -27,6 +27,16 @@
 #define WaveActiveBitAnd CrossLaneAnd
 #define WaveActiveBitOr CrossLaneOr
 
+#define INTRINSIC_WAVE_ACTIVE_ALL_ANY
+bool WaveActiveAllTrue(bool expression)
+{
+    return (__s_read_exec() == WaveActiveBallot(expression));
+}
+
+bool WaveActiveAnyTrue(bool expression)
+{
+    return (popcnt(WaveActiveBallot(expression))) != 0;
+}
 
 
 #define UNITY_UV_STARTS_AT_TOP 1
