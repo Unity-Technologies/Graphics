@@ -1,5 +1,5 @@
 PortInputView {
-    width: 212;
+    width: 232;
     height: 22;
     padding-top: 1;
     flex-direction: row;
@@ -37,9 +37,9 @@ PortInputView > #container > #slot {
 }
 
 PortInputView > #edge {
-    position-type: absolute;
-    position-right: 0;
-    position-top: 10.5;
+    position: absolute;
+    right: 0;
+    top: 10.5;
     height: 2;
     width: 20;
     background-color: #ff0000;
@@ -61,7 +61,7 @@ PortInputView.typeMatrix2 > #container > #slot > #dot {
 PortInputView.typeMatrix4,
 PortInputView.typeMatrix3,
 PortInputView.typeMatrix2 {
-    edge-color: #8FC1DF;
+    --edge-color: #8FC1DF;
 }
 
 PortInputView.typeTexture2D > #container > #slot > #dot,
@@ -75,7 +75,7 @@ PortInputView.typeTexture2D,
 PortInputView.typeTexture2DArray,
 PortInputView.typeTexture3D,
 PortInputView.typeCubemap {
-    edge-color: #FF8B8B;
+    --edge-color: #FF8B8B;
 }
 
 PortInputView.typeVector4 > #container > #slot > #dot {
@@ -83,7 +83,7 @@ PortInputView.typeVector4 > #container > #slot > #dot {
 }
 
 PortInputView.typeVector4 {
-    edge-color: #FBCBF4;
+    --edge-color: #FBCBF4;
 }
 
 PortInputView.typeVector3 > #container > #slot > #dot {
@@ -91,7 +91,7 @@ PortInputView.typeVector3 > #container > #slot > #dot {
 }
 
 PortInputView.typeVector3 {
-    edge-color: #F6FF9A;
+    --edge-color: #F6FF9A;
 }
 
 PortInputView.typeVector2 > #container > #slot > #dot {
@@ -99,7 +99,7 @@ PortInputView.typeVector2 > #container > #slot > #dot {
 }
 
 PortInputView.typeVector2 {
-    edge-color: #9AEF92;
+    --edge-color: #9AEF92;
 }
 
 PortInputView.typeVector1 > #container > #slot > #dot {
@@ -107,7 +107,7 @@ PortInputView.typeVector1 > #container > #slot > #dot {
 }
 
 PortInputView.typeVector1 {
-    edge-color: #84E4E7;
+    --edge-color: #84E4E7;
 }
 
 PortInputView.typeBoolean > #container > #slot > #dot {
@@ -115,5 +115,5 @@ PortInputView.typeBoolean > #container > #slot > #dot {
 }
 
 PortInputView.typeBoolean {
-    edge-color: #9481E6;
+    --edge-color: #9481E6;
 }

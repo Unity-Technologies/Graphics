@@ -2,7 +2,7 @@ ChannelEnumControlView {
     flex-direction: row;
 }
 
-ChannelEnumControlView > .popupField {
+ChannelEnumControlView > .unity-popup-field {
     width: 76;
     flex: 0;
     margin-left: 0;

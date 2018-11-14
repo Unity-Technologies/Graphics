@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -246,7 +246,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             var node = nodeEntry.node;
 
             var drawState = node.drawState;
-            var windowMousePosition = m_EditorWindow.GetRootVisualContainer().ChangeCoordinatesTo(m_EditorWindow.GetRootVisualContainer().parent, context.screenMousePosition - m_EditorWindow.position.position);
+
+
+            var windowRoot = m_EditorWindow.rootVisualElement;
+            var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, context.screenMousePosition - m_EditorWindow.position.position);
             var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
             drawState.position = new Rect(graphMousePosition, Vector2.zero);
             node.drawState = drawState;
