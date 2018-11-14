@@ -25,14 +25,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PixelShaderSlots = new List<int>
             {
                 SpriteUnlitMasterNode.ColorSlotId,
-                SpriteUnlitMasterNode.AlphaSlotId,
-                SpriteUnlitMasterNode.EnableAlphaTexSlotId,
-
             },
             VertexShaderSlots = new List<int>()
             {
                 SpriteUnlitMasterNode.PositionSlotId,
-                SpriteUnlitMasterNode.VertexColorSlotId
             }
         };
 
@@ -114,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var pixelShader = new ShaderStringBuilder(2);
             var pixelShaderSurfaceInputs = new ShaderStringBuilder(2);
-            var pixelShaderSurfaceRemap = new ShaderStringBuilder(2);
+            // var pixelShaderSurfaceRemap = new ShaderStringBuilder(2);
 
             // -------------------------------------
             // Get Slot and Node lists per stage
@@ -142,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // modelRequiements.requiresPosition |= k_PixelCoordinateSpace;
             // modelRequiements.requiresViewDir |= k_PixelCoordinateSpace;
             // modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
-            // modelRequiements.requiresVertexColor = true;
+            modelRequiements.requiresVertexColor = true;
 
             // ----------------------------------------------------- //
             //                START SHADER GENERATION                //
@@ -303,10 +299,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // -------------------------------------
             // Generate pixel shader surface remap
 
-            foreach (var slot in pixelSlots)
-            {
-                pixelShaderSurfaceRemap.AppendLine("{0} = surf.{0};", slot.shaderOutputName);
-            }
+            // foreach (var slot in pixelSlots)
+            // {
+            //     pixelShaderSurfaceRemap.AppendLine("{0} = surf.{0};", slot.shaderOutputName);
+            // }
 
             // -------------------------------------
             // Extra pixel shader work
@@ -358,7 +354,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // resultPass = resultPass.Replace("${FaceSign}", faceSign.ToString());
             resultPass = resultPass.Replace("${PixelShader}", pixelShader.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceInputs}", pixelShaderSurfaceInputs.ToString());
-            resultPass = resultPass.Replace("${PixelShaderSurfaceRemap}", pixelShaderSurfaceRemap.ToString());
+            // resultPass = resultPass.Replace("${PixelShaderSurfaceRemap}", pixelShaderSurfaceRemap.ToString());
 
             return resultPass;
         }

@@ -26,7 +26,13 @@ ${Defines}
     // #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     // #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/ShaderGraphFunctions.hlsl"
     // #include "Packages/com.unity.render-pipelines.lightweight/Shaders/UnlitInput.hlsl"
-    
+
+#if ETC1_EXTERNAL_ALPHA
+    TEXTURE2D(_AlphaTex); SAMPLER(sampler_AlphaTex);
+    float _EnableAlphaTexture;
+#endif
+    float4 _RendererColor;
+
 ${Graph}
     struct GraphVertexOutput
     {
@@ -39,14 +45,13 @@ ${VertexOutputStruct}
         GraphVertexOutput o = (GraphVertexOutput)0;
 ${VertexShader}
         VertexDescriptionInputs vdi = (VertexDescriptionInputs)0;
-
-        // Vertex description inputs defined by graph
 ${VertexShaderDescriptionInputs}
         VertexDescription vd = PopulateVertexData(vdi);
-        v.vertex.xyz = vd.Position;
 
+        v.vertex.xyz = vd.Position;
+        VertexColor *= _RendererColor;
         o.position = TransformObjectToHClip(v.vertex.xyz);
-        // Vertex shader outputs defined by graphh
+
 ${VertexShaderOutputs}
         return o;
     }
@@ -57,18 +62,14 @@ ${PixelShader}
         SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;
 ${PixelShaderSurfaceInputs}
         SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-        float3 Color = float3(0.5, 0.5, 0.5);
-        float Alpha = 1;
-        float EnableAlphaTexture = 0;
-
-${PixelShaderSurfaceRemap}
 
 #if ETC1_EXTERNAL_ALPHA
         float4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, IN.uv0.xy);
-        Alpha = lerp (Alpha, alpha.r, EnableAlphaTexture);
+        surf.Color.a = lerp (surf.Color.a, alpha.r, _EnableAlphaTexture);
 #endif
-
-        return half4(Color, Alpha);
+        
+        surf.Color *= IN.VertexColor;
+        return half4(surf.Color.xyz, surf.Color.a);
     }
 
     ENDHLSL
