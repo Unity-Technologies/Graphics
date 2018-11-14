@@ -39,18 +39,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             );
         }
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer Inspector;
+#pragma warning restore 618
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionPrimarySettings = CED.Action(Drawer_SectionPrimarySettings);
-        
+#pragma warning restore 618
+
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer FrameSettingsSection = CED.Group(
+#pragma warning restore 618
             CED.Action((s,d,o) => {
                 EditorGUILayout.BeginVertical("box");
                 Drawer_TitleDefaultFrameSettings(s, d, o);
                 }),
             CED.FadeGroup(
                 (s, d, o, i) => s.isSectionExpandedCamera,
+#pragma warning disable 618
                 FadeOption.None,
+#pragma warning restore 618
                 CED.Select(
                     (s, d, o) => s.defaultFrameSettings,
                     (s, d, o) => d.defaultFrameSettings,
@@ -59,7 +67,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ),
             CED.FadeGroup(
                 (s, d, o, i) => s.isSectionExpandedBakedOrCustomReflection,
+#pragma warning disable 618
                 FadeOption.None,
+#pragma warning restore 618
                 CED.Select(
                     (s, d, o) => s.defaultCubeReflectionFrameSettings,
                     (s, d, o) => d.defaultBakedOrCustomReflectionFrameSettings,
@@ -68,7 +78,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ),
             CED.FadeGroup(
                 (s, d, o, i) => s.isSectionExpandedRealtimeReflection,
+#pragma warning disable 618
                 FadeOption.None,
+#pragma warning restore 618
                 CED.Select(
                     (s, d, o) => s.defaultPlanarReflectionFrameSettings,
                     (s, d, o) => d.defaultRealtimeReflectionFrameSettings,

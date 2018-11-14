@@ -33,7 +33,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void Draw(HDProbeUI s, SerializedHDProbe serialized, Editor owner)
         {
+#pragma warning disable 612 //Draw
             PlanarReflectionProbeUI.Inspector.Draw(s, serialized, owner);
+#pragma warning restore 612
         }
 
         protected override void OnEnable()

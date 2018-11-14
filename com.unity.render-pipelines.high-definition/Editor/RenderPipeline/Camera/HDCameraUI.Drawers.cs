@@ -26,9 +26,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             };
         }
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer[] Inspector = null;
+#pragma warning restore 618
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionGeneralSettings = CED.FoldoutGroup(
+#pragma warning restore 618
                 generalSettingsHeaderContent,
                 (s, p, o) => s.isSectionExpandedGeneralSettings,
                 FoldoutOption.Indent,
@@ -46,7 +50,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 //no space as FrameSettings is drawn just under
                 );
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionPhysicalSettings = CED.FoldoutGroup(
+#pragma warning restore 618
                 physicalSettingsHeaderContent,
                 (s, p, o) => s.isSectionExpandedPhysicalSettings,
                 FoldoutOption.Indent,
@@ -55,7 +61,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Action(Drawer_FieldIso),
                 CED.space);
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionOutputSettings = CED.FoldoutGroup(
+#pragma warning restore 618
                 outputSettingsHeaderContent,
                 (s, p, o) => s.isSectionExpandedOutputSettings,
                 FoldoutOption.Indent,
@@ -67,17 +75,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Action(Drawer_FieldNormalizedViewPort),
                 CED.space);
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionXRSettings = CED.FadeGroup(
+#pragma warning restore 618
                 (s, d, o, i) => s.isSectionAvailableXRSettings,
+#pragma warning disable 618
                 FadeOption.None,
+#pragma warning restore 618
                 CED.FoldoutGroup(
                     xrSettingsHeaderContent,
                     (s, p, o) => s.isSectionExpandedXRSettings,
                     FoldoutOption.Indent,
                     CED.Action(Drawer_FieldVR),
                     CED.Action(Drawer_FieldTargetEye)));
-        
+
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionFrameSettings = CED.Action((s, d, o) =>
+#pragma warning restore 618
         {
             if (s.isSectionExpandedGeneralSettings.target)
             {

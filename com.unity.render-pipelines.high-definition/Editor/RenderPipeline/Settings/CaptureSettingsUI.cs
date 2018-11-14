@@ -30,7 +30,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly GUIContent shadowDistanceContent = CoreEditorUtils.GetContent("Shadow Distance|DEPRECATED: Still available for baked and custom probe.\nWill be soon replaced by volume usage.\nTo set up volume, create a layer used in probe capture settings as volume layer mask and not in the camera layer mask.\nCreate a volume on this specific layer affecting shadow distance.");
 
+#pragma warning disable 618 //CED
         public static CED.IDrawer SectionCaptureSettings = CED.LabelWidth(150, CED.Action((s, p, o) => Drawer_SectionCaptureSettings(s, p, o)));
+#pragma warning restore 618
 
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[0]; } }
 
