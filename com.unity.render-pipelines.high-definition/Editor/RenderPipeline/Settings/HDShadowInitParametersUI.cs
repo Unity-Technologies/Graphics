@@ -21,7 +21,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShadowResolution16384 = 16384
         }
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer Inspector = CED.FoldoutGroup(
+#pragma warning restore 618
             "Shadows",
             (s, d, o) => s.isSectionExpendedShadowSettings,
             FoldoutOption.None,
