@@ -146,16 +146,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var m = Gizmos.matrix;
             Gizmos.matrix = Matrix4x4.TRS(
                     d.transform.position,
-                    Quaternion.LookRotation(d.captureMirrorPlaneNormal, Vector3.up),
+                    d.transform.rotation * Quaternion.Euler(90f, 0f, 0f),
                     Vector3.one);
             Gizmos.color = Color.white;
-            Gizmos.DrawWireCube(Vector3.zero, new Vector3(d.influenceVolume.boxSize.z, d.influenceVolume.boxSize.x, 0));
+            Gizmos.DrawWireCube(Vector3.zero, new Vector3(d.influenceVolume.boxSize.x, d.influenceVolume.boxSize.z, 0));
             Color c2 = InfluenceVolumeUI.k_GizmoThemeColorInfluenceNormal.linear;
             c2.a = 1f;
             Gizmos.color = c2;
             Gizmos.DrawLine(Vector3.zero, Vector3.forward);
             Gizmos.color = k_GizmoMirrorPlaneCamera;
-            Gizmos.DrawCube(Vector3.zero, new Vector3(d.influenceVolume.boxSize.z, d.influenceVolume.boxSize.x, 0));
+            Gizmos.DrawCube(Vector3.zero, new Vector3(d.influenceVolume.boxSize.x, d.influenceVolume.boxSize.z, 0));
 
             Gizmos.matrix = m;
             Gizmos.color = c;
