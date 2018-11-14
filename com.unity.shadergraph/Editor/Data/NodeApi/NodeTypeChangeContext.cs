@@ -8,43 +8,29 @@ namespace UnityEditor.ShaderGraph
     public struct NodeTypeChangeContext
     {
         readonly AbstractMaterialGraph m_Graph;
-        readonly int m_CurrentSetupContextId;
+        readonly int m_Id;
         readonly NodeTypeState m_TypeState;
         readonly List<ControlDescriptor> m_CreatedControls;
 
-        internal NodeTypeChangeContext(AbstractMaterialGraph graph, int currentSetupContextId, NodeTypeState typeState, List<ControlDescriptor> createdControls)
+        internal NodeTypeChangeContext(AbstractMaterialGraph graph, int id, NodeTypeState typeState, List<ControlDescriptor> createdControls)
         {
             m_Graph = graph;
-            m_CurrentSetupContextId = currentSetupContextId;
+            m_Id = id;
             m_TypeState = typeState;
             m_CreatedControls = createdControls;
         }
 
-        public IEnumerable<NodeRef> createdNodes
-        {
-            get
-            {
-                Validate();
-                // TODO: Create non-allocating version of this.
-                foreach (var node in m_TypeState.createdNodes)
-                {
-                    yield return new NodeRef(m_Graph, m_CurrentSetupContextId, node);
-                }
-            }
-        }
+        internal AbstractMaterialGraph graph => m_Graph;
 
-        public IEnumerable<NodeRef> deserializedNodes
-        {
-            get
-            {
-                Validate();
-                // TODO: Create non-allocating version of this.
-                foreach (var node in m_TypeState.deserializedNodes)
-                {
-                    yield return new NodeRef(m_Graph, m_CurrentSetupContextId, node);
-                }
-            }
-        }
+        internal int id => m_Id;
+
+        internal NodeTypeState typeState => m_TypeState;
+
+        public NodeRefEnumerable createdNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.createdNodes);
+
+        public NodeRefEnumerable deserializedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.deserializedNodes);
+
+        public NodeRefEnumerable changedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.changedNodes);
 
         // TODO: Decide whether this should be immediate
         // The issue could be that an exception is thrown mid-way, and then the node is left in a halfway broken state.
@@ -66,7 +52,6 @@ namespace UnityEditor.ShaderGraph
 
         public HlslSourceRef CreateHlslSource(string source, HlslSourceType type = HlslSourceType.File)
         {
-            // TODO: This file must now be watched for changes by SG
             if (type == HlslSourceType.File && !File.Exists(Path.GetFullPath(source)))
             {
                 throw new ArgumentException($"Cannot open file at \"{source}\"");
@@ -113,9 +98,9 @@ namespace UnityEditor.ShaderGraph
 
         }
 
-        void Validate()
+        internal void Validate()
         {
-            if (m_CurrentSetupContextId != m_Graph.currentContextId)
+            if (m_Id != m_Graph.currentContextId)
             {
                 throw new InvalidOperationException($"{nameof(NodeTypeChangeContext)} is only valid during the call to {nameof(IShaderNodeType)}.{nameof(IShaderNodeType.OnChange)} it was provided for.");
             }

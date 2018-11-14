@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph
         public void UpdateStateReference()
         {
             var materialOwner = (AbstractMaterialGraph)owner;
-            typeState = materialOwner.shaderNodeStates.FirstOrDefault(x => x.shaderNodeType.GetType().FullName == shaderNodeTypeName);
+            typeState = materialOwner.nodeTypeStates.FirstOrDefault(x => x.shaderNodeType.GetType().FullName == shaderNodeTypeName);
             if (typeState == null)
             {
                 throw new InvalidOperationException($"Cannot find an {nameof(IShaderNodeType)} with type name {shaderNodeTypeName}");

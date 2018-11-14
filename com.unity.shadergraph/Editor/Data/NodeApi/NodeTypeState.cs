@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 
         public List<ProxyShaderNode> createdNodes = new List<ProxyShaderNode>();
         public List<ProxyShaderNode> deserializedNodes = new List<ProxyShaderNode>();
-        public List<NodeRef> changedNodes = new List<NodeRef>();
+        public List<ProxyShaderNode> changedNodes = new List<ProxyShaderNode>();
 
         #endregion
 

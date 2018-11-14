@@ -37,24 +37,33 @@ namespace UnityEditor.ShaderGraph
                 m_Source = context.CreateHlslSource("Packages/com.unity.shadergraph/Editor/Data/Nodes/Artistic/Adjustment/HueNode.hlsl");
             }
 
-            foreach (var node in context.createdNodes.Concat(context.deserializedNodes))
+            foreach (var node in context.createdNodes)
             {
-//                var data = new HueData();
-//                data.modeValue = context.CreateHlslValue(GetOffsetFactor(data));
-                context.SetHlslFunction(node, new HlslFunctionDescriptor
-                {
-                    source = m_Source,
-                    name = "Unity_Hue",
-                    arguments = new HlslArgumentList { m_InPort, m_OffsetPort, 1/360f },
-                    returnValue = m_OutPort
-                });
-                context.CreateControl(node, "Test", 1234f);
-
-//                context.SetData(node, data);
+                SetupNode(ref context, node);
+                context.SetData(node, new HueData());
             }
 
-            // Later on
-            // context.SetHlslValue(data.modeValue, GetOffsetFactor(data));
+            foreach (var node in context.deserializedNodes)
+            {
+                SetupNode(ref context, node);
+            }
+
+            foreach (var node in context.changedNodes)
+            {
+                
+            }
+        }
+
+        void SetupNode(ref NodeTypeChangeContext context, NodeRef node)
+        {
+            context.SetHlslFunction(node, new HlslFunctionDescriptor
+            {
+                source = m_Source,
+                name = "Unity_Hue",
+                arguments = new HlslArgumentList { m_InPort, m_OffsetPort, 1/360f },
+                returnValue = m_OutPort
+            });
+            context.CreateControl(node, "Test", 1234f);
         }
 
         float GetOffsetFactor(HueData data)

@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public List<NodeTypeState> shaderNodeStates { get; } = new List<NodeTypeState>();
+        public List<NodeTypeState> nodeTypeStates { get; } = new List<NodeTypeState>();
 
         int m_CurrentContextId = 1;
 
@@ -195,14 +195,14 @@ namespace UnityEditor.ShaderGraph
 
                     try
                     {
-                        var state = new NodeTypeState { id = shaderNodeStates.Count, owner = this, shaderNodeType = (IShaderNodeType)constructor.Invoke(null) };
+                        var state = new NodeTypeState { id = nodeTypeStates.Count, owner = this, shaderNodeType = (IShaderNodeType)constructor.Invoke(null) };
                         var context = new NodeSetupContext(this, m_CurrentContextId, state);
                         state.shaderNodeType.Setup(ref context);
                         if (!context.nodeTypeCreated)
                         {
                             throw new InvalidOperationException($"An {nameof(IShaderNodeType)} must provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
                         }
-                        shaderNodeStates.Add(state);
+                        nodeTypeStates.Add(state);
                     }
                     catch (Exception e)
                     {
@@ -219,7 +219,7 @@ namespace UnityEditor.ShaderGraph
 
         public void DispatchNodeChangeEvents()
         {
-            foreach (var state in shaderNodeStates)
+            foreach (var state in nodeTypeStates)
             {
                 if (state.isDirty)
                 {
