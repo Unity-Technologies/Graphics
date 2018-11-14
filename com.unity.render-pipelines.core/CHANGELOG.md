@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [4.2.0-preview] - 2018-10-xx
 
+### Added
+- Added a define for determining if any instancing path is taken.
+
 ## [4.1.0-preview] - 2018-10-18
 
 ### Changed
