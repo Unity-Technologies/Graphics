@@ -69,32 +69,32 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public static void GUITextureCap(int controlID, Texture texture, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
-            switch (eventType)
-            {
-                case (EventType.Layout):
-                    HandleUtility.AddControl(controlID, DistanceToRectangle(position, rotation, Vector2.one * size * 0.5f));
-                    break;
-                case (EventType.Repaint):
+            //switch (eventType)
+            //{
+            //    case (EventType.Layout):
+            //        HandleUtility.AddControl(controlID, DistanceToRectangle(position, rotation, Vector2.one * size * 0.5f));
+            //        break;
+            //    case (EventType.Repaint):
 
-                    FilterMode filterMode = texture.filterMode;
-                    texture.filterMode = FilterMode.Bilinear;
+            //        FilterMode filterMode = texture.filterMode;
+            //        texture.filterMode = FilterMode.Bilinear;
 
-                    material.mainTexture = texture;
+            //        material.mainTexture = texture;
 
-                    float w = (float)texture.width;
-                    float h = (float)texture.height;
-                    float max = Mathf.Max(w, h);
+            //        float w = (float)texture.width;
+            //        float h = (float)texture.height;
+            //        float max = Mathf.Max(w, h);
 
-                    Vector3 scale = new Vector2(w / max, h / max) * size;
+            //        Vector3 scale = new Vector2(w / max, h / max) * size;
 
-                    if (Camera.current == null)
-                        scale.y *= -1f;
+            //        if (Camera.current == null)
+            //            scale.y *= -1f;
 
-                    DrawMesh(texCapMesh, material, position, rotation, scale);
+            //        DrawMesh(texCapMesh, material, position, rotation, scale);
 
-                    texture.filterMode = filterMode;
-                    break;
-            }
+            //        texture.filterMode = filterMode;
+            //        break;
+            //}
         }
 
         public static float DistanceToRectangle(Vector3 position, Quaternion rotation, Vector2 size)

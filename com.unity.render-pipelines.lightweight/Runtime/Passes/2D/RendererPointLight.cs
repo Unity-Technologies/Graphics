@@ -43,6 +43,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         static RenderTexture m_NormalRT;
         static RenderTexture m_ColorRT;
 
+        static Color k_ClearColor = Color.black;
+
         static public void Initialize(Texture lightLookupTexture)
         {
             m_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
@@ -56,7 +58,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             //m_DefaultLightMaterial = Resources.Load<Material>("Materials/Light2D");
 
             //m_LightLookupTexture = Resources.Load<Texture>("Textures/LightLookupTexture");
-            m_LightLookupTexture = lightLookupTexture; 
+            m_LightLookupTexture = lightLookupTexture;
+           
 
             Shader pointLightShader = Shader.Find("Internal/Light2DPointLight");
             m_PointLightingMat = new Material(pointLightShader);
@@ -84,7 +87,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             outQuad.vertices = vertices;
             outQuad.triangles = triangles;
         }
-
 
         static float Square(float f) { return f * f; }
 
@@ -196,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_TemporaryCmdBuffer.name = "Render Normals";
             m_TemporaryCmdBuffer.Clear();
             m_TemporaryCmdBuffer.SetRenderTarget(m_NormalRT);
-            m_TemporaryCmdBuffer.ClearRenderTarget(true, true, Color.clear);
+            m_TemporaryCmdBuffer.ClearRenderTarget(true, true, k_ClearColor); 
             renderContext.ExecuteCommandBuffer(m_TemporaryCmdBuffer);
             drawSettings.SetShaderPassName(0, m_NormalsRenderingPassName);
             renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
@@ -213,14 +215,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 m_RenderTextureIsDirty = true;
 
-                cmdBuffer.BeginSample("2D Point Lights");
-                cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
-
                 RenderNormals(renderContext, cullResults, drawSettings, filterSettings);
 
-                cmdBuffer.SetRenderTarget(m_ColorRT);
-                cmdBuffer.ClearRenderTarget(true, true, Color.clear);
+                //cmdBuffer.BeginSample("2D Point Lights");
+                //cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
 
+                cmdBuffer.SetRenderTarget(m_ColorRT);
+                cmdBuffer.ClearRenderTarget(true, true, k_ClearColor);
 
                 for (int i = 0; i < pointLights.Count; i++)
                 {
@@ -284,7 +285,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         }
 
                         //cmdBuffer.Blit(m_RenderPipeline2DAsset.m_NormalMapRT, m_RenderPipeline2DAsset.m_PointLightingRT, m_PointLightingMat);
+
+                        
                         DrawFullScreenQuad(cmdBuffer, camera, light, m_NormalRT, m_ColorRT, m_PointLightingMat);
+
+                        //m_PointLightingMat.SetTexture("_MainTex", m_NormalRT);
+                        //ScriptableRenderer.RenderFullscreenQuad(cmdBuffer, m_PointLightingMat);
 
                         //cmdBuffer.SetRenderTarget(m_FullScreenShadowTexture);
                         //cmdBuffer.ClearRenderTarget(true, true, Color.clear, 1.0f);
@@ -305,12 +311,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
                 cmdBuffer.EndSample("2D Point Lights");
             }
-            else if (m_RenderTextureIsDirty)
+            else //if (m_RenderTextureIsDirty)
             {
                 cmdBuffer.SetRenderTarget(m_ColorRT);
-                cmdBuffer.ClearRenderTarget(true, true, Color.black);
+                cmdBuffer.ClearRenderTarget(true, true, k_ClearColor);
                 m_RenderTextureIsDirty = false;
             }
+
+            renderContext.ExecuteCommandBuffer(cmdBuffer);
+            cmdBuffer.Clear();
         }
 
 

@@ -45,10 +45,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_FullScreenSpecularLightTexture = specularLightRTInfo.GetRenderTexture(m_RenderTextureFormatToUse);
             m_FullScreenAmbientLightTexture = ambientLightRTInfo.GetRenderTexture(m_RenderTextureFormatToUse);
             m_FullScreenRimLightTexture = rimLightRTInfo.GetRenderTexture(m_RenderTextureFormatToUse);
-
-            if (m_FullScreenAmbientLightTexture != null) m_FullScreenAmbientLightTexture.DiscardContents();
-            if (m_FullScreenSpecularLightTexture != null) m_FullScreenSpecularLightTexture.DiscardContents();
-            if (m_FullScreenRimLightTexture != null) m_FullScreenRimLightTexture.DiscardContents();
         }
 
         static public void ReleaseRenderTextures()

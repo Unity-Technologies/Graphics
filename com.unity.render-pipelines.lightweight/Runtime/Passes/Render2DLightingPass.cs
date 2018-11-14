@@ -67,13 +67,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Profiler.EndSample();
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
-            RendererPointLights.CreateRenderTextures(m_PointLightNormalRenderTextureInfo, m_PointLightColorRenderTextureInfo);
             RendererShapeLights.CreateRenderTextures(m_AmbientRenderTextureInfo, m_SpecularRenderTextureInfo, m_RimRenderTextureInfo);
+            RendererPointLights.CreateRenderTextures(m_PointLightNormalRenderTextureInfo, m_PointLightColorRenderTextureInfo);
             Profiler.EndSample();
 
             m_CommandBuffer.Clear();
             RendererPointLights.SetShaderGlobals(m_CommandBuffer);
             RendererShapeLights.SetShaderGlobals(m_CommandBuffer);
+            RendererPointLights.Clear(m_CommandBuffer);
             RendererShapeLights.Clear(m_CommandBuffer);
 
             context.ExecuteCommandBuffer(m_CommandBuffer);
@@ -96,6 +97,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
                 else if (renderBuffersDirty)
                 {
+                    RendererPointLights.Clear(m_CommandBuffer);
                     RendererShapeLights.Clear(m_CommandBuffer);
                     renderBuffersDirty = false;
                 }
