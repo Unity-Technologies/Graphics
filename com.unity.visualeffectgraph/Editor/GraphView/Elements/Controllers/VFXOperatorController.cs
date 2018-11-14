@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
                 anchor = new VFXOutputOperatorAnchorController(slot, this, hidden);
             }
 
-            anchor.portType = VFXOperatorAnchorController.GetDisplayAnchorType(slot);
+            anchor.portType = slot.property.type;
 
             return anchor;
         }
