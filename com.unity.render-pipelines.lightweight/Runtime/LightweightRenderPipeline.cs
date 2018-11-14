@@ -182,7 +182,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             ScriptableCullingParameters cullingParameters;    
-            if (!!CullResults.GetCullingParameters(camera, IsStereoEnabled(camera), out cullingParameters)
+            if (!CullResults.GetCullingParameters(camera, IsStereoEnabled(camera), out cullingParameters))
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
