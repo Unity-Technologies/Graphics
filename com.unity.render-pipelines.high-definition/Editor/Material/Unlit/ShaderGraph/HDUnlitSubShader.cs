@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class HDUnlitSubShader : IUnlitSubShader
+    class HDUnlitSubShader : IUnlitSubShader
     {
         Pass m_PassDepthOnly = new Pass()
         {

@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.Graphing.Util
 {
-    public class TypeMapping
+    class TypeMapping
     {
         public Type fromType { get; private set; }
         public Type toType { get; private set; }

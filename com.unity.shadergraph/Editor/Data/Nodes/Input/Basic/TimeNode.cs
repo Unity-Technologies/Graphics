@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Basic", "Time")]
-    public class TimeNode : AbstractMaterialNode, IMayRequireTime
+    class TimeNode : AbstractMaterialNode, IMayRequireTime
     {
         private const string kOutputSlotName = "Time";
         private const string kOutputSlot1Name = "Sine Time";

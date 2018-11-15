@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Graphing
 {
-    public enum ModificationScope
+    enum ModificationScope
     {
         Nothing = 0,
         Node = 1,
@@ -12,9 +12,9 @@ namespace UnityEditor.Graphing
         Topological = 3
     }
 
-    public delegate void OnNodeModified(INode node, ModificationScope scope);
+    delegate void OnNodeModified(INode node, ModificationScope scope);
 
-    public interface INode
+    interface INode
     {
         void RegisterCallback(OnNodeModified callback);
         void UnregisterCallback(OnNodeModified callback);
@@ -41,7 +41,7 @@ namespace UnityEditor.Graphing
         void UpdateNodeAfterDeserialization();
     }
 
-    public static class NodeExtensions
+    static class NodeExtensions
     {
         public static IEnumerable<T> GetSlots<T>(this INode node) where T : ISlot
         {

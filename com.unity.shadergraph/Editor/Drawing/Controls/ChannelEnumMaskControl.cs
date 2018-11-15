@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class ChannelEnumMaskControlAttribute : Attribute, IControlAttribute
+    class ChannelEnumMaskControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
         int m_SlotId;
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class ChannelEnumMaskControlView : VisualElement, INodeModificationListener
+    class ChannelEnumMaskControlView : VisualElement, INodeModificationListener
     {
         GUIContent m_Label;
         AbstractMaterialNode m_Node;

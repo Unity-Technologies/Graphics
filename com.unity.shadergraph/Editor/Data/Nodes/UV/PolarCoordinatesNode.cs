@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Polar Coordinates")]
-    public class PolarCoordinatesNode : CodeFunctionNode
+    class PolarCoordinatesNode : CodeFunctionNode
     {
         public PolarCoordinatesNode()
         {

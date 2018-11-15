@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Property")]
-    public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled
+    class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled
     {
         private Guid m_PropertyGuid;
 

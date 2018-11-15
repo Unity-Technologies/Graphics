@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Graphing
 {
-    public static class ListPool<T>
+    static class ListPool<T>
     {
         // Object pool to avoid allocations.
         static readonly ObjectPool<List<T>> s_ListPool = new ObjectPool<List<T>>(null, l => l.Clear());

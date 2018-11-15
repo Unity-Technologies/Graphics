@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    public class UnlitMasterNode : MasterNode<IUnlitSubShader>, IMayRequirePosition
+    class UnlitMasterNode : MasterNode<IUnlitSubShader>, IMayRequirePosition
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Vector3ShaderProperty : VectorShaderProperty
+    class Vector3ShaderProperty : VectorShaderProperty
     {
         public Vector3ShaderProperty()
         {

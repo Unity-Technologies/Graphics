@@ -2,12 +2,12 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireBitangent
+    interface IMayRequireBitangent
     {
         NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
-    public static class MayRequireBitangentExtensions
+    static class MayRequireBitangentExtensions
     {
         public static NeededCoordinateSpace RequiresBitangent(this ISlot slot)
         {

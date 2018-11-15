@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class ColorRGBMaterialSlot : Vector3MaterialSlot
+    class ColorRGBMaterialSlot : Vector3MaterialSlot
     {
         [SerializeField]
         ColorMode m_ColorMode = ColorMode.Default;

@@ -2,9 +2,9 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-/*    public class CubemapPropertyChunk : PropertyChunk
+/*    class CubemapPropertyChunk : PropertyChunk
     {
-        public enum ModifiableState
+        enum ModifiableState
         {
             Modifiable,
             NonModifiable

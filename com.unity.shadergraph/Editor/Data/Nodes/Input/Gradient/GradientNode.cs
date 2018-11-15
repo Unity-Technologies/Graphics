@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Gradient", "Gradient")]
-    public class GradientNode : AbstractMaterialNode, IGeneratesFunction
+    class GradientNode : AbstractMaterialNode, IGeneratesFunction
     {
         [SerializeField]
         private float m_Value;

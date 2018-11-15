@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.Experimental.Rendering.HDPipeline.Drawing;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
@@ -9,11 +11,12 @@ using UnityEngine.UIElements;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     [Title("Master", "Fabric")]
-    public class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    [FormerName("UnityEditor.ShaderGraph.FabricMasterNode")]
+    class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Position";
         public const int PositionSlotId = 0;
@@ -306,7 +309,7 @@ namespace UnityEditor.ShaderGraph
                 Dirty(ModificationScope.Topological);
             }
         }
-        
+
         [SerializeField]
         bool m_ReceiveDecals = true;
 
@@ -504,7 +507,7 @@ namespace UnityEditor.ShaderGraph
                 validSlots.Add(ThicknessSlotId);
             }
 
-            // Tangent 
+            // Tangent
             if (MaterialTypeUsesSlotMask(SlotMask.Tangent))
             {
                 AddSlot(new TangentMaterialSlot(TangentSlotId, TangentSlotName, TangentSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
@@ -527,7 +530,7 @@ namespace UnityEditor.ShaderGraph
 
             // Alpha
             if (MaterialTypeUsesSlotMask(SlotMask.Alpha))
-            {   
+            {
                 AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaSlotId);
             }

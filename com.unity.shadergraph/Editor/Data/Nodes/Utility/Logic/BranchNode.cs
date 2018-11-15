@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Branch")]
-    public class BranchNode : CodeFunctionNode
+    class BranchNode : CodeFunctionNode
     {
         public BranchNode()
         {

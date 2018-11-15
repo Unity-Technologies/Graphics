@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class IntegerControlAttribute : Attribute, IControlAttribute
+    class IntegerControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class IntegerControlView : VisualElement
+    class IntegerControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

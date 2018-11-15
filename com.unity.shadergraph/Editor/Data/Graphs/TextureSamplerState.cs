@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class TextureSamplerState
+    class TextureSamplerState
     {
         public enum FilterMode
         {

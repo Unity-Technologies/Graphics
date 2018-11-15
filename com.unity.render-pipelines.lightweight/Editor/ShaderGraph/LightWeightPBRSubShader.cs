@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 using UnityEngine.Rendering;
 
@@ -12,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.LightWeightPBRSubShader")]
-    public class LightWeightPBRSubShader : IPBRSubShader
+    class LightWeightPBRSubShader : IPBRSubShader
     {
         static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;
 
@@ -143,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         {
             var basePath = Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/Editor/ShaderGraph");
             string templatePath = Path.Combine(basePath, templateName);
-            
+
             if (File.Exists(templatePath))
                 return templatePath;
 

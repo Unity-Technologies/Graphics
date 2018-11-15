@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Vector3MaterialSlot : MaterialSlot, IMaterialSlotHasValue<Vector3>
+    class Vector3MaterialSlot : MaterialSlot, IMaterialSlotHasValue<Vector3>
     {
         [SerializeField]
         private Vector3 m_Value;

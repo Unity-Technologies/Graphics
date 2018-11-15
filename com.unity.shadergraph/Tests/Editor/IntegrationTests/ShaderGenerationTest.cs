@@ -13,7 +13,7 @@ using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph.IntegrationTests
 {
-    public class ShaderGenerationTest
+    class ShaderGenerationTest
     {
         static readonly string s_Path = Path.Combine(Path.Combine(Path.Combine("" /*DefaultShaderIncludes.GetRepositoryPath()*/, "Testing"), "IntegrationTests"), "Graphs");
 

@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [Serializable]
-    public struct ToggleData
+    struct ToggleData
     {
         public bool isOn;
         public bool isEnabled;
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     }
 
     [AttributeUsage(AttributeTargets.Property)]
-    public class ToggleControlAttribute : Attribute, IControlAttribute
+    class ToggleControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class ToggleControlView : VisualElement, INodeModificationListener
+    class ToggleControlView : VisualElement, INodeModificationListener
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {
-    public class ShaderSourceMapTests
+    class ShaderSourceMapTests
     {
         class TestNode : AbstractMaterialNode
         {
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_Node2 = new TestNode();
             m_Node3 = new TestNode();
             m_Node4 = new TestNode();
-            
+
             testList = new List<ShaderStringMapping>()
             {
                 CreateMapping(0, m_Node1, 41),
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 CreateMapping(85, m_Node3, 16),
                 CreateMapping(101, m_Node4, 15)
             };
-            
+
             m_Map = new ShaderSourceMap(m_Shader, testList);
         }
 
@@ -56,10 +56,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
         TestNode m_Node2;
         TestNode m_Node3;
         TestNode m_Node4;
-        
+
         List<ShaderStringMapping> testList;
         ShaderSourceMap m_Map;
-        
+
         [Test]
         public void FindNode_ReturnsNull_ForOutOfBoundsIndex()
         {
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void FindNode_FindsFirstNode()
         {
-            
+
             Assert.AreEqual(m_Node1, m_Map.FindNode(1));
         }
 

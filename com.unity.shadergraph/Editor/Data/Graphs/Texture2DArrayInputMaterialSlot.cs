@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Texture2DArrayInputMaterialSlot : Texture2DArrayMaterialSlot
+    class Texture2DArrayInputMaterialSlot : Texture2DArrayMaterialSlot
     {
         [SerializeField]
         private SerializableTextureArray m_TextureArray = new SerializableTextureArray();

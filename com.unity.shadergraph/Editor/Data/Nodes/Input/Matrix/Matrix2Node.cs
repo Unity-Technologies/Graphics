@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Matrix", "Matrix 2x2")]
-    public class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode
+    class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode
     {
         public const int OutputSlotId = 0;
         const string kOutputSlotName = "Out";

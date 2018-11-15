@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Radial Shear")]
-    public class RadialShearNode : CodeFunctionNode
+    class RadialShearNode : CodeFunctionNode
     {
         public RadialShearNode()
         {

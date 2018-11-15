@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Not")]
-    public class NotNode : CodeFunctionNode
+    class NotNode : CodeFunctionNode
     {
         public NotNode()
         {

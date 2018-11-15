@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
-    public class MultiFloatSlotControlView : VisualElement
+    class MultiFloatSlotControlView : VisualElement
     {
         readonly INode m_Node;
         readonly Func<Vector4> m_Get;

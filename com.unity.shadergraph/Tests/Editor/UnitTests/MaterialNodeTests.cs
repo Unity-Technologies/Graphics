@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
-    public class MaterialNodeTests
+    class MaterialNodeTests
     {
         private ShaderGraph.MaterialGraph m_Graph;
         private TestNode m_NodeA;

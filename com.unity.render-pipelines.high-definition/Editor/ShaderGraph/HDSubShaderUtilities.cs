@@ -8,7 +8,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    internal static class HDRPShaderStructs
+    static class HDRPShaderStructs
     {
         internal struct AttributesMesh
         {
@@ -456,8 +456,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
     };
 
-    public delegate void OnGeneratePassDelegate(IMasterNode masterNode, ref Pass pass);
-    public struct Pass
+    delegate void OnGeneratePassDelegate(IMasterNode masterNode, ref Pass pass);
+    struct Pass
     {
         public string Name;
         public string LightMode;
@@ -476,7 +476,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public string ColorMaskOverride;
         public List<string> StencilOverride;
         public List<string> RequiredFields;         // feeds into the dependency analysis
-        public ShaderGraphRequirements requirements;
         public bool UseInPreview;
 
         // All these lists could probably be hashed to aid lookups.
@@ -498,7 +497,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public OnGeneratePassDelegate OnGeneratePassImpl;
     }
 
-    public static class HDSubShaderUtilities
+    static class HDSubShaderUtilities
     {
         public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
         {

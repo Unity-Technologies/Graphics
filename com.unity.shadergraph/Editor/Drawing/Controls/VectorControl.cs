@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class MultiFloatControlAttribute : Attribute, IControlAttribute
+    class MultiFloatControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
         string m_SubLabel1;
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class MultiFloatControlView : VisualElement
+    class MultiFloatControlView : VisualElement
     {
         public static Type[] validTypes = { typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4) };
 

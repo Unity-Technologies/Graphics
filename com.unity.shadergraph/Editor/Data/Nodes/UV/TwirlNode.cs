@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Twirl")]
-    public class TwirlNode : CodeFunctionNode
+    class TwirlNode : CodeFunctionNode
     {
         public TwirlNode()
         {

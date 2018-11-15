@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Horizontal
     }
 
-    public enum ResizeHandleAnchor
+    enum ResizeHandleAnchor
     {
         Top,
         TopRight,
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         TopLeft
     }
 
-    public class ResizeSideHandle : ImmediateModeElement
+    class ResizeSideHandle : ImmediateModeElement
     {
         VisualElement m_ResizeTarget;
         VisualElement m_Container;
