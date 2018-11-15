@@ -83,11 +83,6 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     {
         shadow = lightLoopContext.shadowValue;
 
-        // Transparents have no contact shadow information
-    #ifndef _SURFACE_TYPE_TRANSPARENT
-        shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
-    #endif
-
     #ifdef SHADOWS_SHADOWMASK
         // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
         // certainly more efficient to do
@@ -114,6 +109,11 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
         shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }
+
+    // Transparents have no contact shadow information
+#ifndef _SURFACE_TYPE_TRANSPARENT
+    shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
+#endif
 
 #ifdef DEBUG_DISPLAY
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
@@ -249,11 +249,6 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     {
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
 
-        // Transparents have no contact shadow information
-    #ifndef _SURFACE_TYPE_TRANSPARENT
-        shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
-    #endif
-
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
         // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).
@@ -267,6 +262,11 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
         shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }
+
+    // Transparents have no contact shadow information
+#ifndef _SURFACE_TYPE_TRANSPARENT
+    shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
+#endif
 
 #ifdef DEBUG_DISPLAY
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
