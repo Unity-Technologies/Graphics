@@ -10,7 +10,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class FrameSettingsUI
     {
+#pragma warning disable 618 //CED
         internal static CED.IDrawer Inspector(bool withOverride = true)
+#pragma warning restore 618
         {
             return CED.Group(
                 CED.Action((s, d, o) =>
@@ -24,12 +26,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         //separated to add enum popup on default frame settings
+#pragma warning disable 618 //CED
         internal static CED.IDrawer InspectorInnerbox(bool withOverride = true)
+#pragma warning restore 618
         {
             return CED.Group(
                 SectionRenderingPasses(withOverride),
                 SectionRenderingSettings(withOverride),
                 SectionLightingSettings(withOverride),
+                SectionAsyncComputeSettings(withOverride),
                 CED.Select(
                     (s, d, o) => s.lightLoopSettings,
                     (s, d, o) => d.lightLoopSettings,
@@ -38,7 +43,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 );
         }
 
+#pragma warning disable 618 //CED
         public static CED.IDrawer SectionRenderingPasses(bool withOverride)
+#pragma warning restore 618
         {
             return CED.FoldoutGroup(
                 renderingPassesHeaderContent,
@@ -48,8 +55,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.space
                 );
         }
-        
+
+#pragma warning disable 618 //CED
         public static CED.IDrawer SectionRenderingSettings(bool withOverride)
+#pragma warning restore 618
         {
             return CED.FoldoutGroup(
                 renderingSettingsHeaderContent,
@@ -59,8 +68,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.space
                 );
         }
+
+#pragma warning disable 618 //CED
+        public static CED.IDrawer SectionAsyncComputeSettings(bool withOverride)
+#pragma warning restore 618
+        {
+            return CED.FoldoutGroup(
+                asyncComputeSettingsHeaderContent,
+                (s, p, o) => s.isSectionExpandedAsyncComputeSettings,
+                FoldoutOption.Indent | FoldoutOption.Boxed,
+                CED.LabelWidth(250, CED.Action((s, p, o) => Drawer_SectionAsyncComputeSettings(s, p, o, withOverride))),
+                CED.space
+                );
+        }
         
+#pragma warning disable 618 //CED
         public static CED.IDrawer SectionLightingSettings(bool withOverride)
+#pragma warning restore 618
         {
             return CED.FoldoutGroup(
                 lightSettingsHeaderContent,
@@ -144,14 +168,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 area.Add(p.enableDepthPrepassWithDeferredRendering, depthPrepassWithDeferredRenderingContent, () => p.overridesDepthPrepassWithDeferredRendering, a => p.overridesDepthPrepassWithDeferredRendering = a,
                     () => (defaultFrameSettings.shaderLitMode == LitShaderMode.Deferred && !p.overridesShaderLitMode || p.overridesShaderLitMode && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred) && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly) != 0,
                     defaultValue: defaultFrameSettings.enableDepthPrepassWithDeferredRendering && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly) != 0 && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred);
-                area.Add(p.enableAsyncCompute, asyncComputeContent, () => p.overridesAsyncCompute, a => p.overridesAsyncCompute = a, () => SystemInfo.supportsAsyncCompute, defaultValue: defaultFrameSettings.enableAsyncCompute);
                 area.Add(p.enableOpaqueObjects, opaqueObjectsContent, () => p.overridesOpaqueObjects, a => p.overridesOpaqueObjects = a, defaultValue: defaultFrameSettings.enableOpaqueObjects);
                 area.Add(p.enableTransparentObjects, transparentObjectsContent, () => p.overridesTransparentObjects, a => p.overridesTransparentObjects = a, defaultValue: defaultFrameSettings.enableTransparentObjects);
                 area.Add(p.enableRealtimePlanarReflection, realtimePlanarReflectionContent, () => p.overridesRealtimePlanarReflection, a => p.overridesRealtimePlanarReflection = a, defaultValue: defaultFrameSettings.enableRealtimePlanarReflection);
                 area.Draw(withOverride);
             }
         }
-        
+
+        static void Drawer_SectionAsyncComputeSettings(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
+        {
+            //disable temporarily as FrameSettings are not supported for Baked probe at the moment
+            using (new EditorGUI.DisabledScope((owner is HDProbeEditor) && (owner as HDProbeEditor).GetTarget(owner.target).mode != ReflectionProbeMode.Realtime || (owner is HDRenderPipelineEditor) && HDRenderPipelineUI.selectedFrameSettings == HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection))
+            {
+                OverridableSettingsArea area = new OverridableSettingsArea(4);
+                FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
+
+                area.Add(p.enableAsyncCompute, asyncComputeContent, () => p.overridesAsyncCompute, a => p.overridesAsyncCompute = a, defaultValue: defaultFrameSettings.enableAsyncCompute);
+                area.Add(p.runBuildLightListAsync, lightListAsyncContent, () => p.overrideLightListInAsync, a => p.overrideLightListInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runLightListAsync, indent: 1);
+                area.Add(p.runSSRAsync, SSRAsyncContent, () => p.overrideSSRInAsync, a => p.overrideSSRInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runSSRAsync, indent: 1);
+                area.Add(p.runSSAOAsync, SSAOAsyncContent, () => p.overrideSSAOInAsync, a => p.overrideSSAOInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runSSAOAsync, indent: 1);
+                area.Draw(withOverride);
+            }
+        }
+
         static void Drawer_SectionLightingSettings(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
         {
             //disable temporarily as FrameSettings are not supported for Baked probe at the moment

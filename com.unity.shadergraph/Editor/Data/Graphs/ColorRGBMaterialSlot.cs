@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class ColorRGBMaterialSlot : Vector3MaterialSlot
+    class ColorRGBMaterialSlot : Vector3MaterialSlot
     {
         [SerializeField]
         ColorMode m_ColorMode = ColorMode.Default;

@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum EmissionGIMode
+    enum EmissionGIMode
     {
         Disabled,
         Realtime,

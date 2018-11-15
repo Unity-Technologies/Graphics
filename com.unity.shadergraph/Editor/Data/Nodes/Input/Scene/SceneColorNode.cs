@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Scene Color")]
-    public sealed class SceneColorNode : CodeFunctionNode, IMayRequireCameraOpaqueTexture
+    sealed class SceneColorNode : CodeFunctionNode, IMayRequireCameraOpaqueTexture
     {
         const string kScreenPositionSlotName = "UV";
         const string kOutputSlotName = "Out";

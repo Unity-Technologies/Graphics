@@ -1,20 +1,20 @@
 using System;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
+using UnityEngine.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class PortInputView : GraphElement, IDisposable
+    class PortInputView : GraphElement, IDisposable
     {
-        const string k_EdgeColorProperty = "edge-color";
+        readonly CustomStyleProperty<Color> k_EdgeColorProperty = new CustomStyleProperty<Color>("--edge-color");
 
-        StyleValue<Color> m_EdgeColor;
+        Color m_EdgeColor = Color.red;
 
         public Color edgeColor
         {
-            get { return m_EdgeColor.GetSpecifiedValueOrDefault(Color.red); }
+            get { return m_EdgeColor; }
         }
 
         public MaterialSlot slot
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public PortInputView(MaterialSlot slot)
         {
-            AddStyleSheetPath("Styles/PortInputView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/PortInputView"));
             pickingMode = PickingMode.Ignore;
             ClearClassList();
             m_Slot = slot;
@@ -39,8 +39,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_EdgeControl = new EdgeControl
             {
-                @from = new Vector2(212f - 21f, 11.5f),
-                to = new Vector2(212f, 11.5f),
+                @from = new Vector2(232f - 21f, 11.5f),
+                to = new Vector2(232f, 11.5f),
                 edgeWidth = 2,
                 pickingMode = PickingMode.Ignore
             };
@@ -61,12 +61,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(m_Container);
 
             m_Container.visible = m_EdgeControl.visible = m_Control != null;
+
+            RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
         }
 
-        protected override void OnStyleResolved(ICustomStyle styles)
+        private void OnCustomStyleResolved(CustomStyleResolvedEvent e)
         {
-            base.OnStyleResolved(styles);
-            styles.ApplyCustomProperty(k_EdgeColorProperty, ref m_EdgeColor);
+            Color colorValue;
+
+            if (e.customStyle.TryGetValue(k_EdgeColorProperty, out colorValue))
+                m_EdgeColor = colorValue;
+
             m_EdgeControl.UpdateLayout();
             m_EdgeControl.inputColor = edgeColor;
             m_EdgeControl.outputColor = edgeColor;

@@ -5,13 +5,13 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    public class UnlitMasterNode : MasterNode<IUnlitSubShader>, IMayRequirePosition
+    class UnlitMasterNode : MasterNode<IUnlitSubShader>, IMayRequirePosition
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";

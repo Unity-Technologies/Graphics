@@ -6,14 +6,14 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum MatrixAxis
+    enum MatrixAxis
     {
         Row,
         Column
     }
 
     [Title("Math", "Matrix", "Matrix Split")]
-    public class MatrixSplitNode : AbstractMaterialNode, IGeneratesBodyCode
+    class MatrixSplitNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         const string kInputSlotName = "In";
         const string kOutputSlotM0Name = "M0";

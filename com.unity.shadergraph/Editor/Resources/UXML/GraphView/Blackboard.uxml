@@ -1,4 +1,4 @@
-<UXML xmlns:ui="UnityEngine.Experimental.UIElements">
+<UXML xmlns:ui="UnityEngine.UIElements">
     <ui:VisualElement name="content" pickingMode="Ignore">
         <ui:VisualElement name="header" pickingMode="Ignore">
             <ui:VisualElement name="labelContainer" pickingMode="Ignore">

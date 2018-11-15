@@ -2,12 +2,12 @@ using System;
 using System.Reflection;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [Serializable]
-    public struct ToggleData
+    struct ToggleData
     {
         public bool isOn;
         public bool isEnabled;
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     }
 
     [AttributeUsage(AttributeTargets.Property)]
-    public class ToggleControlAttribute : Attribute, IControlAttribute
+    class ToggleControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -41,18 +41,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class ToggleControlView : VisualElement, INodeModificationListener
+    class ToggleControlView : VisualElement, INodeModificationListener
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
 
-        UnityEngine.Experimental.UIElements.Toggle m_Toggle;
+        Toggle m_Toggle;
 
         public ToggleControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             m_Node = node;
             m_PropertyInfo = propertyInfo;
-            AddStyleSheetPath("Styles/Controls/ToggleControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ToggleControlView"));
 
             if (propertyInfo.PropertyType != typeof(ToggleData))
                 throw new ArgumentException("Property must be a Toggle.", "propertyInfo");

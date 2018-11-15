@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Geometry", "Vertex Color")]
-    public class VertexColorNode : AbstractMaterialNode, IMayRequireVertexColor
+    class VertexColorNode : AbstractMaterialNode, IMayRequireVertexColor
     {
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Out";

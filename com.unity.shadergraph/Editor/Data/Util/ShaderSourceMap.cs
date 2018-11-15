@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class ShaderSourceMap
+    class ShaderSourceMap
     {
         // Indicates where a new node begins
         List<int> m_LineStarts;

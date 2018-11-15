@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SurfaceMaterialOptions
+    class SurfaceMaterialOptions
     {
         public enum BlendMode
         {

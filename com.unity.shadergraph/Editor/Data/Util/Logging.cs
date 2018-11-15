@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
-    public class ConsoleLogHandler : ILogHandler
+    class ConsoleLogHandler : ILogHandler
     {
         public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
         {

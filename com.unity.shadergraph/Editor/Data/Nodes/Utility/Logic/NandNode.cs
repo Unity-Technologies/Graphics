@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Nand")]
-    public class NandNode : CodeFunctionNode
+    class NandNode : CodeFunctionNode
     {
         public NandNode()
         {

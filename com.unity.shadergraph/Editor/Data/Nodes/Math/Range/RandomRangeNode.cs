@@ -4,7 +4,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Random Range")]
-    public class RandomRangeNode : CodeFunctionNode
+    class RandomRangeNode : CodeFunctionNode
     {
         public RandomRangeNode()
         {

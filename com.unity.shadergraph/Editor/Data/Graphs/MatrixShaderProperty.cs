@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class MatrixShaderProperty : AbstractShaderProperty<Matrix4x4>
+    abstract class MatrixShaderProperty : AbstractShaderProperty<Matrix4x4>
     {
         public override string GetPropertyBlockString()
         {

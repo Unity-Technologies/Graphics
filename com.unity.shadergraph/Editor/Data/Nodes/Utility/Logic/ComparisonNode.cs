@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ComparisonType
+    enum ComparisonType
     {
         Equal,
         NotEqual,
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Utility", "Logic", "Comparison")]
-    public class ComparisonNode : CodeFunctionNode
+    class ComparisonNode : CodeFunctionNode
     {
         public ComparisonNode()
         {

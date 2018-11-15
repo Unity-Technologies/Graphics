@@ -1,10 +1,10 @@
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using System;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class Scrollable : MouseManipulator
+    class Scrollable : MouseManipulator
     {
         Action<float> m_Handler;
 

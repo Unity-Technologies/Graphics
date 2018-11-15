@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
-    public class LightWeightUnlitSubShader : IUnlitSubShader
+    class LightWeightUnlitSubShader : IUnlitSubShader
     {
         static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;
 

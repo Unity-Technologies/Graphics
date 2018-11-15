@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
             location = VFXAttributeLocation.Current;
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             // Create new operator
             var attrib = ScriptableObject.CreateInstance<VFXAttributeParameter>();

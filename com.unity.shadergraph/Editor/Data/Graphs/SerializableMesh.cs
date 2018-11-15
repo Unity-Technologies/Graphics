@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SerializableMesh
+    class SerializableMesh
     {
         [SerializeField]
         string m_SerializedMesh;

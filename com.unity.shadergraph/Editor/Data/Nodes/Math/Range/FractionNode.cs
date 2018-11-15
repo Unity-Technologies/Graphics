@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Fraction")]
-    public class FractionNode : CodeFunctionNode
+    class FractionNode : CodeFunctionNode
     {
         public FractionNode()
         {

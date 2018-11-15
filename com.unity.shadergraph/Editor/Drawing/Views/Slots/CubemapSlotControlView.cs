@@ -1,22 +1,23 @@
 using System;
-using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
+
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
-    public class CubemapSlotControlView : VisualElement
+    class CubemapSlotControlView : VisualElement
     {
         CubemapInputMaterialSlot m_Slot;
 
         public CubemapSlotControlView(CubemapInputMaterialSlot slot)
         {
-            AddStyleSheetPath("Styles/Controls/CubemapSlotControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/CubemapSlotControlView"));
             m_Slot = slot;
             var objectField = new ObjectField { objectType = typeof(Cubemap), value = m_Slot.cubemap };
-            objectField.OnValueChanged(OnValueChanged);
+            objectField.RegisterValueChangedCallback(OnValueChanged);
             Add(objectField);
         }
 

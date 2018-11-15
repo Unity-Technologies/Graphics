@@ -1,16 +1,17 @@
 using System;
-using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using Object = UnityEngine.Object;
 
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
+using UnityEngine.UIElements.StyleSheets;
+
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
-    public class GradientSlotControlView : VisualElement
+    class GradientSlotControlView : VisualElement
     {
         GradientInputMaterialSlot m_Slot;
 
@@ -23,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         public GradientSlotControlView(GradientInputMaterialSlot slot)
         {
             m_Slot = slot;
-            AddStyleSheetPath("Styles/Controls/GradientSlotControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/GradientSlotControlView"));
 
             m_GradientObject = ScriptableObject.CreateInstance<GradientObject>();
             m_GradientObject.gradient = new Gradient();
@@ -33,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_GradientObject.gradient.mode = m_Slot.value.mode;
 
             var gradientField = new GradientField() { value = m_GradientObject.gradient };
-            gradientField.OnValueChanged(OnValueChanged);
+            gradientField.RegisterValueChangedCallback(OnValueChanged);
             Add(gradientField);
         }
 

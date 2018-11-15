@@ -2,14 +2,14 @@ using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEngine.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements;
 using UnityEditor.ShaderGraph;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class GradientControlAttribute : Attribute, IControlAttribute
+    class GradientControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -25,12 +25,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     }
 
     [Serializable]
-    public class GradientObject : ScriptableObject
+    class GradientObject : ScriptableObject
     {
         public Gradient gradient = new Gradient();
     }
 
-    public class GradientControlView : VisualElement
+    class GradientControlView : VisualElement
     {
         GUIContent m_Label;
 
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             m_Node = node;
             m_PropertyInfo = propertyInfo;
-            AddStyleSheetPath("Styles/Controls/GradientControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/GradientControlView"));
 
             if (propertyInfo.PropertyType != typeof(Gradient))
                 throw new ArgumentException("Property must be of type Gradient.", "propertyInfo");
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 gradientPanel.Add(new Label(label));
 
             var gradientField = new GradientField() { value = m_GradientObject.gradient };
-            gradientField.OnValueChanged(OnValueChanged);
+            gradientField.RegisterValueChangedCallback(OnValueChanged);
             gradientPanel.Add(gradientField);
 
             Add(gradientPanel);

@@ -1,6 +1,6 @@
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public enum PreviewRate
+    enum PreviewRate
     {
         Full,
         Throttled,

@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
 
             // Dropdown menu options
-            public static string[] mainLightOptions = { "None", "Pixel Lighting" };
+            public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
 
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
@@ -62,11 +62,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         bool m_LightingSettingsFoldout = false;
         bool m_ShadowSettingsFoldout = false;
         bool m_AdvancedSettingsFoldout = false;
-
-        int k_MaxSupportedPerObjectLights = 4;
-        float k_MinRenderScale = 0.1f;
-        float k_MaxRenderScale = 4.0f;
-        float k_MaxShadowBias = 10.0f;
 
         SerializedProperty m_RequireDepthTextureProp;
         SerializedProperty m_RequireOpaqueTextureProp;
@@ -177,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUILayout.PropertyField(m_HDR, Styles.hdrText);
                 EditorGUILayout.PropertyField(m_MSAA, Styles.msaaText);
                 EditorGUI.BeginDisabledGroup(XRGraphics.enabled);
-                m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
+                m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, LightweightRenderPipeline.minRenderScale, LightweightRenderPipeline.maxRenderScale);
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
@@ -219,12 +214,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_AdditionalLightsRenderingModeProp.intValue = (int)selectedLightRenderingMode;
                 EditorGUI.indentLevel++;
 
-                disableGroup = m_AdditionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel;
+                disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                m_AdditionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, m_AdditionalLightsPerObjectLimitProp.intValue, 0, k_MaxSupportedPerObjectLights);
+                m_AdditionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, m_AdditionalLightsPerObjectLimitProp.intValue, 0, LightweightRenderPipeline.maxPerObjectLightCount);
                 EditorGUI.EndDisabledGroup();
 
-                disableGroup |= m_AdditionalLightsPerObjectLimitProp.intValue == 0;
+                disableGroup |= (m_AdditionalLightsPerObjectLimitProp.intValue == 0 || m_AdditionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
                 EditorGUI.BeginDisabledGroup(disableGroup);
                 EditorGUILayout.PropertyField(m_AdditionalLightShadowsSupportedProp, Styles.supportsAdditionalShadowsText);
                 EditorGUI.EndDisabledGroup();
@@ -258,8 +253,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 else if (cascades == ShadowCascadesOption.TwoCascades)
                     LightweightRenderPipelineEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
 
-                m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, k_MaxShadowBias);
-                m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, k_MaxShadowBias);
+                m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
+                m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();

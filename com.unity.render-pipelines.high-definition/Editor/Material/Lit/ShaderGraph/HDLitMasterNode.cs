@@ -1,19 +1,21 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.Experimental.Rendering.HDPipeline.Drawing;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     [Title("Master", "HDLit")]
-    public class HDLitMasterNode : MasterNode<IHDLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    [FormerName("UnityEditor.ShaderGraph.HDLitMasterNode")]
+    class HDLitMasterNode : MasterNode<IHDLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string AlbedoSlotName = "Albedo";
         public const string AlbedoDisplaySlotName = "BaseColor";
@@ -503,7 +505,7 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         float m_SpecularAAScreenSpaceVariance;
-    
+
         public float specularAAScreenSpaceVariance
         {
             get { return m_SpecularAAScreenSpaceVariance; }

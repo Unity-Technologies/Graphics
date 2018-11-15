@@ -1,17 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Rendering;
-using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Object = UnityEngine.Object;
+
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
+using UnityEngine.UIElements.StyleSheets;
+using Edge = UnityEditor.Experimental.GraphView.Edge;
+
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -80,7 +81,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
-            AddStyleSheetPath("Styles/GraphEditorView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             previewManager = new PreviewManager(graph);
 
             string serializedToggle = EditorUserSettings.GetConfigValue(k_ToggleSettings);
@@ -134,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var content = new VisualElement { name = "content" };
             {
-                m_GraphView = new MaterialGraphView(graph) { name = "GraphView", persistenceKey = "MaterialGraphView" };
+                m_GraphView = new MaterialGraphView(graph) { name = "GraphView", viewDataKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
@@ -148,7 +149,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Rect blackboardLayout = m_BlackboardProvider.blackboard.layout;
                 blackboardLayout.x = 10f;
                 blackboardLayout.y = 10f;
-                m_BlackboardProvider.blackboard.layout = blackboardLayout;
+                m_BlackboardProvider.blackboard.SetPosition(blackboardLayout);
 
                 // Initialize toggle settings if it doesnt exist.
                 if (m_ToggleSettings == null)
@@ -373,7 +374,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
             {
                 m_SearchWindowProvider.nodeNeedsRepositioning = false;
-                foreach (var element in nodeView.inputContainer.Union(nodeView.outputContainer))
+                foreach (var element in nodeView.inputContainer.Children().Union(nodeView.outputContainer.Children()))
                 {
                     var port = element as ShaderPort;
                     if (port == null)
@@ -501,7 +502,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void HandleEditorViewChanged(GeometryChangedEvent evt)
         {
-            m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(m_GraphView.layout);
+            m_BlackboardProvider.blackboard.SetPosition(m_FloatingWindowsLayout.blackboardLayout.GetLayout(m_GraphView.layout));
         }
 
         void StoreBlackboardLayoutOnGeometryChanged(GeometryChangedEvent evt)
@@ -517,8 +518,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // Restore master preview layout
                 m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
-                m_MasterPreviewView.previewTextureView.style.width = StyleValue<float>.Create(m_FloatingWindowsLayout.masterPreviewSize.x);
-                m_MasterPreviewView.previewTextureView.style.height = StyleValue<float>.Create(m_FloatingWindowsLayout.masterPreviewSize.y);
+                m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
+                m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
 
                 // Restore blackboard layout, and make sure that it remains in the view.
                 Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
@@ -532,7 +533,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.height - blackboardRect.height - blackboardRect.height));
 
                 // Set the processed blackboard layout.
-                m_BlackboardProvider.blackboard.layout = blackboardRect;
+                m_BlackboardProvider.blackboard.SetPosition(blackboardRect);
 
                 previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
             }

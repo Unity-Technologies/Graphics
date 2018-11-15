@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Graphing.Util
 {
-    public static class UIUtilities
+    static class UIUtilities
     {
         public static bool ItemsReferenceEquals<T>(this IList<T> first, IList<T> second)
         {

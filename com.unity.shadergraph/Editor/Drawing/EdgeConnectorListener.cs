@@ -1,6 +1,7 @@
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
+
+using UnityEditor.Experimental.GraphView;
+using Edge = UnityEditor.Experimental.GraphView.Edge;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

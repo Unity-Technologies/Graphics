@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
-    public static class SerializationHelper
+    static class SerializationHelper
     {
         [Serializable]
         public struct TypeSerializationInfo

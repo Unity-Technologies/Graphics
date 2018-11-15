@@ -1,4 +1,4 @@
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,28 +12,12 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public static System.Type GetDisplayAnchorType(VFXSlot slot)
-        {
-            System.Type newAnchorType = null;
-
-            if (slot.property.type == typeof(FloatN) && slot.refSlot != null)
-            {
-                newAnchorType = VFXTypeUtility.GetFloatTypeFromComponentCount(VFXTypeUtility.GetComponentCount(slot.refSlot));
-                if (newAnchorType == null)
-                    newAnchorType = typeof(FloatN);
-            }
-            else
-                newAnchorType = slot.property.type;
-
-            return newAnchorType;
-        }
-
         public override void UpdateInfos()
         {
             base.UpdateInfos();
             if (model.direction == VFXSlot.Direction.kInput)
             {
-                System.Type newAnchorType = GetDisplayAnchorType(model);
+                System.Type newAnchorType = model.property.type;
 
                 if (newAnchorType != portType)
                 {

@@ -182,16 +182,14 @@
 
 // On everything but GCN consoles we error on cross-lane operations
 #ifndef SUPPORTS_WAVE_INTRINSICS
-#define WaveMinInt ERROR_ON_UNSUPPORTED_FUNC(WaveMinInt)
-#define WaveMinUint ERROR_ON_UNSUPPORTED_FUNC(WaveMinUint)
-#define WaveMinFloat ERROR_ON_UNSUPPORTED_FUNC(WaveMinFloat)
-#define WaveMaxInt ERROR_ON_UNSUPPORTED_FUNC(WaveMaxInt)
-#define WaveMaxUint ERROR_ON_UNSUPPORTED_FUNC(WaveMaxUint)
-#define WaveMaxFloat ERROR_ON_UNSUPPORTED_FUNC(WaveMaxFloat)
-#define Ballot ERROR_ON_UNSUPPORTED_FUNC(Ballot)
-#define WaveAdd ERROR_ON_UNSUPPORTED_FUNC(WaveAdd)
-#define WaveAnd ERROR_ON_UNSUPPORTED_FUNC(WaveAnd)
-#define WaveOr ERROR_ON_UNSUPPORTED_FUNC(WaveOr)
+#define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNC(WaveActiveAllTrue)
+#define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNC(WaveActiveAnyTrue)
+#define WaveActiveMin ERROR_ON_UNSUPPORTED_FUNC(WaveActiveMin)
+#define WaveActiveMax ERROR_ON_UNSUPPORTED_FUNC(WaveActiveMax)
+#define WaveActiveBallot ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBallot)
+#define WaveActiveSum ERROR_ON_UNSUPPORTED_FUNC(WaveActiveSum)
+#define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBitAnd)
+#define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBitOr)
 #endif
 
 #if !defined(SHADER_API_GLES)
@@ -199,7 +197,7 @@
 #ifndef INTRINSIC_BITFIELD_EXTRACT
 // Unsigned integer bit field extraction.
 // Note that the intrinsic itself generates a vector instruction.
-// Wrap this function with WaveReadFirstLane() to get scalar output.
+// Wrap this function with WaveReadLaneFirst() to get scalar output.
 uint BitFieldExtract(uint data, uint offset, uint numBits)
 {
     uint mask = (1u << numBits) - 1u;
@@ -210,7 +208,7 @@ uint BitFieldExtract(uint data, uint offset, uint numBits)
 #ifndef INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
 // Integer bit field extraction with sign extension.
 // Note that the intrinsic itself generates a vector instruction.
-// Wrap this function with WaveReadFirstLane() to get scalar output.
+// Wrap this function with WaveReadLaneFirst() to get scalar output.
 int BitFieldExtractSignExtend(int data, uint offset, uint numBits)
 {
     int  shifted = data >> offset;      // Sign-extending (arithmetic) shift
@@ -252,8 +250,8 @@ void ToggleBit(inout uint data, uint offset)
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument's value must be the same across all lanes of the wave.
-    TEMPLATE_1_REAL(WaveReadFirstLane, scalarValue, return scalarValue)
-    TEMPLATE_1_INT(WaveReadFirstLane, scalarValue, return scalarValue)
+    TEMPLATE_1_REAL(WaveReadLaneFirst, scalarValue, return scalarValue)
+    TEMPLATE_1_INT(WaveReadLaneFirst, scalarValue, return scalarValue)
 #endif
 
 #ifndef INTRINSIC_MUL24
@@ -261,8 +259,7 @@ void ToggleBit(inout uint data, uint offset)
 #endif // INTRINSIC_MUL24
 
 #ifndef INTRINSIC_MAD24
-    TEMPLATE_3_INT(Mad24Int, a, b, c, return a * b + c)
-    TEMPLATE_3_INT(Mad24Uint, a, b, c, return a * b + c)
+    TEMPLATE_3_INT(Mad24, a, b, c, return a * b + c)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3

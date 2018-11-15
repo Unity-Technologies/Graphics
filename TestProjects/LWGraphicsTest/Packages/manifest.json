@@ -8,8 +8,10 @@
     "com.unity.textmeshpro": "1.2.4"
   },
   "testables": [
+    "com.unity.render-pipelines.core",
     "com.unity.render-pipelines.lightweight",
     "com.unity.testing.srp.lightweight",
+    "com.unity.shadergraph",
     "com.unity.testframework.graphics"
   ]
 }

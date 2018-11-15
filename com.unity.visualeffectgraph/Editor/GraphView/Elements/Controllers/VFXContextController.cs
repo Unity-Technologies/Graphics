@@ -1,5 +1,5 @@
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
 using UnityEngine;
 using UnityEditor.Experimental.VFX;
 using System.Collections.Generic;
@@ -33,6 +33,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_FlowOutputAnchors.AsReadOnly(); }
         }
+        public char letter { get { return model.letter; } set { model.letter = value; } }
 
         public override void OnDisable()
         {

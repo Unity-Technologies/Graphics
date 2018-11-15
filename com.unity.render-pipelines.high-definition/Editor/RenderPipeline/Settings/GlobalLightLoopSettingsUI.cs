@@ -39,12 +39,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 );
         }
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer Inspector;
-
+        
         public static readonly CED.IDrawer SectionCookies = CED.Action(Drawer_SectionCookies);
         public static readonly CED.IDrawer SectionReflection = CED.Action(Drawer_SectionReflection);
         public static readonly CED.IDrawer SectionSky = CED.Action(Drawer_SectionSky);
         public static readonly CED.IDrawer SectionLightLoop = CED.Action(Drawer_LightLoop);
+#pragma warning restore 618
 
         public AnimBool isSectionExpandedCoockiesSettings { get { return m_AnimBools[0]; } }
         public AnimBool isSectionExpandedReflectionSettings { get { return m_AnimBools[1]; } }

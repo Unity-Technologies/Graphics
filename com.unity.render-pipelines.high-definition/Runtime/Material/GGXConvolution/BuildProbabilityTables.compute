@@ -40,7 +40,7 @@ RWTexture2D<float> conditionalDensities;  // [TEXTURE_WIDTH x TEXTURE_HEIGHT]
         GroupMemoryBarrierWithGroupSync();                                      \
                                                                                 \
         /*** a1 = (2 * i + 1) * offset - 1 */                                   \
-        uint a1 = (uint)Mad24Int((int)Mad24Uint(2u, i, 1u), (int)offset, -1);   \
+        uint a1 = Mad24(Mad24(2u, i, 1u), offset, -1);                          \
         uint a2 = a1 + offset;                                                  \
                                                                                 \
         if (a2 < n)                                                             \
@@ -68,7 +68,7 @@ RWTexture2D<float> conditionalDensities;  // [TEXTURE_WIDTH x TEXTURE_HEIGHT]
         GroupMemoryBarrierWithGroupSync();                                      \
                                                                                 \
         /*** a1 = (2 * i + 1) * offset - 1 */                                   \
-        uint a1 = (uint)Mad24Int((int)Mad24Uint(2u, i, 1u), (int)offset, -1);   \
+        uint a1 = Mad24(Mad24(2u, i, 1u), offset, -1);                          \
         uint a2 = a1 + offset;                                                  \
                                                                                 \
         if (a2 < n)                                                             \

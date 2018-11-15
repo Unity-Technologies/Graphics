@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class CubemapMaterialSlot : MaterialSlot
+    class CubemapMaterialSlot : MaterialSlot
     {
         public CubemapMaterialSlot()
         {}

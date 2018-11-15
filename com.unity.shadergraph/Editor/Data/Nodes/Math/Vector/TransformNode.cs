@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ConversionType
+    enum ConversionType
     {
         Position,
         Direction
     }
 
     [Serializable]
-    public struct CoordinateSpaceConversion : IEnumConversion
+    struct CoordinateSpaceConversion : IEnumConversion
     {
         public CoordinateSpace from;
         public CoordinateSpace to;
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Math", "Vector", "Transform")]
-    public class TransformNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal
+    class TransformNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal
     {
         private const int InputSlotId = 0;
         private const int OutputSlotId = 1;

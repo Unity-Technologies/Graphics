@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
         bool RequiresVertexColor(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
-    public static class MayRequireVertexColorExtensions
+    static class MayRequireVertexColorExtensions
     {
         public static bool RequiresVertexColor(this ISlot slot)
         {

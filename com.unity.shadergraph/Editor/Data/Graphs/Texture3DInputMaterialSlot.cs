@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Texture3DInputMaterialSlot : Texture3DMaterialSlot
+    class Texture3DInputMaterialSlot : Texture3DMaterialSlot
     {
         [SerializeField]
         private SerializableTexture m_Texture = new SerializableTexture();

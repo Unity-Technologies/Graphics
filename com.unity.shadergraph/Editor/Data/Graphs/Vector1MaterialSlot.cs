@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Vector1MaterialSlot : MaterialSlot, IMaterialSlotHasValue<float>
+    class Vector1MaterialSlot : MaterialSlot, IMaterialSlotHasValue<float>
     {
         [SerializeField]
         float m_Value;

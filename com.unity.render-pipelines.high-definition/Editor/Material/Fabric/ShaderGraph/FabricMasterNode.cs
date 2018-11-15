@@ -1,19 +1,22 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.Experimental.Rendering.HDPipeline.Drawing;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     [Title("Master", "Fabric")]
-    public class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    [FormerName("UnityEditor.ShaderGraph.FabricMasterNode")]
+    class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Position";
         public const int PositionSlotId = 0;
@@ -306,7 +309,7 @@ namespace UnityEditor.ShaderGraph
                 Dirty(ModificationScope.Topological);
             }
         }
-        
+
         [SerializeField]
         bool m_ReceiveDecals = true;
 
@@ -363,6 +366,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_Transmission == value.isOn)
                     return;
                 m_Transmission = value.isOn;
+                UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -378,6 +382,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_SubsurfaceScattering == value.isOn)
                     return;
                 m_SubsurfaceScattering = value.isOn;
+                UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -482,27 +487,27 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Diffusion Profile
-            if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile))
+            if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile) && (subsurfaceScattering.isOn || transmission.isOn))
             {
                 AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileSlotId, DiffusionProfileSlotName, DiffusionProfileSlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(DiffusionProfileSlotId);
             }
 
             // Subsurface mask
-            if (MaterialTypeUsesSlotMask(SlotMask.SubsurfaceMask))
+            if (MaterialTypeUsesSlotMask(SlotMask.SubsurfaceMask) && subsurfaceScattering.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(SubsurfaceMaskSlotId, SubsurfaceMaskSlotName, SubsurfaceMaskSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(SubsurfaceMaskSlotId);
             }
 
             // Thickness
-            if ((MaterialTypeUsesSlotMask(SlotMask.Thickness) && (subsurfaceScattering.isOn || transmission.isOn)))
+            if (MaterialTypeUsesSlotMask(SlotMask.Thickness) &&  transmission.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(ThicknessSlotId, ThicknessSlotName, ThicknessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(ThicknessSlotId);
             }
 
-            // Tangent 
+            // Tangent
             if (MaterialTypeUsesSlotMask(SlotMask.Tangent))
             {
                 AddSlot(new TangentMaterialSlot(TangentSlotId, TangentSlotName, TangentSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
@@ -525,7 +530,7 @@ namespace UnityEditor.ShaderGraph
 
             // Alpha
             if (MaterialTypeUsesSlotMask(SlotMask.Alpha))
-            {   
+            {
                 AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaSlotId);
             }

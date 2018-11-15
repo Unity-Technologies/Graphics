@@ -1,13 +1,14 @@
 using System;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class CubemapControlAttribute : Attribute, IControlAttribute
+    class CubemapControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -22,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class CubemapControlView : VisualElement
+    class CubemapControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
@@ -39,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 Add(new Label(label));
 
             var cubemapField = new ObjectField { value = (Cubemap)m_PropertyInfo.GetValue(m_Node, null), objectType = typeof(Cubemap) };
-            cubemapField.OnValueChanged(OnChange);
+            cubemapField.RegisterValueChangedCallback(OnChange);
             Add(cubemapField);
         }
 

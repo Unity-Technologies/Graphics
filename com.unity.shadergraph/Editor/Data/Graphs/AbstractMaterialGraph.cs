@@ -813,7 +813,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Serializable]
-    public class InspectorPreviewData
+    class InspectorPreviewData
     {
         public SerializableMesh serializedMesh = new SerializableMesh();
 

@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Clamp")]
-    public class ClampNode : CodeFunctionNode
+    class ClampNode : CodeFunctionNode
     {
         public ClampNode()
         {

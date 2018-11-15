@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [FormerName("UnityEditor.Graphing.Edge")]
-    public class ShaderEdge : IEquatable<ShaderEdge>
+    class ShaderEdge : IEquatable<ShaderEdge>
     {
         [SerializeField]
         private SlotReference m_OutputSlot;

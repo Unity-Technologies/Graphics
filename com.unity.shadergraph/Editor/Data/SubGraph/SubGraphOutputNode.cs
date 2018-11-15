@@ -4,12 +4,12 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class SubGraphOutputControlAttribute : Attribute, IControlAttribute
+    class SubGraphOutputControlAttribute : Attribute, IControlAttribute
     {
         public VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class SubGraphOutputControlView : VisualElement
+    class SubGraphOutputControlView : VisualElement
     {
         SubGraphOutputNode m_Node;
 
@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class SubGraphOutputNode : AbstractMaterialNode
+    class SubGraphOutputNode : AbstractMaterialNode
     {
         [SubGraphOutputControl]
         int controlDummy { get; set; }
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
                     if(stage != ShaderStageCapability.All)
                         return stage;
                 }
-                
+
                 return ShaderStageCapability.All;
             }
         }
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph
                 slot.stageCapability = ShaderStageCapability.All;
 
             var effectiveStage = effectiveShaderStage;
-            
+
             foreach(MaterialSlot slot in slots)
                 slot.stageCapability = effectiveStage;
         }

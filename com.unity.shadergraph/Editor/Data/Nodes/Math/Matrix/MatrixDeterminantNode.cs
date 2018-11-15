@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Matrix", "Matrix Determinant")]
-    public class MatrixDeterminantNode : CodeFunctionNode
+    class MatrixDeterminantNode : CodeFunctionNode
     {
         public MatrixDeterminantNode()
         {

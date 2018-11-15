@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-    public struct Identifier : IEquatable<Identifier>
+    struct Identifier : IEquatable<Identifier>
     {
         uint m_Version;
         int m_Index;

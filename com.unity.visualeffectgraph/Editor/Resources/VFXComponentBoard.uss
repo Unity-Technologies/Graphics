@@ -1,6 +1,6 @@
 VFXComponentBoard.graphElement
 {
-    position-type:Absolute;
+    position:Absolute;
 
     background-color: #2b2b2b;
     border-color: #191919;
@@ -30,7 +30,7 @@ VFXComponentBoard.graphElement
 }
 
 
-VFXComponentBoard ScrollView
+VFXComponentBoard .unity-scroll-view
 {
     flex-direction:column;
     align-items:stretch;
@@ -65,17 +65,16 @@ VFXComponentBoard, #component-container
 }
 #header > #labelContainer > #titleLabel {
     font-size : 14;
-    text-color: #c1c1c1;
+    color: #c1c1c1;
 }
 #header > #labelContainer > #subTitleLabel {
     font-size: 11;
-    text-color: #606060;
-    word-wrap:true;
-
+    color: #606060;
+    white-space: normal;
 }
 
 
-VFXComponentBoardEventUI Button, #on-play-button, #on-stop-button,#attach, #select,#component-path
+VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach, #select,#component-path
 {
     height:20;
 }
@@ -111,32 +110,32 @@ VFXComponentBoardEventUI Button, #on-play-button, #on-stop-button,#attach, #sele
     flex-direction:row;
 }
 
-#toolbar Button
+#toolbar .unity-button
 {
     flex:1 0 auto;
     height:24;
     align-items:center;
 }
 
-#toolbar Button#stop #icon
+#toolbar .unity-button#stop #icon
 {
-    image:resource("VFX/Stop");
+    --unity-image:resource("VFX/Stop");
 }
-#toolbar Button#play #icon
+#toolbar .unity-button#play #icon
 {
-    image:resource("VFX/Pause");
+    --unity-image:resource("VFX/Pause");
 }
-#toolbar Button#play.paused #icon
+#toolbar .unity-button#play.paused #icon
 {
-    image:resource("VFX/Play");
+    --unity-image:resource("VFX/Play");
 }
-#toolbar Button#step #icon
+#toolbar .unity-button#step #icon
 {
-    image:resource("VFX/Step");
+    --unity-image:resource("VFX/Step");
 }
-#toolbar Button#restart #icon
+#toolbar .unity-button#restart #icon
 {
-    image:resource("VFX/Restart");
+    --unity-image:resource("VFX/Restart");
 }
 
 #play-rate-container
@@ -165,8 +164,8 @@ VFXComponentBoardEventUI Button, #on-play-button, #on-stop-button,#attach, #sele
 #play-rate-container #play-rate-menu
 {
     padding-left:0;
-    border-left:0;
-    border-top:0;
+    border-left-width:0;
+    border-top-width:0;
     width:40;
     height:16;
 }

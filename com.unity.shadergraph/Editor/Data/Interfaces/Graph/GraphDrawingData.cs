@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.Graphing
 {
     [Serializable]
-    public class GraphDrawingData : ISerializationCallbackReceiver
+    class GraphDrawingData : ISerializationCallbackReceiver
     {
         [SerializeField]
         private List<string> m_SerializableSelection = new List<string>();

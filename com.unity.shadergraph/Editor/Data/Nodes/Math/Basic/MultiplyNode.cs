@@ -8,7 +8,7 @@ using System.Linq;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Basic", "Multiply")]
-    public class MultiplyNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class MultiplyNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public MultiplyNode()
         {
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
         const string kInput2SlotName = "B";
         const string kOutputSlotName = "Out";
 
-        public enum MultiplyType
+        enum MultiplyType
         {
             Vector,
             Matrix,

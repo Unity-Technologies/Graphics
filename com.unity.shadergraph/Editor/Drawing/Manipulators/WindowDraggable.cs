@@ -1,12 +1,12 @@
 using System;
 using UnityEngine;
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
+using UnityEngine.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class WindowDraggable : MouseManipulator
+    class WindowDraggable : MouseManipulator
     {
         bool m_Active;
 
@@ -84,10 +84,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // While moving, use only the left and top position properties,
                 // while keeping the others NaN to not affect layout.
-                target.style.positionLeft = StyleValue<float>.Create(position.x);
-                target.style.positionTop = StyleValue<float>.Create(position.y);
-                target.style.positionRight = StyleValue<float>.Create(float.NaN);
-                target.style.positionBottom = StyleValue<float>.Create(float.NaN);
+                target.style.left = position.x;
+                target.style.top = position.y;
+                target.style.right = float.NaN;
+                target.style.bottom = float.NaN;
             }
         }
 
@@ -124,13 +124,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (m_WindowDockingLayout.dockingLeft)
                 {
-                    target.style.positionLeft = StyleValue<float>.Create(0f);
-                    target.style.positionRight = StyleValue<float>.Create(float.NaN);
+                    target.style.left = 0f;
+                    target.style.right = float.NaN;
                 }
                 else
                 {
-                    target.style.positionLeft = StyleValue<float>.Create(float.NaN);
-                    target.style.positionRight = StyleValue<float>.Create(0f);
+                    target.style.left = float.NaN;
+                    target.style.right = 0f;
                 }
             }
 
@@ -138,13 +138,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (m_WindowDockingLayout.dockingTop)
                 {
-                    target.style.positionTop = StyleValue<float>.Create(0f);
-                    target.style.positionBottom = StyleValue<float>.Create(float.NaN);
+                    target.style.top = 0f;
+                    target.style.bottom = float.NaN;
                 }
                 else
                 {
-                    target.style.positionTop = StyleValue<float>.Create(float.NaN);
-                    target.style.positionBottom = StyleValue<float>.Create(0f);
+                    target.style.top = float.NaN;
+                    target.style.bottom = 0f;
                 }
             }
         }
@@ -156,26 +156,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             // parent window.
             if (target.layout.xMin < 0f)
             {
-                target.style.positionLeft = StyleValue<float>.Create(0f);
-                target.style.positionRight = StyleValue<float>.Create(float.NaN);
+                target.style.left = 0f;
+                target.style.right = float.NaN;
             }
 
             if (target.layout.xMax > geometryChangedEvent.newRect.width)
             {
-                target.style.positionLeft = StyleValue<float>.Create(float.NaN);
-                target.style.positionRight = StyleValue<float>.Create(0f);
+                target.style.left = float.NaN;
+                target.style.right = 0f;
             }
 
             if (target.layout.yMax > geometryChangedEvent.newRect.height)
             {
-                target.style.positionTop = StyleValue<float>.Create(float.NaN);
-                target.style.positionBottom = StyleValue<float>.Create(0f);
+                target.style.top = float.NaN;
+                target.style.bottom = 0f;
             }
 
             if (target.layout.yMin < 0f)
             {
-                target.style.positionTop = StyleValue<float>.Create(0f);
-                target.style.positionBottom = StyleValue<float>.Create(float.NaN);
+                target.style.top = 0f;
+                target.style.bottom = float.NaN;
             }
         }
     }

@@ -280,8 +280,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Strictly speaking, this should not be necessary, but it helps avoiding inconsistent behavior in the editor
                 // where the GI system sometimes update the ambient probe and sometime does not...
                 DynamicGI.UpdateEnvironment();
-
-                m_NeedUpdateBakingSky = false;
             }
 
             if (m_NeedUpdateRealtimeEnv)

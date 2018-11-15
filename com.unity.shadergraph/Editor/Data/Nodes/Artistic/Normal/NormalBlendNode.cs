@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum NormalBlendMode
+    enum NormalBlendMode
     {
         Default,
         Reoriented
@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
 
     [FormerName("UnityEditor.ShaderGraph.BlendNormalRNM")]
     [Title("Artistic", "Normal", "Normal Blend")]
-    public class NormalBlendNode : CodeFunctionNode
+    class NormalBlendNode : CodeFunctionNode
     {
         public NormalBlendNode()
         {

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
+    class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
         public enum DefaultType
         {

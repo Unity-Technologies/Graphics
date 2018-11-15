@@ -2,12 +2,12 @@ using System;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class ScreenPositionMaterialSlot : Vector4MaterialSlot, IMayRequireScreenPosition
+    class ScreenPositionMaterialSlot : Vector4MaterialSlot, IMayRequireScreenPosition
     {
         [SerializeField]
         ScreenSpaceType m_ScreenSpaceType;

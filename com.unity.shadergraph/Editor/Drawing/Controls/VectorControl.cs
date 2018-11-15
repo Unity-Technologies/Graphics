@@ -2,14 +2,14 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class MultiFloatControlAttribute : Attribute, IControlAttribute
+    class MultiFloatControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
         string m_SubLabel1;
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class MultiFloatControlView : VisualElement
+    class MultiFloatControlView : VisualElement
     {
         public static Type[] validTypes = { typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4) };
 
@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (components == -1)
                 throw new ArgumentException("Property must be of type float, Vector2, Vector3 or Vector4.", "propertyInfo");
 
-            AddStyleSheetPath("Styles/Controls/MultiFloatControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/MultiFloatControlView"));
             m_Node = node;
             m_Getter = getter;
             m_Setter = setter;
@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             dragger.SetDragZone(label);
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
-            field.OnValueChanged(evt =>
+            field.RegisterValueChangedCallback(evt =>
                 {
                     var value = m_Getter();
                     value[index] = (float)evt.newValue;
@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_UndoGroup = -1;
                     this.MarkDirtyRepaint();
                 });
-            field.RegisterCallback<InputEvent>(evt =>
+            field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
                 {
                     if (m_UndoGroup == -1)
                     {
@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_Setter(value);
                     this.MarkDirtyRepaint();
                 });
-            field.RegisterCallback<KeyDownEvent>(evt =>
+            field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
                 {
                     if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
                     {

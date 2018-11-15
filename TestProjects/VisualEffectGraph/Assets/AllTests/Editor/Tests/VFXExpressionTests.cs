@@ -1,4 +1,4 @@
-#if !UNITY_EDITOR_OSX
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Reflection;
 using System.Linq;
@@ -13,6 +13,8 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     class VFXExpressionTests
     {
+
+
         [Test]
         public void ProcessStoreValue()
         {
@@ -23,7 +25,7 @@ namespace UnityEditor.VFX.Test
             valueFloat.SetContent(a);
             Assert.AreEqual(a, valueFloat.Get<float>());
 
-            valueFloat.SetContent(new FloatN(b));
+            valueFloat.SetContent(b);
             Assert.AreEqual(b, valueFloat.Get<float>());
         }
 
