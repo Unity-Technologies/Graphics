@@ -68,6 +68,14 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariant))]
     class VFXAttributeParameter : VFXOperator
     {
+        static Dictionary<string, object[]> GetGraphVariants(VFXGraph graph)
+        {
+            return new Dictionary<string, object[]>
+                {
+                    { "attribute", graph.customAttributes.Cast<object>().ToArray() }
+                };
+        }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.AllIncludingVariadic.First();
 

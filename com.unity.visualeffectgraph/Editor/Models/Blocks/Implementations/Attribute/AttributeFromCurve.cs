@@ -42,6 +42,13 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Attribute/Curve", variantProvider = typeof(AttributeFromCurveProvider))]
     class AttributeFromCurve : VFXBlock
     {
+        static Dictionary<string, object[]> GetGraphVariants(VFXGraph graph)
+        {
+            return new Dictionary<string, object[]>
+                {
+                    { "attribute", graph.customAttributes.Cast<object>().ToArray() }
+                };
+        }
         public enum CurveSampleMode
         {
             OverLife,

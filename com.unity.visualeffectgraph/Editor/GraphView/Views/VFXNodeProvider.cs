@@ -2,13 +2,8 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.Experimental.VFX;
-using UnityEngine.UIElements;
-using UnityEngine.Profiling;
+using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
@@ -70,6 +65,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        List<MethodInfo> operatorTypesWithGraphVariants = null;
+
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
             IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();
@@ -90,7 +88,8 @@ namespace UnityEditor.VFX.UI
             }
             if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXOperator)))
             {
-                var descriptorsOperator = VFXLibrary.GetOperators().Select(o =>
+                var extra = GetModelsWithGraphVariants<VFXOperator>(m_Controller.graph, ref operatorTypesWithGraphVariants);
+                var descriptorsOperator = VFXLibrary.GetOperators().Concat(extra).Select(o =>
                 {
                     return new Descriptor()
                     {

@@ -10,6 +10,13 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Attribute/Map", variantProvider = typeof(AttributeVariantReadWritable))]
     class AttributeFromMap : VFXBlock
     {
+        static Dictionary<string, object[]> GetGraphVariants(VFXGraph graph)
+        {
+            return new Dictionary<string, object[]>
+                {
+                    { "attribute", graph.customAttributes.Cast<object>().ToArray() }
+                };
+        }
         // TODO: Let's factorize this this into a utility class
         public enum AttributeMapSampleMode
         {

@@ -31,6 +31,16 @@ namespace UnityEditor.VFX.Block
             Source
         }
 
+        static Dictionary<string, object[]> GetGraphVariants(VFXGraph graph)
+        {
+            return new Dictionary<string, object[]>
+                {
+                    { "attribute", graph.customAttributes.Cast<object>().ToArray() },
+                    { "Source", new object[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source } },
+                    { "Composition", new object[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Scale, AttributeCompositionMode.Blend } }
+                };
+        }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider))]
         public string attribute = VFXAttribute.AllIncludingVariadic.First();
 
