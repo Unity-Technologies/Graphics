@@ -8,52 +8,33 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 using UnityEngine.Rendering;
 
-public class CustomLWPipe : LightweightRendererSetup
+
+[CreateAssetMenu()]
+public class CustomRenderGraphData : RenderGraphData
 {
-    #if UNITY_EDITOR 
-    [MenuItem("Assets/Create/Rendering/CustomLWSetup", priority = CoreUtils.assetCreateMenuPriority1)]
-    static void CreateCustomLwPipe()
+    public override RenderGraph Create()
     {
-        ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateCustomLWPipe>(),
-            "CustomLWPipe.asset", null, null);
+        return new CustomLWPipe(this);
     }
-    
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
-    internal class CreateCustomLWPipe : EndNameEditAction
-    {
-        public override void Action(int instanceId, string pathName, string resourceFile)
-        {
-            var instance = CreateInstance<CustomLWPipe>();
-            AssetDatabase.CreateAsset(instance, pathName);
-        }
-    }
-    #endif
-    
+}
+
+public class CustomLWPipe : RenderGraph
+{
     private SetupForwardRenderingPass m_SetupForwardRenderingPass;
     private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
     private SetupLightweightConstanstPass m_SetupLightweightConstants;
     private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
 
-    [NonSerialized]
-    private bool m_Initialized = false;
-
-    private void Init()
+    public CustomLWPipe(CustomRenderGraphData data)
     {
-        if (m_Initialized)
-            return;
-
         m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
         m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
         m_SetupLightweightConstants = new SetupLightweightConstanstPass();
         m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
-
-        m_Initialized = true;
     }
 
     public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        Init();
-
         renderer.SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
         RenderTextureDescriptor baseDescriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;

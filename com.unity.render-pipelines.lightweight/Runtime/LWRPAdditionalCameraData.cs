@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField]
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
 
-        [SerializeField] LightweightRendererSetup m_RendererSetup = null;
+        [SerializeField] RenderGraphData m_RenderGraphData = null;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -92,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             set { m_RequiresOpaqueTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
         }
 
-        public IRendererSetup rendererSetup => m_RendererSetup;
+        public RenderGraphData renderGraphData => m_RenderGraphData;
 		
         public void OnBeforeSerialize()
         {

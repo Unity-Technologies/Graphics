@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    internal class ForwardRendererSetup : IRendererSetup
+    internal class ForwardRenderGraph : RenderGraph
     {
         private DepthOnlyPass m_DepthOnlyPass;
         private MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -31,7 +31,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
 #endif
 
-
         private RenderTargetHandle m_ColorAttachment;
         private RenderTargetHandle m_ColorAttachmentAfterOpaquePost;
         private RenderTargetHandle m_ColorAttachmentAfterTransparentPost;
@@ -42,19 +41,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetHandle m_AdditionalLightsShadowmap;
         private RenderTargetHandle m_ScreenSpaceShadowmap;
 
-        [NonSerialized]
-        private bool m_Initialized = false;
-
-        private void Init()
+        public ForwardRenderGraph(ForwardRenderGraphData data)
         {
-            if (m_Initialized)
-                return;
+            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
+            Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.copyDepthShader);
+            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
+            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.screenSpaceShadowShader);
 
             m_DepthOnlyPass = new DepthOnlyPass();
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass();
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass();
             m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
-            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass();
+            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(screenspaceShadowsMaterial);
             m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
             m_BeginXrRenderingPass = new BeginXRRenderingPass();
             m_SetupLightweightConstants = new SetupLightweightConstanstPass();
@@ -62,16 +60,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_CreatePostOpaqueColorPass = new CreateColorRenderTexturesPass();
             m_OpaquePostProcessPass = new PostProcessPass();
             m_DrawSkyboxPass = new DrawSkyboxPass();
-            m_CopyDepthPass = new CopyDepthPass();
-            m_CopyColorPass = new CopyColorPass();
+            m_CopyDepthPass = new CopyDepthPass(copyDepthMaterial);
+            m_CopyColorPass = new CopyColorPass(samplingMaterial);
             m_CreatePostTransparentColorPass = new CreateColorRenderTexturesPass();
             m_RenderTransparentForwardPass = new RenderTransparentForwardPass();
             m_PostProcessPass = new PostProcessPass();
-            m_FinalBlitPass = new FinalBlitPass();
+            m_FinalBlitPass = new FinalBlitPass(blitMaterial);
             m_EndXrRenderingPass = new EndXRRenderingPass();
 
 #if UNITY_EDITOR
-            m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass();
+            m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(copyDepthMaterial);
 #endif
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -85,8 +83,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MainLightShadowmap.Init("_MainLightShadowmapTexture");
             m_AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
             m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
-
-            m_Initialized = true;
         }
         
         public static bool RequiresIntermediateColorTexture(ref CameraData cameraData, RenderTextureDescriptor baseDescriptor)
@@ -106,10 +102,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         List<IAfterTransparentPass> m_AfterTransparentPasses = new List<IAfterTransparentPass>(10);
         List<IAfterRender> m_AfterRenderPasses = new List<IAfterRender>(10);
 
-        public void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
+        public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            Init();
-
             Camera camera = renderingData.cameraData.camera;
 
             renderer.SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);

@@ -7,12 +7,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         const string k_CollectShadowsTag = "Collect Shadows";
         RenderTextureFormat m_ColorFormat;
+        Material m_ScreenSpaceShadowsMaterial;
 
-        public ScreenSpaceShadowResolvePass()
+        public ScreenSpaceShadowResolvePass(Material screenspaceShadowsMaterial)
         {
             m_ColorFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
                 ? RenderTextureFormat.R8
                 : RenderTextureFormat.ARGB32;
+
+            m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
         }
 
         private RenderTargetHandle colorAttachmentHandle { get; set; }
@@ -32,6 +35,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (m_ScreenSpaceShadowsMaterial == null)
+                return;
+
             if (renderer == null)
                 throw new ArgumentNullException("renderer");
             
@@ -50,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTargetIdentifier screenSpaceOcclusionTexture = colorAttachmentHandle.Identifier();
             SetRenderTarget(cmd, screenSpaceOcclusionTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 ClearFlag.Color | ClearFlag.Depth, Color.white, descriptor.dimension);
-            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, renderer.GetMaterial(MaterialHandle.ScreenSpaceShadow));
+            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
 
             if (renderingData.cameraData.isStereoEnabled)
             {

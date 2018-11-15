@@ -76,6 +76,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
 
+        [SerializeField] RenderGraphData m_RenderGraphData = null;
+
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
         [SerializeField] bool m_RequireOpaqueTexture = false;
@@ -119,14 +121,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] int m_MaxPixelLights = 0;
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
-        [SerializeField] LightweightRenderPipelineResources m_ResourcesAsset = null;
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
-        [SerializeField] private LightweightRendererSetup m_RendererSetup = null;
-
-        public IRendererSetup rendererSetup
+        public RenderGraphData renderGraphData
         {
-            get { return m_RendererSetup; }
+            get => m_RenderGraphData;
         }
         
 #if UNITY_EDITOR
@@ -139,9 +138,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static LightweightRenderPipelineAsset Create()
         {
             var instance = CreateInstance<LightweightRenderPipelineAsset>();
+            instance.m_RenderGraphData = LoadResourceFile<RenderGraphData>();
             instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
-            instance.m_ResourcesAsset = LoadResourceFile<LightweightRenderPipelineResources>();
             return instance;
+        }
+
+        public RenderGraph CreateRenderGraph()
+        {
+            RenderGraphData data = m_RenderGraphData;
+            return data.Create();
         }
  
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
@@ -206,18 +211,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 #endif
-        LightweightRenderPipelineResources resources
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (m_ResourcesAsset == null)
-                    m_ResourcesAsset = LoadResourceFile<LightweightRenderPipelineResources>();
-#endif
-                return m_ResourcesAsset;
-            }
-        }
-
+ 
         protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
         {
             return new LightweightRenderPipeline(this);
@@ -442,27 +436,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return editorResources.autodeskInteractiveMaskedShader; }
         }
 #endif
-
-        public Shader blitShader
-        {
-            get { return resources != null ? resources.blitShader : null; }
-        }
-
-        public Shader copyDepthShader
-        {
-            get { return resources != null ? resources.copyDepthShader : null; }
-        }
-
-        public Shader screenSpaceShadowShader
-        {
-            get { return resources != null ? resources.screenSpaceShadowShader : null; }
-        }
-
-        public Shader samplingShader
-        {
-            get { return resources != null ? resources.samplingShader : null; }
-        }
-
 
         public void OnBeforeSerialize()
         {

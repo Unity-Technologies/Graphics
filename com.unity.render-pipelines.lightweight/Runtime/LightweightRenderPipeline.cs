@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -31,12 +32,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static int _ScaledScreenParams;
         }
 
-        
-
         const string k_RenderCameraTag = "Render Camera";
 
         public ScriptableRenderer renderer { get; private set; }
         PipelineSettings settings { get; set; }
+        Dictionary<RenderGraphData, RenderGraph> m_PerCameraRenderGraphs = new Dictionary<RenderGraphData, RenderGraph>();
 
         public static float maxShadowBias
         {
@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public bool supportsSoftShadows { get; private set; }
             public bool supportsDynamicBatching { get; private set; }
             public bool mixedLightingSupported { get; private set; }
-            public IRendererSetup rendererSetup { get; private set; }
+            public RenderGraph renderGraph { get; private set; }
 
             public static PipelineSettings Create(LightweightRenderPipelineAsset asset)
             {
@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Advanced settings
                 cache.supportsDynamicBatching = asset.supportsDynamicBatching;
                 cache.mixedLightingSupported = asset.supportsMixedLighting;
-                cache.rendererSetup = asset.rendererSetup ?? new ForwardRendererSetup();
+                cache.renderGraph = asset.CreateRenderGraph();
                 
                 return cache;
             }
@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
         {
             settings = PipelineSettings.Create(asset);
-            renderer = new ScriptableRenderer(asset);
+            renderer = new ScriptableRenderer();
 
             SetSupportedRenderingFeatures();
 
@@ -159,6 +159,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #endif
 
             renderer.Dispose();
+
+            m_PerCameraRenderGraphs.Clear();
 
             Lightmapping.ResetDelegate();
         }
@@ -198,7 +200,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 PipelineSettings settings = pipelineInstance.settings;
                 ScriptableRenderer renderer = pipelineInstance.renderer;
-                InitializeCameraData(settings, camera, out var cameraData);
+                LWRPAdditionalCameraData additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
+                InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
                 SetupPerCameraShaderConstants(cameraData);
 
                 cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
@@ -218,9 +221,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 InitializeRenderingData(settings, ref cameraData, ref cullResults,
                     renderer.maxVisibleAdditionalLights, renderer.maxPerObjectAdditionalLights, out var renderingData);
 
-                
                 renderer.Clear();
-                cameraData.rendererSetup?.Setup(renderer, ref renderingData);
+
+                RenderGraph renderGraph = settings.renderGraph;
+                if (additionalCameraData != null && additionalCameraData.renderGraphData != null)
+                {
+                    if (pipelineInstance.m_PerCameraRenderGraphs.ContainsKey(additionalCameraData.renderGraphData))
+                        renderGraph = pipelineInstance.m_PerCameraRenderGraphs[additionalCameraData.renderGraphData];
+                    else
+                        renderGraph = additionalCameraData.renderGraphData.Create();
+                }
+
+                renderGraph.Setup(renderer, ref renderingData);
                 renderer.Execute(context, ref renderingData);
             }
 
@@ -251,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #endif
         }
 
-        static void InitializeCameraData(PipelineSettings settings, Camera camera, out CameraData cameraData)
+        static void InitializeCameraData(PipelineSettings settings, Camera camera, LWRPAdditionalCameraData additionalCameraData, out CameraData cameraData)
         {
             const float kRenderScaleThreshold = 0.05f;
             cameraData.camera = camera;
@@ -285,8 +297,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = (anyShadowsEnabled) ? settings.shadowDistance : 0.0f;
-
-            LWRPAdditionalCameraData additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
+            
             if (additionalCameraData != null)
             {
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
@@ -307,10 +318,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool canSkipFrontToBackSorting = (camera.opaqueSortMode == OpaqueSortMode.Default && hasHSRGPU) || camera.opaqueSortMode == OpaqueSortMode.NoDistanceSort;
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
-            if (additionalCameraData != null && additionalCameraData.rendererSetup != null)
-                cameraData.rendererSetup = additionalCameraData.rendererSetup;
-            else
-                cameraData.rendererSetup = settings.rendererSetup;
         }
 
         static void InitializeRenderingData(PipelineSettings settings, ref CameraData cameraData, ref CullingResults cullResults,

@@ -17,6 +17,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
+            // Render Path
+            public static GUIContent renderPath = EditorGUIUtility.TrTextContent("Render Path", "Render Path");
+
             // General
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
             public static GUIContent requireOpaqueTextureText = EditorGUIUtility.TrTextContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
@@ -66,6 +69,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         bool m_ShadowSettingsFoldout = false;
         bool m_AdvancedSettingsFoldout = false;
 
+        SerializedProperty m_RenderGraphDataProp;
+
         SerializedProperty m_RequireDepthTextureProp;
         SerializedProperty m_RequireOpaqueTextureProp;
         SerializedProperty m_OpaqueDownsamplingProp;
@@ -104,6 +109,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             serializedObject.Update();
 
+            EditorGUILayout.PropertyField(m_RenderGraphDataProp, Styles.renderPath);
+
             DrawGeneralSettings();
             DrawQualitySettings();
             DrawLightingSettings();
@@ -115,6 +122,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void OnEnable()
         {
+            EditorGUI.BeginDisabledGroup(true);
+            m_RenderGraphDataProp = serializedObject.FindProperty("m_RenderGraphData");
+            EditorGUI.EndDisabledGroup();
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
             m_OpaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");

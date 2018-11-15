@@ -9,6 +9,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private RenderTargetHandle source { get; set; }
 
+        Material m_CopyDepthMaterial;
+
+        public SceneViewDepthCopyPass(Material copyDepthMaterial)
+        {
+            m_CopyDepthMaterial = copyDepthMaterial;
+        }
+
         public void Setup(RenderTargetHandle source)
         {
             this.source = source;
@@ -28,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, renderer.GetMaterial(MaterialHandle.CopyDepth));
+            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

@@ -16,6 +16,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
+        Material m_BlitMaterial;
+
+        public FinalBlitPass(Material blitMaterial)
+        {
+            m_BlitMaterial = blitMaterial;
+        }
 
         /// <summary>
         /// Configure the pass
@@ -31,6 +37,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (m_BlitMaterial == null)
+                return;
+
             if (renderer == null)
                 throw new ArgumentNullException(nameof(renderer));
 
@@ -55,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
-                ScriptableRenderer.RenderFullscreenQuad(cmd, renderer.GetMaterial(MaterialHandle.Blit));
+                ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
             }
 
             context.ExecuteCommandBuffer(cmd);
