@@ -165,13 +165,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 "LightweightRenderPipelineAsset.asset", null, null);
         }
 
-        //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
-        static void CreateLightweightPipelineResources()
-        {
-            var instance = CreateInstance<LightweightRenderPipelineResources>();
-            AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightRenderPipelineResources).Name));
-        }
-
         //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipelineEditorResources()
         {
