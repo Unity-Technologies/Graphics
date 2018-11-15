@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Advanced settings
                 cache.supportsDynamicBatching = asset.supportsDynamicBatching;
                 cache.mixedLightingSupported = asset.supportsMixedLighting;
-                cache.rendererSetup = asset.rendererSetup ?? new DefaultRendererSetup();
+                cache.rendererSetup = asset.rendererSetup ?? new ForwardRendererSetup();
                 
                 return cache;
             }
