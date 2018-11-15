@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When you select __Per Vertex__ option for __Additional Lights__, the __Per Object Limit__ option is not greyed out anymore.
 - When you change camera viewport height to values above 1.0, the Unity Editor doesn't freeze anymore. [case 1097497](https://issuetracker.unity3d.com/issues/macos-lwrp-editor-freezes-after-changing-cameras-viewport-rect-values)
 - When you use AR with LWRP, the following error message is not displayed in the console anymore: "The camera list passed to the render pipeline is either null or empty."
+- LWRP materials now properly bake emission values. [case 1097667](https://issuetracker.unity3d.com/product/unity/issues/guid/1097667/)
  
 
 ## [4.1.0-preview] - 2018-10-18
