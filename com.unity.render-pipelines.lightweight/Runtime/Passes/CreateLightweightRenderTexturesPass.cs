@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// when you render a frame, the LWRP renders into a valid color and
     /// depth buffer.
     /// </summary>
-    public class CreateLightweightRenderTexturesPass : ScriptableRenderPass
+    internal class CreateLightweightRenderTexturesPass : ScriptableRenderPass
     {
         const string k_CreateRenderTexturesTag = "Create Render Textures";
         const int k_DepthStencilBufferBits = 32;

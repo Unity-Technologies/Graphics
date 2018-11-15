@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// so you can use it later in rendering. For example, you can copy
     /// the opaque texture to use it for distortion effects.
     /// </summary>
-    public class CopyColorPass : ScriptableRenderPass
+    internal class CopyColorPass : ScriptableRenderPass
     {
         const string k_CopyColorTag = "Copy Color";
         float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
