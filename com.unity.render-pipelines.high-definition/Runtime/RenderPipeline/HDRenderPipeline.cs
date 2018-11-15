@@ -1894,7 +1894,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (visualEnv.fogType.value != FogType.None)
             {
                 // TODO: compute only once.
+#if UNITY_2019_1_OR_NEWER
+                var pixelCoordToViewDirWS = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad, hdCamera.camera.GetGateFittedLensShift(), hdCamera.screenSize, hdCamera.viewMatrix, false);
+#else
                 var pixelCoordToViewDirWS = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(hdCamera.camera.fieldOfView * Mathf.Deg2Rad, hdCamera.screenSize, hdCamera.viewMatrix, false);
+#endif
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd, hdCamera, colorBuffer, depthBuffer, pixelCoordToViewDirWS, hdCamera.frameSettings.enableMSAA);
             }
         }
