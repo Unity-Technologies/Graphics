@@ -626,6 +626,23 @@ namespace UnityEditor.VFX
         {
             if (index >= m_CustomAttributes.Count)
                 throw new System.ArgumentException("Invalid Index");
+
+            var modelUsingAttributes = new List<VFXModel>();
+
+            string name = GetCustomAttributeName(index);
+
+            ForEachSettingUsingAttribute((model, setting) =>
+            {
+                if (name == (string)setting.GetValue(model))
+                    modelUsingAttributes.Add(model);
+                return false;
+            });
+
+            foreach(var model in modelUsingAttributes)
+            {
+                model.GetParent().RemoveChild(model);
+            }
+
             m_CustomAttributes.RemoveAt(index);
             Invalidate(InvalidationCause.kSettingChanged);
         }

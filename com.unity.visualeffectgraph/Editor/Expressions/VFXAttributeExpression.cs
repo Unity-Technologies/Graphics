@@ -125,7 +125,7 @@ namespace UnityEditor.VFX
             if( graph != null && graph.HasCustomAttribute(attributeName))
                 return new VFXAttribute(attributeName, graph.GetCustomAttributeType(attributeName),VFXVariadic.False);
 
-            throw new ArgumentException(string.Format("Unable to find attribute expression : {0}", attributeName));
+            return new VFXAttribute(attributeName, VFXValueType.Float);
         }
 
         public static bool Exist(string attributeName)

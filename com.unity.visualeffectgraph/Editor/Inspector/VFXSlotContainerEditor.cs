@@ -33,6 +33,8 @@ public class VFXSlotContainerEditor : Editor
     public virtual void DoInspectorGUI()
     {
         var slotContainer = targets[0] as VFXModel;
+        if (slotContainer.GetGraph() == null)
+            return;
         IEnumerable<FieldInfo> settingFields = slotContainer.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
 
         for (int i = 1; i < targets.Length; ++i)

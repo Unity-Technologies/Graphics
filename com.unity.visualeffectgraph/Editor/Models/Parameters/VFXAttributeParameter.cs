@@ -9,6 +9,8 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString(VFXGraph graph)
         {
+            if (graph == null)
+                return VFXAttribute.AllIncludingVariadicExceptLocalOnly;
             return VFXAttribute.AllIncludingVariadicExceptLocalOnly.Concat(graph.customAttributes).ToArray();
         }
     }

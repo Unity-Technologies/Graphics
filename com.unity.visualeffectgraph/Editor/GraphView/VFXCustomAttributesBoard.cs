@@ -105,6 +105,11 @@ namespace UnityEditor.VFX.UI
 
             public override void OnRemove(int index)
             {
+                string name = m_Board.controller.graph.GetCustomAttributeName(index);
+                if (m_Board.controller.graph.HasCustomAttributeUses(name) && !EditorUtility.DisplayDialog("Deleting Custom Attribute","Are you sure you want to remove the custom attribute+'" + name + "' currently in use ?", "Ok", "Cancel"))
+                {
+                    return;
+                }
                 m_Board.controller.graph.RemoveCustomAttribute(index);
             }
 
