@@ -76,14 +76,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_Render2DLightingPass.Setup(RenderSettings.ambientLight, m_AmbientRenderTextureInfo, m_SpecularRenderTextureInfo, m_RimRenderTextureInfo, m_PointLightNormalRenderTextureInfo, m_PointLightColorRenderTextureInfo);
             renderer.EnqueuePass(m_Render2DLightingPass);
-
-            #if UNITY_EDITOR
-                if (renderingData.cameraData.isSceneViewCamera)
-                {
-                    m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
-                    renderer.EnqueuePass(m_SceneViewDepthCopyPass);
-                }
-            #endif
         }
 
         #if UNITY_EDITOR
