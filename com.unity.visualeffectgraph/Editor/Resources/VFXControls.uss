@@ -96,3 +96,7 @@ VFXStringFieldPushButton .unity-button
 {
     -unity-slice-right: 12;
 }
+#unity-text-input
+{
+    -unity-text-align:middle-left;
+}
