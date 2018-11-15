@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// with the pass names LightweightForward or SRPDefaultUnlit. The pass only
     /// renders objects in the rendering queue range of Opaque objects.
     /// </summary>
-    public class RenderOpaqueForwardPass : ScriptableRenderPass
+    internal class RenderOpaqueForwardPass : ScriptableRenderPass
     {
         const string k_RenderOpaquesTag = "Render Opaques";
         FilteringSettings m_OpaqueFilterSettings;
