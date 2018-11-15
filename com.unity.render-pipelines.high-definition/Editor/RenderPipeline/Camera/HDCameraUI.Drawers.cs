@@ -1,9 +1,8 @@
 using System;
 using System.Reflection;
+using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {

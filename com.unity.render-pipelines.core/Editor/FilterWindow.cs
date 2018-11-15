@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     [InitializeOnLoad]
     public class FilterWindow : EditorWindow

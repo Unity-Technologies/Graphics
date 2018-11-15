@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using UnityEngine.Assertions;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     public sealed class PropertyFetcher<T> : IDisposable
     {

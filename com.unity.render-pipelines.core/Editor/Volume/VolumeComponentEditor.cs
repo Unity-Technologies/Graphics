@@ -4,9 +4,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class VolumeComponentEditorAttribute : Attribute

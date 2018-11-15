@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     using UnityObject = UnityEngine.Object;
 

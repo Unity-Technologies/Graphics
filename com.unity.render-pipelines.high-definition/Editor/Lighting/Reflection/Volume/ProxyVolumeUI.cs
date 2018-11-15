@@ -1,6 +1,7 @@
 using System;
 using UnityEditor.AnimatedValues;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Object = UnityEngine.Object;

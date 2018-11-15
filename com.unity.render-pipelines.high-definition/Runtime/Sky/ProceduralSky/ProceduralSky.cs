@@ -1,3 +1,5 @@
+using UnityEngine.Rendering;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [SkyUniqueID((int)SkyType.ProceduralSky)]

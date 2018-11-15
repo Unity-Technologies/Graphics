@@ -1,8 +1,7 @@
 using System;
-using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     public struct ProfilingSample : IDisposable
     {

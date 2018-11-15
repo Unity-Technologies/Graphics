@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class VolumeParameterDrawerAttribute : Attribute

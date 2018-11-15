@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     public static class VolumeProfileFactory
     {

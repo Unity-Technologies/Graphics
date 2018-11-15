@@ -1,6 +1,4 @@
-using UnityEditor.AnimatedValues;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
