@@ -229,10 +229,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void UpdateShapeLightMesh()
         {
+
+            Color meshInteriorColor = Color.red;
+            Color meshFeatherColor = Color.blue;
+
             int pointCount = spline.GetPointCount();
             var inputs = new ContourVertex[pointCount];
             for (int i = 0; i < pointCount; ++i)
-                inputs[i] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i).x, Y = spline.GetPosition(i).y } };
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i).x, Y = spline.GetPosition(i).y }, Data = meshInteriorColor };
 
             Tess tess = new Tess();
             tess.AddContour(inputs, ContourOrientation.Original);
@@ -240,41 +244,52 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var indices = tess.Elements.Select(i => i).ToArray();
             var vertices = tess.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
+            var colors = tess.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
 
             var feathered = UpdateFeatheredShapeLightMesh(inputs, pointCount);
             int featheredPointCount = feathered.Count + pointCount;
+
             Tess tessF = new Tess();
             for (int i = 0; i < pointCount - 1; ++i)
             {
                 var inputsF = new ContourVertex[4];
-                inputsF[0] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i).x, Y = spline.GetPosition(i).y } };
-                inputsF[1] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y } };
-                inputsF[2] = new ContourVertex() { Position = new Vec3() { X = feathered[i + 1].x, Y = feathered[i + 1].y } };
-                inputsF[3] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i + 1).x, Y = spline.GetPosition(i + 1).y } };
+                inputsF[0] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i).x, Y = spline.GetPosition(i).y }, Data = meshFeatherColor };
+                inputsF[1] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = meshFeatherColor };
+                inputsF[2] = new ContourVertex() { Position = new Vec3() { X = feathered[i + 1].x, Y = feathered[i + 1].y },  Data = meshFeatherColor };
+                inputsF[3] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i + 1).x, Y = spline.GetPosition(i + 1).y },  Data = meshFeatherColor };
                 tessF.AddContour(inputsF, ContourOrientation.Original);
             }
 
             var inputsL = new ContourVertex[4];
-            inputsL[0] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(pointCount - 1).x, Y = spline.GetPosition(pointCount - 1).y } };
-            inputsL[1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y } };
-            inputsL[2] = new ContourVertex() { Position = new Vec3() { X = feathered[0].x, Y = feathered[0].y } };
-            inputsL[3] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(0).x, Y = spline.GetPosition(0).y } };
+            inputsL[0] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(pointCount - 1).x, Y = spline.GetPosition(pointCount - 1).y }, Data = meshFeatherColor };
+            inputsL[1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = meshFeatherColor };
+            inputsL[2] = new ContourVertex() { Position = new Vec3() { X = feathered[0].x, Y = feathered[0].y }, Data = meshFeatherColor };
+            inputsL[3] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(0).x, Y = spline.GetPosition(0).y }, Data = meshFeatherColor };
             tessF.AddContour(inputsL, ContourOrientation.Original);
 
             tessF.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
 
             var indicesF = tessF.Elements.Select(i => i + pointCount).ToArray();
             var verticesF = tessF.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
+            var colorsF = tessF.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
 
             List<Vector3> finalVertices = new List<Vector3>();
             List<int> finalIndices = new List<int>();
+            List<Color> finalColors = new List<Color>();
             finalVertices.AddRange(vertices);
             finalVertices.AddRange(verticesF);
             finalIndices.AddRange(indices);
             finalIndices.AddRange(indicesF);
-            shapeLightMesh.vertices = finalVertices.ToArray();
-            shapeLightMesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
-            GetComponent<MeshFilter>().mesh = shapeLightMesh;
+            finalColors.AddRange(colors);
+            finalColors.AddRange(colorsF);
+            //shapeLightMesh.vertices = finalVertices.ToArray();
+            //shapeLightMesh.colors = finalColors.ToArray();
+            //shapeLightMesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
+
+            m_Mesh.Clear();
+            m_Mesh.vertices = finalVertices.ToArray();
+            m_Mesh.colors = finalColors.ToArray();
+            m_Mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
 
         }
 
