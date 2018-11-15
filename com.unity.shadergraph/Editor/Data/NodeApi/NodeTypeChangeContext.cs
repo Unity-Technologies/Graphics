@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
 
         public NodeRefEnumerable deserializedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.deserializedNodes);
 
-        public NodeRefEnumerable changedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.changedNodes);
+        public NodeRefEnumerable modifiedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.modifiedNodes);
 
         // TODO: Decide whether this should be immediate
         // The issue could be that an exception is thrown mid-way, and then the node is left in a halfway broken state.
@@ -86,6 +86,11 @@ namespace UnityEditor.ShaderGraph
         public void DestroyControl(ControlRef controlRef)
         {
 
+        }
+
+        public bool WasControlModified(ControlRef controlRef)
+        {
+            return false;
         }
 
         public float GetControlValue(ControlRef controlRef)

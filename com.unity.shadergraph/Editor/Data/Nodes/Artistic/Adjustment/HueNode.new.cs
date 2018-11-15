@@ -48,9 +48,9 @@ namespace UnityEditor.ShaderGraph
                 SetupNode(ref context, node);
             }
 
-            foreach (var node in context.changedNodes)
+            foreach (var node in context.modifiedNodes)
             {
-                
+
             }
         }
 
