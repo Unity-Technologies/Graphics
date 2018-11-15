@@ -20,6 +20,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public VFXIntegrationMode integration = VFXIntegrationMode.Euler;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        public VFXIntegrationMode angularIntegration = VFXIntegrationMode.Euler;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Automatically increase particle age every frame, based on deltaTime")]
         public bool ageParticles = true;
 
@@ -69,7 +72,15 @@ namespace UnityEditor.VFX
                 var data = GetData();
 
                 if (integration != VFXIntegrationMode.None && data.IsCurrentAttributeWritten(VFXAttribute.Velocity))
-                    yield return CreateInstance<EulerIntegration>();
+                    yield return VFXBlock.CreateImplicitBlock<EulerIntegration>(data);
+
+                if (angularIntegration != VFXIntegrationMode.None &&
+                    (
+                        data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
+                        data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||
+                        data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityZ))
+                    )
+                    yield return VFXBlock.CreateImplicitBlock<AngularEulerIntegration>(data);
 
                 var lifeTime = GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime);
                 var age = GetData().IsCurrentAttributeRead(VFXAttribute.Age);
@@ -77,10 +88,10 @@ namespace UnityEditor.VFX
                 if (age || lifeTime)
                 {
                     if (ageParticles)
-                        yield return CreateInstance<Age>();
+                        yield return VFXBlock.CreateImplicitBlock<Age>(data);
 
                     if (lifeTime && reapParticles)
-                        yield return CreateInstance<Reap>();
+                        yield return VFXBlock.CreateImplicitBlock<Reap>(data);
                 }
             }
         }

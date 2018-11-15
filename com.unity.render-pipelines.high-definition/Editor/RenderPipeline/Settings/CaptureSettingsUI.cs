@@ -9,7 +9,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class CaptureSettingsUI : BaseUI<SerializedCaptureSettings>
     {
-        const string captureSettingsHeaderContent = "Capture Settings";
+        internal const string captureSettingsHeaderContent = "Capture Settings";
 
         static readonly GUIContent clearColorModeContent = CoreEditorUtils.GetContent("Clear Mode");
         static readonly GUIContent backgroundColorHDRContent = CoreEditorUtils.GetContent("Background Color");
@@ -28,15 +28,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly GUIContent renderingPathContent = CoreEditorUtils.GetContent("Rendering Path");
 
-        static readonly GUIContent shadowDistanceContent = CoreEditorUtils.GetContent("Shadow Distance");
+        static readonly GUIContent shadowDistanceContent = CoreEditorUtils.GetContent("Shadow Distance|DEPRECATED: Still available for baked and custom probe.\nWill be soon replaced by volume usage.\nTo set up volume, create a layer used in probe capture settings as volume layer mask and not in the camera layer mask.\nCreate a volume on this specific layer affecting shadow distance.");
 
-        public static CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
-                captureSettingsHeaderContent,
-                (s, p, o) => s.isSectionExpandedCaptureSettings,
-                FoldoutOption.Indent,
-                CED.LabelWidth(150, CED.Action((s, p, o) => Drawer_SectionCaptureSettings(s, p, o)))
-                //no space as FrameSettings is rendered here and will handle it
-                );
+#pragma warning disable 618 //CED
+        public static CED.IDrawer SectionCaptureSettings = CED.LabelWidth(150, CED.Action((s, p, o) => Drawer_SectionCaptureSettings(s, p, o)));
+#pragma warning restore 618
 
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[0]; } }
 
@@ -67,8 +63,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 area.Add(p.fieldOfview, fieldOfViewContent, () => p.overridesFieldOfview, a => p.overridesFieldOfview = a, () => (owner is PlanarReflectionProbeEditor), defaultValue: (owner is PlanarReflectionProbeEditor) ? fieldOfViewDefault : null, forceOverride: true);
             }
-            
-            area.Add(p.shadowDistance, shadowDistanceContent, () => p.overridesShadowDistance, a => p.overridesShadowDistance = a);
+
+            area.Add(p.shadowDistance, shadowDistanceContent, () => p.overridesShadowDistance, a => p.overridesShadowDistance = a, () => owner is HDProbeEditor && (owner as HDProbeEditor).GetTarget(owner.target).mode != UnityEngine.Rendering.ReflectionProbeMode.Realtime);
             area.Add(p.renderingPath, renderingPathContent, () => p.overridesRenderingPath, a => p.overridesRenderingPath = a);
             EditorGUI.BeginChangeCheck();
             area.Draw(withOverride: false);
@@ -87,6 +83,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 rp.cullingMask = p.cullingMask.intValue;
                 rp.nearClipPlane = p.nearClipPlane.floatValue;
                 rp.farClipPlane = p.farClipPlane.floatValue;
+                rp.shadowDistance = p.shadowDistance.floatValue;
             }
         }
     }

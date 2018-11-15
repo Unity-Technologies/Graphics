@@ -214,11 +214,8 @@ real CornetteShanksPhasePartVarying(real anisotropy, real cosTheta)
     real f = rsqrt(saturate(1 + g * g - 2 * g * cosTheta)); // x^(-1/2)
     real h = (1 + cosTheta * cosTheta);
 
-    // Note that this function is not perfectly isotropic for (g = 0). We force it to be.
-    // TODO: in the future, when (g = 0), specialize the Volumetric Lighting kernel
-    // to not do anything anisotropy-specific. This way we could avoid this test
-    // (along with tons of other overhead and hacks).
-    return (g == 0) ? 1.33333333 : h * (f * f * f); // h * x^(-3/2)
+    // Note that this function is not perfectly isotropic for (g = 0).
+    return h * (f * f * f); // h * x^(-3/2)
 }
 
 // A better approximation of the Mie phase function.

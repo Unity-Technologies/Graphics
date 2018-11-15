@@ -4,6 +4,40 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [4.2.0-preview] - 2018-10-xx
+
+### Added
+- Add y offset for PlanarReflectionProbe and offset tool
+- Expose option to run SSR and SSAO on async compute
+- Added support of "_GlossMapScale" in upgrader
+- Added instruction for wave intrinsic (for AMD GCN)
+
+
+### Fixed
+- Fixed cubemap assignation on custom ReflectionProbe
+- Fixed reflection probe's capture settings's shadow distance
+- Fixed an issue with the SRP batcher and shader variables declaration
+- Fixed thickness and subsurface slots for fabric shader master node that wan't appearing with the right combination of flags
+- Fixed d3d debug layer warning
+- Fixed PCSS sampling quality
+- Fixed the Subsurface and transmission material feature enabling for fabric shader
+- Fixed Shader Graph UV node dimension when used in vertex shader
+- Fixed planar reflection mirror gizmo's rotation
+- Fixed HDRenderPipelineAsset's FrameSettings not showing the one selected in the enum at inspector opening.
+- Fixed an error with async compute
+- Fixed support of MSAA for transparent
+- Fixed mettalic value not converted correctly in upgrader tool
+- Fixed volumetric not rendering in reflection probe
+
+### Changed
+- Updated default FrameSettings used for realtime reflection probe (at HDRenderPipelineAsset creation)
+- Remove multi-camera support (this will not be supported by LW or HDRP)
+- Updated Shader Graph subshaders to use the new instancing define
+- Changed fog distance calculation from distance to plane to distance to sphere
+- Optimization: Scalarize the light loop for forward rendering for AMD GCN
+- Changed UI of the light editor
+- Change ordering of include in material (Lit, LayeredLit etc...) in order to have reduce iteration time. Faster compilation.
+
 ## [4.1.0-preview] - 2018-10-18
 
 ### Added

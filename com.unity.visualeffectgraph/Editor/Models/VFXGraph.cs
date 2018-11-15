@@ -125,6 +125,9 @@ namespace UnityEditor.VFX
 
     class VFXGraph : VFXModel
     {
+        // Please add increment reason for each version below
+        public static readonly int CurrentVersion = 0;
+
         public VisualEffectResource visualEffectResource
         {
             get
@@ -280,7 +283,7 @@ namespace UnityEditor.VFX
             foreach (var model in objs.OfType<VFXModel>())
                 try
                 {
-                    model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
+                    model.Sanitize(m_GraphVersion); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
                 }
                 catch (Exception e)
                 {
@@ -298,6 +301,7 @@ namespace UnityEditor.VFX
                 }
 
             m_GraphSanitized = true;
+            m_GraphVersion = CurrentVersion;
         }
 
         public void ClearCompileData()
@@ -417,6 +421,10 @@ namespace UnityEditor.VFX
                 return m_CompiledData;
             }
         }
+        public int version { get { return m_GraphVersion; } }
+
+        [SerializeField]
+        private int m_GraphVersion = CurrentVersion;
 
         [NonSerialized]
         private bool m_GraphSanitized = false;

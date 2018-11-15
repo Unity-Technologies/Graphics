@@ -39,18 +39,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             );
         }
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer Inspector;
+#pragma warning restore 618
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionPrimarySettings = CED.Action(Drawer_SectionPrimarySettings);
-        
+#pragma warning restore 618
+
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer FrameSettingsSection = CED.Group(
+#pragma warning restore 618
             CED.Action((s,d,o) => {
                 EditorGUILayout.BeginVertical("box");
                 Drawer_TitleDefaultFrameSettings(s, d, o);
                 }),
             CED.FadeGroup(
                 (s, d, o, i) => s.isSectionExpandedCamera,
+#pragma warning disable 618
                 FadeOption.None,
+#pragma warning restore 618
                 CED.Select(
                     (s, d, o) => s.defaultFrameSettings,
                     (s, d, o) => d.defaultFrameSettings,
@@ -59,7 +67,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ),
             CED.FadeGroup(
                 (s, d, o, i) => s.isSectionExpandedBakedOrCustomReflection,
+#pragma warning disable 618
                 FadeOption.None,
+#pragma warning restore 618
                 CED.Select(
                     (s, d, o) => s.defaultCubeReflectionFrameSettings,
                     (s, d, o) => d.defaultBakedOrCustomReflectionFrameSettings,
@@ -68,7 +78,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ),
             CED.FadeGroup(
                 (s, d, o, i) => s.isSectionExpandedRealtimeReflection,
+#pragma warning disable 618
                 FadeOption.None,
+#pragma warning restore 618
                 CED.Select(
                     (s, d, o) => s.defaultPlanarReflectionFrameSettings,
                     (s, d, o) => d.defaultRealtimeReflectionFrameSettings,
@@ -111,6 +123,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             base.Update();
         }
 
+        static public void Init(HDRenderPipelineUI s, SerializedHDRenderPipelineAsset d, Editor o)
+        {
+            s.isSectionExpandedCamera.value = false;
+            s.isSectionExpandedBakedOrCustomReflection.value = false;
+            s.isSectionExpandedRealtimeReflection.value = false;
+            switch (selectedFrameSettings)
+            {
+                case SelectedFrameSettings.Camera:
+                    s.isSectionExpandedCamera.value = true;
+                    break;
+                case SelectedFrameSettings.BakedOrCustomReflection:
+                    s.isSectionExpandedBakedOrCustomReflection.value = true;
+                    break;
+                case SelectedFrameSettings.RealtimeReflection:
+                    s.isSectionExpandedRealtimeReflection.value = true;
+                    break;
+            }
+        }
+
         static void Drawer_TitleDefaultFrameSettings(HDRenderPipelineUI s, SerializedHDRenderPipelineAsset d, Editor o)
         {
             GUILayout.BeginHorizontal();
@@ -119,21 +150,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             selectedFrameSettings = (SelectedFrameSettings)EditorGUILayout.EnumPopup(selectedFrameSettings);
             if(EditorGUI.EndChangeCheck())
             {
-                s.isSectionExpandedCamera.value = false;
-                s.isSectionExpandedBakedOrCustomReflection.value = false;
-                s.isSectionExpandedRealtimeReflection.value = false;
-                switch(selectedFrameSettings)
-                {
-                    case SelectedFrameSettings.Camera:
-                        s.isSectionExpandedCamera.value = true;
-                        break;
-                    case SelectedFrameSettings.BakedOrCustomReflection:
-                        s.isSectionExpandedBakedOrCustomReflection.value = true;
-                        break;
-                    case SelectedFrameSettings.RealtimeReflection:
-                        s.isSectionExpandedRealtimeReflection.value = true;
-                        break;
-                }
+                Init(s, d, o);
             }
             GUILayout.EndHorizontal();
         }

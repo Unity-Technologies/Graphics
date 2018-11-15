@@ -76,11 +76,16 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveElement(element);
             }
+            foreach (var system in m_Systems)
+            {
+                RemoveElement(system);
+            }
 
             groupNodes.Clear();
             stickyNotes.Clear();
             rootNodes.Clear();
             rootGroupNodeElements.Clear();
+            m_Systems.Clear();
             VFXExpression.ClearCache();
             m_NodeProvider = null;
         }
@@ -485,6 +490,9 @@ namespace UnityEditor.VFX.UI
             }
 
             m_InControllerChanged = false;
+            if(change != VFXViewController.Change.dataEdge)
+                UpdateSystems();
+
             if (m_UpdateUIBounds)
             {
                 Profiler.BeginSample("VFXView.UpdateUIBounds");
@@ -1245,6 +1253,7 @@ namespace UnityEditor.VFX.UI
             if (objectSelected.Length > 0)
             {
                 Selection.objects = objectSelected;
+                Selection.objects = objectSelected;
                 return;
             }
 
@@ -1526,43 +1535,70 @@ namespace UnityEditor.VFX.UI
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            var targetSystem = evt.target as VFXSystemBorder;
+            if( evt.target is VFXGroupNode || evt.target is VFXSystemBorder) // Default behaviour only shows the OnCreateNode if the target is the view itself.
+                evt.target = this;
+            
             base.BuildContextualMenu(evt);
 
             Vector2 mousePosition = evt.mousePosition;
             bool hasMenu = false;
+
             if (evt.target is VFXNodeUI)
             {
-                evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                evt.menu.InsertAction(evt.target is VFXContextUI ? 1 : 0, "Group Selection", (e) => { GroupSelection(); },
                     (e) => { return canGroupSelection ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Disabled; });
                 hasMenu = true;
             }
-            if (evt.target is VFXView)
+
+            if (evt.target is VFXView )
             {
-                evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
+                evt.menu.InsertAction(1,"Create Sticky Note", (e) => { AddStickyNote(mousePosition); },
                     (e) => { return DropdownMenu.MenuAction.StatusFlags.Normal; });
                 hasMenu = true;
             }
-            if (hasMenu)
-                evt.menu.AppendSeparator();
+            if (targetSystem != null)
+            {
+                if (hasMenu)
+                {
+                    evt.menu.AppendSeparator();
+                }
+                evt.menu.InsertAction(2,string.IsNullOrEmpty(targetSystem.controller.title) ? "Name System" : "Rename System", a => targetSystem.OnRename(), e => DropdownMenu.MenuAction.StatusFlags.Normal);
+            }
+
             if (evt.target is VFXContextUI)
             {
-                evt.menu.AppendAction("Cut", (e) => { CutSelectionCallback(); },
-                    (e) => { return canCutSelection ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Disabled; });
-                evt.menu.AppendAction("Copy", (e) => { CopySelectionCallback(); },
-                    (e) => { return canCopySelection ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Disabled; });
-            }
-
-            if (evt.target is VFXGroupNode)
-            {
-                VFXGroupNode group = evt.target as VFXGroupNode;
-                evt.menu.InsertAction(0, "Create Node", OnCreateNodeInGroupNode, e => DropdownMenu.MenuAction.StatusFlags.Normal);
-
-                evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition, group); },
-                    (e) => { return DropdownMenu.MenuAction.StatusFlags.Normal; });
-                hasMenu = true;
-                evt.menu.AppendSeparator();
+                var context = evt.target as VFXContextUI;
+                evt.menu.InsertAction(2,string.IsNullOrEmpty(context.controller.model.label) ? "Name Context" : "Rename Context", a => context.OnRename(), e => DropdownMenu.MenuAction.StatusFlags.Normal);
             }
         }
+
+
+        List<VFXSystemBorder> m_Systems = new List<VFXSystemBorder>();
+
+        public void UpdateSystems()
+        {
+            while (m_Systems.Count() > controller.systems.Count())
+            {
+                VFXSystemBorder border = m_Systems.Last();
+                m_Systems.RemoveAt(m_Systems.Count - 1);
+                border.RemoveFromHierarchy();
+            }
+
+            foreach(var system in m_Systems)
+            {
+                system.Update();
+            }
+
+            while (m_Systems.Count() < controller.systems.Count())
+            {
+                VFXSystemBorder border = new VFXSystemBorder();
+                m_Systems.Add(border);
+                border.controller = controller.systems[m_Systems.Count()-1];
+                AddElement(border);
+            }
+        }
+        
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
         {

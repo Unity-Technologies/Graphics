@@ -1,5 +1,20 @@
 // This file assume SHADER_API_XBOXONE is defined
 
+#define GENERATE_INTRINSIC_VARIANTS_1_ARG(FunctionName, BaseIntrinsicName, Parameter0) \
+    float FunctionName(float Parameter0) { return BaseIntrinsicName##F32(Parameter0); } \
+    int   FunctionName(int   Parameter0) { return BaseIntrinsicName##I32(Parameter0); } \
+    uint  FunctionName(uint  Parameter0) { return BaseIntrinsicName##U32(Parameter0); }
+
+#define GENERATE_INTRINSIC_VARIANTS_3_ARGS(FunctionName, BaseIntrinsicName, Parameter0, Parameter1, Parameter2) \
+    float FunctionName(float Parameter0, float Parameter1, float Parameter2) { return BaseIntrinsicName##F32(Parameter0, Parameter1, Parameter2); } \
+    int   FunctionName(int   Parameter0, int   Parameter1, int   Parameter2) { return BaseIntrinsicName##I32(Parameter0, Parameter1, Parameter2); } \
+    uint  FunctionName(uint  Parameter0, uint  Parameter1, uint  Parameter2) { return BaseIntrinsicName##U32(Parameter0, Parameter1, Parameter2); }
+
+#define GENERATE_INTRINSIC_INT24_VARIANTS_3_ARGS(FunctionName, BaseIntrinsicName, Parameter0, Parameter1, Parameter2) \
+    int   FunctionName(int   Parameter0, int   Parameter1, int   Parameter2) { return BaseIntrinsicName##I24(Parameter0, Parameter1, Parameter2); } \
+    uint  FunctionName(uint  Parameter0, uint  Parameter1, uint  Parameter2) { return BaseIntrinsicName##U24(Parameter0, Parameter1, Parameter2); } 
+
+
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
 #define UNITY_NEAR_CLIP_VALUE (1.0)
@@ -14,37 +29,54 @@
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
 
+#define PLATFORM_SUPPORTS_EXPLICIT_BINDING 1
+#define PLATFORM_NEEDS_UNORM_UAV_SPECIFIER 1
+
 // Intrinsics
 #define SUPPORTS_WAVE_INTRINSICS
 
 #define INTRINSIC_WAVEREADFIRSTLANE
-#define WaveReadFirstLane __XB_MakeUniform
-#define INTRINSIC_MINMAX3
-#define Min3 __XB_Min3_F32
-#define Max3 __XB_Max3_F32
-#define INTRINSIC_MAD24
-#define Mad24Int __XB_MadI24
-#define Mad24Uint __XB_MadU24
+#define WaveReadLaneFirst __XB_MakeUniform
 #define INTRINSIC_BITFIELD_EXTRACT
 #define BitFieldExtract __XB_UBFE
 #define INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
 #define BitFieldExtractSignExtend __XB_IBFE
 #define INTRINSIC_BITFIELD_INSERT
 #define BitFieldInsert __XB_BFI
-#define INTRINSIC_WAVE_MINMAX
-#define WaveMinInt __XB_WaveMin_I32
-#define WaveMinUint __XB_WaveMin_U32
-#define WaveMinFloat __XB_WaveMin_F32
-#define WaveMaxInt __XB_WaveMax_I32
-#define WaveMaxUint __XB_WaveMax_U32
-#define WaveMaxFloat __XB_WaveMax_F32
 #define INTRINSIC_BALLOT
-#define Ballot __XB_Ballot64
-#define INTRINSIC_WAVE_SUM
-#define WaveAdd __XB_WaveAdd_F32
+#define WaveActiveBallot __XB_Ballot64
 #define INTRINSIC_WAVE_LOGICAL_OPS
-#define WaveAnd __XB_WaveAND
-#define WaveOr __XB_WaveOR
+#define WaveActiveBitAnd __XB_WaveAND
+#define WaveActiveBitOr __XB_WaveOR
+
+#define INTRINSIC_WAVE_ACTIVE_ALL_ANY
+bool WaveActiveAllTrue(bool expression)
+{
+    return all(WaveActiveBallot(true) == WaveActiveBallot(expression));
+}
+
+bool WaveActiveAnyTrue(bool expression)
+{
+    return (__XB_S_BCNT1_U64(WaveActiveBallot(expression))) != 0;
+}
+
+
+#define INTRINSIC_MINMAX3
+GENERATE_INTRINSIC_VARIANTS_3_ARGS(Min3, __XB_Min3_, a, b, c);
+GENERATE_INTRINSIC_VARIANTS_3_ARGS(Max3, __XB_Max3_, a, b, c);
+
+#define INTRINSIC_WAVE_MINMAX
+GENERATE_INTRINSIC_VARIANTS_1_ARG(WaveActiveMin, __XB_WaveMin_, value);
+GENERATE_INTRINSIC_VARIANTS_1_ARG(WaveActiveMax, __XB_WaveMax_, value);
+
+#define INTRINSIC_MAD24
+GENERATE_INTRINSIC_INT24_VARIANTS_3_ARGS(Mad24, __XB_Mad, a, b, c);
+
+#define INTRINSIC_WAVE_SUM
+float WaveActiveSum(float value)
+{
+    return __XB_WaveAdd_F32(value);
+}
 
 // flow control attributes
 #define UNITY_BRANCH        [branch]

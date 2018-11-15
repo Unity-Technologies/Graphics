@@ -33,8 +33,8 @@ Pass
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
         $Material.CottonWool:               #define _MATERIAL_FEATURE_COTTON_WOOL 1
-        $Material.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
-        $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
+        $SurfaceDescription.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
+        $SurfaceDescription.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
         $SurfaceDescription.Emission:       #define _EMISSION 1
         $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
         $BlendMode.Alpha:                   #define _BLENDMODE_ALPHA 1
@@ -56,8 +56,6 @@ Pass
 
     #pragma vertex Vert
     #pragma fragment Frag
-
-    #define UNITY_MATERIAL_FABRIC      // Need to be define before including Material.hlsl
 
     // This will be enabled in an upcoming change. 
     // #define SURFACE_GRADIENT
@@ -104,21 +102,35 @@ $splice(Defines)
     //-------------------------------------------------------------------------------------
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
     #ifdef DEBUG_DISPLAY
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
     #endif
 
-    #if (SHADERPASS == SHADERPASS_FORWARD)
-        // used for shaders that want to do lighting (and materials)
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-    #else
-        // used for shaders that don't need lighting
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-    #endif
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+#if (SHADERPASS == SHADERPASS_FORWARD)
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
+    // The light loop (or lighting architecture) is in charge to:
+    // - Define light list
+    // - Define the light loop
+    // - Setup the constant/data
+    // - Do the reflection hierarchy
+    // - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
+
+    #define HAS_LIGHTLOOP
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+#else
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl"
+#endif
+
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
 
     //Used by SceneSelectionPass
     int _ObjectId;

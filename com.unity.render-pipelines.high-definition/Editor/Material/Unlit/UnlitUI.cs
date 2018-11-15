@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class UnlitGUI : BaseUnlitGUI
     {
-        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.Transparency); }  }
+        protected override uint defaultExpandedState { get { return (uint)(Expandable.Base | Expandable.Input | Expandable.Transparency); }  }
 
         protected static class Styles
         {
@@ -37,9 +37,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void MaterialPropertiesGUI(Material material)
         {
-            using (var header = new HeaderScope(Styles.InputsText, (uint)Expendable.Input, this))
+            using (var header = new HeaderScope(Styles.InputsText, (uint)Expandable.Input, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     m_MaterialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
                     m_MaterialEditor.TextureScaleOffsetProperty(colorMap);
@@ -51,9 +51,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var surfaceTypeValue = (SurfaceType)surfaceType.floatValue;
             if (surfaceTypeValue == SurfaceType.Transparent)
             {
-                using (var header = new HeaderScope(StylesBaseUnlit.TransparencyInputsText, (uint)Expendable.Transparency, this))
+                using (var header = new HeaderScope(StylesBaseUnlit.TransparencyInputsText, (uint)Expandable.Transparency, this))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                     {
                         DoDistortionInputsGUI();
                     }

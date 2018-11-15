@@ -31,6 +31,9 @@ namespace UnityEditor.VFX.UI
 
         VisualElement m_DragDisplay;
 
+        Label m_Label;
+        TextField m_TextField;
+
         public new VFXContextController controller
         {
             get { return base.controller as VFXContextController; }
@@ -188,6 +191,16 @@ namespace UnityEditor.VFX.UI
             }
             Profiler.EndSample();
 
+            m_Label.text = controller.model.label;
+            if (string.IsNullOrEmpty(m_Label.text))
+            {
+                m_Label.AddToClassList("empty");
+            }
+            else
+            {
+                m_Label.RemoveFromClassList("empty");
+            }
+
             RefreshContext();
         }
 
@@ -222,6 +235,16 @@ namespace UnityEditor.VFX.UI
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
+
+            m_Label = this.Q<Label>("user-label");
+            m_TextField = this.Q<TextField>("user-title-textfield");
+            m_TextField.visible = false;
+
+            m_Label.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
+            m_TextField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
+            m_TextField.RegisterCallback<BlurEvent>(OnTitleBlur);
+            m_Label.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
+
         }
 
         bool m_CanHaveBlocks = false;
@@ -748,8 +771,71 @@ namespace UnityEditor.VFX.UI
 
             if (evt.target is VFXContextUI && controller.model is VFXAbstractParticleOutput)
             {
-                evt.menu.InsertAction(0, "Convert Output", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.InsertAction(1,"Convert Output", OnConvertContext, e => DropdownMenu.MenuAction.StatusFlags.Normal);
             }
         }
+
+        void UpdateTitleFieldRect()
+        {
+            Rect rect = m_Label.layout;
+
+            m_Label.parent.ChangeCoordinatesTo(m_TextField.parent, rect);
+
+
+            m_TextField.style.positionTop = rect.yMin;
+            m_TextField.style.positionLeft = rect.xMin;
+            m_TextField.style.positionRight = m_Label.style.marginRight.value + m_Label.style.borderRight.value;
+            m_TextField.style.height = rect.height - m_Label.style.marginTop - m_Label.style.marginBottom;
+        }
+
+        void OnTitleMouseDown(MouseDownEvent e)
+        {
+            if (e.clickCount == 2)
+            {
+                OnRename();
+                e.StopPropagation();
+                e.PreventDefault();
+            }
+        }
+
+        public void OnRename()
+        {
+            m_Label.RemoveFromClassList("empty");
+            m_TextField.value = m_Label.text;
+            m_TextField.visible = true;
+            UpdateTitleFieldRect();
+
+            m_TextField.Focus();
+            m_TextField.SelectAll();
+
+        }
+
+        void OnTitleBlur(BlurEvent e)
+        {
+            controller.model.label = m_TextField.value
+                .Trim()
+                .Replace("/","")
+                .Replace("\\", "")
+                .Replace(":", "")
+                .Replace("<", "")
+                .Replace(">", "")
+                .Replace("*", "")
+                .Replace("?", "")
+                .Replace("\"", "")
+                .Replace("|", "")
+                ;
+            m_TextField.visible = false;
+        }
+        void OnTitleRelayout(GeometryChangedEvent e)
+        {
+            if( m_TextField.visible)
+                UpdateTitleFieldRect();
+        }
+
+        void OnTitleChange(ChangeEvent<string> e)
+        {
+            m_Label.text = m_TextField.value;
+        }
+
     }
 }

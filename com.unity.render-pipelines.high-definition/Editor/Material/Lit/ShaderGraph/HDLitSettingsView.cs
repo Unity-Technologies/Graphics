@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ++indentLevel;
                 if (!m_Node.HasRefraction())
                 {
-                    ps.Add(new PropertyRow(CreateLabel("Blend Mode", indentLevel)), (row) =>
+                    ps.Add(new PropertyRow(CreateLabel("Blending Mode", indentLevel)), (row) =>
                     {
                         row.Add(new EnumField(HDLitMasterNode.AlphaModeLit.Additive), (field) =>
                         {

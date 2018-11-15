@@ -199,6 +199,7 @@ width:-1;
 
 .VFXNodeUI.superCollapsed .propertyrm
 {
+    min-width:0;
     max-width:0;
     overflow: hidden;
 }

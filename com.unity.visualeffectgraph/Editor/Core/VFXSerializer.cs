@@ -131,11 +131,7 @@ namespace UnityEditor.VFX
 
                 if (!type.IsAssignableFrom(obj.GetType()))
                 {
-                    if (type == typeof(FloatN))
-                    {
-                        obj = System.Activator.CreateInstance(typeof(FloatN), obj);
-                    }
-                    else if (obj is UnityEngine.Object && (obj as UnityEngine.Object == null))
+                    if (obj is UnityEngine.Object && (obj as UnityEngine.Object == null))
                     {
                         // Some object couldn't be loaded. just ignore it.
                     }

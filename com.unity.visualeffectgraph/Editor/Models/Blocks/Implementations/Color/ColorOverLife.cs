@@ -100,7 +100,7 @@ float4 sampledColor = SampleGradient(gradient, age/lifetime);
         }
 
         // TODO - requires santizing Gradient -> Curve for Alpha. Needs fixing.
-        /*public override void Sanitize()
+        /*public override void Sanitize(int version)
         {
             Debug.Log("Sanitizing Graph: Automatically replace ColorOverLife with AttributeOverLife");
 

@@ -14,7 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projMatrix;
         public Matrix4x4 nonJitteredProjMatrix;
-        public Vector4   worldSpaceCameraPos;
+        public Vector3   worldSpaceCameraPos;
+        public Vector3   prevWorldSpaceCameraPos;
         public Vector4   screenSize;
         public Frustum   frustum;
         public Vector4[] frustumPlaneEquations;
@@ -45,6 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Matrix4x4[] invProjStereo;
         Matrix4x4[] invViewProjStereo;
         Vector4[] worldSpaceCameraPosStereo;
+        Vector4[] prevCamPosRWSStereo;
 
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
@@ -95,6 +97,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public Matrix4x4[] prevViewProjMatrixStereo = new Matrix4x4[2];
+        public Matrix4x4[] prevViewMatrixStereo = new Matrix4x4[2];
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
@@ -118,11 +121,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // View-projection matrix from the previous frame (non-jittered).
         public Matrix4x4 prevViewProjMatrix;
-
-        // We need to keep track of these when camera relative rendering is enabled so we can take
-        // camera translation into account when generating camera motion vectors
-        public Vector3 cameraPos;
-        public Vector3 prevCameraPos;
 
         // The only way to reliably keep track of a frame change right now is to compare the frame
         // count Unity gives us. We need this as a single camera could be rendered several times per
@@ -196,6 +194,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             invViewProjStereo = new Matrix4x4[2];
 
             worldSpaceCameraPosStereo = new Vector4[2];
+            prevCamPosRWSStereo = new Vector4[2];
 
             postprocessRenderContext = new PostProcessRenderContext();
 
@@ -247,10 +246,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            // In stereo, this corresponds to the center eye position
-            var pos = camera.transform.position;
-            worldSpaceCameraPos = pos;
-
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
             bool taaEnabled = camera.cameraType == CameraType.Game &&
@@ -301,10 +296,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         if (isFirstFrame)
                         {
+                            prevViewMatrixStereo[eyeIndex] = gpuCurrViewStereo;
                             prevViewProjMatrixStereo[eyeIndex] = gpuCurrVPStereo;
                         }
                         else
                         {
+                            prevViewMatrixStereo[eyeIndex] = viewMatrixStereo[eyeIndex];
                             prevViewProjMatrixStereo[eyeIndex] = GetViewProjMatrixStereo(eyeIndex); // Grabbing this before ConfigureStereoMatrices updates view/proj
                         }
 
@@ -331,21 +328,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuVP = gpuNonJitteredProj * gpuView;
 
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
+            // Note: if your first rendered view during the frame is not the Game view, everything breaks.
             if (m_LastFrameActive != Time.frameCount)
             {
                 if (isFirstFrame)
                 {
-                    prevCameraPos = pos;
+                    prevWorldSpaceCameraPos = camera.transform.position;
                     prevViewProjMatrix = gpuVP;
                 }
                 else
                 {
-                    prevCameraPos = cameraPos;
+                    prevWorldSpaceCameraPos = worldSpaceCameraPos;
                     prevViewProjMatrix = nonJitteredViewProjMatrix;
                 }
 
                 isFirstFrame = false;
             }
+
+            // In stereo, this corresponds to the center eye position
+            worldSpaceCameraPos = camera.transform.position;
 
             taaFrameIndex = taaEnabled ? (uint)postProcessLayer.temporalAntialiasing.sampleIndex : 0;
             taaFrameRotation = new Vector2(Mathf.Sin(taaFrameIndex * (0.5f * Mathf.PI)),
@@ -354,13 +355,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             viewMatrix = gpuView;
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
-            cameraPos = pos;
 
             ConfigureStereoMatrices();
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
-                Matrix4x4 cameraDisplacement = Matrix4x4.Translate(cameraPos - prevCameraPos); // Non-camera-relative positions
+                Matrix4x4 cameraDisplacement = Matrix4x4.Translate(worldSpaceCameraPos - prevWorldSpaceCameraPos);
                 prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
             }
 
@@ -587,6 +587,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     invViewStereo[eyeIndex] = viewMatrixStereo[eyeIndex].inverse;
 
                     worldSpaceCameraPosStereo[eyeIndex] = viewMatrixStereo[eyeIndex].GetColumn(3);
+                    prevCamPosRWSStereo[eyeIndex] = (ShaderConfig.s_CameraRelativeRendering != 0) ? prevViewMatrixStereo[eyeIndex].GetColumn(3) - worldSpaceCameraPosStereo[eyeIndex] : prevViewMatrixStereo[eyeIndex].GetColumn(3);
 
                     projMatrixStereo[eyeIndex] = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex);
                     projMatrixStereo[eyeIndex] = GL.GetGPUProjectionMatrix(projMatrixStereo[eyeIndex], true);
@@ -613,6 +614,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         translation += centerOffset;
                         viewMatrixStereo[eyeIndex].SetColumn(3, translation);
                         worldSpaceCameraPosStereo[eyeIndex] = viewMatrixStereo[eyeIndex].GetColumn(3);
+                        prevCamPosRWSStereo[eyeIndex] = (ShaderConfig.s_CameraRelativeRendering != 0) ? prevViewMatrixStereo[eyeIndex].GetColumn(3) - worldSpaceCameraPosStereo[eyeIndex] : prevViewMatrixStereo[eyeIndex].GetColumn(3);
                     }
 
                     centerEyeTranslationOffset = centerOffset;
@@ -635,6 +637,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 invViewProjStereo[0] = viewProjMatrix.inverse;
 
                 worldSpaceCameraPosStereo[0] = worldSpaceCameraPos;
+                prevCamPosRWSStereo[0] = (ShaderConfig.s_CameraRelativeRendering != 0) ? prevWorldSpaceCameraPos - worldSpaceCameraPos : prevWorldSpaceCameraPos;
             }
 
 
@@ -727,6 +730,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Set up UnityPerView CBuffer.
         public void SetupGlobalParams(CommandBuffer cmd, float time, float lastTime, uint frameCount)
         {
+            var postProcessLayer = camera.GetComponent<PostProcessLayer>(); 
+            bool taaEnabled = camera.cameraType == CameraType.Game &&
+                              HDUtils.IsTemporalAntialiasingActive(postProcessLayer);
+
             cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix,                viewMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix,             viewMatrix.inverse);
             cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix,                projMatrix);
@@ -736,13 +743,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
+			cmd.SetGlobalVector(HDShaderIDs._PrevCamPosRWS, (ShaderConfig.s_CameraRelativeRendering != 0) ? prevWorldSpaceCameraPos - worldSpaceCameraPos
+                                                                                                          : prevWorldSpaceCameraPos);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
             cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       doubleBufferedViewportScale);
             cmd.SetGlobalVector(HDShaderIDs._ZBufferParams,             zBufferParams);
             cmd.SetGlobalVector(HDShaderIDs._ProjectionParams,          projectionParams);
             cmd.SetGlobalVector(HDShaderIDs.unity_OrthoParams,          unity_OrthoParams);
             cmd.SetGlobalVector(HDShaderIDs._ScreenParams,              screenParams);
-            cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation,          taaFrameRotation);
+            cmd.SetGlobalVector(HDShaderIDs._TaaFrameInfo,              new Vector4(taaFrameRotation.x, taaFrameRotation.y, taaFrameIndex, taaEnabled ? 1 : 0));
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
 
             // Time is also a part of the UnityPerView CBuffer.
@@ -781,6 +790,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._PrevViewProjMatrixStereo, prevViewProjMatrixStereo);
             cmd.SetGlobalVectorArray(HDShaderIDs._WorldSpaceCameraPosStereo, worldSpaceCameraPosStereo);
+            cmd.SetGlobalVectorArray(HDShaderIDs._PrevCamPosRWSStereo, prevCamPosRWSStereo);
             cmd.SetGlobalVector(HDShaderIDs._TextureWidthScaling, textureWidthScaling);
         }
 

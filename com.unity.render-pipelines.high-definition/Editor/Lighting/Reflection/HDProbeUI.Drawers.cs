@@ -12,51 +12,91 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     partial class HDProbeUI
     {
+        protected enum Expandable
+        {
+            ProjectionSettings = 1 << 0,
+            InfluenceVolume = 1 << 1,
+            CaptureSettings = 1 << 2,
+            AdditionalSettings = 1 << 3
+        }
+
+        protected readonly static ExpandedState<Expandable, HDProbe> k_ExpandedState = new ExpandedState<Expandable, HDProbe>(Expandable.ProjectionSettings | Expandable.InfluenceVolume | Expandable.CaptureSettings, "HDRP");
+
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer[] Inspector;
-        
+#pragma warning restore 618
+
+#pragma warning disable 618 //CED
         static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
+#pragma warning restore 618
             CED.Action(Drawer_ReflectionProbeMode),
             CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedReflectionProbeMode((ReflectionProbeMode)i),
+#pragma warning disable 618
                 FadeOption.Indent,
+#pragma warning restore 618
                 CED.space,                                              // Baked
                 CED.Action(Drawer_SectionProbeModeRealtimeSettings),    // Realtime
                 CED.Action(Drawer_ModeSettingsCustom)                   // Custom
                 )
             );
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionBakeButton = CED.Action(Drawer_SectionBakeButton);
-        
+#pragma warning restore 618
+
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionToolbar = CED.Group(
+#pragma warning restore 618
             CED.Action(Drawer_Toolbars),
             CED.space
             );
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionProxyVolumeSettings = CED.FoldoutGroup(
+#pragma warning restore 618
             proxySettingsHeader,
-            (s, d, o) => s.isSectionExpendedProxyVolume,
-            FoldoutOption.Indent,
-            CED.Action(Drawer_SectionProxySettings)
-            );
-        
-        public static readonly CED.IDrawer SectionInfluenceVolume = CED.Select(
-            (s, d, o) => s.influenceVolume,
-            (s, d, o) => d.influenceVolume,
-            InfluenceVolumeUI.SectionFoldoutShape
+            Expandable.ProjectionSettings,
+            k_ExpandedState,
+            Drawer_SectionProxySettings
             );
 
+#pragma warning disable 618 //CED
+        public static readonly CED.IDrawer SectionInfluenceVolume = CED.FoldoutGroup(
+#pragma warning restore 618
+            InfluenceVolumeUI.influenceVolumeHeader,
+            Expandable.InfluenceVolume,
+            k_ExpandedState,
+            CED.Select(
+                (s, d, o) => s.influenceVolume,
+                (s, d, o) => d.influenceVolume,
+                InfluenceVolumeUI.InnerInspector(UnityEngine.Experimental.Rendering.HDPipeline.ReflectionProbeType.ReflectionProbe)
+                )
+            );
+
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionShapeCheck = CED.Action(Drawer_DifferentShapeError);
+#pragma warning restore 618
 
-        public static readonly CED.IDrawer SectionCaptureSettings = CED.Select(
-            (s, d, o) => s.captureSettings,
-            (s, d, o) => d.captureSettings,
-            CaptureSettingsUI.SectionCaptureSettings
+#pragma warning disable 618 //CED
+        public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
+#pragma warning restore 618
+            CaptureSettingsUI.captureSettingsHeaderContent,
+            Expandable.CaptureSettings,
+            k_ExpandedState,
+            CED.Select(
+                (s, d, o) => s.captureSettings,
+                (s, d, o) => d.captureSettings,
+                CaptureSettingsUI.SectionCaptureSettings
+                )
             );
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionFrameSettings = CED.Action((s, d, o) =>
+#pragma warning restore 618
         {
-            if (s.captureSettings.isSectionExpandedCaptureSettings.target)
+            if (k_ExpandedState[Expandable.CaptureSettings])
             {
-                if (s.isFrameSettingsOverriden.target && s.captureSettings.isSectionExpandedCaptureSettings.target)
+                if (s.isFrameSettingsOverriden.target)
                     FrameSettingsUI.Inspector(withOverride: true).Draw(s.frameSettings, d.frameSettings, o);
                 else
                     EditorGUILayout.Space();
@@ -64,12 +104,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         });
 
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionFoldoutAdditionalSettings = CED.FoldoutGroup(
+#pragma warning restore 618
             additionnalSettingsHeader,
-            (s, d, o) => s.isSectionExpendedAdditionalSettings,
-            FoldoutOption.Indent,
-            CED.Action(Drawer_SectionCustomSettings),
-            CED.space
+            Expandable.AdditionalSettings,
+            k_ExpandedState,
+            Drawer_SectionCustomSettings
             );
 
         static HDProbeUI()

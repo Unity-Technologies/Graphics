@@ -57,6 +57,13 @@ float3 GetViewForwardDir()
     return -viewMat[2].xyz;
 }
 
+// Returns the forward (up) direction of the current view in the world space.
+float3 GetViewUpDir()
+{
+    float4x4 viewMat = GetWorldToViewMatrix();
+    return viewMat[1].xyz;
+}
+
 // Returns 'true' if the current view performs a perspective projection.
 bool IsPerspectiveProjection()
 {
