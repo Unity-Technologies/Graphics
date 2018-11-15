@@ -616,7 +616,7 @@ namespace UnityEditor.VFX
                 if (oldName == (string)setting.GetValue(model))
                 {
                     setting.SetValue(model, newName);
-                    model.Invalidate(InvalidationCause.kUIChanged);
+                    model.Invalidate(InvalidationCause.kSettingChanged);
                 }
                 return false;
             });
