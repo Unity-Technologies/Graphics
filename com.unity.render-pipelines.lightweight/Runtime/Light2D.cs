@@ -66,6 +66,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private LightProjectionTypes m_LightProjectionType = LightProjectionTypes.Shape;
         private LightProjectionTypes m_PreviousLightProjectionType = LightProjectionTypes.Shape;
 
+        [SerializeField]
+        private bool m_IsUsingFreeForm = false;
+
         //------------------------------------------------------------------------------------------
         //                              Values for Point light type
         //------------------------------------------------------------------------------------------
@@ -109,19 +112,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Sprite m_PreviousLightCookieSprite = null;
 
         static List<Light2D>[] m_Lights = SetupLightArray();
-
-        public Mesh m_ShapeLightMesh;
-
-        public Mesh shapeLightMesh
-        {
-            get
-            {
-                if (m_ShapeLightMesh == null)
-                    m_ShapeLightMesh = new Mesh();
-                return m_ShapeLightMesh;
-            }
-        }
-
+        
         static public List<Light2D>[] SetupLightArray()
         {
             List<Light2D>[] retArray = new List<Light2D>[NUM_LIGHT_TYPES];
@@ -230,44 +221,50 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public void UpdateShapeLightMesh()
         {
 
-            Color meshInteriorColor = Color.red;
-            Color meshFeatherColor = Color.blue;
+            Color meshInteriorColor = Color.white;
+            Color meshFeatherColor = Color.black;
 
             int pointCount = spline.GetPointCount();
             var inputs = new ContourVertex[pointCount];
             for (int i = 0; i < pointCount; ++i)
                 inputs[i] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i).x, Y = spline.GetPosition(i).y }, Data = meshInteriorColor };
-
-            Tess tess = new Tess();
-            tess.AddContour(inputs, ContourOrientation.Original);
-            tess.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
-
-            var indices = tess.Elements.Select(i => i).ToArray();
-            var vertices = tess.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
-            var colors = tess.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
-
+            
             var feathered = UpdateFeatheredShapeLightMesh(inputs, pointCount);
             int featheredPointCount = feathered.Count + pointCount;
 
-            Tess tessF = new Tess();
+            Tess tessI = new Tess();  // Interior
+            Tess tessF = new Tess();  // Feathered Edge
+
+            var inputsI = new ContourVertex[pointCount];
             for (int i = 0; i < pointCount - 1; ++i)
             {
                 var inputsF = new ContourVertex[4];
                 inputsF[0] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i).x, Y = spline.GetPosition(i).y }, Data = meshFeatherColor };
-                inputsF[1] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = meshFeatherColor };
-                inputsF[2] = new ContourVertex() { Position = new Vec3() { X = feathered[i + 1].x, Y = feathered[i + 1].y },  Data = meshFeatherColor };
+                inputsF[1] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = meshInteriorColor };
+                inputsF[2] = new ContourVertex() { Position = new Vec3() { X = feathered[i + 1].x, Y = feathered[i + 1].y },  Data = meshInteriorColor };
                 inputsF[3] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i + 1).x, Y = spline.GetPosition(i + 1).y },  Data = meshFeatherColor };
                 tessF.AddContour(inputsF, ContourOrientation.Original);
+
+                
+                inputsI[i] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = meshInteriorColor };
             }
 
             var inputsL = new ContourVertex[4];
             inputsL[0] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(pointCount - 1).x, Y = spline.GetPosition(pointCount - 1).y }, Data = meshFeatherColor };
-            inputsL[1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = meshFeatherColor };
-            inputsL[2] = new ContourVertex() { Position = new Vec3() { X = feathered[0].x, Y = feathered[0].y }, Data = meshFeatherColor };
+            inputsL[1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = meshInteriorColor };
+            inputsL[2] = new ContourVertex() { Position = new Vec3() { X = feathered[0].x, Y = feathered[0].y }, Data = meshInteriorColor };
             inputsL[3] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(0).x, Y = spline.GetPosition(0).y }, Data = meshFeatherColor };
             tessF.AddContour(inputsL, ContourOrientation.Original);
 
+            inputsI[pointCount-1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = meshInteriorColor };
+            tessI.AddContour(inputsI, ContourOrientation.Original);
+
+            tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
             tessF.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
+
+            var indicesI = tessI.Elements.Select(i => i).ToArray();
+            var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
+            var colorsI = tessI.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
 
             var indicesF = tessF.Elements.Select(i => i + pointCount).ToArray();
             var verticesF = tessF.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
@@ -276,21 +273,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             List<Vector3> finalVertices = new List<Vector3>();
             List<int> finalIndices = new List<int>();
             List<Color> finalColors = new List<Color>();
-            finalVertices.AddRange(vertices);
+            finalVertices.AddRange(verticesI);
             finalVertices.AddRange(verticesF);
-            finalIndices.AddRange(indices);
+            finalIndices.AddRange(indicesI);
             finalIndices.AddRange(indicesF);
-            finalColors.AddRange(colors);
+            finalColors.AddRange(colorsI);
             finalColors.AddRange(colorsF);
-            //shapeLightMesh.vertices = finalVertices.ToArray();
-            //shapeLightMesh.colors = finalColors.ToArray();
-            //shapeLightMesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
 
             m_Mesh.Clear();
             m_Mesh.vertices = finalVertices.ToArray();
             m_Mesh.colors = finalColors.ToArray();
             m_Mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
-
         }
 
         public Material GetMaterial()
@@ -501,7 +494,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (m_ShapeLightStyle == CookieStyles.Parametric)
                 {
-                    m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, m_LightColor);
+                    if (m_IsUsingFreeForm)
+                        UpdateShapeLightMesh();
+                    else
+                        m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, m_LightColor);
                 }
                 else if (m_ShapeLightStyle == CookieStyles.Sprite)
                 {
@@ -520,7 +516,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void UpdateMesh()
         {
-            GetMesh(true);
+            if (m_IsUsingFreeForm)
+                UpdateShapeLightMesh();
+            else
+                GetMesh(true);
         }
 
         public void UpdateMaterial()

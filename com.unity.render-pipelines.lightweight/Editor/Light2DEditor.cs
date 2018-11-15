@@ -64,6 +64,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         SplineEditor m_SplineEditor;
         SplineSceneEditor m_SplineSceneEditor;
 
+        SerializedProperty m_IsUsingFreeForm;
+        bool m_ModifiedMesh = false;
+
         private Light2D lightObject { get { return target as Light2D; } }
 
         #region Handle Utilities
@@ -117,6 +120,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var light = target as Light2D;
             m_SplineEditor = new SplineEditor(this);
             m_SplineSceneEditor = new SplineSceneEditor(light.spline, this, light);
+
+            m_IsUsingFreeForm = serializedObject.FindProperty("m_IsUsingFreeForm");
         }
 
         private void OnDestroy()
@@ -148,6 +153,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (pointOuterRadius.floatValue < 0) pointOuterRadius.floatValue = 0;
 
             EditorGUILayout.PropertyField(castsShadows, EditorGUIUtility.TrTextContent("Casts Shadows", "Specify if this light should casts shadows"));
+
 
             if (castsShadows.boolValue)
             {
@@ -187,6 +193,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Parametric)
             {
                 EditorGUI.indentLevel++;
+
+                if (m_ModifiedMesh)
+                {
+                    m_IsUsingFreeForm.boolValue = true;
+                    updateMesh = true;
+                }
+
                 int lastShape = shapeLightParametricShape.enumValueIndex;
                 int lastSides = shapeLightParametricSides.intValue;
                 float lastFeathering = shapeLightFeathering.floatValue;
@@ -204,21 +217,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     else if (shape == (int)Light2D.ParametricShapes.Polygon) sides = sides > 2 ? sides : 3;
 
                     shapeLightParametricSides.intValue = sides;
+                    m_IsUsingFreeForm.boolValue = false;
                 }
+
+                m_ModifiedMesh = false;
 
                 if (shapeLightParametricShape.enumValueIndex == (int)Light2D.ParametricShapes.Polygon)
                     EditorGUILayout.PropertyField(shapeLightParametricSides, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
 
-                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.Slider(shapeLightFeathering, 0, 1, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
-                if (EditorGUI.EndChangeCheck())
-                    lightObject.UpdateShapeLightMesh();
+
+
 
                 Vector2 lastOffset = shapeLightOffset.vector2Value;
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
 
                 // update the light meshes if either the sides or feathering has changed;
-                updateMesh = (lastSides != shapeLightParametricSides.intValue || lastFeathering != shapeLightFeathering.floatValue || lastOffset.x != shapeLightOffset.vector2Value.x || lastOffset.y != shapeLightOffset.vector2Value.y);
+                updateMesh |= (lastSides != shapeLightParametricSides.intValue || lastFeathering != shapeLightFeathering.floatValue || lastOffset.x != shapeLightOffset.vector2Value.x || lastOffset.y != shapeLightOffset.vector2Value.y);
                 EditorGUI.indentLevel--;
             }
 
@@ -377,7 +392,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         if (EditorGUI.EndChangeCheck())
                         {
                             EditorUtility.SetDirty(lightObject);
-                            lightObject.UpdateShapeLightMesh();
+                            m_ModifiedMesh = true;
+                            //lightObject.UpdateShapeLightMesh();
                         }
 
                     }
