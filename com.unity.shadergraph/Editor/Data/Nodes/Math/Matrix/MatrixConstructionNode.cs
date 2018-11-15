@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Matrix", "Matrix Construction")]
-    public class MatrixConstructionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class MatrixConstructionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         const string kInputSlotM0Name = "M0";
         const string kInputSlotM1Name = "M1";

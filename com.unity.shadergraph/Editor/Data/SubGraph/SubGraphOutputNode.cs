@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class SubGraphOutputControlAttribute : Attribute, IControlAttribute
+    class SubGraphOutputControlAttribute : Attribute, IControlAttribute
     {
         public VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class SubGraphOutputControlView : VisualElement
+    class SubGraphOutputControlView : VisualElement
     {
         SubGraphOutputNode m_Node;
 
@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class SubGraphOutputNode : AbstractMaterialNode
+    class SubGraphOutputNode : AbstractMaterialNode
     {
         [SubGraphOutputControl]
         int controlDummy { get; set; }

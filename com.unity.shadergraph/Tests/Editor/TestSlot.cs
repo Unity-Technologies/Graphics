@@ -2,7 +2,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class TestSlot : MaterialSlot
+    class TestSlot : MaterialSlot
     {
         public TestSlot() {}
 

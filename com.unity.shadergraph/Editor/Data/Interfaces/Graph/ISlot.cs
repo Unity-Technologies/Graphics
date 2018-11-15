@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.Graphing
 {
-    public interface ISlot : IEquatable<ISlot>
+    interface ISlot : IEquatable<ISlot>
     {
         int id { get; }
         string displayName { get; set; }

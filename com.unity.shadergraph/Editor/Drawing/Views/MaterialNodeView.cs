@@ -14,7 +14,7 @@ using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public sealed class MaterialNodeView : Node
+    sealed class MaterialNodeView : Node
     {
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;

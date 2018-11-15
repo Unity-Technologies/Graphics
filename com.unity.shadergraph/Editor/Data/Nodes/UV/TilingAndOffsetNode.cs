@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Tiling And Offset")]
-    public class TilingAndOffsetNode : CodeFunctionNode
+    class TilingAndOffsetNode : CodeFunctionNode
     {
         public TilingAndOffsetNode()
         {

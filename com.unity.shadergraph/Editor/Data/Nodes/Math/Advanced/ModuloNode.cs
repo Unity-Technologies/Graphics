@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Advanced", "Modulo")]
-    public class ModuloNode : CodeFunctionNode
+    class ModuloNode : CodeFunctionNode
     {
         public ModuloNode()
         {

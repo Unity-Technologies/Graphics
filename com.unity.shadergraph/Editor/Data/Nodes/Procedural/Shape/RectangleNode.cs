@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Shape", "Rectangle")]
-    public class RectangleNode : CodeFunctionNode
+    class RectangleNode : CodeFunctionNode
     {
         public RectangleNode()
         {

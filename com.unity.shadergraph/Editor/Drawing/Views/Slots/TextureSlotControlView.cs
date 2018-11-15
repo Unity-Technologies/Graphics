@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
-    public class TextureSlotControlView : VisualElement
+    class TextureSlotControlView : VisualElement
     {
         Texture2DInputMaterialSlot m_Slot;
 

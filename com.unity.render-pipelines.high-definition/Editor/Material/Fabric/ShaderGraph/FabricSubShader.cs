@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class FabricSubShader : IFabricSubShader
+    class FabricSubShader : IFabricSubShader
     {
         Pass m_PassMETA = new Pass()
         {
@@ -168,7 +168,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "FragInputs.texCoord3",
                 "FragInputs.color",
             },
-            
+
             VertexShaderSlots = new List<int>()
             {
                 FabricMasterNode.PositionSlotId
@@ -363,7 +363,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         activeFields.Add("DoubleSided.Mirror");
                     }
-                        
+
                     activeFields.Add("FragInputs.isFrontFace");     // will need this for determining normal flip mode
                 }
             }
@@ -385,7 +385,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 int count = 0;
                 if (pass.PixelShaderUsesSlot(FabricMasterNode.AlphaThresholdSlotId))
-                { 
+                {
                     activeFields.Add("AlphaTest");
                     ++count;
                 }

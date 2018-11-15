@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Shape", "Ellipse")]
-    public class EllipseNode : CodeFunctionNode
+    class EllipseNode : CodeFunctionNode
     {
         public EllipseNode()
         {

@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class ChannelMixerControlAttribute : Attribute, IControlAttribute
+    class ChannelMixerControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
         float m_Minimum;
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class ChannelMixerControlView : VisualElement
+    class ChannelMixerControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

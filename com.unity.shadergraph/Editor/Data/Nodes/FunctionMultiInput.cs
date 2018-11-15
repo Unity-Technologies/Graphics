@@ -1,6 +1,6 @@
 namespace UnityEditor.ShaderGraph
 {
-    /*public abstract class FunctionMultiInput : BaseMaterialNode, IGeneratesBodyCode
+    /*abstract class FunctionMultiInput : BaseMaterialNode, IGeneratesBodyCode
     {
         private const string kOutputSlotName = "Output";
         private const string kBaseInputSlotName = "Input";

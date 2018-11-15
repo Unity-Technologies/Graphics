@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Texture3DInputMaterialSlot : Texture3DMaterialSlot
+    class Texture3DInputMaterialSlot : Texture3DMaterialSlot
     {
         [SerializeField]
         private SerializableTexture m_Texture = new SerializableTexture();

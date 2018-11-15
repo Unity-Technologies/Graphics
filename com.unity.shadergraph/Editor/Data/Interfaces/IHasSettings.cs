@@ -2,7 +2,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Graphing
 {
-    public interface IHasSettings
+    interface IHasSettings
     {
         VisualElement CreateSettingsElement();
     }

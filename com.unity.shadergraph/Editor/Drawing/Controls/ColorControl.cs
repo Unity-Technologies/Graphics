@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class ColorControlAttribute : Attribute, IControlAttribute
+    class ColorControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
         ColorMode m_ColorMode;
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class ColorControlView : VisualElement
+    class ColorControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

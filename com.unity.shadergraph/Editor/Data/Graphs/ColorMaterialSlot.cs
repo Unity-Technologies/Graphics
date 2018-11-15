@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class ColorRGBAMaterialSlot : Vector4MaterialSlot
+    class ColorRGBAMaterialSlot : Vector4MaterialSlot
     {
         public ColorRGBAMaterialSlot() {}
 

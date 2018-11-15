@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class DielectricSpecularControlAttribute : Attribute, IControlAttribute
+    class DielectricSpecularControlAttribute : Attribute, IControlAttribute
     {
         public DielectricSpecularControlAttribute()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class DielectricSpecularControlView : VisualElement
+    class DielectricSpecularControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

@@ -7,7 +7,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SubGraph : AbstractMaterialGraph
+    class SubGraph : AbstractMaterialGraph
         , IGeneratesBodyCode
         , IGeneratesFunction
     {

@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEngine.MaterialGraph.NormalNode")]
     [Title("Input", "Geometry", "Normal Vector")]
-    public class NormalVectorNode : GeometryNode, IMayRequireNormal
+    class NormalVectorNode : GeometryNode, IMayRequireNormal
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";

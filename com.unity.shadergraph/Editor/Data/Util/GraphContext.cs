@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class GraphContext
+    class GraphContext
     {
         public GraphContext(string inputStructName)
         {

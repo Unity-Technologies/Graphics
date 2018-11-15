@@ -10,7 +10,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class MaterialSlot : ISlot
+    abstract class MaterialSlot : ISlot
     {
         const string k_NotInit =  "Not Initilaized";
 

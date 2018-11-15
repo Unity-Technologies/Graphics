@@ -2,12 +2,12 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireTangent
+    interface IMayRequireTangent
     {
         NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
-    public static class MayRequireTangentExtensions
+    static class MayRequireTangentExtensions
     {
         public static NeededCoordinateSpace RequiresTangent(this ISlot slot)
         {

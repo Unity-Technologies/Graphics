@@ -2,12 +2,12 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireScreenPosition
+    interface IMayRequireScreenPosition
     {
         bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
-    public static class MayRequireScreenPositionExtensions
+    static class MayRequireScreenPositionExtensions
     {
         public static bool RequiresScreenPosition(this ISlot slot)
         {

@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph
 {
 /*    [Serializable]
     [Title("Master", "Lightweight", "Fast Blinn")]
-    public class LightweightFastBlinnMasterNode : AbstractMasterNode
+    class LightweightFastBlinnMasterNode : AbstractMasterNode
     {
         public const string AlbedoSlotName = "Diffuse";
         public const string SpecularSlotName = "Specular";

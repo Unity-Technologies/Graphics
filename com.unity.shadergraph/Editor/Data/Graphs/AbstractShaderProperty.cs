@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class AbstractShaderProperty<T> : IShaderProperty
+    abstract class AbstractShaderProperty<T> : IShaderProperty
     {
         [SerializeField]
         private T m_Value;

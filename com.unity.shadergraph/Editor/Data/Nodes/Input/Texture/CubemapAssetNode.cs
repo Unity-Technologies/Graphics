@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Cubemap Asset")]
-    public class CubemapAssetNode : AbstractMaterialNode, IPropertyFromNode
+    class CubemapAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
 

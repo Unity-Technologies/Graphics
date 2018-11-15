@@ -1,7 +1,8 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class CreateFabricShaderGraph : EndNameEditAction
     {

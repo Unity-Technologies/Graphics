@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "Invert Colors")]
-    public class InvertColorsNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class InvertColorsNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public InvertColorsNode()
         {

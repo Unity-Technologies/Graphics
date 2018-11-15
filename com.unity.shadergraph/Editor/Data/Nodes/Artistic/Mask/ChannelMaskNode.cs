@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum TextureChannel
+    enum TextureChannel
     {
         Red,
         Green,
@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Artistic", "Mask", "Channel Mask")]
-    public class ChannelMaskNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class ChannelMaskNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public ChannelMaskNode()
         {

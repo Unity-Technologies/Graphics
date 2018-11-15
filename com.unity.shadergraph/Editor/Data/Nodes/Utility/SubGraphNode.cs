@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Sub-graph")]
-    public class SubGraphNode : AbstractMaterialNode
+    class SubGraphNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IOnAssetEnabled
         , IGeneratesFunction

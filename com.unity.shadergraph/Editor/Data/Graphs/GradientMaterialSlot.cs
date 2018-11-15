@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class GradientMaterialSlot : MaterialSlot
+    class GradientMaterialSlot : MaterialSlot
     {
         public GradientMaterialSlot()
         {

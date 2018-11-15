@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
 {
 
     [CustomEditor(typeof(ShaderGraphImporter))]
-    public class ShaderGraphImporterEditor : ScriptedImporterEditor
+    class ShaderGraphImporterEditor : ScriptedImporterEditor
     {
         public override void OnInspectorGUI()
         {

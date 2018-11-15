@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class GradientControlAttribute : Attribute, IControlAttribute
+    class GradientControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -25,12 +25,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     }
 
     [Serializable]
-    public class GradientObject : ScriptableObject
+    class GradientObject : ScriptableObject
     {
         public Gradient gradient = new Gradient();
     }
 
-    public class GradientControlView : VisualElement
+    class GradientControlView : VisualElement
     {
         GUIContent m_Label;
 

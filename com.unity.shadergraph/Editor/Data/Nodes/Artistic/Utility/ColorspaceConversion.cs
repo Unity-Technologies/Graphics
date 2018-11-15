@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum Colorspace
+    enum Colorspace
     {
         RGB,
         Linear,
@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Serializable]
-    public struct ColorspaceConversion : IEnumConversion
+    struct ColorspaceConversion : IEnumConversion
     {
         public Colorspace from;
         public Colorspace to;
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Artistic", "Utility", "Colorspace Conversion")]
-    public class ColorspaceConversionNode : CodeFunctionNode
+    class ColorspaceConversionNode : CodeFunctionNode
     {
         public ColorspaceConversionNode()
         {

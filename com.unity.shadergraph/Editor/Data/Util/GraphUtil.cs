@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 {
     // a structure used to track active variable dependencies in the shader code
     // (i.e. the use of uv0 in the pixel shader means we need a uv0 interpolator, etc.)
-    public struct Dependency
+    struct Dependency
     {
         public string name;             // the name of the thing
         public string dependsOn;        // the thing above depends on this -- it reads it / calls it / requires it to be defined
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [System.AttributeUsage(System.AttributeTargets.Struct)]
-    public class InterpolatorPack : System.Attribute
+    class InterpolatorPack : System.Attribute
     {
         public InterpolatorPack()
         {
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
     // i.e.    float3 position : POSITION;
     //                           ^ semantic
     [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class Semantic : System.Attribute
+    class Semantic : System.Attribute
     {
         public string semantic;
 
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
     // attribute used to flag a field as being optional
     // i.e. if it is not active, then we can omit it from the struct
     [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class Optional : System.Attribute
+    class Optional : System.Attribute
     {
         public Optional()
         {
@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph
 
     // attribute used to override the HLSL type of a field with a custom type string
     [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class OverrideType : System.Attribute
+    class OverrideType : System.Attribute
     {
         public string typeName;
 
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
 
     // attribute used to disable a field using a preprocessor #if
     [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class PreprocessorIf : System.Attribute
+    class PreprocessorIf : System.Attribute
     {
         public string conditional;
 
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public static class ShaderSpliceUtil
+    static class ShaderSpliceUtil
     {
         enum BaseFieldType
         {
@@ -560,7 +560,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             if (command.Is("include"))
                             {
-                                ProcessIncludeCommand(command, end);                                
+                                ProcessIncludeCommand(command, end);
                                 break;      // include command always ignores the rest of the line, error or not
                             }
                             else if (command.Is("splice"))
@@ -859,7 +859,7 @@ namespace UnityEditor.ShaderGraph
         }
     };
 
-    public static class GraphUtil
+    static class GraphUtil
     {
         internal static string ConvertCamelCase(string text, bool preserveAcronyms)
         {

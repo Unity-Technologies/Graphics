@@ -2,13 +2,13 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum SurfaceType
+    enum SurfaceType
     {
         Opaque,
         Transparent
     }
 
-    public enum AlphaMode
+    enum AlphaMode
     {
         Alpha,
         Premultiply,

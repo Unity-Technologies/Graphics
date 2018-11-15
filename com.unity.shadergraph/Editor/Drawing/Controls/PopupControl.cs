@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class PopupControlAttribute : Attribute, IControlAttribute
+    class PopupControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -25,13 +25,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     }
 
     [Serializable]
-    public struct PopupList
+    struct PopupList
     {
         public int selectedEntry;
         public List<string> popupEntries;
     }
 
-    public class PopupControlView : VisualElement
+    class PopupControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
