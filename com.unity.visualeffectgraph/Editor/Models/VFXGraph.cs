@@ -503,7 +503,7 @@ namespace UnityEditor.VFX
             return m_CustomAttributes[index].type;
         }
 
-        public void SetCustomAttributeName(int index,string newName)
+        public void SetCustomAttributeName(int index,string newName, bool notify = true)
         {
             if (index >= m_CustomAttributes.Count)
                 throw new System.ArgumentException("Invalid Index");
@@ -511,7 +511,7 @@ namespace UnityEditor.VFX
             {
                 newName = "Attribute";
                 int cpt = 1;
-                while (m_CustomAttributes.Select((t, i) => t.name == name && i != index).Where(t => t).Count() > 0)
+                while (m_CustomAttributes.Select((t, i) => t.name == newName && i != index).Where(t => t).Count() > 0)
                 {
                     newName = string.Format("Attribute{0}", cpt++);
                 }
@@ -522,9 +522,12 @@ namespace UnityEditor.VFX
 
             m_CustomAttributes[index] = new CustomAttribute { name = newName, type = m_CustomAttributes[index].type };
 
-            Invalidate(InvalidationCause.kSettingChanged);
+            if( notify)
+            {
+                Invalidate(InvalidationCause.kSettingChanged);
 
-            RenameAttribute(oldName, newName);
+                RenameAttribute(oldName, newName);
+            }
         }
 
         public void SetCustomAttributeType(int index, VFXValueType newType)
@@ -553,15 +556,28 @@ namespace UnityEditor.VFX
             string name = "Attribute";
             int cpt = 1;
             while (m_CustomAttributes.Any(t => t.name == name))
-            {   
+            {
                 name = string.Format("Attribute{0}", cpt++);
             }
             m_CustomAttributes.Add(new CustomAttribute { name = name, type = VFXValueType.Float });
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
+
+        public int AddCustomAttribute(string name, VFXValueType newType)
+        {
+            if (m_CustomAttributes == null)
+                m_CustomAttributes = new List<CustomAttribute>();
+            // DOnt care about the current name, it will be changed
+            m_CustomAttributes.Add(new CustomAttribute { name = "", type = newType });
+            SetCustomAttributeName(m_CustomAttributes.Count - 1, name, false);
+            
+            Invalidate(InvalidationCause.kSettingChanged);
+            return m_CustomAttributes.Count - 1;
+        }
+
         //Execute action on each settings used to store an attribute, until one return true;
-        bool ForEachSettingUsingAttributeInModel(VFXModel model, Func<FieldInfo,bool> action)
+        public bool ForEachSettingUsingAttributeInModel(VFXModel model, Func<FieldInfo,bool> action)
         {
             var settings = model.GetSettings(true);
 

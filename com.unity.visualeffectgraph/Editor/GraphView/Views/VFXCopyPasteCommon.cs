@@ -1,10 +1,11 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.UIElements;
+using System.Linq;
 using System.Reflection;
+
+using UnityEngine;
+using UnityEngine.Experimental.VFX;
+
 using UnityObject = UnityEngine.Object;
 using NodeID = System.UInt32;
 
@@ -137,6 +138,13 @@ namespace UnityEditor.VFX.UI
         }
 
         [Serializable]
+        public struct CustomAttribute
+        {
+            public string name;
+            public VFXValueType type;
+        }
+
+        [Serializable]
         protected class SerializableGraph
         {
             public Rect bounds;
@@ -144,7 +152,7 @@ namespace UnityEditor.VFX.UI
             public bool blocksOnly;
 
             public Context[] contexts;
-            public Node[] operatorsOrBlocks; // this contains blocks if blocksOnly else it contains operators and blocks are included in their respective contexts
+            public Node[] operators; // this contains blocks if blocksOnly else it contains operators and blocks are included in their respective contexts
             public Data[] datas;
 
             public Parameter[] parameters;
@@ -154,6 +162,8 @@ namespace UnityEditor.VFX.UI
 
             public VFXUI.StickyNoteInfo[] stickyNotes;
             public GroupNode[] groupNodes;
+
+            public CustomAttribute[] customAttributes;
         }
 
         static Dictionary<Type, List<FieldInfo>> s_SerializableFieldByType = new Dictionary<Type, List<FieldInfo>>();

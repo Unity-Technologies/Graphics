@@ -1006,7 +1006,7 @@ namespace UnityEditor.VFX.UI
                 var data = VFXCopyPaste.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds);
                 VFXCopyPaste.UnserializeAndPasteElements(controller, tPos, data, this, groupNode != null ? groupNode.controller : null);
 #else
-                var data = VFXCopy.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds);
+                var data = VFXCopy.SerializeElements(templateController,templateController.allChildren, templateController.graph.UIInfos.uiBounds);
                 VFXPaste.UnserializeAndPasteElements(controller, tPos, data, this, groupNode != null ? groupNode.controller : null);
 #endif
 
@@ -1452,7 +1452,7 @@ namespace UnityEditor.VFX.UI
             return VFXCopyPaste.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
 #else
             Profiler.BeginSample("VFXCopy.SerializeElements");
-            string result = VFXCopy.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
+            string result = VFXCopy.SerializeElements(controller, ElementsToController(elements), GetElementsBounds(elements));
             Profiler.EndSample();
             return result;
 #endif
