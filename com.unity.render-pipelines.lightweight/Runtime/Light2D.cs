@@ -218,11 +218,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         }
 
-        public void UpdateShapeLightMesh()
+        public void UpdateShapeLightMesh(Color color)
         {
 
-            Color meshInteriorColor = Color.white;
-            Color meshFeatherColor = Color.black;
+            Color meshInteriorColor = color;
+            Color meshFeatherColor = new Color(color.r, color.g, color.b, 0);
 
             int pointCount = spline.GetPointCount();
             var inputs = new ContourVertex[pointCount];
@@ -245,7 +245,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 inputsF[3] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i + 1).x, Y = spline.GetPosition(i + 1).y },  Data = meshFeatherColor };
                 tessF.AddContour(inputsF, ContourOrientation.Original);
 
-                
                 inputsI[i] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = meshInteriorColor };
             }
 
@@ -320,16 +319,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public Mesh GenerateParametricMesh(float radius, int sides, float feathering, Color color)
         {
-            float savedA = color.a;
-            Color adjColor = color;
-
-            // This is done so we don't start going white on a non white light if the intensity is high enough
-            float maxColor = adjColor.r > adjColor.b ? adjColor.r : adjColor.b;
-            maxColor = maxColor > adjColor.g ? maxColor : adjColor.g;
-            if (maxColor > 1.0f)
-                adjColor = (1 / maxColor) * adjColor;
-
-            adjColor.a = savedA;
 
             float angleOffset = Mathf.PI / 2.0f;
             if (sides < 3)
@@ -362,9 +351,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
 
             Vector3 posOffset = new Vector3(m_ShapeLightOffset.x, m_ShapeLightOffset.y);
-            Color transparentColor = new Color(adjColor.r, adjColor.g, adjColor.b, 0);
+            Color transparentColor = new Color(color.r, color.g, color.b, 0);
             vertices[centerIndex] = Vector3.zero + posOffset;
-            colors[centerIndex] = adjColor;
+            colors[centerIndex] = color;
 
             float radiansPerSide = 2 * Mathf.PI / sides;
             for (int i = 0; i < sides; i++)
@@ -377,7 +366,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     vertexIndex = (i + 1) % sides;
                     vertices[vertexIndex] = endPoint;
-                    colors[vertexIndex] = adjColor;
+                    colors[vertexIndex] = color;
 
                     int triangleIndex = 3 * i;
                     triangles[triangleIndex] = (i + 1) % sides;
@@ -404,7 +393,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     vertices[vertexIndex + 1] = endSplitPoint;
 
                     colors[vertexIndex] = transparentColor;
-                    colors[vertexIndex + 1] = adjColor;
+                    colors[vertexIndex + 1] = color;
 
                     // Triangle 1 (Tip)
                     int triangleIndex = 9 * i;
@@ -434,15 +423,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public Mesh GenerateSpriteMesh(Sprite sprite, Color color)
         {
-            Color adjColor = color;
-
-            // This is done so we don't start going white on a non white light if the intensity is high enough
-            float maxColor = adjColor.r > adjColor.b ? adjColor.r : adjColor.b;
-            maxColor = maxColor > adjColor.g ? maxColor : adjColor.g;
-            if (maxColor > 1.0f)
-                adjColor = (1 / maxColor) * adjColor;
-            adjColor.a = color.a;
-
 
             //if (m_Mesh == null)
             //{
@@ -465,7 +445,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                     //vertices3d[vertexIdx] = new Vector3(pos.x + m_ShapeLightOffset.x, pos.y + m_ShapeLightOffset.y);
                     vertices3d[vertexIdx] = pos;
-                    colors[vertexIdx] = adjColor;
+                    colors[vertexIdx] = color;
                 }
 
                 for (int triangleIdx = 0; triangleIdx < triangles2d.Length; triangleIdx++)
@@ -492,16 +472,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_Mesh == null)
                     m_Mesh = new Mesh();
 
+                //float savedA = m_LightColor.a;
+                Color adjColor = m_LightColor;
+
+                // This is done so we don't start going white on a non white light if the intensity is high enough
+                //float maxColor = adjColor.r > adjColor.b ? adjColor.r : adjColor.b;
+                //maxColor = maxColor > adjColor.g ? maxColor : adjColor.g;
+                //if (maxColor > 1.0f)
+                //    adjColor = (1 / maxColor) * adjColor;
+                //adjColor.a = savedA;
+
                 if (m_ShapeLightStyle == CookieStyles.Parametric)
                 {
                     if (m_IsUsingFreeForm)
-                        UpdateShapeLightMesh();
+                        UpdateShapeLightMesh(adjColor);
                     else
-                        m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, m_LightColor);
+                        m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, adjColor);
                 }
                 else if (m_ShapeLightStyle == CookieStyles.Sprite)
                 {
-                    m_Mesh = GenerateSpriteMesh(m_LightCookieSprite, m_LightColor);
+                    m_Mesh = GenerateSpriteMesh(m_LightCookieSprite, adjColor);
                 }
             }
 
@@ -516,10 +506,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void UpdateMesh()
         {
-            if (m_IsUsingFreeForm)
-                UpdateShapeLightMesh();
-            else
-                GetMesh(true);
+            GetMesh(true);
         }
 
         public void UpdateMaterial()
