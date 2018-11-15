@@ -1,7 +1,7 @@
 using System;
 using UnityEditor;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     /// <summary>Used in editor drawer part to store the state of expendable areas.</summary>
     /// <typeparam name="TState">An enum to use to describe the state.</typeparam>

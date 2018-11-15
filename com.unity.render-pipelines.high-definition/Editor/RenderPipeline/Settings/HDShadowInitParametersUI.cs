@@ -1,6 +1,5 @@
-using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {

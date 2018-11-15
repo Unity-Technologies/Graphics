@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     // We need this base class to be able to store a list of VolumeParameter in collections as we
     // can't store VolumeParameter<T> with variable T types in the same collection. As a result some
