@@ -43,3 +43,4 @@ MonoBehaviour:
   m_ShadowAtlasResolution: 2048
   m_ResourcesAsset: {fileID: 11400000, guid: aac5a08c32552a14c89394b703f1978a, type: 2}
   m_ShaderVariantLogLevel: 0
+  m_RendererSetup: {fileID: 0}

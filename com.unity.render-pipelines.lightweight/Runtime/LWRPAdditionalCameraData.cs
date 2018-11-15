@@ -27,6 +27,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField]
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
 
+        [SerializeField] LightweightRendererSetup m_RendererSetup = null;
+
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
         bool m_RequiresDepthTexture = false;
@@ -36,15 +38,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [HideInInspector] [SerializeField] float m_Version = 2;
 
-        public float version
-        {
-            get { return m_Version; }
-        }
+        public float version => m_Version;
 
         public bool renderShadows
         {
-            get { return m_RenderShadows; }
-            set { m_RenderShadows = value; }
+            get => m_RenderShadows;
+            set => m_RenderShadows = value;
         }
 
         public CameraOverrideOption requiresDepthOption
@@ -93,6 +92,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             set { m_RequiresOpaqueTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
         }
 
+        public IRendererSetup rendererSetup => m_RendererSetup;
+		
         public void OnBeforeSerialize()
         {
         }
