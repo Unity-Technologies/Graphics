@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimization: Scalarize the light loop for forward rendering for AMD GCN
 - Changed UI of the light editor
 - Change ordering of include in material (Lit, LayeredLit etc...) in order to have reduce iteration time. Faster compilation.
+- Contact Shadows can now be enabled even for non shadow casting lights
 
 ## [5.0.0-preview] - 2018-09-28
 
