@@ -8,27 +8,8 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 using UnityEngine.Rendering;
 
-public class CustomLWPipe : LightweightRendererSetup
-{
-    #if UNITY_EDITOR 
-    [MenuItem("Assets/Create/Rendering/CustomLWSetup", priority = CoreUtils.assetCreateMenuPriority1)]
-    static void CreateCustomLwPipe()
-    {
-        ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateCustomLWPipe>(),
-            "CustomLWPipe.asset", null, null);
-    }
-    
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
-    internal class CreateCustomLWPipe : EndNameEditAction
-    {
-        public override void Action(int instanceId, string pathName, string resourceFile)
-        {
-            var instance = CreateInstance<CustomLWPipe>();
-            AssetDatabase.CreateAsset(instance, pathName);
-        }
-    }
-    #endif
-    
+public class CustomLWPipe : MonoBehaviour, IRendererSetup
+{  
     private SetupForwardRenderingPass m_SetupForwardRenderingPass;
     private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
     private SetupLightweightConstanstPass m_SetupLightweightConstants;
@@ -50,7 +31,7 @@ public class CustomLWPipe : LightweightRendererSetup
         m_Initialized = true;
     }
 
-    public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
+    public void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         Init();
 
