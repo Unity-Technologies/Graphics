@@ -556,7 +556,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
-            // subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.ShaderGraph.FabricGUI""");
+            // subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.FabricGUI""");
 
             return subShader.GetShaderString(0);
         }
