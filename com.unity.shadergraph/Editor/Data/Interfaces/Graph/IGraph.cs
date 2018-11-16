@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Graphing
 {
-    public interface IGraph : IOnAssetEnabled
+    interface IGraph : IOnAssetEnabled
     {
         IEnumerable<T> GetNodes<T>() where T : INode;
         IEnumerable<IEdge> edges { get; }
@@ -26,7 +26,7 @@ namespace UnityEditor.Graphing
         void ClearChanges();
     }
 
-    public static class GraphExtensions
+    static class GraphExtensions
     {
         public static IEnumerable<IEdge> GetEdges(this IGraph graph, SlotReference s)
         {

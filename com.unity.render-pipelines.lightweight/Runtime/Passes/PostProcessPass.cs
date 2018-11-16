@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// You can use this pass to apply post-processing to the given color
     /// buffer. The pass uses the currently configured post-process stack.
     /// </summary>
-    public class PostProcessPass : ScriptableRenderPass
+    internal class PostProcessPass : ScriptableRenderPass
     {
         const string k_PostProcessingTag = "Render PostProcess Effects";
         private RenderTargetHandle source { get; set; }

@@ -1,3 +1,4 @@
+using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline

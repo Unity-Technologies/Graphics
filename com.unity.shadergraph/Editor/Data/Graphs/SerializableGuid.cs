@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SerializableGuid : ISerializationCallbackReceiver
+    class SerializableGuid : ISerializationCallbackReceiver
     {
         public SerializableGuid()
         {

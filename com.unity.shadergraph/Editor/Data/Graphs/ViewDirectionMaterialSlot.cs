@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class ViewDirectionMaterialSlot : SpaceMaterialSlot, IMayRequireViewDirection
+    class ViewDirectionMaterialSlot : SpaceMaterialSlot, IMayRequireViewDirection
     {
         public ViewDirectionMaterialSlot()
         {}

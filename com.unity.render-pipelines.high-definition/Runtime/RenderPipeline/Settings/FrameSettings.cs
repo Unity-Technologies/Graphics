@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -251,10 +252,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Volumetric are disabled if there is no atmospheric scattering
             aggregate.enableVolumetrics = srcFrameSettings.enableVolumetrics && renderPipelineSettings.supportVolumetrics && aggregate.enableAtmosphericScattering;
             aggregate.enableReprojectionForVolumetrics = srcFrameSettings.enableReprojectionForVolumetrics;
-
-            // TODO: Add support of volumetric in planar reflection
-            if (camera.cameraType == CameraType.Reflection)
-                aggregate.enableVolumetrics = false;
 
             aggregate.enableLightLayers = srcFrameSettings.enableLightLayers && renderPipelineSettings.supportLightLayers;
 

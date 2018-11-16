@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class CubemapControlAttribute : Attribute, IControlAttribute
+    class CubemapControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class CubemapControlView : VisualElement
+    class CubemapControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

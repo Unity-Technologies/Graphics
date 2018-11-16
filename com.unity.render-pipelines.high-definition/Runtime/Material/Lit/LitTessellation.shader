@@ -86,7 +86,6 @@ Shader "HDRenderPipeline/LitTessellation"
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleUI] _DistortionEnable("Enable Distortion", Float) = 0.0
-        [ToggleUI] _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleUI] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 1.0
         [Enum(Add, 0, Multiply, 1)] _DistortionBlendMode("Distortion Blend Mode", Int) = 0
         [HideInInspector] _DistortionSrcBlend("Distortion Blend Src", Int) = 0
@@ -229,12 +228,11 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
-    #pragma shader_feature _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT _TESSELLATION_DISPLACEMENT
+    #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _PIXEL_DISPLACEMENT
     #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature _VERTEX_WIND
-    #pragma shader_feature _ _TESSELLATION_PHONG
     #pragma shader_feature _ _REFRACTION_PLANE _REFRACTION_SPHERE
 
     #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
@@ -244,7 +242,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
-    #pragma shader_feature _SPECULAROCCLUSIONMAP
+    #pragma shader_feature _BENTNORMALMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _ENABLESPECULAROCCLUSION
     #pragma shader_feature _HEIGHTMAP
@@ -286,8 +284,8 @@ Shader "HDRenderPipeline/LitTessellation"
     // Define
     //-------------------------------------------------------------------------------------
 
-    #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
     #define TESSELLATION_ON
+
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     #define SURFACE_GRADIENT
     // This shader support vertex modification
@@ -309,12 +307,24 @@ Shader "HDRenderPipeline/LitTessellation"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Tessellation.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
     //-------------------------------------------------------------------------------------
 
+    // Can't include 'ShaderVariables.hlsl' here because of USE_LEGACY_UNITY_MATRIX_VARIABLES. :-(
+    // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+    // Same story for 'Material.hlsl' (above) which includes 'AtmosphericScattering.hlsl' which includes 'ShaderVariables.hlsl'.
+    // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitProperties.hlsl"
+
+    // TODO:
+    // Currently, Lit.hlsl and LitData.hlsl are included for every pass. Split Lit.hlsl in two:
+    // LitData.hlsl and LitShading.hlsl (merge into the existing LitData.hlsl).
+    // LitData.hlsl should be responsible for preparing shading parameters.
+    // LitShading.hlsl implements the light loop API.
+    // LitData.hlsl is included here, LitShading.hlsl is included below for shading passes only.
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
@@ -329,14 +339,10 @@ Shader "HDRenderPipeline/LitTessellation"
 
         Pass
         {
-            Name "SceneSelectionPass"
-            Tags{ "LightMode" = "SceneSelectionPass" }
+            Name "SceneSelectionPass" // Name is not used
+            Tags { "LightMode" = "SceneSelectionPass" }
 
-            Cull[_CullMode]
-
-            ZWrite On
-
-            ColorMask 0
+            Cull Off
 
             HLSLPROGRAM
 
@@ -349,6 +355,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "ShaderPass/LitDepthPass.hlsl"
             #include "LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
@@ -385,22 +392,23 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            // We need to define OFF version for variant stripper
             #pragma multi_compile _ LIGHT_LAYERS
 
+            #define SHADERPASS SHADERPASS_GBUFFER
         #ifdef _ALPHATEST_ON
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
             #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
         #endif
 
-            #define SHADERPASS SHADERPASS_GBUFFER
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #ifdef DEBUG_DISPLAY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-            #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+        #ifdef DEBUG_DISPLAY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+        #endif
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -427,6 +435,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
@@ -456,6 +465,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "ShaderPass/LitDepthPass.hlsl"
             #include "LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
@@ -485,6 +495,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
             #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
             #include "ShaderPass/LitSharePass.hlsl"
@@ -526,6 +537,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
             #include "ShaderPass/LitSharePass.hlsl"
             #else
@@ -556,6 +568,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "ShaderPass/LitDistortionPass.hlsl"
             #include "LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl"
@@ -581,6 +594,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #define CUTOFF_TRANSPARENT_DEPTH_PREPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "ShaderPass/LitDepthPass.hlsl"
             #include "LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
@@ -622,10 +636,26 @@ Shader "HDRenderPipeline/LitTessellation"
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #ifdef DEBUG_DISPLAY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-            #endif
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
+        #ifdef DEBUG_DISPLAY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+        #endif
+
+            // The light loop (or lighting architecture) is in charge to:
+            // - Define light list
+            // - Define the light loop
+            // - Setup the constant/data
+            // - Do the reflection hierarchy
+            // - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
+
+            #define HAS_LIGHTLOOP
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
@@ -679,11 +709,28 @@ Shader "HDRenderPipeline/LitTessellation"
             #ifndef _SURFACE_TYPE_TRANSPARENT
                 #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
             #endif
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #ifdef DEBUG_DISPLAY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-            #endif
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
+        #ifdef DEBUG_DISPLAY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+        #endif
+
+            // The light loop (or lighting architecture) is in charge to:
+            // - Define light list
+            // - Define the light loop
+            // - Setup the constant/data
+            // - Do the reflection hierarchy
+            // - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
+
+            #define HAS_LIGHTLOOP
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
@@ -709,6 +756,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "ShaderPass/LitDepthPass.hlsl"
             #include "LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"

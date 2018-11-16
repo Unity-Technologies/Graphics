@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
-    public class FixedSlotTests
+    class FixedSlotTests
     {
         private ShaderGraph.MaterialGraph m_Graph;
         private TestNode m_NodeA;

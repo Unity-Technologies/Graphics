@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// You can use this pass to prime a depth buffer for subsequent rendering.
     /// Use it as a z-prepass, or use it to generate a depth buffer.
     /// </summary>
-    public class DepthOnlyPass : ScriptableRenderPass
+    internal class DepthOnlyPass : ScriptableRenderPass
     {
         const string k_DepthPrepassTag = "Depth Prepass";
 

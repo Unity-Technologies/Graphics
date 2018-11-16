@@ -7,14 +7,14 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
-    public interface IEnumConversion
+    interface IEnumConversion
     {
         Enum from { get; set; }
         Enum to { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Property)]
-    public class EnumConversionControlAttribute : Attribute, IControlAttribute
+    class EnumConversionControlAttribute : Attribute, IControlAttribute
     {
         public VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class EnumConversionControlView : VisualElement
+    class EnumConversionControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum TransformationMatrixType
+    enum TransformationMatrixType
     {
         None = -1,
         ModelView,
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         WorldToObject
     };
 
-    public enum UnityMatrixType
+    enum UnityMatrixType
     {
         Model,
         InverseModel,
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Input", "Matrix", "Transformation Matrix")]
-    public class TransformationMatrixNode : AbstractMaterialNode
+    class TransformationMatrixNode : AbstractMaterialNode
     {
         static Dictionary<UnityMatrixType, string> m_MatrixList = new Dictionary<UnityMatrixType, string>
         {

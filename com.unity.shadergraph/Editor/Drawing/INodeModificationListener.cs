@@ -2,7 +2,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public interface INodeModificationListener
+    interface INodeModificationListener
     {
         void OnNodeModified(ModificationScope scope);
     }

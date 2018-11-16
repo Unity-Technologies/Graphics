@@ -1,7 +1,7 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     [CustomEditor(typeof(Volume))]
     sealed class VolumeEditor : Editor

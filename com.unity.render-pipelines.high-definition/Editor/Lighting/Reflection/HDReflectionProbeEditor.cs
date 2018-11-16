@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using System.Linq;
-using UnityEngine.Rendering;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -59,7 +59,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void Draw(HDProbeUI s, SerializedHDProbe serialized, Editor owner)
         {
+#pragma warning disable 612 //Draw
             HDReflectionProbeUI.Inspector.Draw(s, serialized, owner);
+#pragma warning restore 612
         }
 
         static HDReflectionProbeEditor GetEditorFor(ReflectionProbe p)

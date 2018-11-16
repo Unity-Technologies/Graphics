@@ -6,7 +6,7 @@ using UnityEngine.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class WindowDraggable : MouseManipulator
+    class WindowDraggable : MouseManipulator
     {
         bool m_Active;
 

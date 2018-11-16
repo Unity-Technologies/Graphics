@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum DielectricMaterialType
+    enum DielectricMaterialType
     {
         Common,
         RustedMetal,
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input", "PBR", "Dielectric Specular")]
-    public class DielectricSpecularNode : AbstractMaterialNode, IGeneratesBodyCode
+    class DielectricSpecularNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public DielectricSpecularNode()
         {

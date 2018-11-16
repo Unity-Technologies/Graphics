@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Assertions;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     using UnityObject = UnityEngine.Object;
 

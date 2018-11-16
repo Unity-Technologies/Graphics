@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Graphing.Util
 {
-    public static class UIUtilities
+    static class UIUtilities
     {
         public static bool ItemsReferenceEquals<T>(this IList<T> first, IList<T> second)
         {

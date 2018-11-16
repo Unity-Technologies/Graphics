@@ -1,8 +1,9 @@
-using System;
 
-namespace UnityEditor.ShaderGraph
+using UnityEditor.ShaderGraph;
+
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public interface IFabricSubShader : ISubShader
+    interface IFabricSubShader : ISubShader
     {
     }
 }

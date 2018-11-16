@@ -45,14 +45,23 @@ real ClampRoughnessForAnalyticalLights(real roughness)
     return max(roughness, 1.0 / 1024.0);
 }
 
+void ConvertValueAnisotropyToValueTB(real value, real anisotropy, out real valueT, out real valueB)
+{
+    // Use the parametrization of Sony Imageworks.
+    // Ref: Revisiting Physically Based Shading at Imageworks, p. 15.
+    valueT = value * (1 + anisotropy);
+    valueB = value * (1 - anisotropy);
+}
+
 void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out real roughnessT, out real roughnessB)
 {
     real roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+    ConvertValueAnisotropyToValueTB(roughness, anisotropy, roughnessT, roughnessB);
+}
 
-    // Use the parametrization of Sony Imageworks.
-    // Ref: Revisiting Physically Based Shading at Imageworks, p. 15.
-    roughnessT = roughness * (1 + anisotropy);
-    roughnessB = roughness * (1 - anisotropy);
+void ConvertRoughnessTAndAnisotropyToRoughness(real roughnessT, real anisotropy, out real roughness)
+{
+    roughness = roughnessT / (1 + anisotropy);
 }
 
 void ConvertRoughnessToAnisotropy(real roughnessT, real roughnessB, out real anisotropy)

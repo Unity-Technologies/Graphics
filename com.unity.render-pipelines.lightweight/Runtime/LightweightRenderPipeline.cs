@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -32,17 +31,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static int _ScaledScreenParams;
         }
 
-        private static IRendererSetup s_DefaultRendererSetup;
-        private static IRendererSetup defaultRendererSetup
-        {
-            get
-            {
-                if (s_DefaultRendererSetup == null)
-                    s_DefaultRendererSetup = new DefaultRendererSetup();
-
-                return s_DefaultRendererSetup;
-            }
-        }
+        
 
         const string k_RenderCameraTag = "Render Camera";
 
@@ -93,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public bool supportsSoftShadows { get; private set; }
             public bool supportsDynamicBatching { get; private set; }
             public bool mixedLightingSupported { get; private set; }
+            public IRendererSetup rendererSetup { get; private set; }
 
             public static PipelineSettings Create(LightweightRenderPipelineAsset asset)
             {
@@ -130,6 +120,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Advanced settings
                 cache.supportsDynamicBatching = asset.supportsDynamicBatching;
                 cache.mixedLightingSupported = asset.supportsMixedLighting;
+                cache.rendererSetup = asset.rendererSetup ?? new DefaultRendererSetup();
                 
                 return cache;
             }
@@ -187,11 +178,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 foreach (var beforeCamera in camera.GetComponents<IBeforeCameraRender>())
                     beforeCamera.ExecuteBeforeCameraRender(this, renderContext, camera);
 
-                RenderSingleCamera(this, renderContext, camera, camera.GetComponent<IRendererSetup>());
+                RenderSingleCamera(this, renderContext, camera);
             }
         }
 
-        public static void RenderSingleCamera(LightweightRenderPipeline pipelineInstance, ScriptableRenderContext context, Camera camera, IRendererSetup setup = null)
+        public static void RenderSingleCamera(LightweightRenderPipeline pipelineInstance, ScriptableRenderContext context, Camera camera)
         {
             if (pipelineInstance == null)
             {
@@ -199,17 +190,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
             }
 
-            ScriptableCullingParameters cullingParameters;    
-            if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out cullingParameters))
+            if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
             using (new ProfilingSample(cmd, k_RenderCameraTag))
             {
-                CameraData cameraData;
                 PipelineSettings settings = pipelineInstance.settings;
                 ScriptableRenderer renderer = pipelineInstance.renderer;
-                InitializeCameraData(settings, camera, out cameraData);
+                InitializeCameraData(settings, camera, out var cameraData);
                 SetupPerCameraShaderConstants(cameraData);
 
                 cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
@@ -226,16 +215,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 var cullResults = context.Cull(ref cullingParameters);
 
-                RenderingData renderingData;
                 InitializeRenderingData(settings, ref cameraData, ref cullResults,
-                    renderer.maxVisibleAdditionalLights, renderer.maxPerObjectAdditionalLights, out renderingData);
+                    renderer.maxVisibleAdditionalLights, renderer.maxPerObjectAdditionalLights, out var renderingData);
 
-                var setupToUse = setup;
-                if (setupToUse == null)
-                    setupToUse = defaultRendererSetup;
-
+                
                 renderer.Clear();
-                setupToUse.Setup(renderer, ref renderingData);
+                cameraData.rendererSetup?.Setup(renderer, ref renderingData);
                 renderer.Execute(context, ref renderingData);
             }
 
@@ -322,6 +307,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool canSkipFrontToBackSorting = (camera.opaqueSortMode == OpaqueSortMode.Default && hasHSRGPU) || camera.opaqueSortMode == OpaqueSortMode.NoDistanceSort;
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
+            if (additionalCameraData != null && additionalCameraData.rendererSetup != null)
+                cameraData.rendererSetup = additionalCameraData.rendererSetup;
+            else
+                cameraData.rendererSetup = settings.rendererSetup;
         }
 
         static void InitializeRenderingData(PipelineSettings settings, ref CameraData cameraData, ref CullingResults cullResults,

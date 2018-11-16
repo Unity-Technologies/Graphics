@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class BooleanMaterialSlot : MaterialSlot, IMaterialSlotHasValue<bool>
+    class BooleanMaterialSlot : MaterialSlot, IMaterialSlotHasValue<bool>
     {
         [SerializeField]
         private bool m_Value;

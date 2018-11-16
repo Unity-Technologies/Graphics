@@ -1,8 +1,7 @@
-using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class FabricGUI : ShaderGUI
     {

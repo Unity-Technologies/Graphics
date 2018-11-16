@@ -1,16 +1,16 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.ShaderGraph.Drawing
+namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 {
-    public class FabricSettingsView : VisualElement
+    class FabricSettingsView : VisualElement
     {
         FabricMasterNode m_Node;
 
@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             });
 
-                
+
 
             ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
             {
@@ -356,7 +356,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         Debug.LogWarning("Not supported: " + alphaModeLit);
                         return AlphaMode.Alpha;
                     }
-                    
+
             }
         }
 
@@ -374,7 +374,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         Debug.LogWarning("Not supported: " + alphaMode);
                         return FabricMasterNode.AlphaModeFabric.Alpha;
-                    }                    
+                    }
             }
         }
     }

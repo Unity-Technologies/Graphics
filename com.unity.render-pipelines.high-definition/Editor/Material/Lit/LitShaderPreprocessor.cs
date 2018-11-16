@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using UnityEditor.Build;
 using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline

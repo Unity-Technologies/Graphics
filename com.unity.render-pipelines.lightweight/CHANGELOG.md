@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - The user documentation for LWRP is now in this GitHub repo, instead of in the separate GitHub wiki. You can find the most up-to-date pages in the [TableOfContents.md](TableOfCotents.md) file. Pages not listed in that file are still in progress.
 
+### Changed
+- LWRP built-in render passes are now internal.
+
 ### Fixed
 - LWRP now respects the iOS Player setting **Force hard shadows**. When you enable this setting, hardware filtering of shadows is disabled.
 - Scene view mode now renders baked lightmaps correctly. [1092227](https://issuetracker.unity3d.com/issues/lwrp-scene-view-modes-render-objects-black)

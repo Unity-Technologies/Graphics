@@ -4,7 +4,7 @@ using System.Text;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class PropertyCollector
+    class PropertyCollector
     {
         public struct TextureInfo
         {

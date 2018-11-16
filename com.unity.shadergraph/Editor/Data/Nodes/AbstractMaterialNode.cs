@@ -7,7 +7,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class AbstractMaterialNode : INode, ISerializationCallbackReceiver, IGenerateProperties
+    abstract class AbstractMaterialNode : INode, ISerializationCallbackReceiver, IGenerateProperties
     {
         protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
         protected static List<IEdge> s_TempEdges = new List<IEdge>();

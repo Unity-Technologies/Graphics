@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Shape", "Polygon")]
-    public class PolygonNode : CodeFunctionNode
+    class PolygonNode : CodeFunctionNode
     {
         public PolygonNode()
         {

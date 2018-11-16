@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Basic", "Divide")]
-    public class DivideNode : CodeFunctionNode
+    class DivideNode : CodeFunctionNode
     {
         public DivideNode()
         {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public sealed class IndexSet : ICollection<int>
+    sealed class IndexSet : ICollection<int>
     {
         List<uint> m_Masks = new List<uint>();
 

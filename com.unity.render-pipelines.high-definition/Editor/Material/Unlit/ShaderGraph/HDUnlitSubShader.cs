@@ -1,15 +1,13 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class HDUnlitSubShader : IUnlitSubShader
+    class HDUnlitSubShader : IUnlitSubShader
     {
         Pass m_PassDepthOnly = new Pass()
         {

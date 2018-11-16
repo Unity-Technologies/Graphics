@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class MaterialSubGraphAsset : ScriptableObject
+    class MaterialSubGraphAsset : ScriptableObject
     {
         [SerializeField] private SubGraph m_MaterialSubGraph = new SubGraph();
 

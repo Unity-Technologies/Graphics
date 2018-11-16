@@ -1,13 +1,13 @@
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using UnityEngine;
-    using UnityEngine.Experimental.Rendering.HDPipeline;
     using UnityEngine.Rendering;
     using CED = CoreEditorDrawer<HDProbeUI, SerializedHDProbe>;
 
     partial class PlanarReflectionProbeUI : HDProbeUI
     {
+#pragma warning disable 618
         new public static readonly CED.IDrawer[] Inspector;
+#pragma warning restore 618
 
         //temporary to lock UI on realtime until other mode than realtime are usable
         new static void Drawer_ReflectionProbeMode(HDProbeUI s, SerializedHDProbe p, Editor owner)
@@ -19,10 +19,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         //temporary to lock UI on realtime until other mode than realtime are usable
+#pragma warning disable 618 //CED
         static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
+#pragma warning restore 618
             CED.Action(Drawer_ReflectionProbeMode),
             CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedReflectionProbeMode((ReflectionProbeMode)i),
+#pragma warning disable 618
                 FadeOption.Indent,
+#pragma warning restore 618
                 CED.space,                                              // Baked
                 CED.Action(Drawer_SectionProbeModeRealtimeSettings),    // Realtime
                 CED.Action(Drawer_ModeSettingsCustom)                   // Custom
@@ -33,8 +37,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             //copy HDProbe UI
             int max = HDProbeUI.Inspector.Length;
+#pragma warning disable 618 //CED
             Inspector = new CED.IDrawer[max];
-            for(int i = 0; i < max; ++i)
+#pragma warning disable 618
+            for (int i = 0; i < max; ++i)
             {
                 Inspector[i] = HDProbeUI.Inspector[i];
             }

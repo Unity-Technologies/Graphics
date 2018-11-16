@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Derivative", "DDY")]
-    public class DDYNode : CodeFunctionNode
+    class DDYNode : CodeFunctionNode
     {
         public DDYNode()
         {

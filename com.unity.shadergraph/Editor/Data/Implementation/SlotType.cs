@@ -1,6 +1,6 @@
 namespace UnityEditor.Graphing
 {
-    public enum SlotType
+    enum SlotType
     {
         Input,
         Output

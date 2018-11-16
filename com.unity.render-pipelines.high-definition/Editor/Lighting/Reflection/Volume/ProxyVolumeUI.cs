@@ -1,6 +1,7 @@
 using System;
 using UnityEditor.AnimatedValues;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Object = UnityEngine.Object;
@@ -25,9 +26,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //logic
         static readonly int k_ShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer SectionShape;
         public static readonly CED.IDrawer SectionShapeBox = CED.Action(Drawer_SectionShapeBox);
         public static readonly CED.IDrawer SectionShapeSphere = CED.Action(Drawer_SectionShapeSphere);
+#pragma warning restore 618
 
         static ProxyVolumeUI()
         {
@@ -35,7 +38,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     CED.Action(Drawer_FieldShapeType),
                     CED.FadeGroup(
                         (s, d, o, i) => s.IsSectionExpanded_Shape((InfluenceShape)i),
+#pragma warning disable 618
                         FadeOption.Indent,
+#pragma warning restore 618
                         SectionShapeBox,
                         SectionShapeSphere
                         )

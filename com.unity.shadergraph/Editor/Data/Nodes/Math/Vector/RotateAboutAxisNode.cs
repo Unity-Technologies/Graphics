@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Rotate About Axis")]
-    public class RotateAboutAxisNode : CodeFunctionNode
+    class RotateAboutAxisNode : CodeFunctionNode
     {
         [SerializeField]
         private RotationUnit m_Unit = RotationUnit.Radians;

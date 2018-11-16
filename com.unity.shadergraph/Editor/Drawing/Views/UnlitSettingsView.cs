@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class UnlitSettingsView : VisualElement
+    class UnlitSettingsView : VisualElement
     {
         UnlitMasterNode m_Node;
         public UnlitSettingsView(UnlitMasterNode node)

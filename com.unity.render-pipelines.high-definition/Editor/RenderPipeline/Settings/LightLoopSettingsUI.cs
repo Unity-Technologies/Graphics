@@ -1,4 +1,5 @@
 using UnityEditor.AnimatedValues;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -17,7 +18,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent computeLightVariantsContent = CoreEditorUtils.GetContent("Compute Light Variants");
         static readonly GUIContent computeMaterialVariantsContent = CoreEditorUtils.GetContent("Compute Material Variants");
 
+#pragma warning disable 618 //CED
         public static CED.IDrawer SectionLightLoopSettings(bool withOverride)
+#pragma warning restore 618
         {
             return CED.FoldoutGroup(
                     lightLoopSettingsHeaderContent,

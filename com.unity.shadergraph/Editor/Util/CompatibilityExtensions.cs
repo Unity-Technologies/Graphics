@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public static class CompatibilityExtensions
+    static class CompatibilityExtensions
     {
         public static void AppendAction(this DropdownMenu contextualMenu, string actionName, Action action, Func<DropdownMenuAction.Status> actionStatusCallback)
         {

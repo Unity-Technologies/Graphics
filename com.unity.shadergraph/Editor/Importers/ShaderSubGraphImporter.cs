@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 
 [ScriptedImporter(3, Extension)]
-public class ShaderSubGraphImporter : ScriptedImporter
+class ShaderSubGraphImporter : ScriptedImporter
 {
     public const string Extension = "shadersubgraph";
 

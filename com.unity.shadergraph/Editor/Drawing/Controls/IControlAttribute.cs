@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
-    public interface IControlAttribute
+    interface IControlAttribute
     {
         VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo);
     }

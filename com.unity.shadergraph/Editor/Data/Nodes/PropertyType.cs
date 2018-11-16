@@ -1,6 +1,6 @@
 namespace UnityEditor.ShaderGraph
 {
-    public enum PropertyType
+    enum PropertyType
     {
         Color,
         Texture2D,

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
-    public class PixelShaderNodeTests
+    class PixelShaderNodeTests
     {
         /*  private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
           private Vector1Node m_InputOne;

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     public static class CoreEditorStyles
     {

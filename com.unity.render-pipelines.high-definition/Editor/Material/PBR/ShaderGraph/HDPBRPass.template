@@ -24,15 +24,14 @@ Pass
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
         //#pragma enable_d3d11_debug_symbols
 
+        #pragma multi_compile_instancing
+        #pragma instancing_options renderinglayer
+        #pragma multi_compile _ LOD_FADE_CROSSFADE
+
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
         $AlphaTest:                      #define _ALPHATEST_ON 1
-        $Material.SubsurfaceScattering:  #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
-        $Material.Transmission:          #define _MATERIAL_FEATURE_TRANSMISSION 1
-        $Material.Anisotropy:            #define _MATERIAL_FEATURE_ANISOTROPY 1
-        $Material.ClearCoat:             #define _MATERIAL_FEATURE_CLEAR_COAT 1
-        $Material.Iridescence:           #define _MATERIAL_FEATURE_IRIDESCENCE 1
         $Material.SpecularColor:         #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
         $SurfaceType.Transparent:        #define _SURFACE_TYPE_TRANSPARENT 1
         $BlendMode.Alpha:                #define _BLENDMODE_ALPHA 1
@@ -44,16 +43,9 @@ Pass
     #pragma vertex Vert
     #pragma fragment Frag
 
-    #define UNITY_MATERIAL_LIT      // Need to be define before including Material.hlsl
-
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     // this modifies the normal calculation
     // #define SURFACE_GRADIENT
-
-    // If we use subsurface scattering, enable output split lighting (for forward pass)
-    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    #define OUTPUT_SPLIT_LIGHTING
-    #endif
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
@@ -96,16 +88,35 @@ $splice(Defines)
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
     #endif
 
-    #if (SHADERPASS == SHADERPASS_FORWARD)
-        // used for shaders that want to do lighting (and materials)
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-    #else
-        // used for shaders that don't need lighting
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-    #endif
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+#if (SHADERPASS == SHADERPASS_FORWARD)
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
+    // The light loop (or lighting architecture) is in charge to:
+    // - Define light list
+    // - Define the light loop
+    // - Setup the constant/data
+    // - Do the reflection hierarchy
+    // - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
+
+    #define HAS_LIGHTLOOP
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+#else
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+#endif
+
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
+
+    //Used by SceneSelectionPass
+    int _ObjectId;
+    int _PassValue;
+
 
     // this function assumes the bitangent flip is encoded in tangentWS.w
     // TODO: move this function to HDRP shared file, once we merge with HDRP repo
@@ -171,21 +182,6 @@ $include("SharedCode.template.hlsl")
 
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
-#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
-#endif
-#ifdef _MATERIAL_FEATURE_TRANSMISSION
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
-#endif
-#ifdef _MATERIAL_FEATURE_ANISOTROPY
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_ANISOTROPY;
-#endif
-#ifdef _MATERIAL_FEATURE_CLEAR_COAT
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
-#endif
-#ifdef _MATERIAL_FEATURE_IRIDESCENCE
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_IRIDESCENCE;
-#endif
 #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
 #endif

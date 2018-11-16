@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public class MainLightShadowCasterPass : ScriptableRenderPass
+    internal class MainLightShadowCasterPass : ScriptableRenderPass
     {
         private static class MainLightShadowConstantBuffer
         {

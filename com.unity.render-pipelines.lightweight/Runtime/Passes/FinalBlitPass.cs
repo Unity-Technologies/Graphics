@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// the camera target. The pass takes the screen viewport into
     /// consideration.
     /// </summary>
-    public class FinalBlitPass : ScriptableRenderPass
+    internal class FinalBlitPass : ScriptableRenderPass
     {
         const string k_FinalBlitTag = "Final Blit Pass";
 

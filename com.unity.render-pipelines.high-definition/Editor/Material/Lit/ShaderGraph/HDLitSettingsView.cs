@@ -1,16 +1,17 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.Experimental.Rendering.HDPipeline;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.ShaderGraph.Drawing
+namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 {
-    public class HDLitSettingsView : VisualElement
+    class HDLitSettingsView : VisualElement
     {
         HDLitMasterNode m_Node;
 

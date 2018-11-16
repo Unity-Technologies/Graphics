@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class GradientInputMaterialSlot : GradientMaterialSlot, IMaterialSlotHasValue<Gradient>
+    class GradientInputMaterialSlot : GradientMaterialSlot, IMaterialSlotHasValue<Gradient>
     {
         [SerializeField]
         Gradient m_Value = new Gradient();

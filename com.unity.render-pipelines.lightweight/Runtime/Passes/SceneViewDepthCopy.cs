@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public class SceneViewDepthCopyPass : ScriptableRenderPass
+    internal class SceneViewDepthCopyPass : ScriptableRenderPass
     {
         const string k_CopyDepthToCameraTag = "Copy Depth to Camera";
 

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Filter", "Dither")]
-    public class DitherNode : CodeFunctionNode
+    class DitherNode : CodeFunctionNode
     {
         public DitherNode()
         {

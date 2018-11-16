@@ -100,7 +100,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreNotEqual(guid, newGuid);
         }
 
-        public class TestableNode : TestNode
+        class TestableNode : TestNode
         {
             public const int Input0 = 0;
             public const int Input1 = 1;

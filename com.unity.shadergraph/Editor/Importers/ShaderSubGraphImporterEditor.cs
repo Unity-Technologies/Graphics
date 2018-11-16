@@ -6,7 +6,7 @@ using Debug = System.Diagnostics.Debug;
 namespace UnityEditor.ShaderGraph
 {
     [CustomEditor(typeof(ShaderSubGraphImporter))]
-    public class ShaderSubGraphImporterEditor : ScriptedImporterEditor
+    class ShaderSubGraphImporterEditor : ScriptedImporterEditor
     {
         public override void OnInspectorGUI()
         {

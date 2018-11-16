@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "PBR")]
-    public class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequirePosition, IMayRequireNormal
+    class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequirePosition, IMayRequireNormal
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";

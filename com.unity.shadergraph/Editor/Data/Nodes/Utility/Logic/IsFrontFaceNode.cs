@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
 	[Title("Utility", "Logic", "Is Front Face")]
-	public class IsFrontFaceNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireFaceSign
+	class IsFrontFaceNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireFaceSign
 	{
 		public IsFrontFaceNode()
 		{

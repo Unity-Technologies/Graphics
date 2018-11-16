@@ -1,19 +1,23 @@
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<InfluenceVolumeUI, SerializedInfluenceVolume>;
 
     partial class InfluenceVolumeUI
     {
+#pragma warning disable 618 //CED
         static readonly CED.IDrawer SectionShapeBoxPlanar = CED.Action((s, p, o) => Drawer_SectionShapeBox( s, p, o, false, false, false));
         static readonly CED.IDrawer SectionShapeBox = CED.Action((s, p, o) => Drawer_SectionShapeBox(s, p, o, true, true, true));
         static readonly CED.IDrawer SectionShapeSpherePlanar = CED.Action((s, p, o) => Drawer_SectionShapeSphere(s, p, o, false, false));
         static readonly CED.IDrawer SectionShapeSphere = CED.Action((s, p, o) => Drawer_SectionShapeSphere(s, p, o, true, true));
+#pragma warning restore 618
 
+#pragma warning disable 618 //CED
         internal static CED.IDrawer InnerInspector(ReflectionProbeType type)
+#pragma warning restore 618
         {
             switch (type)
             {
@@ -23,7 +27,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         CED.Action(Drawer_FieldShapeType),
                         CED.FadeGroup(
                             (s, d, o, i) => s.IsSectionExpanded_Shape((InfluenceShape)i),
+#pragma warning disable 618
                             FadeOption.None,
+#pragma warning restore 618
                             SectionShapeBoxPlanar,
                             SectionShapeSpherePlanar
                             )
@@ -34,7 +40,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         CED.Action(Drawer_FieldShapeType),
                         CED.FadeGroup(
                             (s, d, o, i) => s.IsSectionExpanded_Shape((InfluenceShape)i),
+#pragma warning disable 618
                             FadeOption.None,
+#pragma warning restore 618
                             SectionShapeBox,
                             SectionShapeSphere
                             )

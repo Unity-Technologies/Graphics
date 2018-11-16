@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class NormalMaterialSlot : SpaceMaterialSlot, IMayRequireNormal
+    class NormalMaterialSlot : SpaceMaterialSlot, IMayRequireNormal
     {
         public NormalMaterialSlot()
         {}

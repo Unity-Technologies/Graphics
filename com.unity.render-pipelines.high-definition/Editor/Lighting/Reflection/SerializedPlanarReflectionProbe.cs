@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 

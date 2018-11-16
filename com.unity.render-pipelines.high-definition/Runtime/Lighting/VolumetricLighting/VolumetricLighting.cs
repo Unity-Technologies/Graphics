@@ -579,10 +579,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var cvp = currFrameParams.viewportSize;
 
                 Vector4 resolution  = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
-                float   vFoV        = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
+#if UNITY_2019_1_OR_NEWER
+                var vFoV        = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+                var lensShift = hdCamera.camera.GetGateFittedLensShift();
+#else
+                var vFoV        = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
+                var lensShift = Vector2.zero;
+#endif
 
                 // Compose the matrix which allows us to compute the world space view direction.
-                Matrix4x4 transform   = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, hdCamera.viewMatrix, false);
+                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.viewMatrix, false);
 
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
@@ -684,10 +690,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var cvp = currFrameParams.viewportSize;
 
                 Vector4 resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
-                float   vFoV       = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
-
+#if UNITY_2019_1_OR_NEWER
+                var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+                var lensShift = hdCamera.camera.GetGateFittedLensShift();
+#else
+                var vFoV        = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
+                var lensShift   = Vector2.zero;
+#endif
                 // Compose the matrix which allows us to compute the world space view direction.
-                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, hdCamera.viewMatrix, false);
+                Matrix4x4 transform   = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.viewMatrix, false);
 
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);

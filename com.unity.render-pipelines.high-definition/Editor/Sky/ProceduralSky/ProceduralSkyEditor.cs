@@ -1,5 +1,4 @@
-using UnityEngine;
-using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline

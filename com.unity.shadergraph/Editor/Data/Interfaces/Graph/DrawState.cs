@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.Graphing
 {
     [Serializable]
-    public struct DrawState
+    struct DrawState
     {
         [SerializeField]
         private bool m_Expanded;

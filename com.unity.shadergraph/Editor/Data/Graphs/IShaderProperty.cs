@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IShaderProperty
+    interface IShaderProperty
     {
         string displayName { get; set; }
 

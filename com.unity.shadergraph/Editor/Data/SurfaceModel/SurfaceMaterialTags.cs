@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SurfaceMaterialTags
+    class SurfaceMaterialTags
     {
         public enum RenderType
         {

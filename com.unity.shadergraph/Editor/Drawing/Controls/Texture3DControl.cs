@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class Texture3DControlAttribute : Attribute, IControlAttribute
+    class Texture3DControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class Texture3DControlView : VisualElement
+    class Texture3DControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

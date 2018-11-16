@@ -251,7 +251,11 @@ namespace UnityEngine.Experimental.Rendering
                 return Matrix4x4.Ortho(-w, w, -h, h, camera.nearClipPlane, camera.farClipPlane);
             }
             else
+#if UNITY_2019_1_OR_NEWER
+                return Matrix4x4.Perspective(camera.GetGateFittedFieldOfView(), camera.aspect, camera.nearClipPlane, camera.farClipPlane);
+#else
                 return Matrix4x4.Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, camera.farClipPlane);
+#endif
         }
     } // class GeometryUtils
 }

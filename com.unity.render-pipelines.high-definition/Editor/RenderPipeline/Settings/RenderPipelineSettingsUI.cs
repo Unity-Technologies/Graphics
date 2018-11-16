@@ -1,4 +1,5 @@
 using UnityEditor.AnimatedValues;
+using UnityEditor.Rendering;
 using UnityEngine.Events;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -29,9 +30,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     );
         }
 
+#pragma warning disable 618 //CED
         public static readonly CED.IDrawer Inspector;
 
         public static readonly CED.IDrawer SupportedSettings = CED.FoldoutGroup(
+#pragma warning restore 618
             "Render Pipeline Supported Features",
             (s, d, o) => s.isSectionExpandedSupportedSettings,
             FoldoutOption.None,

@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool isPreviewVisible = true;
     }
 
-    public class GraphEditorView : VisualElement, IDisposable
+    class GraphEditorView : VisualElement, IDisposable
     {
         MaterialGraphView m_GraphView;
         MasterPreviewView m_MasterPreviewView;
