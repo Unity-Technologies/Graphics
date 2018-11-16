@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]

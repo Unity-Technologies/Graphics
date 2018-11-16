@@ -4,10 +4,9 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering;
-
+using UnityEngine.Rendering.LWRP;
 public class CustomLWPipe : MonoBehaviour, IRendererSetup
 {  
     private SetupForwardRenderingPass m_SetupForwardRenderingPass;
