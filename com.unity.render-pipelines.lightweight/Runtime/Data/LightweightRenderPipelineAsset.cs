@@ -76,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
 
-        [SerializeField] RenderGraphData m_RenderGraphData = null;
+        [SerializeField] ScriptableObject m_RenderGraphData = null;
 
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public RenderGraphData renderGraphData
         {
-            get => m_RenderGraphData;
+            get => (RenderGraphData)m_RenderGraphData;
         }
         
 #if UNITY_EDITOR
@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public RenderGraph CreateRenderGraph()
         {
-            RenderGraphData data = m_RenderGraphData;
+            RenderGraphData data = (RenderGraphData)m_RenderGraphData;
             return data.Create();
         }
  

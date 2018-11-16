@@ -21,6 +21,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             public static GUIContent allowMSAA = EditorGUIUtility.TrTextContent("MSAA", "Use Multi Sample Anti-Aliasing to reduce aliasing.");
             public static GUIContent allowHDR = EditorGUIUtility.TrTextContent("HDR", "High Dynamic Range gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light.", (Texture) null);
 
+            public static GUIContent renderGraph = EditorGUIUtility.TrTextContent("Render Graph", "Render Graph");
+
             public readonly GUIContent[] renderingPathOptions = { EditorGUIUtility.TrTextContent("Forward") };
             public readonly string hdrDisabledWarning = "HDR rendering is disabled in the Lightweight Render Pipeline asset.";
             public readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Lightweight Render Pipeline asset.";
@@ -68,6 +70,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         SerializedProperty m_AdditionalCameraDataRenderShadowsProp;
         SerializedProperty m_AdditionalCameraDataRenderDepthProp;
         SerializedProperty m_AdditionalCameraDataRenderOpaqueProp;
+        SerializedProperty m_AdditionalCameraDataRenderGraphProp;
 
         void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
         {
@@ -109,6 +112,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             m_AdditionalCameraDataRenderShadowsProp = m_AdditionalCameraDataSO.FindProperty("m_RenderShadows");
             m_AdditionalCameraDataRenderDepthProp = m_AdditionalCameraDataSO.FindProperty("m_RequiresDepthTextureOption");
             m_AdditionalCameraDataRenderOpaqueProp = m_AdditionalCameraDataSO.FindProperty("m_RequiresOpaqueTextureOption");
+            m_AdditionalCameraDataRenderGraphProp = m_AdditionalCameraDataSO.FindProperty("m_RenderGraphData");
         }
 
         public void OnDisable()
@@ -287,6 +291,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             }
             if(m_AdditionalCameraDataSO != null)
                 EditorGUI.EndProperty();
+
+            if (m_AdditionalCameraDataSO != null)
+                EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderGraphProp, Styles.renderGraph);
 
             if (hasChanged)
             {
