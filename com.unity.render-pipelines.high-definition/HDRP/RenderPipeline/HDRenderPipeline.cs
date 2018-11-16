@@ -1188,6 +1188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Render All forward error
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd);
 
+                        m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
                         if (OnCameraPostRenderForward != null)
                             OnCameraPostRenderForward(renderContext, hdCamera, cmd, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
 
