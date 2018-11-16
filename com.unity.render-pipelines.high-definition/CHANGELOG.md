@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [4.3.0-preview] - 2018-11-xx
 
+### Added
+- Fixed issue in pyramid shaped spotlight handles manipulation
+
+### Fixed
+
+### Changed
+
 ## [4.2.0-preview] - 2018-11-16
 
 ### Added
