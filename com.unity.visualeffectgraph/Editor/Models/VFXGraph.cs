@@ -485,7 +485,7 @@ namespace UnityEditor.VFX
 
         public bool HasCustomAttribute(string name)
         {
-            return m_CustomAttributes.Any(t => t.name == name);
+            return m_CustomAttributes != null && m_CustomAttributes.Any(t => t.name == name);
         }
 
         public string GetCustomAttributeName(int index)
@@ -505,7 +505,7 @@ namespace UnityEditor.VFX
 
         public void SetCustomAttributeName(int index,string newName, bool notify = true)
         {
-            if (index >= m_CustomAttributes.Count)
+            if (m_CustomAttributes == null ||  index >= m_CustomAttributes.Count)
                 throw new System.ArgumentException("Invalid Index");
             if (m_CustomAttributes.Any(t => t.name == newName) || VFXAttribute.AllIncludingVariadic.Any(t => t == newName))
             {
