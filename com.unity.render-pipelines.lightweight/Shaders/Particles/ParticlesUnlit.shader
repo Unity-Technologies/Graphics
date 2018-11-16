@@ -105,5 +105,5 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
         }
     }
 
-    CustomEditor "UnityEditor.Experimental.Rendering.LightweightPipeline.ParticlesLitShaderGUI"
+    CustomEditor "UnityEditor.Rendering.LWRP.ParticlesLitShaderGUI"
 }

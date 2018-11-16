@@ -1,4 +1,6 @@
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+using UnityEngine.Rendering.LWRP;
+
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public interface IRendererSetup
     {

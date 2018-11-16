@@ -2,14 +2,14 @@ using System;
 using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Experimental.Rendering.LightweightPipeline;
+using UnityEditor.Rendering.LWRP;
 #endif
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Experimental.Rendering.LWRP;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     public interface IBeforeCameraRender
     {
@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Advanced settings
                 cache.supportsDynamicBatching = asset.supportsDynamicBatching;
                 cache.mixedLightingSupported = asset.supportsMixedLighting;
-                cache.rendererSetup = new DefaultRendererSetup();
+                cache.rendererSetup = new ForwardRendererSetup();
                 
                 return cache;
             }
