@@ -22,7 +22,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added wave intrinsic instructions for use in Shaders (for AMD GCN).
 
 ### Fixed
-
 - Fixed sphere shaped influence handles clamping in Reflection Probes.
 - Fixed Reflection Probe data migration for projects created before using HDRP.
 - Fixed UI of Layered Material where Unity previously rendered the scrollbar above the Copy button.
@@ -54,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Volumetrics now render in Reflection Probes.
 - Fixed a crash that occurred whenever you set a viewport size to 0.
 - Fixed the Camera physic parameter that the UI previously did not display.
+- Fixed issue in pyramid shaped spotlight handles manipulation
 
 ### Changed
 
