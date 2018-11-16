@@ -8,16 +8,6 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 using UnityEngine.Rendering;
 
-
-[CreateAssetMenu()]
-public class CustomRenderGraphData : RenderGraphData
-{
-    public override RenderGraph Create()
-    {
-        return new CustomLWPipe(this);
-    }
-}
-
 public class CustomLWPipe : RenderGraph
 {
     private SetupForwardRenderingPass m_SetupForwardRenderingPass;
