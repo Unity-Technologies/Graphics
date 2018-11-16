@@ -222,6 +222,7 @@ namespace UnityEditor.VFX.UI
             AddToClassList("selectable");
 
             this.mainContainer.style.overflow = Overflow.Visible;
+            this.cacheAsBitmap = false;
 
 
             m_Divider = this.mainContainer.Q("divider");
