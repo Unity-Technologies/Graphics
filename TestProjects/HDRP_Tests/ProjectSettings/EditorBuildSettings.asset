@@ -66,9 +66,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1303_SSS_Pre-Post.unity
     guid: 6f2bc3028f3daba46ab0447a3e25ebc6
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1401_StackLit.unity
-    guid: 695dac9017b946a49a338d466a6d50ff
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1501_Fabric.unity
     guid: ce2b258da0df8d245b659390b6c2ac51
   - enabled: 1
