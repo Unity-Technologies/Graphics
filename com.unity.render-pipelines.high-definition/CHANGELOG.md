@@ -7,38 +7,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [4.2.0-preview] - 2018-10-xx
 
 ### Added
-- Add y offset for PlanarReflectionProbe and offset tool
-- Expose option to run SSR and SSAO on async compute
-- Added support of "_GlossMapScale" in upgrader
-- Added instruction for wave intrinsic (for AMD GCN)
-
+- Added a y-axis offset for the PlanarReflectionProbe and offset tool.
+- Exposed the option to run SSR and SSAO on async compute.
+- Added support for the _GlossMapScale parameter in the Legacy to HDRP Material converter.
+- Added wave intrinsic instructions for use in Shaders (for AMD GCN).
 
 ### Fixed
 - Fixed cubemap assignation on custom ReflectionProbe
-- Fixed reflection probe's capture settings's shadow distance
-- Fixed an issue with the SRP batcher and shader variables declaration
-- Fixed thickness and subsurface slots for fabric shader master node that wan't appearing with the right combination of flags
-- Fixed d3d debug layer warning
-- Fixed PCSS sampling quality
-- Fixed the Subsurface and transmission material feature enabling for fabric shader
-- Fixed Shader Graph UV node dimension when used in vertex shader
-- Fixed planar reflection mirror gizmo's rotation
-- Fixed HDRenderPipelineAsset's FrameSettings not showing the one selected in the enum at inspector opening.
-- Fixed an error with async compute
-- Fixed support of MSAA for transparent
-- Fixed mettalic value not converted correctly in upgrader tool
-- Fixed volumetric not rendering in reflection probe
-- Fixed a crash when setting a zero sized viewport
+- Fixed Reflection Probes’ capture settings' shadow distance.
+- Fixed an issue with the SRP batcher and Shader variables declaration.
+- Fixed thickness and subsurface slots for fabric Shader master node that wasn't appearing with the right combination of flags.
+- Fixed d3d debug layer warning.
+- Fixed PCSS sampling quality.
+- Fixed the Subsurface and transmission Material feature enabling for fabric Shader.
+- Fixed the Shader Graph UV node’s dimensions when using it in a vertex Shader.
+- Fixed the planar reflection mirror gizmo's rotation.
+- Fixed HDRenderPipelineAsset's FrameSettings not showing the selected enum in the Inspector drop-down.
+- Fixed an error with async compute.
+- MSAA now supports transparency.
+- The HDRP Material upgrader tool now converts metallic values correctly.
+- Volumetrics now render in Reflection Probes.
+- Fixed a crash that occurred whenever you set a viewport size to 0.
+- Fixed the Camera physic parameter that the UI previously did not display.
 
 ### Changed
-- Updated default FrameSettings used for realtime reflection probe (at HDRenderPipelineAsset creation)
-- Remove multi-camera support (this will not be supported by LW or HDRP)
-- Updated Shader Graph subshaders to use the new instancing define
-- Changed fog distance calculation from distance to plane to distance to sphere
-- Optimization: Scalarize the light loop for forward rendering for AMD GCN
-- Changed UI of the light editor
-- Change ordering of include in material (Lit, LayeredLit etc...) in order to have reduce iteration time. Faster compilation.
-- Contact Shadows can now be enabled even for non shadow casting lights
+- Updated default FrameSettings used for realtime Reflection Probes when you create a new HDRenderPipelineAsset.
+- Remove multi-camera support. LWRP and HDRP will not support multi-camera layered rendering.
+- Updated Shader Graph subshaders to use the new instancing define.
+- Changed fog distance calculation from distance to plane to distance to sphere.
+- Optimized forward rendering using AMD GCN by scalarizing the light loop.
+- Changed the UI of the Light Editor.
+- Change ordering of includes in HDRP Materials in order to reduce iteration time for faster compilation.
 
 ## [4.1.0-preview] - 2018-10-18
 
@@ -473,7 +472,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed RTHandle to RTHandleSystem.RTHandle
 - Move code for PreIntegratedFDG (Lit.shader) into its dedicated folder to be share with other material
 - Move code for LTCArea (Lit.shader) into its dedicated folder to be share with other material
- 
+
 ### Removed
 - Removed Planar Probe mirror plane position and normal fields in inspector, always display mirror plane and normal gizmos
 
