@@ -149,12 +149,6 @@ namespace UnityEditor.VFX.UI
             Add(m_List);
         }
 
-        struct Attribute
-        {
-            public string name;
-            public VFXValueType type;
-        }
-
         public new void Clear()
         {
             //m_List.Clear();
