@@ -96,12 +96,6 @@ namespace UnityEditor.ShaderGraph
             Additive,
         }
 
-        public enum ProjectionModelLit
-        {
-            Proxy = 0,
-            HiZ = 1,
-        }
-
         // Just for convenience of doing simple masks. We could run out of bits of course.
         [Flags]
         enum SlotMask
