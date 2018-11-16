@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             CommandBuffer cmd = CommandBufferPool.Get(k_FinalBlitTag);
 
-            if (renderingData.cameraData.isStereoEnabled)
+            if (renderingData.cameraData.isStereoEnabled || renderingData.cameraData.isSceneViewCamera)
             {
                 cmd.Blit(colorAttachmentHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
             }
