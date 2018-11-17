@@ -2,7 +2,7 @@
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
+        _MainTex ("Texture", 2D) = "black" {}
 		_Color("Color", Color) = (1,1,1,1)
     }
     SubShader
@@ -75,8 +75,11 @@
 
 				// Can this be moved to the normal renderer? Is it worth it?
 				half3 normalUnpacked = UnpackNormal(main);
+
+				float usingDefaultNormalMap = 1-saturate(ceil(normalUnpacked.x + normalUnpacked.y + normalUnpacked.z));  // 1 if using a black normal map, 0 if using a custom normal map
 				normalUnpacked.z = 0;
 				normalUnpacked = normalize(normalUnpacked);
+				
 
 				// Inner Radius
 				half  attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
@@ -90,7 +93,7 @@
 				// Calculate final color
 				half2 dirToLight = half2(lookupValueNoRot.b, lookupValueNoRot.a);
 				half2 normal = half2(normalUnpacked.x, normalUnpacked.y);
-				half cosAngle = saturate(dot(dirToLight, normal));
+				half cosAngle = (1-usingDefaultNormalMap) * saturate(dot(dirToLight, normal)) + usingDefaultNormalMap;
 				half4 color = main.a *_LightColor * attenuation;
 				fixed4 finalColor = color * cosAngle; /*  +color * main.z * attenuation); */
 
