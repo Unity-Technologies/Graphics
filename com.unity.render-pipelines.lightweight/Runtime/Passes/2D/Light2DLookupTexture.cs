@@ -37,7 +37,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         // blue = direction.x
                         // alpha = direction.y
 
-                        float red = Mathf.Clamp(1 - (2.0f * distance / WIDTH), 0.0f, 1.0f);
+                        float red;
+                        if (x == WIDTH - 1 || y == HEIGHT - 1)
+                            red = 0;
+                        else
+                            red = Mathf.Clamp(1 - (2.0f * distance / WIDTH), 0.0f, 1.0f);
+
                         float cosAngle = Vector2.Dot(Vector2.down, relPos.normalized);
                         float angle = Mathf.Acos(cosAngle) / Mathf.PI; // 0-1 
 
