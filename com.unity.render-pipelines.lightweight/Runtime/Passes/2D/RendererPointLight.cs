@@ -135,7 +135,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         static public void GetScaledLightInvMatrix(Light2D light, out Matrix4x4 retMatrix, bool includeRotation)
         {
             float outerRadius = light.m_PointLightOuterRadius;
-            Vector3 lightScale = light.transform.lossyScale;
+            //Vector3 lightScale = light.transform.lossyScale;
+            Vector3 lightScale = Vector3.one;
             Vector3 outerRadiusScale = new Vector3(lightScale.x * outerRadius, lightScale.y * outerRadius, lightScale.z * outerRadius);
 
             Quaternion rotation;
