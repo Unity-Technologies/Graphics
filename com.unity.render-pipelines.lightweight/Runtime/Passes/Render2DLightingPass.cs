@@ -31,8 +31,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_CommandBuffer.name = "Lights and Shadows Command Buffer";
             m_SortingLayers = SortingLayer.layers;
 
-            Texture lightLookupTexture = Light2DLookupTexture.CreateLightLookupTexture();
-            RendererPointLights.Initialize(lightLookupTexture);
+            RendererPointLights.Initialize();
         }
 
         public void Setup(Color ambientColor, Light2DRTInfo ambientRTInfo, Light2DRTInfo specularRTInfo, Light2DRTInfo rimRTInfo, Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo)

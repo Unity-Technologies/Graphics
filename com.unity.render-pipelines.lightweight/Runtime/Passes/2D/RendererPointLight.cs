@@ -29,13 +29,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         static Color m_DefaultAmbientColor;
         static Color m_DefaultRimColor;
         static Color m_DefaultSpecularColor;
-        static Texture m_LightLookupTexture;
+        static Texture m_LightLookupTexture = GetLightLookupTexture();
 
         const int k_NormalsRenderingPassIndex = 1;
         static ShaderTagId m_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static CommandBuffer m_TemporaryCmdBuffer = new CommandBuffer();
 
-        static Material m_PointLightingMat;
+        static Material m_PointLightingMat = GetPointLightMat();
         static Mesh m_Quad;
 
         static bool m_RenderTextureIsDirty = true;
@@ -45,7 +45,27 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         static Color k_ClearColor = Color.black;
 
-        static public void Initialize(Texture lightLookupTexture)
+
+        static Texture GetLightLookupTexture()
+        {
+            if(m_LightLookupTexture == null)
+                m_LightLookupTexture = Light2DLookupTexture.CreateLightLookupTexture();
+
+            return m_LightLookupTexture;
+        }
+
+        static Material GetPointLightMat()
+        {
+            if(m_PointLightingMat == null)
+            {
+                Shader pointLightShader = Shader.Find("Internal/Light2DPointLight");
+                m_PointLightingMat = new Material(pointLightShader);
+            }
+
+            return m_PointLightingMat;
+        }
+
+        static public void Initialize()
         {
             m_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
             if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
@@ -58,11 +78,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             //m_DefaultLightMaterial = Resources.Load<Material>("Materials/Light2D");
 
             //m_LightLookupTexture = Resources.Load<Texture>("Textures/LightLookupTexture");
-            m_LightLookupTexture = lightLookupTexture;
-           
-
-            Shader pointLightShader = Shader.Find("Internal/Light2DPointLight");
-            m_PointLightingMat = new Material(pointLightShader);
 
             CreateQuad(out m_Quad);
         }
@@ -283,10 +298,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                             cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHT_COOKIES");
                         }
 
-                        //cmdBuffer.Blit(m_RenderPipeline2DAsset.m_NormalMapRT, m_RenderPipeline2DAsset.m_PointLightingRT, m_PointLightingMat);
-
-                        
-                        DrawFullScreenQuad(cmdBuffer, camera, light, m_NormalRT, m_ColorRT, m_PointLightingMat);
+                        DrawFullScreenQuad(cmdBuffer, camera, light, m_NormalRT, m_ColorRT, GetPointLightMat());
 
                         //m_PointLightingMat.SetTexture("_MainTex", m_NormalRT);
                         //ScriptableRenderer.RenderFullscreenQuad(cmdBuffer, m_PointLightingMat);
@@ -310,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
                 cmdBuffer.EndSample("2D Point Lights");
             }
-            else //if (m_RenderTextureIsDirty)
+            else if (m_RenderTextureIsDirty)
             {
                 cmdBuffer.SetRenderTarget(m_ColorRT);
                 cmdBuffer.ClearRenderTarget(true, true, k_ClearColor);
