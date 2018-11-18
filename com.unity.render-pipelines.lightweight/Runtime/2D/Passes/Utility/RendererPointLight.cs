@@ -170,29 +170,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        static public void DrawFullScreenQuad(CommandBuffer cmdBuffer, Camera camera, Light2D light, RenderTexture sourceRT, RenderTexture targetRT, Material material)
+        static public void DrawLightQuad(CommandBuffer cmdBuffer, Light2D light, RenderTexture sourceRT, Material material)
         {
-            Vector3 cameraPos = camera.transform.position;
-            float lightZ = light.transform.position.z;
-            Vector3 scale;
-
-            // We should cache some of this stuff (probably)
-            if (!camera.orthographic)
-            {
-                float halfFOV = 0.5f * Mathf.Deg2Rad * camera.fieldOfView;
-                float height = 2 * Mathf.Abs(lightZ - cameraPos.z) * Mathf.Tan(halfFOV);
-                float width = camera.aspect * height;
-                scale = new Vector3(width, height, 1);
-            }
-            else
-            {
-                float height = 2 * camera.orthographicSize;
-                float width = camera.aspect * height;
-                scale = new Vector3(width, height, 1);
-            }
-
-            Vector3 center = new Vector3(cameraPos.x, cameraPos.y, lightZ);
-            Matrix4x4 matrix = Matrix4x4.TRS(center, Quaternion.identity, scale);
+            Vector3 scale = new Vector3(2*light.m_PointLightOuterRadius, 2*light.m_PointLightOuterRadius, 1);
+            Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
 
             if (material != null)
             {
@@ -299,7 +280,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                             cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHT_COOKIES");
                         }
 
-                        DrawFullScreenQuad(cmdBuffer, camera, light, m_NormalRT, m_ColorRT, GetPointLightMat());
+                        // We should consider combining all point lights into a single pass instead of rendering them seperately
+                        DrawLightQuad(cmdBuffer, light, m_NormalRT, GetPointLightMat());
 
                         //m_PointLightingMat.SetTexture("_MainTex", m_NormalRT);
                         //ScriptableRenderer.RenderFullscreenQuad(cmdBuffer, m_PointLightingMat);
