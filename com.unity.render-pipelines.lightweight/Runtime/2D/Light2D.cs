@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -218,6 +218,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         }
 
+        internal object InterpCustomVertexData(Vec3 position, object[] data, float[] weights)
+        {
+            return data[0];
+        }
+
         public void UpdateShapeLightMesh(Color color)
         {
 
@@ -258,14 +263,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             inputsI[pointCount-1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = meshInteriorColor };
             tessI.AddContour(inputsI, ContourOrientation.Original);
 
-            tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
-            tessF.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
+            tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
+            tessF.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
 
             var indicesI = tessI.Elements.Select(i => i).ToArray();
             var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
             var colorsI = tessI.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
 
-            var indicesF = tessF.Elements.Select(i => i + pointCount).ToArray();
+            var indicesF = tessF.Elements.Select(i => i + verticesI.Length).ToArray();
             var verticesF = tessF.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
             var colorsF = tessF.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
 
