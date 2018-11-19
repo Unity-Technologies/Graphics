@@ -36,21 +36,15 @@ namespace UnityEditor.VFX.UI
         {
             SerializableGraph serializableGraph = (SerializableGraph)data;
             changedCustomAttributesNames = null;
-            this.viewController = null;
+            this.viewController = viewController;
 
             PasteCustomAttributes(serializableGraph.customAttributes);
 
             if (serializableGraph.blocksOnly)
-            {
                 if (view != null)
-                {
                     PasteBlocks(view, ref serializableGraph);
-                }
-            }
             else
-            {
-                PasteAll(viewController, center, ref serializableGraph, view, groupNode);
-            }
+                PasteAll(center, ref serializableGraph, view, groupNode);
         }
 
         static readonly GUIContent m_BlockPasteError = EditorGUIUtility.TextContent("To paste blocks, please select one target block or one target context.");
@@ -118,9 +112,8 @@ namespace UnityEditor.VFX.UI
 
         VFXViewController viewController;
 
-        void PasteAll(VFXViewController viewController, Vector2 center, ref SerializableGraph serializableGraph, VFXView view, VFXGroupNodeController groupNode)
+        void PasteAll(Vector2 center, ref SerializableGraph serializableGraph, VFXView view, VFXGroupNodeController groupNode)
         {
-            this.viewController = viewController;
             newControllers.Clear();
 
             var graph = viewController.graph;

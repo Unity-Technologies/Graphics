@@ -44,6 +44,8 @@ namespace UnityEditor.VFX.UI
                 var copiedBlocks = new List<VFXBlockController>(blocks);
                 modelIndices.Clear();
                 serializableGraph.operators = CopyBlocks(copiedBlocks, 0);
+
+                serializableGraph.customAttributes = customAttributes.ToArray();
                 serializableGraph.blocksOnly = true;
             }
             else
