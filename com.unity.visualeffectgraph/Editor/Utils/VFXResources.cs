@@ -38,7 +38,14 @@ namespace UnityEditor.VFX
         private static void Initialize()
         {
 
-            var asset = Object.FindObjectOfType<VFXResources>();
+            string[] guids = AssetDatabase.FindAssets("t:VFXResources");
+
+
+            VFXResources asset = null;
+
+            if (guids.Length > 0)
+                asset = AssetDatabase.LoadAssetAtPath<VFXResources>(AssetDatabase.GUIDToAssetPath(guids[0]));
+
             if (asset == null)
             {
                 Debug.LogWarning("Could not find " + defaultFileName + ", creating...");

@@ -75,8 +75,6 @@ namespace  UnityEditor.VFX.UI
             styleSheets.Add(Resources.Load<StyleSheet>("VFXBlackboard"));
 
             RegisterCallback<MouseDownEvent>(OnMouseClick, TrickleDown.TrickleDown);
-
-
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
@@ -301,6 +299,8 @@ namespace  UnityEditor.VFX.UI
                 VFXParameter model = parameter.model as VFXParameter;
 
                 var type = model.type;
+                if (type == typeof(GPUEvent))
+                    continue;
 
                 menu.AddItem(EditorGUIUtility.TextContent(type.UserFriendlyName()), false, OnAddParameter, parameter);
             }

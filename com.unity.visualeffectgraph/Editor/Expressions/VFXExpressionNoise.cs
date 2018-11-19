@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
         public VFXExpressionValueNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float2; } }
 
         /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
         public VFXExpressionValueNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }
 
         /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionValueNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
         public VFXExpressionValueNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
 
@@ -81,7 +81,7 @@ namespace UnityEditor.VFX
         public VFXExpressionPerlinNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float2; } }
 
         /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
         public VFXExpressionPerlinNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }
 
         /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -127,7 +127,7 @@ namespace UnityEditor.VFX
         public VFXExpressionPerlinNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
 
         /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -144,13 +144,13 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionSimplexNoise1D : VFXExpression
+    class VFXExpressionCellularNoise1D : VFXExpression
     {
-        public VFXExpressionSimplexNoise1D() : this(VFXValue<float>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionSimplexNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
+        public VFXExpressionCellularNoise1D() : this(VFXValue<float>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
+        public VFXExpressionCellularNoise1D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float2; } }
 
         /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -158,22 +158,22 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateSimplexNoise1D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularNoise1D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateSimplexNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateCellularNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
-    class VFXExpressionSimplexNoise2D : VFXExpression
+    class VFXExpressionCellularNoise2D : VFXExpression
     {
-        public VFXExpressionSimplexNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionSimplexNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
+        public VFXExpressionCellularNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
+        public VFXExpressionCellularNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }
 
         /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -181,20 +181,20 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateSimplexNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateSimplexNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateCellularNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
-    class VFXExpressionSimplexNoise3D : VFXExpression
+    class VFXExpressionCellularNoise3D : VFXExpression
     {
-        public VFXExpressionSimplexNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
-        public VFXExpressionSimplexNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+        public VFXExpressionCellularNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) {}
+        public VFXExpressionCellularNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
 
@@ -204,12 +204,150 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateSimplexNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateSimplexNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateCellularNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionValueCurlNoise2D : VFXExpression
+    {
+        public VFXExpressionValueCurlNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionValueCurlNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) { }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float2; } }
+
+        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+
+        /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var coordinate = constParents[0].Get<Vector2>();
+            var floatParams = constParents[1].Get<Vector3>();
+            var octaveCount = constParents[2].Get<int>();
+
+            return VFXValue.Constant(VFXExpressionNoise.GenerateValueCurlNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+        }*/
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("GenerateValueCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionValueCurlNoise3D : VFXExpression
+    {
+        public VFXExpressionValueCurlNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionValueCurlNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) { }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }
+
+        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+
+        /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var coordinate = constParents[0].Get<Vector3>();
+            var floatParams = constParents[1].Get<Vector3>();
+            var octaveCount = constParents[2].Get<int>();
+
+            return VFXValue.Constant(VFXExpressionNoise.GenerateValueCurlNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+        }*/
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("GenerateValueCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionPerlinCurlNoise2D : VFXExpression
+    {
+        public VFXExpressionPerlinCurlNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionPerlinCurlNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) { }
+
+        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float2; } }
+
+        /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var coordinate = constParents[0].Get<Vector2>();
+            var floatParams = constParents[1].Get<Vector3>();
+            var octaveCount = constParents[2].Get<int>();
+
+            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinCurlNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+        }*/
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("GeneratePerlinCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionPerlinCurlNoise3D : VFXExpression
+    {
+        public VFXExpressionPerlinCurlNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionPerlinCurlNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) { }
+
+        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }
+
+        /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var coordinate = constParents[0].Get<Vector3>();
+            var floatParams = constParents[1].Get<Vector3>();
+            var octaveCount = constParents[2].Get<int>();
+
+            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinCurlNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+        }*/
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("GeneratePerlinCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionCellularCurlNoise2D : VFXExpression
+    {
+        public VFXExpressionCellularCurlNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionCellularCurlNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) { }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float2; } }
+
+        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+
+        /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var coordinate = constParents[0].Get<Vector2>();
+            var floatParams = constParents[1].Get<Vector3>();
+            var octaveCount = constParents[2].Get<int>();
+
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularCurlNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+        }*/
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("GenerateCellularCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionCellularCurlNoise3D : VFXExpression
+    {
+        public VFXExpressionCellularCurlNoise3D() : this(VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<int>.Default) { }
+        public VFXExpressionCellularCurlNoise3D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) { }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }
+
+        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+
+        /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var coordinate = constParents[0].Get<Vector3>();
+            var floatParams = constParents[1].Get<Vector3>();
+            var octaveCount = constParents[2].Get<int>();
+
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularCurlNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+        }*/
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("GenerateCellularCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
