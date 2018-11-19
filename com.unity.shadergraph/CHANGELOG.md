@@ -4,7 +4,7 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.1.0] - 2018-11-18
+## [5.1.0] - 2018-11-19
 ### Added
 - You can now show and hide the Main Preview and the Blackboard from the toolbar.
 
