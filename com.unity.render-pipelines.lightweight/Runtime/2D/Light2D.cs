@@ -54,12 +54,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public enum ParametricShapes
         {
-            Square,   // < 3 sides
-            Triangle, // 3 side
-            Diamond,  // 4 sides 
-            Hexagon,  // 6 sides
-            Circle,   // 128 sides
-            Polygon   // 4 sides
+            Circle,
+            Freeform,
         }
 
         [SerializeField]
@@ -484,7 +480,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (m_ShapeLightStyle == CookieStyles.Parametric)
                 {
-                    if (m_IsUsingFreeForm)
+                    if (m_ParametricShape == ParametricShapes.Freeform)
                         UpdateShapeLightMesh(adjColor);
                     else
                         m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, adjColor);
