@@ -507,6 +507,21 @@ namespace UnityEditor.VFX
         {
             if (m_CustomAttributes == null ||  index >= m_CustomAttributes.Count)
                 throw new System.ArgumentException("Invalid Index");
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            foreach(char c in newName)
+            {
+                if( (c >= 'a' && c<='z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_')
+                    sb.Append(c);
+            }
+            if( sb[0] >= '0' && sb[0] <='9')
+                sb.Insert(0,'_');
+
+            newName = sb.ToString();
+
+            if( newName.Length < 1 )
+                return;
+
             if (m_CustomAttributes.Any(t => t.name == newName) || VFXAttribute.AllIncludingVariadic.Any(t => t == newName))
             {
                 newName = "Attribute";
