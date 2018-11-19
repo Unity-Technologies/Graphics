@@ -1,5 +1,10 @@
 <UXML xmlns:ui="UnityEngine.Experimental.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
-    <!--<ui:Label text="Event" />-->
-    <ui:TextField name="name" />
-    <ui:Label name="type-dropdown" class="PopupButton" text="Type"/>
+<ui:VisualElement name="attr">
+    <ui:VisualElement>
+        <ui:TextField name="name" />
+        <ui:Label name="type-dropdown" class="PopupButton" text="Type"/>
+    </ui:VisualElement>
+    <ui:VisualElement name="value-container">
+    </ui:VisualElement>
+</ui:VisualElement>
 </UXML>

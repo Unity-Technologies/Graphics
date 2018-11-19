@@ -1,6 +1,23 @@
-VFXBoardAttribute
+VFXBoardAttribute #attr
+{
+    flex:1;
+    flex-direction: column;
+    align-items:stretch;
+}
+VFXBoardAttribute *
+{
+    flex-direction: column;
+    align-items:stretch;
+}
+
+VFXBoardAttribute * *
 {
     flex-direction: row;
+}
+
+VFXBoardAttribute .propertyrm
+{
+    flex:1;
 }
 
 VFXBoardAttribute #name

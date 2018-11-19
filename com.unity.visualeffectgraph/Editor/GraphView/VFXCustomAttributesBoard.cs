@@ -9,13 +9,15 @@ namespace UnityEditor.VFX.UI
 {
     public class VFXBoardAttributeUIFactory : UxmlFactory<VFXBoardAttribute>
     { }
-    public class VFXBoardAttribute : VisualElement
+    public class VFXBoardAttribute : VisualElement, IPropertyRMProvider
     {
         int             m_Index;
 
         public TextField m_NameField;
         public Label m_TypeButton;
 
+        VisualElement m_ValueContainer;
+        PropertyRM m_DefaultValue;
 
         public void SetIndex(int index)
         {
@@ -37,6 +39,7 @@ namespace UnityEditor.VFX.UI
             m_NameField.isDelayed = true;
             m_TypeButton = this.Q<Label>("type-dropdown");
             m_TypeButton.AddManipulator(new DownClickable(ShowMenu));
+            m_ValueContainer = this.Q("value-container");
         }
         void ShowMenu()
         {
@@ -74,6 +77,9 @@ namespace UnityEditor.VFX.UI
             if (attributes == null)
                 return;
             attributes.SetAttributeType(m_Index, (VFXValueType)t);
+
+
+
         }
 
         public void Update()
@@ -83,6 +89,87 @@ namespace UnityEditor.VFX.UI
                 return;
             m_NameField.SetValueWithoutNotify(attributes.GetAttributeName(m_Index));
             m_TypeButton.text = attributes.GetAttributeType(m_Index).ToString();
+
+
+            if(m_DefaultValue == null || ! m_DefaultValue.IsCompatible(this) )
+            {
+                if( m_DefaultValue != null )
+                    m_DefaultValue.RemoveFromHierarchy();
+
+                m_DefaultValue = PropertyRM.Create(this,30);
+                m_DefaultValue.isDelayed = true;
+                m_ValueContainer.Add(m_DefaultValue);
+                m_DefaultValue.Update();
+            }
+            else
+            {
+                m_DefaultValue.UpdateValue();
+            }
+        }
+
+
+        bool IPropertyRMProvider.expanded {get {return false;}}
+
+        bool IPropertyRMProvider.expandable { get { return false; } }
+
+        object IPropertyRMProvider.value { 
+            get
+            {
+                VFXCustomAttributesBoard attributes = GetFirstAncestorOfType<VFXCustomAttributesBoard>();
+                return attributes.GetAttributeDefaultValue(m_Index);
+            }
+            set
+            {
+                VFXCustomAttributesBoard attributes = GetFirstAncestorOfType<VFXCustomAttributesBoard>();
+                attributes.SetAttributeDefaultValue(m_Index,value);
+            }
+        }
+
+        bool IPropertyRMProvider.spaceableAndMasterOfSpace { get {return false;} }
+
+        VFXCoordinateSpace IPropertyRMProvider.space { get {throw new NotImplementedException();} set {throw new NotImplementedException();} }
+
+        string IPropertyRMProvider.name {get {return "Value";} }
+
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes {get{return null;}}
+
+        object[] IPropertyRMProvider.customAttributes { get { return null; } }
+
+        Type IPropertyRMProvider.portType
+        {
+            get
+            {
+                VFXCustomAttributesBoard attributes = GetFirstAncestorOfType<VFXCustomAttributesBoard>();
+                return VFXExpression.TypeToType(attributes.GetAttributeType(m_Index));
+            }
+        }
+
+        int IPropertyRMProvider.depth { get{return 0;} }
+
+        bool IPropertyRMProvider.editable { get { return true; } }
+
+        VFXGraph IPropertyRMProvider.graph
+        {
+            get
+            {
+                VFXCustomAttributesBoard attributes = GetFirstAncestorOfType<VFXCustomAttributesBoard>();
+                return attributes.controller.graph;
+            }
+        }
+
+        bool IPropertyRMProvider.IsSpaceInherited()
+        {
+            return false;
+        }
+
+        void IPropertyRMProvider.RetractPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPropertyRMProvider.ExpandPath()
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -158,6 +245,12 @@ namespace UnityEditor.VFX.UI
         {
             return controller.graph.GetCustomAttributeType(index);
         }
+
+        public object GetAttributeDefaultValue(int index)
+        {
+            return controller.graph.GetCustomAttributeDefaultValue(index);
+        }
+
         public string GetAttributeName(int index)
         {
             return controller.graph.GetCustomAttributeName(index);
@@ -168,9 +261,14 @@ namespace UnityEditor.VFX.UI
             controller.graph.SetCustomAttributeType(index, type);
         }
 
-        public void SetAttributeName(int index,string name)
+        public void SetAttributeName(int index, string name)
         {
             controller.graph.SetCustomAttributeName(index, name);
+        }
+
+        public void SetAttributeDefaultValue(int index, object name)
+        {
+            controller.graph.SetCustomAttributeDefaultValue(index, name);
         }
 
         public override void OnControllerChanged(ref ControllerChangedEvent e)

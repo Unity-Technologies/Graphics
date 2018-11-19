@@ -466,6 +466,7 @@ namespace UnityEditor.VFX
         {
             public string name;
             public VFXValueType type;
+            public VFXSerializableObject defaultValue;
         }
 
         [SerializeField]
@@ -498,9 +499,66 @@ namespace UnityEditor.VFX
             return m_CustomAttributes.FirstOrDefault(t => t.name == name).type;
         }
 
+        public void GetCustomAttributeInfos(string name, out VFXValueType type, out object defaultValue)
+        {
+            int index = m_CustomAttributes.FindIndex(t => t.name == name);
+
+            type = GetCustomAttributeType(index);
+            defaultValue = GetCustomAttributeDefaultValue(index);
+        }
+
         public VFXValueType GetCustomAttributeType(int index)
         {
             return m_CustomAttributes[index].type;
+        }
+
+        public object GetCustomAttributeDefaultValue(int index)
+        {
+            if (m_CustomAttributes[index].defaultValue == null || m_CustomAttributes[index].defaultValue.Get() == null)
+                m_CustomAttributes[index] = new CustomAttribute { name = m_CustomAttributes[index].name, 
+                                                                  type = m_CustomAttributes[index].type, 
+                                                                  defaultValue = new VFXSerializableObject(VFXExpression.TypeToType(m_CustomAttributes[index].type),
+                                                                                                           Activator.CreateInstance(VFXExpression.TypeToType(m_CustomAttributes[index].type)))
+                                                                };
+            return m_CustomAttributes[index].defaultValue.Get();
+        }
+
+        public void SetCustomAttributeDefaultValue(int index,object value)
+        {
+            if(m_CustomAttributes[index].defaultValue == null)
+                m_CustomAttributes[index] = new CustomAttribute
+                {
+                    name = m_CustomAttributes[index].name,
+                    type = m_CustomAttributes[index].type,
+                    defaultValue = new VFXSerializableObject(VFXExpression.TypeToType(m_CustomAttributes[index].type))
+                };
+            m_CustomAttributes[index].defaultValue.Set(value);
+
+            //TODO: What should we notify here ?
+
+            InvalidateAttributeValue(m_CustomAttributes[index].name);
+
+            Invalidate(InvalidationCause.kParamChanged);
+        }
+
+
+        void InvalidateAttributeValue(string attributeName)
+        {
+            ForEachSettingUsingAttribute((model, setting) =>
+            {
+                if (attributeName == (string)setting.GetValue(model))
+                {
+                    VFXOperator ope = model as VFXOperator;
+
+                    if( ope != null)
+                    {
+                        model.Invalidate(InvalidationCause.kSettingChanged);
+                        ope.outputSlots[0].InvalidateExpressionTree();
+                    }
+
+                }
+                return false;
+            });
         }
 
         public void SetCustomAttributeName(int index,string newName, bool notify = true)
@@ -535,7 +593,7 @@ namespace UnityEditor.VFX
 
             string oldName = m_CustomAttributes[index].name;
 
-            m_CustomAttributes[index] = new CustomAttribute { name = newName, type = m_CustomAttributes[index].type };
+            m_CustomAttributes[index] = new CustomAttribute { name = newName, type = m_CustomAttributes[index].type, defaultValue = m_CustomAttributes[index].defaultValue };
 
             if( notify)
             {
@@ -551,7 +609,20 @@ namespace UnityEditor.VFX
                 throw new System.ArgumentException("Invalid Index");
             //TODO check that newType is an anthorized type for custom attributes.
 
-            m_CustomAttributes[index] = new CustomAttribute { name = m_CustomAttributes[index].name, type = newType };
+            VFXValueType oldType = m_CustomAttributes[index].type;
+
+            if ( newType == oldType)
+                return;
+
+            var defaultValue = m_CustomAttributes[index].defaultValue;
+            object oldValue = defaultValue.Get();
+            object newValue;
+            if( ! VFXConverter.TryConvertTo(oldValue,VFXExpression.TypeToType(newType),out newValue) )
+                newValue = Activator.CreateInstance(VFXExpression.TypeToType(newType));
+
+            defaultValue.Set(newValue);
+
+            m_CustomAttributes[index] = new CustomAttribute { name = m_CustomAttributes[index].name, type = newType, defaultValue = defaultValue };
 
             string name = m_CustomAttributes[index].name;
             ForEachSettingUsingAttribute((model, setting) =>

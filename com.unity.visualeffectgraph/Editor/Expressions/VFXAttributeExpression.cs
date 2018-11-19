@@ -123,7 +123,40 @@ namespace UnityEditor.VFX
                 return AllVariadicAttribute[index];
 
             if( graph != null && graph.HasCustomAttribute(attributeName))
-                return new VFXAttribute(attributeName, graph.GetCustomAttributeType(attributeName),VFXVariadic.False);
+            {
+                VFXValueType type;
+                object defaultValue;
+
+                graph.GetCustomAttributeInfos(attributeName, out type, out defaultValue);
+
+                VFXValue value = null;
+                switch (type)
+                {
+                    case VFXValueType.Float:
+                        value = VFXValue.Constant<float>((float)defaultValue);
+                        break;
+                    case VFXValueType.Float2:
+                        value = VFXValue.Constant<Vector2>((Vector2)defaultValue);
+                        break;
+                    case VFXValueType.Float3:
+                        value = VFXValue.Constant<Vector3>((Vector3)defaultValue);
+                        break;
+                    case VFXValueType.Float4:
+                        value = VFXValue.Constant<Vector4>((Vector4)defaultValue);
+                        break;
+                    case VFXValueType.Int32:
+                        value = VFXValue.Constant<int>((int)defaultValue);
+                        break;
+                    case VFXValueType.Uint32:
+                        value = VFXValue.Constant<uint>((uint)defaultValue);
+                        break;
+                    default:
+                        throw new InvalidOperationException("Only Float, Vector and Ints are supported as custom attributes");
+                };
+
+
+                return new VFXAttribute(attributeName, value, VFXVariadic.False);
+            }
 
             return new VFXAttribute(attributeName, VFXValueType.Float);
         }
