@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -63,6 +63,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             return m_PointLightingMat;
+        }
+
+        static Mesh GetQuadMesh()
+        {
+            if (m_Quad == null)
+            {
+                CreateQuad(out m_Quad);
+            }
+
+            return m_Quad;
         }
 
         static public void Initialize()
@@ -178,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (material != null)
             {
                 material.SetTexture("_MainTex", sourceRT);
-                cmdBuffer.DrawMesh(m_Quad, matrix, material);
+                cmdBuffer.DrawMesh(GetQuadMesh(), matrix, material);
             }
         }
 
@@ -268,7 +278,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                         cmdBuffer.SetGlobalFloat("_OuterAngle", outerAngle);
                         cmdBuffer.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
-                        cmdBuffer.SetGlobalTexture("_LightLookup", m_LightLookupTexture);
+                        cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
 
                         if (light.m_LightCookieSprite != null && light.m_LightCookieSprite.texture != null)
                         {
