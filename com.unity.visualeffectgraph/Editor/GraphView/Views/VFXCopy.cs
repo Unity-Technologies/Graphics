@@ -33,6 +33,8 @@ namespace UnityEditor.VFX.UI
         public object CreateCopy(VFXViewController viewController, IEnumerable<Controller> elements, Rect bounds)
         {
             this.viewController = viewController;
+            customAttributes.Clear();
+
             IEnumerable<VFXContextController> contexts = elements.OfType<VFXContextController>();
             IEnumerable<VFXNodeController> nodes = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXNodeController>();
             IEnumerable<VFXBlockController> blocks = elements.OfType<VFXBlockController>();
