@@ -165,6 +165,5 @@ namespace UnityEditor.VFX.Test
             UnityEngine.Object.DestroyImmediate(cameraObj);
         }
     }
-#endif
-
 }
+#endif
