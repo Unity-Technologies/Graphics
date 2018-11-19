@@ -188,5 +188,5 @@ Shader "Lightweight Render Pipeline/Simple Lit"
         }
     }
     Fallback "Hidden/InternalErrorShader"
-    CustomEditor "UnityEditor.Experimental.Rendering.LightweightPipeline.SimpleLitShaderGUI"
+    CustomEditor "UnityEditor.Rendering.LWRP.SimpleLitShaderGUI"
 }

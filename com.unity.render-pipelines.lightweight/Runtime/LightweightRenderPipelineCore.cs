@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     public enum MixedLightingSetup
     {
@@ -51,7 +50,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public float maxShadowDistance;
         public bool postProcessEnabled;
         public PostProcessLayer postProcessLayer;
-        public IRendererSetup rendererSetup;
     }
 
     public struct ShadowData
