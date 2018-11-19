@@ -592,7 +592,10 @@ namespace UnityEditor.VFX.UI
 
             using (var growContext = new GrowContext(this))
             {
-                controller.AddBlock(blockIndex, descriptor.CreateInstance());
+                var newBlock = ScriptableObject.CreateInstance(descriptor.modelType) as VFXBlock;
+                controller.AddBlock(blockIndex, newBlock);
+                //For custom attribute block it is important that the set settings happens after the add.
+                descriptor.ApplyVariant(newBlock);
             }
         }
 

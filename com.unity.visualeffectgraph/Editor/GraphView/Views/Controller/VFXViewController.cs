@@ -1113,8 +1113,10 @@ namespace UnityEditor.VFX.UI
 
         public VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
-            var model = desc.CreateInstance();
+            var model = ScriptableObject.CreateInstance(desc.modelType) as VFXOperator;
             AddVFXModel(pos, model);
+            //For custom attribute operators it is important that the set settings happens after the add.
+            desc.ApplyVariant(model);
             return model;
         }
 
