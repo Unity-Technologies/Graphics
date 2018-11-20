@@ -18,17 +18,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Strip every useless shadow configs
             var shadowInitParams = hdrpAsset.renderPipelineSettings.hdShadowInitParams;
 
-            foreach (var punctualShadowVariant in m_PunctualShadowVariants)
+            foreach (var shadowVariant in m_ShadowVariants)
             {
-                if (punctualShadowVariant.Key != shadowInitParams.punctualShadowQuality)
-                    if (inputData.shaderKeywordSet.IsEnabled(punctualShadowVariant.Value))
-                        return true;
-            }
-
-            foreach (var directionalShadowVariant in m_DirectionalShadowVariants)
-            {
-                if (directionalShadowVariant.Key != shadowInitParams.directionalShadowQuality)
-                    if (inputData.shaderKeywordSet.IsEnabled(directionalShadowVariant.Value))
+                if (shadowVariant.Key != shadowInitParams.shadowQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
                         return true;
             }
 
