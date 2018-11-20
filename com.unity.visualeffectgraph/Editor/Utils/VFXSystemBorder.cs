@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UI
 
             m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
 
-            m_TitleField.RegisterCallback<BlurEvent>(OnTitleBlur);
+            m_TitleField.Q("unity-text-input").RegisterCallback < FocusOutEvent >(OnTitleBlur);
             m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
             m_Title.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
 
@@ -93,6 +93,8 @@ namespace UnityEditor.VFX.UI
             content.style.position = UnityEngine.UIElements.Position.Absolute;
             content.style.top = content.style.left = content.style.right = content.style.bottom = 0f;
             content.pickingMode = PickingMode.Ignore;
+
+            pickingMode = PickingMode.Ignore;
             Add(content);
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
@@ -108,7 +110,7 @@ namespace UnityEditor.VFX.UI
             m_TitleField.visible = true;
             UpdateTitleFieldRect();
 
-            m_TitleField.Focus();
+            m_TitleField.Q("unity-text-input").Focus();
             m_TitleField.SelectAll();
         }
 
@@ -146,7 +148,7 @@ namespace UnityEditor.VFX.UI
             m_TitleField.style.height = rect.height - m_Title.resolvedStyle.marginTop - m_Title.resolvedStyle.marginBottom;
         }
 
-        void OnTitleBlur(BlurEvent e)
+        void OnTitleBlur(FocusOutEvent e)
         {
             title = m_TitleField.value;
             m_TitleField.visible = false;

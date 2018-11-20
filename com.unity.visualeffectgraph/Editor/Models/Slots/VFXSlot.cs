@@ -642,7 +642,18 @@ namespace UnityEditor.VFX
             {
                 if (masterSlot.m_MasterData.m_Space == (VFXCoordinateSpace)int.MaxValue)
                 {
-                    masterSlot.m_MasterData.m_Space = VFXCoordinateSpace.Local;
+                    // By default set the same space as the data
+                    // TODO This is useless at the moment because the InitSpaceable is called fat too soon before the slot is even attached to a container...
+                    VFXData data = null;
+                    if (masterSlot.owner is VFXBlock)
+                        data = ((VFXBlock)(masterSlot.owner)).GetData();
+                    else if (masterSlot.owner is VFXContext)
+                        data = ((VFXContext)(masterSlot.owner)).GetData();
+
+                    if (data is ISpaceable)
+                        masterSlot.m_MasterData.m_Space = ((ISpaceable)data).space;
+                    else
+                        masterSlot.m_MasterData.m_Space = VFXCoordinateSpace.Local;
                 }
             }
             else
