@@ -230,12 +230,12 @@ namespace UnityEditor.VFX
             public int systemIndex;
         }
 
-        private static VFXCPUBufferData ComputeArrayOfStructureInitialData(IEnumerable<VFXLayoutElementDesc> layout)
+        private VFXCPUBufferData ComputeArrayOfStructureInitialData(IEnumerable<VFXLayoutElementDesc> layout)
         {
             var data = new VFXCPUBufferData();
             foreach (var element in layout)
             {
-                var attribute = VFXAttribute.AllAttribute.FirstOrDefault(o => o.name == element.name);
+                var attribute = VFXAttribute.AllAttribute.Concat(m_Graph.customAttributes.Select(t=> VFXAttribute.Find(t,m_Graph))).FirstOrDefault(o => o.name == element.name);
                 bool useAttribute = attribute.name == element.name;
                 if (element.type == VFXValueType.Boolean)
                 {
@@ -286,7 +286,7 @@ namespace UnityEditor.VFX
             return data;
         }
 
-        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXEditorSystemDesc> outSystemDescs, IEnumerable<VFXContext> contexts, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXEditorSystemDesc> outSystemDescs, IEnumerable<VFXContext> contexts, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             var spawners = CollectSpawnersHierarchy(contexts);
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))

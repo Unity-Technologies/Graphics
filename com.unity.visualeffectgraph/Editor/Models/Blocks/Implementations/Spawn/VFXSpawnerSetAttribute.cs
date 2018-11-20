@@ -10,6 +10,14 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Spawn/Attribute", variantProvider = typeof(AttributeVariantReadWritableNoVariadic))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
+        static Dictionary<string, object[]> GetGraphVariants(VFXGraph graph)
+        {
+            return new Dictionary<string, object[]>
+            {
+                { "attribute", graph.customAttributes.Cast<object>().ToArray() }
+            };
+        }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.AllReadWritable.First();
 
