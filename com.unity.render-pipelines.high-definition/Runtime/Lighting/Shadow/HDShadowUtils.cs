@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera.frameSettings.shaderLitMode == LitShaderMode.Deferred)
                 return 3;
 
-            switch (hdAsset.renderPipelineSettings.hdShadowInitParams.punctualShadowQuality)
+            switch (hdAsset.renderPipelineSettings.hdShadowInitParams.shadowQuality)
             {
                 // Warning: these values have to match the algorithms used for shadow filtering (in HDShadowAlgorithm.hlsl)
                 case HDShadowQuality.Low:
