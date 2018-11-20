@@ -1307,10 +1307,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Render pre refraction objects
                         RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
 
-                        // First resolution of the color buffer for the color pyramid
-                        m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
+                        if (hdCamera.frameSettings.enableRoughRefraction)
+                        {
+                            // First resolution of the color buffer for the color pyramid
+                            m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
 
-                        RenderColorPyramid(hdCamera, cmd, true);
+                            RenderColorPyramid(hdCamera, cmd, true);
+                        }
 
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
@@ -1925,6 +1928,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // material will be render for both transparent and opaque. In case of deferred, both path are used for transparent but only "ForwardOnly" is use for opaque.
             // (Thus why "Forward" and "ForwardOnly" are exclusive, else they will render two times"
 
+            // If rough refraction are turned off, we render all transparents in the Transparent pass and we skip the PreRefraction one.
+            if (!hdCamera.frameSettings.enableRoughRefraction && pass == ForwardPass.PreRefraction)
+            {
+                return;
+            }
+
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
             {
                 m_ForwardPassProfileName = k_ForwardPassDebugName[(int)pass];
@@ -1984,7 +1993,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
 
-                    RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
+                    RenderQueueRange transparentRange = pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent;
+                    if(!hdCamera.frameSettings.enableRoughRefraction)
+                    {
+                        transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
+                    }
+                    RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, transparentRange);
                 }
             }
         }

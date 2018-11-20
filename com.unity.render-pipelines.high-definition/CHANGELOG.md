@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a crash that occurred whenever you set a viewport size to 0.
 - Fixed the Camera physic parameter that the UI previously did not display.
 - Fixed issue in pyramid shaped spotlight handles manipulation
+- Fixed disable rough refraction support
 
 ### Changed
 
