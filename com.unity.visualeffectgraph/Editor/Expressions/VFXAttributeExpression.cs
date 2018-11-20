@@ -271,12 +271,12 @@ namespace UnityEditor.VFX
                 return false;
 
             var other = (VFXAttributeExpression)obj;
-            return valueType == other.valueType && attributeLocation == other.attributeLocation && attributeName == other.attributeName;
+            return valueType == other.valueType && attributeLocation == other.attributeLocation && attributeName == other.attributeName && m_attribute.value.GetContent().Equals(other.m_attribute.value.GetContent());
         }
 
         protected override int GetInnerHashCode()
         {
-            return (attributeName.GetHashCode() * 397) ^ attributeLocation.GetHashCode();
+            return (((m_attribute.value.GetContent().GetHashCode() * 397) ^ attributeName.GetHashCode()) * 397) ^ attributeLocation.GetHashCode();
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)

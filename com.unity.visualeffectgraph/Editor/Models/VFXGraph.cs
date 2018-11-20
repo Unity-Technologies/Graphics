@@ -552,8 +552,8 @@ namespace UnityEditor.VFX
 
                     if( ope != null)
                     {
-                        model.Invalidate(InvalidationCause.kSettingChanged);
                         ope.outputSlots[0].InvalidateExpressionTree();
+                        ope.Invalidate(InvalidationCause.kExpressionGraphChanged);
                     }
 
                 }
