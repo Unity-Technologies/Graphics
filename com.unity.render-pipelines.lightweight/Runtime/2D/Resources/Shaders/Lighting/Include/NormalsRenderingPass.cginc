@@ -29,6 +29,7 @@ v2f NormalsRenderingVertex(appdata v)
 float4 NormalsRenderingFragment(v2f i) : SV_Target
 {
 	float4 normalMap = tex2D(_NormalMap, i.uv);
+	normalMap.a = 1;
 	return normalMap;
 }
 #endif
