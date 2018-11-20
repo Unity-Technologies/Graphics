@@ -64,7 +64,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         SplineEditor m_SplineEditor;
         SplineSceneEditor m_SplineSceneEditor;
 
-        SerializedProperty m_IsUsingFreeForm;
         bool m_ModifiedMesh = false;
 
         private Light2D lightObject { get { return target as Light2D; } }
@@ -120,8 +119,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var light = target as Light2D;
             m_SplineEditor = new SplineEditor(this);
             m_SplineSceneEditor = new SplineSceneEditor(light.spline, this, light);
-
-            m_IsUsingFreeForm = serializedObject.FindProperty("m_IsUsingFreeForm");
         }
 
         private void OnDestroy()
@@ -196,7 +193,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (m_ModifiedMesh)
                 {
-                    m_IsUsingFreeForm.boolValue = true;
                     updateMesh = true;
                 }
 
@@ -208,8 +204,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 int shape = shapeLightParametricShape.enumValueIndex;
                 if (lastShape != shape)
                 {
-                    m_IsUsingFreeForm.boolValue = false;
-
                     int sides = shapeLightParametricSides.intValue;
                     if (shape == (int)Light2D.ParametricShapes.Circle) sides = 128;
                     else if (shape == (int)Light2D.ParametricShapes.Freeform) sides = 4; // This one should depend on if this has data at the moment
