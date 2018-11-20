@@ -111,8 +111,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public DepthBits        shadowMapsDepthBits = k_DefaultShadowMapDepthBits;
         public bool             useDynamicViewportRescale = true;
 
-        public HDShadowQuality  punctualShadowQuality;
-        public HDShadowQuality  directionalShadowQuality;
+        public HDShadowQuality  shadowQuality;
     }
 
     public class HDShadowResolutionRequest

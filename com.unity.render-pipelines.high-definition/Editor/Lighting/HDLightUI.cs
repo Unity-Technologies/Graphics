@@ -608,18 +608,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         
         static bool IsShadowSettings(HDShadowQuality quality, SerializedHDLight serialized, Editor owner)
         {
-            //handle quality where there is nothing to draw directly here
-            if (quality == HDShadowQuality.Medium || quality == HDShadowQuality.Low)
+            // Handle quality where there is nothing to draw directly here
+            // No PCSS for now with directional light
+            if (quality == HDShadowQuality.Medium || quality == HDShadowQuality.Low || serialized.editorLightShape == LightShape.Directional)
                 return false;
 
             // Draw shadow settings using the current shadow algorithm
             HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineSettings.hdShadowInitParams;
-            HDShadowQuality currentAlgorithm;
-            if (serialized.settings.lightType.enumValueIndex == (int)LightType.Directional)
-                currentAlgorithm = hdShadowInitParameters.directionalShadowQuality;
-            else
-                currentAlgorithm = hdShadowInitParameters.punctualShadowQuality;
-            return currentAlgorithm == quality;
+            return hdShadowInitParameters.shadowQuality == quality;
         }
 
         static void ApplyEditorLightShape(SerializedHDLight serialized, Editor owner)
