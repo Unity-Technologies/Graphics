@@ -206,9 +206,31 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
         $SurfaceDescription.IridescenceMask:            surfaceData.iridescenceMask =           surfaceDescription.IridescenceMask;
         $SurfaceDescription.IridescenceThickness:       surfaceData.iridescenceThickness =      surfaceDescription.IridescenceThickness;
-        $SurfaceDescription.RefractionIndex:            surfaceData.ior =                       surfaceDescription.RefractionIndex;
-        $SurfaceDescription.RefractionColor:            surfaceData.transmittanceColor =        surfaceDescription.RefractionColor;
-        $SurfaceDescription.RefractionDistance:         surfaceData.atDistance =                surfaceDescription.RefractionDistance;
+
+#ifdef _HAS_REFRACTION
+        if (_EnableSSRefraction)
+        {
+            $SurfaceDescription.RefractionIndex:            surfaceData.ior =                       surfaceDescription.RefractionIndex;
+            $SurfaceDescription.RefractionColor:            surfaceData.transmittanceColor =        surfaceDescription.RefractionColor;
+            $SurfaceDescription.RefractionDistance:         surfaceData.atDistance =                surfaceDescription.RefractionDistance;
+
+            surfaceData.transmittanceMask = (1.0 - surfaceDescription.Alpha);
+            surfaceDescription.Alpha = 1.0;
+        }
+        else
+        {
+            surfaceData.ior = 1.0;
+            surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
+            surfaceData.atDistance = 1.0;
+            surfaceData.transmittanceMask = 0.0;
+            surfaceDescription.Alpha = 1.0;
+        }
+#else
+        surfaceData.ior = 1.0;
+        surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
+        surfaceData.atDistance = 1.0;
+        surfaceData.transmittanceMask = 0.0;
+#endif
         
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
@@ -245,11 +267,6 @@ $include("SharedCode.template.hlsl")
 
         bentNormalWS = surfaceData.normalWS;
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS);
-
-#ifdef _HAS_REFRACTION
-        surfaceData.transmittanceMask = 1.0 - surfaceDescription.Alpha;
-        surfaceDescription.Alpha = 1.0;
-#endif
 
         surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);    // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
         $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.worldToTangent);
