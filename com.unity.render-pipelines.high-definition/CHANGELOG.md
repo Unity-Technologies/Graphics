@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed issue in pyramid shaped spotlight handles manipulation
 - Fixed Debug.DrawLine and Debug.Ray call to work in game view
+- Fixed disable rough refraction support
 
 ### Changed
 - Rename "Regular" in Diffusion profile UI "Thick Object"
@@ -40,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Volumetrics now render in Reflection Probes.
 - Fixed a crash that occurred whenever you set a viewport size to 0.
 - Fixed the Camera physic parameter that the UI previously did not display.
+
 
 ### Changed
 - Updated default FrameSettings used for realtime Reflection Probes when you create a new HDRenderPipelineAsset.

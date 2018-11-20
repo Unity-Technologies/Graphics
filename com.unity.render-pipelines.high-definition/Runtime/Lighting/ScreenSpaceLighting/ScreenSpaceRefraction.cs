@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         int m_InvScreenFadeDistanceID;
 
-        public ClampedFloatParameter screenFadeDistance = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
+        public ClampedFloatParameter screenFadeDistance = new ClampedFloatParameter(0.1f, 0.001f, 1.0f);
 
         static ScreenSpaceRefraction s_Default = null;
 
