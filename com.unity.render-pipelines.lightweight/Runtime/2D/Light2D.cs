@@ -7,6 +7,7 @@ using Unity.Mathematics;
 using Unity.RenderPipeline2D.External.LibTessDotNet;
 using Mesh = UnityEngine.Mesh;
 using System.Linq;
+using UnityEngine.Experimental.U2D.TriangleNet.Geometry;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -217,6 +218,128 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         internal object InterpCustomVertexData(Vec3 position, object[] data, float[] weights)
         {
             return data[0];
+        }
+
+        public void UpdateShapeLightMeshWithClipper(Color color)
+        {
+            // Get the polygon path
+            const float kClipperScale = 1000.0f;
+            int pointCount = spline.GetPointCount();
+            var path = new List<IntPoint>(pointCount);
+            var solution = new List<List<IntPoint>>();
+            for (int i = 0; i < pointCount; ++i)
+                path.Add(new IntPoint() { X = (long)(spline.GetPosition(i).x * kClipperScale), Y = (long)(spline.GetPosition(i).y * kClipperScale)});
+
+            // clip the path with clipper
+            var clipper = new Clipper();
+            clipper.AddPath(path, PolyType.ptSubject, true);
+            clipper.Execute(ClipType.ctUnion, solution, PolyFillType.pftNonZero, PolyFillType.pftPositive);
+
+            // offset clipped path with clipper
+            var internalSolution = new List<List<IntPoint>>();
+            var clipperOffset = new ClipperOffset();
+            clipperOffset.AddPaths(solution, JoinType.jtRound, EndType.etClosedPolygon);
+            clipperOffset.Execute(ref internalSolution, m_ShapeLightFeathering * kClipperScale);
+
+            // tessellate the clipped path with Triangle
+            Polygon polygon = new Polygon();
+            int vertCountInSolution = 0;
+            foreach (var clippedPath in solution)
+            {
+                for (int i = 0; i < clippedPath.Count; ++i)
+                {
+                    Vertex v0 = new Vertex(clippedPath[i].X / kClipperScale, clippedPath[i].Y / kClipperScale);
+                    Vertex v1;
+
+                    if (i != clippedPath.Count - 1)
+                        v1 = new Vertex(clippedPath[i + 1].X / kClipperScale, clippedPath[i + 1].Y / kClipperScale);
+                    else
+                        v1 = new Vertex(clippedPath[0].X / kClipperScale, clippedPath[0].Y / kClipperScale);
+
+                    polygon.Add(v0);
+                    polygon.Add(new Segment(v0, v1, 1));
+                    vertCountInSolution++;
+                }
+            }
+
+            int vertCountInInternalSolution = 0;
+            foreach (var clippedPath in internalSolution)
+            {
+                for (int i = 0; i < clippedPath.Count; ++i)
+                {
+                    Vertex v0 = new Vertex(clippedPath[i].X / kClipperScale, clippedPath[i].Y / kClipperScale);
+                    Vertex v1;
+
+                    if (i != clippedPath.Count - 1)
+                        v1 = new Vertex(clippedPath[i + 1].X / kClipperScale, clippedPath[i + 1].Y / kClipperScale);
+                    else
+                        v1 = new Vertex(clippedPath[0].X / kClipperScale, clippedPath[0].Y / kClipperScale);
+
+                    polygon.Add(v0);
+                    polygon.Add(new Segment(v0, v1, 2));
+                    vertCountInInternalSolution++;
+                }
+            }
+
+            var mesh = polygon.Triangulate();
+
+            // fill the mesh
+            Vector3[] verticesI = System.Array.ConvertAll<Vertex, Vector3>(mesh.Vertices.ToArray(), p => new Vector3((float)p.X, (float)p.Y, 0.0f));
+
+            List<int> indicesI = new List<int>(mesh.Triangles.Count * 3);
+            foreach (ITriangle triangle in mesh.Triangles)
+            {
+                int id0 = triangle.GetVertexID(0);
+                int id1 = triangle.GetVertexID(1);
+                int id2 = triangle.GetVertexID(2);
+
+                if (id0 < 0 || id1 < 0 || id2 < 0 || id0 >= verticesI.Length || id1 >= verticesI.Length || id2 >= verticesI.Length)
+                    continue;
+
+                indicesI.Add(id0);
+                indicesI.Add(id2);
+                indicesI.Add(id1);
+            }
+
+            //Color[] colorsI = new Color[verticesI.Length];
+            //for (int j = 0; j < colorsI.Length; ++j)
+            //{
+            //    colorsI[j] = color;
+            //}
+
+            Color[] colorsI = new Color[vertCountInSolution + vertCountInInternalSolution];
+            for (int j = 0; j < vertCountInSolution; ++j)
+            {
+                //colorsI[j] = color;
+                //colorsI[j].a = 0.0f;
+                colorsI[j] = color;
+            }
+
+            for (int j = vertCountInSolution; j < colorsI.Length; ++j)
+            {
+                //colorsI[j] = color;
+                colorsI[j] = color;
+                colorsI[j].a = 0.0f;
+            }
+
+            //Vector3[] verticesF = new Vector3[1];
+            //int[] indicesF = new int[1];
+            //Color[] colorsF = new Color[1];
+
+            List<Vector3> finalVertices = new List<Vector3>();
+            List<int> finalIndices = new List<int>();
+            List<Color> finalColors = new List<Color>();
+            finalVertices.AddRange(verticesI);
+            //finalVertices.AddRange(verticesF);
+            finalIndices.AddRange(indicesI);
+            //finalIndices.AddRange(indicesF);
+            finalColors.AddRange(colorsI);
+            //finalColors.AddRange(colorsF);
+
+            m_Mesh.Clear();
+            m_Mesh.vertices = finalVertices.ToArray();
+            m_Mesh.colors = finalColors.ToArray();
+            m_Mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
         }
 
         public void UpdateShapeLightMesh(Color color)
@@ -486,7 +609,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_ShapeLightStyle == CookieStyles.Parametric)
                 {
                     if (m_ParametricShape == ParametricShapes.Freeform)
-                        UpdateShapeLightMesh(adjColor);
+                        //UpdateShapeLightMesh(adjColor);
+                        UpdateShapeLightMeshWithClipper(adjColor);
                     else
                         m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, adjColor);
                 }

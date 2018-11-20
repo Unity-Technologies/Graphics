@@ -6,7 +6,8 @@
         "Unity.2D.Shape.Runtime",
         "Unity.2D.Common.Runtime",
         "Unity.InternalAPIEditorBridge.001",
-        "Unity.Mathematics"
+        "Unity.Mathematics",
+        "Unity.2D.Triangle.Runtime"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
