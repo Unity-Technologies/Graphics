@@ -73,10 +73,12 @@
 				half4 lookupValueNoRot = tex2D(_LightLookup, i.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
 				half4 lookupValue = tex2D(_LightLookup, i.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
+
+				float usingDefaultNormalMap = (main.x + main.y + main.z) == 0;  // 1 if using a black normal map, 0 if using a custom normal map
 				// Can this be moved to the normal renderer? Is it worth it?
 				half3 normalUnpacked = UnpackNormal(main);
 
-				float usingDefaultNormalMap = 1-saturate(ceil(normalUnpacked.x + normalUnpacked.y + normalUnpacked.z));  // 1 if using a black normal map, 0 if using a custom normal map
+				
 				normalUnpacked.z = 0;
 				normalUnpacked = normalize(normalUnpacked);
 				
