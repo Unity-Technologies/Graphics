@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.2.0-preview] - 2018-11-xx
 
+### Added
+
+### Fixed
+- Fixed Debug.DrawLine and Debug.Ray call to work in game view
+
+### Changed
+- Rename "Regular" in Diffusion profile UI "Thick Object"
+
 ## [5.1.0-preview] - 2018-11-19
 
 ### Added
