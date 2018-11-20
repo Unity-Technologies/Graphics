@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -69,6 +69,7 @@ namespace UnityEditor.VFX.Test
             var position = m_ViewController.AddVFXParameter(new Vector2(2, 2), positionDesc);
             var vector = m_ViewController.AddVFXParameter(new Vector2(3, 3), vectorDesc);
             var direction = m_ViewController.AddVFXParameter(new Vector2(4, 4), directionDesc);
+            (cross as IVFXOperatorUniform).SetOperandType(typeof(Vector3));
 
             m_ViewController.ApplyChanges();
 
@@ -89,10 +90,12 @@ namespace UnityEditor.VFX.Test
 
             var edgeControllerAppend_A = new VFXDataEdgeController(controllerCross.inputPorts.Where(o => o.portType == typeof(Vector3)).First(), fnFindController(usePosition ? position : vector).outputPorts.First());
             m_ViewController.AddElement(edgeControllerAppend_A);
+            (cross as IVFXOperatorUniform).SetOperandType(typeof(Vector3));
             m_ViewController.ApplyChanges();
 
             var edgeControllerAppend_B = new VFXDataEdgeController(controllerCross.inputPorts.Where(o => o.portType == typeof(Vector3)).Last(), fnFindController(direction).outputPorts.First());
             m_ViewController.AddElement(edgeControllerAppend_B);
+            (cross as IVFXOperatorUniform).SetOperandType(typeof(Vector3));
             m_ViewController.ApplyChanges();
 
             m_ViewController.ForceReload();
