@@ -1,6 +1,7 @@
 <UXML xmlns:ui="UnityEngine.Experimental.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
 <ui:VisualElement name="attr">
     <ui:VisualElement>
+        <ui:Label name="name-label" text="Name"/>
         <ui:TextField name="name" />
         <ui:Label name="type-dropdown" class="PopupButton" text="Type"/>
     </ui:VisualElement>

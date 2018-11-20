@@ -3,6 +3,9 @@ VFXBoardAttribute #attr
     flex:1;
     flex-direction: column;
     align-items:stretch;
+    padding-left:4;
+    padding-top:4;
+    padding-bottom:4;
 }
 VFXBoardAttribute *
 {
@@ -18,6 +21,11 @@ VFXBoardAttribute * *
 VFXBoardAttribute .propertyrm
 {
     flex:1;
+}
+
+VFXBoardAttribute .propertyrm #icon
+{
+    width:0;
 }
 
 VFXBoardAttribute #name
