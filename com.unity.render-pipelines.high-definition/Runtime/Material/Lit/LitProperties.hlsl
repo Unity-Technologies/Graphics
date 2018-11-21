@@ -31,6 +31,9 @@ SAMPLER(sampler_NormalMapOS);
 TEXTURE2D(_DetailMap);
 SAMPLER(sampler_DetailMap);
 
+TEXTURE2D(_DetailNormalMap);
+SAMPLER(sampler_DetailNormalMap);
+
 TEXTURE2D(_HeightMap);
 SAMPLER(sampler_HeightMap);
 
@@ -85,6 +88,7 @@ PROP_DECL_TEX2D(_BentNormalMap);
 PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL_TEX2D(_DetailMap);
+PROP_DECL_TEX2D(_DetailNormalMap);
 PROP_DECL_TEX2D(_HeightMap);
 
 PROP_DECL_TEX2D(_SubsurfaceMaskMap);
@@ -148,6 +152,8 @@ float _ShiverDirectionality;
 float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
+int   _PrefilteredNormalMap; // bool...
+float _SpecularAntialisingStrength;
 
 #ifndef LAYERED_LIT_SHADER
 
@@ -165,11 +171,14 @@ float _AORemapMin;
 float _AORemapMax;
 
 float _NormalScale;
+float4 _NormalMap_TexelSize; // Unity facility. This will provide the size of the base normalmap to the shader
 
 float4 _DetailMap_ST;
 float _DetailAlbedoScale;
 float _DetailNormalScale;
 float _DetailSmoothnessScale;
+
+float4 _DetailNormalMap_TexelSize; // Unity facility. This will provide the size of the base detail normalmap to the shader
 
 float4 _HeightMap_TexelSize; // Unity facility. This will provide the size of the heightmap to the shader
 
@@ -219,7 +228,7 @@ PROP_DECL(float, _AORemapMin);
 PROP_DECL(float, _AORemapMax);
 
 PROP_DECL(float, _NormalScale);
-float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normal to the shader
+float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normalmap to the shader
 
 float4 _HeightMap0_TexelSize;
 float4 _HeightMap1_TexelSize;
@@ -234,6 +243,8 @@ PROP_DECL(float, _UVDetail);
 PROP_DECL(float, _DetailAlbedoScale);
 PROP_DECL(float, _DetailNormalScale);
 PROP_DECL(float, _DetailSmoothnessScale);
+
+float4 _DetailNormalMap0_TexelSize; // Unity facility. This will provide the size of the base detail normalmap to the shader
 
 PROP_DECL(float, _HeightAmplitude);
 PROP_DECL(float, _HeightCenter);

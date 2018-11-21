@@ -508,15 +508,17 @@ TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min))
 // Texture utilities
 // ----------------------------------------------------------------------------
 
+// LOD clamp is optional and happens outside the function.
 float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale)
 {
     float2 ddx_ = scale * uvdx;
     float2 ddy_ = scale * uvdy;
     float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
 
-    return max(0.5 * log2(d), 0.0);
+    return 0.5 * log2(d);
 }
 
+// LOD clamp is optional and happens outside the function.
 float ComputeTextureLOD(float2 uv)
 {
     float2 ddx_ = ddx(uv);
@@ -526,6 +528,7 @@ float ComputeTextureLOD(float2 uv)
 }
 
 // x contains width, w contains height
+// LOD clamp is optional and happens outside the function.
 float ComputeTextureLOD(float2 uv, float2 texelSize)
 {
     uv *= texelSize;

@@ -66,6 +66,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receives SSR", "Allow to specify if the material can receive SSR or not");
 
+            // Specular Antialiasing
+            public static GUIContent prefilteredNormalMapText = new GUIContent("Prefiltered Normal Map", "");
+            public static GUIContent specularAntialiasingStrengthText = new GUIContent("Specular Antialising Strength", "");
+
         }
 
         public enum DoubleSidedNormalMode
@@ -187,6 +191,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty receivesSSR = null;
         protected const string kReceivesSSR = "_ReceivesSSR";
 
+        // Specular Antialiasing
+        protected MaterialProperty prefilteredNormalMap = null;
+        protected const string kPrefilteredNormalMap = "_PrefilteredNormalMap";
+        protected MaterialProperty specularAntialisingStrength = null;
+        protected const string kSpecularAntialisingStrength = "_SpecularAntialisingStrength";
+
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
@@ -231,13 +241,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Decal
             supportDecals = FindProperty(kSupportDecals, props, false);
 
-            // specular AA
-            enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA, props, false);
-            specularAAScreenSpaceVariance = FindProperty(kSpecularAAScreenSpaceVariance, props, false);
-            specularAAThreshold = FindProperty(kSpecularAAThreshold, props, false);
 
             // SSR
             receivesSSR = FindProperty(kReceivesSSR, props, false);
+
+            // Specular Antialiasing
+            enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA, props, false);
+            specularAAScreenSpaceVariance = FindProperty(kSpecularAAScreenSpaceVariance, props, false);
+            specularAAThreshold = FindProperty(kSpecularAAThreshold, props, false);
+            prefilteredNormalMap = FindProperty(kPrefilteredNormalMap, props, false);
+            specularAntialisingStrength = FindProperty(kSpecularAntialisingStrength, props, false);
         }
 
         void TessellationModePopup()
@@ -261,7 +274,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void BaseMaterialPropertiesGUI()
         {
             base.BaseMaterialPropertiesGUI();
-            
+
             // This follow double sided option
             if (doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
             {
@@ -285,7 +298,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (supportDecals != null)
             {
                 m_MaterialEditor.ShaderProperty(supportDecals, StylesBaseLit.supportDecalsText);
-            }            
+            }
 
             if (enableGeometricSpecularAA != null)
             {
@@ -298,6 +311,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(specularAAThreshold, StylesBaseLit.specularAAThresholdText);
                     EditorGUI.indentLevel--;
                 }
+            }
+
+            m_MaterialEditor.ShaderProperty(prefilteredNormalMap, StylesBaseLit.prefilteredNormalMapText);
+
+            if (prefilteredNormalMap != null && prefilteredNormalMap.floatValue != 0)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(specularAntialisingStrength, StylesBaseLit.specularAntialiasingStrengthText);
+                EditorGUI.indentLevel--;
             }
 
             if(receivesSSR != null)

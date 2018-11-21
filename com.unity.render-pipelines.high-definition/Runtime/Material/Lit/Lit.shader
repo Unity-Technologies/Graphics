@@ -47,6 +47,7 @@ Shader "HDRenderPipeline/Lit"
         _HeightPoMAmplitude("Height Amplitude", Float) = 2.0 // In centimeters
 
         _DetailMap("DetailMap", 2D) = "black" {}
+        _DetailNormalMap("Detail Normal Map", 2D) = "black" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(0.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(0.0, 2.0)) = 1
@@ -204,7 +205,8 @@ Shader "HDRenderPipeline/Lit"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
-
+        [ToggleUI] _PrefilteredNormalMap("Prefiltered Normal Map", Int) = 0 // bool...
+        _SpecularAntialisingStrength("Specular Antialising Strength", Range(0.0, 1.0)) = 1
     }
 
     HLSLINCLUDE

@@ -97,11 +97,31 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
 }
 
 // Caution: Duplicate from GetBentNormalTS - keep in sync!
-float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask)
+float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailNormalMapVariance, float detailMask, out float normalMapVariance)
 {
+    normalMapVariance = 0;
+
     float3 normalTS;
 
 #ifdef _NORMALMAP_IDX
+    if (_PrefilteredNormalMap != 0)
+    {
+    #ifdef _NORMALMAP_TANGENT_SPACE_IDX
+        #define NORMAL_MAP_NAME _NormalMap
+        int normalMapSpace = NORMAL_SPACE_TANGENT;
+    #else
+        #define NORMAL_MAP_NAME _NormalMapOS
+        int normalMapSpace = NORMAL_SPACE_OBJECT;
+    #endif
+        #define NORMAL_MAP_SIZE MERGE_NAME(ADD_ZERO_IDX(NORMAL_MAP_NAME), _TexelSize.zw)
+
+        float4 s = SamplePrefilteredNormalMap(ADD_IDX(NORMAL_MAP_NAME), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base),
+                                              NORMAL_MAP_SIZE, ADD_IDX(_NormalScale), normalMapSpace);
+        normalTS          = s.xyz;
+        normalMapVariance = s.w;
+    }
+    else // (_PrefilteredNormalMap == 0)
+    {
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX
         normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
     #else // Object space
@@ -118,15 +138,17 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
         #endif
     #endif
+    }
 
-    #ifdef _DETAIL_MAP_IDX
-        #ifdef SURFACE_GRADIENT
-        normalTS += detailNormalTS * detailMask;
-        #else
-        normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
-        #endif
-    #endif
-#else
+#ifdef _DETAIL_MAP_IDX
+    float4 b = ReorientNormalCone(normalTS, normalMapVariance, detailNormalTS, detailNormalMapVariance, detailMask);
+
+    normalTS          = b.xyz;
+    normalMapVariance = b.w;
+#endif
+
+#else // _NORMALMAP_IDX
+
     #ifdef SURFACE_GRADIENT
     normalTS = float3(0.0, 0.0, 0.0); // No gradient
     #else
@@ -192,18 +214,43 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
+    float  detailNormalMapVariance = 0;
     float detailMask = 0.0;
 #ifdef _DETAIL_MAP_IDX
     detailMask = 1.0;
     #ifdef _MASKMAP_IDX
         detailMask = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).b;
     #endif
-    float2 detailAlbedoAndSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details)).rb;
+
+    float2 detailAlbedoAndSmoothness = 0;
+
+    if ((ADD_IDX(_DetailAlbedoScale) != 0) && (ADD_IDX(_DetailSmoothnessScale != 0)))
+    {
+        // If the '_DetailMap' is not bound, and the '_DetailNormalMap' is, we set both of these scales to 0.
+        // This will prevent us from illegaly reading the unbound texture, and remove the contribution of the '_DetailMap'.
+        detailAlbedoAndSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details)).rb;
+    }
+
     float detailAlbedo = detailAlbedoAndSmoothness.r * 2.0 - 1.0;
     float detailSmoothness = detailAlbedoAndSmoothness.g * 2.0 - 1.0;
-    // Resample the detail map but this time for the normal map. This call should be optimize by the compiler
-    // We split both call due to trilinear mapping
-    detailNormalTS = SAMPLE_UVMAPPING_NORMALMAP_AG(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details), ADD_IDX(_DetailNormalScale));
+
+    if (_PrefilteredNormalMap != 0)
+    {
+        #define DETAIL_NORMAL_MAP_SIZE MERGE_NAME(ADD_ZERO_IDX(_DetailNormalMap), _TexelSize.zw)
+
+        // Prefiltered detail normal map is in a separate texture (requires 3 channels by itself).
+        float4 s = SamplePrefilteredNormalMap(ADD_IDX(_DetailNormalMap), SAMPLER_DETAILNORMALMAP_IDX, ADD_IDX(layerTexCoord.details),
+                                              DETAIL_NORMAL_MAP_SIZE, ADD_IDX(_DetailNormalScale), NORMAL_SPACE_TANGENT);
+        detailNormalTS          = s.xyz;
+        detailNormalMapVariance = s.w;
+    }
+    else
+    {
+        // Resample the detail map but this time for the normal map. This call should be optimize by the compiler
+        // We split both call due to trilinear mapping
+        detailNormalTS = SAMPLE_UVMAPPING_NORMALMAP_AG(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details), ADD_IDX(_DetailNormalScale));
+    }
+
 #endif
 
     surfaceData.baseColor = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgb * ADD_IDX(_BaseColor).rgb;
@@ -215,7 +262,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
     float albedoDetailSpeed = saturate(abs(detailAlbedo) * ADD_IDX(_DetailAlbedoScale));
     float3 baseColorOverlay = lerp(sqrt(surfaceData.baseColor), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
-    baseColorOverlay *= baseColorOverlay;							   
+    baseColorOverlay *= baseColorOverlay;
     // Lerp with details mask
     surfaceData.baseColor = lerp(surfaceData.baseColor, saturate(baseColorOverlay), detailMask);
 #endif
@@ -224,7 +271,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this to keep quiet the compiler, but this is overriden later (0, 0, 0) so if we forget to override the compiler may comply.
 
-    normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask);
+    float normalMapVariance;
+    normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailNormalMapVariance, detailMask, normalMapVariance);
     bentNormalTS = ADD_IDX(GetBentNormalTS)(input, layerTexCoord, normalTS, detailNormalTS, detailMask);
 
 #if defined(_MASKMAP_IDX)
@@ -312,6 +360,18 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.anisotropy = 1.0;
 #endif
     surfaceData.anisotropy *= ADD_IDX(_Anisotropy);
+
+    if (_PrefilteredNormalMap != 0)
+    {
+        float perceptualRoughness  = 1 - surfaceData.perceptualSmoothness;
+        float roughnessMapVariance = PerceptualRoughnessToSphericalVariance(perceptualRoughness);
+
+        // TODO: scale standard deviation instead? More linear?
+        float totalVariance = CombineSphericalVariance(roughnessMapVariance, normalMapVariance * _SpecularAntialisingStrength);
+        perceptualRoughness = SphericalVarianceToPerceptualRoughness(totalVariance);
+
+        surfaceData.perceptualSmoothness = 1 - perceptualRoughness;
+    }
 
     surfaceData.specularColor = _SpecularColor.rgb;
 #ifdef _SPECULARCOLORMAP

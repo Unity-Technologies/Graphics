@@ -95,7 +95,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     float  maxHeight = GetMaxDisplacement();
     ApplyDisplacementTileScale(maxHeight);
     float2 minUvSize = GetMinUvSize(layerTexCoord);
-    float  lod       = ComputeTextureLOD(minUvSize);
+    float  lod       = max(0, ComputeTextureLOD(minUvSize));
 
     // TODO: precompute uvSpaceScale
     float2 invPrimScale = (isPlanar || isTriplanar) ? float2(1.0, 1.0) : _InvPrimScale.xy;

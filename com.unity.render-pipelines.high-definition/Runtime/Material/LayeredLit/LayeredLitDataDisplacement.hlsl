@@ -203,7 +203,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     // Approximation of lod to used. Be conservative here, we will take the highest mip of all layers.
     // Remember, we assume that we used the same mapping for all layer, so only size matter.
     float2 minUvSize = GetMinUvSize(layerTexCoord);
-    float lod = ComputeTextureLOD(minUvSize);
+    float lod = max(0, ComputeTextureLOD(minUvSize));
 
     // TODO: Here we calculate the scale transform from world to UV space , which is what we have done in GetLayerTexCoord but without the texBias.
     // Mean we must also apply the same "additionalTiling", currently not apply Also precompute all this!

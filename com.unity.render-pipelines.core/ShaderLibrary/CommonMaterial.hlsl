@@ -36,6 +36,41 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
     return (1.0 - perceptualSmoothness);
 }
 
+// Maps [0, 1] -> [0, 0.33333333].
+// TODO: multi-bounce GGX handling? Do we change anything?
+real PerceptualRoughnessToSphericalVariance(real perceptualRoughness)
+{
+    // Horner form of (-0.00454023 x + 0.0191126 x^2 + 0.538541 x^3) / (1 - 0.950564 x + 1.6099 x^2).
+    real x = perceptualRoughness;
+    return x * (-0.00282019 + x * (0.0118719 + x * 0.334517)) / (0.621155 + x * (-0.590448 + x));
+}
+
+// Maps [0, 0.33333333] -> [0, 1].
+// TODO: multi-bounce GGX handling? Do we change anything?
+real SphericalVarianceToPerceptualRoughness(real sphericalVariance)
+{
+    // TODO: find a cheaper fit.
+    real x_100 = sphericalVariance;
+    real x_050 = sqrt(sphericalVariance);
+    real x_025 = sqrt(x_050);
+    real x_075 = x_050 * x_025;
+    real x_125 = x_100 * x_025;
+    real x_150 = x_100 * x_050;
+
+    // Clamp to the supported [0, 1] roughness range.
+    return saturate(0.561687 * x_025 + 1.3743 * x_050 - 4.58221 * x_075 + 12.2753 * x_100 - 15.505 * x_125 + 8.44255 * x_150);
+}
+
+// Combine spherical variance via convolution of NDFs.
+real CombineSphericalVariance(real variance1, real variance2)
+{
+    // See "Material Advances in Call of Duty" (2018).
+    // totalVariance = 1 - (1 - variance1) * (1 - variance2).
+    // One way to see why this is not just addition is that if two maps
+    // are anti-correlated, roughness does not need to increase.
+    return saturate(variance1 + variance2 - variance1 * variance2);
+}
+
 // WARNING: this has been deprecated, and should not be used!
 // Using roughness values of 0 leads to INFs and NANs. The only sensible place to use the roughness
 // value of 0 is IBL, so we do not modify the perceptual roughness which is used to select the MIP map level.

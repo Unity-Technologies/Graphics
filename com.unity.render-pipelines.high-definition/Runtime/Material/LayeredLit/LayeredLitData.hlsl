@@ -60,13 +60,17 @@
 #endif
 
 #if defined(_DETAIL_MAP0)
-#define SAMPLER_DETAILMAP_IDX sampler_DetailMap0
+#define SAMPLER_DETAILMAP_IDX       sampler_DetailMap0
+#define SAMPLER_DETAILNORMALMAP_IDX sampler_DetailNormalMap0
 #elif defined(_DETAIL_MAP1)
-#define SAMPLER_DETAILMAP_IDX sampler_DetailMap1
+#define SAMPLER_DETAILMAP_IDX       sampler_DetailMap1
+#define SAMPLER_DETAILNORMALMAP_IDX sampler_DetailNormalMap1
 #elif defined(_DETAIL_MAP2)
-#define SAMPLER_DETAILMAP_IDX sampler_DetailMap2
+#define SAMPLER_DETAILMAP_IDX       sampler_DetailMap2
+#define SAMPLER_DETAILNORMALMAP_IDX sampler_DetailNormalMap2
 #else
-#define SAMPLER_DETAILMAP_IDX sampler_DetailMap3
+#define SAMPLER_DETAILMAP_IDX       sampler_DetailMap3
+#define SAMPLER_DETAILNORMALMAP_IDX sampler_DetailNormalMap3
 #endif
 
 #if defined(_MASKMAP0)

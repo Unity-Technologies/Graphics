@@ -137,6 +137,11 @@ Shader "HDRenderPipeline/LayeredLit"
         _DetailMap2("DetailMap2", 2D) = "black" {}
         _DetailMap3("DetailMap3", 2D) = "black" {}
 
+        _DetailNormalMap0("Detail Normal Map 0", 2D) = "black" {}
+        _DetailNormalMap1("Detail Normal Map 1", 2D) = "black" {}
+        _DetailNormalMap2("Detail Normal Map 2", 2D) = "black" {}
+        _DetailNormalMap3("Detail Normal Map 3", 2D) = "black" {}
+
         _DetailAlbedoScale0("_DetailAlbedoScale0", Range(0.0, 2.0)) = 1
         _DetailAlbedoScale1("_DetailAlbedoScale1", Range(0.0, 2.0)) = 1
         _DetailAlbedoScale2("_DetailAlbedoScale2", Range(0.0, 2.0)) = 1
@@ -347,6 +352,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+        [ToggleUI] _PrefilteredNormalMap("Prefiltered Normal Map", Int) = 0 // bool...
+        _SpecularAntialisingStrength("Specular Antialising Strength", Range(0.0, 1.0)) = 1
     }
 
     HLSLINCLUDE

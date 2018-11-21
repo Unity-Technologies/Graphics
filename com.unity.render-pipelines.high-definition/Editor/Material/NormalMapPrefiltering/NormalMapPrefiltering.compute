@@ -1,0 +1,51 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel NormalMapPrefiltering
+
+#define NORMAL_MAP_SPACE_TANGENT 0
+#define NORMAL_MAP_SPACE_OBJECT  1
+
+#define TEXTURE_CHANNEL_R 0
+#define TEXTURE_CHANNEL_G 1
+#define TEXTURE_CHANNEL_B 2
+#define TEXTURE_CHANNEL_A 3
+
+int   _NormalMapSpace;
+int   _SmoothnessMapChannel;
+float _RcpWidth;
+float _RcpHeight;
+
+SAMPLER(s_linear_clamp_sampler);
+
+TEXTURE2D(_NormalMap);
+TEXTURE2D(_SmoothnessMap);
+RW_TEXTURE2D(float4, _OutputNormalMap);
+
+[numthreads(8, 8, 1)]
+void NormalMapPrefiltering(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    // Compute and store the average normal, Toksvig style.
+    // The roughness map is not used.
+    float2 uv     = dispatchThreadId * float2(_RcpWidth, _RcpHeight) + 0.5 * float2(_RcpWidth, _RcpHeight);
+    float4 normal = SAMPLE_TEXTURE2D_LOD(_NormalMap, s_linear_clamp_sampler, uv, 0);
+
+    if (_NormalMapSpace == NORMAL_MAP_SPACE_TANGENT)
+    {
+        normal.xyz = UnpackNormalmapRGorAG(normal);
+    }
+    else // NORMAL_MAP_SPACE_OBJECT
+    {
+        normal.xyz = UnpackNormalRGBNoScale(normal);
+    }
+
+    normal.w = 1;
+
+    // MIP-mapping will be done in hardware.
+    _OutputNormalMap[dispatchThreadId] = normal * 0.5 + 0.5;
+}

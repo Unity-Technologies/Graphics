@@ -60,10 +60,20 @@ real3 SurfaceGradientResolveNormal(real3 nrmVertexNormal, real3 surfGrad)
     return normalize(nrmVertexNormal - surfGrad);
 }
 
-real2 ConvertTangentSpaceNormalToHeightMapGradient(real2 normalXY, real rcpNormalZ, real scale)
+real2 ConvertTangentSpaceNormalToHeightMapGradient(real2 normalXY, real rcpNormalZ, real scale = 1.0)
 {
     // scale * (-normal.xy / normal.z)
     return normalXY * (-rcpNormalZ * scale);
+}
+
+real2 ConvertTangentSpaceNormalToHeightMapGradient(real3 normal, real scale = 1.0)
+{
+    return ConvertTangentSpaceNormalToHeightMapGradient(normal.xy, rcp(normal.z), scale);
+}
+
+real3 ConvertHeightMapGradientToTangentSpaceNormal(real2 hGrad)
+{
+    return normalize(real3(-hGrad.x, -hGrad.y, 1));
 }
 
 // Converts tangent space normal to slopes (height map gradient).

@@ -73,6 +73,179 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 }
 #endif
 
+// Used by SamplePrefilteredNormalMap() below.
+#define NORMAL_SPACE_TANGENT 0
+#define NORMAL_SPACE_OBJECT  1
+#define NORMAL_SPACE_WORLD   2
+
+// Returns normalConeTS = {normalTS, variance}.
+// Only isotropic cone support. :-(
+float4 SamplePrefilteredNormalMap(TEXTURE2D(normalMap), SAMPLER(samplerState),
+                                  UVMapping uvMapping, float2 normalMapSize, float normalScale,
+                                  int inputNormalSpace)
+{
+    // With normal mapping, we can distinguish 2 types of input normals:
+    // those that are relative to the mesh fragment's normal (group 1),
+    // and those that are not (already "perturbed", group 2).
+    // Group 1 includes tangent-space normal maps.
+    // Group 2 contains object- and world-space normal maps.
+    // We should not access the tangent frame unless we use the tangent-space normal maps.
+
+    float3 surfGrad            = 0;
+    float  lodVarianceScale    = 0;
+    float  averageNormalLength = 0;
+
+    if (uvMapping.mappingType == UV_MAPPING_TRIPLANAR)
+    {
+        // Triplanar mapping always uses tangent-space normals.
+        float3 volumeGrad    = 0;
+        float3 averageNormal = 0;
+
+        if (uvMapping.triplanarWeights.x > 0) // ZY -> -X (left-handed)
+        {
+            float w = uvMapping.triplanarWeights.x;
+
+            float3 normal  = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uvZY).xyz * 2 - 1;
+            averageNormal += w * normal;
+
+            float normalLengthSq = dot(normal, normal);
+            normal *= rsqrt(normalLengthSq);
+
+            float2 bumpGrad = ConvertTangentSpaceNormalToHeightMapGradient(normal);
+
+            averageNormalLength += w * sqrt(normalLengthSq);
+            lodVarianceScale    += w * saturate(ComputeTextureLOD(uvMapping.uvZY, normalMapSize));
+
+            volumeGrad.z += w * bumpGrad.x;
+            volumeGrad.y += w * bumpGrad.y;
+        }
+
+        if (uvMapping.triplanarWeights.y > 0) // XZ -> -Y (left-handed)
+        {
+            float w = uvMapping.triplanarWeights.y;
+
+            float3 normal  = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uvXZ).xyz * 2 - 1;
+            averageNormal += w * normal;
+
+            float normalLengthSq = dot(normal, normal);
+            normal *= rsqrt(normalLengthSq);
+
+            float2 bumpGrad = ConvertTangentSpaceNormalToHeightMapGradient(normal);
+
+            averageNormalLength += w * sqrt(normalLengthSq);
+            lodVarianceScale    += w * saturate(ComputeTextureLOD(uvMapping.uvXZ, normalMapSize));
+
+            volumeGrad.x += w * bumpGrad.x;
+            volumeGrad.z += w * bumpGrad.y;
+        }
+
+        if (uvMapping.triplanarWeights.z > 0) // XY -> Z (left-handed)
+        {
+            float w = uvMapping.triplanarWeights.z;
+
+            float3 normal  = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uvXY).xyz * 2 - 1;
+            averageNormal += w * normal;
+
+            float normalLengthSq = dot(normal, normal);
+            normal *= rsqrt(normalLengthSq);
+
+            float2 bumpGrad = ConvertTangentSpaceNormalToHeightMapGradient(normal);
+
+            averageNormalLength += w * sqrt(normalLengthSq);
+            lodVarianceScale    += w * saturate(ComputeTextureLOD(uvMapping.uvXY, normalMapSize));
+
+            volumeGrad.x += w * bumpGrad.x;
+            volumeGrad.y += w * bumpGrad.y;
+        }
+
+        surfGrad = SurfaceGradientFromVolumeGradient(uvMapping.normalWS, volumeGrad);
+
+        // If average tangent-space normals are aligned, this results in average variance.
+        // However, if they point in different direction, they form a cone around
+        // the resulting normal, shortening the average normal and increasing variance.
+        averageNormalLength = length(averageNormal);
+    }
+    else
+    {
+        float3 normal = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uv).xyz * 2 - 1;
+
+        float averageNormalLengthSq = dot(normal, normal);
+              averageNormalLength   = sqrt(averageNormalLengthSq);
+
+        normal *= rsqrt(averageNormalLengthSq);
+
+        lodVarianceScale = saturate(ComputeTextureLOD(uvMapping.uv, normalMapSize));
+
+        if (inputNormalSpace == NORMAL_SPACE_TANGENT)
+        {
+            float2 bumpGrad = ConvertTangentSpaceNormalToHeightMapGradient(normal);
+
+            if (uvMapping.mappingType == UV_MAPPING_UVSET)
+            {
+                // This is the only case when we have access to the tangent frame.
+                surfGrad = SurfaceGradientFromTBN(bumpGrad, uvMapping.tangentWS, uvMapping.bitangentWS);
+            }
+            else // UV_MAPPING_PLANAR
+            {
+                // The normal map lies in the XZ plane (and not XY), since Unity assumes that Y is up.
+                // It is also aligned with the X and Z axes.
+                surfGrad = SurfaceGradientFromVolumeGradient(uvMapping.normalWS, float3(bumpGrad.x, 0, bumpGrad.y));
+            }
+        }
+        else // (NORMAL_SPACE_OBJECT || NORMAL_SPACE_WORLD)
+        {
+            if (inputNormalSpace == NORMAL_SPACE_OBJECT)
+            {
+                normal = TransformObjectToWorldDir(normal);
+            }
+
+            surfGrad = SurfaceGradientFromPerturbedNormal(uvMapping.normalWS, normal);
+        }
+    }
+
+    // We cannot correctly support normal scaling because its effect on spherical variance is not clear.
+    // Normal scale affects slopes of the height field. However, our normal map only contains
+    // statistics of directions, not slopes. So there simply isn't enough information to correctly
+    // adjust spherical variance. We limit the error by clamping the normal scale to 1.
+    normalScale = min(normalScale, 1);
+
+    // Scale the slopes.
+    surfGrad *= normalScale;
+
+    // Reduce variance for certain configurations. This is all a big hack.
+    // Fade in normal map filtering results (0% for MIP 0, 100% for MIP 1+).
+    // TODO: scale standard deviation instead? More linear?
+    float varianceScale = lodVarianceScale * normalScale;
+
+    // (1 - averageNormalLength) * varianceScale.
+    float normalMapVariance = varianceScale - varianceScale * averageNormalLength;
+
+    return float4(surfGrad, normalMapVariance);
+}
+
+// Returns normalConeTS = {normalTS, variance}.
+float4 ReorientNormalCone(float3 startNormalTS, float startNormalVariance,
+                          float3 rotorNormalTS, float rotorNormalVariance, float rotationMask)
+{
+    float3 normalTS;
+    float  variance;
+
+#ifdef SURFACE_GRADIENT
+    // We just add the slopes.
+    normalTS = startNormalTS + rotorNormalTS * rotationMask;
+#else
+    // TODO: this should really be just a single spherical rotation.
+    normalTS = lerp(startNormalTS, BlendNormalRNM(startNormalTS, rotorNormalTS), rotationMask);
+#endif
+
+    // TODO: scale standard deviation instead? More linear?
+    rotorNormalVariance *= rotationMask;
+
+    variance = CombineSphericalVariance(startNormalVariance, rotorNormalVariance);
+
+    return float4(normalTS, variance);
+}
+
 #ifndef LAYERED_LIT_SHADER
 
 // Want to use only one sampler for normalmap/bentnormalmap either we use OS or TS. And either we have normal map or bent normal or both.
@@ -90,9 +263,10 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
     #endif
 #endif
 
-#define SAMPLER_DETAILMAP_IDX sampler_DetailMap
-#define SAMPLER_MASKMAP_IDX sampler_MaskMap
-#define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap
+#define SAMPLER_DETAILMAP_IDX       sampler_DetailMap
+#define SAMPLER_DETAILNORMALMAP_IDX sampler_DetailNormalMap
+#define SAMPLER_MASKMAP_IDX         sampler_MaskMap
+#define SAMPLER_HEIGHTMAP_IDX       sampler_HeightMap
 
 #define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap
 #define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap

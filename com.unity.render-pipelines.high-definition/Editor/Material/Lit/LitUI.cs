@@ -47,7 +47,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Details
             public static string detailText = "Detail Inputs";
             public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
-            public static GUIContent detailMapNormalText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
+            public static GUIContent detailFullMapText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
+            public static GUIContent detailPartialMapText = new GUIContent("Detail Map A(R) S(B)", "Detail Map");
+            public static GUIContent detailNormalMapText = new GUIContent("Detail Normal Map (XYZ)", "Detail Normal Map");
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
             public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
@@ -214,6 +216,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         protected MaterialProperty[] detailMap = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailMap = "_DetailMap";
+        protected MaterialProperty[] detailNormalMap = new MaterialProperty[kMaxLayerCount];
+        protected const string kDetailNormalMap = "_DetailNormalMap";
         protected MaterialProperty[] linkDetailsWithBase = new MaterialProperty[kMaxLayerCount];
         protected const string kLinkDetailsWithBase = "_LinkDetailsWithBase";
         protected MaterialProperty[] detailAlbedoScale = new MaterialProperty[kMaxLayerCount];
@@ -288,7 +292,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kRefractionModel = "_RefractionModel";
         protected MaterialProperty ssrefractionProjectionModel = null;
         protected const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
-        
+
+        protected static bool MaterialHasDetailAlbedoSmoothnessMap(Material material, int layerIndex = -1)
+        {
+            string layerText = (layerIndex >= 0) ? layerIndex.ToString() : "";
+            return material.GetTexture(kDetailMap + layerText);
+        }
+
+        protected static bool MaterialHasAnyDetailMap(Material material, int layerIndex = -1)
+        {
+            string layerText = (layerIndex >= 0) ? layerIndex.ToString() : "";
+            return material.GetTexture(kDetailMap + layerText) || material.GetTexture(kDetailNormalMap + layerText);
+        }
+
         protected override bool showBlendModePopup
         {
             get { return refractionModel == null || refractionModel.floatValue == 0f || preRefractionPass.floatValue > 0.0f; }
@@ -344,6 +360,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 UVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, m_PropertySuffixes[i]), props);
                 linkDetailsWithBase[i] = FindProperty(string.Format("{0}{1}", kLinkDetailsWithBase, m_PropertySuffixes[i]), props);
                 detailMap[i] = FindProperty(string.Format("{0}{1}", kDetailMap, m_PropertySuffixes[i]), props);
+                detailNormalMap[i] = FindProperty(string.Format("{0}{1}", kDetailNormalMap, m_PropertySuffixes[i]), props);
                 detailAlbedoScale[i] = FindProperty(string.Format("{0}{1}", kDetailAlbedoScale, m_PropertySuffixes[i]), props);
                 detailNormalScale[i] = FindProperty(string.Format("{0}{1}", kDetailNormalScale, m_PropertySuffixes[i]), props);
                 detailSmoothnessScale[i] = FindProperty(string.Format("{0}{1}", kDetailSmoothnessScale, m_PropertySuffixes[i]), props);
@@ -741,14 +758,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
-            
+
             using (var header = new HeaderScope(layerPrefix + Styles.detailText, detailToggle, this, colorDot: colorDot))
             {
                 if (header.expanded)
                 {
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[layerIndex]);
+                    if (prefilteredNormalMap != null && prefilteredNormalMap.floatValue != 0)
+                    {
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.detailPartialMapText, detailMap[layerIndex]);
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.detailNormalMapText, detailNormalMap[layerIndex]);
+                    }
+                    else
+                    {
+                        m_MaterialEditor.TexturePropertySingleLine(Styles.detailFullMapText, detailMap[layerIndex]);
+                    }
 
-                    if (material.GetTexture(isLayeredLit ? kDetailMap + layerIndex : kDetailMap))
+                    if (MaterialHasAnyDetailMap(material, isLayeredLit ? layerIndex : -1))
                     {
                         EditorGUI.indentLevel++;
 
@@ -783,9 +808,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             if (material.GetTexture(kDetailMap + m_PropertySuffixes[layerIndex]))
                                 EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
                         }
-                        m_MaterialEditor.ShaderProperty(detailAlbedoScale[layerIndex], Styles.detailAlbedoScaleText);
+
                         m_MaterialEditor.ShaderProperty(detailNormalScale[layerIndex], Styles.detailNormalScaleText);
-                        m_MaterialEditor.ShaderProperty(detailSmoothnessScale[layerIndex], Styles.detailSmoothnessScaleText);
+
+                        if (MaterialHasDetailAlbedoSmoothnessMap(material, isLayeredLit ? layerIndex : -1))
+                        {
+                            m_MaterialEditor.ShaderProperty(detailAlbedoScale[layerIndex], Styles.detailAlbedoScaleText);
+                            m_MaterialEditor.ShaderProperty(detailSmoothnessScale[layerIndex], Styles.detailSmoothnessScaleText);
+                        }
+                        else
+                        {
+                            // If the '_DetailMap' is not bound, and the '_DetailNormalMap' is, we set both of these scales to 0.
+                            // This will prevent us from illegaly reading the unbound texture, and remove the contribution of the '_DetailMap'.
+                            detailAlbedoScale[layerIndex].floatValue = 0;
+                            detailSmoothnessScale[layerIndex].floatValue = 0;
+                        }
+
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -913,17 +951,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreUtils.SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (normalMapSpace == NormalMapSpace.TangentSpace));
 
+            bool hasDetailMap = MaterialHasAnyDetailMap(material);
+
             if (normalMapSpace == NormalMapSpace.TangentSpace)
             {
                 // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for it
-                CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap));
+                CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || hasDetailMap);
                 CoreUtils.SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
                 CoreUtils.SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMap));
             }
             else // Object space
             {
                 // With details map, we always use a normal map but in case of objects space there is no good default, so the result will be weird until users fix it
-                CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS) || material.GetTexture(kDetailMap));
+                CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS) || hasDetailMap);
                 CoreUtils.SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMapOS));
                 CoreUtils.SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMapOS));
             }
@@ -936,7 +976,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
             CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             CoreUtils.SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
-            CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
+            CoreUtils.SetKeyword(material, "_DETAIL_MAP", hasDetailMap);
             CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP", material.GetTexture(kSubsurfaceMaskMap));
             CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
             CoreUtils.SetKeyword(material, "_IRIDESCENCE_THICKNESSMAP", material.GetTexture(kIridescenceThicknessMap));
