@@ -107,7 +107,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/AngularVelocity.unity
     guid: da2063a2a525cb849a6fbdb716cc5b43
-  - enabled: 1
+  - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/Noise.unity
     guid: 2ede8f56c35c42741a3d56ef5355b552
   m_configObjects: {}
