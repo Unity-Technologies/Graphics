@@ -7,19 +7,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     static class CompatibilityExtensions
     {
-        public static void AppendAction(this DropdownMenu contextualMenu, string actionName, Action action, Func<DropdownMenuAction.Status> actionStatusCallback)
-        {
-            Debug.Assert(action != null);
-            Debug.Assert(actionStatusCallback != null);
-            contextualMenu.AppendAction(actionName, e => action(), e => actionStatusCallback());
-        }
-
-        public static void AppendAction(this DropdownMenu contextualMenu, string actionName, Action action, DropdownMenuAction.Status statusFlags)
-        {
-            Debug.Assert(action != null);
-            contextualMenu.AppendAction(actionName, e => action(), e => statusFlags);
-        }
-
 #if !UNITY_2018_3_OR_NEWER
         public static void MarkDirtyRepaint(this VisualElement element)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Graphing
 {
@@ -11,7 +12,7 @@ namespace UnityEditor.Graphing
         void RemoveNode(INode node);
         IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef);
         void RemoveEdge(IEdge e);
-        void RemoveElements(IEnumerable<INode> nodes, IEnumerable<IEdge> edges);
+        void RemoveElements(IEnumerable<INode> nodes, IEnumerable<IEdge> edges, IEnumerable<GroupData> groups);
         INode GetNodeFromGuid(Guid guid);
         bool ContainsNodeGuid(Guid guid);
         T GetNodeFromGuid<T>(Guid guid) where T : INode;
@@ -23,6 +24,7 @@ namespace UnityEditor.Graphing
         IEnumerable<INode> removedNodes { get; }
         IEnumerable<IEdge> addedEdges { get; }
         IEnumerable<IEdge> removedEdges { get; }
+        IEnumerable<GroupData> groups { get; }
         void ClearChanges();
     }
 
