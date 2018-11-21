@@ -15,8 +15,10 @@ struct v2f
 	fixed2 uv : TEXCOORD0;
 };
 
-sampler2D _NormalMap;
-float4 _NormalMap_ST;
+uniform sampler2D _MainTex;
+uniform fixed4 _MainTex_ST;
+uniform sampler2D _NormalMap;
+uniform float4 _NormalMap_ST;
 
 v2f NormalsRenderingVertex(appdata v)
 {
@@ -28,8 +30,9 @@ v2f NormalsRenderingVertex(appdata v)
 
 float4 NormalsRenderingFragment(v2f i) : SV_Target
 {
+	float4 mainTex = tex2D(_MainTex, i.uv);
 	float4 normalMap = tex2D(_NormalMap, i.uv);
-	normalMap.a = ceil(normalMap.a);
+	normalMap.a = mainTex.a;
 	return normalMap;
 }
 #endif
