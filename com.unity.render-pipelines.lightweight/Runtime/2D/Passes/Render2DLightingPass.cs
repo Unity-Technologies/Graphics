@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             
 
             SortingSettings sortingSettings = new SortingSettings(camera);
-            sortingSettings.criteria = SortingCriteria.BackToFront;
+            sortingSettings.criteria = SortingCriteria.CommonTransparent;
 
             Profiler.BeginSample("RenderSpritesWithLighting - Prepare");
             DrawingSettings drawSettings = new DrawingSettings(new ShaderTagId("SRPDefaultUnlit"), sortingSettings);
