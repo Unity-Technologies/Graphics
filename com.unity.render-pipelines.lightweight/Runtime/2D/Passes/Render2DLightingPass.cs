@@ -48,13 +48,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
 #if UNITY_EDITOR
-            //    if(!Application.isPlaying)
-            //        m_SortingLayers = SortingLayer.layers;
+            if (!Application.isPlaying)
+                m_SortingLayers = SortingLayer.layers;
 #endif
             Camera camera = renderingData.cameraData.camera;
 
-
-            
 
             SortingSettings sortingSettings = new SortingSettings(camera);
             sortingSettings.criteria = SortingCriteria.CommonTransparent;
