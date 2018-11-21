@@ -67,7 +67,8 @@ namespace UnityEditor.ShaderGraph
         Stack<Identifier> m_FreeNodeTempIds = new Stack<Identifier>();
 
         [NonSerialized]
-        List<AbstractMaterialNode> m_Nodes = new List<AbstractMaterialNode>();
+        // TODO: Make this private again
+        public List<AbstractMaterialNode> m_Nodes = new List<AbstractMaterialNode>();
 
         [NonSerialized]
         Dictionary<Guid, INode> m_NodeDictionary = new Dictionary<Guid, INode>();
@@ -171,9 +172,13 @@ namespace UnityEditor.ShaderGraph
 
         public int currentContextId => m_CurrentContextId;
 
-        List<ControlDescriptor> m_CreatedControls = new List<ControlDescriptor>();
+        [NonSerialized]
+        public List<ControlRef> createdControls = new List<ControlRef>();
+        [NonSerialized]
+        public List<ControlRefSlice> createdControlsSlices = new List<ControlRefSlice>();
 
-        public IEnumerable<ControlDescriptor> createdControls => m_CreatedControls;
+        [NonSerialized]
+        public bool shouldRepaintPreviews;
 
         public AbstractMaterialGraph()
         {
@@ -223,7 +228,8 @@ namespace UnityEditor.ShaderGraph
             {
                 if (state.isDirty)
                 {
-                    var context = new NodeTypeChangeContext(this, m_CurrentContextId, state, m_CreatedControls);
+                    var previousCreatedControlsCount = createdControls.Count;
+                    var context = new NodeTypeChangeContext(this, m_CurrentContextId, state, createdControls);
                     try
                     {
                         state.shaderNodeType.OnChange(ref context);
@@ -234,6 +240,19 @@ namespace UnityEditor.ShaderGraph
                     }
                     finally
                     {
+                        // `NodeTypeChangeContext` adds to `createdControls`. We automatically update `createdControlsSlices`
+                        // by looking at whether anything was added. `GraphEditorView` iterates over the latter, and uses
+                        // the indices it stores to iterate through `createdControls`.
+                        var createdControlsCount = createdControls.Count;
+                        if (createdControlsCount > previousCreatedControlsCount)
+                        {
+                            createdControlsSlices.Add(new ControlRefSlice
+                            {
+                                nodeTypeState = state,
+                                startIndex = previousCreatedControlsCount,
+                                length = createdControlsCount - previousCreatedControlsCount
+                            });
+                        }
                         state.ClearChanges();
                         m_CurrentContextId = Math.Max(m_CurrentContextId + 1, 1);
                     }
@@ -251,7 +270,8 @@ namespace UnityEditor.ShaderGraph
             m_AddedProperties.Clear();
             m_RemovedProperties.Clear();
             m_MovedProperties.Clear();
-            m_CreatedControls.Clear();
+            createdControls.Clear();
+            createdControlsSlices.Clear();
         }
 
         // TODO: Handle copy paste
@@ -294,7 +314,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (proxyNode.isNew)
                 {
-                    proxyNode.typeState.createdNodes.Add(proxyNode);
+                    proxyNode.typeState.addedNodes.Add(proxyNode.tempId.index);
                     proxyNode.isNew = false;
                 }
             }
@@ -689,7 +709,7 @@ namespace UnityEditor.ShaderGraph
                 if (node is ProxyShaderNode shaderNode)
                 {
                     shaderNode.UpdateStateReference();
-                    shaderNode.typeState.deserializedNodes.Add(shaderNode);
+                    shaderNode.typeState.addedNodes.Add(shaderNode.tempId.index);
                 }
             }
 
@@ -784,11 +804,11 @@ namespace UnityEditor.ShaderGraph
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
+                node.tempId = new Identifier(m_Nodes.Count);
                 if (node is ProxyShaderNode shaderNode)
                 {
-                    shaderNode.typeState.deserializedNodes.Add(shaderNode);
+                    shaderNode.typeState.addedNodes.Add(shaderNode.tempId.index);
                 }
-                node.tempId = new Identifier(m_Nodes.Count);
                 m_Nodes.Add(node);
                 m_NodeDictionary.Add(node.guid, node);
             }

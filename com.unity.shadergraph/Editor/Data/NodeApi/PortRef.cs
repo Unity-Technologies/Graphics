@@ -3,16 +3,28 @@ using System;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public struct PortRef
+    public struct InputPortRef
     {
         internal int value { get; }
         internal int index => value - 1;
-        internal bool isInput { get; }
 
-        internal PortRef(int value, bool isInput)
+        internal InputPortRef(int value)
         {
             this.value = value;
-            this.isInput = isInput;
+        }
+
+        internal bool isValid => value > 0;
+    }
+
+    [Serializable]
+    public struct OutputPortRef
+    {
+        internal int value { get; }
+        internal int index => value - 1;
+
+        internal OutputPortRef(int value)
+        {
+            this.value = value;
         }
 
         internal bool isValid => value > 0;

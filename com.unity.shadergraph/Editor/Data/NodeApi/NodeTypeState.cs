@@ -12,21 +12,30 @@ namespace UnityEditor.ShaderGraph
         public List<InputPortDescriptor> inputPorts = new List<InputPortDescriptor>();
         public List<OutputPortDescriptor> outputPorts = new List<OutputPortDescriptor>();
         public List<HlslSource> hlslSources = new List<HlslSource>();
+        public List<ControlState> controls = new List<ControlState>();
+        public List<HlslValue> hlslValues = new List<HlslValue>();
 
         #region Change lists for consumption by IShaderNode implementation
 
-        public List<ProxyShaderNode> createdNodes = new List<ProxyShaderNode>();
-        public List<ProxyShaderNode> deserializedNodes = new List<ProxyShaderNode>();
-        public List<ProxyShaderNode> modifiedNodes = new List<ProxyShaderNode>();
+        // TODO: Need to also store node ID versions somewhere
+        public IndexSet addedNodes = new IndexSet();
+        public IndexSet modifiedNodes = new IndexSet();
 
         #endregion
 
-        public bool isDirty => createdNodes.Any() || deserializedNodes.Any();
+        public bool isDirty => addedNodes.Any() || modifiedNodes.Any();
 
         public void ClearChanges()
         {
-            createdNodes.Clear();
-            deserializedNodes.Clear();
+            addedNodes.Clear();
+            modifiedNodes.Clear();
+            // TODO: Use IndexSet for modified controls
+            for (var i = 0; i < controls.Count; i++)
+            {
+                var control = controls[i];
+                control.wasModified = false;
+                controls[i] = control;
+            }
         }
     }
 }

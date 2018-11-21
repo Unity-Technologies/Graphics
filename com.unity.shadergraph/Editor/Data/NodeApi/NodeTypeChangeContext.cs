@@ -10,9 +10,9 @@ namespace UnityEditor.ShaderGraph
         readonly AbstractMaterialGraph m_Graph;
         readonly int m_Id;
         readonly NodeTypeState m_TypeState;
-        readonly List<ControlDescriptor> m_CreatedControls;
+        readonly List<ControlRef> m_CreatedControls;
 
-        internal NodeTypeChangeContext(AbstractMaterialGraph graph, int id, NodeTypeState typeState, List<ControlDescriptor> createdControls)
+        internal NodeTypeChangeContext(AbstractMaterialGraph graph, int id, NodeTypeState typeState, List<ControlRef> createdControls) : this()
         {
             m_Graph = graph;
             m_Id = id;
@@ -26,11 +26,16 @@ namespace UnityEditor.ShaderGraph
 
         internal NodeTypeState typeState => m_TypeState;
 
-        public NodeRefEnumerable createdNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.createdNodes);
-
-        public NodeRefEnumerable deserializedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.deserializedNodes);
+        public NodeRefEnumerable addedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.addedNodes);
 
         public NodeRefEnumerable modifiedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.modifiedNodes);
+
+        public object GetData(NodeRef nodeRef)
+        {
+            Validate();
+
+            return nodeRef.node.data;
+        }
 
         // TODO: Decide whether this should be immediate
         // The issue could be that an exception is thrown mid-way, and then the node is left in a halfway broken state.
@@ -52,20 +57,25 @@ namespace UnityEditor.ShaderGraph
 
         public HlslSourceRef CreateHlslSource(string source, HlslSourceType type = HlslSourceType.File)
         {
+            Validate();
+
             if (type == HlslSourceType.File && !File.Exists(Path.GetFullPath(source)))
             {
                 throw new ArgumentException($"Cannot open file at \"{source}\"");
             }
 
+            var hlslSourceRef = new HlslSourceRef(m_TypeState.hlslSources.Count);
             m_TypeState.hlslSources.Add(new HlslSource { source = source, type = type });
-            return new HlslSourceRef(m_TypeState.hlslSources.Count);
+            return hlslSourceRef;
         }
 
         public void SetHlslFunction(NodeRef nodeRef, HlslFunctionDescriptor functionDescriptor)
         {
+            Validate();
             // TODO: Validation
             // Return value must be an output port
             // All output ports must be assigned exactly once
+            // TODO: Copy input
             nodeRef.node.function = functionDescriptor;
             nodeRef.node.Dirty(ModificationScope.Graph);
         }
@@ -73,34 +83,59 @@ namespace UnityEditor.ShaderGraph
         // TODO: Create an overload per uniform type
         public HlslValueRef CreateHlslValue(float value)
         {
-            return default;
+            Validate();
+            var hlslValueRef = new HlslValueRef(m_TypeState.hlslValues.Count);
+            m_TypeState.hlslValues.Add(new HlslValue { value = value });
+            return hlslValueRef;
+        }
+
+        // TODO: Create an overload per uniform type
+        public void SetHlslValue(HlslValueRef hlslValueRef, float value)
+        {
+            Validate();
+            // TODO: Validate
+            // TODO: Different dirtying strategy
+            m_Graph.shouldRepaintPreviews = true;
+            var hlslValue = m_TypeState.hlslValues[hlslValueRef.index];
+            hlslValue.value = value;
+            m_TypeState.hlslValues[hlslValueRef.index] = hlslValue;
         }
 
         public ControlRef CreateControl(NodeRef nodeRef, string label, float value)
         {
-            m_CreatedControls.Add(new ControlDescriptor { nodeId = nodeRef.node.tempId, label = label, value = value });
-            // TODO: Figure out IDs
-            return default;// new ControlRef { id = 1 };
+            Validate();
+
+            // TODO: Clean up when a node is deleted
+            var controlDescriptor = new ControlState { nodeId = nodeRef.node.tempId, label = label, value = value };
+            var controlRef = new ControlRef(typeState.controls.Count);
+            typeState.controls.Add(controlDescriptor);
+            m_CreatedControls.Add(controlRef);
+            return controlRef;
         }
 
         public void DestroyControl(ControlRef controlRef)
         {
+            Validate();
 
+            throw new NotImplementedException();
         }
 
         public bool WasControlModified(ControlRef controlRef)
         {
-            return false;
+            Validate();
+            return typeState.controls[controlRef.index].wasModified;
         }
 
         public float GetControlValue(ControlRef controlRef)
         {
-            return default;
+            Validate();
+            return typeState.controls[controlRef.index].value;
         }
 
         public void SetControlValue(ControlRef controlRef, float value)
         {
-
+            Validate();
+            throw new NotImplementedException();
         }
 
         internal void Validate()

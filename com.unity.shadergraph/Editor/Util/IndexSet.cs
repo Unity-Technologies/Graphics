@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace UnityEditor.ShaderGraph.Drawing
+namespace UnityEditor.ShaderGraph
 {
     sealed class IndexSet : ICollection<int>
     {
@@ -16,19 +17,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Add(index);
         }
 
-        public IEnumerator<int> GetEnumerator()
+        public Enumerator GetEnumerator() => new Enumerator(m_Masks.GetEnumerator());
+
+        IEnumerator<int> IEnumerable<int>.GetEnumerator()
         {
-            for (var i = 0; i < m_Masks.Count; i++)
-            {
-                var mask = m_Masks[i];
-                if (mask == 0)
-                    continue;
-                for (var j = 0; j < 32; j++)
-                {
-                    if ((mask & (1 << j)) > 0)
-                        yield return i * 32 + j;
-                }
-            }
+            return GetEnumerator();
+
+//            for (var i = 0; i < m_Masks.Count; i++)
+//            {
+//                var mask = m_Masks[i];
+//                if (mask == 0)
+//                    continue;
+//                for (var j = 0; j < 32; j++)
+//                {
+//                    if ((mask & (1 << j)) > 0)
+//                        yield return i * 32 + j;
+//                }
+//            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -352,6 +357,58 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool IsReadOnly
         {
             get { return false; }
+        }
+
+        public struct Enumerator : IEnumerator<int>
+        {
+            List<uint>.Enumerator m_Masks;
+            int m_Index;
+            int m_SubIndex;
+
+            internal Enumerator(List<uint>.Enumerator masks)
+                : this()
+            {
+                m_Masks = masks;
+                Reset();
+            }
+
+            public bool MoveNext()
+            {
+                while (true)
+                {
+                    while (++m_SubIndex < 32)
+                    {
+                        if ((m_Masks.Current & (1 << m_SubIndex)) > 0)
+                        {
+                            return true;
+                        }
+                    }
+
+                    do
+                    {
+                        if (!m_Masks.MoveNext())
+                        {
+                            return false;
+                        }
+
+                        m_Index++;
+                    } while (m_Masks.Current == 0);
+
+                    m_SubIndex = -1;
+                }
+            }
+
+            public void Reset()
+            {
+                m_Index = -1;
+                m_SubIndex = 32;
+            }
+
+            public int Current => m_Index * 32 + m_SubIndex;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose() { }
         }
     }
 }

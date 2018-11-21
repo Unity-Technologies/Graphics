@@ -10,8 +10,8 @@ namespace UnityEditor.ShaderGraph
 
         public string name { get; set; }
 
-        public List<PortRef> inputs { get; set; }
+        public List<InputPortRef> inputs { get; set; }
 
-        public List<PortRef> outputs { get; set; }
+        public List<OutputPortRef> outputs { get; set; }
     }
 }

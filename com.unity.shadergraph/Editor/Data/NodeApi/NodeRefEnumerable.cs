@@ -5,15 +5,15 @@ using System.Collections.Generic;
 namespace UnityEditor.ShaderGraph
 {
     // The purpose of this class is the hide the fact that it's backed by a list, so that we're allowed to change that
-    // in the future. The issue with returning a IEnumerable<NodeRef> is that it will box the enumerable from
-    // List<NodeRef> and thus cause a GC allocation.
+    // in the future. The issue with returning a IEnumerable<NodeRef> is that it will box the
+    // List<NodeRef>.Enumerator<NodeRef> and thus cause a GC allocation.
     public struct NodeRefEnumerable : IEnumerable<NodeRef>
     {
         AbstractMaterialGraph m_Graph;
         int m_ContextId;
-        List<ProxyShaderNode> m_Nodes;
+        IndexSet m_Nodes;
 
-        internal NodeRefEnumerable(AbstractMaterialGraph graph, int contextId, List<ProxyShaderNode> nodes)
+        internal NodeRefEnumerable(AbstractMaterialGraph graph, int contextId, IndexSet nodes)
         {
             m_Graph = graph;
             m_ContextId = contextId;
@@ -49,9 +49,9 @@ namespace UnityEditor.ShaderGraph
     {
         AbstractMaterialGraph m_Graph;
         int m_ContextId;
-        List<ProxyShaderNode>.Enumerator m_Enumerator;
+        IndexSet.Enumerator m_Enumerator;
 
-        internal NodeRefEnumerator(AbstractMaterialGraph graph, int contextId, List<ProxyShaderNode>.Enumerator enumerator)
+        internal NodeRefEnumerator(AbstractMaterialGraph graph, int contextId, IndexSet.Enumerator enumerator)
         {
             m_Graph = graph;
             m_ContextId = contextId;
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph
             m_Enumerator.Dispose();
         }
 
-        public NodeRef Current => new NodeRef(m_Graph, m_ContextId, m_Enumerator.Current);
+        public NodeRef Current => new NodeRef(m_Graph, m_ContextId, (ProxyShaderNode)m_Graph.m_Nodes[m_Enumerator.Current]);
 
         object IEnumerator.Current => Current;
 

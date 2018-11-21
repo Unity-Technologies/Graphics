@@ -353,13 +353,31 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             UpdateEdgeColors(nodesToUpdate);
 
-            foreach (var controlDescriptor in m_Graph.createdControls)
+            foreach (var slice in m_Graph.createdControlsSlices)
             {
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().First(x => x.node.tempId == controlDescriptor.nodeId);
-                var node = nodeView.node;
-                var controlView = new MultiFloatControlView(controlDescriptor.label, "", "", "", "", node, typeof(float),
-                    () => new Vector4(controlDescriptor.value, 0, 0, 0), value => { });
-                nodeView.AddControl(controlView);
+                var typeState = slice.nodeTypeState;
+                for (var i = slice.startIndex; i < slice.startIndex + slice.length; i++)
+                {
+                    var controlRef = m_Graph.createdControls[i];
+                    var initialControlState = typeState.controls[controlRef.index];
+                    var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().First(x => x.node.tempId == initialControlState.nodeId);
+                    var node = nodeView.node;
+                    var controlView = new MultiFloatControlView(initialControlState.label, "", "", "", "", node, typeof(float),
+                        () =>
+                        {
+                            var controlState = typeState.controls[controlRef.index];
+                            return new Vector4(controlState.value, 0, 0, 0);
+                        }, value =>
+                        {
+                            // TODO: Dirty tracking so that IShaderNodeType can be notified of change
+                            var controlState = typeState.controls[controlRef.index];
+                            controlState.wasModified = true;
+                            controlState.value = value.x;
+                            typeState.controls[controlRef.index] = controlState;
+                            typeState.modifiedNodes.Add(node.tempId.index);
+                        });
+                    nodeView.AddControl(controlView);
+                }
             }
         }
 

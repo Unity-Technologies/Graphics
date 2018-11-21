@@ -185,12 +185,12 @@ namespace UnityEditor.ShaderGraph
             // Declare variables for output ports.
             foreach (var argument in function.arguments)
             {
-                if (argument.type != HlslArgumentType.Port || argument.portRef.isInput)
+                if (argument.type != HlslArgumentType.OutputPort)
                 {
                     continue;
                 }
 
-                var slotId = typeState.outputPorts[argument.portRef.index].id;
+                var slotId = typeState.outputPorts[argument.outputPortRef.index].id;
                 var slot = FindSlot<MaterialSlot>(slotId);
                 var typeStr = NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
                 var variableStr = GetVariableNameForSlot(slotId);
@@ -221,24 +221,27 @@ namespace UnityEditor.ShaderGraph
 
                 switch (argument.type)
                 {
-                    case HlslArgumentType.Port:
-                        int slotId;
-                        if (argument.portRef.isInput)
-                        {
-                            slotId = typeState.inputPorts[argument.portRef.index].id;
-                            builder.Append(GetSlotValue(slotId, generationMode));
-                        }
-                        else
-                        {
-                            slotId = typeState.outputPorts[argument.portRef.index].id;
-                            builder.Append(GetVariableNameForSlot(slotId));
-                        }
+                    case HlslArgumentType.InputPort:
+                        var inputSlotId = typeState.inputPorts[argument.inputPortRef.index].id;
+                        builder.Append(GetSlotValue(inputSlotId, generationMode));
+                        break;
+                    case HlslArgumentType.OutputPort:
+                        var outputSlotId = typeState.outputPorts[argument.outputPortRef.index].id;
+                        builder.Append(GetVariableNameForSlot(outputSlotId));
                         break;
                     case HlslArgumentType.Vector1:
                         builder.Append(NodeUtils.FloatToShaderValue(argument.vector1Value));
                         break;
                     case HlslArgumentType.Value:
-                        // TODO: make work
+                        if (generationMode == GenerationMode.Preview)
+                        {
+                            builder.Append($"{GetVariableNameForNode()}_v{argument.valueRef.index}");
+                        }
+                        else
+                        {
+                            var hlslValue = typeState.hlslValues[argument.valueRef.index];
+                            builder.Append(NodeUtils.FloatToShaderValue(hlslValue.value));
+                        }
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -284,6 +287,44 @@ namespace UnityEditor.ShaderGraph
                 {
                     paths.Add(source.source);
                 }
+            }
+        }
+
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            base.CollectShaderProperties(properties, generationMode);
+
+            if (generationMode != GenerationMode.Preview)
+            {
+                return;
+            }
+
+            foreach (var argument in function.arguments)
+            {
+                if (argument.type != HlslArgumentType.Value)
+                    continue;
+                properties.AddShaderProperty(new Vector1ShaderProperty
+                {
+                    overrideReferenceName = $"{GetVariableNameForNode()}_v{argument.valueRef.index}",
+                    generatePropertyBlock = false
+                });
+            }
+        }
+
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            base.CollectPreviewMaterialProperties(properties);
+
+            foreach (var argument in function.arguments)
+            {
+                if (argument.type != HlslArgumentType.Value)
+                    continue;
+                var hlslValue = typeState.hlslValues[argument.valueRef.index];
+                properties.Add(new PreviewProperty(PropertyType.Vector1)
+                {
+                    name = $"{GetVariableNameForNode()}_v{argument.valueRef.index}",
+                    floatValue = hlslValue.value
+                });
             }
         }
     }

@@ -212,6 +212,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateShaders();
 
             // Union time dependent previews into dirty previews
+            if (m_Graph.shouldRepaintPreviews)
+            {
+                foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
+                {
+                    m_DirtyPreviews.Add(node.tempId.index);
+                }
+            }
             m_DirtyPreviews.UnionWith(m_TimeDependentPreviews);
             PropagateNodeSet(m_DirtyPreviews);
 

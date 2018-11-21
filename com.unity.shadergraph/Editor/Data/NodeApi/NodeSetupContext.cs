@@ -40,15 +40,9 @@ namespace UnityEditor.ShaderGraph
             {
                 // PortRef can be 0 if the user created an instance themselves. We cannot remove the default constructor
                 // in C#, so instead we let the default value represent an invalid state.
-                if (!portRef.isValid || portRef.isInput && portRef.index >= m_TypeState.inputPorts.Count || !portRef.isInput && portRef.index >= m_TypeState.outputPorts.Count)
+                if (!portRef.isValid || portRef.index >= m_TypeState.inputPorts.Count)
                 {
                     throw new InvalidOperationException($"{nameof(NodeTypeDescriptor)}.{nameof(NodeTypeDescriptor.inputs)} contains an invalid port at index {i}.");
-                }
-
-                if (!portRef.isInput)
-                {
-                    var port = m_TypeState.outputPorts[portRef.index];
-                    throw new InvalidOperationException($"{nameof(NodeTypeDescriptor)}.{nameof(NodeTypeDescriptor.inputs)} contains an output port at index {i} ({port.ToString()}).");
                 }
 
                 i++;
@@ -57,15 +51,9 @@ namespace UnityEditor.ShaderGraph
             i = 0;
             foreach (var portRef in typeDescriptor.outputs)
             {
-                if (!portRef.isValid || portRef.isInput && portRef.index >= m_TypeState.inputPorts.Count || !portRef.isInput && portRef.index >= m_TypeState.outputPorts.Count)
+                if (!portRef.isValid || portRef.index >= m_TypeState.outputPorts.Count)
                 {
                     throw new InvalidOperationException($"{nameof(NodeTypeDescriptor)}.{nameof(NodeTypeDescriptor.inputs)} contains an invalid port at index {i}.");
-                }
-
-                if (portRef.isInput)
-                {
-                    var port = m_TypeState.inputPorts[portRef.index];
-                    throw new InvalidOperationException($"{nameof(NodeTypeDescriptor)}.{nameof(NodeTypeDescriptor.outputs)} contains an input port at index {i} ({port.ToString()}).");
                 }
 
                 i++;
@@ -93,13 +81,13 @@ namespace UnityEditor.ShaderGraph
                 m_TypeState.type.path = "Uncategorized";
             }
 
-            m_TypeState.type.inputs = new List<PortRef>(typeDescriptor.inputs);
-            m_TypeState.type.outputs = new List<PortRef>(typeDescriptor.outputs);
+            m_TypeState.type.inputs = new List<InputPortRef>(typeDescriptor.inputs);
+            m_TypeState.type.outputs = new List<OutputPortRef>(typeDescriptor.outputs);
 
             m_NodeTypeCreated = true;
         }
 
-        public PortRef CreateInputPort(int id, string displayName, PortValue value)
+        public InputPortRef CreateInputPort(int id, string displayName, PortValue value)
         {
             if (m_TypeState.inputPorts.Any(x => x.id == id) || m_TypeState.outputPorts.Any(x => x.id == id))
             {
@@ -107,10 +95,10 @@ namespace UnityEditor.ShaderGraph
             }
 
             m_TypeState.inputPorts.Add(new InputPortDescriptor { id = id, displayName = displayName, value = value });
-            return new PortRef(m_TypeState.inputPorts.Count, true);
+            return new InputPortRef(m_TypeState.inputPorts.Count);
         }
 
-        public PortRef CreateOutputPort(int id, string displayName, PortValueType type)
+        public OutputPortRef CreateOutputPort(int id, string displayName, PortValueType type)
         {
             if (m_TypeState.inputPorts.Any(x => x.id == id) || m_TypeState.outputPorts.Any(x => x.id == id))
             {
@@ -118,7 +106,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             m_TypeState.outputPorts.Add(new OutputPortDescriptor { id = id, displayName = displayName, type = type });
-            return new PortRef(m_TypeState.outputPorts.Count, false);
+            return new OutputPortRef(m_TypeState.outputPorts.Count);
         }
 
         void Validate()

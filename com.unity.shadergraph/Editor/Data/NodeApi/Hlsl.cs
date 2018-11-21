@@ -13,12 +13,16 @@ namespace UnityEditor.ShaderGraph
 
     public struct HlslSourceRef
     {
-        public int id { get; }
-        public bool isValid => id > 0;
+        // TODO: Use versioning
+        readonly int m_Index;
 
-        internal HlslSourceRef(int id)
+        internal int index => m_Index - 1;
+
+        public bool isValid => index > 0;
+
+        internal HlslSourceRef(int index)
         {
-            this.id = id;
+            m_Index = index + 1;
         }
     }
 
@@ -32,14 +36,21 @@ namespace UnityEditor.ShaderGraph
     {
         ArgumentUnion m_Union;
         public HlslArgumentType type { get; }
-        public PortRef portRef => m_Union.portRef;
+        public InputPortRef inputPortRef => m_Union.inputPortRef;
+        public OutputPortRef outputPortRef => m_Union.outputPortRef;
         public float vector1Value => m_Union.vector1Value;
         public HlslValueRef valueRef => m_Union.valueRef;
 
-        internal HlslArgument(PortRef portRef) : this()
+        internal HlslArgument(InputPortRef portRef) : this()
         {
-            type = HlslArgumentType.Port;
-            m_Union.portRef = portRef;
+            type = HlslArgumentType.InputPort;
+            m_Union.inputPortRef = portRef;
+        }
+
+        internal HlslArgument(OutputPortRef portRef) : this()
+        {
+            type = HlslArgumentType.OutputPort;
+            m_Union.outputPortRef = portRef;
         }
 
         internal HlslArgument(float vector1Value) : this()
@@ -58,7 +69,9 @@ namespace UnityEditor.ShaderGraph
         struct ArgumentUnion
         {
             [FieldOffset(0)]
-            public PortRef portRef;
+            public InputPortRef inputPortRef;
+            [FieldOffset(0)]
+            public OutputPortRef outputPortRef;
             [FieldOffset(0)]
             public float vector1Value;
             [FieldOffset(0)]
@@ -68,14 +81,31 @@ namespace UnityEditor.ShaderGraph
 
     public enum HlslArgumentType
     {
-        Port,
+        InputPort,
+        OutputPort,
         Vector1,
         Value
     }
 
+    struct HlslValue
+    {
+        // TODO: Support for more types
+        public float value;
+    }
+
     public struct HlslValueRef
     {
+        // TODO: Use versioning
+        readonly int m_Index;
 
+        internal int index => m_Index - 1;
+
+        public bool isValid => index > 0;
+
+        internal HlslValueRef(int index)
+        {
+            m_Index = index + 1;
+        }
     }
 
     public struct HlslFunctionDescriptor
@@ -83,14 +113,20 @@ namespace UnityEditor.ShaderGraph
         public HlslSourceRef source { get; set; }
         public string name { get; set; }
         public HlslArgumentList arguments { get; set; }
-        public PortRef returnValue { get; set; }
+        public OutputPortRef returnValue { get; set; }
     }
 
     public struct HlslArgumentList : IEnumerable<HlslArgument>
     {
         List<HlslArgument> m_Arguments;
 
-        public void Add(PortRef portRef)
+        public void Add(InputPortRef portRef)
+        {
+            m_Arguments = m_Arguments ?? new List<HlslArgument>();
+            m_Arguments.Add(new HlslArgument(portRef));
+        }
+
+        public void Add(OutputPortRef portRef)
         {
             m_Arguments = m_Arguments ?? new List<HlslArgument>();
             m_Arguments.Add(new HlslArgument(portRef));
