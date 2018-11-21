@@ -136,9 +136,8 @@ namespace UnityEditor.VFX.Test
             graph.RecompileIfNeeded(); //at this point, compilation is still legal
             particleId.outputSlots[0].Link(modulo.inputSlots[0]);
 
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("InvalidOperationException"));
             graph.RecompileIfNeeded();
-            //TEMP DISABLE : We have to figure out why this log doesn't occurs from katana
-            //LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("InvalidOperationException"));
 
             branch.outputSlots[0].UnlinkAll();
             graph.RecompileIfNeeded(); //Back to a legal state

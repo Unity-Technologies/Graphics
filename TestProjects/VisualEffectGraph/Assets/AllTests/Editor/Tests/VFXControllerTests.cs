@@ -560,7 +560,7 @@ namespace UnityEditor.VFX.Test
         public void UndoRedoAddBlockContext()
         {
             var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
-            var blockDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(AllType));
+            var blockDesc = new VFXModelDescriptor<VFXBlock>(ScriptableObject.CreateInstance<AllType>());
 
             m_ViewController.AddVFXContext(Vector2.one, contextUpdateDesc);
             Func<VFXContextController> fnContextController = delegate()
