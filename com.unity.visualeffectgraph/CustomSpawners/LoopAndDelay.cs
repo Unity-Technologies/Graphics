@@ -45,8 +45,8 @@ namespace UnityEditor.VFX
                 if (state.playing)
                 {
                     m_WaitingForTotalTime = state.totalTime + vfxValues.GetFloat(delayPropertyID); 
-                    state.playing = false; //We are in playing state, if m_LoopCurrentIndex + 1 == m_LoopMaxCount, we have finish here
-                    m_LoopCurrentIndex = m_LoopCurrentIndex + 1 > 0 ? m_LoopCurrentIndex + 1 : 0; //It's possible to count to infinite if m_LoopMaxCount < 0
+                    state.playing = false; //We are in playing state, if m_LoopCurrentIndex + 1 == m_LoopMaxCount, we have finished here
+                    m_LoopCurrentIndex = m_LoopCurrentIndex + 1 > 0 ? m_LoopCurrentIndex + 1 : 0; //It's possible to count to infinite if m_LoopMaxCount < 0, this ternary avoid stop going back to zero
                 }
                 else
                 {
