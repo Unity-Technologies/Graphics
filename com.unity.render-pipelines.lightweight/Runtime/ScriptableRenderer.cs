@@ -327,15 +327,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return clearFlag;
         }
 
-        public static PerObjectData GetRendererConfiguration(int additionalLightsCount)
+        public static PerObjectData GetPerObjectLightFlags(int mainLightIndex, int additionalLightsCount)
         {
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe;
-            if (additionalLightsCount > 0)
+            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData;
+            if (additionalLightsCount > 0 && !useStructuredBufferForLights)
             {
-                if (useStructuredBufferForLights)
-                    configuration |= PerObjectData.LightIndices;
-                else
-                    configuration |= PerObjectData.LightIndices8;
+                configuration |= PerObjectData.LightIndices;
             }
 
             return configuration;

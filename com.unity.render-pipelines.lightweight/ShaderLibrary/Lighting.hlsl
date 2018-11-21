@@ -45,15 +45,15 @@ struct Light
     half    shadowAttenuation;
 };
 
-int GetPerObjectLightIndex(half i)
+int GetPerObjectLightIndex(int index)
 {
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    return _AdditionalLightsBuffer[unity_LightIndicesOffsetAndCount.x + i];
+    return _AdditionalLightsBuffer[unity_LightData.x + index];
 #else
     // The following code is more optimal than indexing unity_4LightIndices0.
     // Conditional moves are branch free even on mali-400
-    half i_rem = (i < 2.0h) ? i : i - 2.0h;
-    half2 lightIndex2 = (i < 2.0h) ? unity_4LightIndices0.xy : unity_4LightIndices0.zw;
+    half2 lightIndex2 = (index < 2.0h) ? unity_LightIndices[0].xy : unity_LightIndices[0].zw;
+    half i_rem = (index < 2.0h) ? index : index - 2.0h;
     return (i_rem < 1.0h) ? lightIndex2.x : lightIndex2.y;
 #endif
 }
@@ -112,11 +112,7 @@ Light GetMainLight()
 {
     Light light;
     light.direction = _MainLightPosition.xyz;
-#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
-    light.distanceAttenuation = _MainLightPosition.w;
-#else
-    light.distanceAttenuation = 1.0;
-#endif
+    light.distanceAttenuation = unity_LightData.z;
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
@@ -130,7 +126,7 @@ Light GetMainLight(float4 shadowCoord)
     return light;
 }
 
-Light GetAdditionalLight(half i, float3 positionWS)
+Light GetAdditionalLight(int i, float3 positionWS)
 {
     int perObjectLightIndex = GetPerObjectLightIndex(i);
 
@@ -159,12 +155,12 @@ Light GetAdditionalLight(half i, float3 positionWS)
     return light;
 }
 
-half GetAdditionalLightsCount()
+int GetAdditionalLightsCount()
 {
     // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
     // in the culling. This way we could do the loop branch with an uniform
     // This would be helpful to support baking exceeding lights in SH as well
-    return min(_AdditionalLightsCount.x, unity_LightIndicesOffsetAndCount.y);
+    return min(_AdditionalLightsCount.x, unity_LightData.y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
