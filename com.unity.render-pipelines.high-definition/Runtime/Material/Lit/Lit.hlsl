@@ -435,8 +435,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
-    FillMaterialTransparencyData( surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance,
-                                    surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
+    FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance,
+        surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
 #endif
 
     ApplyDebugToBSDFData(bsdfData);
@@ -1560,7 +1560,6 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
 #if HAS_REFRACTION
-
     // Refraction process:
     //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
     //  2. We calculate the screen space position of the refracted point
@@ -1793,7 +1792,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // since we know it won't be further processed: it is called at the end of the LightLoop(), but doing this
     // enables opacity to affect it (in ApplyBlendMode()) while the rest of specularLighting escapes it.
 #if HAS_REFRACTION
-    diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask);
+    diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask * _EnableSSRefraction);
 #endif
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;

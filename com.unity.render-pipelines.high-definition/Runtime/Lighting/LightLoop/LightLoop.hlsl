@@ -273,7 +273,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION))
     {
         float reflectionHierarchyWeight = 0.0; // Max: 1.0
-        float refractionHierarchyWeight = 0.0; // Max: 1.0
+        float refractionHierarchyWeight = _EnableSSRefraction ? 0.0 : 1.0; // Max: 1.0
 
         uint envLightStart, envLightCount;
 
@@ -317,7 +317,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             envLightData = InitSkyEnvLightData(0);
         }
 
-        if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
+        if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
         {
             IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
             AccumulateIndirectLighting(lighting, aggregateLighting);
@@ -377,7 +377,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     // The refraction probe is rarely used and happen only with sphere shape and high IOR. So we accept the slow path that use more simple code and
                     // doesn't affect the performance of the reflection which is more important.
                     // We reuse LIGHTFEATUREFLAGS_SSREFRACTION flag as refraction is mainly base on the screen. Would be a waste to not use screen and only cubemap.
-                    if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && refractionHierarchyWeight < 1.0)
+                    if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
                     {
                         EVALUATE_BSDF_ENV(s_envLightData, REFRACTION, refraction);
                     }
@@ -401,12 +401,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 EVALUATE_BSDF_ENV_SKY(envLightSky, REFLECTION, reflection);
             }
 
-            if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
+            if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
             {
-                if (refractionHierarchyWeight < 1.0)
-                {
-                    EVALUATE_BSDF_ENV_SKY(envLightSky, REFRACTION, refraction);
-                }
+                EVALUATE_BSDF_ENV_SKY(envLightSky, REFRACTION, refraction);
             }
         }
     }
