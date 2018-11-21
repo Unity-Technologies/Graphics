@@ -11,9 +11,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // TODO: Move back to core once debug menu is there.
     public class CullingDebugParameters
     {
-        public bool useNewCulling = false;
+        public bool useNewCulling = true;
         public bool freezeVisibility = false;
-        public bool enableJobs = false;
+        public bool enableJobs = true;
         public bool gatherStats = false;
         public CullingTestMask disabledTests = 0;
         public CullerStatistics statistics;
@@ -1175,6 +1175,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 FrameSettings currentFrameSettings = new FrameSettings();
                 // Get the effective frame settings for this camera taking into account the global setting and camera type
                 FrameSettings.InitializeFrameSettings(camera, m_Asset.GetRenderPipelineSettings(), srcFrameSettings, ref currentFrameSettings);
+                if (m_CullingDebug.useNewCulling)
+                    currentFrameSettings.enableDecals = false;
 
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");
@@ -1410,11 +1412,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Now that all depths have been rendered, resolve the depth buffer
                     m_SharedRTManager.ResolveSharedRT(cmd, hdCamera);
 
-                    if (!m_CullingDebug.useNewCulling)
-                    {
-                        // This will bind the depth buffer if needed for DBuffer)
-                        RenderDBuffer(hdCamera, cmd, renderContext, cullingResults);
-                    }
+                    // This will bind the depth buffer if needed for DBuffer)
+                    RenderDBuffer(hdCamera, cmd, renderContext, cullingResults);
 
                     RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
