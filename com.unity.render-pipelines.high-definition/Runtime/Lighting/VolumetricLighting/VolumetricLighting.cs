@@ -551,7 +551,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes)
+        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes, LightLoop lightLoop)
         {
             if (!hdCamera.frameSettings.enableVolumetrics)
                 return;
@@ -599,6 +599,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     volumeAtlas = CoreUtils.blackVolumeTexture;
+                }
+
+                if(hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
+                {
+                    // We explicitly set the big tile info even though it is set globally, since this could be running async before the PushGlobalParams
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileX, lightLoop.GetNumTileBigTileX(hdCamera));
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileY, lightLoop.GetNumTileBigTileY(hdCamera));
+                    if (hdCamera.frameSettings.lightLoopSettings.enableBigTilePrepass)
+                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, lightLoop.GetBigTileLightList());
                 }
 
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);

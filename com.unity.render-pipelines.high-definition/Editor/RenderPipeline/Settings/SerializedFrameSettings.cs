@@ -36,6 +36,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty runBuildLightListAsync;
         public SerializedProperty runSSRAsync;
         public SerializedProperty runSSAOAsync;
+        public SerializedProperty runContactShadowsAsync;
+        public SerializedProperty runVolumeVoxelizationAsync;
 
         public SerializedProperty enableOpaqueObjects;
         public SerializedProperty enableTransparentObjects;
@@ -327,6 +329,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        public bool overrideContactShadowsInAsync
+        {
+            get { return (overrides.intValue & (int)FrameSettingsOverrides.ContactShadowsAsync) > 0; }
+            set
+            {
+                if (value)
+                    overrides.intValue |= (int)FrameSettingsOverrides.ContactShadowsAsync;
+                else
+                    overrides.intValue &= ~(int)FrameSettingsOverrides.ContactShadowsAsync;
+            }
+        }
+
+        public bool overrideVolumeVoxelizationInAsync
+        {
+            get { return (overrides.intValue & (int)FrameSettingsOverrides.VolumeVoxelizationsAsync) > 0; }
+            set
+            {
+                if (value)
+                    overrides.intValue |= (int)FrameSettingsOverrides.VolumeVoxelizationsAsync;
+                else
+                    overrides.intValue &= ~(int)FrameSettingsOverrides.VolumeVoxelizationsAsync;
+            }
+        }
 
         public bool overridesOpaqueObjects
         {
@@ -405,6 +430,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             runBuildLightListAsync = root.Find((FrameSettings d) => d.runLightListAsync);
             runSSRAsync = root.Find((FrameSettings d) => d.runSSRAsync);
             runSSAOAsync = root.Find((FrameSettings d) => d.runSSAOAsync);
+            runContactShadowsAsync = root.Find((FrameSettings d) => d.runContactShadowsAsync);
+            runVolumeVoxelizationAsync = root.Find((FrameSettings d) => d.runVolumeVoxelizationAsync);
             enableOpaqueObjects = root.Find((FrameSettings d) => d.enableOpaqueObjects);
             enableTransparentObjects = root.Find((FrameSettings d) => d.enableTransparentObjects);
             enableRealtimePlanarReflection = root.Find((FrameSettings d) => d.enableRealtimePlanarReflection);
