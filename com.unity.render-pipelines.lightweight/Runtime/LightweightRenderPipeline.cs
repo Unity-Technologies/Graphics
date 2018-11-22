@@ -236,9 +236,6 @@ namespace UnityEngine.Rendering.LWRP
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
             context.Submit();
-#if UNITY_EDITOR
-            Handles.DrawGizmos(camera);
-#endif
         }
 
         static void SetSupportedRenderingFeatures()
