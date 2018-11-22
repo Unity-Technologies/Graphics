@@ -327,7 +327,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114231452192305226}
   m_ParameterInfo: []
-  m_GraphVersion: 0
+  m_GraphVersion: 1
   m_saved: 1
 --- !u!114 &114545129920000872
 MonoBehaviour:
@@ -905,7 +905,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614529
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -448,7 +448,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114076296853126788
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2417,7 +2417,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114544607760722526
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2743,7 +2743,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114596895040484004
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3249,10 +3249,10 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 8926484042661614611}
+  - {fileID: 8926484042661614639}
   m_OutputSlots: []
   m_Disabled: 0
-  attribute: size
+  attribute: scale
   Composition: 0
   Source: 0
   Random: 0
@@ -3464,7 +3464,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114347380218361602}
   m_ParameterInfo: []
-  m_GraphVersion: 0
+  m_GraphVersion: 1
   m_saved: 1
 --- !u!114 &114723785641542666
 MonoBehaviour:
@@ -3753,7 +3753,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114793376342456972
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4362,7 +4362,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114901985431667716
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4571,7 +4571,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114942033044578306
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4813,7 +4813,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114992712407391230
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4873,7 +4873,7 @@ VisualEffectResource:
       deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to
       fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if
       VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer
-      inputAdditional;\n#endif\n\nvoid SetAttribute_E629757(inout float3 velocity,
+      inputAdditional;\n#endif\n\nvoid SetAttribute_E629755(inout float3 velocity,
       float3 Velocity) /*attribute:velocity Composition:Overwrite Source:Slot Random:Off
       channels:XYZ */\n{\n    velocity = Velocity;\n}\nvoid PositionSphere_0(inout
       float3 position, inout uint seed, inout float3 direction, float3 ArcSphere_sphere_center,
@@ -4883,7 +4883,7 @@ VisualEffectResource:
       * RAND, 1.0f / 3.0f);\n    \n    float2 sincosTheta;\n    sincos(theta, sincosTheta.x,
       sincosTheta.y);\n    sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);\n    \n    direction
       = float3(sincosTheta, cosPhi);\n    position += direction * (rNorm * ArcSphere_sphere_radius)
-      + ArcSphere_sphere_center;\n    \n}\nvoid SetAttribute_F01429A1(inout float
+      + ArcSphere_sphere_center;\n    \n}\nvoid SetAttribute_F01429A3(inout float
       lifetime, inout uint seed, float Min, float Max) /*attribute:lifetime Composition:Overwrite
       Source:Slot Random:Uniform channels:XYZ */\n{\n    lifetime = lerp(Min,Max,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
       CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId
@@ -4909,10 +4909,10 @@ VisualEffectResource:
       = (float)0;\n        float age = (float)0;\n        bool alive = (bool)true;\n
       \       \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
       VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n
-      \       \n        {\n            SetAttribute_E629757( /*inout */velocity, float3(0,0.7,0));\n
+      \       \n        {\n            SetAttribute_E629755( /*inout */velocity, float3(0,0.7,0));\n
       \       }\n        {\n            PositionSphere_0( /*inout */position,  /*inout
       */seed,  /*inout */direction, float3(0,0,0), (float)0.75, (float)6.283185, (float)1);\n
-      \       }\n        {\n            SetAttribute_F01429A1( /*inout */lifetime,
+      \       }\n        {\n            SetAttribute_F01429A3( /*inout */lifetime,
       \ /*inout */seed, (float)0.5, (float)1);\n        }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n
       \       if (alive)\n        {\n\t\t\tuint deadIndex = deadListIn.DecrementCounter();\n
       \           uint index = deadListIn[deadIndex];\n            attributeBuffer.Store3((index
@@ -5040,15 +5040,15 @@ VisualEffectResource:
       VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT
       1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_PIVOTX_CURRENT
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
-      1\n\t\t#define VFX_USE_SIZEX_CURRENT 1\n\t\t#define VFX_USE_TEXINDEX_CURRENT
-      1\n\t\t#define VFX_USE_SIZEZ_CURRENT 1\n\t\t#define VFX_BLENDMODE_ADD 1\n\t\t#define
-      USE_FLIPBOOK 1\n\t\t#define USE_FLIPBOOK_INTERPOLATION 1\n\t\t\n\t\t\n\t\t\n\t\t#define
-      VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float4 uniform_c;\n\t\t
-      \   float4 TexIndex_i;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
-      \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D mainTexture;\n\t\tSamplerState
-      samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
-      (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define IS_TRANSPARENT_PARTICLE
-      (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
+      1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
+      VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
+      VFX_USE_TEXINDEX_CURRENT 1\n\t\t#define VFX_BLENDMODE_ADD 1\n\t\t#define USE_FLIPBOOK
+      1\n\t\t#define USE_FLIPBOOK_INTERPOLATION 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
+      1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float4 uniform_c;\n\t\t    float4
+      TexIndex_i;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t    uint2
+      PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
+      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
+      IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
       indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
       deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
@@ -5072,25 +5072,25 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
-      SetAttribute_CEEAF35E(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
+      SetAttribute_CEEAF35C(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    alpha = Alpha;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_FDD06EC5(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
+      SetAttribute_FDD06EC7(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    color = Color;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_3278B22B(inout float sizeZ, float Size) /*attribute:size Composition:Overwrite
-      Source:Slot Random:Off channels:Z */\n\t\t\t{\n\t\t\t    sizeZ = Size.x;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_65DEC942(inout float pivotX, inout float pivotY, inout float pivotZ,
+      SetAttribute_D5151646(inout float scaleZ, float Scale) /*attribute:scale Composition:Overwrite
+      Source:Slot Random:Off channels:Z */\n\t\t\t{\n\t\t\t    scaleZ = Scale.x;\n\t\t\t}\n\t\t\tvoid
+      SetAttribute_65DEC940(inout float pivotX, inout float pivotY, inout float pivotZ,
       float3 Pivot) /*attribute:pivot Composition:Overwrite Source:Slot Random:Off
       channels:XYZ */\n\t\t\t{\n\t\t\t    pivotX = Pivot.x;\n\t\t\t    pivotY = Pivot.y;\n\t\t\t
       \   pivotZ = Pivot.z;\n\t\t\t}\n\t\t\tvoid Orient_2(inout float3 axisX, inout
       float3 axisY, inout float3 axisZ, float3 position, float3 Position) /*mode:LookAtPosition
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    axisZ = normalize(position - Position);\n\t\t\t
       \   axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));\n\t\t\t
-      \   axisY = cross(axisZ,axisX);\n\t\t\t    \n\t\t\t}\n\t\t\tvoid SetAttribute_6F3308BE(inout
+      \   axisY = cross(axisZ,axisX);\n\t\t\t    \n\t\t\t}\n\t\t\tvoid SetAttribute_6F3308BC(inout
       float3 axisY, float3 AxisY) /*attribute:axisY Composition:Overwrite Source:Slot
       Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    axisY = AxisY;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_37D0764F(inout float3 axisX, float3 AxisX) /*attribute:axisX Composition:Overwrite
+      SetAttribute_37D0764D(inout float3 axisX, float3 AxisX) /*attribute:axisX Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    axisX = AxisX;\n\t\t\t}\n\t\t\tvoid
-      AttributeFromCurve_E38970B9(inout float texIndex, float age, float lifetime,
+      AttributeFromCurve_E38970BB(inout float texIndex, float age, float lifetime,
       float4 TexIndex) /*attribute:texIndex Composition:Overwrite AlphaComposition:Overwrite
       SampleMode:OverLife Mode:PerComponent ColorMode:ColorAndAlpha channels:XYZ */\n\t\t\t{\n\t\t\t
       \   float t = age / lifetime;\n\t\t\t    float value = 0.0f;\n\t\t\t    value
@@ -5110,8 +5110,9 @@ VisualEffectResource:
       axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
       angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat
       pivotX = (float)0;\n\t\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat sizeX = (float)0.1;\n\t\t\t\t\t\t\tfloat
-      texIndex = (float)0;\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat size = (float)0.1;\n\t\t\t\t\t\t\tfloat
+      scaleX = (float)1;\n\t\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat texIndex = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
       alive = (attributeBuffer.Load((index * 0x8 + 0x7) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 velocity
@@ -5124,86 +5125,88 @@ VisualEffectResource:
       axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
       angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat
       pivotX = (float)0;\n\t\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat sizeX = (float)0.1;\n\t\t\t\t\t\t\tfloat
-      texIndex = (float)0;\n\t\t\t\t\t\t\tfloat sizeZ = (float)0.1;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_CEEAF35E( /*inout */alpha, (float)0.1);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bb = age / lifetime;\n\t\t\t\t    float tmp_bd = max(tmp_bb, (float)0);\n\t\t\t\t
-      \   float tmp_bf = min(tmp_bd, (float)1);\n\t\t\t\t    float4 tmp_bg = SampleGradient(uniform_b,tmp_bf);\n\t\t\t\t
-      \   float4 tmp_bh = SampleGradient(uniform_d,tmp_bf);\n\t\t\t\t    float4 tmp_bi
-      = tmp_bh - tmp_bg;\n\t\t\t\t    float4 tmp_bj = uniform_c * tmp_bi;\n\t\t\t\t
-      \   float4 tmp_bk = tmp_bg + tmp_bj;\n\t\t\t\t    float tmp_bl = tmp_bk[0];\n\t\t\t\t
-      \   float tmp_bm = tmp_bk[1];\n\t\t\t\t    float tmp_bn = tmp_bk[2];\n\t\t\t\t
-      \   float3 tmp_bo = float3(tmp_bl, tmp_bm, tmp_bn);\n\t\t\t\t    SetAttribute_FDD06EC5(
-      /*inout */color, tmp_bo);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_3278B22B(
-      /*inout */sizeZ, (float)0.2);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_65DEC942(
+      pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat size = (float)0.1;\n\t\t\t\t\t\t\tfloat
+      scaleX = (float)1;\n\t\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat texIndex = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_CEEAF35C( /*inout */alpha, (float)0.1);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   float tmp_bd = age / lifetime;\n\t\t\t\t    float tmp_bf = max(tmp_bd, (float)0);\n\t\t\t\t
+      \   float tmp_bh = min(tmp_bf, (float)1);\n\t\t\t\t    float4 tmp_bi = SampleGradient(uniform_b,tmp_bh);\n\t\t\t\t
+      \   float4 tmp_bj = SampleGradient(uniform_d,tmp_bh);\n\t\t\t\t    float4 tmp_bk
+      = tmp_bj - tmp_bi;\n\t\t\t\t    float4 tmp_bl = uniform_c * tmp_bk;\n\t\t\t\t
+      \   float4 tmp_bm = tmp_bi + tmp_bl;\n\t\t\t\t    float tmp_bn = tmp_bm[0];\n\t\t\t\t
+      \   float tmp_bo = tmp_bm[1];\n\t\t\t\t    float tmp_bp = tmp_bm[2];\n\t\t\t\t
+      \   float3 tmp_bq = float3(tmp_bn, tmp_bo, tmp_bp);\n\t\t\t\t    SetAttribute_FDD06EC7(
+      /*inout */color, tmp_bq);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_D5151646(
+      /*inout */scaleZ, (float)0.2);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_65DEC940(
       /*inout */pivotX,  /*inout */pivotY,  /*inout */pivotZ, float3(0,-0.5,-0.25));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
       \   Orient_2( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position,
-      float3(0,0,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    float3 tmp_bc = velocity
-      * velocity;\n\t\t\t\t    float tmp_bd = tmp_bc[2];\n\t\t\t\t    float tmp_be
-      = tmp_bc[1];\n\t\t\t\t    float tmp_bf = tmp_bd + tmp_be;\n\t\t\t\t    float
-      tmp_bg = tmp_bc[0];\n\t\t\t\t    float tmp_bh = tmp_bf + tmp_bg;\n\t\t\t\t    float
-      tmp_bj = pow(tmp_bh, (float)0.5);\n\t\t\t\t    float tmp_bk = (float)1 / tmp_bj;\n\t\t\t\t
-      \   float3 tmp_bl = float3(tmp_bk, tmp_bk, tmp_bk);\n\t\t\t\t    float3 tmp_bm
-      = velocity * tmp_bl;\n\t\t\t\t    float3 tmp_bo = tmp_bm * float3(-1,-1,-1);\n\t\t\t\t
-      \   SetAttribute_6F3308BE( /*inout */axisY, tmp_bo);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   float3 tmp_bc = velocity * velocity;\n\t\t\t\t    float tmp_bd = tmp_bc[2];\n\t\t\t\t
-      \   float tmp_be = tmp_bc[1];\n\t\t\t\t    float tmp_bf = tmp_bd + tmp_be;\n\t\t\t\t
-      \   float tmp_bg = tmp_bc[0];\n\t\t\t\t    float tmp_bh = tmp_bf + tmp_bg;\n\t\t\t\t
-      \   float tmp_bj = pow(tmp_bh, (float)0.5);\n\t\t\t\t    float tmp_bk = (float)1
-      / tmp_bj;\n\t\t\t\t    float3 tmp_bl = float3(tmp_bk, tmp_bk, tmp_bk);\n\t\t\t\t
-      \   float3 tmp_bm = velocity * tmp_bl;\n\t\t\t\t    float3 tmp_bo = tmp_bm *
-      float3(-1,-1,-1);\n\t\t\t\t    float tmp_bp = tmp_bo[1];\n\t\t\t\t    float
-      tmp_bq = axisZ[2];\n\t\t\t\t    float tmp_br = tmp_bp * tmp_bq;\n\t\t\t\t    float
-      tmp_bs = tmp_bo[2];\n\t\t\t\t    float tmp_bt = axisZ[1];\n\t\t\t\t    float
-      tmp_bu = tmp_bs * tmp_bt;\n\t\t\t\t    float tmp_bv = tmp_br - tmp_bu;\n\t\t\t\t
-      \   float tmp_bw = axisZ[0];\n\t\t\t\t    float tmp_bx = tmp_bs * tmp_bw;\n\t\t\t\t
-      \   float tmp_by = tmp_bo[0];\n\t\t\t\t    float tmp_bz = tmp_by * tmp_bq;\n\t\t\t\t
-      \   float tmp_ca = tmp_bx - tmp_bz;\n\t\t\t\t    float tmp_cb = tmp_by * tmp_bt;\n\t\t\t\t
-      \   float tmp_cc = tmp_bp * tmp_bw;\n\t\t\t\t    float tmp_cd = tmp_cb - tmp_cc;\n\t\t\t\t
-      \   float3 tmp_ce = float3(tmp_bv, tmp_ca, tmp_cd);\n\t\t\t\t    float3 tmp_cf
-      = tmp_ce * tmp_ce;\n\t\t\t\t    float tmp_cg = tmp_cf[2];\n\t\t\t\t    float
-      tmp_ch = tmp_cf[1];\n\t\t\t\t    float tmp_ci = tmp_cg + tmp_ch;\n\t\t\t\t    float
-      tmp_cj = tmp_cf[0];\n\t\t\t\t    float tmp_ck = tmp_ci + tmp_cj;\n\t\t\t\t    float
-      tmp_cl = pow(tmp_ck, (float)0.5);\n\t\t\t\t    float tmp_cm = (float)1 / tmp_cl;\n\t\t\t\t
-      \   float3 tmp_cn = float3(tmp_cm, tmp_cm, tmp_cm);\n\t\t\t\t    float3 tmp_co
-      = tmp_ce * tmp_cn;\n\t\t\t\t    SetAttribute_37D0764F( /*inout */axisX, tmp_co);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bb = axisZ[1];\n\t\t\t\t    float3 tmp_bd = velocity * velocity;\n\t\t\t\t
-      \   float tmp_be = tmp_bd[2];\n\t\t\t\t    float tmp_bf = tmp_bd[1];\n\t\t\t\t
-      \   float tmp_bg = tmp_be + tmp_bf;\n\t\t\t\t    float tmp_bh = tmp_bd[0];\n\t\t\t\t
-      \   float tmp_bi = tmp_bg + tmp_bh;\n\t\t\t\t    float tmp_bk = pow(tmp_bi,
-      (float)0.5);\n\t\t\t\t    float tmp_bl = (float)1 / tmp_bk;\n\t\t\t\t    float3
-      tmp_bm = float3(tmp_bl, tmp_bl, tmp_bl);\n\t\t\t\t    float3 tmp_bn = velocity
-      * tmp_bm;\n\t\t\t\t    float3 tmp_bp = tmp_bn * float3(-1,-1,-1);\n\t\t\t\t
-      \   float tmp_bq = tmp_bp[1];\n\t\t\t\t    float tmp_br = axisZ[2];\n\t\t\t\t
-      \   float tmp_bs = tmp_bq * tmp_br;\n\t\t\t\t    float tmp_bt = tmp_bp[2];\n\t\t\t\t
-      \   float tmp_bu = tmp_bt * tmp_bb;\n\t\t\t\t    float tmp_bv = tmp_bs - tmp_bu;\n\t\t\t\t
-      \   float tmp_bw = axisZ[0];\n\t\t\t\t    float tmp_bx = tmp_bt * tmp_bw;\n\t\t\t\t
-      \   float tmp_by = tmp_bp[0];\n\t\t\t\t    float tmp_bz = tmp_by * tmp_br;\n\t\t\t\t
-      \   float tmp_ca = tmp_bx - tmp_bz;\n\t\t\t\t    float tmp_cb = tmp_by * tmp_bb;\n\t\t\t\t
-      \   float tmp_cc = tmp_bq * tmp_bw;\n\t\t\t\t    float tmp_cd = tmp_cb - tmp_cc;\n\t\t\t\t
-      \   float3 tmp_ce = float3(tmp_bv, tmp_ca, tmp_cd);\n\t\t\t\t    float3 tmp_cf
-      = tmp_ce * tmp_ce;\n\t\t\t\t    float tmp_cg = tmp_cf[2];\n\t\t\t\t    float
-      tmp_ch = tmp_cf[1];\n\t\t\t\t    float tmp_ci = tmp_cg + tmp_ch;\n\t\t\t\t    float
-      tmp_cj = tmp_cf[0];\n\t\t\t\t    float tmp_ck = tmp_ci + tmp_cj;\n\t\t\t\t    float
-      tmp_cl = pow(tmp_ck, (float)0.5);\n\t\t\t\t    float tmp_cm = (float)1 / tmp_cl;\n\t\t\t\t
-      \   float3 tmp_cn = float3(tmp_cm, tmp_cm, tmp_cm);\n\t\t\t\t    float3 tmp_co
-      = tmp_ce * tmp_cn;\n\t\t\t\t    float tmp_cp = tmp_co[2];\n\t\t\t\t    float
-      tmp_cq = tmp_bb * tmp_cp;\n\t\t\t\t    float tmp_cr = tmp_co[1];\n\t\t\t\t    float
-      tmp_cs = tmp_br * tmp_cr;\n\t\t\t\t    float tmp_ct = tmp_cq - tmp_cs;\n\t\t\t\t
-      \   float tmp_cu = tmp_co[0];\n\t\t\t\t    float tmp_cv = tmp_br * tmp_cu;\n\t\t\t\t
-      \   float tmp_cw = tmp_bw * tmp_cp;\n\t\t\t\t    float tmp_cx = tmp_cv - tmp_cw;\n\t\t\t\t
-      \   float tmp_cy = tmp_bw * tmp_cr;\n\t\t\t\t    float tmp_cz = tmp_bb * tmp_cu;\n\t\t\t\t
-      \   float tmp_da = tmp_cy - tmp_cz;\n\t\t\t\t    float3 tmp_db = float3(tmp_ct,
-      tmp_cx, tmp_da);\n\t\t\t\t    SetAttribute_6F3308BE( /*inout */axisY, tmp_db);\n\t\t\t\t}\n\t\t\t\tAttributeFromCurve_E38970B9(
+      float3(0,0,0));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    float3 tmp_be = velocity
+      * velocity;\n\t\t\t\t    float tmp_bf = tmp_be[2];\n\t\t\t\t    float tmp_bg
+      = tmp_be[1];\n\t\t\t\t    float tmp_bh = tmp_bf + tmp_bg;\n\t\t\t\t    float
+      tmp_bi = tmp_be[0];\n\t\t\t\t    float tmp_bj = tmp_bh + tmp_bi;\n\t\t\t\t    float
+      tmp_bl = pow(tmp_bj, (float)0.5);\n\t\t\t\t    float tmp_bm = (float)1 / tmp_bl;\n\t\t\t\t
+      \   float3 tmp_bn = float3(tmp_bm, tmp_bm, tmp_bm);\n\t\t\t\t    float3 tmp_bo
+      = velocity * tmp_bn;\n\t\t\t\t    float3 tmp_bq = tmp_bo * float3(-1,-1,-1);\n\t\t\t\t
+      \   SetAttribute_6F3308BC( /*inout */axisY, tmp_bq);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   float3 tmp_be = velocity * velocity;\n\t\t\t\t    float tmp_bf = tmp_be[2];\n\t\t\t\t
+      \   float tmp_bg = tmp_be[1];\n\t\t\t\t    float tmp_bh = tmp_bf + tmp_bg;\n\t\t\t\t
+      \   float tmp_bi = tmp_be[0];\n\t\t\t\t    float tmp_bj = tmp_bh + tmp_bi;\n\t\t\t\t
+      \   float tmp_bl = pow(tmp_bj, (float)0.5);\n\t\t\t\t    float tmp_bm = (float)1
+      / tmp_bl;\n\t\t\t\t    float3 tmp_bn = float3(tmp_bm, tmp_bm, tmp_bm);\n\t\t\t\t
+      \   float3 tmp_bo = velocity * tmp_bn;\n\t\t\t\t    float3 tmp_bq = tmp_bo *
+      float3(-1,-1,-1);\n\t\t\t\t    float tmp_br = tmp_bq[1];\n\t\t\t\t    float
+      tmp_bs = axisZ[2];\n\t\t\t\t    float tmp_bt = tmp_br * tmp_bs;\n\t\t\t\t    float
+      tmp_bu = tmp_bq[2];\n\t\t\t\t    float tmp_bv = axisZ[1];\n\t\t\t\t    float
+      tmp_bw = tmp_bu * tmp_bv;\n\t\t\t\t    float tmp_bx = tmp_bt - tmp_bw;\n\t\t\t\t
+      \   float tmp_by = axisZ[0];\n\t\t\t\t    float tmp_bz = tmp_bu * tmp_by;\n\t\t\t\t
+      \   float tmp_ca = tmp_bq[0];\n\t\t\t\t    float tmp_cb = tmp_ca * tmp_bs;\n\t\t\t\t
+      \   float tmp_cc = tmp_bz - tmp_cb;\n\t\t\t\t    float tmp_cd = tmp_ca * tmp_bv;\n\t\t\t\t
+      \   float tmp_ce = tmp_br * tmp_by;\n\t\t\t\t    float tmp_cf = tmp_cd - tmp_ce;\n\t\t\t\t
+      \   float3 tmp_cg = float3(tmp_bx, tmp_cc, tmp_cf);\n\t\t\t\t    float3 tmp_ch
+      = tmp_cg * tmp_cg;\n\t\t\t\t    float tmp_ci = tmp_ch[2];\n\t\t\t\t    float
+      tmp_cj = tmp_ch[1];\n\t\t\t\t    float tmp_ck = tmp_ci + tmp_cj;\n\t\t\t\t    float
+      tmp_cl = tmp_ch[0];\n\t\t\t\t    float tmp_cm = tmp_ck + tmp_cl;\n\t\t\t\t    float
+      tmp_cn = pow(tmp_cm, (float)0.5);\n\t\t\t\t    float tmp_co = (float)1 / tmp_cn;\n\t\t\t\t
+      \   float3 tmp_cp = float3(tmp_co, tmp_co, tmp_co);\n\t\t\t\t    float3 tmp_cq
+      = tmp_cg * tmp_cp;\n\t\t\t\t    SetAttribute_37D0764D( /*inout */axisX, tmp_cq);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   float tmp_bd = axisZ[1];\n\t\t\t\t    float3 tmp_bf = velocity * velocity;\n\t\t\t\t
+      \   float tmp_bg = tmp_bf[2];\n\t\t\t\t    float tmp_bh = tmp_bf[1];\n\t\t\t\t
+      \   float tmp_bi = tmp_bg + tmp_bh;\n\t\t\t\t    float tmp_bj = tmp_bf[0];\n\t\t\t\t
+      \   float tmp_bk = tmp_bi + tmp_bj;\n\t\t\t\t    float tmp_bm = pow(tmp_bk,
+      (float)0.5);\n\t\t\t\t    float tmp_bn = (float)1 / tmp_bm;\n\t\t\t\t    float3
+      tmp_bo = float3(tmp_bn, tmp_bn, tmp_bn);\n\t\t\t\t    float3 tmp_bp = velocity
+      * tmp_bo;\n\t\t\t\t    float3 tmp_br = tmp_bp * float3(-1,-1,-1);\n\t\t\t\t
+      \   float tmp_bs = tmp_br[1];\n\t\t\t\t    float tmp_bt = axisZ[2];\n\t\t\t\t
+      \   float tmp_bu = tmp_bs * tmp_bt;\n\t\t\t\t    float tmp_bv = tmp_br[2];\n\t\t\t\t
+      \   float tmp_bw = tmp_bv * tmp_bd;\n\t\t\t\t    float tmp_bx = tmp_bu - tmp_bw;\n\t\t\t\t
+      \   float tmp_by = axisZ[0];\n\t\t\t\t    float tmp_bz = tmp_bv * tmp_by;\n\t\t\t\t
+      \   float tmp_ca = tmp_br[0];\n\t\t\t\t    float tmp_cb = tmp_ca * tmp_bt;\n\t\t\t\t
+      \   float tmp_cc = tmp_bz - tmp_cb;\n\t\t\t\t    float tmp_cd = tmp_ca * tmp_bd;\n\t\t\t\t
+      \   float tmp_ce = tmp_bs * tmp_by;\n\t\t\t\t    float tmp_cf = tmp_cd - tmp_ce;\n\t\t\t\t
+      \   float3 tmp_cg = float3(tmp_bx, tmp_cc, tmp_cf);\n\t\t\t\t    float3 tmp_ch
+      = tmp_cg * tmp_cg;\n\t\t\t\t    float tmp_ci = tmp_ch[2];\n\t\t\t\t    float
+      tmp_cj = tmp_ch[1];\n\t\t\t\t    float tmp_ck = tmp_ci + tmp_cj;\n\t\t\t\t    float
+      tmp_cl = tmp_ch[0];\n\t\t\t\t    float tmp_cm = tmp_ck + tmp_cl;\n\t\t\t\t    float
+      tmp_cn = pow(tmp_cm, (float)0.5);\n\t\t\t\t    float tmp_co = (float)1 / tmp_cn;\n\t\t\t\t
+      \   float3 tmp_cp = float3(tmp_co, tmp_co, tmp_co);\n\t\t\t\t    float3 tmp_cq
+      = tmp_cg * tmp_cp;\n\t\t\t\t    float tmp_cr = tmp_cq[2];\n\t\t\t\t    float
+      tmp_cs = tmp_bd * tmp_cr;\n\t\t\t\t    float tmp_ct = tmp_cq[1];\n\t\t\t\t    float
+      tmp_cu = tmp_bt * tmp_ct;\n\t\t\t\t    float tmp_cv = tmp_cs - tmp_cu;\n\t\t\t\t
+      \   float tmp_cw = tmp_cq[0];\n\t\t\t\t    float tmp_cx = tmp_bt * tmp_cw;\n\t\t\t\t
+      \   float tmp_cy = tmp_by * tmp_cr;\n\t\t\t\t    float tmp_cz = tmp_cx - tmp_cy;\n\t\t\t\t
+      \   float tmp_da = tmp_by * tmp_ct;\n\t\t\t\t    float tmp_db = tmp_bd * tmp_cw;\n\t\t\t\t
+      \   float tmp_dc = tmp_da - tmp_db;\n\t\t\t\t    float3 tmp_dd = float3(tmp_cv,
+      tmp_cz, tmp_dc);\n\t\t\t\t    SetAttribute_6F3308BC( /*inout */axisY, tmp_dd);\n\t\t\t\t}\n\t\t\t\tAttributeFromCurve_E38970BB(
       /*inout */texIndex, age, lifetime, TexIndex_i);\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\tfloat3 offsets = (float3)0;\n\t\t\t\toffsets.x
       = float(id & 1);\n\t\t\t\toffsets.y = float((id & 3) >> 1);\n\t\t\t\toffsets.z
       = float((id & 7) >> 2);\n\t\t\t\toffsets -= 0.5f;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
-      size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
-      = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
-      = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3x3
-      rot = GetEulerMatrix(radians(float3(angleX,angleY,angleZ)));\n\t\t\t\tfloat4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,rot,float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\t\n\t\t\t\tfloat3
+      size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
+      *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
+      *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
+      *= scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3x3 rot
+      = GetEulerMatrix(radians(float3(angleX,angleY,angleZ)));\n\t\t\t\tfloat4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,rot,float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(offsets,1.0f)).xyz;\n\t\t\t\tfloat3 vPosWS =
       TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t#ifdef VFX_VARYING_POSWS\n\t\t\t\to.VFX_VARYING_POSWS
       = vPosWS;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_OFFSETS\n\t\t\t\to.VFX_VARYING_OFFSETS
@@ -5227,7 +5230,7 @@ VisualEffectResource:
       = (float2)0;\n\t\t{\n\t\t    \n\t\t    invFlipBookSize = float2(0.25,0.25);\n\t\t}\n\t\t\n\n\t\t\t\t\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_FLIPBOOKSIZE
       = flipBookSize;\n\t\t\t\to.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;\n\t\t\t\to.VFX_VARYING_TEXINDEX
       = texIndex;\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat4x4 viewToDecal
-      = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\t\t\t#if
+      = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\t\t\t#if
       VFX_LOCAL_SPACE\n\t\t\t\t\t\tviewToDecal = mul(viewToDecal, VFXGetWorldToObjectMatrix());\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\tviewToDecal
       = mul(viewToDecal, VFXGetViewToWorldMatrix());\n\t\t\t\t\t\to.viewToDecal0 =
       viewToDecal[0];\n\t\t\t\t\t\to.viewToDecal1 = viewToDecal[1];\n\t\t\t\t\t\to.viewToDecal2
@@ -8163,7 +8166,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 2
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8262,7 +8265,7 @@ MonoBehaviour:
   SampleMode: 0
   Mode: 1
   ColorMode: 3
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614597
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8778,41 +8781,6 @@ MonoBehaviour:
     m_Space: 2147483647
   m_Property:
     name: z
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &8926484042661614611
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661614611}
-  m_MasterData:
-    m_Owner: {fileID: 114689927502496910}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.2
-    m_Space: 2147483647
-  m_Property:
-    name: Size
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -9788,4 +9756,39 @@ MonoBehaviour:
         PublicKeyToken=b77a5c561934e089
     attributes: []
   m_Direction: 1
+  m_LinkedSlots: []
+--- !u!114 &8926484042661614639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614639}
+  m_MasterData:
+    m_Owner: {fileID: 114689927502496910}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0.2
+    m_Space: 2147483647
+  m_Property:
+    name: Scale
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
   m_LinkedSlots: []

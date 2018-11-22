@@ -140,7 +140,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
-  m_GraphVersion: 0
+  m_GraphVersion: 1
   m_saved: 1
 --- !u!2058629511 &8926484042661614527
 VisualEffectResource:
@@ -156,7 +156,7 @@ VisualEffectResource:
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
       64\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_POSITION_CURRENT 1\n#define
       VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_DIRECTION_CURRENT
-      1\n#define VFX_USE_SIZEX_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
+      1\n#define VFX_USE_SIZE_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
       1\n#define VFX_LOCAL_SPACE 1\n\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
       attributeBuffer;\nByteAddressBuffer sourceAttributeBuffer;\n\nCBUFFER_START(initParams)\n#if
@@ -167,7 +167,7 @@ VisualEffectResource:
       deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to
       fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if
       VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer
-      inputAdditional;\n#endif\n\nvoid SetAttribute_F0142CBB(inout float lifetime,
+      inputAdditional;\n#endif\n\nvoid SetAttribute_F0142CB9(inout float lifetime,
       float Lifetime) /*attribute:lifetime Composition:Overwrite Source:Slot Random:Off
       channels:XYZ */\n{\n    lifetime = Lifetime;\n}\nvoid PositionAABox_18D(inout
       float3 position, inout uint seed, float3 Box_center, float3 Box_size) /*positionMode:Volume
@@ -177,8 +177,8 @@ VisualEffectResource:
       */\n{\n    float3 randomDirection = normalize(RAND3 * 2.0f - 1.0f);\n    float
       speed = Speed;\n    direction = VFXSafeNormalize(lerp(direction, randomDirection,
       DirectionBlend));\n    velocity += direction * speed;\n}\nvoid SetAttribute_3278B543(inout
-      float sizeX, inout uint seed, float Min, float Max) /*attribute:size Composition:Overwrite
-      Source:Slot Random:Uniform channels:X */\n{\n    sizeX = lerp(Min.x,Max.x,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      float size, inout uint seed, float Min, float Max) /*attribute:size Composition:Overwrite
+      Source:Slot Random:Uniform channels:X */\n{\n    size = lerp(Min,Max,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
       CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId
       \   : SV_GroupThreadID)\n{\n    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;\n#if
       !VFX_USE_SPAWNER_FROM_GPU\n    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n#endif\n\n#if
@@ -199,15 +199,15 @@ VisualEffectResource:
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
       = (float)0;\n        float3 position = float3(0,0,0);\n        uint seed = (uint)0;\n
       \       float3 velocity = float3(0,0,0);\n        float3 direction = float3(0,0,1);\n
-      \       float sizeX = (float)0.1;\n        float age = (float)0;\n        bool
+      \       float size = (float)0.1;\n        float age = (float)0;\n        bool
       alive = (bool)true;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId
       = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex
-      ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_F0142CBB(
+      ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_F0142CB9(
       /*inout */lifetime, (float)1);\n        }\n        {\n            PositionAABox_18D(
       /*inout */position,  /*inout */seed, float3(0,0,0), float3(2.5,2.5,2.5));\n
       \       }\n        {\n            VelocityRandomize_18D( /*inout */velocity,
       \ /*inout */direction,  /*inout */seed, (float)1, (float)1);\n        }\n        {\n
-      \           SetAttribute_3278B543( /*inout */sizeX,  /*inout */seed, (float)0.02,
+      \           SetAttribute_3278B543( /*inout */size,  /*inout */seed, (float)0.02,
       (float)0.1);\n        }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if
       (alive)\n        {\n\t\t\tuint deadIndex = deadListIn.DecrementCounter();\n
       \           uint index = deadListIn[deadIndex];\n            attributeBuffer.Store((index
@@ -215,7 +215,7 @@ VisualEffectResource:
       * 0x4 + 0x2000) << 2,asuint(position));\n            attributeBuffer.Store((index
       * 0x8 + 0xA003) << 2,asuint(seed));\n            attributeBuffer.Store3((index
       * 0x8 + 0xA000) << 2,asuint(velocity));\n            attributeBuffer.Store((index
-      * 0x1 + 0x1A000) << 2,asuint(sizeX));\n            attributeBuffer.Store((index
+      * 0x1 + 0x1A000) << 2,asuint(size));\n            attributeBuffer.Store((index
       * 0x8 + 0xA004) << 2,asuint(age));\n            attributeBuffer.Store((index
       * 0x4 + 0x2003) << 2,uint(alive));\n            \n\n        }\n#else\n        uint
       index = particleIndex;\n        attributeBuffer.Store((index * 0x1 + 0x0) <<
@@ -223,45 +223,45 @@ VisualEffectResource:
       << 2,asuint(position));\n        attributeBuffer.Store((index * 0x8 + 0xA003)
       << 2,asuint(seed));\n        attributeBuffer.Store3((index * 0x8 + 0xA000) <<
       2,asuint(velocity));\n        attributeBuffer.Store((index * 0x1 + 0x1A000)
-      << 2,asuint(sizeX));\n        attributeBuffer.Store((index * 0x8 + 0xA004) <<
+      << 2,asuint(size));\n        attributeBuffer.Store((index * 0x8 + 0xA004) <<
       2,asuint(age));\n        attributeBuffer.Store((index * 0x4 + 0x2003) << 2,uint(alive));\n
       \       \n\n#endif\n    }\n}\n"
   - compute: 1
     name: '[System 1]Update'
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
       64\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_POSITION_CURRENT 1\n#define
-      VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_SIZEX_CURRENT
-      1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT 1\n#define VFX_LOCAL_SPACE
-      1\n\n\nCBUFFER_START(parameters)\n    float deltaTime_a;\n    uint3 PADDING_0;\nCBUFFER_END\n\n\n#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
+      VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_SIZE_CURRENT
+      1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_SCALEZ_CURRENT 1\n#define
+      VFX_USE_SCALEY_CURRENT 1\n#define VFX_USE_SCALEX_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
+      1\n#define VFX_LOCAL_SPACE 1\n\n\nCBUFFER_START(parameters)\n    float deltaTime_a;\n
+      \   uint3 PADDING_0;\nCBUFFER_END\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
       attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint> deadListOut;\n#endif\n\n#if
       VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint> indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n
       \   uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\nvoid
       Gravity(inout float3 velocity, float3 Force, float deltaTime)\n{\n    velocity
       += Force * deltaTime;\n}\nvoid CollisionSphere_18C(inout float3 position, inout
-      float3 velocity, inout float age, float lifetime, inout uint seed, float sizeX,
-      float3 Sphere_center, float Sphere_radius, float Elasticity, float Friction,
-      float LifetimeLoss, float Roughness, float deltaTime, float colliderSign, float
-      radius) /*mode:Solid radiusMode:FromSize roughSurface:True */\n{\n    \n    float3
-      nextPos = position + velocity * deltaTime;\n    float3 dir = nextPos - Sphere_center;\n
-      \   float sqrLength = dot(dir, dir);\n    float totalRadius = Sphere_radius
-      + colliderSign * radius;\n    if (colliderSign * sqrLength <= colliderSign *
-      totalRadius * totalRadius)\n    {\n        float dist = sqrt(sqrLength);\n        float3
-      n = colliderSign * dir / dist;\n        position -= n * (dist - totalRadius)
-      * colliderSign;\n    \n        float3 randomNormal = normalize(RAND3 * 2.0f
-      - 1.0f);\n        randomNormal = (dot(randomNormal, n) < 0.0f) ? -randomNormal
-      : randomNormal;    // random normal on hemisphere, relative to the normal\n
-      \       n = normalize(lerp(n, randomNormal, Roughness));\n    \n        float
-      projVelocity = dot(n, velocity);\n    \n        float3 normalVelocity = projVelocity
-      * n;\n        float3 tangentVelocity = velocity - normalVelocity;\n    \n        if
-      (projVelocity < 0)\n            velocity -= ((1 + Elasticity) * projVelocity)
-      * n;\n        velocity -= Friction * tangentVelocity;\n    \n        age +=
-      (LifetimeLoss * lifetime);\n    \n    }\n}\nvoid EulerIntegration(inout float3
-      position, float3 velocity, float deltaTime)\n{\n    position += velocity * deltaTime;\n}\nvoid
-      Age(inout float age, float deltaTime)\n{\n    age += deltaTime;\n}\nvoid Reap(float
-      age, float lifetime, inout bool alive)\n{\n    if(age > lifetime) { alive =
-      false; }\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3
+      float3 velocity, inout float age, float lifetime, inout uint seed, float3 Sphere_center,
+      float Sphere_radius, float Elasticity, float Friction, float LifetimeLoss, float
+      Roughness, float deltaTime, float colliderSign, float radius) /*mode:Solid radiusMode:FromSize
+      roughSurface:True */\n{\n    \n    float3 nextPos = position + velocity * deltaTime;\n
+      \   float3 dir = nextPos - Sphere_center;\n    float sqrLength = dot(dir, dir);\n
+      \   float totalRadius = Sphere_radius + colliderSign * radius;\n    if (colliderSign
+      * sqrLength <= colliderSign * totalRadius * totalRadius)\n    {\n        float
+      dist = sqrt(sqrLength);\n        float3 n = colliderSign * dir / dist;\n        position
+      -= n * (dist - totalRadius) * colliderSign;\n    \n        float3 randomNormal
+      = normalize(RAND3 * 2.0f - 1.0f);\n        randomNormal = (dot(randomNormal,
+      n) < 0.0f) ? -randomNormal : randomNormal;    // random normal on hemisphere,
+      relative to the normal\n        n = normalize(lerp(n, randomNormal, Roughness));\n
+      \   \n        float projVelocity = dot(n, velocity);\n    \n        float3 normalVelocity
+      = projVelocity * n;\n        float3 tangentVelocity = velocity - normalVelocity;\n
+      \   \n        if (projVelocity < 0)\n            velocity -= ((1 + Elasticity)
+      * projVelocity) * n;\n        velocity -= Friction * tangentVelocity;\n    \n
+      \       age += (LifetimeLoss * lifetime);\n    \n    }\n}\nvoid EulerIntegration(inout
+      float3 position, float3 velocity, float deltaTime)\n{\n    position += velocity
+      * deltaTime;\n}\nvoid Age(inout float age, float deltaTime)\n{\n    age += deltaTime;\n}\nvoid
+      Reap(float age, float lifetime, inout bool alive)\n{\n    if(age > lifetime)
+      { alive = false; }\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3
       groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n\tuint
       id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth
       * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif (id < nbMax)\n\t{\n#if VFX_USE_ALIVE_CURRENT\n\t\tbool
@@ -270,15 +270,18 @@ VisualEffectResource:
       0x1 + 0x0) << 2));\n\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x2000) << 2));\n\t\t\tuint seed = (attributeBuffer.Load((index * 0x8
       + 0xA003) << 2));\n\t\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0xA000) << 2));\n\t\t\tfloat sizeX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0xA000) << 2));\n\t\t\tfloat size = asfloat(attributeBuffer.Load((index
       * 0x1 + 0x1A000) << 2));\n\t\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x8 + 0xA004) << 2));\n\t\t\t\n\n\t\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition
+      * 0x8 + 0xA004) << 2));\n\t\t\tfloat scaleZ = (float)1;\n\t\t\tfloat scaleY
+      = (float)1;\n\t\t\tfloat scaleX = (float)1;\n\t\t\t\n\n\t\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition
       = position;\n#endif\n\t\t\t\n\t\t\t{\n\t\t\t    Gravity( /*inout */velocity,
-      float3(0,-5,0), deltaTime_a);\n\t\t\t}\n\t\t\t{\n\t\t\t    float tmp_y = sizeX
-      * (float)0.5;\n\t\t\t    CollisionSphere_18C( /*inout */position,  /*inout */velocity,
-      \ /*inout */age, lifetime,  /*inout */seed, sizeX, float3(0,0,0), (float)1,
-      (float)0.5, (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_y);\n\t\t\t}\n\t\t\tEulerIntegration(
-      /*inout */position, velocity, deltaTime_a);\n\t\t\tAge( /*inout */age, deltaTime_a);\n\t\t\tReap(age,
+      float3(0,-5,0), deltaTime_a);\n\t\t\t}\n\t\t\t{\n\t\t\t    float tmp_bb = max(scaleY,
+      scaleX);\n\t\t\t    float tmp_bc = max(scaleZ, tmp_bb);\n\t\t\t    float tmp_bd
+      = tmp_bc * size;\n\t\t\t    float tmp_be = tmp_bd * (float)0.5;\n\t\t\t    CollisionSphere_18C(
+      /*inout */position,  /*inout */velocity,  /*inout */age, lifetime,  /*inout
+      */seed, float3(0,0,0), (float)1, (float)0.5, (float)0.5, (float)0, (float)0.5,
+      deltaTime_a, (float)1, tmp_be);\n\t\t\t}\n\t\t\tEulerIntegration( /*inout */position,
+      velocity, deltaTime_a);\n\t\t\tAge( /*inout */age, deltaTime_a);\n\t\t\tReap(age,
       lifetime,  /*inout */alive);\n\t\t\t\n\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index
       * 0x4 + 0x2000) << 2,asuint(position));\n\t\t\t\tattributeBuffer.Store((index
       * 0x8 + 0xA003) << 2,asuint(seed));\n\t\t\t\tattributeBuffer.Store3((index *
@@ -291,15 +294,17 @@ VisualEffectResource:
       * 0x1 + 0x0) << 2));\n\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x2000) << 2));\n\t\tuint seed = (attributeBuffer.Load((index * 0x8
       + 0xA003) << 2));\n\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0xA000) << 2));\n\t\tfloat sizeX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0xA000) << 2));\n\t\tfloat size = asfloat(attributeBuffer.Load((index
       * 0x1 + 0x1A000) << 2));\n\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x8 + 0xA004) << 2));\n\t\tbool alive = (attributeBuffer.Load((index * 0x4
-      + 0x2003) << 2));\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition
-      = position;\n#endif\n\t\t\n\t\t{\n\t\t    Gravity( /*inout */velocity, float3(0,-5,0),
-      deltaTime_a);\n\t\t}\n\t\t{\n\t\t    float tmp_y = sizeX * (float)0.5;\n\t\t
-      \   CollisionSphere_18C( /*inout */position,  /*inout */velocity,  /*inout */age,
-      lifetime,  /*inout */seed, sizeX, float3(0,0,0), (float)1, (float)0.5, (float)0.5,
-      (float)0, (float)0.5, deltaTime_a, (float)1, tmp_y);\n\t\t}\n\t\tEulerIntegration(
+      * 0x8 + 0xA004) << 2));\n\t\tfloat scaleZ = (float)1;\n\t\tfloat scaleY = (float)1;\n\t\tfloat
+      scaleX = (float)1;\n\t\tbool alive = (attributeBuffer.Load((index * 0x4 + 0x2003)
+      << 2));\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition = position;\n#endif\n\t\t\n\t\t{\n\t\t
+      \   Gravity( /*inout */velocity, float3(0,-5,0), deltaTime_a);\n\t\t}\n\t\t{\n\t\t
+      \   float tmp_bb = max(scaleY, scaleX);\n\t\t    float tmp_bc = max(scaleZ,
+      tmp_bb);\n\t\t    float tmp_bd = tmp_bc * size;\n\t\t    float tmp_be = tmp_bd
+      * (float)0.5;\n\t\t    CollisionSphere_18C( /*inout */position,  /*inout */velocity,
+      \ /*inout */age, lifetime,  /*inout */seed, float3(0,0,0), (float)1, (float)0.5,
+      (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_be);\n\t\t}\n\t\tEulerIntegration(
       /*inout */position, velocity, deltaTime_a);\n\t\tAge( /*inout */age, deltaTime_a);\n\t\tReap(age,
       lifetime,  /*inout */alive);\n\t\t\n\n\t\tattributeBuffer.Store3((index * 0x4
       + 0x2000) << 2,asuint(position));\n\t\tattributeBuffer.Store((index * 0x8 +
@@ -316,14 +321,16 @@ VisualEffectResource:
       SrcAlpha One\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#include \"HLSLSupport.cginc\"\n\t\t#define NB_THREADS_PER_GROUP
-      64\n\t\t#define VFX_USE_POSITION_CURRENT 1\n\t\t#define VFX_USE_SIZEX_CURRENT
-      1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT 1\n\t\t#define
-      VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define VFX_USE_AXISY_CURRENT
-      1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define
-      VFX_USE_ANGLEY_CURRENT 1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define
-      VFX_USE_PIVOTX_CURRENT 1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define
-      VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define VFX_BLENDMODE_ADD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
-      VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tTexture2D mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
+      64\n\t\t#define VFX_USE_POSITION_CURRENT 1\n\t\t#define VFX_USE_SIZE_CURRENT
+      1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define VFX_USE_SCALEY_CURRENT
+      1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define
+      VFX_USE_ALPHA_CURRENT 1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT
+      1\n\t\t#define VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_PIVOTX_CURRENT 1\n\t\t#define
+      VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define
+      VFX_BLENDMODE_ADD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tTexture2D
+      mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
       VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
       IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
@@ -350,9 +357,9 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
-      SetAttribute_FDD06EC5(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
+      SetAttribute_FDD06EC7(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    color = Color;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_CEEAF35E(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
+      SetAttribute_CEEAF35C(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    alpha = Alpha;\n\t\t\t}\n\t\t\tvoid
       Orient_1(inout float3 axisX, inout float3 axisY, inout float3 axisZ, float3
       position) /*mode:FaceCameraPosition */\n\t\t\t{\n\t\t\t    \n\t\t\t    if (unity_OrthoParams.w
@@ -365,21 +372,23 @@ VisualEffectResource:
       \   else\n\t\t\t    {\n\t\t\t        axisZ = normalize(position - GetViewVFXPosition());\n\t\t\t
       \       axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));\n\t\t\t
       \       axisY = cross(axisZ,axisX);\n\t\t\t    }\n\t\t\t    \n\t\t\t}\n\t\t\tvoid
-      SubpixelAA(float3 position, inout float alpha, inout float sizeX)\n\t\t\t{\n\t\t\t
-      \   \n\t\t\t    float2 size = float2(sizeX,sizeX);\n\t\t\t    float clipPosW
-      = TransformPositionVFXToClip(position).w;\n\t\t\t    float minSize = clipPosW
-      / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] *
-      _ScreenParams.y)); // max size in one pixel\n\t\t\t    float2 clampedSize =
-      max(size,minSize);\n\t\t\t    float fade = (size.x * size.y) / (clampedSize.x
-      * clampedSize.y);\n\t\t\t    alpha *= fade;\n\t\t\t    size = clampedSize;\n\t\t\t
-      \   sizeX = size.x;\n\t\t\t    \n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex
-      vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID
-      : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if
-      USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn
-      o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat3
+      SubpixelAA(float3 position, inout float alpha, float size, inout float scaleX,
+      inout float scaleY)\n\t\t\t{\n\t\t\t    \n\t\t\t    float2 localSize = size
+      * float2(scaleX, scaleY);\n\t\t\t    float clipPosW = TransformPositionVFXToClip(position).w;\n\t\t\t
+      \   float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1]
+      * _ScreenParams.y)); // max size in one pixel\n\t\t\t    float2 clampedSize
+      = max(localSize,minSize);\n\t\t\t    float fade = (localSize.x * localSize.y)
+      / (clampedSize.x * clampedSize.y);\n\t\t\t    alpha *= fade;\n\t\t\t    localSize
+      = clampedSize;\n\t\t\t    scaleX = localSize.x / size;\n\t\t\t    scaleY = localSize.y
+      / size;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
+      vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint
+      index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex
+      = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat size = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
       alive = (attributeBuffer.Load((index * 0x4 + 0x2003) << 2));\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
@@ -391,27 +400,29 @@ VisualEffectResource:
       alive = (attributeBuffer.Load((index * 0x4 + 0x2003) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 position
       = asfloat(attributeBuffer.Load3((index * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotX = (float)0;\n\t\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotZ = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_FDD06EC5( /*inout */color, float3(1,0.1,0.1));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_CEEAF35E( /*inout */alpha, (float)0.3);\n\t\t\t\t}\n\t\t\t\tOrient_1(
+      size = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat
+      scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleX = (float)1;\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      alpha = (float)1;\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
+      angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
+      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_FDD06EC7( /*inout */color, float3(1,0.1,0.1));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_CEEAF35C( /*inout */alpha, (float)0.3);\n\t\t\t\t}\n\t\t\t\tOrient_1(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position);\n\t\t\t\tSubpixelAA(position,
-      \ /*inout */alpha,  /*inout */sizeX);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
-      o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id & 1);\n\t\t\t\to.VFX_VARYING_UV.y
-      = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if
-      VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
-      VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z
-      = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
-      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\tconst
+      \ /*inout */alpha, size,  /*inout */scaleX,  /*inout */scaleY);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif
+      (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id
+      & 1);\n\t\t\t\to.VFX_VARYING_UV.y = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
+      *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
+      *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
+      *= scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst float2
+      vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
-      normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
+      normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
       = normalFlip * normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_BENTFACTORS\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_BENTFACTORS = vOffsets
@@ -440,7 +451,7 @@ VisualEffectResource:
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
       64\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_POSITION_CURRENT 1\n#define
       VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_DIRECTION_CURRENT
-      1\n#define VFX_USE_SIZEX_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
+      1\n#define VFX_USE_SIZE_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
       1\n#define VFX_LOCAL_SPACE 1\n\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
       attributeBuffer;\nByteAddressBuffer sourceAttributeBuffer;\n\nCBUFFER_START(initParams)\n#if
@@ -451,7 +462,7 @@ VisualEffectResource:
       deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to
       fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if
       VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer
-      inputAdditional;\n#endif\n\nvoid SetAttribute_F0142CBB(inout float lifetime,
+      inputAdditional;\n#endif\n\nvoid SetAttribute_F0142CB9(inout float lifetime,
       float Lifetime) /*attribute:lifetime Composition:Overwrite Source:Slot Random:Off
       channels:XYZ */\n{\n    lifetime = Lifetime;\n}\nvoid PositionAABox_18D(inout
       float3 position, inout uint seed, float3 Box_center, float3 Box_size) /*positionMode:Volume
@@ -461,8 +472,8 @@ VisualEffectResource:
       */\n{\n    float3 randomDirection = normalize(RAND3 * 2.0f - 1.0f);\n    float
       speed = Speed;\n    direction = VFXSafeNormalize(lerp(direction, randomDirection,
       DirectionBlend));\n    velocity += direction * speed;\n}\nvoid SetAttribute_3278B543(inout
-      float sizeX, inout uint seed, float Min, float Max) /*attribute:size Composition:Overwrite
-      Source:Slot Random:Uniform channels:X */\n{\n    sizeX = lerp(Min.x,Max.x,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      float size, inout uint seed, float Min, float Max) /*attribute:size Composition:Overwrite
+      Source:Slot Random:Uniform channels:X */\n{\n    size = lerp(Min,Max,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
       CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId
       \   : SV_GroupThreadID)\n{\n    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;\n#if
       !VFX_USE_SPAWNER_FROM_GPU\n    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n#endif\n\n#if
@@ -483,15 +494,15 @@ VisualEffectResource:
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
       = (float)0;\n        float3 position = float3(0,0,0);\n        uint seed = (uint)0;\n
       \       float3 velocity = float3(0,0,0);\n        float3 direction = float3(0,0,1);\n
-      \       float sizeX = (float)0.1;\n        float age = (float)0;\n        bool
+      \       float size = (float)0.1;\n        float age = (float)0;\n        bool
       alive = (bool)true;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId
       = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex
-      ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_F0142CBB(
+      ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_F0142CB9(
       /*inout */lifetime, (float)1);\n        }\n        {\n            PositionAABox_18D(
       /*inout */position,  /*inout */seed, float3(3,0,0), float3(2.5,2.5,2.5));\n
       \       }\n        {\n            VelocityRandomize_18D( /*inout */velocity,
       \ /*inout */direction,  /*inout */seed, (float)1, (float)1);\n        }\n        {\n
-      \           SetAttribute_3278B543( /*inout */sizeX,  /*inout */seed, (float)0.02,
+      \           SetAttribute_3278B543( /*inout */size,  /*inout */seed, (float)0.02,
       (float)0.1);\n        }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if
       (alive)\n        {\n\t\t\tuint deadIndex = deadListIn.DecrementCounter();\n
       \           uint index = deadListIn[deadIndex];\n            attributeBuffer.Store((index
@@ -499,7 +510,7 @@ VisualEffectResource:
       * 0x4 + 0x2000) << 2,asuint(position));\n            attributeBuffer.Store((index
       * 0x8 + 0xA003) << 2,asuint(seed));\n            attributeBuffer.Store3((index
       * 0x8 + 0xA000) << 2,asuint(velocity));\n            attributeBuffer.Store((index
-      * 0x1 + 0x1A000) << 2,asuint(sizeX));\n            attributeBuffer.Store((index
+      * 0x1 + 0x1A000) << 2,asuint(size));\n            attributeBuffer.Store((index
       * 0x8 + 0xA004) << 2,asuint(age));\n            attributeBuffer.Store((index
       * 0x4 + 0x2003) << 2,uint(alive));\n            \n\n        }\n#else\n        uint
       index = particleIndex;\n        attributeBuffer.Store((index * 0x1 + 0x0) <<
@@ -507,38 +518,39 @@ VisualEffectResource:
       << 2,asuint(position));\n        attributeBuffer.Store((index * 0x8 + 0xA003)
       << 2,asuint(seed));\n        attributeBuffer.Store3((index * 0x8 + 0xA000) <<
       2,asuint(velocity));\n        attributeBuffer.Store((index * 0x1 + 0x1A000)
-      << 2,asuint(sizeX));\n        attributeBuffer.Store((index * 0x8 + 0xA004) <<
+      << 2,asuint(size));\n        attributeBuffer.Store((index * 0x8 + 0xA004) <<
       2,asuint(age));\n        attributeBuffer.Store((index * 0x4 + 0x2003) << 2,uint(alive));\n
       \       \n\n#endif\n    }\n}\n"
   - compute: 1
     name: '[System 2]Update'
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
       64\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_POSITION_CURRENT 1\n#define
-      VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_SIZEX_CURRENT
-      1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT 1\n#define VFX_LOCAL_SPACE
-      1\n\n\nCBUFFER_START(parameters)\n    float deltaTime_a;\n    uint3 PADDING_0;\nCBUFFER_END\n\n\n#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
+      VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_SIZE_CURRENT
+      1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_SCALEZ_CURRENT 1\n#define
+      VFX_USE_SCALEY_CURRENT 1\n#define VFX_USE_SCALEX_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
+      1\n#define VFX_LOCAL_SPACE 1\n\n\nCBUFFER_START(parameters)\n    float deltaTime_a;\n
+      \   uint3 PADDING_0;\nCBUFFER_END\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
       attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint> deadListOut;\n#endif\n\n#if
       VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint> indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n
       \   uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\nvoid
       Gravity(inout float3 velocity, float3 Force, float deltaTime)\n{\n    velocity
       += Force * deltaTime;\n}\nvoid CollisionAABox_18C(inout float3 position, inout
-      float3 velocity, inout float age, float lifetime, inout uint seed, float sizeX,
-      float3 box_center, float3 box_size, float Elasticity, float Friction, float
-      LifetimeLoss, float Roughness, float deltaTime, float colliderSign, float radius)
-      /*mode:Solid radiusMode:FromSize roughSurface:True */\n{\n    \n    float3 nextPos
-      = position + velocity * deltaTime;\n    float3 dir = nextPos - box_center;\n
-      \   float3 absDir = abs(dir);\n    float3 size = box_size * 0.5f + radius *
-      colliderSign;\n    bool collision = all(absDir < size);\n    if (collision)\n
-      \   {\n        float3 distanceToEdge = (absDir - size);\n        float3 absDistanceToEdge
-      = abs(distanceToEdge);\n    \n        float3 n;\n    \n        if (absDistanceToEdge.x
-      < absDistanceToEdge.y && absDistanceToEdge.x < absDistanceToEdge.z)\n            n
-      = float3(colliderSign * sign(dir.x), 0.0f, 0.0f);\n        else if (absDistanceToEdge.y
-      < absDistanceToEdge.z)\n            n = float3(0.0f, colliderSign * sign(dir.y),
-      0.0f);\n        else\n            n = float3(0.0f, 0.0f, colliderSign * sign(dir.z));\n
-      \       position -= n * distanceToEdge;\n        float3 randomNormal = normalize(RAND3
-      * 2.0f - 1.0f);\n        randomNormal = (dot(randomNormal, n) < 0.0f) ? -randomNormal
+      float3 velocity, inout float age, float lifetime, inout uint seed, float3 box_center,
+      float3 box_size, float Elasticity, float Friction, float LifetimeLoss, float
+      Roughness, float deltaTime, float colliderSign, float radius) /*mode:Solid radiusMode:FromSize
+      roughSurface:True */\n{\n    \n    float3 nextPos = position + velocity * deltaTime;\n
+      \   float3 dir = nextPos - box_center;\n    float3 absDir = abs(dir);\n    float3
+      halfBoxSize = box_size * 0.5f + radius * colliderSign;\n    bool collision =
+      all(absDir < halfBoxSize);\n    if (collision)\n    {\n        float3 distanceToEdge
+      = (absDir - halfBoxSize);\n        float3 absDistanceToEdge = abs(distanceToEdge);\n
+      \   \n        float3 n;\n    \n        if (absDistanceToEdge.x < absDistanceToEdge.y
+      && absDistanceToEdge.x < absDistanceToEdge.z)\n            n = float3(colliderSign
+      * sign(dir.x), 0.0f, 0.0f);\n        else if (absDistanceToEdge.y < absDistanceToEdge.z)\n
+      \           n = float3(0.0f, colliderSign * sign(dir.y), 0.0f);\n        else\n
+      \           n = float3(0.0f, 0.0f, colliderSign * sign(dir.z));\n        position
+      -= n * distanceToEdge;\n        float3 randomNormal = normalize(RAND3 * 2.0f
+      - 1.0f);\n        randomNormal = (dot(randomNormal, n) < 0.0f) ? -randomNormal
       : randomNormal;    // random normal on hemisphere, relative to the normal\n
       \       n = normalize(lerp(n, randomNormal, Roughness));\n    \n        float
       projVelocity = dot(n, velocity);\n    \n        float3 normalVelocity = projVelocity
@@ -558,15 +570,18 @@ VisualEffectResource:
       0x1 + 0x0) << 2));\n\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x2000) << 2));\n\t\t\tuint seed = (attributeBuffer.Load((index * 0x8
       + 0xA003) << 2));\n\t\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0xA000) << 2));\n\t\t\tfloat sizeX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0xA000) << 2));\n\t\t\tfloat size = asfloat(attributeBuffer.Load((index
       * 0x1 + 0x1A000) << 2));\n\t\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x8 + 0xA004) << 2));\n\t\t\t\n\n\t\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition
+      * 0x8 + 0xA004) << 2));\n\t\t\tfloat scaleZ = (float)1;\n\t\t\tfloat scaleY
+      = (float)1;\n\t\t\tfloat scaleX = (float)1;\n\t\t\t\n\n\t\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition
       = position;\n#endif\n\t\t\t\n\t\t\t{\n\t\t\t    Gravity( /*inout */velocity,
-      float3(0,-5,0), deltaTime_a);\n\t\t\t}\n\t\t\t{\n\t\t\t    float tmp_z = sizeX
-      * (float)0.5;\n\t\t\t    CollisionAABox_18C( /*inout */position,  /*inout */velocity,
-      \ /*inout */age, lifetime,  /*inout */seed, sizeX, float3(3,0,0), float3(2,2,2),
-      (float)0.5, (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_z);\n\t\t\t}\n\t\t\tEulerIntegration(
-      /*inout */position, velocity, deltaTime_a);\n\t\t\tAge( /*inout */age, deltaTime_a);\n\t\t\tReap(age,
+      float3(0,-5,0), deltaTime_a);\n\t\t\t}\n\t\t\t{\n\t\t\t    float tmp_bc = max(scaleY,
+      scaleX);\n\t\t\t    float tmp_bd = max(scaleZ, tmp_bc);\n\t\t\t    float tmp_be
+      = tmp_bd * size;\n\t\t\t    float tmp_bf = tmp_be * (float)0.5;\n\t\t\t    CollisionAABox_18C(
+      /*inout */position,  /*inout */velocity,  /*inout */age, lifetime,  /*inout
+      */seed, float3(3,0,0), float3(2,2,2), (float)0.5, (float)0.5, (float)0, (float)0.5,
+      deltaTime_a, (float)1, tmp_bf);\n\t\t\t}\n\t\t\tEulerIntegration( /*inout */position,
+      velocity, deltaTime_a);\n\t\t\tAge( /*inout */age, deltaTime_a);\n\t\t\tReap(age,
       lifetime,  /*inout */alive);\n\t\t\t\n\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index
       * 0x4 + 0x2000) << 2,asuint(position));\n\t\t\t\tattributeBuffer.Store((index
       * 0x8 + 0xA003) << 2,asuint(seed));\n\t\t\t\tattributeBuffer.Store3((index *
@@ -579,15 +594,17 @@ VisualEffectResource:
       * 0x1 + 0x0) << 2));\n\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x2000) << 2));\n\t\tuint seed = (attributeBuffer.Load((index * 0x8
       + 0xA003) << 2));\n\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0xA000) << 2));\n\t\tfloat sizeX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0xA000) << 2));\n\t\tfloat size = asfloat(attributeBuffer.Load((index
       * 0x1 + 0x1A000) << 2));\n\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x8 + 0xA004) << 2));\n\t\tbool alive = (attributeBuffer.Load((index * 0x4
-      + 0x2003) << 2));\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition
-      = position;\n#endif\n\t\t\n\t\t{\n\t\t    Gravity( /*inout */velocity, float3(0,-5,0),
-      deltaTime_a);\n\t\t}\n\t\t{\n\t\t    float tmp_z = sizeX * (float)0.5;\n\t\t
-      \   CollisionAABox_18C( /*inout */position,  /*inout */velocity,  /*inout */age,
-      lifetime,  /*inout */seed, sizeX, float3(3,0,0), float3(2,2,2), (float)0.5,
-      (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_z);\n\t\t}\n\t\tEulerIntegration(
+      * 0x8 + 0xA004) << 2));\n\t\tfloat scaleZ = (float)1;\n\t\tfloat scaleY = (float)1;\n\t\tfloat
+      scaleX = (float)1;\n\t\tbool alive = (attributeBuffer.Load((index * 0x4 + 0x2003)
+      << 2));\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition = position;\n#endif\n\t\t\n\t\t{\n\t\t
+      \   Gravity( /*inout */velocity, float3(0,-5,0), deltaTime_a);\n\t\t}\n\t\t{\n\t\t
+      \   float tmp_bc = max(scaleY, scaleX);\n\t\t    float tmp_bd = max(scaleZ,
+      tmp_bc);\n\t\t    float tmp_be = tmp_bd * size;\n\t\t    float tmp_bf = tmp_be
+      * (float)0.5;\n\t\t    CollisionAABox_18C( /*inout */position,  /*inout */velocity,
+      \ /*inout */age, lifetime,  /*inout */seed, float3(3,0,0), float3(2,2,2), (float)0.5,
+      (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_bf);\n\t\t}\n\t\tEulerIntegration(
       /*inout */position, velocity, deltaTime_a);\n\t\tAge( /*inout */age, deltaTime_a);\n\t\tReap(age,
       lifetime,  /*inout */alive);\n\t\t\n\n\t\tattributeBuffer.Store3((index * 0x4
       + 0x2000) << 2,asuint(position));\n\t\tattributeBuffer.Store((index * 0x8 +
@@ -604,14 +621,16 @@ VisualEffectResource:
       SrcAlpha One\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#include \"HLSLSupport.cginc\"\n\t\t#define NB_THREADS_PER_GROUP
-      64\n\t\t#define VFX_USE_POSITION_CURRENT 1\n\t\t#define VFX_USE_SIZEX_CURRENT
-      1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT 1\n\t\t#define
-      VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define VFX_USE_AXISY_CURRENT
-      1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define
-      VFX_USE_ANGLEY_CURRENT 1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define
-      VFX_USE_PIVOTX_CURRENT 1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define
-      VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define VFX_BLENDMODE_ADD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
-      VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tTexture2D mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
+      64\n\t\t#define VFX_USE_POSITION_CURRENT 1\n\t\t#define VFX_USE_SIZE_CURRENT
+      1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define VFX_USE_SCALEY_CURRENT
+      1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define
+      VFX_USE_ALPHA_CURRENT 1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT
+      1\n\t\t#define VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_PIVOTX_CURRENT 1\n\t\t#define
+      VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define
+      VFX_BLENDMODE_ADD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tTexture2D
+      mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
       VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
       IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
@@ -638,9 +657,9 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
-      SetAttribute_FDD06EC5(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
+      SetAttribute_FDD06EC7(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    color = Color;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_CEEAF35E(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
+      SetAttribute_CEEAF35C(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    alpha = Alpha;\n\t\t\t}\n\t\t\tvoid
       Orient_1(inout float3 axisX, inout float3 axisY, inout float3 axisZ, float3
       position) /*mode:FaceCameraPosition */\n\t\t\t{\n\t\t\t    \n\t\t\t    if (unity_OrthoParams.w
@@ -653,21 +672,23 @@ VisualEffectResource:
       \   else\n\t\t\t    {\n\t\t\t        axisZ = normalize(position - GetViewVFXPosition());\n\t\t\t
       \       axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));\n\t\t\t
       \       axisY = cross(axisZ,axisX);\n\t\t\t    }\n\t\t\t    \n\t\t\t}\n\t\t\tvoid
-      SubpixelAA(float3 position, inout float alpha, inout float sizeX)\n\t\t\t{\n\t\t\t
-      \   \n\t\t\t    float2 size = float2(sizeX,sizeX);\n\t\t\t    float clipPosW
-      = TransformPositionVFXToClip(position).w;\n\t\t\t    float minSize = clipPosW
-      / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] *
-      _ScreenParams.y)); // max size in one pixel\n\t\t\t    float2 clampedSize =
-      max(size,minSize);\n\t\t\t    float fade = (size.x * size.y) / (clampedSize.x
-      * clampedSize.y);\n\t\t\t    alpha *= fade;\n\t\t\t    size = clampedSize;\n\t\t\t
-      \   sizeX = size.x;\n\t\t\t    \n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex
-      vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID
-      : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if
-      USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn
-      o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat3
+      SubpixelAA(float3 position, inout float alpha, float size, inout float scaleX,
+      inout float scaleY)\n\t\t\t{\n\t\t\t    \n\t\t\t    float2 localSize = size
+      * float2(scaleX, scaleY);\n\t\t\t    float clipPosW = TransformPositionVFXToClip(position).w;\n\t\t\t
+      \   float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1]
+      * _ScreenParams.y)); // max size in one pixel\n\t\t\t    float2 clampedSize
+      = max(localSize,minSize);\n\t\t\t    float fade = (localSize.x * localSize.y)
+      / (clampedSize.x * clampedSize.y);\n\t\t\t    alpha *= fade;\n\t\t\t    localSize
+      = clampedSize;\n\t\t\t    scaleX = localSize.x / size;\n\t\t\t    scaleY = localSize.y
+      / size;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
+      vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint
+      index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex
+      = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat size = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
       alive = (attributeBuffer.Load((index * 0x4 + 0x2003) << 2));\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
@@ -679,27 +700,29 @@ VisualEffectResource:
       alive = (attributeBuffer.Load((index * 0x4 + 0x2003) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 position
       = asfloat(attributeBuffer.Load3((index * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotX = (float)0;\n\t\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotZ = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_FDD06EC5( /*inout */color, float3(0.1,0.1,1));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_CEEAF35E( /*inout */alpha, (float)0.3);\n\t\t\t\t}\n\t\t\t\tOrient_1(
+      size = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat
+      scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleX = (float)1;\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      alpha = (float)1;\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
+      angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
+      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_FDD06EC7( /*inout */color, float3(0.1,0.1,1));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_CEEAF35C( /*inout */alpha, (float)0.3);\n\t\t\t\t}\n\t\t\t\tOrient_1(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position);\n\t\t\t\tSubpixelAA(position,
-      \ /*inout */alpha,  /*inout */sizeX);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
-      o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id & 1);\n\t\t\t\to.VFX_VARYING_UV.y
-      = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if
-      VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
-      VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z
-      = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
-      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\tconst
+      \ /*inout */alpha, size,  /*inout */scaleX,  /*inout */scaleY);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif
+      (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id
+      & 1);\n\t\t\t\to.VFX_VARYING_UV.y = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
+      *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
+      *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
+      *= scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst float2
+      vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
-      normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
+      normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
       = normalFlip * normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_BENTFACTORS\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_BENTFACTORS = vOffsets
@@ -728,7 +751,7 @@ VisualEffectResource:
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
       64\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_POSITION_CURRENT 1\n#define
       VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_DIRECTION_CURRENT
-      1\n#define VFX_USE_SIZEX_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
+      1\n#define VFX_USE_SIZE_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
       1\n#define VFX_LOCAL_SPACE 1\n\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
       attributeBuffer;\nByteAddressBuffer sourceAttributeBuffer;\n\nCBUFFER_START(initParams)\n#if
@@ -739,7 +762,7 @@ VisualEffectResource:
       deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to
       fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if
       VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer
-      inputAdditional;\n#endif\n\nvoid SetAttribute_F0142CBB(inout float lifetime,
+      inputAdditional;\n#endif\n\nvoid SetAttribute_F0142CB9(inout float lifetime,
       float Lifetime) /*attribute:lifetime Composition:Overwrite Source:Slot Random:Off
       channels:XYZ */\n{\n    lifetime = Lifetime;\n}\nvoid PositionAABox_18D(inout
       float3 position, inout uint seed, float3 Box_center, float3 Box_size) /*positionMode:Volume
@@ -749,8 +772,8 @@ VisualEffectResource:
       */\n{\n    float3 randomDirection = normalize(RAND3 * 2.0f - 1.0f);\n    float
       speed = Speed;\n    direction = VFXSafeNormalize(lerp(direction, randomDirection,
       DirectionBlend));\n    velocity += direction * speed;\n}\nvoid SetAttribute_3278B543(inout
-      float sizeX, inout uint seed, float Min, float Max) /*attribute:size Composition:Overwrite
-      Source:Slot Random:Uniform channels:X */\n{\n    sizeX = lerp(Min.x,Max.x,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      float size, inout uint seed, float Min, float Max) /*attribute:size Composition:Overwrite
+      Source:Slot Random:Uniform channels:X */\n{\n    size = lerp(Min,Max,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
       CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId
       \   : SV_GroupThreadID)\n{\n    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;\n#if
       !VFX_USE_SPAWNER_FROM_GPU\n    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n#endif\n\n#if
@@ -771,15 +794,15 @@ VisualEffectResource:
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
       = (float)0;\n        float3 position = float3(0,0,0);\n        uint seed = (uint)0;\n
       \       float3 velocity = float3(0,0,0);\n        float3 direction = float3(0,0,1);\n
-      \       float sizeX = (float)0.1;\n        float age = (float)0;\n        bool
+      \       float size = (float)0.1;\n        float age = (float)0;\n        bool
       alive = (bool)true;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId
       = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex
-      ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_F0142CBB(
+      ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_F0142CB9(
       /*inout */lifetime, (float)1);\n        }\n        {\n            PositionAABox_18D(
       /*inout */position,  /*inout */seed, float3(6,0,0), float3(2.5,2.5,2.5));\n
       \       }\n        {\n            VelocityRandomize_18D( /*inout */velocity,
       \ /*inout */direction,  /*inout */seed, (float)1, (float)1);\n        }\n        {\n
-      \           SetAttribute_3278B543( /*inout */sizeX,  /*inout */seed, (float)0.02,
+      \           SetAttribute_3278B543( /*inout */size,  /*inout */seed, (float)0.02,
       (float)0.1);\n        }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if
       (alive)\n        {\n\t\t\tuint deadIndex = deadListIn.DecrementCounter();\n
       \           uint index = deadListIn[deadIndex];\n            attributeBuffer.Store((index
@@ -787,7 +810,7 @@ VisualEffectResource:
       * 0x4 + 0x2000) << 2,asuint(position));\n            attributeBuffer.Store((index
       * 0x8 + 0xA003) << 2,asuint(seed));\n            attributeBuffer.Store3((index
       * 0x8 + 0xA000) << 2,asuint(velocity));\n            attributeBuffer.Store((index
-      * 0x1 + 0x1A000) << 2,asuint(sizeX));\n            attributeBuffer.Store((index
+      * 0x1 + 0x1A000) << 2,asuint(size));\n            attributeBuffer.Store((index
       * 0x8 + 0xA004) << 2,asuint(age));\n            attributeBuffer.Store((index
       * 0x4 + 0x2003) << 2,uint(alive));\n            \n\n        }\n#else\n        uint
       index = particleIndex;\n        attributeBuffer.Store((index * 0x1 + 0x0) <<
@@ -795,29 +818,30 @@ VisualEffectResource:
       << 2,asuint(position));\n        attributeBuffer.Store((index * 0x8 + 0xA003)
       << 2,asuint(seed));\n        attributeBuffer.Store3((index * 0x8 + 0xA000) <<
       2,asuint(velocity));\n        attributeBuffer.Store((index * 0x1 + 0x1A000)
-      << 2,asuint(sizeX));\n        attributeBuffer.Store((index * 0x8 + 0xA004) <<
+      << 2,asuint(size));\n        attributeBuffer.Store((index * 0x8 + 0xA004) <<
       2,asuint(age));\n        attributeBuffer.Store((index * 0x4 + 0x2003) << 2,uint(alive));\n
       \       \n\n#endif\n    }\n}\n"
   - compute: 1
     name: '[System 3]Update'
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
       64\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_POSITION_CURRENT 1\n#define
-      VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_SIZEX_CURRENT
-      1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT 1\n#define VFX_LOCAL_SPACE
-      1\n\n\nCBUFFER_START(parameters)\n    float deltaTime_a;\n    uint3 PADDING_0;\nCBUFFER_END\n\n\n#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
+      VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_SIZE_CURRENT
+      1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_SCALEZ_CURRENT 1\n#define
+      VFX_USE_SCALEY_CURRENT 1\n#define VFX_USE_SCALEX_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
+      1\n#define VFX_LOCAL_SPACE 1\n\n\nCBUFFER_START(parameters)\n    float deltaTime_a;\n
+      \   uint3 PADDING_0;\nCBUFFER_END\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
       attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint> deadListOut;\n#endif\n\n#if
       VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint> indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n
       \   uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\nvoid
       Gravity(inout float3 velocity, float3 Force, float deltaTime)\n{\n    velocity
       += Force * deltaTime;\n}\nvoid CollisionCylinder_18C(inout float3 position,
-      inout float3 velocity, inout float age, float lifetime, inout uint seed, float
-      sizeX, float3 Cylinder_center, float Cylinder_radius, float Cylinder_height,
-      float Elasticity, float Friction, float LifetimeLoss, float Roughness, float
-      deltaTime, float colliderSign, float radius) /*mode:Solid radiusMode:FromSize
-      roughSurface:True */\n{\n    \n    float3 nextPos = position + velocity * deltaTime;\n
-      \   float3 dir = nextPos - Cylinder_center;\n    const float halfHeight = Cylinder_height
+      inout float3 velocity, inout float age, float lifetime, inout uint seed, float3
+      Cylinder_center, float Cylinder_radius, float Cylinder_height, float Elasticity,
+      float Friction, float LifetimeLoss, float Roughness, float deltaTime, float
+      colliderSign, float radius) /*mode:Solid radiusMode:FromSize roughSurface:True
+      */\n{\n    \n    float3 nextPos = position + velocity * deltaTime;\n    float3
+      dir = nextPos - Cylinder_center;\n    const float halfHeight = Cylinder_height
       * 0.5f + radius * colliderSign;\n    const float cylinderRadius = Cylinder_radius
       + radius * colliderSign;\n    float sqrLength = dot(dir.xz, dir.xz);\n    \n
       \   bool collision = abs(dir.y) < halfHeight && sqrLength < cylinderRadius *
@@ -847,17 +871,19 @@ VisualEffectResource:
       0x1 + 0x0) << 2));\n\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x2000) << 2));\n\t\t\tuint seed = (attributeBuffer.Load((index * 0x8
       + 0xA003) << 2));\n\t\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0xA000) << 2));\n\t\t\tfloat sizeX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0xA000) << 2));\n\t\t\tfloat size = asfloat(attributeBuffer.Load((index
       * 0x1 + 0x1A000) << 2));\n\t\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x8 + 0xA004) << 2));\n\t\t\t\n\n\t\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition
+      * 0x8 + 0xA004) << 2));\n\t\t\tfloat scaleZ = (float)1;\n\t\t\tfloat scaleY
+      = (float)1;\n\t\t\tfloat scaleX = (float)1;\n\t\t\t\n\n\t\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition
       = position;\n#endif\n\t\t\t\n\t\t\t{\n\t\t\t    Gravity( /*inout */velocity,
-      float3(0,-5,0), deltaTime_a);\n\t\t\t}\n\t\t\t{\n\t\t\t    float tmp_z = sizeX
-      * (float)0.5;\n\t\t\t    CollisionCylinder_18C( /*inout */position,  /*inout
-      */velocity,  /*inout */age, lifetime,  /*inout */seed, sizeX, float3(6,0,0),
-      (float)1, (float)2, (float)0.5, (float)0.5, (float)0, (float)0.5, deltaTime_a,
-      (float)1, tmp_z);\n\t\t\t}\n\t\t\tEulerIntegration( /*inout */position, velocity,
-      deltaTime_a);\n\t\t\tAge( /*inout */age, deltaTime_a);\n\t\t\tReap(age, lifetime,
-      \ /*inout */alive);\n\t\t\t\n\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index
+      float3(0,-5,0), deltaTime_a);\n\t\t\t}\n\t\t\t{\n\t\t\t    float tmp_bc = max(scaleY,
+      scaleX);\n\t\t\t    float tmp_bd = max(scaleZ, tmp_bc);\n\t\t\t    float tmp_be
+      = tmp_bd * size;\n\t\t\t    float tmp_bf = tmp_be * (float)0.5;\n\t\t\t    CollisionCylinder_18C(
+      /*inout */position,  /*inout */velocity,  /*inout */age, lifetime,  /*inout
+      */seed, float3(6,0,0), (float)1, (float)2, (float)0.5, (float)0.5, (float)0,
+      (float)0.5, deltaTime_a, (float)1, tmp_bf);\n\t\t\t}\n\t\t\tEulerIntegration(
+      /*inout */position, velocity, deltaTime_a);\n\t\t\tAge( /*inout */age, deltaTime_a);\n\t\t\tReap(age,
+      lifetime,  /*inout */alive);\n\t\t\t\n\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index
       * 0x4 + 0x2000) << 2,asuint(position));\n\t\t\t\tattributeBuffer.Store((index
       * 0x8 + 0xA003) << 2,asuint(seed));\n\t\t\t\tattributeBuffer.Store3((index *
       0x8 + 0xA000) << 2,asuint(velocity));\n\t\t\t\tattributeBuffer.Store((index
@@ -869,15 +895,17 @@ VisualEffectResource:
       * 0x1 + 0x0) << 2));\n\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x2000) << 2));\n\t\tuint seed = (attributeBuffer.Load((index * 0x8
       + 0xA003) << 2));\n\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0xA000) << 2));\n\t\tfloat sizeX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0xA000) << 2));\n\t\tfloat size = asfloat(attributeBuffer.Load((index
       * 0x1 + 0x1A000) << 2));\n\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x8 + 0xA004) << 2));\n\t\tbool alive = (attributeBuffer.Load((index * 0x4
-      + 0x2003) << 2));\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition
-      = position;\n#endif\n\t\t\n\t\t{\n\t\t    Gravity( /*inout */velocity, float3(0,-5,0),
-      deltaTime_a);\n\t\t}\n\t\t{\n\t\t    float tmp_z = sizeX * (float)0.5;\n\t\t
-      \   CollisionCylinder_18C( /*inout */position,  /*inout */velocity,  /*inout
-      */age, lifetime,  /*inout */seed, sizeX, float3(6,0,0), (float)1, (float)2,
-      (float)0.5, (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_z);\n\t\t}\n\t\tEulerIntegration(
+      * 0x8 + 0xA004) << 2));\n\t\tfloat scaleZ = (float)1;\n\t\tfloat scaleY = (float)1;\n\t\tfloat
+      scaleX = (float)1;\n\t\tbool alive = (attributeBuffer.Load((index * 0x4 + 0x2003)
+      << 2));\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition = position;\n#endif\n\t\t\n\t\t{\n\t\t
+      \   Gravity( /*inout */velocity, float3(0,-5,0), deltaTime_a);\n\t\t}\n\t\t{\n\t\t
+      \   float tmp_bc = max(scaleY, scaleX);\n\t\t    float tmp_bd = max(scaleZ,
+      tmp_bc);\n\t\t    float tmp_be = tmp_bd * size;\n\t\t    float tmp_bf = tmp_be
+      * (float)0.5;\n\t\t    CollisionCylinder_18C( /*inout */position,  /*inout */velocity,
+      \ /*inout */age, lifetime,  /*inout */seed, float3(6,0,0), (float)1, (float)2,
+      (float)0.5, (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_bf);\n\t\t}\n\t\tEulerIntegration(
       /*inout */position, velocity, deltaTime_a);\n\t\tAge( /*inout */age, deltaTime_a);\n\t\tReap(age,
       lifetime,  /*inout */alive);\n\t\t\n\n\t\tattributeBuffer.Store3((index * 0x4
       + 0x2000) << 2,asuint(position));\n\t\tattributeBuffer.Store((index * 0x8 +
@@ -894,14 +922,16 @@ VisualEffectResource:
       SrcAlpha One\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#include \"HLSLSupport.cginc\"\n\t\t#define NB_THREADS_PER_GROUP
-      64\n\t\t#define VFX_USE_POSITION_CURRENT 1\n\t\t#define VFX_USE_SIZEX_CURRENT
-      1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT 1\n\t\t#define
-      VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define VFX_USE_AXISY_CURRENT
-      1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define
-      VFX_USE_ANGLEY_CURRENT 1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define
-      VFX_USE_PIVOTX_CURRENT 1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define
-      VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define VFX_BLENDMODE_ADD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
-      VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tTexture2D mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
+      64\n\t\t#define VFX_USE_POSITION_CURRENT 1\n\t\t#define VFX_USE_SIZE_CURRENT
+      1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define VFX_USE_SCALEY_CURRENT
+      1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define
+      VFX_USE_ALPHA_CURRENT 1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT
+      1\n\t\t#define VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_PIVOTX_CURRENT 1\n\t\t#define
+      VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define
+      VFX_BLENDMODE_ADD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tTexture2D
+      mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
       VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
       IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
@@ -928,9 +958,9 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
-      SetAttribute_FDD06EC5(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
+      SetAttribute_FDD06EC7(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    color = Color;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_CEEAF35E(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
+      SetAttribute_CEEAF35C(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    alpha = Alpha;\n\t\t\t}\n\t\t\tvoid
       Orient_1(inout float3 axisX, inout float3 axisY, inout float3 axisZ, float3
       position) /*mode:FaceCameraPosition */\n\t\t\t{\n\t\t\t    \n\t\t\t    if (unity_OrthoParams.w
@@ -943,21 +973,23 @@ VisualEffectResource:
       \   else\n\t\t\t    {\n\t\t\t        axisZ = normalize(position - GetViewVFXPosition());\n\t\t\t
       \       axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));\n\t\t\t
       \       axisY = cross(axisZ,axisX);\n\t\t\t    }\n\t\t\t    \n\t\t\t}\n\t\t\tvoid
-      SubpixelAA(float3 position, inout float alpha, inout float sizeX)\n\t\t\t{\n\t\t\t
-      \   \n\t\t\t    float2 size = float2(sizeX,sizeX);\n\t\t\t    float clipPosW
-      = TransformPositionVFXToClip(position).w;\n\t\t\t    float minSize = clipPosW
-      / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] *
-      _ScreenParams.y)); // max size in one pixel\n\t\t\t    float2 clampedSize =
-      max(size,minSize);\n\t\t\t    float fade = (size.x * size.y) / (clampedSize.x
-      * clampedSize.y);\n\t\t\t    alpha *= fade;\n\t\t\t    size = clampedSize;\n\t\t\t
-      \   sizeX = size.x;\n\t\t\t    \n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex
-      vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID
-      : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if
-      USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn
-      o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat3
+      SubpixelAA(float3 position, inout float alpha, float size, inout float scaleX,
+      inout float scaleY)\n\t\t\t{\n\t\t\t    \n\t\t\t    float2 localSize = size
+      * float2(scaleX, scaleY);\n\t\t\t    float clipPosW = TransformPositionVFXToClip(position).w;\n\t\t\t
+      \   float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1]
+      * _ScreenParams.y)); // max size in one pixel\n\t\t\t    float2 clampedSize
+      = max(localSize,minSize);\n\t\t\t    float fade = (localSize.x * localSize.y)
+      / (clampedSize.x * clampedSize.y);\n\t\t\t    alpha *= fade;\n\t\t\t    localSize
+      = clampedSize;\n\t\t\t    scaleX = localSize.x / size;\n\t\t\t    scaleY = localSize.y
+      / size;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
+      vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint
+      index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex
+      = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat size = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
       alive = (attributeBuffer.Load((index * 0x4 + 0x2003) << 2));\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
@@ -969,27 +1001,29 @@ VisualEffectResource:
       alive = (attributeBuffer.Load((index * 0x4 + 0x2003) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 position
       = asfloat(attributeBuffer.Load3((index * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotX = (float)0;\n\t\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotZ = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_FDD06EC5( /*inout */color, float3(0.1,1,0.1));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_CEEAF35E( /*inout */alpha, (float)0.3);\n\t\t\t\t}\n\t\t\t\tOrient_1(
+      size = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat
+      scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleX = (float)1;\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      alpha = (float)1;\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
+      angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
+      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_FDD06EC7( /*inout */color, float3(0.1,1,0.1));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_CEEAF35C( /*inout */alpha, (float)0.3);\n\t\t\t\t}\n\t\t\t\tOrient_1(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position);\n\t\t\t\tSubpixelAA(position,
-      \ /*inout */alpha,  /*inout */sizeX);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
-      o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id & 1);\n\t\t\t\to.VFX_VARYING_UV.y
-      = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if
-      VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
-      VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z
-      = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
-      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\tconst
+      \ /*inout */alpha, size,  /*inout */scaleX,  /*inout */scaleY);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif
+      (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id
+      & 1);\n\t\t\t\to.VFX_VARYING_UV.y = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
+      *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
+      *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
+      *= scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst float2
+      vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
-      normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
+      normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
       = normalFlip * normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_BENTFACTORS\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_BENTFACTORS = vOffsets
@@ -1018,7 +1052,7 @@ VisualEffectResource:
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
       64\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_POSITION_CURRENT 1\n#define
       VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_DIRECTION_CURRENT
-      1\n#define VFX_USE_SIZEX_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
+      1\n#define VFX_USE_SIZE_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
       1\n#define VFX_LOCAL_SPACE 1\n\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
       attributeBuffer;\nByteAddressBuffer sourceAttributeBuffer;\n\nCBUFFER_START(initParams)\n#if
@@ -1029,7 +1063,7 @@ VisualEffectResource:
       deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to
       fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if
       VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer
-      inputAdditional;\n#endif\n\nvoid SetAttribute_F0142CBB(inout float lifetime,
+      inputAdditional;\n#endif\n\nvoid SetAttribute_F0142CB9(inout float lifetime,
       float Lifetime) /*attribute:lifetime Composition:Overwrite Source:Slot Random:Off
       channels:XYZ */\n{\n    lifetime = Lifetime;\n}\nvoid PositionAABox_18D(inout
       float3 position, inout uint seed, float3 Box_center, float3 Box_size) /*positionMode:Volume
@@ -1039,8 +1073,8 @@ VisualEffectResource:
       */\n{\n    float3 randomDirection = normalize(RAND3 * 2.0f - 1.0f);\n    float
       speed = Speed;\n    direction = VFXSafeNormalize(lerp(direction, randomDirection,
       DirectionBlend));\n    velocity += direction * speed;\n}\nvoid SetAttribute_3278B543(inout
-      float sizeX, inout uint seed, float Min, float Max) /*attribute:size Composition:Overwrite
-      Source:Slot Random:Uniform channels:X */\n{\n    sizeX = lerp(Min.x,Max.x,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      float size, inout uint seed, float Min, float Max) /*attribute:size Composition:Overwrite
+      Source:Slot Random:Uniform channels:X */\n{\n    size = lerp(Min,Max,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
       CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId
       \   : SV_GroupThreadID)\n{\n    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;\n#if
       !VFX_USE_SPAWNER_FROM_GPU\n    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n#endif\n\n#if
@@ -1061,15 +1095,15 @@ VisualEffectResource:
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
       = (float)0;\n        float3 position = float3(0,0,0);\n        uint seed = (uint)0;\n
       \       float3 velocity = float3(0,0,0);\n        float3 direction = float3(0,0,1);\n
-      \       float sizeX = (float)0.1;\n        float age = (float)0;\n        bool
+      \       float size = (float)0.1;\n        float age = (float)0;\n        bool
       alive = (bool)true;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId
       = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex
-      ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_F0142CBB(
+      ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_F0142CB9(
       /*inout */lifetime, (float)1);\n        }\n        {\n            PositionAABox_18D(
       /*inout */position,  /*inout */seed, float3(9,0,0), float3(2.5,2.5,2.5));\n
       \       }\n        {\n            VelocityRandomize_18D( /*inout */velocity,
       \ /*inout */direction,  /*inout */seed, (float)1, (float)1);\n        }\n        {\n
-      \           SetAttribute_3278B543( /*inout */sizeX,  /*inout */seed, (float)0.02,
+      \           SetAttribute_3278B543( /*inout */size,  /*inout */seed, (float)0.02,
       (float)0.1);\n        }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if
       (alive)\n        {\n\t\t\tuint deadIndex = deadListIn.DecrementCounter();\n
       \           uint index = deadListIn[deadIndex];\n            attributeBuffer.Store((index
@@ -1077,7 +1111,7 @@ VisualEffectResource:
       * 0x4 + 0x2000) << 2,asuint(position));\n            attributeBuffer.Store((index
       * 0x8 + 0xA003) << 2,asuint(seed));\n            attributeBuffer.Store3((index
       * 0x8 + 0xA000) << 2,asuint(velocity));\n            attributeBuffer.Store((index
-      * 0x1 + 0x1A000) << 2,asuint(sizeX));\n            attributeBuffer.Store((index
+      * 0x1 + 0x1A000) << 2,asuint(size));\n            attributeBuffer.Store((index
       * 0x8 + 0xA004) << 2,asuint(age));\n            attributeBuffer.Store((index
       * 0x4 + 0x2003) << 2,uint(alive));\n            \n\n        }\n#else\n        uint
       index = particleIndex;\n        attributeBuffer.Store((index * 0x1 + 0x0) <<
@@ -1085,27 +1119,29 @@ VisualEffectResource:
       << 2,asuint(position));\n        attributeBuffer.Store((index * 0x8 + 0xA003)
       << 2,asuint(seed));\n        attributeBuffer.Store3((index * 0x8 + 0xA000) <<
       2,asuint(velocity));\n        attributeBuffer.Store((index * 0x1 + 0x1A000)
-      << 2,asuint(sizeX));\n        attributeBuffer.Store((index * 0x8 + 0xA004) <<
+      << 2,asuint(size));\n        attributeBuffer.Store((index * 0x8 + 0xA004) <<
       2,asuint(age));\n        attributeBuffer.Store((index * 0x4 + 0x2003) << 2,uint(alive));\n
       \       \n\n#endif\n    }\n}\n"
   - compute: 1
     name: '[System 4]Update'
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
       64\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_POSITION_CURRENT 1\n#define
-      VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_SIZEX_CURRENT
-      1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT 1\n#define VFX_LOCAL_SPACE
-      1\n\n\nCBUFFER_START(parameters)\n    float deltaTime_a;\n    uint3 PADDING_0;\nCBUFFER_END\nTexture3D
-      DistanceField_b;\nSamplerState samplerDistanceField_b;\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
+      VFX_USE_SEED_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_SIZE_CURRENT
+      1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_SCALEZ_CURRENT 1\n#define
+      VFX_USE_SCALEY_CURRENT 1\n#define VFX_USE_SCALEX_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
+      1\n#define VFX_LOCAL_SPACE 1\n\n\nCBUFFER_START(parameters)\n    float deltaTime_a;\n
+      \   uint3 PADDING_0;\nCBUFFER_END\nTexture3D DistanceField_b;\nSamplerState
+      samplerDistanceField_b;\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
       attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint> deadListOut;\n#endif\n\n#if
       VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint> indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n
       \   uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\nvoid
       Gravity(inout float3 velocity, float3 Force, float deltaTime)\n{\n    velocity
       += Force * deltaTime;\n}\nvoid CollisionSDF_18C(inout float3 position, inout
-      float3 velocity, inout float age, float lifetime, inout uint seed, float sizeX,
-      VFXSampler3D DistanceField, float4x4 FieldTransform, float Elasticity, float
-      Friction, float LifetimeLoss, float Roughness, float deltaTime, float colliderSign,
-      float radius, float4x4 InvFieldTransform) /*mode:Solid radiusMode:FromSize roughSurface:True
+      float3 velocity, inout float age, float lifetime, inout uint seed, VFXSampler3D
+      DistanceField, float4x4 FieldTransform, float Elasticity, float Friction, float
+      LifetimeLoss, float Roughness, float deltaTime, float colliderSign, float radius,
+      float4x4 InvFieldTransform) /*mode:Solid radiusMode:FromSize roughSurface:True
       */\n{\n    \n    float3 nextPos = position + velocity * deltaTime;\n    \n    float3
       tPos = mul(InvFieldTransform, float4(nextPos,1.0f)).xyz;\n    float tRadius
       = radius * length(InvFieldTransform[0]); // Only uniform scale for SDF transform\n
@@ -1135,14 +1171,17 @@ VisualEffectResource:
       = asfloat(attributeBuffer.Load3((index * 0x4 + 0x2000) << 2));\n\t\t\tuint seed
       = (attributeBuffer.Load((index * 0x8 + 0xA003) << 2));\n\t\t\tfloat3 velocity
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0xA000) << 2));\n\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\tfloat
-      age = asfloat(attributeBuffer.Load((index * 0x8 + 0xA004) << 2));\n\t\t\t\n\n\t\t\t\n#if
+      size = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x8 + 0xA004) << 2));\n\t\t\tfloat
+      scaleZ = (float)1;\n\t\t\tfloat scaleY = (float)1;\n\t\t\tfloat scaleX = (float)1;\n\t\t\t\n\n\t\t\t\n#if
       VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition = position;\n#endif\n\t\t\t\n\t\t\t{\n\t\t\t
       \   Gravity( /*inout */velocity, float3(0,-5,0), deltaTime_a);\n\t\t\t}\n\t\t\t{\n\t\t\t
-      \   float tmp_z = sizeX * (float)0.5;\n\t\t\t    CollisionSDF_18C( /*inout */position,
-      \ /*inout */velocity,  /*inout */age, lifetime,  /*inout */seed, sizeX, GetVFXSampler(DistanceField_b,
+      \   float tmp_bc = max(scaleY, scaleX);\n\t\t\t    float tmp_bd = max(scaleZ,
+      tmp_bc);\n\t\t\t    float tmp_be = tmp_bd * size;\n\t\t\t    float tmp_bf =
+      tmp_be * (float)0.5;\n\t\t\t    CollisionSDF_18C( /*inout */position,  /*inout
+      */velocity,  /*inout */age, lifetime,  /*inout */seed, GetVFXSampler(DistanceField_b,
       samplerDistanceField_b), float4x4(0.9058666,0,3.38074,9,0,3.5,0,0,-3.38074,0,0.9058666,0,0,0,0,1),
-      (float)0.5, (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_z,
+      (float)0.5, (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_bf,
       float4x4(0.07394829,0,-0.2759788,-0.6655347,0,0.2857143,0,0,0.2759788,0,0.0739483,-2.483809,0,0,0,1));\n\t\t\t}\n\t\t\tEulerIntegration(
       /*inout */position, velocity, deltaTime_a);\n\t\t\tAge( /*inout */age, deltaTime_a);\n\t\t\tReap(age,
       lifetime,  /*inout */alive);\n\t\t\t\n\n\t\t\tif (alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index
@@ -1157,16 +1196,18 @@ VisualEffectResource:
       * 0x1 + 0x0) << 2));\n\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
       * 0x4 + 0x2000) << 2));\n\t\tuint seed = (attributeBuffer.Load((index * 0x8
       + 0xA003) << 2));\n\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0xA000) << 2));\n\t\tfloat sizeX = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0xA000) << 2));\n\t\tfloat size = asfloat(attributeBuffer.Load((index
       * 0x1 + 0x1A000) << 2));\n\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x8 + 0xA004) << 2));\n\t\tbool alive = (attributeBuffer.Load((index * 0x4
-      + 0x2003) << 2));\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition
-      = position;\n#endif\n\t\t\n\t\t{\n\t\t    Gravity( /*inout */velocity, float3(0,-5,0),
-      deltaTime_a);\n\t\t}\n\t\t{\n\t\t    float tmp_z = sizeX * (float)0.5;\n\t\t
-      \   CollisionSDF_18C( /*inout */position,  /*inout */velocity,  /*inout */age,
-      lifetime,  /*inout */seed, sizeX, GetVFXSampler(DistanceField_b, samplerDistanceField_b),
+      * 0x8 + 0xA004) << 2));\n\t\tfloat scaleZ = (float)1;\n\t\tfloat scaleY = (float)1;\n\t\tfloat
+      scaleX = (float)1;\n\t\tbool alive = (attributeBuffer.Load((index * 0x4 + 0x2003)
+      << 2));\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition = position;\n#endif\n\t\t\n\t\t{\n\t\t
+      \   Gravity( /*inout */velocity, float3(0,-5,0), deltaTime_a);\n\t\t}\n\t\t{\n\t\t
+      \   float tmp_bc = max(scaleY, scaleX);\n\t\t    float tmp_bd = max(scaleZ,
+      tmp_bc);\n\t\t    float tmp_be = tmp_bd * size;\n\t\t    float tmp_bf = tmp_be
+      * (float)0.5;\n\t\t    CollisionSDF_18C( /*inout */position,  /*inout */velocity,
+      \ /*inout */age, lifetime,  /*inout */seed, GetVFXSampler(DistanceField_b, samplerDistanceField_b),
       float4x4(0.9058666,0,3.38074,9,0,3.5,0,0,-3.38074,0,0.9058666,0,0,0,0,1), (float)0.5,
-      (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_z, float4x4(0.07394829,0,-0.2759788,-0.6655347,0,0.2857143,0,0,0.2759788,0,0.0739483,-2.483809,0,0,0,1));\n\t\t}\n\t\tEulerIntegration(
+      (float)0.5, (float)0, (float)0.5, deltaTime_a, (float)1, tmp_bf, float4x4(0.07394829,0,-0.2759788,-0.6655347,0,0.2857143,0,0,0.2759788,0,0.0739483,-2.483809,0,0,0,1));\n\t\t}\n\t\tEulerIntegration(
       /*inout */position, velocity, deltaTime_a);\n\t\tAge( /*inout */age, deltaTime_a);\n\t\tReap(age,
       lifetime,  /*inout */alive);\n\t\t\n\n\t\tattributeBuffer.Store3((index * 0x4
       + 0x2000) << 2,asuint(position));\n\t\tattributeBuffer.Store((index * 0x8 +
@@ -1183,14 +1224,16 @@ VisualEffectResource:
       SrcAlpha One\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#include \"HLSLSupport.cginc\"\n\t\t#define NB_THREADS_PER_GROUP
-      64\n\t\t#define VFX_USE_POSITION_CURRENT 1\n\t\t#define VFX_USE_SIZEX_CURRENT
-      1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define VFX_USE_ALPHA_CURRENT 1\n\t\t#define
-      VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT 1\n\t\t#define VFX_USE_AXISY_CURRENT
-      1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define
-      VFX_USE_ANGLEY_CURRENT 1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define
-      VFX_USE_PIVOTX_CURRENT 1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define
-      VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define VFX_BLENDMODE_ADD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
-      VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tTexture2D mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
+      64\n\t\t#define VFX_USE_POSITION_CURRENT 1\n\t\t#define VFX_USE_SIZE_CURRENT
+      1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define VFX_USE_SCALEY_CURRENT
+      1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define
+      VFX_USE_ALPHA_CURRENT 1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT
+      1\n\t\t#define VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_PIVOTX_CURRENT 1\n\t\t#define
+      VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define
+      VFX_BLENDMODE_ADD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tTexture2D
+      mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
       VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#define
       IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\n\t\t\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXGlobalDefines.cginc\"\n\t\t\n\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
@@ -1217,9 +1260,9 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
-      SetAttribute_FDD06EC5(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
+      SetAttribute_FDD06EC7(inout float3 color, float3 Color) /*attribute:color Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    color = Color;\n\t\t\t}\n\t\t\tvoid
-      SetAttribute_CEEAF35E(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
+      SetAttribute_CEEAF35C(inout float alpha, float Alpha) /*attribute:alpha Composition:Overwrite
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    alpha = Alpha;\n\t\t\t}\n\t\t\tvoid
       Orient_1(inout float3 axisX, inout float3 axisY, inout float3 axisZ, float3
       position) /*mode:FaceCameraPosition */\n\t\t\t{\n\t\t\t    \n\t\t\t    if (unity_OrthoParams.w
@@ -1232,21 +1275,23 @@ VisualEffectResource:
       \   else\n\t\t\t    {\n\t\t\t        axisZ = normalize(position - GetViewVFXPosition());\n\t\t\t
       \       axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));\n\t\t\t
       \       axisY = cross(axisZ,axisX);\n\t\t\t    }\n\t\t\t    \n\t\t\t}\n\t\t\tvoid
-      SubpixelAA(float3 position, inout float alpha, inout float sizeX)\n\t\t\t{\n\t\t\t
-      \   \n\t\t\t    float2 size = float2(sizeX,sizeX);\n\t\t\t    float clipPosW
-      = TransformPositionVFXToClip(position).w;\n\t\t\t    float minSize = clipPosW
-      / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] *
-      _ScreenParams.y)); // max size in one pixel\n\t\t\t    float2 clampedSize =
-      max(size,minSize);\n\t\t\t    float fade = (size.x * size.y) / (clampedSize.x
-      * clampedSize.y);\n\t\t\t    alpha *= fade;\n\t\t\t    size = clampedSize;\n\t\t\t
-      \   sizeX = size.x;\n\t\t\t    \n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex
-      vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID
-      : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if
-      USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn
-      o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat3
+      SubpixelAA(float3 position, inout float alpha, float size, inout float scaleX,
+      inout float scaleY)\n\t\t\t{\n\t\t\t    \n\t\t\t    float2 localSize = size
+      * float2(scaleX, scaleY);\n\t\t\t    float clipPosW = TransformPositionVFXToClip(position).w;\n\t\t\t
+      \   float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1]
+      * _ScreenParams.y)); // max size in one pixel\n\t\t\t    float2 clampedSize
+      = max(localSize,minSize);\n\t\t\t    float fade = (localSize.x * localSize.y)
+      / (clampedSize.x * clampedSize.y);\n\t\t\t    alpha *= fade;\n\t\t\t    localSize
+      = clampedSize;\n\t\t\t    scaleX = localSize.x / size;\n\t\t\t    scaleY = localSize.y
+      / size;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
+      vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint
+      index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex
+      = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat size = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat3
       color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
       alive = (attributeBuffer.Load((index * 0x4 + 0x2003) << 2));\n\t\t\t\t\t\t\tfloat3
       axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
@@ -1258,27 +1303,29 @@ VisualEffectResource:
       alive = (attributeBuffer.Load((index * 0x4 + 0x2003) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
       (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 position
       = asfloat(attributeBuffer.Load3((index * 0x4 + 0x2000) << 2));\n\t\t\t\t\t\t\tfloat
-      sizeX = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleY = (float)0;\n\t\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotX = (float)0;\n\t\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotZ = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_FDD06EC5( /*inout */color, float3(1,1,0.1));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_CEEAF35E( /*inout */alpha, (float)0.3);\n\t\t\t\t}\n\t\t\t\tOrient_1(
+      size = asfloat(attributeBuffer.Load((index * 0x1 + 0x1A000) << 2));\n\t\t\t\t\t\t\tfloat
+      scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleX = (float)1;\n\t\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat
+      alpha = (float)1;\n\t\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3
+      axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat
+      angleX = (float)0;\n\t\t\t\t\t\t\tfloat angleY = (float)0;\n\t\t\t\t\t\t\tfloat
+      angleZ = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_FDD06EC7( /*inout */color, float3(1,1,0.1));\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   SetAttribute_CEEAF35C( /*inout */alpha, (float)0.3);\n\t\t\t\t}\n\t\t\t\tOrient_1(
       /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position);\n\t\t\t\tSubpixelAA(position,
-      \ /*inout */alpha,  /*inout */sizeX);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
-      o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id & 1);\n\t\t\t\to.VFX_VARYING_UV.y
-      = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if
-      VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
-      VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z
-      = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
-      float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
-      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\tconst
+      \ /*inout */alpha, size,  /*inout */scaleX,  /*inout */scaleY);\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif
+      (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id
+      & 1);\n\t\t\t\to.VFX_VARYING_UV.y = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
+      *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
+      *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
+      *= scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst float2
+      vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\tconst
       float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL\n\t\t\t\tfloat
-      normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
+      normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL
       = normalFlip * normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_BENTFACTORS\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_BENTFACTORS = vOffsets
@@ -1602,7 +1649,7 @@ VisualEffectResource:
           bucket: 40960
           structure: 8
           element: 4
-      - name: sizeX
+      - name: size
         type: 1
         offset:
           bucket: 106496
@@ -1649,7 +1696,7 @@ VisualEffectResource:
           bucket: 40960
           structure: 8
           element: 4
-      - name: sizeX
+      - name: size
         type: 1
         offset:
           bucket: 106496
@@ -1696,7 +1743,7 @@ VisualEffectResource:
           bucket: 40960
           structure: 8
           element: 4
-      - name: sizeX
+      - name: size
         type: 1
         offset:
           bucket: 106496
@@ -1743,7 +1790,7 @@ VisualEffectResource:
           bucket: 40960
           structure: 8
           element: 4
-      - name: sizeX
+      - name: size
         type: 1
         offset:
           bucket: 106496
@@ -1790,75 +1837,7 @@ VisualEffectResource:
           bucket: 40960
           structure: 8
           element: 4
-      - name: sizeX
-        type: 1
-        offset:
-          bucket: 106496
-          structure: 1
-          element: 0
-      capacity: 8192
-      stride: 4
-    - type: 1
-      size: 1
-      layout:
-      - name: spawnCount
-        type: 1
-        offset:
-          bucket: 0
-          structure: 1
-          element: 0
-      capacity: 1
-      stride: 4
-    - type: 4
-      size: 8192
-      layout: []
-      capacity: 0
-      stride: 4
-    - type: 1
-      size: 1
-      layout: []
-      capacity: 0
-      stride: 4
-    - type: 1
-      size: 114688
-      layout:
-      - name: lifetime
-        type: 1
-        offset:
-          bucket: 0
-          structure: 1
-          element: 0
-      - name: position
-        type: 3
-        offset:
-          bucket: 8192
-          structure: 4
-          element: 0
-      - name: alive
-        type: 17
-        offset:
-          bucket: 8192
-          structure: 4
-          element: 3
-      - name: velocity
-        type: 3
-        offset:
-          bucket: 40960
-          structure: 8
-          element: 0
-      - name: seed
-        type: 6
-        offset:
-          bucket: 40960
-          structure: 8
-          element: 3
-      - name: age
-        type: 1
-        offset:
-          bucket: 40960
-          structure: 8
-          element: 4
-      - name: sizeX
+      - name: size
         type: 1
         offset:
           bucket: 106496
@@ -1926,7 +1905,7 @@ VisualEffectResource:
           bucket: 40960
           structure: 8
           element: 4
-      - name: sizeX
+      - name: size
         type: 1
         offset:
           bucket: 106496
@@ -1994,7 +1973,75 @@ VisualEffectResource:
           bucket: 40960
           structure: 8
           element: 4
-      - name: sizeX
+      - name: size
+        type: 1
+        offset:
+          bucket: 106496
+          structure: 1
+          element: 0
+      capacity: 8192
+      stride: 4
+    - type: 1
+      size: 1
+      layout:
+      - name: spawnCount
+        type: 1
+        offset:
+          bucket: 0
+          structure: 1
+          element: 0
+      capacity: 1
+      stride: 4
+    - type: 4
+      size: 8192
+      layout: []
+      capacity: 0
+      stride: 4
+    - type: 1
+      size: 1
+      layout: []
+      capacity: 0
+      stride: 4
+    - type: 1
+      size: 114688
+      layout:
+      - name: lifetime
+        type: 1
+        offset:
+          bucket: 0
+          structure: 1
+          element: 0
+      - name: position
+        type: 3
+        offset:
+          bucket: 8192
+          structure: 4
+          element: 0
+      - name: alive
+        type: 17
+        offset:
+          bucket: 8192
+          structure: 4
+          element: 3
+      - name: velocity
+        type: 3
+        offset:
+          bucket: 40960
+          structure: 8
+          element: 0
+      - name: seed
+        type: 6
+        offset:
+          bucket: 40960
+          structure: 8
+          element: 3
+      - name: age
+        type: 1
+        offset:
+          bucket: 40960
+          structure: 8
+          element: 4
+      - name: size
         type: 1
         offset:
           bucket: 106496
@@ -2992,7 +3039,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614610
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3076,7 +3123,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3683,7 +3730,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4200,7 +4247,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614704
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5749,7 +5796,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614760
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6266,7 +6313,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7361,7 +7408,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614852
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7878,7 +7925,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8704,7 +8751,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8766,7 +8813,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614963
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8828,7 +8875,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8890,7 +8937,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614967
 MonoBehaviour:
   m_ObjectHideFlags: 0

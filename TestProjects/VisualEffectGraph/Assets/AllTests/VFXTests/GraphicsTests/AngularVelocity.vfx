@@ -84,7 +84,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
-  m_GraphVersion: 0
+  m_GraphVersion: 1
   m_saved: 1
 --- !u!114 &114780028408030698
 MonoBehaviour:
@@ -147,7 +147,7 @@ VisualEffectResource:
       deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to
       fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if
       VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer
-      inputAdditional;\n#endif\n\nvoid SetAttribute_FA958720(inout float angularVelocityX,
+      inputAdditional;\n#endif\n\nvoid SetAttribute_FA958722(inout float angularVelocityX,
       inout float angularVelocityY, inout float angularVelocityZ, inout uint seed,
       float3 Min, float3 Max) /*attribute:angularVelocity Composition:Overwrite Source:Slot
       Random:PerComponent channels:XYZ */\n{\n    angularVelocityX = lerp(Min.x,Max.x,RAND);\n
@@ -185,7 +185,7 @@ VisualEffectResource:
       \       float angleY = (float)0;\n        float angleZ = (float)0;\n        float
       age = (float)0;\n        uint particleId = (uint)0;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n
       \        particleId = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed
-      = WangHash(particleIndex ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_FA958720(
+      = WangHash(particleIndex ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_FA958722(
       /*inout */angularVelocityX,  /*inout */angularVelocityY,  /*inout */angularVelocityZ,
       \ /*inout */seed, float3(-200,-200,-200), float3(200,200,200));\n        }\n
       \       {\n            PositionSphere_0( /*inout */position,  /*inout */seed,
@@ -279,9 +279,10 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT
       1\n\t\t#define VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_PIVOTX_CURRENT
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
-      1\n\t\t#define VFX_USE_SIZEX_CURRENT 1\n\t\t#define VFX_USE_AGE_CURRENT 1\n\t\t#define
-      VFX_USE_LIFETIME_CURRENT 1\n\t\t#define VFX_USE_PARTICLEID_CURRENT 1\n\t\t#define
-      IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
+      VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_USE_LIFETIME_CURRENT 1\n\t\t#define VFX_USE_PARTICLEID_CURRENT
+      1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST 1\n\t\t\n\t\t\n\t\t\n\t\t#define
       VFX_LOCAL_SPACE 1\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t    float4 Size_a;\n\t\t
       \   float uniform_b;\n\t\t    float Color_b;\n\t\t    uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D
       mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
@@ -306,11 +307,11 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
-      AttributeFromCurve_36C0B4BB(inout float sizeX, float age, float lifetime, float
+      AttributeFromCurve_36C0B4BB(inout float size, float age, float lifetime, float
       SampleTime, float4 Size) /*attribute:size Composition:Overwrite AlphaComposition:Overwrite
       SampleMode:Custom Mode:PerComponent ColorMode:ColorAndAlpha channels:X */\n\t\t\t{\n\t\t\t
       \   float t = SampleTime;\n\t\t\t    float value = 0.0f;\n\t\t\t    value =
-      SampleCurve(Size, t);\n\t\t\t    sizeX = value.x;\n\t\t\t}\n\t\t\tvoid AttributeFromCurve_39BD59FD(inout
+      SampleCurve(Size, t);\n\t\t\t    size = value;\n\t\t\t}\n\t\t\tvoid AttributeFromCurve_39BD59FF(inout
       float3 color, float age, float lifetime, float SampleTime, float Color) /*attribute:color
       Composition:Overwrite AlphaComposition:Overwrite SampleMode:Custom Mode:PerComponent
       ColorMode:Color channels:XYZ */\n\t\t\t{\n\t\t\t    float t = SampleTime;\n\t\t\t
@@ -332,9 +333,11 @@ VisualEffectResource:
       * 0x4 + 0x701) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
       * 0x4 + 0x702) << 2));\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
       pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      sizeX = (float)0.1;\n\t\t\t\t\t\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0x703) << 2));\n\t\t\t\t\t\t\tfloat lifetime = (float)0;\n\t\t\t\t\t\t\tuint
-      particleId = (attributeBuffer.Load((index * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      size = (float)0.1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x4 + 0x703) << 2));\n\t\t\t\t\t\t\tfloat
+      lifetime = (float)0;\n\t\t\t\t\t\t\tuint particleId = (attributeBuffer.Load((index
+      * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
       alive = (bool)true;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif (!alive)\n\t\t\t\t\t\t\t\treturn
       o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
@@ -345,22 +348,24 @@ VisualEffectResource:
       angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0x701) << 2));\n\t\t\t\t\t\t\tfloat
       angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0x702) << 2));\n\t\t\t\t\t\t\tfloat
       pivotX = (float)0;\n\t\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat sizeX = (float)0.1;\n\t\t\t\t\t\t\tfloat
-      age = asfloat(attributeBuffer.Load((index * 0x4 + 0x703) << 2));\n\t\t\t\t\t\t\tfloat
-      lifetime = (float)0;\n\t\t\t\t\t\t\tuint particleId = (attributeBuffer.Load((index
-      * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bb = age * (float)0.5;\n\t\t\t\t    float tmp_bc = FixedRand(particleId
-      ^ asuint(uniform_b));\n\t\t\t\t    float tmp_bd = tmp_bb + tmp_bc;\n\t\t\t\t
-      \   AttributeFromCurve_36C0B4BB( /*inout */sizeX, age, lifetime, tmp_bd, Size_a);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bb = age * (float)0.5;\n\t\t\t\t    float tmp_bc = FixedRand(particleId
-      ^ asuint(uniform_b));\n\t\t\t\t    float tmp_bd = tmp_bb + tmp_bc;\n\t\t\t\t
-      \   float tmp_be = floor(tmp_bd);\n\t\t\t\t    float tmp_bf = tmp_bd - tmp_be;\n\t\t\t\t
-      \   AttributeFromCurve_39BD59FD( /*inout */color, age, lifetime, tmp_bf, Color_b);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
+      pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat size = (float)0.1;\n\t\t\t\t\t\t\tfloat
+      scaleX = (float)1;\n\t\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat age = asfloat(attributeBuffer.Load((index
+      * 0x4 + 0x703) << 2));\n\t\t\t\t\t\t\tfloat lifetime = (float)0;\n\t\t\t\t\t\t\tuint
+      particleId = (attributeBuffer.Load((index * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      \   float tmp_be = age * (float)0.5;\n\t\t\t\t    float tmp_bf = FixedRand(particleId
+      ^ asuint(uniform_b));\n\t\t\t\t    float tmp_bg = tmp_be + tmp_bf;\n\t\t\t\t
+      \   AttributeFromCurve_36C0B4BB( /*inout */size, age, lifetime, tmp_bg, Size_a);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   float tmp_be = age * (float)0.5;\n\t\t\t\t    float tmp_bf = FixedRand(particleId
+      ^ asuint(uniform_b));\n\t\t\t\t    float tmp_bg = tmp_be + tmp_bf;\n\t\t\t\t
+      \   float tmp_bh = floor(tmp_bg);\n\t\t\t\t    float tmp_bi = tmp_bg - tmp_bh;\n\t\t\t\t
+      \   AttributeFromCurve_39BD59FF( /*inout */color, age, lifetime, tmp_bi, Color_b);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
-      size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
-      = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
-      = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\tfloat3
+      size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
+      *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
+      *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
+      *= scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(i.pos,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL
       // TODO Should use inverse transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.normal)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -403,11 +408,11 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
-      AttributeFromCurve_36C0B4BB(inout float sizeX, float age, float lifetime, float
+      AttributeFromCurve_36C0B4BB(inout float size, float age, float lifetime, float
       SampleTime, float4 Size) /*attribute:size Composition:Overwrite AlphaComposition:Overwrite
       SampleMode:Custom Mode:PerComponent ColorMode:ColorAndAlpha channels:X */\n\t\t\t{\n\t\t\t
       \   float t = SampleTime;\n\t\t\t    float value = 0.0f;\n\t\t\t    value =
-      SampleCurve(Size, t);\n\t\t\t    sizeX = value.x;\n\t\t\t}\n\t\t\tvoid AttributeFromCurve_39BD59FD(inout
+      SampleCurve(Size, t);\n\t\t\t    size = value;\n\t\t\t}\n\t\t\tvoid AttributeFromCurve_39BD59FF(inout
       float3 color, float age, float lifetime, float SampleTime, float Color) /*attribute:color
       Composition:Overwrite AlphaComposition:Overwrite SampleMode:Custom Mode:PerComponent
       ColorMode:Color channels:XYZ */\n\t\t\t{\n\t\t\t    float t = SampleTime;\n\t\t\t
@@ -429,9 +434,11 @@ VisualEffectResource:
       * 0x4 + 0x701) << 2));\n\t\t\t\t\t\t\tfloat angleZ = asfloat(attributeBuffer.Load((index
       * 0x4 + 0x702) << 2));\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
       pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      sizeX = (float)0.1;\n\t\t\t\t\t\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x4 + 0x703) << 2));\n\t\t\t\t\t\t\tfloat lifetime = (float)0;\n\t\t\t\t\t\t\tuint
-      particleId = (attributeBuffer.Load((index * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
+      size = (float)0.1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x4 + 0x703) << 2));\n\t\t\t\t\t\t\tfloat
+      lifetime = (float)0;\n\t\t\t\t\t\t\tuint particleId = (attributeBuffer.Load((index
+      * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
       (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
       alive = (bool)true;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif (!alive)\n\t\t\t\t\t\t\t\treturn
       o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
@@ -442,22 +449,24 @@ VisualEffectResource:
       angleY = asfloat(attributeBuffer.Load((index * 0x4 + 0x701) << 2));\n\t\t\t\t\t\t\tfloat
       angleZ = asfloat(attributeBuffer.Load((index * 0x4 + 0x702) << 2));\n\t\t\t\t\t\t\tfloat
       pivotX = (float)0;\n\t\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat sizeX = (float)0.1;\n\t\t\t\t\t\t\tfloat
-      age = asfloat(attributeBuffer.Load((index * 0x4 + 0x703) << 2));\n\t\t\t\t\t\t\tfloat
-      lifetime = (float)0;\n\t\t\t\t\t\t\tuint particleId = (attributeBuffer.Load((index
-      * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bb = age * (float)0.5;\n\t\t\t\t    float tmp_bc = FixedRand(particleId
-      ^ asuint(uniform_b));\n\t\t\t\t    float tmp_bd = tmp_bb + tmp_bc;\n\t\t\t\t
-      \   AttributeFromCurve_36C0B4BB( /*inout */sizeX, age, lifetime, tmp_bd, Size_a);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bb = age * (float)0.5;\n\t\t\t\t    float tmp_bc = FixedRand(particleId
-      ^ asuint(uniform_b));\n\t\t\t\t    float tmp_bd = tmp_bb + tmp_bc;\n\t\t\t\t
-      \   float tmp_be = floor(tmp_bd);\n\t\t\t\t    float tmp_bf = tmp_bd - tmp_be;\n\t\t\t\t
-      \   AttributeFromCurve_39BD59FD( /*inout */color, age, lifetime, tmp_bf, Color_b);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
+      pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat size = (float)0.1;\n\t\t\t\t\t\t\tfloat
+      scaleX = (float)1;\n\t\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\t\tfloat
+      scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat age = asfloat(attributeBuffer.Load((index
+      * 0x4 + 0x703) << 2));\n\t\t\t\t\t\t\tfloat lifetime = (float)0;\n\t\t\t\t\t\t\tuint
+      particleId = (attributeBuffer.Load((index * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      \   float tmp_be = age * (float)0.5;\n\t\t\t\t    float tmp_bf = FixedRand(particleId
+      ^ asuint(uniform_b));\n\t\t\t\t    float tmp_bg = tmp_be + tmp_bf;\n\t\t\t\t
+      \   AttributeFromCurve_36C0B4BB( /*inout */size, age, lifetime, tmp_bg, Size_a);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
+      \   float tmp_be = age * (float)0.5;\n\t\t\t\t    float tmp_bf = FixedRand(particleId
+      ^ asuint(uniform_b));\n\t\t\t\t    float tmp_bg = tmp_be + tmp_bf;\n\t\t\t\t
+      \   float tmp_bh = floor(tmp_bg);\n\t\t\t\t    float tmp_bi = tmp_bg - tmp_bh;\n\t\t\t\t
+      \   AttributeFromCurve_39BD59FF( /*inout */color, age, lifetime, tmp_bi, Color_b);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
-      size = float3(sizeX,sizeX,sizeX);\n\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\n\t\t\t\t\t\tsize.y
-      = sizeY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\n\t\t\t\t\t\tsize.z
-      = sizeZ;\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tsize.z = min(size.x,size.y);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);\n\t\t\t\tfloat3
+      size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
+      *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
+      *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
+      *= scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat4x4 elementToVFX
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(i.pos,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_NORMAL
       // TODO Should use inverse transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.normal)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -1398,7 +1407,7 @@ MonoBehaviour:
   SampleMode: 4
   Mode: 1
   ColorMode: 1
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614593
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3136,7 +3145,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 1
-  channels: 4
+  channels: 6
 --- !u!114 &8926484042661614672
 MonoBehaviour:
   m_ObjectHideFlags: 0

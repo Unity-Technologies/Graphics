@@ -438,7 +438,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114117949157950100
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2522,7 +2522,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114598413270541858
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3029,7 +3029,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
-  m_GraphVersion: 0
+  m_GraphVersion: 1
   m_saved: 1
 --- !u!114 &114697976478237600
 MonoBehaviour:
@@ -4764,9 +4764,9 @@ VisualEffectResource:
       = arc * (u.y - w) / (1.0f - w);\n        t = float3(s1_2.x, 0, s1_2.y);\n    }\n
       \   \n    float s,c;\n    sincos(phi,c,s);\n    float3 t2 = float3(c * t.x -
       s * t.y,c * t.y + s * t.x,t.z);\n    \n    position += Torus_center + Torus_majorRadius
-      * t2;\n    direction = t2;\n    \n}\nvoid SetAttribute_CAC29745(inout float3
+      * t2;\n    direction = t2;\n    \n}\nvoid SetAttribute_CAC29747(inout float3
       position, float3 Position) /*attribute:position Composition:Overwrite Source:Slot
-      Random:Off channels:XYZ */\n{\n    position = Position;\n}\nvoid SetAttribute_F0142CBB(inout
+      Random:Off channels:XYZ */\n{\n    position = Position;\n}\nvoid SetAttribute_F0142CB9(inout
       float lifetime, float Lifetime) /*attribute:lifetime Composition:Overwrite Source:Slot
       Random:Off channels:XYZ */\n{\n    lifetime = Lifetime;\n}\nvoid KillAABox_0(float3
       position, inout bool alive, float3 box_center, float3 box_size) /*mode:Solid
@@ -4806,8 +4806,8 @@ VisualEffectResource:
       \           float tmp_o = position[0];\n            float tmp_p = position[1];\n
       \           float tmp_q = position[2];\n            float3 tmp_r = float3(tmp_o,
       tmp_p, tmp_q);\n            float3 tmp_s = mul(uniform_b, float4(tmp_r, 1.0)).xyz;\n
-      \           SetAttribute_CAC29745( /*inout */position, tmp_s);\n        }\n
-      \       {\n            SetAttribute_F0142CBB( /*inout */lifetime, (float)1);\n
+      \           SetAttribute_CAC29747( /*inout */position, tmp_s);\n        }\n
+      \       {\n            SetAttribute_F0142CB9( /*inout */lifetime, (float)1);\n
       \       }\n        {\n            KillAABox_0(position,  /*inout */alive, float3(-1.5,-0.5,0),
       float3(1.5,1.5,1.5));\n        }\n        {\n            KillSphere_0(position,
       \ /*inout */alive, Sphere_center_e, Sphere_radius_e, (float)1);\n        }\n
@@ -4844,40 +4844,40 @@ VisualEffectResource:
       Friction, float LifetimeLoss, float deltaTime, float colliderSign, float radius)
       /*mode:Solid radiusMode:None roughSurface:False */\n{\n    \n    float3 nextPos
       = position + velocity * deltaTime;\n    float3 dir = nextPos - box_center;\n
-      \   float3 absDir = abs(dir);\n    float3 size = box_size * 0.5f + radius *
-      colliderSign;\n    bool collision = all(absDir < size);\n    if (collision)\n
-      \   {\n        float3 distanceToEdge = (absDir - size);\n        float3 absDistanceToEdge
-      = abs(distanceToEdge);\n    \n        float3 n;\n    \n        if (absDistanceToEdge.x
-      < absDistanceToEdge.y && absDistanceToEdge.x < absDistanceToEdge.z)\n            n
-      = float3(colliderSign * sign(dir.x), 0.0f, 0.0f);\n        else if (absDistanceToEdge.y
-      < absDistanceToEdge.z)\n            n = float3(0.0f, colliderSign * sign(dir.y),
-      0.0f);\n        else\n            n = float3(0.0f, 0.0f, colliderSign * sign(dir.z));\n
-      \       position -= n * distanceToEdge;\n        float projVelocity = dot(n,
-      velocity);\n    \n        float3 normalVelocity = projVelocity * n;\n        float3
-      tangentVelocity = velocity - normalVelocity;\n    \n        if (projVelocity
-      < 0)\n            velocity -= ((1 + Elasticity) * projVelocity) * n;\n        velocity
-      -= Friction * tangentVelocity;\n    \n        age += (LifetimeLoss * lifetime);\n
-      \   \n    }\n}\nvoid CollisionSphere_0(inout float3 position, inout float3 velocity,
-      inout float age, float lifetime, float3 Sphere_center, float Sphere_radius,
-      float Elasticity, float Friction, float LifetimeLoss, float deltaTime, float
-      colliderSign, float radius) /*mode:Solid radiusMode:None roughSurface:False
-      */\n{\n    \n    float3 nextPos = position + velocity * deltaTime;\n    float3
-      dir = nextPos - Sphere_center;\n    float sqrLength = dot(dir, dir);\n    float
-      totalRadius = Sphere_radius + colliderSign * radius;\n    if (colliderSign *
-      sqrLength <= colliderSign * totalRadius * totalRadius)\n    {\n        float
-      dist = sqrt(sqrLength);\n        float3 n = colliderSign * dir / dist;\n        position
-      -= n * (dist - totalRadius) * colliderSign;\n    \n        float projVelocity
-      = dot(n, velocity);\n    \n        float3 normalVelocity = projVelocity * n;\n
-      \       float3 tangentVelocity = velocity - normalVelocity;\n    \n        if
-      (projVelocity < 0)\n            velocity -= ((1 + Elasticity) * projVelocity)
-      * n;\n        velocity -= Friction * tangentVelocity;\n    \n        age +=
-      (LifetimeLoss * lifetime);\n    \n    }\n}\nvoid Force_0(inout float3 velocity,
-      float mass, float3 Force, float deltaTime) /*Mode:Absolute */\n{\n    velocity
-      += (Force / mass) * deltaTime;\n}\nvoid EulerIntegration(inout float3 position,
-      float3 velocity, float deltaTime)\n{\n    position += velocity * deltaTime;\n}\nvoid
-      Age(inout float age, float deltaTime)\n{\n    age += deltaTime;\n}\nvoid Reap(float
-      age, float lifetime, inout bool alive)\n{\n    if(age > lifetime) { alive =
-      false; }\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3
+      \   float3 absDir = abs(dir);\n    float3 halfBoxSize = box_size * 0.5f + radius
+      * colliderSign;\n    bool collision = all(absDir < halfBoxSize);\n    if (collision)\n
+      \   {\n        float3 distanceToEdge = (absDir - halfBoxSize);\n        float3
+      absDistanceToEdge = abs(distanceToEdge);\n    \n        float3 n;\n    \n        if
+      (absDistanceToEdge.x < absDistanceToEdge.y && absDistanceToEdge.x < absDistanceToEdge.z)\n
+      \           n = float3(colliderSign * sign(dir.x), 0.0f, 0.0f);\n        else
+      if (absDistanceToEdge.y < absDistanceToEdge.z)\n            n = float3(0.0f,
+      colliderSign * sign(dir.y), 0.0f);\n        else\n            n = float3(0.0f,
+      0.0f, colliderSign * sign(dir.z));\n        position -= n * distanceToEdge;\n
+      \       float projVelocity = dot(n, velocity);\n    \n        float3 normalVelocity
+      = projVelocity * n;\n        float3 tangentVelocity = velocity - normalVelocity;\n
+      \   \n        if (projVelocity < 0)\n            velocity -= ((1 + Elasticity)
+      * projVelocity) * n;\n        velocity -= Friction * tangentVelocity;\n    \n
+      \       age += (LifetimeLoss * lifetime);\n    \n    }\n}\nvoid CollisionSphere_0(inout
+      float3 position, inout float3 velocity, inout float age, float lifetime, float3
+      Sphere_center, float Sphere_radius, float Elasticity, float Friction, float
+      LifetimeLoss, float deltaTime, float colliderSign, float radius) /*mode:Solid
+      radiusMode:None roughSurface:False */\n{\n    \n    float3 nextPos = position
+      + velocity * deltaTime;\n    float3 dir = nextPos - Sphere_center;\n    float
+      sqrLength = dot(dir, dir);\n    float totalRadius = Sphere_radius + colliderSign
+      * radius;\n    if (colliderSign * sqrLength <= colliderSign * totalRadius *
+      totalRadius)\n    {\n        float dist = sqrt(sqrLength);\n        float3 n
+      = colliderSign * dir / dist;\n        position -= n * (dist - totalRadius) *
+      colliderSign;\n    \n        float projVelocity = dot(n, velocity);\n    \n
+      \       float3 normalVelocity = projVelocity * n;\n        float3 tangentVelocity
+      = velocity - normalVelocity;\n    \n        if (projVelocity < 0)\n            velocity
+      -= ((1 + Elasticity) * projVelocity) * n;\n        velocity -= Friction * tangentVelocity;\n
+      \   \n        age += (LifetimeLoss * lifetime);\n    \n    }\n}\nvoid Force_0(inout
+      float3 velocity, float mass, float3 Force, float deltaTime) /*Mode:Absolute
+      */\n{\n    velocity += (Force / mass) * deltaTime;\n}\nvoid EulerIntegration(inout
+      float3 position, float3 velocity, float deltaTime)\n{\n    position += velocity
+      * deltaTime;\n}\nvoid Age(inout float age, float deltaTime)\n{\n    age += deltaTime;\n}\nvoid
+      Reap(float age, float lifetime, inout bool alive)\n{\n    if(age > lifetime)
+      { alive = false; }\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3
       groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n\tuint
       id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth
       * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif (id < nbMax)\n\t{\n#if VFX_USE_ALIVE_CURRENT\n\t\tbool
@@ -4958,7 +4958,7 @@ VisualEffectResource:
       must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       ColorOverLife_26AC1(float age, float lifetime, inout float3 color, float gradient)
-      /*mode:Color ColorComposition:Scale AlphaComposition:Scale */\n\t\t\t{\n\t\t\t
+      /*mode:Color ColorComposition:Multiply AlphaComposition:Multiply */\n\t\t\t{\n\t\t\t
       \   \n\t\t\t    float4 sampledColor = SampleGradient(gradient, age/lifetime);\n\t\t\t
       \   color *= sampledColor.rgb;\n\t\t\t    \n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma
       vertex vert\n\t\t\t\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID,
@@ -5014,7 +5014,7 @@ VisualEffectResource:
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       ColorOverLife_26AC1(float age, float lifetime, inout float3 color, float gradient)
-      /*mode:Color ColorComposition:Scale AlphaComposition:Scale */\n\t\t\t{\n\t\t\t
+      /*mode:Color ColorComposition:Multiply AlphaComposition:Multiply */\n\t\t\t{\n\t\t\t
       \   \n\t\t\t    float4 sampledColor = SampleGradient(gradient, age/lifetime);\n\t\t\t
       \   color *= sampledColor.rgb;\n\t\t\t    \n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma
       vertex vert\n\t\t\t\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID,
@@ -5070,7 +5070,7 @@ VisualEffectResource:
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       ColorOverLife_26AC1(float age, float lifetime, inout float3 color, float gradient)
-      /*mode:Color ColorComposition:Scale AlphaComposition:Scale */\n\t\t\t{\n\t\t\t
+      /*mode:Color ColorComposition:Multiply AlphaComposition:Multiply */\n\t\t\t{\n\t\t\t
       \   \n\t\t\t    float4 sampledColor = SampleGradient(gradient, age/lifetime);\n\t\t\t
       \   color *= sampledColor.rgb;\n\t\t\t    \n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma
       vertex vert\n\t\t\t\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID,
