@@ -30,14 +30,15 @@ o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadSize}
-float3 size = float3(sizeX,sizeX,sizeX);
-#if VFX_USE_SIZEY_CURRENT
-size.y = sizeY;
+float3 size3 = float3(size,size,size);
+#if VFX_USE_SCALEX_CURRENT
+size3.x *= scaleX;
 #endif
-#if VFX_USE_SIZEZ_CURRENT
-size.z = sizeZ;
-#else
-size.z = min(size.x,size.y);
+#if VFX_USE_SCALEY_CURRENT
+size3.y *= scaleY;
+#endif
+#if VFX_USE_SCALEZ_CURRENT
+size3.z *= scaleZ;
 #endif
 ${VFXEnd}
 
