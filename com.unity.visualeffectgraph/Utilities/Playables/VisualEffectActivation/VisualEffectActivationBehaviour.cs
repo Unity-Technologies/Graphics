@@ -34,9 +34,9 @@ public class VisualEffectActivationBehaviour : PlayableBehaviour
     [SerializeField]
     private ExposedParameter onClipExit = "OnStop";
     [SerializeField]
-    private EventState[] clipEnterEventAttributes;
+    private EventState[] clipEnterEventAttributes = null;
     [SerializeField]
-    private EventState[] clipExitEventAttributes;
+    private EventState[] clipExitEventAttributes = null;
 
     public override void OnPlayableCreate(Playable playable)
     {
