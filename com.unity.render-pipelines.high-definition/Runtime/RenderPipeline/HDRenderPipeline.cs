@@ -210,6 +210,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
+
+        ScriptableCullingParameters frozenCullingParams;
+        bool frozenCullingParamAvailable = false;
+
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             m_Asset = asset;
@@ -944,6 +948,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
                     }
 
+                    m_DebugDisplaySettings.UpdateCameraFreezeOptions();
+
                     if (additionalCameraData != null && additionalCameraData.hasCustomRender)
                     {
                         // Flush pending command buffer.
@@ -966,11 +972,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ApplyDebugDisplaySettings(hdCamera, cmd);
                     m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
+
                     ScriptableCullingParameters cullingParams;
                     if (!CullResults.GetCullingParameters(camera, camera.stereoEnabled, out cullingParams)) // Fixme remove stereo passdown?
                     {
                         renderContext.Submit();
                         continue;
+                    }
+
+                    if(m_DebugDisplaySettings.IsCameraFreezeEnabled())
+                    {
+                        bool cameraIsFrozen = camera.name.Equals(m_DebugDisplaySettings.GetFrozenCameraName());
+                        if(cameraIsFrozen)
+                        {
+                            if(!frozenCullingParamAvailable)
+                            {
+                                frozenCullingParams = cullingParams;
+                                frozenCullingParamAvailable = true;
+                            }
+                            cullingParams = frozenCullingParams;
+                        }
+                    }
+                    else
+                    {
+                        frozenCullingParamAvailable = false;
                     }
 
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
