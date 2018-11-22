@@ -3,7 +3,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #pragma kernel VolumeVoxelizationBruteforceMQ VolumeVoxelization=VolumeVoxelizationBruteforceMQ LIGHTLOOP_SINGLE_PASS VL_PRESET_MQ
 #pragma kernel VolumeVoxelizationTiledMQ      VolumeVoxelization=VolumeVoxelizationTiledMQ      LIGHTLOOP_TILE_PASS   VL_PRESET_MQ

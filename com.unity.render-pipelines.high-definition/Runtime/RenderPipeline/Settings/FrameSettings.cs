@@ -146,6 +146,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // GC.Alloc
         // FrameSettings..ctor() 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
+        
+        //saved enum fields for when repainting Debug Menu
+        int m_LitShaderModeEnumIndex;
 
         public FrameSettings() {
         }
@@ -199,6 +202,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.overrides = this.overrides;
 
             this.lightLoopSettings.CopyTo(frameSettings.lightLoopSettings);
+
+            frameSettings.m_LitShaderModeEnumIndex = this.m_LitShaderModeEnumIndex;
         }
 
         public FrameSettings Override(FrameSettings overridedFrameSettings)
@@ -337,6 +342,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
+
+            aggregate.m_LitShaderModeEnumIndex = srcFrameSettings.m_LitShaderModeEnumIndex;
         }
 
         public bool BuildLightListRunsAsync()
@@ -394,6 +401,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+
         public static void RegisterDebug(string menuName, FrameSettings frameSettings)
         {
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
@@ -420,7 +428,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     displayName = "Rendering Settings",
                     children =
                     {
-                        new DebugUI.EnumField { displayName = "Lit Shader Mode", getter = () => (int)frameSettings.shaderLitMode, setter = value => frameSettings.shaderLitMode = (LitShaderMode)value, autoEnum = typeof(LitShaderMode)},
+                        new DebugUI.EnumField { displayName = "Lit Shader Mode", getter = () => (int)frameSettings.shaderLitMode, setter = value => frameSettings.shaderLitMode = (LitShaderMode)value, autoEnum = typeof(LitShaderMode), getIndex = () => frameSettings.m_LitShaderModeEnumIndex, setIndex = value => frameSettings.m_LitShaderModeEnumIndex = value },
                         new DebugUI.BoolField { displayName = "Deferred Depth Prepass", getter = () => frameSettings.enableDepthPrepassWithDeferredRendering, setter = value => frameSettings.enableDepthPrepassWithDeferredRendering = value },
                         new DebugUI.BoolField { displayName = "Enable Opaque Objects", getter = () => frameSettings.enableOpaqueObjects, setter = value => frameSettings.enableOpaqueObjects = value },
                         new DebugUI.BoolField { displayName = "Enable Transparent Objects", getter = () => frameSettings.enableTransparentObjects, setter = value => frameSettings.enableTransparentObjects = value },

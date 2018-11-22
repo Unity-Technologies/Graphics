@@ -71,6 +71,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static bool needsRefreshingCameraFreezeList = true;
 
+        //saved enum fields for when repainting
+        int m_LightingDebugModeEnumIndex;
+        int m_LightingFulscreenDebugModeEnumIndex;
+        int m_TileClusterDebugEnumIndex;
+        int m_MipMapsEnumIndex;
+        int m_MaterialEnumIndex;
+        int m_EngineEnumIndex;
+        int m_AttributesEnumIndex;
+        int m_PropertiesEnumIndex;
+        int m_GBufferEnumIndex;
+        int m_ShadowDebugModeEnumIndex;
+        int m_TileClusterDebugByCategoryEnumIndex;
+        int m_LightVolumeDebugTypeEnumIndex;
+        int m_RenderingFulscreenDebugModeEnumIndex;
+        int m_TerrainTextureEnumIndex;
+        int m_ColorPickerDebugModeEnumIndex;
+        int m_MsaaSampleDebugModeEnumIndex;
+
+
         public DebugDisplaySettings()
         {
             FillFullScreenDebugEnum(ref lightingFullScreenDebugStrings, ref lightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
@@ -271,11 +290,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_DebugMaterialItems = new DebugUI.Widget[]
             {
-                new DebugUI.EnumField { displayName = "Material", getter = () => materialDebugSettings.debugViewMaterial, setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues },
-                new DebugUI.EnumField { displayName = "Engine", getter = () => materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues },
-                new DebugUI.EnumField { displayName = "Attributes", getter = () => (int)materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying) },
-                new DebugUI.EnumField { displayName = "Properties", getter = () => (int)materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties) },
-                new DebugUI.EnumField { displayName = "GBuffer", getter = () => materialDebugSettings.debugViewGBuffer, setter = value => SetDebugViewGBuffer(value), enumNames = MaterialDebugSettings.debugViewMaterialGBufferStrings, enumValues = MaterialDebugSettings.debugViewMaterialGBufferValues }
+                new DebugUI.EnumField { displayName = "Material", getter = () => materialDebugSettings.debugViewMaterial, setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues, getIndex = () => m_MaterialEnumIndex, setIndex = value => m_MaterialEnumIndex = value },
+                new DebugUI.EnumField { displayName = "Engine", getter = () => materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues, getIndex = () => m_EngineEnumIndex, setIndex = value => m_EngineEnumIndex = value },
+                new DebugUI.EnumField { displayName = "Attributes", getter = () => (int)materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying), getIndex = () => m_AttributesEnumIndex, setIndex = value => m_AttributesEnumIndex = value },
+                new DebugUI.EnumField { displayName = "Properties", getter = () => (int)materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties), getIndex = () => m_PropertiesEnumIndex, setIndex = value => m_PropertiesEnumIndex = value },
+                new DebugUI.EnumField { displayName = "GBuffer", getter = () => materialDebugSettings.debugViewGBuffer, setter = value => SetDebugViewGBuffer(value), enumNames = MaterialDebugSettings.debugViewMaterialGBufferStrings, enumValues = MaterialDebugSettings.debugViewMaterialGBufferValues, getIndex = () => m_GBufferEnumIndex, setIndex = value => m_GBufferEnumIndex = value }
             };
 
             var panel = DebugManager.instance.GetPanel(k_PanelMaterials, true);
@@ -316,14 +335,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             });
 
-            list.Add(new DebugUI.EnumField
-            {
-                displayName = "Shadow Debug Mode",
-                getter = () => (int)lightingDebugSettings.shadowDebugMode,
-                setter = value => SetShadowDebugMode((ShadowMapDebugMode)value),
-                autoEnum = typeof(ShadowMapDebugMode),
-                onValueChanged = RefreshLightingDebug
-            });
+            list.Add(new DebugUI.EnumField { displayName = "Shadow Debug Mode", getter = () => (int)lightingDebugSettings.shadowDebugMode, setter = value => SetShadowDebugMode((ShadowMapDebugMode)value), autoEnum = typeof(ShadowMapDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => m_ShadowDebugModeEnumIndex, setIndex = value => m_ShadowDebugModeEnumIndex = value });
 
             if (lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap || lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
             {
@@ -354,8 +366,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Min Value", getter = () => lightingDebugSettings.shadowMinValue, setter = value => lightingDebugSettings.shadowMinValue = value });
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Max Value", getter = () => lightingDebugSettings.shadowMaxValue, setter = value => lightingDebugSettings.shadowMaxValue = value });
 
-            list.Add(new DebugUI.EnumField { displayName = "Lighting Debug Mode", getter = () => (int)lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug });
-            list.Add(new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = lightingFullScreenDebugStrings, enumValues = lightingFullScreenDebugValues, onValueChanged = RefreshLightingDebug });
+            list.Add(new DebugUI.EnumField { displayName = "Lighting Debug Mode", getter = () => (int)lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug, getIndex = () => m_LightingDebugModeEnumIndex, setIndex = value => m_LightingDebugModeEnumIndex = value });
+            list.Add(new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = lightingFullScreenDebugStrings, enumValues = lightingFullScreenDebugValues, onValueChanged = RefreshLightingDebug, getIndex = () => m_LightingFulscreenDebugModeEnumIndex, setIndex = value => m_LightingFulscreenDebugModeEnumIndex = value });
             switch (fullScreenDebugMode)
             {
                 case FullScreenDebugMode.PreRefractionColorPyramid:
@@ -481,14 +493,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 });
             }
 
-            list.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug", getter = () => (int)lightingDebugSettings.tileClusterDebug, setter = value => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value, autoEnum = typeof(LightLoop.TileClusterDebug), onValueChanged = RefreshLightingDebug });
+            list.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug", getter = () => (int)lightingDebugSettings.tileClusterDebug, setter = value => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value, autoEnum = typeof(LightLoop.TileClusterDebug), onValueChanged = RefreshLightingDebug, getIndex = () => m_TileClusterDebugEnumIndex, setIndex = value => m_TileClusterDebugEnumIndex = value });
             if (lightingDebugSettings.tileClusterDebug != LightLoop.TileClusterDebug.None && lightingDebugSettings.tileClusterDebug != LightLoop.TileClusterDebug.MaterialFeatureVariants)
             {
                 list.Add(new DebugUI.Container
                 {
                     children =
                     {
-                        new DebugUI.EnumField { displayName = "Tile/Cluster Debug By Category", getter = () => (int)lightingDebugSettings.tileClusterDebugByCategory, setter = value => lightingDebugSettings.tileClusterDebugByCategory = (LightLoop.TileClusterCategoryDebug)value, autoEnum = typeof(LightLoop.TileClusterCategoryDebug) }
+                        new DebugUI.EnumField { displayName = "Tile/Cluster Debug By Category", getter = () => (int)lightingDebugSettings.tileClusterDebugByCategory, setter = value => lightingDebugSettings.tileClusterDebugByCategory = (LightLoop.TileClusterCategoryDebug)value, autoEnum = typeof(LightLoop.TileClusterCategoryDebug), getIndex = () => m_TileClusterDebugByCategoryEnumIndex, setIndex = value => m_TileClusterDebugByCategoryEnumIndex = value }
                     }
                 });
             }
@@ -512,7 +524,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     children =
                     {
-                        new DebugUI.EnumField { displayName = "Light Volume Debug Type", getter = () => (int)lightingDebugSettings.lightVolumeDebugByCategory, setter = value => lightingDebugSettings.lightVolumeDebugByCategory = (LightLoop.LightVolumeDebug)value, autoEnum = typeof(LightLoop.LightVolumeDebug) },
+                        new DebugUI.EnumField { displayName = "Light Volume Debug Type", getter = () => (int)lightingDebugSettings.lightVolumeDebugByCategory, setter = value => lightingDebugSettings.lightVolumeDebugByCategory = (LightLoop.LightVolumeDebug)value, autoEnum = typeof(LightLoop.LightVolumeDebug), getIndex = () => m_LightVolumeDebugTypeEnumIndex, setIndex = value => m_LightVolumeDebugTypeEnumIndex = value },
                         new DebugUI.UIntField { displayName = "Max Debug Light Count", getter = () => (uint)lightingDebugSettings.maxDebugLightCount, setter = value => lightingDebugSettings.maxDebugLightCount = value, min = () => 0, max = () => 24, incStep = 1 }
                     }
                 });
@@ -533,8 +545,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             widgetList.AddRange(new DebugUI.Widget[]
             {
-                new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => fullScreenDebugMode = (FullScreenDebugMode)value, enumNames = renderingFullScreenDebugStrings, enumValues = renderingFullScreenDebugValues },
-                new DebugUI.EnumField { displayName = "MipMaps", getter = () => (int)mipMapDebugSettings.debugMipMapMode, setter = value => SetMipMapMode((DebugMipMapMode)value), autoEnum = typeof(DebugMipMapMode), onValueChanged = RefreshRenderingDebug },
+                new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => fullScreenDebugMode = (FullScreenDebugMode)value, enumNames = renderingFullScreenDebugStrings, enumValues = renderingFullScreenDebugValues, getIndex = () => m_RenderingFulscreenDebugModeEnumIndex, setIndex = value => m_RenderingFulscreenDebugModeEnumIndex = value },
+                new DebugUI.EnumField { displayName = "MipMaps", getter = () => (int)mipMapDebugSettings.debugMipMapMode, setter = value => SetMipMapMode((DebugMipMapMode)value), autoEnum = typeof(DebugMipMapMode), onValueChanged = RefreshRenderingDebug, getIndex = () => m_MipMapsEnumIndex, setIndex = value => m_MipMapsEnumIndex = value },
             });
 
             if (mipMapDebugSettings.debugMipMapMode != DebugMipMapMode.None)
@@ -543,7 +555,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     children =
                     {
-                        new DebugUI.EnumField { displayName = "Terrain Texture", getter = ()=>(int)mipMapDebugSettings.terrainTexture, setter = value => mipMapDebugSettings.terrainTexture = (DebugMipMapModeTerrainTexture)value, autoEnum = typeof(DebugMipMapModeTerrainTexture) }
+                        new DebugUI.EnumField { displayName = "Terrain Texture", getter = ()=>(int)mipMapDebugSettings.terrainTexture, setter = value => mipMapDebugSettings.terrainTexture = (DebugMipMapModeTerrainTexture)value, autoEnum = typeof(DebugMipMapModeTerrainTexture), getIndex = () => m_TerrainTextureEnumIndex, setIndex = value => m_TerrainTextureEnumIndex = value }
                     }
                 });
             }
@@ -556,7 +568,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     flags = DebugUI.Flags.EditorOnly,
                     children =
                     {
-                        new DebugUI.EnumField  { displayName = "Debug Mode", getter = () => (int)colorPickerDebugSettings.colorPickerMode, setter = value => colorPickerDebugSettings.colorPickerMode = (ColorPickerDebugMode)value, autoEnum = typeof(ColorPickerDebugMode) },
+                        new DebugUI.EnumField  { displayName = "Debug Mode", getter = () => (int)colorPickerDebugSettings.colorPickerMode, setter = value => colorPickerDebugSettings.colorPickerMode = (ColorPickerDebugMode)value, autoEnum = typeof(ColorPickerDebugMode), getIndex = () => m_ColorPickerDebugModeEnumIndex, setIndex = value => m_ColorPickerDebugModeEnumIndex = value },
                         new DebugUI.ColorField { displayName = "Font Color", flags = DebugUI.Flags.EditorOnly, getter = () => colorPickerDebugSettings.fontColor, setter = value => colorPickerDebugSettings.fontColor = value }
                     }
                 }
@@ -579,7 +591,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             widgetList.AddRange(new DebugUI.Widget[]
             {
-                new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)msaaSamples, setter = value => msaaSamples = (MSAASamples)value, enumNames = msaaSamplesDebugStrings, enumValues = msaaSamplesDebugValues },
+                new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)msaaSamples, setter = value => msaaSamples = (MSAASamples)value, enumNames = msaaSamplesDebugStrings, enumValues = msaaSamplesDebugValues, getIndex = () => m_MsaaSampleDebugModeEnumIndex, setIndex = value => m_MsaaSampleDebugModeEnumIndex = value },
             });
 
             widgetList.AddRange(new DebugUI.Widget[]
