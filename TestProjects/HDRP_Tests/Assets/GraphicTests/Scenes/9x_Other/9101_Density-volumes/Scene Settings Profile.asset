@@ -178,12 +178,11 @@ MonoBehaviour:
   m_Name: VolumetricLightingController
   m_EditorClassIdentifier: 
   active: 1
-  depthRange:
+  depthExtent:
     m_OverrideState: 1
-    m_Value: {x: 145, y: 155}
-    min: 0.01
-    max: 10000
-  depthDistributionUniformity:
+    m_Value: 10
+    min: 0.1
+  sliceDistributionUniformity:
     m_OverrideState: 1
     m_Value: 1
     min: 0
