@@ -698,6 +698,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
                 else
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, RuntimeUtilities.transparentTexture);
+
             }
         }
 
@@ -1173,11 +1174,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             RenderSSR(hdCamera, cmd);
                         }
 
+
+                        // When debug is enabled we need to clear otherwise we may see non-shadows areas with stale values.
+                        if (hdCamera.frameSettings.enableContactShadows && m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ContactShadows)
+                        {
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_ScreenSpaceShadowsBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                        }
+
+                        if (!hdCamera.frameSettings.ContactShadowsRunAsync())
+                        {
+                            HDUtils.CheckRTCreated(m_ScreenSpaceShadowsBuffer);
+
+                            int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
+                            m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, hdCamera.frameSettings.enableMSAA ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), firstMipOffsetY, cmd);
+                            m_LightLoop.SetScreenSpaceShadowsTexture(hdCamera, m_ScreenSpaceShadowsBuffer, cmd);
+
+                            PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ContactShadows);
+                        }
+
                         StopStereoRendering(cmd, renderContext, camera);
 
                         HDGPUAsyncTask buildLightListTask = new HDGPUAsyncTask("Build light list", ComputeQueueType.Background);
+                        // It is important that this task is in the same queue as the build light list due to dependency it has on it. If really need to move it, put an extra fence to make sure buildLightListTask has finished. 
+                        HDGPUAsyncTask volumeVoxelizationTask = new HDGPUAsyncTask("Volumetric voxelization", ComputeQueueType.Background); 
                         HDGPUAsyncTask SSRTask = new HDGPUAsyncTask("Screen Space Reflection", ComputeQueueType.Background);
                         HDGPUAsyncTask SSAOTask = new HDGPUAsyncTask("SSAO", ComputeQueueType.Background);
+                        HDGPUAsyncTask contactShadowsTask = new HDGPUAsyncTask("Screen Space Shadows", ComputeQueueType.Background);
 
                         bool haveAsyncTaskWithShadows = false;
                         if (hdCamera.frameSettings.BuildLightListRunsAsync())
@@ -1185,6 +1207,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             buildLightListTask.Start(cmd, renderContext, (CommandBuffer asyncCmd) =>
                             {
                                 m_LightLoop.BuildGPULightListsCommon(hdCamera, asyncCmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA), m_SharedRTManager.GetStencilBufferCopy(), m_SkyManager.IsLightingSkyValid());
+                            }, !haveAsyncTaskWithShadows);
+
+                            haveAsyncTaskWithShadows = true;
+                        }
+
+                        if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
+                        {
+                            volumeVoxelizationTask.Start(cmd, renderContext, (CommandBuffer asyncCmd) =>
+                            {
+                                m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
                             }, !haveAsyncTaskWithShadows);
 
                             haveAsyncTaskWithShadows = true;
@@ -1210,6 +1242,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             haveAsyncTaskWithShadows = true;
                         }
 
+                        if(hdCamera.frameSettings.ContactShadowsRunAsync())
+                        {
+                            contactShadowsTask.Start(cmd, renderContext, (CommandBuffer asyncCmd) =>
+                            {
+                                int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
+                                m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, hdCamera.frameSettings.enableMSAA ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), firstMipOffsetY, asyncCmd);
+                            }, !haveAsyncTaskWithShadows);
+
+                            haveAsyncTaskWithShadows = true;
+                        }
+
+
                         using (new ProfilingSample(cmd, "Render shadows", CustomSamplerId.RenderShadows.GetSampler()))
                         {
                             // This call overwrites camera properties passed to the shader system.
@@ -1218,25 +1262,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Overwrite camera properties set during the shadow pass with the original camera properties.
                             renderContext.SetupCameraProperties(camera, camera.stereoEnabled);
                             hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
-                        }
-
-                        using (new ProfilingSample(cmd, "Screen space shadows", CustomSamplerId.ScreenSpaceShadows.GetSampler()))
-                        {
-
-                            StartStereoRendering(cmd, renderContext, camera);
-                            // When debug is enabled we need to clear otherwise we may see non-shadows areas with stale values.
-                            if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ContactShadows)
-                            {
-                                HDUtils.SetRenderTarget(cmd, hdCamera, m_ScreenSpaceShadowsBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-                            }
-
-                            HDUtils.CheckRTCreated(m_ScreenSpaceShadowsBuffer);
-
-                            int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
-                            m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, hdCamera.frameSettings.enableMSAA ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), firstMipOffsetY, cmd);
-
-                            PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ContactShadows);
-                            StopStereoRendering(cmd, renderContext, camera);
                         }
 
 
@@ -1262,9 +1287,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             visualEnv.PushFogShaderParameters(hdCamera, cmd);
                         }
 
-                        // Perform the voxelization step which fills the density 3D texture.
-                        // Requires the clustered lighting data structure to be built, and can run async.
-                        m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes);
+                        if(hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
+                        {
+                            volumeVoxelizationTask.End(cmd);
+                        }
+                        else
+                        {
+                            // Perform the voxelization step which fills the density 3D texture.
+                            m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes, m_LightLoop);
+                        }
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
@@ -1279,6 +1310,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 SSAOPostDispatchWork(cmd, hdCamera, renderContext, postProcessLayer);
                             }
                             );
+                        }
+
+                        if(hdCamera.frameSettings.ContactShadowsRunAsync())
+                        {
+                            contactShadowsTask.EndWithPostWork(cmd, () =>
+                            {
+                                m_LightLoop.SetScreenSpaceShadowsTexture(hdCamera, m_ScreenSpaceShadowsBuffer, cmd);
+                                PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ContactShadows);
+                            });
                         }
 
                         if (hdCamera.frameSettings.SSRRunsAsync())

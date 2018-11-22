@@ -50,6 +50,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LightListAsync = 1 << 27,
         SSRAsync = 1 << 28,
         SSAOAsync = 1 << 29,
+        ContactShadowsAsync = 1 << 30,
+        VolumeVoxelizationsAsync = 1 << 31,
     }
 
     // The settings here are per frame settings.
@@ -88,8 +90,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {FrameSettingsOverrides.RealtimePlanarReflection, (a, b) => { a.enableRealtimePlanarReflection = b.enableRealtimePlanarReflection; } },
             {FrameSettingsOverrides.LightListAsync, (a, b) => { a.runLightListAsync = b.runLightListAsync; } },
             {FrameSettingsOverrides.SSRAsync, (a, b) => { a.runSSRAsync= b.runSSRAsync; } },
-            {FrameSettingsOverrides.SSAOAsync, (a, b) => { a.runSSAOAsync = b.runSSAOAsync; } }
-
+            {FrameSettingsOverrides.SSAOAsync, (a, b) => { a.runSSAOAsync = b.runSSAOAsync; } },
+            {FrameSettingsOverrides.ContactShadowsAsync, (a, b) => { a.runContactShadowsAsync = b.runContactShadowsAsync; } },
+            {FrameSettingsOverrides.VolumeVoxelizationsAsync, (a, b) => { a.runVolumeVoxelizationAsync = b.runVolumeVoxelizationAsync; } }
         };
 
         public FrameSettingsOverrides overrides;
@@ -137,6 +140,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool runLightListAsync = true;
         public bool runSSRAsync = true;
         public bool runSSAOAsync = true;
+        public bool runContactShadowsAsync = true;
+        public bool runVolumeVoxelizationAsync = true;
 
         // GC.Alloc
         // FrameSettings..ctor() 
@@ -186,6 +191,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.runLightListAsync = this.runLightListAsync;
             frameSettings.runSSAOAsync = this.runSSAOAsync;
             frameSettings.runSSRAsync = this.runSSRAsync;
+            frameSettings.runContactShadowsAsync = this.runContactShadowsAsync;
+            frameSettings.runVolumeVoxelizationAsync = this.runVolumeVoxelizationAsync;
 
             frameSettings.enableMSAA = this.enableMSAA;
 
@@ -295,6 +302,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.runLightListAsync = aggregate.enableAsyncCompute && srcFrameSettings.runLightListAsync;
             aggregate.runSSRAsync = aggregate.enableAsyncCompute && srcFrameSettings.runSSRAsync;
             aggregate.runSSAOAsync = aggregate.enableAsyncCompute && srcFrameSettings.runSSAOAsync;
+            aggregate.runContactShadowsAsync = aggregate.enableAsyncCompute && srcFrameSettings.runContactShadowsAsync;
+            aggregate.runVolumeVoxelizationAsync = aggregate.enableAsyncCompute && srcFrameSettings.runVolumeVoxelizationAsync;
 
             aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
@@ -343,6 +352,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool SSAORunsAsync()
         {
             return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runSSAOAsync;
+        }
+
+        public bool ContactShadowsRunAsync()
+        {
+            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runContactShadowsAsync;
+        }
+
+        public bool VolumeVoxelizationRunsAsync()
+        {
+            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runVolumeVoxelizationAsync;
         }
 
 
@@ -436,6 +455,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Run Build Light List Async", getter = () => frameSettings.runLightListAsync, setter = value => frameSettings.runLightListAsync = value },
                         new DebugUI.BoolField { displayName = "Run SSR Async", getter = () => frameSettings.runSSRAsync, setter = value => frameSettings.runSSRAsync = value },
                         new DebugUI.BoolField { displayName = "Run SSAO Async", getter = () => frameSettings.runSSAOAsync, setter = value => frameSettings.runSSAOAsync = value },
+                        new DebugUI.BoolField { displayName = "Run Contact Shadows Async", getter = () => frameSettings.runContactShadowsAsync, setter = value => frameSettings.runContactShadowsAsync = value },
+                        new DebugUI.BoolField { displayName = "Run Volume Voxelization Async", getter = () => frameSettings.runVolumeVoxelizationAsync, setter = value => frameSettings.runVolumeVoxelizationAsync = value },
                     }
                 }
             });
