@@ -125,7 +125,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 area.Add(p.enableObjectMotionVectors, objectMotionVectorsContent, () => p.overridesObjectMotionVectors, a => p.overridesObjectMotionVectors = a, () => hdrpSettings.supportMotionVectors && p.enableMotionVectors.boolValue, defaultValue: defaultFrameSettings.enableObjectMotionVectors, indent: 1);
                 area.Add(p.enableDecals, decalsContent, () => p.overridesDecals, a => p.overridesDecals = a, () => hdrpSettings.supportDecals, defaultValue: defaultFrameSettings.enableDecals);
                 area.Add(p.enableRoughRefraction, roughRefractionContent, () => p.overridesRoughRefraction, a => p.overridesRoughRefraction = a, defaultValue: defaultFrameSettings.enableRoughRefraction);
-                area.Add(p.enableDistortion, distortionContent, () => p.overridesDistortion, a => p.overridesDistortion = a, defaultValue: defaultFrameSettings.enableDistortion);
+                area.Add(p.enableDistortion, distortionContent, () => p.overridesDistortion, a => p.overridesDistortion = a, () => hdrpSettings.supportDistortion, defaultValue: defaultFrameSettings.enableDistortion);
                 area.Add(p.enablePostprocess, postprocessContent, () => p.overridesPostprocess, a => p.overridesPostprocess = a, defaultValue: defaultFrameSettings.enablePostprocess);
                 area.Draw(withOverride);
             }
