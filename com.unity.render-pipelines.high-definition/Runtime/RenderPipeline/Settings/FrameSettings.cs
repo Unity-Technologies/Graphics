@@ -286,14 +286,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
 
-            aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
+            aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass && renderPipelineSettings.supportTransparentDepthPrepass;
             aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors && renderPipelineSettings.supportMotionVectors;
             // Object motion vector are disabled if motion vector are disabled
             aggregate.enableObjectMotionVectors = srcFrameSettings.enableObjectMotionVectors && aggregate.enableMotionVectors;
             aggregate.enableDecals = srcFrameSettings.enableDecals && renderPipelineSettings.supportDecals;
             aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
-            aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
-            aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;
+            aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass && renderPipelineSettings.supportTransparentDepthPostpass;
+            aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion && renderPipelineSettings.supportDistortion;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
