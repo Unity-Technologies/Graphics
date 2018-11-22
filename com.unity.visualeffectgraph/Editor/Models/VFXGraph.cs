@@ -284,6 +284,8 @@ namespace UnityEditor.VFX
             if (m_GraphSanitized)
                 return;
 
+            CheckCustomAttributes();
+
             var objs = new HashSet<ScriptableObject>();
             CollectDependencies(objs);
 
@@ -661,6 +663,37 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kSettingChanged);
             return m_CustomAttributes.Count - 1;
         }
+
+        void CheckCustomAttributes()
+        {
+            // Restore lost custom attributes that are used somewhere in the graph
+            ForEachSettingUsingAttribute((m,f)=>{
+                string customAttribute = (string) f.GetValue(m);
+                if(!m_CustomAttributes.Any(t => t.name == customAttribute) && ! VFXAttribute.AllIncludingVariadic.Any(t => t == customAttribute))
+                {
+                    // trying to find the right type
+                    var attributeType = VFXValueType.Float;
+                    if( m is VFXOperator ) // Assume a get attribute if its an operator
+                    {
+                        var ope = m as VFXOperator;
+
+                        if( ope.GetNbOutputSlots() > 0)
+                            attributeType = (ope).GetOutputSlot(0).valueType;
+                    }
+                    else if( m is VFXBlock) // Assume a kind of set attribute is its a block
+                    {
+                        var block = m as VFXBlock;
+                        if( block.GetNbInputSlots() > 0)
+                            attributeType = block.GetInputSlot(0).valueType;
+                    }
+
+                    AddCustomAttribute(customAttribute,attributeType);
+                }
+                return false;
+            }
+            );
+        }
+
 
         //Execute action on each settings used to store an attribute, until one return true;
         public bool ForEachSettingUsingAttributeInModel(VFXModel model, Func<FieldInfo,bool> action)
