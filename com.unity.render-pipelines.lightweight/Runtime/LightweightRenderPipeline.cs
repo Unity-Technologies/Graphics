@@ -354,6 +354,11 @@ namespace UnityEngine.Rendering.LWRP
             InitializeLightData(settings, visibleLights, mainLightIndex, maxVisibleAdditionalLights, maxPerObjectAdditionalLights, out renderingData.lightData);
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
+
+            bool platformNeedsToKillAlpha = Application.platform == RuntimePlatform.IPhonePlayer ||
+                Application.platform == RuntimePlatform.Android ||
+                Application.platform == RuntimePlatform.tvOS;
+            renderingData.killAlphaInFinalBlit = !Graphics.preserveFramebufferAlpha && platformNeedsToKillAlpha;
         }
 
         static void InitializeShadowData(PipelineSettings settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)

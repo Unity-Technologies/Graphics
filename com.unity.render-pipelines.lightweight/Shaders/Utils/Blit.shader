@@ -19,7 +19,13 @@ Shader "Hidden/Lightweight Render Pipeline/Blit"
             #pragma vertex Vertex
             #pragma fragment Fragment
 
+            #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
+            #pragma multi_compile _ _KILL_ALPHA
+
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+            #ifdef _LINEAR_TO_SRGB_CONVERSION
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+            #endif
 
             struct Attributes
             {
@@ -29,8 +35,8 @@ Shader "Hidden/Lightweight Render Pipeline/Blit"
 
             struct Varyings
             {
-                half4 positionCS       : SV_POSITION;
-                half2 uv        : TEXCOORD0;
+                half4 positionCS    : SV_POSITION;
+                half2 uv            : TEXCOORD0;
             };
 
             TEXTURE2D(_BlitTex);
@@ -47,6 +53,12 @@ Shader "Hidden/Lightweight Render Pipeline/Blit"
             half4 Fragment(Varyings input) : SV_Target
             {
                 half4 col = SAMPLE_TEXTURE2D(_BlitTex, sampler_BlitTex, input.uv);
+                #ifdef _LINEAR_TO_SRGB_CONVERSION
+                col = LinearToSRGB(col);
+                #endif
+                #ifdef _KILL_ALPHA
+                col.a = 1.0;
+                #endif
                 return col;
             }
             ENDHLSL
