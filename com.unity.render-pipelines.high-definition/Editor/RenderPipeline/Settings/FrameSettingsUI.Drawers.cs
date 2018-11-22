@@ -185,6 +185,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 area.Add(p.runBuildLightListAsync, lightListAsyncContent, () => p.overrideLightListInAsync, a => p.overrideLightListInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runLightListAsync, indent: 1);
                 area.Add(p.runSSRAsync, SSRAsyncContent, () => p.overrideSSRInAsync, a => p.overrideSSRInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runSSRAsync, indent: 1);
                 area.Add(p.runSSAOAsync, SSAOAsyncContent, () => p.overrideSSAOInAsync, a => p.overrideSSAOInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runSSAOAsync, indent: 1);
+                area.Add(p.runContactShadowsAsync, contactShadowsAsyncContent, () => p.overrideContactShadowsInAsync, a => p.overrideContactShadowsInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runContactShadowsAsync, indent: 1);
+                area.Add(p.runVolumeVoxelizationAsync, volumeVoxelizationAsyncContent, () => p.overrideVolumeVoxelizationInAsync, a => p.overrideVolumeVoxelizationInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runVolumeVoxelizationAsync, indent: 1);
                 area.Draw(withOverride);
             }
         }

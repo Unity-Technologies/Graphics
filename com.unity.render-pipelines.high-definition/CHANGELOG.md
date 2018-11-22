@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed the option to run SSR and SSAO on async compute.
 - Added support for the _GlossMapScale parameter in the Legacy to HDRP Material converter.
 - Added wave intrinsic instructions for use in Shaders (for AMD GCN).
+- Added option to run Contact Shadows and Volumetrics Voxelization stage in Async Compute.
 
 ### Fixed
 - Fixed sphere shaped influence handles clamping in Reflection Probes.
