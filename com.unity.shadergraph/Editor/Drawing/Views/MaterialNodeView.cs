@@ -30,6 +30,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_NodeSettingsView;
 
 
+        static readonly Dictionary<string, StyleColor> m_ColoredCategories = new Dictionary<string, StyleColor>
+        {
+            {"Math", new StyleColor(Color.blue)},
+            {"Input", new StyleColor(Color.green)},
+            {"Procedural", new StyleColor(Color.yellow)},
+            {"Artistic", new StyleColor(Color.yellow)},
+            {"Channel", new StyleColor(Color.red)},
+            {"Utilities", new StyleColor(Color.red)},
+            {"UV", new StyleColor(new Color(40/255f, 80/255f,120/255f))},
+        };
+
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
@@ -44,6 +55,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             node = inNode;
             viewDataKey = node.guid.ToString();
             UpdateTitle();
+
+
+            // Category colors on headers
+            // This should be the default gray color. So if no category is found it will be this default color
+            StyleColor categoryColor = new StyleColor(new Color(57/255f,57/255f,57/255f));
+            // Get the main category
+            TitleAttribute att;
+
+            att = (TitleAttribute)Attribute.GetCustomAttribute(node.GetType(), typeof(TitleAttribute));
+            if (att != null)
+            {
+                if (m_ColoredCategories.ContainsKey(att.title[0]))
+                {
+                    categoryColor = m_ColoredCategories[att.title[0]];
+                }
+                else
+                {
+                    Debug.Log(att.title[0]);
+                }
+            }
+
+            var nodeBorder = this.Q("node-border");
+            var titleElement = nodeBorder.Q("title");
+            titleElement.style.backgroundColor = categoryColor;
+            var titleLabel = titleElement.Q("title-label");
+            titleLabel.style.color = new StyleColor(Color.white);
 
             // Add controls container
             var controlsContainer = new VisualElement { name = "controls" };
