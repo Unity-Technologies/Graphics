@@ -37,10 +37,6 @@
 
 #define INTRINSIC_WAVEREADFIRSTLANE
 #define WaveReadLaneFirst __XB_MakeUniform
-#define INTRINSIC_BITFIELD_EXTRACT
-#define BitFieldExtract __XB_UBFE
-#define INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
-#define BitFieldExtractSignExtend __XB_IBFE
 #define INTRINSIC_BITFIELD_INSERT
 #define BitFieldInsert __XB_BFI
 #define INTRINSIC_BALLOT
@@ -48,6 +44,19 @@
 #define INTRINSIC_WAVE_LOGICAL_OPS
 #define WaveActiveBitAnd __XB_WaveAND
 #define WaveActiveBitOr __XB_WaveOR
+
+
+#define INTRINSIC_BITFIELD_EXTRACT
+uint BitFieldExtract(uint data, uint offset, uint numBits)
+{
+    return __XB_UBFE(numBits, offset, data);
+}
+
+#define INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+int BitFieldExtractSignExtend(uint data, uint offset, uint numBits)
+{
+    return __XB_IBFE(numBits, offset, data);
+}
 
 #define INTRINSIC_WAVE_ACTIVE_ALL_ANY
 bool WaveActiveAllTrue(bool expression)
