@@ -174,7 +174,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     || m_AfterOpaquePostProcessPasses.Count != 0
                     || m_AfterSkyboxPasses.Count != 0
                     || m_AfterTransparentPasses.Count != 0
-                    || m_AfterRenderPasses.Count != 0;
+                    || m_AfterRenderPasses.Count != 0
+                    || Display.main.requiresBlitToBackbuffer
+                    || renderingData.killAlphaInFinalBlit;
 
             RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
             RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
@@ -274,7 +276,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 //now blit into the final target
                 if (colorHandle != RenderTargetHandle.CameraTarget)
                 {
-                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle);
+                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle, Display.main.requiresSrgbBlitToBackbuffer, renderingData.killAlphaInFinalBlit);
                     renderer.EnqueuePass(m_FinalBlitPass);
                 }
             }
@@ -287,7 +289,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
                 else if (colorHandle != RenderTargetHandle.CameraTarget)
                 {
-                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle);
+                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle, Display.main.requiresSrgbBlitToBackbuffer, renderingData.killAlphaInFinalBlit);
                     renderer.EnqueuePass(m_FinalBlitPass);
                 }
             }
