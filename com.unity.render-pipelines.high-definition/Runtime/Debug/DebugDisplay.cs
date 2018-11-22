@@ -64,6 +64,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static GUIContent[] msaaSamplesDebugStrings = null;
         public static int[] msaaSamplesDebugValues = null;
 
+        public static List<GUIContent> cameraNames = new List<GUIContent>();
+        public static GUIContent[] cameraNamesStrings = null;
+        public static int[] cameraNamesValues = null;
+        public int debugCameraToFreeze = 0;
+
+        static bool needsRefreshingCameraFreezeList = true;
+
         public DebugDisplaySettings()
         {
             FillFullScreenDebugEnum(ref lightingFullScreenDebugStrings, ref lightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
@@ -103,6 +110,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ColorPickerDebugMode GetDebugColorPickerMode()
         {
             return colorPickerDebugSettings.colorPickerMode;
+        }
+
+        public bool IsCameraFreezeEnabled()
+        {
+            return debugCameraToFreeze != 0;
+        }
+        public string GetFrozenCameraName()
+        {
+            return cameraNamesStrings[debugCameraToFreeze].text;
         }
 
         public bool IsDebugDisplayEnabled()
@@ -212,6 +228,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (mipMapDebugSettings.debugMipMapMode != 0)
                 Texture.SetStreamingTextureMaterialDebugProperties();
+        }
+
+        public void UpdateCameraFreezeOptions()
+        {
+            if(needsRefreshingCameraFreezeList)
+            {
+                cameraNames.Insert(0, new GUIContent("None"));
+
+                cameraNamesStrings = cameraNames.ToArray();
+                cameraNamesValues = Enumerable.Range(0, cameraNames.Count()).ToArray();
+
+                UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+                RegisterRenderingDebug();
+                needsRefreshingCameraFreezeList = false;
+            }
         }
 
         public bool DebugNeedsExposure()
@@ -490,6 +521,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (DebugNeedsExposure())
                 list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => lightingDebugSettings.debugExposure, setter = value => lightingDebugSettings.debugExposure = value });
 
+
             m_DebugLightingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
             panel.children.Add(m_DebugLightingItems);
@@ -550,6 +582,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)msaaSamples, setter = value => msaaSamples = (MSAASamples)value, enumNames = msaaSamplesDebugStrings, enumValues = msaaSamplesDebugValues },
             });
 
+            widgetList.AddRange(new DebugUI.Widget[]
+            {
+                    new DebugUI.EnumField { displayName = "Freeze Camera for culling", getter = () => debugCameraToFreeze, setter = value => debugCameraToFreeze = value, enumNames = cameraNamesStrings, enumValues = cameraNamesValues},
+            });
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
@@ -612,6 +648,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static string FormatVector(Vector3 v)
         {
             return string.Format("({0:F6}, {1:F6}, {2:F6})", v.x, v.y, v.z);
+        }
+
+        public static void RegisterCamera(string cameraName)
+        {
+            if (cameraNames.FindIndex(x => x.text.Equals(cameraName)) < 0)
+            {
+                cameraNames.Add(new GUIContent(cameraName));
+                needsRefreshingCameraFreezeList = true;
+            }
+        }
+
+        public static void UnRegisterCamera(string cameraName)
+        {
+            int indexOfCamera = cameraNames.FindIndex(x => x.text.Equals(cameraName));
+            if (indexOfCamera > 0)
+            {
+                cameraNames.RemoveAt(indexOfCamera);
+                needsRefreshingCameraFreezeList = true;
+            }
         }
     }
 }
