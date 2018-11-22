@@ -98,7 +98,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/HDRPFog.unity
     guid: 0379b72b85eee8045afdaec3b1362957
-  - enabled: 1
+  - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/HDRPFogVolumetric.unity
     guid: 2744a8931e888734bae7f74874fefdf5
   - enabled: 1
