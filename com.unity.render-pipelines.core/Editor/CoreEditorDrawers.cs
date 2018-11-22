@@ -685,7 +685,7 @@ namespace UnityEditor.Experimental.Rendering
 
     public static class CoreEditorDrawersExtensions
     {
-        [Obsolete]
+        //[Obsolete]
         public static void Draw<TUIState, TData>(this IEnumerable<CoreEditorDrawer<TUIState, TData>.IDrawer> drawers, TUIState s, TData p, Editor o)
         {
             foreach (var drawer in drawers)
