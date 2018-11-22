@@ -138,6 +138,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                         HDShaderPassNames.s_ForwardName,
                                                         HDShaderPassNames.s_SRPDefaultUnlitName };
 
+        ShaderPassName[] m_TransparentNoBackfaceNames = {  HDShaderPassNames.s_ForwardOnlyName,
+                                                           HDShaderPassNames.s_ForwardName,
+                                                           HDShaderPassNames.s_SRPDefaultUnlitName };
+
+
         ShaderPassName[] m_AllForwardOpaquePassNames = {    HDShaderPassNames.s_ForwardOnlyName,
                                                             HDShaderPassNames.s_ForwardName,
                                                             HDShaderPassNames.s_SRPDefaultUnlitName };
@@ -2044,7 +2049,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
                     }
-                    RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, transparentRange);
+                    RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd,  m_Asset.renderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames, m_currentRendererConfigurationBakedLighting, transparentRange);
                 }
             }
         }
