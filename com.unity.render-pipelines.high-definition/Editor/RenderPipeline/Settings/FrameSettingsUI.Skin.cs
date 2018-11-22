@@ -43,6 +43,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent lightListAsyncContent = CoreEditorUtils.GetContent("Build Light List in Async");
         static readonly GUIContent SSRAsyncContent = CoreEditorUtils.GetContent("SSR in Async");
         static readonly GUIContent SSAOAsyncContent = CoreEditorUtils.GetContent("SSAO in Async");
+        static readonly GUIContent contactShadowsAsyncContent = CoreEditorUtils.GetContent("Contact Shadows in Async");
+        static readonly GUIContent volumeVoxelizationAsyncContent = CoreEditorUtils.GetContent("Volumetrics Voxelization in Async");
+
 
         static readonly GUIContent frameSettingsHeaderContent = CoreEditorUtils.GetContent("Frame Settings Override|Default FrameSettings are defined in HDRenderPipelineAsset.");
     }
