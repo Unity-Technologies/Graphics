@@ -79,7 +79,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (new EditorGUI.DisabledScope(!d.supportSubsurfaceScattering.boolValue))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(d.increaseSssSampleCount, _.GetContent("Increase SSS Sample Count|This allows for better SSS quality. Warning: high performance cost, do not enable on consoles."));
+                EditorGUILayout.PropertyField(d.increaseSssSampleCount, _.GetContent("High quality |This allows for better SSS quality. Warning: high performance cost, do not enable on consoles."));
                 --EditorGUI.indentLevel;
             }
 
@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (new EditorGUI.DisabledScope(!d.supportVolumetrics.boolValue))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(d.increaseResolutionOfVolumetrics, _.GetContent("Increase resolution of volumetrics|Increase the resolution of volumetric lighting buffers. Warning: high performance cost, do not enable on consoles."));
+                EditorGUILayout.PropertyField(d.increaseResolutionOfVolumetrics, _.GetContent("High quality |Increase the resolution of volumetric lighting buffers. Warning: high performance cost, do not enable on consoles."));
                 --EditorGUI.indentLevel;
             }
 

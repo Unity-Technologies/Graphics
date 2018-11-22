@@ -303,7 +303,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = TransformObjectToWorldDir(tangentOS);
     #endif
 #else
-    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+    // Note we don't normalize tangentWS either with a tangentmap above or using the interpolated tangent from the TBN frame
+    // as it will be normalized later with a call to Orthonormalize():
+    surfaceData.tangentWS = input.worldToTangent[0].xyz; // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
 #endif
 
 #ifdef _ANISOTROPYMAP

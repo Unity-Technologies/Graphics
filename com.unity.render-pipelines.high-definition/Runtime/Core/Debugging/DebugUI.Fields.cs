@@ -117,30 +117,11 @@ namespace UnityEngine.Experimental.Rendering
             public int[] enumValues;
             public int[] quickSeparators;
             public int[] indexes;
-            private string m_CurrentName;
+            
+            public Func<int> getIndex { get; set; }
+            public Action<int> setIndex { get; set; }
 
-            public string currentName
-            {
-                get
-                {
-                    //lazy init on first name if possible
-                    if (string.IsNullOrEmpty(m_CurrentName) && enumNames != null && enumNames.Length > 0)
-                        m_CurrentName = enumNames[0].text;
-                    return m_CurrentName;
-                }
-            }
-
-            public int currentIndex
-            {
-                get
-                {
-                    return Array.FindIndex(enumNames, x => x.text == currentName);
-                }
-                set
-                {
-                    m_CurrentName = enumNames[value].text;
-                }
-            }
+            public int currentIndex { get { return getIndex(); } set { setIndex(value); } }
 
             public Type autoEnum
             {
