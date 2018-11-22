@@ -20,12 +20,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateValueNoise1D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateValueNoise1D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateValueNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateValueNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -43,12 +43,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateValueNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateValueNoise2D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateValueNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateValueNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -66,12 +66,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateValueNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateValueNoise3D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateValueNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateValueNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -89,12 +89,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinNoise1D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinNoise1D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GeneratePerlinNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GeneratePerlinNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -112,12 +112,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinNoise2D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GeneratePerlinNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GeneratePerlinNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -135,12 +135,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinNoise3D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GeneratePerlinNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GeneratePerlinNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -158,12 +158,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularNoise1D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularNoise1D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateCellularNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateCellularNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -181,12 +181,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularNoise2D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateCellularNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateCellularNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -204,12 +204,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularNoise3D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateCellularNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateCellularNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -227,12 +227,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateValueCurlNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateValueCurlNoise2D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateValueCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateValueCurlNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -250,12 +250,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateValueCurlNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateValueCurlNoise3D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateValueCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateValueCurlNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -273,12 +273,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinCurlNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinCurlNoise2D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GeneratePerlinCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GeneratePerlinCurlNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -296,12 +296,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinCurlNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GeneratePerlinCurlNoise3D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GeneratePerlinCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GeneratePerlinCurlNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -319,12 +319,12 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularCurlNoise2D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularCurlNoise2D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateCellularCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateCellularCurlNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
@@ -342,18 +342,18 @@ namespace UnityEditor.VFX
             var floatParams = constParents[1].Get<Vector3>();
             var octaveCount = constParents[2].Get<int>();
 
-            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularCurlNoise3D(coordinate, floatParams.x, floatParams.y, octaveCount, floatParams.z));
+            return VFXValue.Constant(VFXExpressionNoise.GenerateCellularCurlNoise3D(coordinate, floatParams.x, octaveCount, floatParams.y, floatParams.z));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateCellularCurlNoise({0}, {1}.x, {1}.y, {2}, {1}.z)", parents[0], parents[1], parents[2]);
+            return string.Format("GenerateCellularCurlNoise({0}, {1}.x, {2}, {1}.y, {1}.z)", parents[0], parents[1], parents[2]);
         }
     }
 
     class VFXExpressionVoroNoise2D : VFXExpression
     {
-        public VFXExpressionVoroNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector4>.Default) {}
+        public VFXExpressionVoroNoise2D() : this(VFXValue<Vector2>.Default, VFXValue<Vector3>.Default) {}
         public VFXExpressionVoroNoise2D(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnCPU, parents) {}
         sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
 
@@ -362,14 +362,14 @@ namespace UnityEditor.VFX
         /*sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var coordinate = constParents[0].Get<Vector2>();
-            var floatParams = constParents[1].Get<Vector4>();
+            var floatParams = constParents[1].Get<Vector3>();
 
             return VFXValue.Constant(VFXExpressionNoise.GenerateVoroNoise2D(coordinate, floatParams));
         }*/
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GenerateVoroNoise({0}, {1}.x, {1}.y, {1}.z, {1}.w)", parents[0], parents[1]);
+            return string.Format("GenerateVoroNoise({0}, {1}.y, {1}.x, {1}.z)", parents[0], parents[1]);
         }
     }
 }

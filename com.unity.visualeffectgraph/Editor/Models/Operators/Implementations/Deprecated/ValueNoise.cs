@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Noise", variantProvider = typeof(NoiseVariantProvider))]
-    class ValueNoise : NoiseBase
+    // DEPRECATED
+    class ValueNoise : NoiseBaseOld
     {
         override protected string noiseName { get { return "Value"; } }
 
@@ -26,25 +26,40 @@ namespace UnityEditor.VFX.Operator
             }
             else
             {
+                VFXExpression rangeMultiplier = (inputExpression[5].y - inputExpression[5].x);
+
                 if (dimensions == DimensionCount.One)
                 {
                     VFXExpression noise = new VFXExpressionValueNoise1D(inputExpression[0], parameters, inputExpression[3]);
-                    noise = VFXOperatorUtility.Fit(noise, VFXValue.Constant(new Vector2(-1, -1)), VFXValue.Constant(Vector2.one), VFXOperatorUtility.CastFloat(inputExpression[5].x, noise.valueType), VFXOperatorUtility.CastFloat(inputExpression[5].y, noise.valueType));
-                    return new[] { noise.x, noise.y };
+                    VFXExpression x = VFXOperatorUtility.Fit(noise.x, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f), inputExpression[5].x, inputExpression[5].y);
+                    VFXExpression y = noise.y * rangeMultiplier;
+                    return new[] { x, y };
                 }
                 else if (dimensions == DimensionCount.Two)
                 {
                     VFXExpression noise = new VFXExpressionValueNoise2D(inputExpression[0], parameters, inputExpression[3]);
-                    noise = VFXOperatorUtility.Fit(noise, VFXValue.Constant(new Vector3(-1, -1, -1)), VFXValue.Constant(Vector3.one), VFXOperatorUtility.CastFloat(inputExpression[5].x, noise.valueType), VFXOperatorUtility.CastFloat(inputExpression[5].y, noise.valueType));
-                    return new[] { noise.x, new VFXExpressionCombine(noise.y, noise.z) };
+                    VFXExpression x = VFXOperatorUtility.Fit(noise.x, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f), inputExpression[5].x, inputExpression[5].y);
+                    VFXExpression y = noise.y * rangeMultiplier;
+                    VFXExpression z = noise.z * rangeMultiplier;
+                    return new[] { x, new VFXExpressionCombine(y, z) };
                 }
                 else
                 {
                     VFXExpression noise = new VFXExpressionValueNoise3D(inputExpression[0], parameters, inputExpression[3]);
-                    noise = VFXOperatorUtility.Fit(noise, VFXValue.Constant(new Vector4(-1, -1, -1, -1)), VFXValue.Constant(Vector4.one), VFXOperatorUtility.CastFloat(inputExpression[5].x, noise.valueType), VFXOperatorUtility.CastFloat(inputExpression[5].y, noise.valueType));
-                    return new[] { noise.x, new VFXExpressionCombine(noise.y, noise.z, noise.w) };
+                    VFXExpression x = VFXOperatorUtility.Fit(noise.x, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f), inputExpression[5].x, inputExpression[5].y);
+                    VFXExpression y = noise.y * rangeMultiplier;
+                    VFXExpression z = noise.z * rangeMultiplier;
+                    VFXExpression w = noise.w * rangeMultiplier;
+                    return new[] { x, new VFXExpressionCombine(y, z, w) };
                 }
             }
+        }
+
+        public override void Sanitize(int version)
+        {
+            Debug.Log("Sanitizing Graph: Automatically replace ValueNoise with Noise or CurlNoise");
+            Sanitize(NoiseBase.NoiseType.Value);
+            base.Sanitize(version);
         }
     }
 }

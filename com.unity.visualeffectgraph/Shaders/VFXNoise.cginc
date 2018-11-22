@@ -2,41 +2,52 @@
 
 // Template for applying shared noise parameters to each noise type
 #define NOISE_TEMPLATE(NAME, COORDINATE_TYPE, RETURN_TYPE, FUNC) \
-RETURN_TYPE Generate##NAME##Noise(COORDINATE_TYPE coordinate, float amplitude, float frequency, int octaveCount, float persistence) \
+RETURN_TYPE Generate##NAME##Noise(COORDINATE_TYPE coordinate, float frequency, int octaveCount, float persistence, float lacunarity) \
 { \
     RETURN_TYPE total = 0.0f; \
+\
+    float amplitude = 1.0f; \
+    float totalAmplitude = 0.0f; \
 \
     for (int octaveIndex = 0; octaveIndex < octaveCount; octaveIndex++) \
     { \
         total += FUNC(coordinate * frequency) * amplitude; \
+        totalAmplitude += amplitude; \
         amplitude *= persistence; \
-        frequency *= 2.0f; \
+        frequency *= lacunarity; \
     } \
  \
-    return total; \
+    return total / totalAmplitude; \
 }
 
 #define CURL_NOISE_2D_TEMPLATE(NAME) \
-float2 Generate##NAME##CurlNoise(float2 coordinate, float amplitude, float frequency, int octaveCount, float persistence) \
+float2 Generate##NAME##CurlNoise(float2 coordinate, float frequency, int octaveCount, float persistence, float lacunarity) \
 { \
     float2 total = float2(0.0f, 0.0f); \
+\
+    float amplitude = 1.0f; \
+    float totalAmplitude = 0.0f; \
 \
     for (int octaveIndex = 0; octaveIndex < octaveCount; octaveIndex++) \
     { \
         float2 derivatives = Generate##NAME##Noise2D(coordinate * frequency).yz; \
         total += derivatives * amplitude; \
 \
+        totalAmplitude += amplitude; \
         amplitude *= persistence; \
-        frequency *= 2.0f; \
+        frequency *= lacunarity; \
     } \
 \
-    return float2(total.y, -total.x); \
+    return float2(total.y, -total.x) / totalAmplitude; \
 }
 
 #define CURL_NOISE_3D_TEMPLATE(NAME) \
-float3 Generate##NAME##CurlNoise(float3 coordinate, float amplitude, float frequency, int octaveCount, float persistence) \
+float3 Generate##NAME##CurlNoise(float3 coordinate, float frequency, int octaveCount, float persistence, float lacunarity) \
 { \
     float2 total[3] = { float2(0.0f, 0.0f), float2(0.0f, 0.0f), float2(0.0f, 0.0f) }; \
+\
+    float amplitude = 1.0f; \
+    float totalAmplitude = 0.0f; \
 \
     float2 points[3] = \
     { \
@@ -53,14 +64,15 @@ float3 Generate##NAME##CurlNoise(float3 coordinate, float amplitude, float frequ
             total[i] += derivatives * amplitude; \
         } \
 \
+        totalAmplitude += amplitude; \
         amplitude *= persistence; \
-        frequency *= 2.0f; \
+        frequency *= lacunarity; \
     } \
 \
     return float3( \
         (total[2].x - total[1].y), \
         (total[0].x - total[2].y), \
-        (total[1].x - total[0].y)); \
+        (total[1].x - total[0].y)) / totalAmplitude; \
 }
 
 
@@ -512,7 +524,7 @@ float3 VoroHash3(float2 p)
     return frac(sin(q) * 43758.5453f);
 }
 
-float GenerateVoroNoise(float2 coordinate, float amplitude, float frequency, float warp, float smoothness)
+float GenerateVoroNoise(float2 coordinate, float frequency, float warp, float smoothness)
 {
     coordinate *= frequency;
 
@@ -537,6 +549,6 @@ float GenerateVoroNoise(float2 coordinate, float amplitude, float frequency, flo
         }
     }
 
-    return ((va / wt) * 2 - 1) * amplitude;
+    return ((va / wt) * 2 - 1);
 }
 

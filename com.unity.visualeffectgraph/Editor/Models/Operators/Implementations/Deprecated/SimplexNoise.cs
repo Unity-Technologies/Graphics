@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     // DEPRECATED
-    class SimplexNoise : NoiseBase
+    class SimplexNoise : NoiseBaseOld
     {
         override protected string noiseName { get { return "Simplex"; } }
 
@@ -39,12 +39,14 @@ namespace UnityEditor.VFX.Operator
 
             var perlinNoise = CreateInstance<PerlinNoise>();
 
-            perlinNoise.SetSettingValue("dimensions", "dimensions");
+            perlinNoise.SetSettingValue("dimensions", dimensions);
 
             // Transfer links
             for (int i=0; i<6; i++)
                 VFXSlot.CopyLinksAndValue(perlinNoise.GetInputSlot(i), GetInputSlot(i), true);
-            
+
+            VFXSlot.CopyLinksAndValue(perlinNoise.GetOutputSlot(0), GetOutputSlot(0), true);
+
             ReplaceModel(perlinNoise, this);
 
             base.Sanitize(version);
