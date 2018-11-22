@@ -213,37 +213,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
         };
 
-        Pass m_PassDistortion = new Pass()
-        {
-            Name = "Distortion",
-            LightMode = "DistortionVectors",
-            TemplateName = "HDPBRPass.template",
-            MaterialName = "PBR",
-            ShaderPassName = "SHADERPASS_DISTORTION",
-            BlendOverride = "Blend One One, One One",   // [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
-            BlendOpOverride = "BlendOp Add, Add",       // Add, [_DistortionBlurBlendOp]
-            ZTestOverride = "ZTest LEqual",             // [_ZTestModeDistortion]
-            ZWriteOverride = "ZWrite Off",
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-//                "FragInputs.worldToTangent",
-//                "FragInputs.positionRWS",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                PBRMasterNode.PositionSlotId
-            },
-        };
-
         Pass m_PassDepthOnly = new Pass()
         {
             Name = "DepthOnly",
