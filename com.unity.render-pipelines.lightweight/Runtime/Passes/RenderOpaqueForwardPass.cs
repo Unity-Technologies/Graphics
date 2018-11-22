@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Camera camera = renderingData.cameraData.camera;
                 XRUtils.DrawOcclusionMesh(cmd, camera, renderingData.cameraData.isStereoEnabled);
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(camera, sortFlags, rendererConfiguration, renderingData.supportsDynamicBatching);
+                var drawSettings = CreateDrawingSettings(camera, sortFlags, rendererConfiguration, renderingData.supportsDynamicBatching, renderingData.lightData.mainLightIndex);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_OpaqueFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader

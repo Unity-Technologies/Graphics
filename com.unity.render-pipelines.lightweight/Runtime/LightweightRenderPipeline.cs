@@ -133,6 +133,8 @@ namespace UnityEngine.Rendering.LWRP
 
             SetSupportedRenderingFeatures();
 
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
+
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
@@ -201,6 +203,12 @@ namespace UnityEngine.Rendering.LWRP
                 InitializeCameraData(settings, camera, out var cameraData);
                 SetupPerCameraShaderConstants(cameraData);
 
+                if (pipelineInstance.settings.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
+                    pipelineInstance.settings.maxAdditionalLights == 0)
+                {
+                    cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+                }
+                
                 cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -228,9 +236,6 @@ namespace UnityEngine.Rendering.LWRP
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
             context.Submit();
-#if UNITY_EDITOR
-            Handles.DrawGizmos(camera);
-#endif
         }
 
         static void SetSupportedRenderingFeatures()
@@ -315,7 +320,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             var visibleLights = cullResults.visibleLights;
 
-            int mainLightIndex = GetMainLight(settings, visibleLights);
+            int mainLightIndex = GetMainLightIndex(settings, visibleLights);
             bool mainLightCastShadows = false;
             bool additionalLightsCastShadows = false;
 
@@ -349,6 +354,11 @@ namespace UnityEngine.Rendering.LWRP
             InitializeLightData(settings, visibleLights, mainLightIndex, maxVisibleAdditionalLights, maxPerObjectAdditionalLights, out renderingData.lightData);
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
+
+            bool platformNeedsToKillAlpha = Application.platform == RuntimePlatform.IPhonePlayer ||
+                Application.platform == RuntimePlatform.Android ||
+                Application.platform == RuntimePlatform.tvOS;
+            renderingData.killAlphaInFinalBlit = !Graphics.preserveFramebufferAlpha && platformNeedsToKillAlpha;
         }
 
         static void InitializeShadowData(PipelineSettings settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
@@ -442,29 +452,39 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         // Main Light is always a directional light
-        static int GetMainLight(PipelineSettings settings, NativeArray<VisibleLight> visibleLights)
+        static int GetMainLightIndex(PipelineSettings settings, NativeArray<VisibleLight> visibleLights)
         {
             int totalVisibleLights = visibleLights.Length;
 
             if (totalVisibleLights == 0 || settings.mainLightRenderingMode != LightRenderingMode.PerPixel)
                 return -1;
 
+            Light sunLight = RenderSettings.sun;
+            int brightestDirectionalLightIndex = -1;
+            float brightestLightIntensity = 0.0f;
             for (int i = 0; i < totalVisibleLights; ++i)
             {
-                VisibleLight currLight = visibleLights[i];
+                VisibleLight currVisibleLight = visibleLights[i];
+                Light currLight = currVisibleLight.light;
 
                 // Particle system lights have the light property as null. We sort lights so all particles lights
                 // come last. Therefore, if first light is particle light then all lights are particle lights.
                 // In this case we either have no main light or already found it.
-                if (currLight.light == null)
+                if (currLight == null)
                     break;
 
-                // In case no shadow light is present we will return the brightest directional light
-                if (currLight.lightType == LightType.Directional)
+                if (currLight == sunLight)
                     return i;
+
+                // In case no shadow light is present we will return the brightest directional light
+                if (currVisibleLight.lightType == LightType.Directional && currLight.intensity > brightestLightIntensity)
+                {
+                    brightestLightIntensity = currLight.intensity;
+                    brightestDirectionalLightIndex = i;
+                }
             }
 
-            return -1;
+            return brightestDirectionalLightIndex;
         }
 
         static void SetupPerFrameShaderConstants()
