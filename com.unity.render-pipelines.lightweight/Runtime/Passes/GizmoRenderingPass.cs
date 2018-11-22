@@ -1,11 +1,12 @@
 using UnityEngine.Rendering;
 using UnityEditor;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// </summary>
-    public class GizmoRenderingPass : ScriptableRenderPass
+    internal class GizmoRenderingPass : ScriptableRenderPass
     {
         private bool renderLitGizmos { get; set; }
 
