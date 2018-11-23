@@ -4,12 +4,10 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
-using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
-using UnityEngine.UIElements.StyleSheets;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 
 
@@ -28,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public bool isBlackboardVisible = true;
         public bool isPreviewVisible = true;
+        public bool colorCategories = true;
     }
 
     class GraphEditorView : VisualElement, IDisposable
@@ -116,8 +115,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     GUILayout.FlexibleSpace();
 
                     EditorGUI.BeginChangeCheck();
-                    m_ToggleSettings.isBlackboardVisible = GUILayout.Toggle(m_ToggleSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
+                    m_ToggleSettings.colorCategories = GUILayout.Toggle(m_ToggleSettings.colorCategories, "Color Node Categories", EditorStyles.toolbarButton);
+                    GUILayout.Space(6);
 
+                    m_ToggleSettings.isBlackboardVisible = GUILayout.Toggle(m_ToggleSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
                     GUILayout.Space(6);
 
                     m_ToggleSettings.isPreviewVisible = GUILayout.Toggle(m_ToggleSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
@@ -125,6 +126,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         m_MasterPreviewView.visible = m_ToggleSettings.isPreviewVisible;
                         m_BlackboardProvider.blackboard.visible = m_ToggleSettings.isBlackboardVisible;
+                        ColorCategories();
                         string serializedToggleables = JsonUtility.ToJson(m_ToggleSettings);
                         EditorUserSettings.SetConfigValue(k_ToggleSettings, serializedToggleables);
                     }
@@ -199,6 +201,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+        }
+
+        void ColorCategories()
+        {
+            var nodes = m_GraphView.nodes.ToList().OfType<MaterialNodeView>();
+            foreach (MaterialNodeView nodeView in nodes)
+            {
+                nodeView.ColorCategories(m_ToggleSettings.colorCategories);
+            }
         }
 
         void OnSpaceDown(KeyDownEvent evt)
@@ -485,7 +496,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_GraphView.AddElement(nodeView);
             var materialNode = (AbstractMaterialNode)node;
-            nodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener);
+            nodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener, m_ToggleSettings.colorCategories);
             node.RegisterCallback(OnNodeChanged);
 
             nodeView.MarkDirtyRepaint();

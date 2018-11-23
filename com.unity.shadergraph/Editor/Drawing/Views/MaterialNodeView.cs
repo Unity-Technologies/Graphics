@@ -29,19 +29,18 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
 
-
         static readonly Dictionary<string, StyleColor> m_ColoredCategories = new Dictionary<string, StyleColor>
         {
-            {"Math", new StyleColor(Color.blue)},
-            {"Input", new StyleColor(Color.green)},
-            {"Procedural", new StyleColor(Color.yellow)},
-            {"Artistic", new StyleColor(Color.yellow)},
-            {"Channel", new StyleColor(Color.red)},
-            {"Utilities", new StyleColor(Color.red)},
-            {"UV", new StyleColor(new Color(40/255f, 80/255f,120/255f))},
+            {"Artistic", new StyleColor(new Color(19/255f, 121/255f, 76/255f))},
+            {"Channel", new StyleColor(new Color(90/255f, 121/255f, 33/255f))},
+            {"Input", new StyleColor(new Color(69/255f, 46/255f, 121/255f))},
+            {"Math", new StyleColor(new Color(121/255f, 45/255f, 88/255f))},
+            {"Procedural", new StyleColor(new Color(46/255f, 96/255f, 121/255f))},
+            {"Utility", new StyleColor(new Color(121/255f, 94/255f, 32/255f))},
+            {"UV", new StyleColor(new Color(121/255f, 40/255f, 40/255f))},
         };
 
-        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, bool colorCategory)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
             AddToClassList("MaterialNode");
@@ -55,32 +54,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             node = inNode;
             viewDataKey = node.guid.ToString();
             UpdateTitle();
-
-
-            // Category colors on headers
-            // This should be the default gray color. So if no category is found it will be this default color
-            StyleColor categoryColor = new StyleColor(new Color(57/255f,57/255f,57/255f));
-            // Get the main category
-            TitleAttribute att;
-
-            att = (TitleAttribute)Attribute.GetCustomAttribute(node.GetType(), typeof(TitleAttribute));
-            if (att != null)
-            {
-                if (m_ColoredCategories.ContainsKey(att.title[0]))
-                {
-                    categoryColor = m_ColoredCategories[att.title[0]];
-                }
-                else
-                {
-                    Debug.Log(att.title[0]);
-                }
-            }
-
-            var nodeBorder = this.Q("node-border");
-            var titleElement = nodeBorder.Q("title");
-            titleElement.style.backgroundColor = categoryColor;
-            var titleLabel = titleElement.Q("title-label");
-            titleLabel.style.color = new StyleColor(Color.white);
+            ColorCategories( colorCategory );
 
             // Add controls container
             var controlsContainer = new VisualElement { name = "controls" };
@@ -227,6 +201,39 @@ namespace UnityEditor.ShaderGraph.Drawing
                 //titleButtonContainer.Add(m_CollapseButton);
 
                 RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            }
+        }
+
+        public void ColorCategories( bool color)
+        {
+            // Category colors on headers
+            // This should be the default gray color. So if no category is found it will be this default color
+            StyleColor categoryColor = new StyleColor(new Color(57/255f,57/255f,57/255f));
+
+            if (color)
+            {
+                // Get the main category
+                TitleAttribute att;
+
+                att = (TitleAttribute)Attribute.GetCustomAttribute(node.GetType(), typeof(TitleAttribute));
+                if (att != null)
+                {
+                    if (m_ColoredCategories.ContainsKey(att.title[0]))
+                    {
+                        categoryColor = m_ColoredCategories[att.title[0]];
+                    }
+                }
+            }
+
+            var nodeBorder = this.Q("node-border");
+            var titleElement = nodeBorder.Q("title");
+            titleElement.style.backgroundColor = categoryColor;
+
+            // Changing the title color if we are changing the background.
+            if (color)
+            {
+                var titleLabel = titleElement.Q("title-label");
+                titleLabel.style.color = new StyleColor(Color.white);
             }
         }
 
