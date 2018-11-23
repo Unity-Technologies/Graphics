@@ -229,11 +229,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             var titleElement = nodeBorder.Q("title");
             titleElement.style.backgroundColor = categoryColor;
 
+            var titleLabel = titleElement.Q("title-label");
             // Changing the title color if we are changing the background.
             if (color)
             {
-                var titleLabel = titleElement.Q("title-label");
                 titleLabel.style.color = new StyleColor(Color.white);
+            }
+            else
+            {
+                titleLabel.style.color = new StyleColor(new Color(193/255f, 193/255f, 193/255f));
             }
         }
 
