@@ -101,6 +101,9 @@ namespace UnityEditor.TestTools.Graphics
 
             foreach( EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
             {
+                if (!scene.enabled)
+                    continue;
+
                 SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scene.path);
                 var labels = new System.Collections.Generic.List<string>(AssetDatabase.GetLabels(sceneAsset));
                 if ( labels.Contains(bakeLabel) )
