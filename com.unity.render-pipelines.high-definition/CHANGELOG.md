@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option to run Contact Shadows and Volumetrics Voxelization stage in Async Compute
 - Added camera freeze debug mode - Allow to visually see culling result for a camera
 - Added support of Gizmo rendering before and after postprocess in Editor
+- Added support of LuxAtDistance for punctual lights
 
 ### Fixed
 - Fixed Debug.DrawLine and Debug.Ray call to work in game view
@@ -17,11 +18,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed divide by 0 in refraction causing NaN
 - Fixed disable rough refraction support
 - Fixed refraction, SSS and atmospheric scattering for VR
+- Fixed Light's UX to not allow negative intensity
 
 
 ### Changed
 - Rename "Regular" in Diffusion profile UI "Thick Object"
 - Changed VBuffer depth parametrization for volumetric from distanceRange to depthExtent - Require update of volumetric settings - Fog start at near plan
+- SpotLight with box shape use Lux unit only
 
 ## [5.1.0-preview] - 2018-11-19
 

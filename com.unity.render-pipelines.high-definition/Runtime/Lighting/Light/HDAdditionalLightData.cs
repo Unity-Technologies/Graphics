@@ -50,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     struct TimelineWorkaround
     {
         public float oldDisplayLightIntensity;
+        public float oldLuxAtDistance;
         public float oldSpotAngle;
         public bool oldEnableSpotReflector;
         public Color oldLightColor;
@@ -98,6 +99,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Only for Spotlight, should be hide for other light
         public bool enableSpotReflector = false;
+        // Lux unity for all light except directional require a distance
+        public float luxAtDistance = 1.0f;
 
         [Range(0.0f, 100.0f)]
         public float m_InnerSpotPercent; // To display this field in the UI this need to be public
@@ -444,6 +447,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_Light.intensity = LightUtils.ConvertEvToLuminance(intensity);
             }
+            else if ((m_Light.type == LightType.Spot || m_Light.type == LightType.Point) && lightUnit == LightUnit.Lux)
+            {
+                // Box are local directional light with lux unity without at distance
+                if ((m_Light.type == LightType.Spot) && (spotLightShape == SpotLightShape.Box))
+                    m_Light.intensity = intensity;
+                else
+                    m_Light.intensity = LightUtils.ConvertLuxToCandela(intensity, luxAtDistance);
+            }
             else
                 m_Light.intensity = intensity;
 
@@ -533,7 +544,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector3 shape = new Vector3(shapeWidth, shapeHeight, shapeRadius);
 
             // Check if the intensity have been changed by the inspector or an animator
-            if (timelineWorkaround.oldDisplayLightIntensity != displayLightIntensity
+            if (displayLightIntensity != timelineWorkaround.oldDisplayLightIntensity
+                || luxAtDistance != timelineWorkaround.oldLuxAtDistance
                 || lightTypeExtent != timelineWorkaround.oldLightTypeExtent
                 || transform.localScale != timelineWorkaround.oldLocalScale
                 || shape != timelineWorkaround.oldShape
@@ -542,6 +554,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RefreshLightIntensity();
                 UpdateAreaLightEmissiveMesh();
                 timelineWorkaround.oldDisplayLightIntensity = displayLightIntensity;
+                timelineWorkaround.oldLuxAtDistance = luxAtDistance;
                 timelineWorkaround.oldLocalScale = transform.localScale;
                 timelineWorkaround.oldLightTypeExtent = lightTypeExtent;
                 timelineWorkaround.oldLightColorTemperature = m_Light.colorTemperature;
@@ -668,6 +681,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.areaIntensity = areaIntensity;
 #pragma warning restore 618
             data.enableSpotReflector = enableSpotReflector;
+            data.luxAtDistance = luxAtDistance;
             data.m_InnerSpotPercent = m_InnerSpotPercent;
             data.lightDimmer = lightDimmer;
             data.volumetricDimmer = volumetricDimmer;
