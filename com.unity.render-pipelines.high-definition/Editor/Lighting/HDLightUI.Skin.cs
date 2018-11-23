@@ -68,6 +68,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of light. Possible types are Directional, Spot, Point, Rectangle and Tube lights.");
             public readonly GUIContent[] shapeNames;
             public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When true it simulate a spot light with reflector (mean the intensity of the light will be more focus with narrower angle), otherwise light outside of the cone is simply absorbed (mean intensity is constent whatever the size of the cone).");
+            public readonly GUIContent luxAtDistance = new GUIContent("At", "Distance in meter where a surface receive an amount of lighting equivalent to the provided number of lux");
 
             // Volumetric Additional light data
             public readonly GUIContent volumetricEnable = new GUIContent("Enable", "Enable volumetric for this light");
