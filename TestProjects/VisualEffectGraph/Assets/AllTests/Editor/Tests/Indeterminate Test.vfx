@@ -1340,6 +1340,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
+  systemInfos: []
   categories: []
   uiBounds:
     serializedVersion: 2
@@ -2536,6 +2537,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114128410732456472}
   m_ParameterInfo: []
+  m_GraphVersion: 1
   m_saved: 1
 --- !u!114 &114214122751800258
 MonoBehaviour:
@@ -2558,6 +2560,7 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 114777243561092762}
   m_OutputSlots: []
+  m_Label: 
   m_Data: {fileID: 114709918083744206}
   m_InputFlowSlot:
   - link: []
@@ -5341,7 +5344,7 @@ MonoBehaviour:
   Composition: 0
   Source: 0
   Random: 0
-  channels: 4
+  channels: 6
 --- !u!114 &114538583866338622
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7185,7 +7188,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d78581a96eae8bf4398c282eb0b098bd, type: 3}
   m_Name: VFXDataParticle
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
+  m_Parent: {fileID: 114211373017561072}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1

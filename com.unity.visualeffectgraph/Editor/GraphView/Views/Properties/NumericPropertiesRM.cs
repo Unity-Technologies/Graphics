@@ -13,6 +13,11 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+            if (RangeShouldCreateSlider(range))
+            {
+                return 120;
+            }
             return 60;
         }
 

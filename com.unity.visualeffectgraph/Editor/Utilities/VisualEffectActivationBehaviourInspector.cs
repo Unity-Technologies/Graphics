@@ -184,6 +184,9 @@ namespace UnityEditor.VFX.Utils
         {
             serializedObject.Update();
 
+            if (serializedObject.isEditingMultipleObjects)
+                return; //TODO
+
             EditorGUILayout.PropertyField(onClipEnterProperty);
             clipEnterAttributesPropertyList.DoLayoutList();
 

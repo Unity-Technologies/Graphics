@@ -77,7 +77,7 @@ namespace UnityEditor.VFX.Block
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                if (!GetData().IsCurrentAttributeRead(VFXAttribute.SizeZ))
+                if (!GetData().IsCurrentAttributeRead(VFXAttribute.ScaleZ))
                     yield return "sizeZMode";
             }
         }
@@ -89,14 +89,15 @@ namespace UnityEditor.VFX.Block
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
 
-                yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.ReadWrite);
 
-                if (GetData().IsCurrentAttributeWritten(VFXAttribute.SizeY) || sizeMode == SizeMode.RatioRelativeToHeightAndWidth || sizeMode == SizeMode.PixelRelativeToResolution)
-                    yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.ReadWrite);
+                if (GetData().IsCurrentAttributeWritten(VFXAttribute.ScaleY) || sizeMode == SizeMode.RatioRelativeToHeightAndWidth || sizeMode == SizeMode.PixelRelativeToResolution)
+                    yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.ReadWrite);
 
-                // if SizeZ is used, we need to scale it too, in an uniform way.
-                if (GetData().IsCurrentAttributeRead(VFXAttribute.SizeZ) && sizeZMode != SizeZMode.Ignore)
-                    yield return new VFXAttributeInfo(VFXAttribute.SizeZ, VFXAttributeMode.ReadWrite);
+                // if ScaleZ is used, we need to scale it too, in an uniform way.
+                if (GetData().IsCurrentAttributeRead(VFXAttribute.ScaleZ) && sizeZMode != SizeZMode.Ignore)
+                    yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -116,27 +117,27 @@ namespace UnityEditor.VFX.Block
                 }
 
                 string Source = string.Format(@"
-float2 size = {0};
+float2 localSize = {0};
 float clipPosW = TransformPositionVFXToClip(position).w;
 float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)); // max size in one pixel
 float2 scale = {2};
-size = minSize * scale;
+localSize = minSize * scale;
 {1}
 ",
                     VFXBlockUtility.GetSizeVector(GetParent(), 2),
-                    VFXBlockUtility.SetSizesFromVector(GetParent(), "size", 2),
+                    VFXBlockUtility.SetSizesFromVector(GetParent(), "localSize", 2),
                     sizeString);
 
-                if (GetData().IsCurrentAttributeRead(VFXAttribute.SizeZ) && sizeZMode != SizeZMode.Ignore)
+                if (GetData().IsCurrentAttributeRead(VFXAttribute.ScaleZ) && sizeZMode != SizeZMode.Ignore)
                 {
                     switch (sizeZMode)
                     {
                         case SizeZMode.Ignore: break; // should not happen
-                        case SizeZMode.SameAsSizeX:     Source += "sizeZ = size.x;"; break;
-                        case SizeZMode.SameAsSizeY:     Source += "sizeZ = size.y;"; break;
-                        case SizeZMode.MinOfSizeXY:     Source += "sizeZ = min(size.x,size.y);"; break;
-                        case SizeZMode.MaxOfSizeXY:     Source += "sizeZ = max(size.x,size.y);"; break;
-                        case SizeZMode.AverageOfSizeXY: Source += "sizeZ = (size.x + size.y) * 0.5;"; break;
+                        case SizeZMode.SameAsSizeX:     Source += "scaleZ = localSize.x;"; break;
+                        case SizeZMode.SameAsSizeY:     Source += "scaleZ = localSize.y;"; break;
+                        case SizeZMode.MinOfSizeXY:     Source += "scaleZ = min(localSize.x,localSize.y);"; break;
+                        case SizeZMode.MaxOfSizeXY:     Source += "scaleZ = max(localSize.x,localSize.y);"; break;
+                        case SizeZMode.AverageOfSizeXY: Source += "scaleZ = (localSize.x + localSize.y) * 0.5;"; break;
                     }
                 }
                 return Source;

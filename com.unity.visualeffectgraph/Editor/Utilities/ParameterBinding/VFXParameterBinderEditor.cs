@@ -68,9 +68,11 @@ namespace UnityEditor.VFX.Utils
             {
                 EditorGUI.BeginChangeCheck();
 
+                var fieldAttribute = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+
                 var binding = m_ElementEditor.serializedObject.targetObject;
                 var type = binding.GetType();
-                var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+                var fields = type.GetFields(fieldAttribute);
 
                 foreach (var field in fields)
                 {
@@ -90,7 +92,6 @@ namespace UnityEditor.VFX.Utils
                             if (parm != parameter.stringValue)
                             {
                                 parameter.stringValue = parm;
-                                property.FindPropertyRelative("m_Id").intValue = -1; // reset value, and wait for it to be regenerated.
                                 serializedObject.ApplyModifiedProperties();
                             }
 

@@ -20,6 +20,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114327527808569384}
   m_ParameterInfo: []
+  m_GraphVersion: 1
   m_saved: 1
 --- !u!114 &114195964666403586
 MonoBehaviour:
@@ -69,6 +70,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
+  systemInfos: []
   categories: []
   uiBounds:
     serializedVersion: 2
@@ -99,6 +101,7 @@ MonoBehaviour:
   - {fileID: 114438663863757544}
   - {fileID: 114666935310072058}
   m_OutputSlots: []
+  m_Label: 
   m_Data: {fileID: 114864351922056252}
   m_InputFlowSlot:
   - link: []
@@ -192,7 +195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44f205d2606d1a4a91cfa6aa5ca9d87, type: 3}
   m_Name: VFXDataMesh
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
+  m_Parent: {fileID: 114044576383392884}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
