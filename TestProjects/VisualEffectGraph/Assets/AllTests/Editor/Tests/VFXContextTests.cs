@@ -63,11 +63,11 @@ namespace UnityEditor.VFX.Test
             CheckContext(ScriptableObject.CreateInstance<ContextTestUpdate>(), VFXContextType.kUpdate);
             CheckContext(ScriptableObject.CreateInstance<ContextTestOutput>(), VFXContextType.kOutput);
 
-            /*CheckContext(ScriptableObject.CreateInstance<ContextTestInitAndUpdate>(), VFXContextType.kNone);
+            CheckContext(ScriptableObject.CreateInstance<ContextTestInitAndUpdate>(), VFXContextType.kNone);
             LogAssert.Expect(LogType.Exception, "ArgumentException: Illegal context type: kInitAndUpdate");
 
             CheckContext(ScriptableObject.CreateInstance<ContextTestAll>(), VFXContextType.kNone);
-            LogAssert.Expect(LogType.Exception, "ArgumentException: Illegal context type: kAll");*/
+            LogAssert.Expect(LogType.Exception, "ArgumentException: Illegal context type: kAll");
         }
 
         [Test]

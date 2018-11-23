@@ -26,12 +26,12 @@ namespace UnityEditor.VFX.Operator
             public float o = 0.0f;
         }
 
-        override public string name { get { return "VoroNoise (2D)"; } }
+        override public string name { get { return "VoroNoise 2D"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            VFXExpression parameters = new VFXExpressionCombine(inputExpression[1], inputExpression[2], inputExpression[3], inputExpression[4]);
-            return new[] { new VFXExpressionVoroNoise2D(inputExpression[0], parameters) };
+            VFXExpression parameters = new VFXExpressionCombine(inputExpression[2], inputExpression[3], inputExpression[4]);
+            return new[] { new VFXExpressionVoroNoise2D(inputExpression[0], parameters) * inputExpression[1] };
         }
     }
 }

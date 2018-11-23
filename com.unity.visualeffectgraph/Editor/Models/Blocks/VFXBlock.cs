@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
 
-        protected VFXData GetData()
+        public VFXData GetData()
         {
             if (GetParent() != null)
                 return GetParent().GetData();

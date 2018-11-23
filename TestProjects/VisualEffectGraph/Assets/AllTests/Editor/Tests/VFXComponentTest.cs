@@ -215,11 +215,11 @@ namespace UnityEditor.VFX.Test
 
             var renderTartget3D = new RenderTexture(4, 4, 4, RenderTextureFormat.ARGB32);
             renderTartget3D.dimension = TextureDimension.Tex3D;
-            /*
+
             vfxComponent.SetTexture(targetTextureName, renderTartget3D);
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("3D"));
             Assert.AreNotEqual(renderTartget3D, vfxComponent.GetTexture(targetTextureName));
-            */
+
             var renderTartget2D = new RenderTexture(4, 4, 4, RenderTextureFormat.ARGB32);
             renderTartget2D.dimension = TextureDimension.Tex2D;
             vfxComponent.SetTexture(targetTextureName, renderTartget2D);

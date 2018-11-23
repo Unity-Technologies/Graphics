@@ -129,21 +129,8 @@ namespace UnityEditor.VFX
 
         public override void Sanitize(int version)
         {
-            if (attribute == "phase") // Replace old phase attribute with random operator
-            {
-                Debug.Log("Sanitizing Graph: Automatically replace Phase Attribute Parameter with a Fixed Random Operator");
-
-                var randOp = ScriptableObject.CreateInstance<Operator.Random>();
-                randOp.constant = true;
-                randOp.seed = Operator.Random.SeedMode.PerParticle;
-
-                VFXSlot.CopyLinksAndValue(randOp.GetOutputSlot(0), GetOutputSlot(0), true);
-                ReplaceModel(randOp, this);
-            }
-            else
-            {
-                base.Sanitize(version);
-            }
+            UnityEditor.VFX.Block.VFXBlockUtility.SanitizeAttribute(ref attribute, ref mask, version);
+            base.Sanitize(version);
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

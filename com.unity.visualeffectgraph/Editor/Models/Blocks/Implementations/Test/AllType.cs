@@ -4,7 +4,6 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block.Test
 {
-    [VFXInfo(category = "Tests")]
     class AllType : VFXBlock
     {
         public override string name                         { get { return "Test"; } }
