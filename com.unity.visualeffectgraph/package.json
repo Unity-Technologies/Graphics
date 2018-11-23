@@ -1,13 +1,14 @@
 {
     "name":"com.unity.visualeffectgraph",
-    "displayName": "Visual Effects Graph",
+    "displayName": "Visual Effect Graph",
     "version": "4.3.0-preview",
-    "description":"Visual Effect Graph : Node-Based, GPU-Accelerated, Next-Generation Visual Effects solution",
     "unity": "2018.3",
+    "description":"The Visual Effect Graph is a node based visual effect editor. It enables artists to author next generation visual effects simulated directly on GPU",
     "keywords":[
         "vfx",
         "visualeffect",
         "graph",
-        "effect"
+        "effect",
+		"particles"
     ]
 }
