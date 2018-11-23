@@ -576,7 +576,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
             {
-                EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
+                EditorGUILayout.PropertyField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
                 EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, 10f, s_Styles.shadowNearPlane);
 
                 if (serialized.settings.isMixed)
