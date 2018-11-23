@@ -87,6 +87,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_TerrainTextureEnumIndex;
         int m_ColorPickerDebugModeEnumIndex;
         int m_MsaaSampleDebugModeEnumIndex;
+        int m_DebugCameraToFreezeIndex;
 
 
         public DebugDisplaySettings()
@@ -595,7 +596,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             widgetList.AddRange(new DebugUI.Widget[]
             {
-                    new DebugUI.EnumField { displayName = "Freeze Camera for culling", getter = () => debugCameraToFreeze, setter = value => debugCameraToFreeze = value, enumNames = cameraNamesStrings, enumValues = cameraNamesValues},
+                    new DebugUI.EnumField { displayName = "Freeze Camera for culling", getter = () => debugCameraToFreeze, setter = value => debugCameraToFreeze = value, enumNames = cameraNamesStrings, enumValues = cameraNamesValues, getIndex = () => m_DebugCameraToFreezeIndex, setIndex = value => m_DebugCameraToFreezeIndex = value },
             });
 
             m_DebugRenderingItems = widgetList.ToArray();
