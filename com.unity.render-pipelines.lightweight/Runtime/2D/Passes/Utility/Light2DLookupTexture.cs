@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -61,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return m_LightLookupTexture;
         }
 
-
+#if UNITY_EDITOR
         [MenuItem("Light2D Debugging/Write Light Texture")]
         static public void WriteLightTexture()
         {
@@ -73,5 +73,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (imgData != null)
                 File.WriteAllBytes(path, imgData);
         }
+#endif
     }
 }

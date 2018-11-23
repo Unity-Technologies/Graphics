@@ -62,9 +62,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private LightProjectionTypes m_LightProjectionType = LightProjectionTypes.Shape;
         private LightProjectionTypes m_PreviousLightProjectionType = LightProjectionTypes.Shape;
 
-        [SerializeField]
-        private bool m_IsUsingFreeForm = false;
-
         //------------------------------------------------------------------------------------------
         //                              Values for Point light type
         //------------------------------------------------------------------------------------------
