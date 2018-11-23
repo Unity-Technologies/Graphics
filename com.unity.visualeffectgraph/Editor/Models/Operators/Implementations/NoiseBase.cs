@@ -27,46 +27,24 @@ namespace UnityEditor.VFX.Operator
 
         public class InputPropertiesCommon
         {
-            [Tooltip("The magnitude of the noise.")]
-            public float amplitude = 1.0f;
             [Min(0.0f), Tooltip("The frequency of the noise.")]
             public float frequency = 1.0f;
             [/*Range(1, 8),*/ Tooltip("The number of layers of noise.")]
             public int octaves = 1;
             [Range(0.0f, 1.0f), Tooltip("The scaling factor applied to each octave.")]
             public float persistence = 0.5f;
+            [Tooltip("The rate of change of the frequency for each successive octave.")]
+            public float lacunarity = 2.0f;
         }
 
-        public class OutputProperties
+        public enum NoiseType
         {
-            public float o = 0.0f;
+            Value,
+            Perlin,
+            Cellular
         }
 
-        public enum DimensionCount
-        {
-            One,
-            Two,
-            Three
-        }
-
-        [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]
-        public DimensionCount dimensions = DimensionCount.One;
-
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
-        {
-            get
-            {
-                IEnumerable<VFXPropertyWithValue> properties = null;
-                if (dimensions == DimensionCount.One)
-                    properties = PropertiesFromType("InputProperties1D");
-                else if (dimensions == DimensionCount.Two)
-                    properties = PropertiesFromType("InputProperties2D");
-                else
-                    properties = PropertiesFromType("InputProperties3D");
-
-                properties = properties.Concat(PropertiesFromType("InputPropertiesCommon"));
-                return properties;
-            }
-        }
+        [VFXSetting, Tooltip("The noise algorithm.")]
+        public NoiseType type = NoiseType.Perlin;
     }
 }

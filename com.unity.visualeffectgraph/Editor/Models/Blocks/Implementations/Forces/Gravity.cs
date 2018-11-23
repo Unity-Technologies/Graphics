@@ -34,14 +34,14 @@ namespace UnityEditor.VFX.Block
         public class InputProperties
         {
             [Tooltip("Gravity Force applied to Particle Velocity")]
-            public Vector3 GravityVector = new Vector3(0.0f, -9.81f, 0.0f);
+            public Vector Force = new Vector3(0.0f, -9.81f, 0.0f);
         }
 
         public override string source
         {
             get
             {
-                return "velocity += GravityVector * deltaTime;";
+                return "velocity += Force * deltaTime;";
             }
         }
     }

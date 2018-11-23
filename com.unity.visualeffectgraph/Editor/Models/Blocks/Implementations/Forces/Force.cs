@@ -8,57 +8,60 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Force")]
     class Force : VFXBlock
     {
-        public enum ForceMode
-        {
-            Absolute,
-            Relative
-        }
-
-        [VFXSetting]
-        public ForceMode Mode = ForceMode.Absolute;
+        [VFXSetting, SerializeField]
+        ForceMode Mode = ForceMode.Absolute;
 
         public override string name { get { return "Force"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
-        public override IEnumerable<VFXNamedExpression> parameters
+        public class AbsoluteProperties
         {
-            get
-            {
-                foreach (var p in GetExpressionsFromSlots(this))
-                    yield return p;
+            [Tooltip("Force vector applied to particles (in units per squared second)")]
+            public Vector Force = new Vector3(1.0f, 0.0f, 0.0f);
+        }
 
-                yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
-            }
+        public class RelativeProperties
+        {
+            [Tooltip("Velocity vector of the medium (eg: wind)")]
+            public Vector Velocity = new Vector3(1.0f, 0.0f, 0.0f);
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
+                return ForceHelper.attributes;
             }
         }
 
-        public class InputProperties
+        public override IEnumerable<VFXNamedExpression> parameters
         {
-            [Tooltip("Force vector applied to particles (in units per squared second), in Relative mode the flow speed of the medium (eg: wind)")]
-            public Vector3 Force = new Vector3(1.0f, 0.0f, 0.0f);
+            get
+            {
+                foreach (var input in GetExpressionsFromSlots(this))
+                    yield return input;
+
+                yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
+            }
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                if (Mode == ForceMode.Absolute)
+                    return PropertiesFromType("AbsoluteProperties");
+                else
+                    return PropertiesFromType("RelativeProperties").Concat(PropertiesFromType(typeof(ForceHelper.DragProperties)));
+            }
         }
 
         public override string source
         {
             get
             {
-                string forceVector = "0.0";
-                switch (Mode)
-                {
-                    case ForceMode.Absolute: forceVector = "(Force / mass) * deltaTime"; break;
-                    case ForceMode.Relative: forceVector = "(Force - velocity) * min(1.0f,deltaTime / mass)"; break;
-                }
-
-                return "velocity += " + forceVector + ";";
+                return string.Format("velocity += {0};", ForceHelper.ApplyForceString(Mode, Mode == ForceMode.Absolute ? "Force" : "Velocity"));
             }
         }
     }

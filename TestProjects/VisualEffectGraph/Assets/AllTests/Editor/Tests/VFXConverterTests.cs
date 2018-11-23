@@ -175,14 +175,13 @@ namespace UnityEditor.VFX.Test
         {
             Assert.AreEqual(conversion.expectedResult, VFXConverter.ConvertTo(conversion.value, conversion.targetType));
         }
-        /*
+        
         [Test]
         public void FailingConvertTest([ValueSource("failingConversions")] Conversion conversion)
         {
-            Assert.IsNull(VFXConverter.ConvertTo(conversion.value, conversion.targetType));
-
             LogAssert.Expect(LogType.Error, string.Format("Cannot cast from {0} to {1}", conversion.value.GetType(), conversion.targetType));
-        }*/
+            Assert.IsNull(VFXConverter.ConvertTo(conversion.value, conversion.targetType));
+        }
 
         [Test]
         public void MatrixToTransformTest()
