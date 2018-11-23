@@ -211,6 +211,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1451376291}
     m_Modifications:
+    - target: {fileID: 1485778075912762, guid: 02e0000aaf234471bac921a9db1d84f9, type: 3}
+      propertyPath: m_Name
+      value: Hud (3)
+      objectReference: {fileID: 0}
     - target: {fileID: 224705120012098690, guid: 02e0000aaf234471bac921a9db1d84f9,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -340,10 +344,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.y
       value: 177
-      objectReference: {fileID: 0}
-    - target: {fileID: 1485778075912762, guid: 02e0000aaf234471bac921a9db1d84f9, type: 3}
-      propertyPath: m_Name
-      value: Hud (3)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 02e0000aaf234471bac921a9db1d84f9, type: 3}
@@ -509,6 +509,7 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+  m_UseSpriteMesh: 0
 --- !u!222 &364408275
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -584,7 +585,7 @@ Camera:
   field of view: 70
   orthographic: 0
   orthographic size: 5
-  m_Depth: -1
+  m_Depth: 3
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -664,6 +665,7 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+  m_UseSpriteMesh: 0
 --- !u!222 &400951161
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -770,6 +772,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1451376291}
     m_Modifications:
+    - target: {fileID: 1485778075912762, guid: 02e0000aaf234471bac921a9db1d84f9, type: 3}
+      propertyPath: m_Name
+      value: Hud (1)
+      objectReference: {fileID: 0}
     - target: {fileID: 224705120012098690, guid: 02e0000aaf234471bac921a9db1d84f9,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -899,10 +905,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.y
       value: 177
-      objectReference: {fileID: 0}
-    - target: {fileID: 1485778075912762, guid: 02e0000aaf234471bac921a9db1d84f9, type: 3}
-      propertyPath: m_Name
-      value: Hud (1)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 02e0000aaf234471bac921a9db1d84f9, type: 3}
@@ -1334,7 +1336,7 @@ GameObject:
   - component: {fileID: 879142949}
   m_Layer: 0
   m_Name: Main Camera (2)
-  m_TagString: MainCamera
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1388,7 +1390,7 @@ Camera:
   field of view: 70
   orthographic: 0
   orthographic size: 5
-  m_Depth: -1
+  m_Depth: 2
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -1486,7 +1488,7 @@ GameObject:
   - component: {fileID: 959530949}
   m_Layer: 0
   m_Name: Main Camera
-  m_TagString: MainCamera
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1600,7 +1602,7 @@ GameObject:
   - component: {fileID: 1003893864}
   m_Layer: 0
   m_Name: Main Camera (3)
-  m_TagString: MainCamera
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1654,7 +1656,7 @@ Camera:
   field of view: 70
   orthographic: 0
   orthographic size: 5
-  m_Depth: -1
+  m_Depth: 1
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -1676,6 +1678,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1451376291}
     m_Modifications:
+    - target: {fileID: 1485778075912762, guid: 02e0000aaf234471bac921a9db1d84f9, type: 3}
+      propertyPath: m_Name
+      value: Hud (2)
+      objectReference: {fileID: 0}
     - target: {fileID: 224705120012098690, guid: 02e0000aaf234471bac921a9db1d84f9,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1805,10 +1811,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.y
       value: 177
-      objectReference: {fileID: 0}
-    - target: {fileID: 1485778075912762, guid: 02e0000aaf234471bac921a9db1d84f9, type: 3}
-      propertyPath: m_Name
-      value: Hud (2)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 02e0000aaf234471bac921a9db1d84f9, type: 3}
@@ -2081,7 +2083,7 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 640, y: 360}
+  m_CellSize: {x: 618.43164, y: 371.69983}
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2
