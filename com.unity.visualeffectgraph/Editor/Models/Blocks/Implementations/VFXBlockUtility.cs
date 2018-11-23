@@ -160,6 +160,41 @@ namespace UnityEditor.VFX.Block
             return false;
         }
 
+        static VariadicChannelOptions ChannelFromMask(string mask)
+        {
+            mask = mask.ToLower();
+            if (mask == "x")
+                return VariadicChannelOptions.X;
+            else if (mask == "y")
+                return VariadicChannelOptions.Y;
+            else if (mask == "z")
+                return VariadicChannelOptions.Z;
+            else if (mask == "xy")
+                return VariadicChannelOptions.XY;
+            else if (mask == "xz")
+                return VariadicChannelOptions.XZ;
+            else if (mask == "yz")
+                return VariadicChannelOptions.YZ;
+            else if (mask == "xyz")
+                return VariadicChannelOptions.XYZ;
+            return VariadicChannelOptions.X;
+        }
+
+        static string MaskFromChannel(VariadicChannelOptions channel)
+        {
+            switch (channel)
+            {
+                case VariadicChannelOptions.X: return "x";
+                case VariadicChannelOptions.Y: return "y";
+                case VariadicChannelOptions.Z: return "z";
+                case VariadicChannelOptions.XY: return "xy";
+                case VariadicChannelOptions.XZ: return "xz";
+                case VariadicChannelOptions.YZ: return "yz";
+                case VariadicChannelOptions.XYZ: return "xyz";
+            }
+            throw new InvalidOperationException("MaskFromChannel missing for " + channel);
+        }
+
         public static bool ConvertSizeAttributeIfNeeded(ref string attribName, ref VariadicChannelOptions channels)
         {
             if (attribName == "size")
@@ -226,6 +261,14 @@ namespace UnityEditor.VFX.Block
                 settingsChanged = true;
             }
 
+            return settingsChanged;
+        }
+
+        static public bool SanitizeAttribute(ref string attribName, ref string channelsMask, int version)
+        {
+            var channels = ChannelFromMask(channelsMask);
+            var settingsChanged = SanitizeAttribute(ref attribName, ref channels, version);
+            channelsMask = MaskFromChannel(channels);
             return settingsChanged;
         }
     }
