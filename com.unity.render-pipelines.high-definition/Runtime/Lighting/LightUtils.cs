@@ -91,10 +91,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return intensity * ((width * height) * Mathf.PI);
         }
 
+        // Helper for Lux, Candela, Luminance, Ev conversion
+        public static float ConvertLuxToCandela(float lux, float distance)
+        {
+            return lux * distance * distance;
+        }
+
+        public static float ConvertCandelaToLux(float candela, float distance)
+        {
+            return candela / (distance * distance);
+        }
+
         public static float ConvertEvToLuminance(float ev)
         {
             return Mathf.Pow(2, ev - 3);
         }
+
+        public static float ConvertEvToCandela(float ev)
+        {
+            // From punctual point of view candela and luminance is the same
+            return ConvertEvToLuminance(ev);
+        }
+
+        public static float ConvertEvToLux(float ev, float distance)
+        {
+            // From punctual point of view candela and luminance is the same
+            return ConvertCandelaToLux(ConvertEvToLuminance(ev), distance);
+        }    
 
         public static float ConvertLuminanceToEv(float luminance)
         {
@@ -103,6 +126,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (float)Math.Log((luminance * 100f) / k, 2);
         }
 
+        public static float ConvertCandelaToEv(float candela)
+        {
+            // From punctual point of view candela and luminance is the same
+            return ConvertLuminanceToEv(candela);
+        }
+
+        public static float ConvertLuxToEv(float lux, float distance)
+        {
+            // From punctual point of view candela and luminance is the same
+            return ConvertLuminanceToEv(ConvertLuxToCandela(lux, distance));
+        }
+
+        // Helper for punctual and area light unit conversion
         public static float ConvertPunctualLightLumenToCandela(LightType lightType, float lumen, float initialIntensity, bool enableSpotReflector)
         {
             if (lightType == LightType.Spot && enableSpotReflector)
@@ -113,6 +149,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return LightUtils.ConvertPointLightLumenToCandela(lumen);
         }
+
+        public static float ConvertPunctualLightLumenToLux(LightType lightType, float lumen, float initialIntensity, bool enableSpotReflector, float distance)
+        {
+            float candela = ConvertPunctualLightLumenToCandela(lightType, lumen, initialIntensity, enableSpotReflector);
+
+            return ConvertCandelaToLux(candela, distance);
+        }
+        
 
         public static float ConvertPunctualLightCandelaToLumen(LightType lightType, SpotLightShape spotLigthShape, float candela, bool enableSpotReflector, float spotAngle, float aspectRatio)
         {
@@ -135,10 +179,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return LightUtils.ConvertPointLightCandelaToLumen(candela);
         }
 
+        public static float ConvertPunctualLightLuxToLumen(LightType lightType, SpotLightShape spotLigthShape, float lux, bool enableSpotReflector, float spotAngle, float aspectRatio, float distance)
+        {
+            float candela = ConvertLuxToCandela(lux, distance);
+            return ConvertPunctualLightCandelaToLumen(lightType, spotLigthShape, candela, enableSpotReflector, spotAngle, aspectRatio);
+        }
+
         // This is not correct, we use candela instead of luminance but this is request from artists to support EV100 on punctual light
         public static float ConvertPunctualLightEvToLumen(LightType lightType, SpotLightShape spotLigthShape, float ev, bool enableSpotReflector, float spotAngle, float aspectRatio)
         {
-            float candela = ConvertEvToLuminance(ev);
+            float candela = ConvertEvToCandela(ev);
 
             return ConvertPunctualLightCandelaToLumen(lightType, spotLigthShape, candela, enableSpotReflector, spotAngle, aspectRatio);
         }
@@ -148,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             float candela = ConvertPunctualLightLumenToCandela(lightType, lumen, initialIntensity, enableSpotReflector);
 
-            return ConvertLuminanceToEv(candela);
+            return ConvertCandelaToEv(candela);
         }
 
         public static float ConvertAreaLightLumenToLuminance(LightTypeExtent areaLightType, float lumen, float width, float height = 0)
