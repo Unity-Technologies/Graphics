@@ -136,8 +136,8 @@ namespace UnityEditor.VFX.Test
             graph.RecompileIfNeeded(); //at this point, compilation is still legal
             particleId.outputSlots[0].Link(modulo.inputSlots[0]);
 
-            graph.RecompileIfNeeded();
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("InvalidOperationException"));
+            graph.RecompileIfNeeded();
 
             branch.outputSlots[0].UnlinkAll();
             graph.RecompileIfNeeded(); //Back to a legal state

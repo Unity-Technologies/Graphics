@@ -66,7 +66,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string n = VFXBlockUtility.GetNameString(Composition) + " " + ObjectNames.NicifyVariableName(attribute);
+                string variadicName = (currentAttribute.variadic == VFXVariadic.True) ? "." + channels.ToString() : "";
+                string n = VFXBlockUtility.GetNameString(Composition) + " " + ObjectNames.NicifyVariableName(attribute) + variadicName;
                 switch (SampleMode)
                 {
                     case CurveSampleMode.OverLife: return n + " over Life";
@@ -125,17 +126,8 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            string newAttrib;
-            VariadicChannelOptions channel;
-
-            // Changes attribute to variadic version
-            if (VFXBlockUtility.ConvertToVariadicAttributeIfNeeded(attribute, out newAttrib, out channel))
-            {
-                Debug.Log(string.Format("Sanitizing AttributeFromCurve: Convert {0} to variadic attribute {1} with channel {2}", attribute, newAttrib, channel));
-                attribute = newAttrib;
-                channels = channel;
+            if (VFXBlockUtility.SanitizeAttribute(ref attribute, ref channels, version))
                 Invalidate(InvalidationCause.kSettingChanged);
-            }
 
             base.Sanitize(version);
         }

@@ -93,6 +93,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 0}
   m_ParameterInfo: []
+  m_GraphVersion: 1
   m_saved: 1
 --- !u!114 &3
 MonoBehaviour:
@@ -115,6 +116,7 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 4}
   m_OutputSlots: []
+  m_Label: 
   m_Data: {fileID: 13}
   m_InputFlowSlot:
   - link: []
@@ -452,7 +454,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d78581a96eae8bf4398c282eb0b098bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
+  m_Parent: {fileID: 2}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -483,6 +485,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
+  m_Label: 
   m_Data: {fileID: 13}
   m_InputFlowSlot:
   - link:
@@ -493,6 +496,7 @@ MonoBehaviour:
     - context: {fileID: 16}
       slotIndex: 0
   integration: 0
+  angularIntegration: 0
   ageParticles: 1
   reapParticles: 1
 --- !u!114 &16
@@ -515,6 +519,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
+  m_Label: 
   m_Data: {fileID: 13}
   m_InputFlowSlot:
   - link:
@@ -553,6 +558,7 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 19}
   m_OutputSlots: []
+  m_Label: 
   m_Data: {fileID: 28}
   m_InputFlowSlot:
   - link: []
@@ -890,7 +896,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d78581a96eae8bf4398c282eb0b098bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
+  m_Parent: {fileID: 2}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -919,6 +925,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
+  m_Label: 
   m_Data: {fileID: 28}
   m_InputFlowSlot:
   - link:

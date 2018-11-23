@@ -16,13 +16,13 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	${VFXLoadSize}
 	
 	const float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;
-	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);
+	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
 	const float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 	
 	#ifdef VFX_VARYING_NORMAL
-	float normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;
+	float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
 	o.VFX_VARYING_NORMAL = normalFlip * normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));
 	#endif
 	#ifdef VFX_VARYING_TANGENT

@@ -24,9 +24,6 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-
-        static Texture2D s_Texture;
-
         static Conversion[] s_Conversions;
 
         static Conversion[] s_FailingConversions;
@@ -44,17 +41,12 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void TearDown()
         {
-            Object.DestroyImmediate(s_Texture);
-            s_Texture = null;
         }
 
         static void BuildValueSources()
         {
-            if (s_Texture == null)
+            if (s_Conversions == null)
             {
-                s_Texture = new Texture2D(16, 16);
-                s_Texture.hideFlags = HideFlags.HideAndDontSave;
-
                 s_Conversions = new Conversion[]
                 {
                     // Vector3
@@ -138,9 +130,6 @@ namespace UnityEditor.VFX.Test
                         expectedResult = new Color(0.1f, 0.2f, 0.3f, 0.4f)
                     },
 
-                    new Conversion {value = s_Texture, targetType = typeof(Texture2D), expectedResult = s_Texture},
-                    new Conversion {value = s_Texture, targetType = typeof(Texture), expectedResult = s_Texture},
-
                     new Conversion {value = 1.1f, targetType = typeof(int), expectedResult = 1},
                     new Conversion {value = 1.1f, targetType = typeof(uint), expectedResult = 1u},
                     new Conversion {value = -1.1f, targetType = typeof(uint), expectedResult = 0u},
@@ -171,10 +160,6 @@ namespace UnityEditor.VFX.Test
 
                 s_FailingConversions = new Conversion[]
                 {
-                    new Conversion {value = s_Texture, targetType = typeof(Mesh), expectedResult = null},
-                    new Conversion {value = s_Texture, targetType = typeof(float), expectedResult = null},
-                    new Conversion {value = s_Texture, targetType = typeof(int), expectedResult = null},
-                    new Conversion {value = s_Texture, targetType = typeof(Vector3), expectedResult = null},
                     new Conversion
                     {
                         value = Matrix4x4.TRS(new Vector3(1, 2, 3), Quaternion.Euler(10, 20, 30), new Vector3(4, 5, 6)),
@@ -194,9 +179,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void FailingConvertTest([ValueSource("failingConversions")] Conversion conversion)
         {
-            Assert.IsNull(VFXConverter.ConvertTo(conversion.value, conversion.targetType));
-
             LogAssert.Expect(LogType.Error, string.Format("Cannot cast from {0} to {1}", conversion.value.GetType(), conversion.targetType));
+            Assert.IsNull(VFXConverter.ConvertTo(conversion.value, conversion.targetType));
         }
 
         [Test]
