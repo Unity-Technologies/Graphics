@@ -56,7 +56,7 @@ void Frag(PackedVaryingsToPS packedInput,
 
     BSDFDataPacked bsdfDataPacked = ConvertSurfaceDataToBSDFDataPacked(input.positionSS.xy, surfaceData);
 
-    PreLightData preLightData = GetPreLightDataPacked(V, posInput, bsdfDataPacked);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfDataPacked);
 
     outColor = float4(0.0, 0.0, 0.0, 0.0);
 

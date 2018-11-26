@@ -273,47 +273,7 @@ struct PreLightData
 };
 
 // This function is call to precompute heavy calculation before lightloop
-PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
-{
-    PreLightData preLightData;
-    // Don't init to zero to allow to track warning about uninitialized data
-
-    float3 N = bsdfData.normalWS;
-    preLightData.NdotV = dot(N, V);
-    preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
-
-    float NdotV = ClampNdotV(preLightData.NdotV);
-
-    float unused;
-    float3 iblN;
-
-    // Reminder: This is a static if resolve at compile time
-    if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
-    {
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
-
-        float TdotV = dot(bsdfData.tangentWS, V);
-        float BdotV = dot(bsdfData.bitangentWS, V);
-
-        preLightData.partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
-
-        // perceptualRoughness is use as input and output here
-        GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.bitangentWS, bsdfData.tangentWS, N, V, bsdfData.anisotropy, preLightData.iblPerceptualRoughness, iblN, preLightData.iblPerceptualRoughness);
-    }
-    else
-    {
-        preLightData.partLambdaV = 0.0;
-        iblN = N;
-
-        GetPreIntegratedFGDCharlieAndFabricLambert(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
-    }
-
-    preLightData.iblR = reflect(-V, iblN);
-
-    return preLightData;
-}
-
-PreLightData GetPreLightDataPacked(float3 V, PositionInputs posInput, inout BSDFDataPacked bsdfData)
+PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFDataPacked bsdfData)
 {
     PreLightData preLightData;
     // Don't init to zero to allow to track warning about uninitialized data
@@ -364,7 +324,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 {
     // To get the data we need to do the whole process - compiler should optimize everything
     BSDFDataPacked bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-    PreLightData preLightData = GetPreLightDataPacked(V, posInput, bsdfData);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION))
