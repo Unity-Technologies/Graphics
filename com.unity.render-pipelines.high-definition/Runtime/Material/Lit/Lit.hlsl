@@ -580,7 +580,7 @@ BSDFDataPacked ConvertSurfaceDataToBSDFDataPacked(uint2 positionSS, SurfaceData 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
     FillMaterialTransparencyDataPacked(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, bsdfData);
-    InitTransmittanceMask(transmittanceMask, bsdfData);
+    InitTransmittanceMask(surfaceData.transmittanceMask, bsdfData);
     InitThickness(max(thickness, 0.0001), bsdfData);
 #endif
 
