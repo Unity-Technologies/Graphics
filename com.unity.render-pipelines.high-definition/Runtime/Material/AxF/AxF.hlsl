@@ -333,6 +333,55 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     return bsdfData;
 }
 
+BSDFDataPacked ConvertSurfaceDataToBSDFDataPacked(uint2 positionSS, SurfaceData surfaceData)
+{
+    BSDFDataPacked    bsdfData;
+    //  ZERO_INITIALIZE(BSDFData, data);
+
+    bsdfData.normalWS = surfaceData.normalWS;
+    bsdfData.tangentWS = surfaceData.tangentWS;
+    bsdfData.biTangentWS = surfaceData.biTangentWS;
+
+    //-----------------------------------------------------------------------------
+#ifdef _AXF_BRDF_TYPE_SVBRDF
+    bsdfData.diffuseColor = surfaceData.diffuseColor;
+    bsdfData.specularColor = surfaceData.specularColor;
+    bsdfData.fresnelF0 = surfaceData.fresnelF0;
+    bsdfData.roughness = surfaceData.specularLobe;
+    bsdfData.height_mm = surfaceData.height_mm;
+    bsdfData.anisotropyAngle = surfaceData.anisotropyAngle;
+    bsdfData.clearcoatColor = surfaceData.clearcoatColor;
+    bsdfData.clearcoatNormalWS = surfaceData.clearcoatNormalWS;
+    bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
+
+    // Useless but pass along anyway
+    bsdfData.flakesUV = surfaceData.flakesUV;
+    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
+
+    //-----------------------------------------------------------------------------
+#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
+    bsdfData.diffuseColor = surfaceData.diffuseColor;
+    bsdfData.flakesUV = surfaceData.flakesUV;
+    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
+    bsdfData.clearcoatColor = 1.0;  // Not provided, assume white...
+    bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
+    bsdfData.clearcoatNormalWS = surfaceData.clearcoatNormalWS;
+
+    // Although not used, needs to be initialized... :'(
+    bsdfData.specularColor = 0;
+    bsdfData.fresnelF0 = 0;
+    bsdfData.roughness = 0;
+    bsdfData.height_mm = 0;
+    bsdfData.anisotropyAngle = 0;
+#endif
+
+    bsdfData.geomNormalWS = surfaceData.geomNormalWS;
+
+    ApplyDebugToBSDFData(bsdfData);
+    return bsdfData;
+}
+
+
 //-----------------------------------------------------------------------------
 // PreLightData
 //

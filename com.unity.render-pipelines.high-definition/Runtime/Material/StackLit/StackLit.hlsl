@@ -638,6 +638,111 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     return bsdfData;
 }
 
+BSDFDataPacked ConvertSurfaceDataToBSDFDataPacked(uint2 positionSS, SurfaceData surfaceData)
+{
+    BSDFDataPacked bsdfData;
+    ZERO_INITIALIZE(BSDFDataPacked, bsdfData);
+
+    // IMPORTANT: In our forward only case, all enable flags are statically know at compile time, so the compiler can do compile time optimization
+    bsdfData.materialFeatures = surfaceData.materialFeatures;
+
+    bsdfData.geomNormalWS = surfaceData.geomNormalWS; // We should always have this whether we enable coat normals or not.
+
+    // Two lobe base material
+    bsdfData.normalWS = surfaceData.normalWS;
+    bsdfData.bentNormalWS = surfaceData.bentNormalWS;
+    bsdfData.perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessA);
+    bsdfData.perceptualRoughnessB = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessB);
+
+    // We set metallic to 0 with SSS and specular color mode
+    float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
+
+    bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
+    bsdfData.fresnel0 = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, IorToFresnel0(surfaceData.dielectricIor));
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+    }
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
+    }
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
+    {
+        FillMaterialAnisotropy(surfaceData.anisotropyA, surfaceData.anisotropyB, surfaceData.tangentWS, cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
+    }
+
+    // Extract T & B anisotropies
+    ConvertAnisotropyToRoughness(bsdfData.perceptualRoughnessA, bsdfData.anisotropyA, bsdfData.roughnessAT, bsdfData.roughnessAB);
+    ConvertAnisotropyToRoughness(bsdfData.perceptualRoughnessB, bsdfData.anisotropyB, bsdfData.roughnessBT, bsdfData.roughnessBB);
+    bsdfData.lobeMix = surfaceData.lobeMix;
+
+    // Note that if we're using the hazy gloss parametrization, these will all be changed again:
+    // fresnel0, lobeMix, perceptualRoughnessB, roughnessBT, roughnessBB.
+    //
+    // The fresnel0 is the only one used and needed in that case but it's ok, since materialFeatures are
+    // statically known, the compiler will prune the useless computations for the rest of the terms above
+    // when MATERIALFEATUREFLAGS_STACK_LIT_HAZY_GLOSS is set.
+    //
+    // It is important to deal with the hazy gloss parametrization after we have fresnel0 for the base but
+    // before the effect of the coat is applied on it. When hazy gloss is used, the current fresnel0 at this
+    // point is reinterpreted as a pseudo-f0 ("core lobe reflectivity" or Fc(0) or r_c in the paper)
+    // 
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_HAZY_GLOSS))
+    {
+        // reminder: ComputeFresnel0 lerps from last param to first param using middle param as lerp factor.
+        float3 hazyGlossMaxf0 = ComputeFresnel0(float3(1.0, 1.0, 1.0), surfaceData.metallic, surfaceData.hazyGlossMaxDielectricF0);
+        HazeMapping(bsdfData.fresnel0, bsdfData.roughnessAT, bsdfData.roughnessAB, surfaceData.haziness, surfaceData.hazeExtent, bsdfData.anisotropyB, hazyGlossMaxf0, bsdfData);
+    }
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
+    {
+        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.iridescenceThickness, surfaceData.iridescenceIor, bsdfData);
+    }
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
+    {
+        FillMaterialCoatData(PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness),
+            surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
+
+        if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP))
+        {
+            bsdfData.coatNormalWS = surfaceData.coatNormalWS;
+        }
+
+        // vlayering:
+        // We can't calculate final roughnesses including anisotropy right away in this case: we will either do it
+        // one time at GetPreLightData or for each light depending on the configuration for accuracy of BSDF
+        // vlayering statistics (ie if VLAYERED_RECOMPUTE_PERLIGHT)
+
+        // We have a coat top layer: change the base fresnel0 accordingdly:
+        bsdfData.fresnel0 = ConvertF0ForAirInterfaceToF0ForNewTopIor(bsdfData.fresnel0, bsdfData.coatIor);
+
+        // We dont clamp the roughnesses for now, ComputeAdding() will use those directly, unclamped.
+        // (don't forget to call ClampRoughnessForAnalyticalLights after though)
+        bsdfData.coatRoughness = PerceptualRoughnessToRoughness(bsdfData.coatPerceptualRoughness);
+    }
+    else
+    {
+        // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
+        // perceptualRoughness is not clamped, and is meant to be used for IBL.
+        bsdfData.roughnessAT = ClampRoughnessForAnalyticalLights(bsdfData.roughnessAT);
+        bsdfData.roughnessAB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessAB);
+        bsdfData.roughnessBT = ClampRoughnessForAnalyticalLights(bsdfData.roughnessBT);
+        bsdfData.roughnessBB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessBB);
+    }
+
+    bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+
+    ApplyDebugToBSDFData(bsdfData);
+    return bsdfData;
+}
+
 //-----------------------------------------------------------------------------
 // Debug method (use to display values)
 //-----------------------------------------------------------------------------

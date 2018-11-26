@@ -69,6 +69,22 @@
 #define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1073)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1074)
 
+//
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFDataPacked:  static fields
+//
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_DIFFUSE_COLOR (1050)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_FRESNEL0 (1051)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_MATERIAL_FEATURES (1052)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_ROUGHNESSES_AND_OCCLUSIONS (1053)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_SSSDATA (1054)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_WS (1055)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_VIEW_SPACE (1056)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_TRANSMITTANCE (1057)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_TANGENT_WS (1058)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_BITANGENT_WS (1059)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_ABSORPTION_COEFFICIENT (1060)
+#define DEBUGVIEW_LIT_BSDFDATAPACKED_IOR (1061)
+
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
@@ -123,6 +139,25 @@ struct BSDFData
     float ior;
     float3 absorptionCoefficient;
     float transmittanceMask;
+};
+
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFDataPacked
+// PackingRules = Exact
+struct BSDFDataPacked
+{
+    float3 diffuseColor;
+    uint fresnel0;
+    uint materialFeatures;
+    uint roughnessesAndOcclusions;
+    uint SSSData;
+    uint anisoDataAndFlags;
+    uint iridescenceAndMasks;
+    float3 normalWS;
+    float3 transmittance;
+    uint tangentWS;
+    uint bitangentWS;
+    uint absorptionCoefficient;
+    float ior;
 };
 
 //
@@ -282,6 +317,53 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK:
             result = bsdfdata.transmittanceMask.xxx;
+            break;
+    }
+}
+
+//
+// Debug functions
+//
+void GetGeneratedBSDFDataPackedDebug(uint paramId, BSDFDataPacked bsdfdatapacked, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_DIFFUSE_COLOR:
+            result = bsdfdatapacked.diffuseColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_FRESNEL0:
+            result = GetIndexColor(bsdfdatapacked.fresnel0);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_MATERIAL_FEATURES:
+            result = GetIndexColor(bsdfdatapacked.materialFeatures);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_ROUGHNESSES_AND_OCCLUSIONS:
+            result = GetIndexColor(bsdfdatapacked.roughnessesAndOcclusions);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_SSSDATA:
+            result = GetIndexColor(bsdfdatapacked.SSSData);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_WS:
+            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_VIEW_SPACE:
+            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_TRANSMITTANCE:
+            result = bsdfdatapacked.transmittance;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_TANGENT_WS:
+            result = GetIndexColor(bsdfdatapacked.tangentWS);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_BITANGENT_WS:
+            result = GetIndexColor(bsdfdatapacked.bitangentWS);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_ABSORPTION_COEFFICIENT:
+            result = GetIndexColor(bsdfdatapacked.absorptionCoefficient);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATAPACKED_IOR:
+            result = bsdfdatapacked.ior.xxx;
             break;
     }
 }

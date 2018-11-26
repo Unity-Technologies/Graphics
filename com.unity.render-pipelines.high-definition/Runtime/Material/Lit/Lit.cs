@@ -93,6 +93,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Transmittance Absorption Distance")]
             public float atDistance;
             [SurfaceDataAttributes("Transmittance mask")]
+
             public float transmittanceMask;
         };
 
@@ -156,6 +157,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 absorptionCoefficient;
             public float transmittanceMask;
         };
+
+        [GenerateHLSL(PackingRules.Exact, false, true, 1050)]
+        public struct BSDFDataPacked
+        {
+            [SurfaceDataAttributes("", false, true)]
+            public Vector3 diffuseColor;
+            public uint fresnel0;               // R11G11B10
+
+            public uint materialFeatures;
+            public uint roughnessesAndOcclusions;   // [perceptualRoughness, coatRoughness, ambientOcclusion, specularOcclusion]
+            public uint SSSData;                    // [diffusionProfile (8bit), subsurfaceMask (8bit), thickness (16 bit)] << This whole thing could fit in 16bit.
+            public uint anisoDataAndFlags;                 // [anisotropy (8bit), roughnessT (8bit), roughnessB (8bit), flags [useThickObjectMode, 7 unused] (8bit)]
+
+
+            public uint iridescenceAndMasks;               // [iridescenceThickness (8bit), iridescenceMask (8bit), transmittanceMask (8bit), coatMask (8bit), ]           // This is NOT nice. 
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
+            public Vector3 normalWS;
+
+            public Vector3 transmittance;                   // Precomputation of transmittance
+            public uint tangentWS;                          // Encoded in 11, 11, 10
+
+            public uint bitangentWS;                        // Encoded in 11, 11, 10
+            public uint absorptionCoefficient;              // Encoded in 11 11 10                                                               
+            public float ior;                               // Could do some remapping?                                 
+        };
+
 
         //-----------------------------------------------------------------------------
         // GBuffer management

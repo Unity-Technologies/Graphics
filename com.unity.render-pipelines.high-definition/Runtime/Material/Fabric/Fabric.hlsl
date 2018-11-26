@@ -181,6 +181,59 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     return bsdfData;
 }
 
+BSDFDataPacked ConvertSurfaceDataToBSDFDataPacked(uint2 positionSS, SurfaceData surfaceData)
+{
+    BSDFDataPacked bsdfData;
+    ZERO_INITIALIZE(BSDFDataPacked, bsdfData);
+
+    // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
+    bsdfData.materialFeatures = surfaceData.materialFeatures;
+
+    bsdfData.diffuseColor = surfaceData.baseColor;
+    bsdfData.specularOcclusion = surfaceData.specularOcclusion;
+    bsdfData.normalWS = surfaceData.normalWS;
+    bsdfData.geomNormalWS = surfaceData.geomNormalWS;
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+
+    bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+
+    // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
+    // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
+
+    // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
+    // However in practice we keep parity between deferred and forward, so we should constrain the various features.
+    // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+    }
+
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
+    }
+
+    if (!HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
+    {
+        FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
+    }
+
+    // After the fill material SSS data has operated, in the case of the fabric we force the value of the fresnel0 term
+    bsdfData.fresnel0 = surfaceData.specularColor;
+
+    // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
+    // perceptualRoughness is not clamped, and is meant to be used for IBL.
+    // perceptualRoughness can be modify by FillMaterialClearCoatData, so ConvertAnisotropyToClampRoughness must be call after
+    ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+
+    ApplyDebugToBSDFData(bsdfData);
+
+    return bsdfData;
+}
+
 //-----------------------------------------------------------------------------
 // Debug method (use to display values)
 //-----------------------------------------------------------------------------

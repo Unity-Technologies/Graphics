@@ -516,6 +516,18 @@ real2 Unpack888ToFloat2(real3 x)
 
     return cb / 4095.0;
 }
+
+// f0 in higher bits, f3 lowest 8 bits
+uint PackFloat8888(float f0, float f1, float f2, float f3)
+{
+     uint u0 = (uint)(f0 * 255 + 0.5); // Round instead of truncating
+     uint u1 = (uint)(f1 * 255 + 0.5); 
+     uint u2 = (uint)(f2 * 255 + 0.5); 
+     uint u3 = (uint)(f3 * 255 + 0.5); 
+
+     return (u0 << 24) | (u1 << 16) | (u2 << 8) | u3;
+}
+
 #endif // SHADER_API_GLES
 
 #endif // UNITY_PACKING_INCLUDED

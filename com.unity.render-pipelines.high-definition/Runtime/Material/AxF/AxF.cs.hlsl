@@ -44,6 +44,26 @@
 #define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_IOR (1264)
 #define DEBUGVIEW_AXF_BSDFDATA_GEOM_NORMAL_WS (1265)
 
+//
+// UnityEngine.Experimental.Rendering.HDPipeline.AxF+BSDFDataPacked:  static fields
+//
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_NORMAL_WS (1250)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_NORMAL_VIEW_SPACE (1251)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_TANGENT_WS (1252)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_BI_TANGENT_WS (1253)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_DIFFUSE_COLOR (1254)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_SPECULAR_COLOR (1255)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_FRESNEL_F0 (1256)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_ROUGHNESS (1257)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_HEIGHT_MM (1258)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_ANISOTROPY_ANGLE (1259)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_FLAKES_UV (1260)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_FLAKES_MIP (1261)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_CLEARCOAT_COLOR (1262)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_CLEARCOAT_NORMAL_WS (1263)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_CLEARCOAT_IOR (1264)
+#define DEBUGVIEW_AXF_BSDFDATAPACKED_GEOM_NORMAL_WS (1265)
+
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.AxF+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
@@ -68,6 +88,27 @@ struct SurfaceData
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.AxF+BSDFData
 // PackingRules = Exact
 struct BSDFData
+{
+    float3 normalWS;
+    float3 tangentWS;
+    float3 biTangentWS;
+    float3 diffuseColor;
+    float3 specularColor;
+    float3 fresnelF0;
+    float2 roughness;
+    float height_mm;
+    float anisotropyAngle;
+    float2 flakesUV;
+    float flakesMipLevel;
+    float3 clearcoatColor;
+    float3 clearcoatNormalWS;
+    float clearcoatIOR;
+    float3 geomNormalWS;
+};
+
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.AxF+BSDFDataPacked
+// PackingRules = Exact
+struct BSDFDataPacked
 {
     float3 normalWS;
     float3 tangentWS;
@@ -203,6 +244,64 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_AXF_BSDFDATA_GEOM_NORMAL_WS:
             result = bsdfdata.geomNormalWS;
+            break;
+    }
+}
+
+//
+// Debug functions
+//
+void GetGeneratedBSDFDataPackedDebug(uint paramId, BSDFDataPacked bsdfdatapacked, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_NORMAL_WS:
+            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_NORMAL_VIEW_SPACE:
+            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_TANGENT_WS:
+            result = bsdfdatapacked.tangentWS;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_BI_TANGENT_WS:
+            result = bsdfdatapacked.biTangentWS;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_DIFFUSE_COLOR:
+            result = bsdfdatapacked.diffuseColor;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_SPECULAR_COLOR:
+            result = bsdfdatapacked.specularColor;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_FRESNEL_F0:
+            result = bsdfdatapacked.fresnelF0;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_ROUGHNESS:
+            result = float3(bsdfdatapacked.roughness, 0.0);
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_HEIGHT_MM:
+            result = bsdfdatapacked.height_mm.xxx;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_ANISOTROPY_ANGLE:
+            result = bsdfdatapacked.anisotropyAngle.xxx;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_FLAKES_UV:
+            result = float3(bsdfdatapacked.flakesUV, 0.0);
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_FLAKES_MIP:
+            result = bsdfdatapacked.flakesMipLevel.xxx;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_CLEARCOAT_COLOR:
+            result = bsdfdatapacked.clearcoatColor;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_CLEARCOAT_NORMAL_WS:
+            result = bsdfdatapacked.clearcoatNormalWS;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_CLEARCOAT_IOR:
+            result = bsdfdatapacked.clearcoatIOR.xxx;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATAPACKED_GEOM_NORMAL_WS:
+            result = bsdfdatapacked.geomNormalWS;
             break;
     }
 }

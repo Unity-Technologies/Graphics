@@ -105,6 +105,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 geomNormalWS;
         };
 
+        [GenerateHLSL(PackingRules.Exact, false, true, 1250)]
+        public struct BSDFDataPacked
+        {
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
+            public Vector3 normalWS;
+            public Vector3 tangentWS;
+            public Vector3 biTangentWS;
+
+            // SVBRDF Variables
+            public Vector3 diffuseColor;
+            public Vector3 specularColor;
+            public Vector3 fresnelF0;
+            public Vector2 roughness;
+            public float height_mm;
+            public float anisotropyAngle;
+
+            // Car Paint Variables
+            [SurfaceDataAttributes("")]
+            public Vector2 flakesUV;
+
+            [SurfaceDataAttributes("Flakes Mip")]
+            public float flakesMipLevel;
+
+            // BTF Variables
+
+            // Clearcoat
+            public Vector3 clearcoatColor;
+            public Vector3 clearcoatNormalWS;
+            public float clearcoatIOR;
+
+            public Vector3 geomNormalWS;
+        };
+
         //-----------------------------------------------------------------------------
         // Init precomputed texture
         //-----------------------------------------------------------------------------

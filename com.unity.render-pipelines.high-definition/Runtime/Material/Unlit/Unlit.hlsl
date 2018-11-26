@@ -17,6 +17,15 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData data)
     return output;
 }
 
+
+BSDFDataPacked ConvertSurfaceDataToBSDFDataPacked(uint2 positionSS, SurfaceData data)
+{
+    BSDFDataPacked output;
+    output.color = data.color;
+
+    return output;
+}
+
 //-----------------------------------------------------------------------------
 // Debug method (use to display values)
 //-----------------------------------------------------------------------------

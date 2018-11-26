@@ -30,5 +30,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("", false, true)]
             public Vector3 color;
         };
+
+        [GenerateHLSL(PackingRules.Exact, false, true, 350)]
+        public struct BSDFDataPacked
+        {
+            [SurfaceDataAttributes("", false, true)]
+            public Vector3 color;
+        };
+
     }
 }
