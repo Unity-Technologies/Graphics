@@ -604,6 +604,7 @@ namespace UnityEditor.VFX
                                 fakeField.InsertArrayElementAtIndex(fakeField.arraySize);
                                 var newFakeEntry = fakeField.GetArrayElementAtIndex(fakeField.arraySize - 1);
                                 newFakeEntry.FindPropertyRelative("m_Name").stringValue = param.path;
+                                newFakeEntry.FindPropertyRelative("m_Overridden").boolValue = false;
 
                                 actualDisplayedPropertyOverridden = newFakeEntry.FindPropertyRelative("m_Overridden");
                                 actualDisplayedPropertyValue = newFakeEntry.FindPropertyRelative("m_Value");
