@@ -360,7 +360,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
 //
 // Debug functions
 //
-void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 result, inout bool needLinearToSRGB)
+void GetGeneratedBSDFDataDebug(uint paramId, BSDFDataPacked bsdfdata, inout float3 result, inout bool needLinearToSRGB)
 {
     switch (paramId)
     {
@@ -472,125 +472,6 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;
-            break;
-    }
-}
-
-//
-// Debug functions
-//
-void GetGeneratedBSDFDataPackedDebug(uint paramId, BSDFDataPacked bsdfdatapacked, inout float3 result, inout bool needLinearToSRGB)
-{
-    switch (paramId)
-    {
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_MATERIAL_FEATURES:
-            result = GetIndexColor(bsdfdatapacked.materialFeatures);
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_DIFFUSE_COLOR:
-            result = bsdfdatapacked.diffuseColor;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_FRESNEL0:
-            result = bsdfdatapacked.fresnel0;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_AMBIENT_OCCLUSION:
-            result = bsdfdatapacked.ambientOcclusion.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_NORMAL_WS:
-            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_NORMAL_VIEW_SPACE:
-            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_GEOMETRIC_NORMAL:
-            result = bsdfdatapacked.geomNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = bsdfdatapacked.geomNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_COAT_NORMAL:
-            result = bsdfdatapacked.coatNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_COAT_NORMAL_VIEW_SPACE:
-            result = bsdfdatapacked.coatNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_BENT_NORMAL:
-            result = bsdfdatapacked.bentNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_BENT_NORMAL_VIEW_SPACE:
-            result = bsdfdatapacked.bentNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_PERCEPTUAL_ROUGHNESS_A:
-            result = bsdfdatapacked.perceptualRoughnessA.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_PERCEPTUAL_ROUGHNESS_B:
-            result = bsdfdatapacked.perceptualRoughnessB.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_LOBE_MIX:
-            result = bsdfdatapacked.lobeMix.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_TANGENT_WS:
-            result = bsdfdatapacked.tangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_BITANGENT_WS:
-            result = bsdfdatapacked.bitangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_ROUGHNESS_AT:
-            result = bsdfdatapacked.roughnessAT.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_ROUGHNESS_AB:
-            result = bsdfdatapacked.roughnessAB.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_ROUGHNESS_BT:
-            result = bsdfdatapacked.roughnessBT.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_ROUGHNESS_BB:
-            result = bsdfdatapacked.roughnessBB.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_ANISOTROPY_A:
-            result = bsdfdatapacked.anisotropyA.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_ANISOTROPY_B:
-            result = bsdfdatapacked.anisotropyB.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_COAT_ROUGHNESS:
-            result = bsdfdatapacked.coatRoughness.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_COAT_PERCEPTUAL_ROUGHNESS:
-            result = bsdfdatapacked.coatPerceptualRoughness.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_COAT_IOR:
-            result = bsdfdatapacked.coatIor.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_COAT_THICKNESS:
-            result = bsdfdatapacked.coatThickness.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_COAT_EXTINCTION:
-            result = bsdfdatapacked.coatExtinction;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_IRIDESCENCE_IOR:
-            result = bsdfdatapacked.iridescenceIor.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_IRIDESCENCE_THICKNESS:
-            result = bsdfdatapacked.iridescenceThickness.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_IRIDESCENCE_MASK:
-            result = bsdfdatapacked.iridescenceMask.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_DIFFUSION_PROFILE:
-            result = GetIndexColor(bsdfdatapacked.diffusionProfile);
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_SUBSURFACE_MASK:
-            result = bsdfdatapacked.subsurfaceMask.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_THICKNESS:
-            result = bsdfdatapacked.thickness.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_USE_THICK_OBJECT_MODE:
-            result = (bsdfdatapacked.useThickObjectMode) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATAPACKED_TRANSMITTANCE:
-            result = bsdfdatapacked.transmittance;
             break;
     }
 }

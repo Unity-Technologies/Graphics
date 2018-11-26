@@ -43,7 +43,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     // Not lit here (but emissive is allowed)
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
+    BSDFDataPacked bsdfData = ConvertSurfaceDataToBSDFDataPacked(input.positionSS.xy, surfaceData);
 
     // TODO: we must not access bsdfData here, it break the genericity of the code!
     float4 outColor = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);

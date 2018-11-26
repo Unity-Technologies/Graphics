@@ -168,7 +168,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public uint materialFeatures;
             public uint roughnessesAndOcclusions;   // [perceptualRoughness, coatRoughness, ambientOcclusion, specularOcclusion]
             public uint SSSData;                    // [diffusionProfile (8bit), subsurfaceMask (8bit), thickness (16 bit)] << This whole thing could fit in 16bit.
-            public uint anisoDataAndFlags;                 // [anisotropy (8bit), roughnessT (8bit), roughnessB (8bit), flags [useThickObjectMode, 7 unused] (8bit)]
+            public uint anisoDataAndFlags;          // [anisotropy (8bit), roughnessT (8bit), roughnessB (8bit), flags [useThickObjectMode, 7 unused] (8bit)]
 
 
             public uint iridescenceAndMasks;               // [iridescenceThickness (8bit), iridescenceMask (8bit), transmittanceMask (8bit), coatMask (8bit), ]           // This is NOT nice. 

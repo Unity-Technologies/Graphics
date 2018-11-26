@@ -54,10 +54,9 @@ void Frag(PackedVaryingsToPS packedInput,
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
 
-  //  BSDFData bsdfDataPacked = ConvertSurfaceDataToPackedBSDFData(input.positionSS.xy, surfaceData);
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
+    BSDFDataPacked bsdfDataPacked = ConvertSurfaceDataToBSDFDataPacked(input.positionSS.xy, surfaceData);
 
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+    PreLightData preLightData = GetPreLightDataPacked(V, posInput, bsdfDataPacked);
 
     outColor = float4(0.0, 0.0, 0.0, 0.0);
 
@@ -72,23 +71,24 @@ void Frag(PackedVaryingsToPS packedInput,
     // Same code in ShaderPassForwardUnlit.shader
     if (_DebugViewMaterial != 0)
     {
-        float3 result = float3(1.0, 0.0, 1.0);
+        // TODO_FCC_BEFORE_PR: UNCOMMENT AND FIXUP THIS.
+        //float3 result = float3(1.0, 0.0, 1.0);
 
-        bool needLinearToSRGB = false;
+        //bool needLinearToSRGB = false;
 
-        GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
-        GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
-        GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
-        GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
-        GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
+        //GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
+        //GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
+        //GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
+        //GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
+        //GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
 
-        // TEMP!
-        // For now, the final blit in the backbuffer performs an sRGB write
-        // So in the meantime we apply the inverse transform to linear data to compensate.
-        if (!needLinearToSRGB)
-            result = SRGBToLinear(max(0, result));
+        //// TEMP!
+        //// For now, the final blit in the backbuffer performs an sRGB write
+        //// So in the meantime we apply the inverse transform to linear data to compensate.
+        //if (!needLinearToSRGB)
+        //    result = SRGBToLinear(max(0, result));
 
-        outColor = float4(result, 1.0);
+        //outColor = float4(result, 1.0);
     }
     else
 #endif
@@ -101,10 +101,10 @@ void Frag(PackedVaryingsToPS packedInput,
         float3 diffuseLighting;
         float3 specularLighting;
 
-        LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+        LightLoop(V, posInput, preLightData, bsdfDataPacked, builtinData, featureFlags, diffuseLighting, specularLighting);
 
 #ifdef OUTPUT_SPLIT_LIGHTING
-        if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
+        if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfDataPacked))
         {
             outColor = float4(specularLighting, 1.0);
             outDiffuseLighting = float4(TagLightingForSSS(diffuseLighting), 1.0);

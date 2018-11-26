@@ -53,9 +53,9 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-                BSDFData bsdfData;
+                BSDFDataPacked bsdfData;
                 BuiltinData builtinData;
-                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
+                DECODE_FROM_GBUFFER_PACKED(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
 
                 // Init to not expected value
                 float3 result = float3(-666.0, 0.0, 0.0);
@@ -92,7 +92,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 }
                 #endif
 
-                GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
+            //    GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB TODO_FCC_BEFORE_PR: Restore);
 
                 // f we haven't touch result, we don't blend it. This allow to have the GBuffer debug pass working with the regular forward debug pass.
                 // The forward debug pass will write its value and then the deferred will overwrite only touched texels.

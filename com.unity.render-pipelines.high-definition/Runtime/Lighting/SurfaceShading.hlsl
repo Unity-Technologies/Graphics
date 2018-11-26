@@ -23,7 +23,7 @@ float3 ComputeSunLightDirection(DirectionalLightData lightData, float3 N, float3
 }
 
 // This function returns transmittance to provide to EvaluateTransmission
-float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout DirectionalLightData light,
+float3 PreEvaluateDirectionalLightTransmission(BSDFDataPacked bsdfData, inout DirectionalLightData light,
                                                inout float3 N, inout float NdotL)
 {
     float3 transmittance = 0.0;
@@ -67,7 +67,7 @@ float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout Directio
 DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
                                         PositionInputs posInput, BuiltinData builtinData,
                                         PreLightData preLightData, DirectionalLightData light,
-                                        BSDFData bsdfData, float3 N, float3 V)
+                                        BSDFDataPacked bsdfData, float3 N, float3 V)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -94,7 +94,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         // Due to the floating point arithmetic (see math in ComputeSunLightDirection() and
         // GetBSDFAngle()), we will never arrive at this exact number, so no lighting will be reflected.
         // If we increase the roughness somewhat, the trick still works.
-        ClampRoughness(bsdfData, light.minRoughness);
+//        ClampRoughness(bsdfData, light.minRoughness) TODO_FCC_PRE_PR: PUT THIS BACK IN;
 
         float3 diffuseBsdf, specularBsdf;
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
@@ -142,7 +142,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
 
 // This function return transmittance to provide to EvaluateTransmission
 float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
-                                            PositionInputs posInput, BSDFData bsdfData,
+                                            PositionInputs posInput, BSDFDataPacked bsdfData,
                                             inout LightData light, float distFrontFaceToLight,
                                             inout float3 N, float3 L, inout float NdotL)
 {
@@ -181,14 +181,25 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
                 // Therefore, we need to find the thickness along the normal.
                 // Warning: based on the artist's input, dependence on the NdotL has been disabled.
                 float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
-                float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
+#ifdef LIT_CS_HLSL
+                uint diffusionProfile = GetDiffusionProfile(bsdfData);
+                float thicknessInMeters = thicknessInUnits * _WorldScales[GetDiffusionProfile(bsdfData)].x;
+#else
+                float thicknessInMeters = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
+#endif
                 float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
+
+#ifdef LIT_CS_HLSL
+                float thicknessDelta = max(0, thicknessInMillimeters - GetThickness(bsdfData));
+
+                float3 S = _ShapeParams[diffusionProfile].rgb;
+#else
                 // We need to make sure it's not less than the baked thickness to minimize light leaking.
                 float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
 
                 float3 S = _ShapeParams[bsdfData.diffusionProfile].rgb;
-
+#endif
             #if 0
                 float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
             #else
@@ -216,7 +227,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
 DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
                                      PositionInputs posInput, BuiltinData builtinData,
                                      PreLightData preLightData, LightData light,
-                                     BSDFData bsdfData, float3 N, float3 V)
+                                     BSDFDataPacked bsdfData, float3 N, float3 V)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -244,7 +255,7 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         // Simulate a sphere/disk light with this hack
         // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
         // same result) but we don't care as it is a hack anyway
-        ClampRoughness(bsdfData, light.minRoughness);
+       // ClampRoughness(bsdfData, light.minRoughness) TODO_FCC_PRE_PR: Restore this;
 
         float3 diffuseBsdf, specularBsdf;
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);

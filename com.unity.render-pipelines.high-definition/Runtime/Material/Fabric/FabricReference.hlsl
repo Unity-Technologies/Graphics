@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 float3 IntegrateSpecularCottonWoolIBLRef(LightLoopContext lightLoopContext,
-                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
                                   uint sampleCount = 2048)
 {
     // In case of the cotton wool, the material is not anisotropic so we don't need a specific local frame
@@ -44,7 +44,7 @@ float3 IntegrateSpecularCottonWoolIBLRef(LightLoopContext lightLoopContext,
 }
 
 float3 IntegrateSpecularSilkIBLRef(LightLoopContext lightLoopContext,
-                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
                                   uint sampleCount = 2048)
 {
     // Given that it may be anisotropic we need to compute the tangent oriented basis

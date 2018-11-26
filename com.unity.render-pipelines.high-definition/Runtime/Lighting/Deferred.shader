@@ -120,11 +120,11 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize(), unity_StereoEyeIndex);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-                BSDFData bsdfData;
+                BSDFDataPacked bsdfData;
                 BuiltinData builtinData;
-                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
+                DECODE_FROM_GBUFFER_PACKED(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
 
-                PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+                PreLightData preLightData = GetPreLightDataPacked(V, posInput, bsdfData);
 
                 float3 diffuseLighting;
                 float3 specularLighting;

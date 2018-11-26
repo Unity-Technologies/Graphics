@@ -10,14 +10,15 @@
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
-PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
+PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDFDataPacked bsdfData)
 {
     PreLightData preLightData;
     // Don't init to zero to allow to track warning about uninitialized data
 
+    float perceptualRoughness = GetPerceptualRoughness(bsdfData);
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
-    preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
+    preLightData.iblPerceptualRoughness = perceptualRoughness;
 
     float NdotV = ClampNdotV(preLightData.NdotV);
 
@@ -28,19 +29,19 @@ PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDF
     // Handle IBL + area light + multiscattering.
     // Note: use the not modified by anisotropy iblPerceptualRoughness here.
     float specularReflectivity;
-    GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+    GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, GetFresnel0(bsdfData), preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
     preLightData.diffuseFGD = 1.0;
 
     preLightData.energyCompensation = 0.0;
 
-    preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, bsdfData.roughnessT);
+    preLightData.partLambdaV = GetSmithJointGGXPartLambdaV(NdotV, GetRoughnessT(bsdfData));
 
     preLightData.iblR = reflect(-V, N);
 
     // Area light
     // UVs for sampling the LUTs
     float theta = FastACosPos(NdotV); // For Area light - UVs for sampling the LUTs
-    float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
+    float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(perceptualRoughness, theta * INV_HALF_PI);
 
     preLightData.ltcTransformDiffuse = k_identity3x3;
 
@@ -69,7 +70,7 @@ PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDF
 #ifdef HAS_LIGHTLOOP
 
 // This function apply BSDF. Assumes that NdotL is positive.
-void SimpleBSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
+void SimpleBSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData,
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
@@ -81,9 +82,9 @@ void SimpleBSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightDa
     float LdotV, NdotH, LdotH, NdotV, invLenLV;
     GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
 
-    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+    float3 F = F_Schlick(GetFresnel0(bsdfData), LdotH);
 
-    float DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessT, preLightData.partLambdaV);
+    float DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, GetRoughnessT(bsdfData), preLightData.partLambdaV);
     specularLighting = F * DV;
 #endif // HDRP_ENABLE_SPECULAR
 }
@@ -146,7 +147,7 @@ void SimpleEvaluateLight_Directional(LightLoopContext lightLoopContext, Position
     attenuation *= shadow;
 }
 
-float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
+float3 EvaluateTransmission(BSDFDataPacked bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
 {
     // Apply wrapped lighting to better handle thin objects at grazing angles.
     float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
@@ -156,7 +157,7 @@ float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     attenuation *= Lambert();
 #else
-    attenuation *= DisneyDiffuse(NdotV, max(0, -NdotL), LdotV, bsdfData.perceptualRoughness);
+    attenuation *= DisneyDiffuse(NdotV, max(0, -NdotL), LdotV, GetPerceptualRoughness(bsdfData));
 #endif
 
     float intensity = attenuation * wrappedNdotL;
@@ -165,7 +166,7 @@ float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL
 
 DirectLighting SimpleEvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput, PreLightData preLightData,
-                                        DirectionalLightData lightData, BSDFData bsdfData,
+                                        DirectionalLightData lightData, BSDFDataPacked bsdfData,
                                         BuiltinData builtinData)
 {
     DirectLighting lighting;
@@ -308,32 +309,15 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
 
 // This function return transmittance to provide to EvaluateTransmission
 float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, PositionInputs posInput, float distFrontFaceToLight,
-                                            float NdotL, float3 L, BSDFData bsdfData,
+                                            float NdotL, float3 L, BSDFDataPacked bsdfData,
                                             inout float3 normalWS, inout LightData lightData)
 {
-    float3 transmittance = bsdfData.transmittance;
-
-    // if NdotL is positive, we do one fetch on front face done by EvaluateLight_XXX. Just regular lighting
-    // If NdotL is negative, we have two cases:
-    // - Thin mode: Reuse the front face fetch as shadow for back face - flip the normal for the bias (and the NdotL test) and disable contact shadow
-    // - Mixed mode: Do a fetch on back face to retrieve the thickness. The thickness will provide a shadow attenuation (with distance travelled there is less transmission).
-    // (Note: EvaluateLight_Punctual discard the fetch if NdotL < 0)
-    if (NdotL < 0 && lightData.shadowIndex >= 0)
-    {
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-        {
-            normalWS = -normalWS; // Flip normal for shadow bias
-            lightData.contactShadowIndex = -1;  //  Disable shadow contact
-        }
-        transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
-    }
-
-    return transmittance;
+    return bsdfData.transmittance;
 }
 
 DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -368,9 +352,9 @@ DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         // Simulate a sphere light with this hack
         // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
         // same result) but we don't care as it is a hack anyway
-        bsdfData.coatRoughness = max(bsdfData.coatRoughness, lightData.minRoughness);
-        bsdfData.roughnessT = max(bsdfData.roughnessT, lightData.minRoughness);
-        bsdfData.roughnessB = max(bsdfData.roughnessB, lightData.minRoughness);
+        SetCoatRoughness(max(GetCoatRoughness(bsdfData), lightData.minRoughness));
+        SetRoughnessT(max(GetRoughnessT(bsdfData), lightData.minRoughness));
+        SetRoughnessB(max(GetRoughnessB(bsdfData), lightData.minRoughness));
 
         SimpleBSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
@@ -439,7 +423,7 @@ void SimpleEvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, Env
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting SimpleEvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                                    PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
                                     int influenceShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
@@ -471,7 +455,7 @@ IndirectLighting SimpleEvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
-    envLighting = F_Schlick(bsdfData.fresnel0, dot(bsdfData.normalWS, V)) * preLD.rgb;
+    envLighting = F_Schlick(GetFresnel0(bsdfData), dot(bsdfData.normalWS, V)) * preLD.rgb;
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
     envLighting *= weight * lightData.multiplier;
@@ -483,12 +467,12 @@ IndirectLighting SimpleEvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 void SimplePostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
-                        PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
+                        PreLightData preLightData, BSDFDataPacked bsdfData, BuiltinData builtinData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
     AmbientOcclusionFactor aoFactor;
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
-    GetScreenSpaceAmbientOcclusion(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, aoFactor);
+    GetScreenSpaceAmbientOcclusion(posInput.positionSS, preLightData.NdotV, GetPerceptualRoughness(bsdfData), GetAmbientOcclusion(bsdfData), GetSpecularOcclusion(bsdfData), aoFactor);
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
     // Subsurface scattering mode

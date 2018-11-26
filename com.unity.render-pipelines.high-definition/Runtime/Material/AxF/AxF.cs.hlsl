@@ -248,63 +248,6 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
     }
 }
 
-//
-// Debug functions
-//
-void GetGeneratedBSDFDataPackedDebug(uint paramId, BSDFDataPacked bsdfdatapacked, inout float3 result, inout bool needLinearToSRGB)
-{
-    switch (paramId)
-    {
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_NORMAL_WS:
-            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_NORMAL_VIEW_SPACE:
-            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_TANGENT_WS:
-            result = bsdfdatapacked.tangentWS;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_BI_TANGENT_WS:
-            result = bsdfdatapacked.biTangentWS;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_DIFFUSE_COLOR:
-            result = bsdfdatapacked.diffuseColor;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_SPECULAR_COLOR:
-            result = bsdfdatapacked.specularColor;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_FRESNEL_F0:
-            result = bsdfdatapacked.fresnelF0;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_ROUGHNESS:
-            result = float3(bsdfdatapacked.roughness, 0.0);
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_HEIGHT_MM:
-            result = bsdfdatapacked.height_mm.xxx;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_ANISOTROPY_ANGLE:
-            result = bsdfdatapacked.anisotropyAngle.xxx;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_FLAKES_UV:
-            result = float3(bsdfdatapacked.flakesUV, 0.0);
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_FLAKES_MIP:
-            result = bsdfdatapacked.flakesMipLevel.xxx;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_CLEARCOAT_COLOR:
-            result = bsdfdatapacked.clearcoatColor;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_CLEARCOAT_NORMAL_WS:
-            result = bsdfdatapacked.clearcoatNormalWS;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_CLEARCOAT_IOR:
-            result = bsdfdatapacked.clearcoatIOR.xxx;
-            break;
-        case DEBUGVIEW_AXF_BSDFDATAPACKED_GEOM_NORMAL_WS:
-            result = bsdfdatapacked.geomNormalWS;
-            break;
-    }
-}
 
 
 #endif

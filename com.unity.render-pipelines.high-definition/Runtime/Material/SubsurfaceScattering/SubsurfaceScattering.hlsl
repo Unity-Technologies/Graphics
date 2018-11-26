@@ -170,7 +170,7 @@ void FillMaterialSSSForPackedLit(uint diffusionProfile, inout BSDFDataPacked bsd
     bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
 
-bool ShouldOutputSplitLighting(BSDFData bsdfData)
+bool ShouldOutputSplitLighting(BSDFDataPacked bsdfData)
 {
     return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING);
 }
@@ -181,6 +181,14 @@ float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
     uint   texturingMode = (bsdfData.materialFeatures >> MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
     return ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
 }
+
+float3 GetModifiedDiffuseColorForSSSPacked(BSDFDataPacked bsdfData)
+{
+    // Subsurface scattering mode
+    uint   texturingMode = (bsdfData.materialFeatures >> MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
+    return ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
+}
+
 
 #endif
 
