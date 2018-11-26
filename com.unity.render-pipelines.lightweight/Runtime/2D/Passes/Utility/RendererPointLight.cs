@@ -224,7 +224,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 RenderNormals(renderContext, cullResults, drawSettings, filterSettings);
 
-                //cmdBuffer.BeginSample("2D Point Lights");
+                cmdBuffer.BeginSample("2D Point Lights");
                 //cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
 
                 cmdBuffer.SetRenderTarget(m_ColorRT);
