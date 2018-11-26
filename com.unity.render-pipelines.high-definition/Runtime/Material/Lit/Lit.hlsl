@@ -557,7 +557,7 @@ BSDFDataPacked ConvertSurfaceDataToBSDFDataPacked(uint2 positionSS, SurfaceData 
     float roughnessT = 0.0f;
     float roughnessB = 0.0f;
     ConvertAnisotropyToRoughness(perceptualRoughness, surfaceData.anisotropy, roughnessT, roughnessB);
-    InitAnisoData(surfaceData.anisotropy, roughnessT, roughnessB);
+    InitAnisoData(surfaceData.anisotropy, roughnessT, roughnessB, bsdfData);
 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
@@ -565,8 +565,6 @@ BSDFDataPacked ConvertSurfaceDataToBSDFDataPacked(uint2 positionSS, SurfaceData 
     InitTransmittanceMask(transmittanceMask, bsdfData);
     InitThickness(max(thickness, 0.0001), bsdfData);
 #endif
-
-    ApplyDebugToBSDFData(bsdfData);
 
     return bsdfData;
 }
