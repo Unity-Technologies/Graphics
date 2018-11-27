@@ -536,6 +536,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.drawState = drawState;
                     graph.AddNode(node);
 
+                    // Setting the guid requires the graph to be set first.
                     node.propertyGuid = property.guid;
                 }
             }

@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.3.0] - 2018-11-xx
+### Changed
+- Errors in the compiled shader are now displayed as badges on the appropriate node.
 
 ## [5.2.0] - 2018-11-27
 ### Added
