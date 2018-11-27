@@ -321,52 +321,5 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
     }
 }
 
-//
-// Debug functions
-//
-void GetGeneratedBSDFDataPackedDebug(uint paramId, BSDFDataPacked bsdfdatapacked, inout float3 result, inout bool needLinearToSRGB)
-{
-    switch (paramId)
-    {
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_DIFFUSE_COLOR:
-            result = bsdfdatapacked.diffuseColor;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_FRESNEL0:
-            result = GetIndexColor(bsdfdatapacked.fresnel0);
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_MATERIAL_FEATURES:
-            result = GetIndexColor(bsdfdatapacked.materialFeatures);
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_ROUGHNESSES_AND_OCCLUSIONS:
-            result = GetIndexColor(bsdfdatapacked.roughnessesAndOcclusions);
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_SSSDATA:
-            result = GetIndexColor(bsdfdatapacked.SSSData);
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_WS:
-            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_VIEW_SPACE:
-            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_TRANSMITTANCE:
-            result = bsdfdatapacked.transmittance;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_TANGENT_WS:
-            result = GetIndexColor(bsdfdatapacked.tangentWS);
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_BITANGENT_WS:
-            result = GetIndexColor(bsdfdatapacked.bitangentWS);
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_ABSORPTION_COEFFICIENT:
-            result = GetIndexColor(bsdfdatapacked.absorptionCoefficient);
-            break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_IOR:
-            result = bsdfdatapacked.ior.xxx;
-            break;
-    }
-}
-
 
 #endif

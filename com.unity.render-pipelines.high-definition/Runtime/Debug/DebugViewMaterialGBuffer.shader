@@ -55,7 +55,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
                 BSDFDataPacked bsdfData;
                 BuiltinData builtinData;
-                DECODE_FROM_GBUFFER_PACKED(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
+                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
 
                 // Init to not expected value
                 float3 result = float3(-666.0, 0.0, 0.0);

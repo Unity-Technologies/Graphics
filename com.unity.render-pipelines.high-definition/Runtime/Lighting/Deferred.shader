@@ -122,7 +122,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 BSDFDataPacked bsdfData;
                 BuiltinData builtinData;
-                DECODE_FROM_GBUFFER_PACKED(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
+                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 

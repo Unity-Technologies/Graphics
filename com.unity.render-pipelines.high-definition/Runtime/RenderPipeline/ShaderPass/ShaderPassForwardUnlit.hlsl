@@ -43,7 +43,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     // Not lit here (but emissive is allowed)
-    BSDFDataPacked bsdfData = ConvertSurfaceDataToBSDFDataPacked(input.positionSS.xy, surfaceData);
+    BSDFDataPacked bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
     // TODO: we must not access bsdfData here, it break the genericity of the code!
     float4 outColor = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);
@@ -60,7 +60,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
         GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
         GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
         GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
-        GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
+    //    GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB) TODO_FCc_PRE_PR: RESTORE;
 
         // TEMP!
         // For now, the final blit in the backbuffer performs an sRGB write

@@ -285,55 +285,7 @@ float   G_smith(float NdotV, float roughness)
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
-{
-    BSDFData    bsdfData;
-    //  ZERO_INITIALIZE(BSDFData, data);
-
-    bsdfData.normalWS = surfaceData.normalWS;
-    bsdfData.tangentWS = surfaceData.tangentWS;
-    bsdfData.biTangentWS = surfaceData.biTangentWS;
-
-    //-----------------------------------------------------------------------------
-#ifdef _AXF_BRDF_TYPE_SVBRDF
-    bsdfData.diffuseColor = surfaceData.diffuseColor;
-    bsdfData.specularColor = surfaceData.specularColor;
-    bsdfData.fresnelF0 = surfaceData.fresnelF0;
-    bsdfData.roughness = surfaceData.specularLobe;
-    bsdfData.height_mm = surfaceData.height_mm;
-    bsdfData.anisotropyAngle = surfaceData.anisotropyAngle;
-    bsdfData.clearcoatColor = surfaceData.clearcoatColor;
-    bsdfData.clearcoatNormalWS = surfaceData.clearcoatNormalWS;
-    bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
-
-    // Useless but pass along anyway
-    bsdfData.flakesUV = surfaceData.flakesUV;
-    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
-
-    //-----------------------------------------------------------------------------
-#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
-    bsdfData.diffuseColor = surfaceData.diffuseColor;
-    bsdfData.flakesUV = surfaceData.flakesUV;
-    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
-    bsdfData.clearcoatColor = 1.0;  // Not provided, assume white...
-    bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
-    bsdfData.clearcoatNormalWS = surfaceData.clearcoatNormalWS;
-
-    // Although not used, needs to be initialized... :'(
-    bsdfData.specularColor = 0;
-    bsdfData.fresnelF0 = 0;
-    bsdfData.roughness = 0;
-    bsdfData.height_mm = 0;
-    bsdfData.anisotropyAngle = 0;
-#endif
-
-    bsdfData.geomNormalWS = surfaceData.geomNormalWS;
-
-    ApplyDebugToBSDFData(bsdfData);
-    return bsdfData;
-}
-
-BSDFDataPacked ConvertSurfaceDataToBSDFDataPacked(uint2 positionSS, SurfaceData surfaceData)
+BSDFDataPacked ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFDataPacked    bsdfData;
     //  ZERO_INITIALIZE(BSDFData, data);
@@ -380,7 +332,6 @@ BSDFDataPacked ConvertSurfaceDataToBSDFDataPacked(uint2 positionSS, SurfaceData 
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
 }
-
 
 //-----------------------------------------------------------------------------
 // PreLightData
@@ -659,7 +610,7 @@ void    ComputeClearcoatReflectionAndExtinction_UsePreLightData(inout float3 vie
 void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
 {
     // To get the data we need to do the whole process - compiler should optimize everything
-    BSDFDataPacked bsdfData = ConvertSurfaceDataToBSDFDataPacked(posInput.positionSS, surfaceData);
+    BSDFDataPacked bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
