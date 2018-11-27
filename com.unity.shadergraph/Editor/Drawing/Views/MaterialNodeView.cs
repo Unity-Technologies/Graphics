@@ -146,10 +146,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (!masterNode.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
                 {
-                    IconBadge wrongPipeline = IconBadge.CreateError("The current render pipeline is not compatible with this master node.");
-                    Add(wrongPipeline);
-                    VisualElement title = this.Q("title");
-                    wrongPipeline.AttachTo(title, SpriteAlignment.LeftCenter);
+                    AttachError("The current render pipeline is not compatible with this master node.");
                 }
             }
 
@@ -190,6 +187,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                 //titleButtonContainer.Add(m_CollapseButton);
 
                 RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            }
+        }
+
+        public void AttachError(string errString)
+        {
+            ClearError();
+            var badge = IconBadge.CreateError(errString);
+            Add(badge);
+            var title = this.Q("title");
+            badge.AttachTo(title, SpriteAlignment.RightCenter);
+        }
+
+        public void ClearError()
+        {
+            var badge = this.Q<IconBadge>();
+            if(badge != null)
+            {
+                badge.Detach();
+                badge.RemoveFromHierarchy();
             }
         }
 

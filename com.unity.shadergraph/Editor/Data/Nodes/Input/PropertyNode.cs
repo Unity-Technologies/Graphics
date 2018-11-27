@@ -176,11 +176,11 @@ namespace UnityEditor.ShaderGraph
             return property.referenceName;
         }
 
-        protected override bool CalculateNodeHasError()
+        protected override bool CalculateNodeHasError(ref string errorMessage)
         {
             var graph = owner as AbstractMaterialGraph;
 
-            if (!graph.properties.Any(x => x.guid == propertyGuid))
+            if (!propertyGuid.Equals(Guid.Empty) && !graph.properties.Any(x => x.guid == propertyGuid))
                 return true;
 
             return false;
