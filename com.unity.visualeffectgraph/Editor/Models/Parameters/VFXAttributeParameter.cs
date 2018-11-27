@@ -150,7 +150,7 @@ namespace UnityEditor.VFX
                 return; // Dont sanitize further, model was removed
             }
 
-            UnityEditor.VFX.Block.VFXBlockUtility.SanitizeAttribute(ref attribute, ref mask, version);
+            UnityEditor.VFX.Block.VFXBlockUtility.SanitizeAttribute(ref attribute, GetGraph(),ref mask, version);
             base.Sanitize(version);
         }
 

@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.Block
                 {
                     { "attribute", graph.customAttributes.Cast<object>().ToArray() },
                     { "Source", new object[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source } },
-                    { "Composition", new object[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Scale, AttributeCompositionMode.Blend } }
+                    { "Composition", new object[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend } }
                 };
         }
 
@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            if (VFXBlockUtility.SanitizeAttribute(ref attribute, ref channels, version))
+            if (VFXBlockUtility.SanitizeAttribute(ref attribute, GetGraph(), ref channels, version))
                 Invalidate(InvalidationCause.kSettingChanged);
 
             base.Sanitize(version);
@@ -201,7 +201,7 @@ namespace UnityEditor.VFX.Block
                 if (Source == ValueSource.Source)
                 {
                     VFXExpression sourceExpression = null;
-                    var attrib = VFXAttribute.Find(attribute);
+                    var attrib = VFXAttribute.Find(attribute,GetGraph());
                     if (attrib.variadic == VFXVariadic.True)
                     {
                         var currentChannels = channels.ToString().Select(c => char.ToUpper(c));

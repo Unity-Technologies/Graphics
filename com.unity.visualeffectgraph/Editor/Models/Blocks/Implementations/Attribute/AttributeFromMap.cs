@@ -86,7 +86,7 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            if (VFXBlockUtility.SanitizeAttribute(ref attribute, ref channels, version))
+            if (VFXBlockUtility.SanitizeAttribute(ref attribute, GetGraph(), ref channels, version))
                 Invalidate(InvalidationCause.kSettingChanged);
 
             base.Sanitize(version);

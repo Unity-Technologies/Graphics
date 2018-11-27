@@ -150,7 +150,7 @@ namespace UnityEditor.VFX.Block
                         throw new InvalidOperationException(string.Format("Cannot convert {0} to variadic version", attrib.name));
                 }
 
-                outAttribName = VFXAttribute.Find(attrib.name.Substring(0, attrib.name.Length - 1)).name; // Just to ensure the attribute can be found
+                attribName = VFXAttribute.Find(attrib.name.Substring(0, attrib.name.Length - 1),graph).name; // Just to ensure the attribute can be found
                 outChannel = channel;
 
                 return true;
@@ -234,7 +234,7 @@ namespace UnityEditor.VFX.Block
             return false;
         }
 
-        public static bool SanitizeAttribute(ref string attribName, ref VariadicChannelOptions channels, int version)
+        public static bool SanitizeAttribute(ref string attribName,VFXGraph graph, ref VariadicChannelOptions channels, int version)
         {
             bool settingsChanged = false;
             string oldName = attribName;
@@ -254,7 +254,7 @@ namespace UnityEditor.VFX.Block
 
             // Changes attribute to variadic version
             VariadicChannelOptions newChannels;
-            if (VFXBlockUtility.ConvertToVariadicAttributeIfNeeded(ref attribName, out newChannels))
+            if (VFXBlockUtility.ConvertToVariadicAttributeIfNeeded(ref attribName, graph, out newChannels))
             {
                 Debug.Log(string.Format("Sanitizing attribute: Convert {0} to variadic attribute {1} with channel {2}", oldName, attribName, newChannels));
                 channels = newChannels;
@@ -264,10 +264,10 @@ namespace UnityEditor.VFX.Block
             return settingsChanged;
         }
 
-        static public bool SanitizeAttribute(ref string attribName, ref string channelsMask, int version)
+        static public bool SanitizeAttribute(ref string attribName, VFXGraph graph, ref string channelsMask, int version)
         {
             var channels = ChannelFromMask(channelsMask);
-            var settingsChanged = SanitizeAttribute(ref attribName, ref channels, version);
+            var settingsChanged = SanitizeAttribute(ref attribName,graph, ref channels, version);
             channelsMask = MaskFromChannel(channels);
             return settingsChanged;
         }
