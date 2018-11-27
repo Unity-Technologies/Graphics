@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
 
 ### Changed
+- Added a StackLit master node replacing the InspectorUI version. IMPORTANT: All previously authored StackLit Materials will be lost. You need to recreate them with the master node.
 
 ## [4.3.0-preview] - 2018-11-23
 
