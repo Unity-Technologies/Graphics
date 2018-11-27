@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed forward clustered lighting for VR (double-wide)
+- Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
 
 ### Changed
 

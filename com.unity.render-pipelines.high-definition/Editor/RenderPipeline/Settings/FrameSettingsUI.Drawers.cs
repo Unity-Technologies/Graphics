@@ -94,9 +94,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.space);
         }
 
+        internal static HDRenderPipelineAsset GetHDRPAssetFor(Editor owner)
+        {
+            HDRenderPipelineAsset hdrpAsset;
+            if (owner is HDRenderPipelineEditor)
+            {
+                //When drawing the inspector of a selected HDRPAsset in Project windows, access HDRP by owner drawing itself
+                hdrpAsset = (owner as HDRenderPipelineEditor).target as HDRenderPipelineAsset;
+            }
+            else
+            {
+                //Else rely on GraphicsSettings are you should be in hdrp and owner could be probe or camera.
+                hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            }
+            return hdrpAsset;
+        }
+
         internal static FrameSettings GetDefaultFrameSettingsFor(Editor owner)
         {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
             if (owner is HDProbeEditor)
             {
                 if ((owner as HDProbeEditor).GetTarget(owner.target).mode == ReflectionProbeMode.Realtime)
@@ -116,7 +132,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //disable temporarily as FrameSettings are not supported for Baked probe at the moment
             using (new EditorGUI.DisabledScope((owner is HDProbeEditor) && (owner as HDProbeEditor).GetTarget(owner.target).mode != ReflectionProbeMode.Realtime || (owner is HDRenderPipelineEditor) && HDRenderPipelineUI.selectedFrameSettings == HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection))
             {
-                RenderPipelineSettings hdrpSettings = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineSettings;
+                HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
+                RenderPipelineSettings hdrpSettings = hdrpAsset.renderPipelineSettings;
                 FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
                 OverridableSettingsArea area = new OverridableSettingsArea(8);
                 area.Add(p.enableTransparentPrepass, transparentPrepassContent, () => p.overridesTransparentPrepass, a => p.overridesTransparentPrepass = a, defaultValue: defaultFrameSettings.enableTransparentPrepass);
@@ -136,7 +153,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //disable temporarily as FrameSettings are not supported for Baked probe at the moment
             using (new EditorGUI.DisabledScope((owner is HDProbeEditor) && (owner as HDProbeEditor).GetTarget(owner.target).mode != ReflectionProbeMode.Realtime || (owner is HDRenderPipelineEditor) && HDRenderPipelineUI.selectedFrameSettings == HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection))
             {
-                RenderPipelineSettings hdrpSettings = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineSettings;
+                HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
+                RenderPipelineSettings hdrpSettings = hdrpAsset.renderPipelineSettings;
                 FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
                 OverridableSettingsArea area = new OverridableSettingsArea(6);
                 LitShaderMode defaultShaderLitMode;
@@ -198,7 +216,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //disable temporarily as FrameSettings are not supported for Baked probe at the moment
             using (new EditorGUI.DisabledScope((owner is HDProbeEditor) && (owner as HDProbeEditor).GetTarget(owner.target).mode != ReflectionProbeMode.Realtime || (owner is HDRenderPipelineEditor) && HDRenderPipelineUI.selectedFrameSettings == HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection))
             {
-                RenderPipelineSettings hdrpSettings = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineSettings;
+                HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
+                RenderPipelineSettings hdrpSettings = hdrpAsset.renderPipelineSettings;
                 FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
                 OverridableSettingsArea area = new OverridableSettingsArea(10);
                 area.Add(p.enableShadow, shadowContent, () => p.overridesShadow, a => p.overridesShadow = a, defaultValue: defaultFrameSettings.enableShadow);
