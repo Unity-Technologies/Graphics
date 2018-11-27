@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.LWRP
             public static int _ScaledScreenParams;
         }
 
-        
+
 
         const string k_RenderCameraTag = "Render Camera";
 
@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.LWRP
                 cache.mainLightRenderingMode = asset.mainLightRenderingMode;
                 cache.supportsMainLightShadows = asset.supportsMainLightShadows;
                 cache.mainLightShadowmapResolution = asset.mainLightShadowmapResolution;
-                
+
                 // Additional light settings
                 cache.additionalLightsRenderingMode = asset.additionalLightsRenderingMode;
                 cache.maxAdditionalLights = asset.maxAdditionalLightsCount;
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.LWRP
                 cache.supportsDynamicBatching = asset.supportsDynamicBatching;
                 cache.mixedLightingSupported = asset.supportsMixedLighting;
                 cache.rendererSetup = new ForwardRendererSetup();
-                
+
                 return cache;
             }
         }
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.LWRP
 
             PerCameraBuffer._InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
-            
+
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != settings.msaaSampleCount)
                 QualitySettings.antiAliasing = settings.msaaSampleCount;
@@ -148,6 +148,8 @@ namespace UnityEngine.Rendering.LWRP
             Shader.globalRenderPipeline = "LightweightPipeline";
 
             Lightmapping.SetDelegate(lightsDelegate);
+
+            CameraCaptureBridge.enabled = true;
         }
 
         protected override void Dispose(bool disposing)
@@ -163,6 +165,7 @@ namespace UnityEngine.Rendering.LWRP
             renderer.Dispose();
 
             Lightmapping.ResetDelegate();
+            CameraCaptureBridge.enabled = false;
         }
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -208,7 +211,7 @@ namespace UnityEngine.Rendering.LWRP
                 {
                     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
                 }
-                
+
                 cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -225,7 +228,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 InitializeRenderingData(settings, ref cameraData, ref cullResults,
                     renderer.maxVisibleAdditionalLights, renderer.maxPerObjectAdditionalLights, out var renderingData);
-                
+
                 renderer.Clear();
 
                 var rendererSetup = setup ?? settings.rendererSetup;
@@ -313,6 +316,7 @@ namespace UnityEngine.Rendering.LWRP
             bool canSkipFrontToBackSorting = (camera.opaqueSortMode == OpaqueSortMode.Default && hasHSRGPU) || camera.opaqueSortMode == OpaqueSortMode.NoDistanceSort;
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
+            cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(camera);
         }
 
         static void InitializeRenderingData(PipelineSettings settings, ref CameraData cameraData, ref CullingResults cullResults,
