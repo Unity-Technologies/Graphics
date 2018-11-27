@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -127,6 +127,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_SplineEditor.OnDisable();
             if (m_SplineSceneEditor != null)
                 m_SplineSceneEditor.OnDisable();
+
+            ShapeEditorCache.ClearSelection();
         }
 
         private void OnPointLight(SerializedObject serializedObject)
