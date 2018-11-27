@@ -1,3 +1,4 @@
+#if VFX_HAS_TIMELINE
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
@@ -13,3 +14,4 @@ public class VisualEffectActivationTrack : TrackAsset
         return ScriptPlayable<VisualEffectActivationMixerBehaviour>.Create(graph, inputCount);
     }
 }
+#endif

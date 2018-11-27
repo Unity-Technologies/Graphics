@@ -1,3 +1,4 @@
+#if VFX_HAS_TIMELINE
 using System;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -21,3 +22,4 @@ public class VisualEffectActivationClip : PlayableAsset, ITimelineClipAsset
         return playable;
     }
 }
+#endif
