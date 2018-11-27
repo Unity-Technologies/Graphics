@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed refraction, SSS and atmospheric scattering for VR
 - Fixed forward clustered lighting for VR (double-wide)
 - Fixed Light's UX to not allow negative intensity
-
+- Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
 
 ### Changed
 - Rename "Regular" in Diffusion profile UI "Thick Object"
