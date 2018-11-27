@@ -1,9 +1,10 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
+    internal class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         const string k_CollectShadowsTag = "Collect Shadows";
         RenderTextureFormat m_ColorFormat;

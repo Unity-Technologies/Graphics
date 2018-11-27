@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
    [Flags]
     public enum ClearFlag

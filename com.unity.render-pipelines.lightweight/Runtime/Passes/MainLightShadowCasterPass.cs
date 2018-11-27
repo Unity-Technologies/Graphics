@@ -1,9 +1,10 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class MainLightShadowCasterPass : ScriptableRenderPass
+    internal class MainLightShadowCasterPass : ScriptableRenderPass
     {
         private static class MainLightShadowConstantBuffer
         {

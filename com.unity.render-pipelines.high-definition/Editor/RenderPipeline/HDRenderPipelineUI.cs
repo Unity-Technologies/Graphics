@@ -1,11 +1,11 @@
 using UnityEngine.Events;
 using UnityEditor.AnimatedValues;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<HDRenderPipelineUI, SerializedHDRenderPipelineAsset>;
 
     class HDRenderPipelineUI : BaseUI<SerializedHDRenderPipelineAsset>
@@ -16,6 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent diffusionProfileSettingsContent = CoreEditorUtils.GetContent("Diffusion Profile Settings");
         //static readonly GUIContent enableShaderVariantStrippingContent = CoreEditorUtils.GetContent("Enable Shader Variant Stripping");
         static readonly GUIContent enableSRPBatcher = CoreEditorUtils.GetContent("Enable SRP Batcher (experimental)");
+        static readonly GUIContent enableVariantStrippingLog = CoreEditorUtils.GetContent("Enable Variant stripping logging");
 
         internal enum SelectedFrameSettings { Camera, BakedOrCustomReflection, RealtimeReflection };
         internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
@@ -164,7 +165,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.PropertyField(d.diffusionProfileSettings, diffusionProfileSettingsContent);
             // EditorGUILayout.PropertyField(d.allowShaderVariantStripping, enableShaderVariantStrippingContent);
-            EditorGUILayout.PropertyField(d.enableSRPBatcher, enableSRPBatcher);            
+            EditorGUILayout.PropertyField(d.enableSRPBatcher, enableSRPBatcher);
+            EditorGUILayout.PropertyField(d.enableVariantStrippingLog, enableVariantStrippingLog);
         }
     }
 }

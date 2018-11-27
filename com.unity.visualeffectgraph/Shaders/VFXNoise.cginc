@@ -1,348 +1,521 @@
+// Based on https://github.com/BrianSharpe/GPU-Noise-Lib/blob/master/gpu_noise_lib.glsl
+
 // Template for applying shared noise parameters to each noise type
-#define NOISE_TEMPLATE(NAME, TYPE, FUNC) \
-float Generate##NAME(TYPE coordinate, float amplitude, float frequency, int octaveCount, float persistence) \
+#define NOISE_TEMPLATE(NAME, COORDINATE_TYPE, RETURN_TYPE, FUNC) \
+RETURN_TYPE Generate##NAME##Noise(COORDINATE_TYPE coordinate, float frequency, int octaveCount, float persistence, float lacunarity) \
 { \
-    float total = 0.0f; \
+    RETURN_TYPE total = 0.0f; \
+\
+    float amplitude = 1.0f; \
+    float totalAmplitude = 0.0f; \
 \
     for (int octaveIndex = 0; octaveIndex < octaveCount; octaveIndex++) \
     { \
         total += FUNC(coordinate * frequency) * amplitude; \
+        totalAmplitude += amplitude; \
         amplitude *= persistence; \
-        frequency *= 2.0f; \
+        frequency *= lacunarity; \
     } \
  \
-    return total; \
+    return total / totalAmplitude; \
+}
+
+#define CURL_NOISE_2D_TEMPLATE(NAME) \
+float2 Generate##NAME##CurlNoise(float2 coordinate, float frequency, int octaveCount, float persistence, float lacunarity) \
+{ \
+    float2 total = float2(0.0f, 0.0f); \
+\
+    float amplitude = 1.0f; \
+    float totalAmplitude = 0.0f; \
+\
+    for (int octaveIndex = 0; octaveIndex < octaveCount; octaveIndex++) \
+    { \
+        float2 derivatives = Generate##NAME##Noise2D(coordinate * frequency).yz; \
+        total += derivatives * amplitude; \
+\
+        totalAmplitude += amplitude; \
+        amplitude *= persistence; \
+        frequency *= lacunarity; \
+    } \
+\
+    return float2(total.y, -total.x) / totalAmplitude; \
+}
+
+#define CURL_NOISE_3D_TEMPLATE(NAME) \
+float3 Generate##NAME##CurlNoise(float3 coordinate, float frequency, int octaveCount, float persistence, float lacunarity) \
+{ \
+    float2 total[3] = { float2(0.0f, 0.0f), float2(0.0f, 0.0f), float2(0.0f, 0.0f) }; \
+\
+    float amplitude = 1.0f; \
+    float totalAmplitude = 0.0f; \
+\
+    float2 points[3] = \
+    { \
+        coordinate.zy, \
+        coordinate.xz + 100.0f, \
+        coordinate.yx + 200.0f \
+    }; \
+\
+    for (int octaveIndex = 0; octaveIndex < octaveCount; octaveIndex++) \
+    { \
+        for (int i = 0; i < 3; i++) \
+        { \
+            float2 derivatives = Generate##NAME##Noise2D(points[i] * frequency).yz; \
+            total[i] += derivatives * amplitude; \
+        } \
+\
+        totalAmplitude += amplitude; \
+        amplitude *= persistence; \
+        frequency *= lacunarity; \
+    } \
+\
+    return float3( \
+        (total[2].x - total[1].y), \
+        (total[0].x - total[2].y), \
+        (total[1].x - total[0].y)) / totalAmplitude; \
+}
+
+
+// Interpolation functions
+float3 Interpolation_C2(float3 x) { return x * x * x * (x * (x * 6.0f - 15.0f) + 10.0f); }
+float4 Interpolation_C2_InterpAndDeriv(float2 x) { return x.xyxy * x.xyxy * (x.xyxy * (x.xyxy * (x.xyxy * float2(6.0f, 0.0f).xxyy + float2(-15.0f, 30.0f).xxyy) + float2(10.0f, -60.0f).xxyy) + float2(0.0f, 30.0f).xxyy); }
+float2 Interpolation_C2_InterpAndDeriv(float x) { return x * x * (x * (x * (x * float2(6.0f, 0.0f) + float2(-15.0f, 30.0f)) + float2(10.0f, -60.0f)) + float2(0.0f, 30.0f)); }
+float3 Interpolation_C2_Deriv(float3 x) { return x * x * (x * (x * 30.0f - 60.0f) + 30.0f); }
+
+// Fast inverse square root
+float2 TaylorInvSqrt(float2 r) { return 1.79284291400159f - 0.85373472095314f * r; }
+float3 TaylorInvSqrt(float3 r) { return 1.79284291400159f - 0.85373472095314f * r; }
+float4 TaylorInvSqrt(float4 r) { return 1.79284291400159f - 0.85373472095314f * r; }
+
+// Hash functions
+
+// Generates a random number for each of the 2 cell corners
+float2 NoiseHash1D(float gridcell)
+{
+    float2 kOffset = float2(26.0f, 161.0f);
+    float kDomain = 71.0f;
+    float kLargeFloat = 1.0f / 951.135664f;
+
+    float2 P = float2(gridcell, gridcell + 1.0f);
+    P = P - floor(P * (1.0f / kDomain)) * kDomain;	// truncate the domain
+    float3 P3 = float3(P.x, 0.0f, P.y);
+    P3 += kOffset.xyx;							    // offset to interesting part of the noise
+    P3 *= P3;										// calculate and return the hash
+    return frac(P3.xz * P3.y * kLargeFloat);
+}
+
+// Generates a random number for each of the 4 cell corners
+float4 NoiseHash2D(float2 gridcell)
+{
+    float2 kOffset = float2(26.0f, 161.0f);
+    float kDomain = 71.0f;
+    float kLargeFloat = 1.0f / 951.135664f;
+
+    float4 P = float4(gridcell.xy, gridcell.xy + 1.0f);
+    P = P - floor(P * (1.0f / kDomain)) * kDomain;	// truncate the domain
+    P += kOffset.xyxy;								// offset to interesting part of the noise
+    P *= P;											// calculate and return the hash
+    return frac(P.xzxz * P.yyww * kLargeFloat);
+}
+
+// Generates 2 random numbers for each of the 4 cell corners
+void NoiseHash2D(float2 gridcell, out float4 hash_0, out float4 hash_1)
+{
+    float2 kOffset = float2(26.0f, 161.0f);
+    float kDomain = 71.0f;
+    float2 kLargeFloats = 1.0f / float2(951.135664f, 642.949883f);
+
+    float4 P = float4(gridcell.xy, gridcell.xy + 1.0f);
+    P = P - floor(P * (1.0f / kDomain)) * kDomain;
+    P += kOffset.xyxy;
+    P *= P;
+    P = P.xzxz * P.yyww;
+    hash_0 = frac(P * kLargeFloats.x);
+    hash_1 = frac(P * kLargeFloats.y);
+}
+
+// Generates a random number for each of the 8 cell corners
+void NoiseHash3D(float3 gridcell, out float4 lowz_hash, out float4 highz_hash)
+{
+    float2 kOffset = float2(50.0f, 161.0f);
+    float kDomain = 69.0f;
+    float kLargeFloat = 635.298681f;
+    float kZinc = 48.500388f;
+
+    // truncate the domain
+    gridcell.xyz = gridcell.xyz - floor(gridcell.xyz * (1.0f / kDomain)) * kDomain;
+    float3 gridcell_inc1 = step(gridcell, float3(kDomain, kDomain, kDomain) - 1.5f) * (gridcell + 1.0f);
+
+    // calculate the noise
+    float4 P = float4(gridcell.xy, gridcell_inc1.xy) + kOffset.xyxy;
+    P *= P;
+    P = P.xzxz * P.yyww;
+    highz_hash.xy = float2(1.0f / (kLargeFloat + float2(gridcell.z, gridcell_inc1.z) * kZinc));
+    lowz_hash = frac(P * highz_hash.xxxx);
+    highz_hash = frac(P * highz_hash.yyyy);
+}
+
+// Generates 3 random numbers for each of the 8 cell corners
+void NoiseHash3D(float3 gridcell,
+    out float4 lowz_hash_0, out float4 lowz_hash_1, out float4 lowz_hash_2,
+    out float4 highz_hash_0, out float4 highz_hash_1, out float4 highz_hash_2)
+{
+    float2 kOffset = float2(50.0f, 161.0f);
+    float kDomain = 69.0f;
+    float3 kLargeFloats = float3(635.298681f, 682.357502f, 668.926525f);
+    float3 kZinc = float3(48.500388f, 65.294118f, 63.934599f);
+
+    // truncate the domain
+    gridcell.xyz = gridcell.xyz - floor(gridcell.xyz * (1.0f / kDomain)) * kDomain;
+    float3 gridcell_inc1 = step(gridcell, float3(kDomain, kDomain, kDomain) - 1.5f) * (gridcell + 1.0f);
+
+    // calculate the final hash
+    float4 P = float4(gridcell.xy, gridcell_inc1.xy) + kOffset.xyxy;
+    P *= P;
+    P = P.xzxz * P.yyww;
+    float3 lowz_mod = float3(1.0f / (kLargeFloats + gridcell.zzz * kZinc));
+    float3 highz_mod = float3(1.0f / (kLargeFloats + gridcell_inc1.zzz * kZinc));
+    lowz_hash_0 = frac(P * lowz_mod.xxxx);
+    highz_hash_0 = frac(P * highz_mod.xxxx);
+    lowz_hash_1 = frac(P * lowz_mod.yyyy);
+    highz_hash_1 = frac(P * highz_mod.yyyy);
+    lowz_hash_2 = frac(P * lowz_mod.zzzz);
+    highz_hash_2 = frac(P * highz_mod.zzzz);
+}
+
+// Convert a 0.0->1.0 sample to a -1.0->1.0 sample weighted towards the extremes
+float4 CellularWeightSamples(float4 samples)
+{
+    samples = samples * 2.0f - 1.0f;
+    //return (1.0 - samples * samples) * sign(samples);	// square
+    return (samples * samples * samples) - sign(samples);	// cubic (even more variance)
 }
 
 // Value Noise
-float ValueNoiseHash(float n)
-{
-    return frac(sin(n) * 1e4f);
-}
-
-float ValueNoiseHash(float2 p)
-{
-    float1 a = 1e4f * sin(17.0f * p.x + p.y * 0.1f);
-    float1 b = (0.1f + abs(sin(p.y * 13.0f + p.x)));
-    return frac(a * b);
-}
-
-float GenerateValueNoise1D(float coordinate)
+float2 GenerateValueNoise1D(float coordinate)
 {
     float i = floor(coordinate);
-    float f = frac(coordinate);
-    float u = f * f * (3.0f - 2.0f * f);
-    return lerp(ValueNoiseHash(i), ValueNoiseHash(i + 1.0f), u);
+    float f = coordinate - i;
+
+    float2 hash = NoiseHash1D(i);
+
+    float2 blend = Interpolation_C2_InterpAndDeriv(f);
+    float2 res0 = hash.xy;
+    float resDelta = res0.y - res0.x;
+
+    float noise = res0.x + resDelta * blend.x;
+    float derivatives = resDelta * blend.y;
+    return float2(noise, derivatives);
 }
 
-float GenerateValueNoise2D(float2 coordinate)
+float3 GenerateValueNoise2D(float2 coordinate)
 {
     float2 i = floor(coordinate);
-    float2 f = frac(coordinate);
+    float2 f = coordinate - i;
 
-    // Four corners in 2D of a tile
-    float a = ValueNoiseHash(i);
-    float b = ValueNoiseHash(i + float2(1.0f, 0.0f));
-    float c = ValueNoiseHash(i + float2(0.0f, 1.0f));
-    float d = ValueNoiseHash(i + float2(1.0f, 1.0f));
+    float4 hash = NoiseHash2D(i);
 
-    // Simple 2D lerp using smoothstep envelope between the values.
-    // return float3(lerp(lerp(a, b, smoothstep(0.0, 1.0, f.x)),
-    //          lerp(c, d, smoothstep(0.0, 1.0, f.x)),
-    //          smoothstep(0.0, 1.0, f.y)));
+    float4 blend = Interpolation_C2_InterpAndDeriv(f);
+    float4 res0 = lerp(hash.xyxz, hash.zwyw, blend.yyxx);
+    float2 resDelta = res0.yw - res0.xz;
 
-    // Same code, with the clamps in smoothstep and common subexpressions
-    // optimized away.
-    float2 u = f * f * (3.0f - 2.0f * f);
-    return lerp(a, b, u.x) + (c - a) * u.y * (1.0f - u.x) + (d - b) * u.x * u.y;
+    float noise = res0.x + resDelta.x * blend.x;
+    float2 derivatives = resDelta * blend.zw;
+    return float3(noise, derivatives);
 }
 
-float GenerateValueNoise3D(float3 coordinate)
+float4 GenerateValueNoise3D(float3 coordinate)
 {
-    float3 step = float3(110, 241, 171);
-
     float3 i = floor(coordinate);
-    float3 f = frac(coordinate);
+    float3 f = coordinate - i;
 
-    // For performance, compute the base input to a 1D ValueNoiseHash from the integer part of the argument and the
-    // incremental change to the 1D based on the 3D -> 1D wrapping
-    float n = dot(i, step);
+    float4 hash_lowz, hash_highz;
+    NoiseHash3D(i, hash_lowz, hash_highz);
 
-    float3 u = f * f * (3.0f - 2.0f * f);
-    return lerp(lerp(lerp(ValueNoiseHash(n + dot(step, float3(0, 0, 0))), ValueNoiseHash(n + dot(step, float3(1, 0, 0))), u.x),
-        lerp(ValueNoiseHash(n + dot(step, float3(0, 1, 0))), ValueNoiseHash(n + dot(step, float3(1, 1, 0))), u.x), u.y),
-        lerp(lerp(ValueNoiseHash(n + dot(step, float3(0, 0, 1))), ValueNoiseHash(n + dot(step, float3(1, 0, 1))), u.x),
-            lerp(ValueNoiseHash(n + dot(step, float3(0, 1, 1))), ValueNoiseHash(n + dot(step, float3(1, 1, 1))), u.x), u.y), u.z);
+    float3 blend = Interpolation_C2(f);
+    float4 res0 = lerp(hash_lowz, hash_highz, blend.z);
+    float4 res1 = lerp(res0.xyxz, res0.zwyw, blend.yyxx);
+    float4 res3 = lerp(float4(hash_lowz.xy, hash_highz.xy), float4(hash_lowz.zw, hash_highz.zw), blend.y);
+    float2 res4 = lerp(res3.xz, res3.yw, blend.x);
+    float3 resDelta = float3(res1.yw, res4.y) - float3(res1.xz, res4.x);
+
+    float noise = res1.x + resDelta.x * blend.x;
+    float3 derivatives = resDelta * Interpolation_C2_Deriv(f);
+    return float4(noise, derivatives);
 }
 
-NOISE_TEMPLATE(ValueNoise, float, GenerateValueNoise1D);
-NOISE_TEMPLATE(ValueNoise, float2, GenerateValueNoise2D);
-NOISE_TEMPLATE(ValueNoise, float3, GenerateValueNoise3D);
+NOISE_TEMPLATE(Value, float, float2, GenerateValueNoise1D);
+NOISE_TEMPLATE(Value, float2, float3, GenerateValueNoise2D);
+NOISE_TEMPLATE(Value, float3, float4, GenerateValueNoise3D);
+
+CURL_NOISE_2D_TEMPLATE(Value);
+CURL_NOISE_3D_TEMPLATE(Value);
 
 // Perlin Noise
-float PerlinNoiseFade(float t) { return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f); }
-float2 PerlinNoiseFade(float2 t) { return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f); }
-float3 PerlinNoiseFade(float3 t) { return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f); }
-
-float2 NoisePermute(float2 x) { return fmod(((x * 34.0f) + 1.0f) * x, 289.0f); }
-float3 NoisePermute(float3 x) { return fmod(((x * 34.0f) + 1.0f) * x, 289.0f); }
-float4 NoisePermute(float4 x) { return fmod(((x * 34.0f) + 1.0f) * x, 289.0f); }
-
-float2 NoiseTaylorInvSqrt(float2 r) { return 1.79284291400159f - 0.85373472095314f * r; }
-float3 NoiseTaylorInvSqrt(float3 r) { return 1.79284291400159f - 0.85373472095314f * r; }
-float4 NoiseTaylorInvSqrt(float4 r) { return 1.79284291400159f - 0.85373472095314f * r; }
-
-float GeneratePerlinNoise1D(const float coordinate)
+float2 GeneratePerlinNoise1D(float coordinate)
 {
-    float2 Pi = floor(coordinate) + float2(0.0f, 1.0f);
-    float2 Pf = frac(coordinate) - float2(0.0f, 1.0f);
-    Pi = fmod(Pi, 289.0f);     // To avoid truncation effects in permutation
-    float2 ix = Pi.xy;
-    float2 fx = Pf.xy;
-    float2 i = NoisePermute(ix);
-    float2 gx = 2.0f * frac(i * 0.0243902439f) - 1.0f;     // 1/41 = 0.024...
-    float2 gy = abs(gx) - 0.5f;
-    float2 tx = floor(gx + 0.5f);
-    gx = gx - tx;
-    float2 g00 = float2(gx.x, gy.x);
-    float2 g10 = float2(gx.y, gy.y);
-    float2 norm = NoiseTaylorInvSqrt(float2(dot(g00, g00), dot(g10, g10)));
-    g00 *= norm.x;
-    g10 *= norm.y;
-    float1 n00 = dot(g00, float2(fx.x, 0.0f));
-    float1 n10 = dot(g10, float2(fx.y, 1.0f));
-    float1 fade_x = PerlinNoiseFade(Pf.x);
-    float1 n_x = lerp(n00, n10, fade_x);
-    return (2.3f * n_x) * 0.5f + 0.5f;
+    // establish our grid cell and unit position
+    float2 i = floor(float2(coordinate, 0.0f));
+    float4 f_fmin1 = float2(coordinate, 0.0f).xyxy - float4(i, i + 1.0f);
+
+    // calculate the hash
+    float4 hash_x, hash_y;
+    NoiseHash2D(i, hash_x, hash_y);
+
+    // calculate the gradient results
+    float4 grad_x = hash_x - 0.49999f;
+    float4 grad_y = hash_y - 0.49999f;
+    float4 norm = TaylorInvSqrt(grad_x * grad_x + grad_y * grad_y);
+    grad_x *= norm;
+    grad_y *= norm;
+    float4 dotval = (grad_x * f_fmin1.xzxz + grad_y * f_fmin1.yyww);
+
+    // convert our data to a more parallel format
+    float2 dotval0_grad0 = float2(dotval.x, grad_x.x);
+    float2 dotval1_grad1 = float2(dotval.y, grad_x.y);
+    float2 dotval2_grad2 = float2(dotval.z, grad_x.z);
+    float2 dotval3_grad3 = float2(dotval.w, grad_x.w);
+
+    // evaluate common constants
+    float2 k0_gk0 = dotval1_grad1 - dotval0_grad0;
+    float2 k1_gk1 = dotval2_grad2 - dotval0_grad0;
+    float2 k2_gk2 = dotval3_grad3 - dotval2_grad2 - k0_gk0;
+
+    // C2 Interpolation
+    float4 blend = Interpolation_C2_InterpAndDeriv(f_fmin1.xy);
+
+    // calculate final noise + deriv
+    float2 results = dotval0_grad0
+        + blend.x * k0_gk0
+        + blend.y * (k1_gk1 + blend.x * k2_gk2);
+
+    results.y += blend.z * (k0_gk0.x + blend.y * k2_gk2.x);
+
+    return results * 1.4142135623730950488016887242097f;  // scale to -1.0 -> 1.0 range  *= 1.0/sqrt(0.5)
 }
 
-float GeneratePerlinNoise2D(const float2 coordinate)
+float3 GeneratePerlinNoise2D(float2 coordinate)
 {
-    float4 Pi = floor(coordinate.xyxy) + float4(0.0f, 0.0f, 1.0f, 1.0f);
-    float4 Pf = frac(coordinate.xyxy) - float4(0.0f, 0.0f, 1.0f, 1.0f);
-    Pi = fmod(Pi, 289.0f);     // To avoid truncation effects in permutation
-    float4 ix = float4(Pi.xz, Pi.xz);
-    float4 iy = Pi.yyww;
-    float4 fx = float4(Pf.xz, Pf.xz);
-    float4 fy = Pf.yyww;
-    float4 i = NoisePermute(NoisePermute(ix) + iy);
-    float4 gx = 2.0f * frac(i * 0.0243902439f) - 1.0f;     // 1/41 = 0.024...
-    float4 gy = abs(gx) - 0.5f;
-    float4 tx = floor(gx + 0.5f);
-    gx = gx - tx;
-    float2 g00 = float2(gx.x, gy.x);
-    float2 g10 = float2(gx.y, gy.y);
-    float2 g01 = float2(gx.z, gy.z);
-    float2 g11 = float2(gx.w, gy.w);
-    float4 norm = NoiseTaylorInvSqrt(float4(dot(g00, g00), dot(g01, g01), dot(g10, g10), dot(g11, g11)));
-    g00 *= norm.x;
-    g01 *= norm.y;
-    g10 *= norm.z;
-    g11 *= norm.w;
-    float n00 = dot(g00, float2(fx.x, fy.x));
-    float n10 = dot(g10, float2(fx.y, fy.y));
-    float n01 = dot(g01, float2(fx.z, fy.z));
-    float n11 = dot(g11, float2(fx.w, fy.w));
-    float2 fade_xy = PerlinNoiseFade(Pf.xy);
-    float2 n_x = lerp(float2(n00, n01), float2(n10, n11), fade_xy.x);
-    float n_xy = lerp(n_x.x, n_x.y, fade_xy.y);
-    return (2.3f * n_xy) * 0.5f + 0.5f;
+    // establish our grid cell and unit position
+    float2 i = floor(coordinate);
+    float4 f_fmin1 = coordinate.xyxy - float4(i, i + 1.0f);
+
+    // calculate the hash
+    float4 hash_x, hash_y;
+    NoiseHash2D(i, hash_x, hash_y);
+
+    // calculate the gradient results
+    float4 grad_x = hash_x - 0.49999f;
+    float4 grad_y = hash_y - 0.49999f;
+    float4 norm = TaylorInvSqrt(grad_x * grad_x + grad_y * grad_y);
+    grad_x *= norm;
+    grad_y *= norm;
+    float4 dotval = (grad_x * f_fmin1.xzxz + grad_y * f_fmin1.yyww);
+
+    // convert our data to a more parallel format
+    float3 dotval0_grad0 = float3(dotval.x, grad_x.x, grad_y.x);
+    float3 dotval1_grad1 = float3(dotval.y, grad_x.y, grad_y.y);
+    float3 dotval2_grad2 = float3(dotval.z, grad_x.z, grad_y.z);
+    float3 dotval3_grad3 = float3(dotval.w, grad_x.w, grad_y.w);
+
+    // evaluate common constants
+    float3 k0_gk0 = dotval1_grad1 - dotval0_grad0;
+    float3 k1_gk1 = dotval2_grad2 - dotval0_grad0;
+    float3 k2_gk2 = dotval3_grad3 - dotval2_grad2 - k0_gk0;
+
+    // C2 Interpolation
+    float4 blend = Interpolation_C2_InterpAndDeriv(f_fmin1.xy);
+
+    // calculate final noise + deriv
+    float3 results = dotval0_grad0
+        + blend.x * k0_gk0
+        + blend.y * (k1_gk1 + blend.x * k2_gk2);
+
+    results.yz += blend.zw * (float2(k0_gk0.x, k1_gk1.x) + blend.yx * k2_gk2.xx);
+
+    return results * 1.4142135623730950488016887242097f;  // scale to -1.0 -> 1.0 range  *= 1.0/sqrt(0.5)
 }
 
-float GeneratePerlinNoise3D(const float3 coordinate)
+float4 GeneratePerlinNoise3D(float3 coordinate)
 {
-    float3 Pi0 = floor(coordinate);     // Integer part for indexing
-    float3 Pi1 = Pi0 + 1.0f;     // Integer part + 1
-    Pi0 = fmod(Pi0, 289.0f);
-    Pi1 = fmod(Pi1, 289.0f);
-    float3 Pf0 = frac(coordinate);     // Fractional part for interpolation
-    float3 Pf1 = Pf0 - 1.0f;     // Fractional part - 1.0
-    float4 ix = float4(Pi0.x, Pi1.x, Pi0.x, Pi1.x);
-    float4 iy = float4(Pi0.y, Pi0.y, Pi1.y, Pi1.y);
-    float4 iz0 = Pi0.z;
-    float4 iz1 = Pi1.z;
+    // establish our grid cell and unit position
+    float3 i = floor(coordinate);
+    float3 f = coordinate - i;
+    float3 f_min1 = f - 1.0;
 
-    float4 ixy = NoisePermute(NoisePermute(ix) + iy);
-    float4 ixy0 = NoisePermute(ixy + iz0);
-    float4 ixy1 = NoisePermute(ixy + iz1);
+    // calculate the hash
+    float4 hashx0, hashy0, hashz0, hashx1, hashy1, hashz1;
+    NoiseHash3D(i, hashx0, hashy0, hashz0, hashx1, hashy1, hashz1);
 
-    float4 gx0 = ixy0 / 7.0f;
-    float4 gy0 = frac(floor(gx0) / 7.0f) - 0.5f;
-    gx0 = frac(gx0);
-    float4 gz0 = 0.5f - abs(gx0) - abs(gy0);
-    float4 sz0 = step(gz0, 0.0f);
-    gx0 -= sz0 * (step(0.0f, gx0) - 0.5f);
-    gy0 -= sz0 * (step(0.0f, gy0) - 0.5f);
+    // calculate the gradients
+    float4 grad_x0 = hashx0 - 0.49999f;
+    float4 grad_y0 = hashy0 - 0.49999f;
+    float4 grad_z0 = hashz0 - 0.49999f;
+    float4 grad_x1 = hashx1 - 0.49999f;
+    float4 grad_y1 = hashy1 - 0.49999f;
+    float4 grad_z1 = hashz1 - 0.49999f;
+    float4 norm_0 = TaylorInvSqrt(grad_x0 * grad_x0 + grad_y0 * grad_y0 + grad_z0 * grad_z0);
+    float4 norm_1 = TaylorInvSqrt(grad_x1 * grad_x1 + grad_y1 * grad_y1 + grad_z1 * grad_z1);
+    grad_x0 *= norm_0;
+    grad_y0 *= norm_0;
+    grad_z0 *= norm_0;
+    grad_x1 *= norm_1;
+    grad_y1 *= norm_1;
+    grad_z1 *= norm_1;
 
-    float4 gx1 = ixy1 / 7.0f;
-    float4 gy1 = frac(floor(gx1) / 7.0f) - 0.5f;
-    gx1 = frac(gx1);
-    float4 gz1 = 0.5f - abs(gx1) - abs(gy1);
-    float4 sz1 = step(gz1, 0.0f);
-    gx1 -= sz1 * (step(0.0f, gx1) - 0.5f);
-    gy1 -= sz1 * (step(0.0f, gy1) - 0.5f);
+    // calculate the dot products
+    float4 dotval_0 = float2(f.x, f_min1.x).xyxy * grad_x0 + float2(f.y, f_min1.y).xxyy * grad_y0 + f.zzzz * grad_z0;
+    float4 dotval_1 = float2(f.x, f_min1.x).xyxy * grad_x1 + float2(f.y, f_min1.y).xxyy * grad_y1 + f_min1.zzzz * grad_z1;
 
-    float3 g000 = float3(gx0.x, gy0.x, gz0.x);
-    float3 g100 = float3(gx0.y, gy0.y, gz0.y);
-    float3 g010 = float3(gx0.z, gy0.z, gz0.z);
-    float3 g110 = float3(gx0.w, gy0.w, gz0.w);
-    float3 g001 = float3(gx1.x, gy1.x, gz1.x);
-    float3 g101 = float3(gx1.y, gy1.y, gz1.y);
-    float3 g011 = float3(gx1.z, gy1.z, gz1.z);
-    float3 g111 = float3(gx1.w, gy1.w, gz1.w);
+    // convert our data to a more parallel format
+    float4 dotval0_grad0 = float4(dotval_0.x, grad_x0.x, grad_y0.x, grad_z0.x);
+    float4 dotval1_grad1 = float4(dotval_0.y, grad_x0.y, grad_y0.y, grad_z0.y);
+    float4 dotval2_grad2 = float4(dotval_0.z, grad_x0.z, grad_y0.z, grad_z0.z);
+    float4 dotval3_grad3 = float4(dotval_0.w, grad_x0.w, grad_y0.w, grad_z0.w);
+    float4 dotval4_grad4 = float4(dotval_1.x, grad_x1.x, grad_y1.x, grad_z1.x);
+    float4 dotval5_grad5 = float4(dotval_1.y, grad_x1.y, grad_y1.y, grad_z1.y);
+    float4 dotval6_grad6 = float4(dotval_1.z, grad_x1.z, grad_y1.z, grad_z1.z);
+    float4 dotval7_grad7 = float4(dotval_1.w, grad_x1.w, grad_y1.w, grad_z1.w);
 
-    float4 norm0 = NoiseTaylorInvSqrt(float4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
-    g000 *= norm0.x;
-    g010 *= norm0.y;
-    g100 *= norm0.z;
-    g110 *= norm0.w;
-    float4 norm1 = NoiseTaylorInvSqrt(float4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
-    g001 *= norm1.x;
-    g011 *= norm1.y;
-    g101 *= norm1.z;
-    g111 *= norm1.w;
+    // evaluate common constants
+    float4 k0_gk0 = dotval1_grad1 - dotval0_grad0;
+    float4 k1_gk1 = dotval2_grad2 - dotval0_grad0;
+    float4 k2_gk2 = dotval4_grad4 - dotval0_grad0;
+    float4 k3_gk3 = dotval3_grad3 - dotval2_grad2 - k0_gk0;
+    float4 k4_gk4 = dotval5_grad5 - dotval4_grad4 - k0_gk0;
+    float4 k5_gk5 = dotval6_grad6 - dotval4_grad4 - k1_gk1;
+    float4 k6_gk6 = (dotval7_grad7 - dotval6_grad6) - (dotval5_grad5 - dotval4_grad4) - k3_gk3;
 
-    float n000 = dot(g000, Pf0);
-    float n100 = dot(g100, float3(Pf1.x, Pf0.y, Pf0.z));
-    float n010 = dot(g010, float3(Pf0.x, Pf1.y, Pf0.z));
-    float n110 = dot(g110, float3(Pf1.x, Pf1.y, Pf0.z));
-    float n001 = dot(g001, float3(Pf0.x, Pf0.y, Pf1.z));
-    float n101 = dot(g101, float3(Pf1.x, Pf0.y, Pf1.z));
-    float n011 = dot(g011, float3(Pf0.x, Pf1.y, Pf1.z));
-    float n111 = dot(g111, Pf1);
+    // C2 Interpolation
+    float3 blend = Interpolation_C2(f);
+    float3 blendDeriv = Interpolation_C2_Deriv(f);
 
-    float3 fade_xyz = PerlinNoiseFade(Pf0);
-    float4 n_z = lerp(float4(n000, n100, n010, n110), float4(n001, n101, n011, n111), fade_xyz.z);
-    float2 n_yz = lerp(n_z.xy, n_z.zw, fade_xyz.y);
-    float n_xyz = lerp(n_yz.x, n_yz.y, fade_xyz.x);
-    return (2.2f * n_xyz) * 0.5f + 0.5f;
+    // calculate final noise + deriv
+    float u = blend.x;
+    float v = blend.y;
+    float w = blend.z;
+
+    float4 result = dotval0_grad0
+        + u * (k0_gk0 + v * k3_gk3)
+        + v * (k1_gk1 + w * k5_gk5)
+        + w * (k2_gk2 + u * (k4_gk4 + v * k6_gk6));
+
+    result.y += dot(float4(k0_gk0.x, k3_gk3.x * v, float2(k4_gk4.x, k6_gk6.x * v) * w), float4(blendDeriv.xxxx));
+    result.z += dot(float4(k1_gk1.x, k3_gk3.x * u, float2(k5_gk5.x, k6_gk6.x * u) * w), float4(blendDeriv.yyyy));
+    result.w += dot(float4(k2_gk2.x, k4_gk4.x * u, float2(k5_gk5.x, k6_gk6.x * u) * v), float4(blendDeriv.zzzz));
+
+    // normalize
+    return result * 1.1547005383792515290182975610039f;		// scale to -1.0 -> 1.0 range    *= 1.0/sqrt(0.75)
 }
 
-NOISE_TEMPLATE(PerlinNoise, float, GeneratePerlinNoise1D);
-NOISE_TEMPLATE(PerlinNoise, float2, GeneratePerlinNoise2D);
-NOISE_TEMPLATE(PerlinNoise, float3, GeneratePerlinNoise3D);
+NOISE_TEMPLATE(Perlin, float, float2, GeneratePerlinNoise1D);
+NOISE_TEMPLATE(Perlin, float2, float3, GeneratePerlinNoise2D);
+NOISE_TEMPLATE(Perlin, float3, float4, GeneratePerlinNoise3D);
 
-// Simplex Noise
-float GenerateSimplexNoise1D(float coordinate)
+CURL_NOISE_2D_TEMPLATE(Perlin);
+CURL_NOISE_3D_TEMPLATE(Perlin);
+
+// Cellular Noise
+float2 GenerateCellularNoise1D(float coordinate)
 {
-    const float4 C = float4(0.211324865405187f, 0.366025403784439f, -0.577350269189626f, 0.024390243902439f);
-    float i = floor(coordinate + (coordinate * C.y));
-    float x0 = coordinate - i + (i * C.x);
-    float2 x12 = x0.x + C.xz;
-    x12.x -= 1.0f;
-    i = fmod(i, 289.0f);
-    float3 p = NoisePermute(i + float3(0.0f, 1.0f, 1.0f));
-    float3 m = max(0.5f - float3(x0 * x0, x12.x * x12.x, x12.y * x12.y), 0.0f);
-    m = m * m;
-    m = m * m;
-    float3 x = 2.0f * frac(p * C.w) - 1.0f;
-    float3 h = abs(x) - 0.5f;
-    float3 ox = floor(x + 0.5f);
-    float3 a0 = x - ox;
-    m *= NoiseTaylorInvSqrt(a0 * a0 + h * h);
-    float3 g;
-    g.x = a0.x * x0.x;
-    g.yz = a0.yz * x12.xy;
-    return (130.0f * dot(m, g)) * 0.5f + 0.5f;
+    // establish our grid cell and unit position
+    float2 i = floor(float2(coordinate, 0));
+    float2 f = float2(coordinate, 0) - i;
+
+    // calculate the hash
+    float4 hash_x, hash_y;
+    NoiseHash2D(i, hash_x, hash_y);
+
+    // generate the 4 random points
+    // restrict the random point offset to eliminate artifacts
+    // we'll improve the variance of the noise by pushing the points to the extremes of the jitter window
+    float kJitterWindow = 0.25f;	// guarantees no artifacts. 0.25 is the intersection on x of graphs f(x)=( (0.5+(0.5-x))^2 + (0.5-x)^2 ) and f(x)=( (0.5+x)^2 + x^2 )
+    hash_x = CellularWeightSamples(hash_x) * kJitterWindow + float4(0.0f, 1.0f, 0.0f, 1.0f);
+    hash_y = CellularWeightSamples(hash_y) * kJitterWindow + float4(0.0f, 0.0f, 1.0f, 1.0f);
+
+    // return the closest squared distance (+ derivs)
+    // thanks to Jonathan Dupuy for the initial implementation
+    float4 dx = f.xxxx - hash_x;
+    float4 dy = f.yyyy - hash_y;
+    float4 d = dx * dx + dy * dy;
+    float2 t1 = d.x < d.y ? float2(d.x, dx.x) : float2(d.y, dx.y);
+    float2 t2 = d.z < d.w ? float2(d.z, dx.z) : float2(d.w, dx.w);
+    return (t1.x < t2.x ? t1 : t2) * float2(1.0f, 2.0f) * (1.0f / 1.125f); // scale return value from 0.0->1.125 to 0.0->1.0  ( 0.75^2 * 2.0  == 1.125 )
 }
 
-float GenerateSimplexNoise2D(float2 coordinate)
+float3 GenerateCellularNoise2D(float2 coordinate)
 {
-    const float4 C = float4(0.211324865405187f, 0.366025403784439f, -0.577350269189626f, 0.024390243902439f);
-    float2 i = floor(coordinate + dot(coordinate, C.y));
-    float2 x0 = coordinate - i + dot(i, C.x);
-    float2 i1;
-    i1 = (x0.x > x0.y) ? float2(1.0f, 0.0f) : float2(0.0f, 1.0f);
-    float4 x12 = x0.xyxy + C.xxzz;
-    x12.xy -= i1;
-    i = fmod(i, 289.0f);
-    float3 p = NoisePermute(NoisePermute(i.y + float3(0.0f, i1.y, 1.0f)) + i.x + float3(0.0f, i1.x, 1.0f));
-    float3 m = max(0.5f - float3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0f);
-    m = m * m;
-    m = m * m;
-    float3 x = 2.0f * frac(p * C.w) - 1.0f;
-    float3 h = abs(x) - 0.5f;
-    float3 ox = floor(x + 0.5f);
-    float3 a0 = x - ox;
-    m *= NoiseTaylorInvSqrt(a0 * a0 + h * h);
-    float3 g;
-    g.x = a0.x  * x0.x + h.x  * x0.y;
-    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-    return (130.0f * dot(m, g)) * 0.5f + 0.5f;
+    // establish our grid cell and unit position
+    float2 i = floor(coordinate);
+    float2 f = coordinate - i;
+
+    // calculate the hash
+    float4 hash_x, hash_y;
+    NoiseHash2D(i, hash_x, hash_y);
+
+    // generate the 4 random points
+    // restrict the random point offset to eliminate artifacts
+    // we'll improve the variance of the noise by pushing the points to the extremes of the jitter window
+    float kJitterWindow = 0.25f;	// guarantees no artifacts. 0.25 is the intersection on x of graphs f(x)=( (0.5+(0.5-x))^2 + (0.5-x)^2 ) and f(x)=( (0.5+x)^2 + x^2 )
+    hash_x = CellularWeightSamples(hash_x) * kJitterWindow + float4(0.0f, 1.0f, 0.0f, 1.0f);
+    hash_y = CellularWeightSamples(hash_y) * kJitterWindow + float4(0.0f, 0.0f, 1.0f, 1.0f);
+
+    // return the closest squared distance (+ derivs)
+    // thanks to Jonathan Dupuy for the initial implementation
+    float4 dx = f.xxxx - hash_x;
+    float4 dy = f.yyyy - hash_y;
+    float4 d = dx * dx + dy * dy;
+    float3 t1 = d.x < d.y ? float3(d.x, dx.x, dy.x) : float3(d.y, dx.y, dy.y);
+    float3 t2 = d.z < d.w ? float3(d.z, dx.z, dy.z) : float3(d.w, dx.w, dy.w);
+    return (t1.x < t2.x ? t1 : t2) * float3(1.0f, 2.0f, 2.0f) * (1.0f / 1.125f); // scale return value from 0.0->1.125 to 0.0->1.0 (0.75^2 * 2.0  == 1.125)
 }
 
-float GenerateSimplexNoise3D(float3 coordinate)
+float4 GenerateCellularNoise3D(float3 coordinate)
 {
-    const float2 C = float2(1.0f / 6.0f, 1.0f / 3.0f);
-    const float4 D = float4(0.0f, 0.5f, 1.0f, 2.0f);
+    // establish our grid cell and unit position
+    float3 i = floor(coordinate);
+    float3 f = coordinate - i;
 
-    // First corner
-    float3 i = floor(coordinate + dot(coordinate, C.y));
-    float3 x0 = coordinate - i + dot(i, C.x);
+    // calculate the hash
+    float4 hash_x0, hash_y0, hash_z0, hash_x1, hash_y1, hash_z1;
+    NoiseHash3D(i, hash_x0, hash_y0, hash_z0, hash_x1, hash_y1, hash_z1);
 
-    // Other corners
-    float3 g = step(x0.yzx, x0.xyz);
-    float3 l = 1.0f - g;
-    float3 i1 = min(g.xyz, l.zxy);
-    float3 i2 = max(g.xyz, l.zxy);
+    // generate the 8 random points
+    // restrict the random point offset to eliminate artifacts
+    // we'll improve the variance of the noise by pushing the points to the extremes of the jitter window
+    float kJitterWindow = 0.166666666f;	// guarantees no artifacts. It is the intersection on x of graphs f(x)=( (0.5 + (0.5-x))^2 + 2*((0.5-x)^2) ) and f(x)=( 2 * (( 0.5 + x )^2) + x * x )
+    hash_x0 = CellularWeightSamples(hash_x0) * kJitterWindow + float4(0.0f, 1.0f, 0.0f, 1.0f);
+    hash_y0 = CellularWeightSamples(hash_y0) * kJitterWindow + float4(0.0f, 0.0f, 1.0f, 1.0f);
+    hash_x1 = CellularWeightSamples(hash_x1) * kJitterWindow + float4(0.0f, 1.0f, 0.0f, 1.0f);
+    hash_y1 = CellularWeightSamples(hash_y1) * kJitterWindow + float4(0.0f, 0.0f, 1.0f, 1.0f);
+    hash_z0 = CellularWeightSamples(hash_z0) * kJitterWindow + float4(0.0f, 0.0f, 0.0f, 0.0f);
+    hash_z1 = CellularWeightSamples(hash_z1) * kJitterWindow + float4(1.0f, 1.0f, 1.0f, 1.0f);
 
-    //  x0 = x0 - 0. + 0.0 * C
-    float3 x1 = x0 - i1 + 1.0f * C.x;
-    float3 x2 = x0 - i2 + 2.0f * C.x;
-    float3 x3 = x0 - 1. + 3.0f * C.x;
-
-    // Permutations
-    i = fmod(i, 289.0f);
-    float4 p = NoisePermute(NoisePermute(NoisePermute(
-        i.z + float4(0.0f, i1.z, i2.z, 1.0f))
-        + i.y + float4(0.0f, i1.y, i2.y, 1.0f))
-        + i.x + float4(0.0f, i1.x, i2.x, 1.0f));
-
-    // Gradients
-    // ( N*N points uniformly over a square, mapped onto an octahedron.)
-    float n_ = 1.0f / 7.0f;     // N=7
-    float3  ns = n_ * float3(D.w, D.y, D.z) - float3(D.x, D.z, D.x);
-
-    float4 j = p - 49.0f * floor(p * ns.z * ns.z);     //  mod(p,N*N)
-
-    float4 x_ = floor(j * ns.z);
-    float4 y_ = floor(j - 7.0f * x_);        // mod(j,N)
-
-    float4 x = x_ * ns.x + ns.y;
-    float4 y = y_ * ns.x + ns.y;
-    float4 h = 1.0f - abs(x) - abs(y);
-
-    float4 b0 = float4(x.xy, y.xy);
-    float4 b1 = float4(x.zw, y.zw);
-
-    float4 s0 = floor(b0) * 2.0f + 1.0f;
-    float4 s1 = floor(b1) * 2.0f + 1.0f;
-    float4 sh = -step(h, 0.0f);
-
-    float4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
-    float4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
-
-    float3 p0 = float3(a0.xy, h.x);
-    float3 p1 = float3(a0.zw, h.y);
-    float3 p2 = float3(a1.xy, h.z);
-    float3 p3 = float3(a1.zw, h.w);
-
-    //Normalise gradients
-    float4 norm = NoiseTaylorInvSqrt(float4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
-    p0 *= norm.x;
-    p1 *= norm.y;
-    p2 *= norm.z;
-    p3 *= norm.w;
-
-    // Mix final noise value
-    float4 m = max(0.6f - float4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0f);
-    m = m * m;
-    return (42.0f * dot(m * m, float4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)))) * 0.5f + 0.5f;
+    // return the closest squared distance (+ derivs)
+    // thanks to Jonathan Dupuy for the initial implementation
+    float4 dx1 = f.xxxx - hash_x0;
+    float4 dy1 = f.yyyy - hash_y0;
+    float4 dz1 = f.zzzz - hash_z0;
+    float4 dx2 = f.xxxx - hash_x1;
+    float4 dy2 = f.yyyy - hash_y1;
+    float4 dz2 = f.zzzz - hash_z1;
+    float4 d1 = dx1 * dx1 + dy1 * dy1 + dz1 * dz1;
+    float4 d2 = dx2 * dx2 + dy2 * dy2 + dz2 * dz2;
+    float4 r1 = d1.x < d1.y ? float4(d1.x, dx1.x, dy1.x, dz1.x) : float4(d1.y, dx1.y, dy1.y, dz1.y);
+    float4 r2 = d1.z < d1.w ? float4(d1.z, dx1.z, dy1.z, dz1.z) : float4(d1.w, dx1.w, dy1.w, dz1.w);
+    float4 r3 = d2.x < d2.y ? float4(d2.x, dx2.x, dy2.x, dz2.x) : float4(d2.y, dx2.y, dy2.y, dz2.y);
+    float4 r4 = d2.z < d2.w ? float4(d2.z, dx2.z, dy2.z, dz2.z) : float4(d2.w, dx2.w, dy2.w, dz2.w);
+    float4 t1 = r1.x < r2.x ? r1 : r2;
+    float4 t2 = r3.x < r4.x ? r3 : r4;
+    return (t1.x < t2.x ? t1 : t2) * float4(1.0f, 2.0f, 2.0f, 2.0f) * (9.0f / 12.0f);	// scale return value from 0.0->1.333333 to 0.0->1.0 (2/3)^2 * 3  == (12/9) == 1.333333;
 }
 
-NOISE_TEMPLATE(SimplexNoise, float, GenerateSimplexNoise1D);
-NOISE_TEMPLATE(SimplexNoise, float2, GenerateSimplexNoise2D);
-NOISE_TEMPLATE(SimplexNoise, float3, GenerateSimplexNoise3D);
+NOISE_TEMPLATE(Cellular, float, float2, GenerateCellularNoise1D);
+NOISE_TEMPLATE(Cellular, float2, float3, GenerateCellularNoise2D);
+NOISE_TEMPLATE(Cellular, float3, float4, GenerateCellularNoise3D);
+
+CURL_NOISE_2D_TEMPLATE(Cellular);
+CURL_NOISE_3D_TEMPLATE(Cellular);
 
 // VoroNoise
 float3 VoroHash3(float2 p)
@@ -351,7 +524,7 @@ float3 VoroHash3(float2 p)
     return frac(sin(q) * 43758.5453f);
 }
 
-float GenerateVoroNoise(float2 coordinate, float amplitude, float frequency, float warp, float smoothness)
+float GenerateVoroNoise(float2 coordinate, float frequency, float warp, float smoothness)
 {
     coordinate *= frequency;
 
@@ -376,5 +549,6 @@ float GenerateVoroNoise(float2 coordinate, float amplitude, float frequency, flo
         }
     }
 
-    return ((va / wt) * 2 - 1) * amplitude;
+    return ((va / wt) * 2 - 1);
 }
+

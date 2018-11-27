@@ -17,17 +17,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Strip every useless shadow configs
             var shadowInitParams = hdrpAsset.renderPipelineSettings.hdShadowInitParams;
 
-            foreach (var punctualShadowVariant in m_PunctualShadowVariants)
+            foreach (var shadowVariant in m_ShadowVariants)
             {
-                if (punctualShadowVariant.Key != shadowInitParams.punctualShadowQuality)
-                    if (inputData.shaderKeywordSet.IsEnabled(punctualShadowVariant.Value))
-                        return true;
-            }
-
-            foreach (var directionalShadowVariant in m_DirectionalShadowVariants)
-            {
-                if (directionalShadowVariant.Key != shadowInitParams.directionalShadowQuality)
-                    if (inputData.shaderKeywordSet.IsEnabled(directionalShadowVariant.Value))
+                if (shadowVariant.Key != shadowInitParams.shadowQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
                         return true;
             }
 
@@ -85,8 +78,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     return true;
             }
 
-
             if (inputData.shaderKeywordSet.IsEnabled(m_LightLayers) && !hdrpAsset.renderPipelineSettings.supportLightLayers)
+                return true;
+
+           
+            if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && !hdrpAsset.renderPipelineSettings.supportMSAA)
+                return true;
+
+            // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
+            if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.renderPipelineSettings.supportSubsurfaceScattering)
                 return true;
 
             return false;
@@ -98,6 +98,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Track list of materials asking for specific preprocessor step
         List<BaseShaderPreprocessor> materialList;
 
+
+        uint m_TotalVariantsInputCount;
+        uint m_TotalVariantsOutputCount;
+
         public HDRPreprocessShaders()
         {
             // TODO: Grab correct configuration/quality asset.
@@ -108,6 +112,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             materialList = HDEditorUtils.GetBaseShaderPreprocessorList();
         }
 
+        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, uint prevVariantsCount, uint currVariantsCount)
+        {
+            if (shader.name.Contains("HDRenderPipeline"))
+            {
+                float percentageCurrent = ((float)currVariantsCount / prevVariantsCount) * 100.0f;
+                float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
+
+                string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
+                        " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",
+                        shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
+                        prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
+                        percentageTotal);
+                Debug.Log(result);
+            }
+        }
+
+
         public int callbackOrder { get { return 0; } }
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
@@ -115,6 +136,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             if (hdPipelineAsset == null)
                 return;
+
+            uint preStrippingCount = (uint)inputData.Count;
 
             // This test will also return if we are not using HDRenderPipelineAsset
             if (hdPipelineAsset == null || !hdPipelineAsset.allowShaderVariantStripping)
@@ -140,6 +163,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     inputData.RemoveAt(i);
                     i--;
                 }
+            }
+
+            if(hdPipelineAsset.enableVariantStrippingLog)
+            {
+                m_TotalVariantsInputCount += preStrippingCount;
+                m_TotalVariantsOutputCount += (uint)inputData.Count;
+                LogShaderVariants(shader, snippet, preStrippingCount, (uint)inputData.Count);
             }
         }
     }

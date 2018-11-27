@@ -1,8 +1,6 @@
 using System;
 using System.Reflection;
-using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using System.Linq.Expressions;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline

@@ -1,6 +1,5 @@
-using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -61,8 +60,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.LabelField(_.GetContent("Filtering Qualities"), EditorStyles.boldLabel);
             ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(d.punctualShadowQuality, _.GetContent("Punctual"));
-            EditorGUILayout.PropertyField(d.directionalShadowQuality, _.GetContent("Directional"));
+            EditorGUILayout.PropertyField(d.shadowQuality, _.GetContent("ShadowQuality"));
             --EditorGUI.indentLevel;
 
             EditorGUILayout.Space();

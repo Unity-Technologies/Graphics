@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     public enum MixedLightingSetup
     {
@@ -20,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public LightData lightData;
         public ShadowData shadowData;
         public bool supportsDynamicBatching;
+        public bool killAlphaInFinalBlit;
     }
 
     public struct LightData
@@ -82,6 +82,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
+
+        public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+        public static readonly string KillAlpha = "_KILL_ALPHA";
     }
 
     public sealed partial class LightweightRenderPipeline

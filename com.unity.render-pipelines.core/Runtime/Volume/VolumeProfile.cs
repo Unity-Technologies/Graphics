@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     public sealed class VolumeProfile : ScriptableObject
     {

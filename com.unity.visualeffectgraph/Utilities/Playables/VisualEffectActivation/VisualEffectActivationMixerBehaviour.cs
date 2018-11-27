@@ -1,3 +1,4 @@
+#if VFX_HAS_TIMELINE
 using System;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -49,3 +50,4 @@ public class VisualEffectActivationMixerBehaviour : PlayableBehaviour
         enabledStates = null;
     }
 }
+#endif

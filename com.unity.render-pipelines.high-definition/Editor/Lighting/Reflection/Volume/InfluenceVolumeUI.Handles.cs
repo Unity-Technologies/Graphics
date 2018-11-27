@@ -1,9 +1,6 @@
-using System;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Object = UnityEngine.Object;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {

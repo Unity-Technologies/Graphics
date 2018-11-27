@@ -1,14 +1,15 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Draw the skybox into the given color buffer using the given depth buffer for depth testing.
     ///
     /// This pass renders the standard Unity skybox.
     /// </summary>
-    public class DrawSkyboxPass : ScriptableRenderPass
+    internal class DrawSkyboxPass : ScriptableRenderPass
     {
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTargetHandle depthAttachmentHandle { get; set; }

@@ -1,3 +1,4 @@
+using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering.UI;
 
 namespace UnityEditor.Experimental.Rendering.UI

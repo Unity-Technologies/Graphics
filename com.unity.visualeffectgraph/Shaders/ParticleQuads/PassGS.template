@@ -20,12 +20,12 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 		
 	${VFXLoadSize}
 	
-	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);
+	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
 	
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 	
 	#ifdef VFX_VARYING_NORMAL
-	float normalFlip = (size.x * size.y * size.z) < 0 ? -1 : 1;
+	float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
 	o.VFX_VARYING_NORMAL = normalFlip * normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));
 	#endif
 	#ifdef VFX_VARYING_TANGENT

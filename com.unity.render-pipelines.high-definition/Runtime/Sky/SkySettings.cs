@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {

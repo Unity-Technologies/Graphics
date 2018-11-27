@@ -4,11 +4,15 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.1.0-preview] - 2018-10-30
+## [5.2.0] - 2018-11-xx
+
+## [5.1.0] - 2018-11-19
 ### Added
 - You can now show and hide the Main Preview and the Blackboard from the toolbar.
+- Shader Graph now has __Group Node__, where you can group together several nodes. You can use this to keep your Graphs organized and nice.
 
 ### Changed
+- The Shader Graph package is no longer in preview.
 - Moved `NormalBlendRNM` node to a dropdown option on `Normal Blend` node.
 - `Sample Cubemap` node now has a `SamplerState` slot.
 - New Sub Graph assets now default to the "Sub Graphs" path in the Create Node menu.
@@ -33,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Non-exposed properties in the blackboard no longer have a green dot next to them.
 - Default reference name for shader properties are now serialized. You cannot change them after initial creation.
 - When you save Shader Graph and Sub Graph files, they're now automatically checked out on version control.
+- Shader Graph no longer throws an exception when you double-click a folder in the Project window.
 
 ## [5.0.0-preview] - 2018-09-28
 

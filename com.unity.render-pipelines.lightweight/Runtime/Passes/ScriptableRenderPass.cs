@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Inherit from this class to perform custom rendering in the Lightweight Render Pipeline. 
@@ -31,13 +31,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShaderTagIDs.Add(new ShaderTagId(passName));
         }
 
-        protected DrawingSettings CreateDrawingSettings(Camera camera, SortingCriteria sortingCriteria, PerObjectData perObjectData, bool supportsDynamicBatching)
+        protected DrawingSettings CreateDrawingSettings(Camera camera, SortingCriteria sortingCriteria, PerObjectData perObjectData, bool supportsDynamicBatching, int mainLightIndex = -1)
         {
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
             DrawingSettings settings = new DrawingSettings(m_ShaderTagIDs[0], sortingSettings)
             {
                 perObjectData = perObjectData,
                 enableInstancing = true,
+                mainLightIndex = mainLightIndex,
                 enableDynamicBatching = supportsDynamicBatching
             };
             for (int i = 1; i < m_ShaderTagIDs.Count; ++i)

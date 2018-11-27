@@ -1,5 +1,5 @@
 using System;
-using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -37,6 +37,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportVolumetrics = true;
         public bool increaseResolutionOfVolumetrics = false;
         public bool supportLightLayers = false;
+        public bool supportDistortion = true;
+        public bool supportTransparentBackface = true;
+        public bool supportTransparentDepthPrepass = true;
+        public bool supportTransparentDepthPostpass = true;
         public SupportedLitShaderMode supportedLitShaderMode = SupportedLitShaderMode.Both;
 
         // Engine

@@ -1,10 +1,9 @@
-using System;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.LightweightPipeline
+namespace UnityEditor.Rendering.LWRP
 {
     [CanEditMultipleObjects]
     [CustomEditorForRenderPipeline(typeof(Light), typeof(LightweightRenderPipelineAsset))]

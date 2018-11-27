@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
@@ -409,8 +408,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
                 "#define LIGHTLOOP_TILE_PASS",
                 "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
-                "#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH",
-                "#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH"
+                "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
             },
             Includes = new List<string>()
             {
@@ -474,8 +472,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
                 "#define LIGHTLOOP_TILE_PASS",
                 "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
-                "#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH",
-                "#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH"
+                "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
             },
             Includes = new List<string>()
             {
@@ -885,7 +882,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.ShaderGraph.HDLitGUI""");
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.HDLitGUI""");
 
             return subShader.GetShaderString(0);
         }

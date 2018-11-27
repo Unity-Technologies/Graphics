@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Experimental.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
+using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.LightweightPipeline
+namespace UnityEditor.Rendering.LWRP
 {
     internal sealed class LightweightRenderPipelineMaterialUpgrader
     {

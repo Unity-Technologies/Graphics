@@ -1,7 +1,7 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEditorInternal;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static readonly GUIContent s_Size = new GUIContent("Size", "The size of this density volume which is transform's scale independent.");
             public static readonly GUIContent s_AlbedoLabel = new GUIContent("Single Scattering Albedo", "Hue and saturation control the color of the fog (the wavelength of in-scattered light). Value controls scattering (0 = max absorption & no scattering, 1 = no absorption & max scattering).");
-            public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Mean Free Path", "Controls the density, which determines how far you can seen through the fog. It's the distance in meters at which 50% of background light is lost in the fog (due to absorption and out-scattering).");
+            public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Controls the density, which determines how far you can see through the fog. A.k.a. \"mean free path length\". At this distance, 63% of background light is lost in the fog (due to absorption and out-scattering).");
             public static readonly GUIContent s_VolumeTextureLabel = new GUIContent("Texture");
             public static readonly GUIContent s_TextureScrollLabel = new GUIContent("Scroll Speed");
             public static readonly GUIContent s_TextureTileLabel = new GUIContent("Tiling");

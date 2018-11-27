@@ -12,7 +12,7 @@ namespace UnityEditor.Graphing
         void RemoveNode(INode node);
         ShaderEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef);
         void RemoveEdge(ShaderEdge e);
-        void RemoveElements(IEnumerable<INode> nodes, IEnumerable<ShaderEdge> edges);
+        void RemoveElements(IEnumerable<INode> nodes, IEnumerable<ShaderEdge> edges, IEnumerable<GroupData> groups);
         INode GetNodeFromGuid(Guid guid);
         bool ContainsNodeGuid(Guid guid);
         T GetNodeFromGuid<T>(Guid guid) where T : INode;
@@ -24,6 +24,7 @@ namespace UnityEditor.Graphing
         IEnumerable<INode> removedNodes { get; }
         IEnumerable<ShaderEdge> addedEdges { get; }
         IEnumerable<ShaderEdge> removedEdges { get; }
+        IEnumerable<GroupData> groups { get; }
         void ClearChanges();
     }
 

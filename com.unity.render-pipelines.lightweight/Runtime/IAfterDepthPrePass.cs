@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public interface IAfterDepthPrePass
     {

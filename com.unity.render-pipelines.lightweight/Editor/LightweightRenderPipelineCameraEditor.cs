@@ -3,10 +3,10 @@ using System.Linq;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEditor.Experimental.Rendering.LightweightPipeline
+namespace UnityEditor.Rendering.LWRP
 {
     [CustomEditorForRenderPipeline(typeof(Camera), typeof(LightweightRenderPipelineAsset))]
     [CanEditMultipleObjects]

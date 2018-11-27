@@ -1,7 +1,7 @@
+using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public SerializedProperty intensity;
             public SerializedProperty enableSpotReflector;
+            public SerializedProperty luxAtDistance;
             public SerializedProperty spotInnerPercent;
             public SerializedProperty lightDimmer;
             public SerializedProperty fadeDistance;
@@ -90,6 +91,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     intensity = o.Find(x => x.displayLightIntensity),
                     enableSpotReflector = o.Find(x => x.enableSpotReflector),
+                    luxAtDistance = o.Find(x => x.luxAtDistance),
                     spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                     lightDimmer = o.Find(x => x.lightDimmer),
                     volumetricDimmer = o.Find(x => x.volumetricDimmer),

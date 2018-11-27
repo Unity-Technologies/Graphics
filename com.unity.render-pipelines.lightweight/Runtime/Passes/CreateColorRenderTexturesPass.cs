@@ -1,7 +1,9 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline {
+namespace UnityEngine.Experimental.Rendering.LWRP
+{
     /// <summary>
     /// Generate rendering attachments that can be used for rendering.
     ///
@@ -10,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline {
     /// when you render a frame, the LWRP renders into a valid color and
     /// depth buffer.
     /// </summary>
-    public class CreateColorRenderTexturesPass : ScriptableRenderPass
+    internal class CreateColorRenderTexturesPass : ScriptableRenderPass
     {
         const string k_CreateRenderTexturesTag = "Create Render Texture";
         private RenderTargetHandle colorAttachmentHandle { get; set; }

@@ -1,4 +1,4 @@
-using UnityEngine.Experimental.Rendering;
+using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -13,8 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public SerializedProperty maxShadowRequests;
 
-        public SerializedProperty punctualShadowQuality;
-        public SerializedProperty directionalShadowQuality;
+        public SerializedProperty shadowQuality;
 
         public SerializedHDShadowInitParameters(SerializedProperty root)
         {
@@ -24,8 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             shadowMapDepthBits = root.Find((HDShadowInitParameters s) => s.shadowMapsDepthBits);
             useDynamicViewportRescale = root.Find((HDShadowInitParameters s) => s.useDynamicViewportRescale);
             maxShadowRequests = root.Find((HDShadowInitParameters s) => s.maxShadowRequests);
-            punctualShadowQuality = root.Find((HDShadowInitParameters s) => s.punctualShadowQuality);
-            directionalShadowQuality = root.Find((HDShadowInitParameters s) => s.directionalShadowQuality);
+            shadowQuality = root.Find((HDShadowInitParameters s) => s.shadowQuality);
         }
     }
 }

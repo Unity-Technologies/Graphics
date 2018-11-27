@@ -9,7 +9,6 @@ using UnityEngine.Rendering;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
-using UnityEngine.UIElements.StyleSheets;
 using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -267,14 +266,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (evt.target is Node)
             {
-                evt.menu.AppendAction("Copy Shader", CopyToClipboard, node.hasPreview ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
-                evt.menu.AppendAction("Show Generated Code", ShowGeneratedCode, node.hasPreview ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
+                evt.menu.AppendAction("Copy Shader", CopyToClipboard, _ => node.hasPreview ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
+                evt.menu.AppendAction("Show Generated Code", ShowGeneratedCode, _ => node.hasPreview ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
             }
 
             base.BuildContextualMenu(evt);
         }
 
-        void CopyToClipboard()
+        void CopyToClipboard(DropdownMenuAction action)
         {
             GUIUtility.systemCopyBuffer = ConvertToShader();
         }
@@ -284,7 +283,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return new string(name.Where(c => !Char.IsWhiteSpace(c)).ToArray());
         }
 
-        public void ShowGeneratedCode()
+        public void ShowGeneratedCode(DropdownMenuAction action)
         {
             string name = GetFirstAncestorOfType<GraphEditorView>().assetName;
 
@@ -491,7 +490,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var newHeight = inputView.parent.layout.height;
             foreach (var element in inputView.parent.Children())
                 newHeight = Mathf.Max(newHeight, element.style.top.value.value + element.layout.height);
-            if (Math.Abs(inputView.parent.style.height.value.value - newHeight) > 1e-3)                
+            if (Math.Abs(inputView.parent.style.height.value.value - newHeight) > 1e-3)
                 inputView.parent.style.height = newHeight;
         }
 
@@ -579,6 +578,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 portInputView.Dispose();
 
             node = null;
+            userData = null;
             if (m_PreviewRenderData != null)
             {
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;

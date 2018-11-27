@@ -1,11 +1,24 @@
 {
     "name": "Unity.VisualEffectGraph.Editor",
     "references": [
-    	"Unity.VisualEffectGraph.Runtime"
-],
+        "Unity.VisualEffectGraph.Runtime",
+        "Unity.Timeline"
+    ],
     "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.timeline",
+            "expression": "[0.0.0-builtin]",
+            "define": "VFX_HAS_TIMELINE"
+        }
+    ]
 }

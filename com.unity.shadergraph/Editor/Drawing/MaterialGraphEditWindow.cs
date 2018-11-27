@@ -244,6 +244,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.graph.guid,
+                    graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                     graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as ShaderEdge),
                     graphView.selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty),
@@ -425,7 +426,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graphObject.graph.RemoveElements(
                 graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode),
-                Enumerable.Empty<ShaderEdge>());
+                Enumerable.Empty<ShaderEdge>(),
+                Enumerable.Empty<GroupData>());
             graphObject.graph.ValidateGraph();
         }
 

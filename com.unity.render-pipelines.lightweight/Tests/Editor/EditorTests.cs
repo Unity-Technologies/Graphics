@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Rendering.LWRP;
 
 class EditorTests
 {
