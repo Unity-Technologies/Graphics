@@ -934,7 +934,7 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     }
 }
 
-void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
+void GetBSDFDataDebug(uint paramId, BSDFDataPacked bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
 
