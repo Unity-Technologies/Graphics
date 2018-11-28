@@ -291,7 +291,7 @@ float2 GeneratePerlinNoise1D(float coordinate)
 
     results.y += blend.z * (k0_gk0.x + blend.y * k2_gk2.x);
 
-    return results * 1.4142135623730950488016887242097f;  // scale to -1.0 -> 1.0 range  *= 1.0/sqrt(0.5)
+    return results * 2.0f;  // scale to -1.0 -> 1.0 range  *= 1.0/sqrt(0.25)
 }
 
 float3 GeneratePerlinNoise2D(float2 coordinate)
