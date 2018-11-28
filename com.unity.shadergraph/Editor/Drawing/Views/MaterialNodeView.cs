@@ -144,6 +144,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
+                AddToClassList("master");
+
                 if (!masterNode.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
                 {
                     AttachError("The current render pipeline is not compatible with this master node.");
@@ -257,8 +259,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (evt.target is Node)
             {
-                evt.menu.AppendAction("Copy Shader", CopyToClipboard, _ => node.hasPreview ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
-                evt.menu.AppendAction("Show Generated Code", ShowGeneratedCode, _ => node.hasPreview ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
+                var canViewShader = node.hasPreview || node is IMasterNode;
+                evt.menu.AppendAction("Copy Shader", CopyToClipboard, _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
+                evt.menu.AppendAction("Show Generated Code", ShowGeneratedCode, _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
             }
 
             base.BuildContextualMenu(evt);

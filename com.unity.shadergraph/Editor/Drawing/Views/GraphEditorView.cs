@@ -235,6 +235,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (graphViewChange.movedElements != null)
             {
+                m_Graph.owner.RegisterCompleteObjectUndo("Move Elements");
+
                 List<GraphElement> nodesInsideGroup = new List<GraphElement>();
                 foreach (var element in graphViewChange.movedElements)
                 {
