@@ -6,6 +6,10 @@ ColorControlView > #enumPanel {
     flex-direction: row;
 }
 
+ColorControlView > ColorField {
+    width: 205;
+}
+
 ColorControlView > #enumPanel > EnumField {
     flex: 1;
     height:19;
