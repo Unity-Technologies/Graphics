@@ -80,6 +80,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             context.ExecuteCommandBuffer(m_CommandBuffer);
 
+            bool cleared = false;
             for (int i = 0; i < m_SortingLayers.Length; i++)
             {
                 m_CommandBuffer.Clear();
@@ -107,7 +108,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
                 // This is only needed if no previous pass has cleared the camera RT yet.
-                m_CommandBuffer.ClearRenderTarget(true, true, renderingData.cameraData.camera.backgroundColor);
+                if (!cleared)
+                {
+                    m_CommandBuffer.ClearRenderTarget(true, true, renderingData.cameraData.camera.backgroundColor);
+                    cleared = true;
+                }
 
                 context.ExecuteCommandBuffer(m_CommandBuffer);
 
