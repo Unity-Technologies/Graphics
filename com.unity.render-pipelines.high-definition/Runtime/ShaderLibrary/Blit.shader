@@ -27,7 +27,7 @@ Shader "Hidden/HDRenderPipeline/Blit"
 
         Varyings Vert(Attributes input)
         {
-            Varyings output;
+            Varyings output;	
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
