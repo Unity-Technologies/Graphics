@@ -103,14 +103,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     renderBuffersDirty = false;
                 }
 
-                m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                context.ExecuteCommandBuffer(m_CommandBuffer);
-
                 // This should have an optimization where I can determine if this needs to be called
-                Profiler.BeginSample("RenderSpritesWithLighting - Draw Renderers");
-                drawSettings.SetShaderPassName(0, m_CombinedShapeLightPassName);
-
                 m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+
+                // This is only needed if no previous pass has cleared the camera RT yet.
+                m_CommandBuffer.ClearRenderTarget(true, true, renderingData.cameraData.camera.backgroundColor);
+
                 context.ExecuteCommandBuffer(m_CommandBuffer);
 
                 Profiler.BeginSample("RenderSpritesWithLighting - Draw Renderers");

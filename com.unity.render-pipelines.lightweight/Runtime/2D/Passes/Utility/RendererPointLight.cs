@@ -38,8 +38,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         static Material m_PointLightingMat = GetPointLightMat();
         static Mesh m_Quad;
 
-        static bool m_RenderTextureIsDirty = true;
-
         static RenderTexture m_NormalRT;
         static RenderTexture m_ColorRT;
 
@@ -220,8 +218,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             List<Light2D> pointLights = Light2D.GetPointLights();
             if (pointLights != null && pointLights.Count > 0)
             {
-                m_RenderTextureIsDirty = true;
-
                 RenderNormals(renderContext, cullResults, drawSettings, filterSettings);
 
                 cmdBuffer.BeginSample("2D Point Lights");
@@ -315,17 +311,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
                 cmdBuffer.EndSample("2D Point Lights");
             }
-            else if (m_RenderTextureIsDirty)
+            else
             {
                 cmdBuffer.SetRenderTarget(m_ColorRT);
                 cmdBuffer.ClearRenderTarget(true, true, k_ClearColor);
-                m_RenderTextureIsDirty = false;
             }
 
             renderContext.ExecuteCommandBuffer(cmdBuffer);
             cmdBuffer.Clear();
         }
-
 
         static public void SetShaderGlobals(CommandBuffer cmdBuffer)
         {
