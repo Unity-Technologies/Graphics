@@ -657,7 +657,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             // Handle quality where there is nothing to draw directly here
             // No PCSS for now with directional light
-            if (quality == HDShadowQuality.Medium || quality == HDShadowQuality.Low || serialized.editorLightShape == LightShape.Directional)
+            if (quality == HDShadowQuality.Medium || quality == HDShadowQuality.Low)
                 return false;
 
             // Draw shadow settings using the current shadow algorithm
@@ -724,6 +724,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(serialized.serializedLightData.shadowSoftness, s_Styles.shadowSoftness);
             EditorGUILayout.PropertyField(serialized.serializedLightData.blockerSampleCount, s_Styles.blockerSampleCount);
             EditorGUILayout.PropertyField(serialized.serializedLightData.filterSampleCount, s_Styles.filterSampleCount);
+            EditorGUILayout.PropertyField(serialized.serializedLightData.minFilterSize, s_Styles.minFilterSize);
         }
     }
 }
