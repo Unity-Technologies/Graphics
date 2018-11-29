@@ -22,6 +22,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Light2DRTInfo m_PointLightNormalRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
         [SerializeField]
         private Light2DRTInfo m_PointLightColorRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
+        [SerializeField]
+        private float         m_LightIntensityScale = 1;
+
 
         private DrawSkyboxPass m_DrawSkyboxPass;
 
@@ -33,6 +36,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #if UNITY_EDITOR
         private SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
 #endif
+
+        public float LightIntensityScale
+        {
+            set
+            {
+                m_LightIntensityScale = value;
+            }
+
+            get
+            {
+                return m_LightIntensityScale;
+            }
+        }
+
+
 
         //Render2DFallbackPass   m_Render2DFallbackPass;
 
@@ -63,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             renderer.EnqueuePass(m_SetupForwardRenderingPass);
 
-            m_Render2DLightingPass.Setup(RenderSettings.ambientLight, m_AmbientRenderTextureInfo, m_SpecularRenderTextureInfo, m_RimRenderTextureInfo, m_PointLightNormalRenderTextureInfo, m_PointLightColorRenderTextureInfo);
+            m_Render2DLightingPass.Setup(RenderSettings.ambientLight, m_AmbientRenderTextureInfo, m_SpecularRenderTextureInfo, m_RimRenderTextureInfo, m_PointLightNormalRenderTextureInfo, m_PointLightColorRenderTextureInfo, m_LightIntensityScale);
             renderer.EnqueuePass(m_Render2DLightingPass);
         }
 

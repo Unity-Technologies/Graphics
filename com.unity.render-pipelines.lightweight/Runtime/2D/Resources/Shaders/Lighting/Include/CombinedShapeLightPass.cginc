@@ -55,6 +55,8 @@ uniform float  _PointLightOuterAngle;
 uniform float4 _PointLightForward;
 uniform float4 _PointLightOrigin;
 
+uniform float  _LightIntensityScale;
+
 v2f CombinedShapeLightVertex(appdata v)
 {
 	v2f o;
@@ -90,6 +92,7 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 		shapeLight.rgb = 0;
 		shapeLight.a = 0;
 	#endif
+	shapeLight = shapeLight * _LightIntensityScale;
 
 	fixed maxValue = max(shapeLight.r, max(shapeLight.g, shapeLight.b));
 	fixed3 shapeLightClampColor = (shapeLight.rgb / maxValue);
@@ -100,7 +103,7 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 	#else
 		ambientColor = _AmbientColor;
 	#endif
-	ambientColor = _AmbientMultiplier * ambientColor *mask.b; // mask is ambient occulusion
+	ambientColor = _AmbientMultiplier * ambientColor * mask.b * _LightIntensityScale; // mask is ambient occulusion
 
 
 	fixed4 rimColor;
@@ -109,9 +112,9 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 	#else
 		rimColor = _RimColor;
 	#endif
-	rimColor = _RimMultiplier * rimColor;
+	rimColor = _RimMultiplier * rimColor * _LightIntensityScale;
 
-	fixed3 pointLightColor = tex2D(_PointLightingTex, i.lightingUV);
+	fixed3 pointLightColor = tex2D(_PointLightingTex, i.lightingUV) *  _LightIntensityScale;
 	//float pointMaxValue = max(pointLightColor.r, max(pointLightColor.g, pointLightColor.b));
 	//fixed3 pointLightClampColor = (_PointLightColor.rgb / pointMaxValue);
 	fixed3 pointLightClampColor = fixed3(1, 1, 1);

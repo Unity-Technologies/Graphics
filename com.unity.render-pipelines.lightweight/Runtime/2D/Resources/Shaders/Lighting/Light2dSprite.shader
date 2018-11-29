@@ -40,8 +40,8 @@
 
 			uniform sampler2D _MainTex;
 			uniform float4 _MainTex_ST;
-
 			uniform sampler2D _ShadowTex;
+			uniform float	_InverseLightIntensityScale;
 			
 			v2f vert (appdata v)
 			{
@@ -58,7 +58,7 @@
 			{
 				//fixed4 shadow = tex2D(_ShadowTex, i.shadowUV);
 				fixed4 col = tex2D(_MainTex, i.uv);
-				col = i.color * i.color.a * col * col.a;
+				col = i.color * i.color.a * col * col.a * _InverseLightIntensityScale;
 				col.a = 1;
 				////fixed4 finalCol = (1-shadow.a) * col + shadow.a * shadow;
 				//fixed4 finalCol = col;

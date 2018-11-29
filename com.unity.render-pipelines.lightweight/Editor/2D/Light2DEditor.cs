@@ -119,6 +119,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var light = target as Light2D;
             m_SplineEditor = new SplineEditor(this);
             m_SplineSceneEditor = new SplineSceneEditor(light.spline, this, light);
+            //m_SplineSceneEditor.SplineEditMode = SplineSceneEditor.SplineEditModes.Buttonless;
         }
 
         private void OnDestroy()

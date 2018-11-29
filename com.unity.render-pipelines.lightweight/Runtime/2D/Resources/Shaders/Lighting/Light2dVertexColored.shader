@@ -37,6 +37,7 @@
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			fixed4 _Color;
+			uniform float _InverseLightIntensityScale;
 			
 			v2f vert (appdata v)
 			{
@@ -48,8 +49,8 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				fixed4 col = i.color;
-				col = col * i.color.a;
+				fixed4 col = i.color * _InverseLightIntensityScale;
+				col = col * i.color.a * _InverseLightIntensityScale;
 				col.a = 1;
 				return col;
 			}

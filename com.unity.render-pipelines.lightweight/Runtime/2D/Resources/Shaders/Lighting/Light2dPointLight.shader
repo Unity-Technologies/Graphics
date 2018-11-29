@@ -48,7 +48,7 @@
 			uniform half			_OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			uniform half			_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			uniform half			_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
-
+			uniform float			_InverseLightIntensityScale;
 
             v2f vert (appdata v)
             {
@@ -99,7 +99,7 @@
 				half4 color = main.a *_LightColor * attenuation;
 				fixed4 finalColor = color * cosAngle; /*  +color * main.z * attenuation); */
 
-				return finalColor;
+				return finalColor * _InverseLightIntensityScale;
 			}
             ENDCG
         }

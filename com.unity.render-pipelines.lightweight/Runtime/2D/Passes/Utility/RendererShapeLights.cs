@@ -27,9 +27,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         static public void Setup(Color defaultAmbientColor, Color defaultSpecularColor, Color defaultRimColor)
         {
-            m_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
-            if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
-                m_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+            m_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
+            //if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
+            //    m_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
+            //else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
+            //    m_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
             
             m_DefaultSpecularColor = defaultSpecularColor;
             m_DefaultAmbientColor = defaultAmbientColor;

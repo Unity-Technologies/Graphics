@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RendererPointLights.Initialize();
         }
 
-        public void Setup(Color ambientColor, Light2DRTInfo ambientRTInfo, Light2DRTInfo specularRTInfo, Light2DRTInfo rimRTInfo, Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo)
+        public void Setup(Color ambientColor, Light2DRTInfo ambientRTInfo, Light2DRTInfo specularRTInfo, Light2DRTInfo rimRTInfo, Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo, float lightIntensityScale)
         {
             m_AmbientRenderTextureInfo = ambientRTInfo;
             m_SpecularRenderTextureInfo = specularRTInfo;
@@ -42,7 +42,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_PointLightNormalRenderTextureInfo = pointLightNormalRTInfo;
             m_PointLightColorRenderTextureInfo = pointLightColorRTInfo;
 
-            RendererShapeLights.Setup(ambientColor, m_DefaultSpecularColor, m_DefaultRimColor);
+            float inverseLightIntensityScale = 1 / lightIntensityScale;
+
+            Shader.SetGlobalFloat("_LightIntensityScale", lightIntensityScale);
+            Shader.SetGlobalFloat("_InverseLightIntensityScale", inverseLightIntensityScale);
+
+            RendererShapeLights.Setup(inverseLightIntensityScale * ambientColor, inverseLightIntensityScale * m_DefaultSpecularColor, inverseLightIntensityScale * m_DefaultRimColor);
         }
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
