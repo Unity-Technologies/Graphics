@@ -32,12 +32,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
         bool m_DisplayMinMax;
-        int m_UndoGroup = -1;
         Vector3 m_Value;
 
         VisualElement m_SliderPanel;
         Slider m_Slider;
         FloatField m_SliderInput;
+        FloatField m_MinField;
+        FloatField m_MaxField;
 
         public SliderControlView(string label, bool displayMinMax, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
@@ -51,22 +52,42 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
             m_Value = (Vector3)m_PropertyInfo.GetValue(m_Node, null);
 
+            m_Slider = new Slider(m_Value.y, m_Value.z) { value = m_Value.x };
+            m_Slider.RegisterValueChangedCallback((evt) => OnChangeSlider(evt.newValue));
+
+            m_SliderInput = new FloatField { value = m_Value.x };
+            m_SliderInput.RegisterValueChangedCallback(evt =>
+            {
+                var value = (float)evt.newValue;
+                m_Value.x = value;
+                m_PropertyInfo.SetValue(m_Node, m_Value, null);
+                this.MarkDirtyRepaint();
+            });
+            m_SliderInput.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+            {
+                float minValue = Mathf.Min(m_Value.x, m_Value.y);
+                float maxValue = Mathf.Max(m_Value.x, m_Value.z);
+                m_Value = new Vector3(m_Value.x, minValue, maxValue);
+                m_MinField.value = minValue;
+                m_MaxField.value = maxValue;
+                UpdateSlider();
+                m_PropertyInfo.SetValue(m_Node, m_Value, null);
+                this.MarkDirtyRepaint();
+            });
+
             m_SliderPanel = new VisualElement { name = "SliderPanel" };
             if (!string.IsNullOrEmpty(label))
                 m_SliderPanel.Add(new Label(label));
-            m_Slider = new Slider(m_Value.y, m_Value.z);
-            m_Slider.RegisterValueChangedCallback((evt) => OnChangeSlider(evt.newValue));
 
-            m_Slider.value = m_Value.x;
             m_SliderPanel.Add(m_Slider);
-            m_SliderInput = AddField(m_SliderPanel, "", 0, m_Value);
+            m_SliderPanel.Add(m_SliderInput);
             Add(m_SliderPanel);
 
             if (m_DisplayMinMax)
             {
                 var fieldsPanel = new VisualElement { name = "FieldsPanel" };
-                AddField(fieldsPanel, "Min", 1, m_Value);
-                AddField(fieldsPanel, "Max", 2, m_Value);
+                m_MinField = AddMinMaxField(fieldsPanel, "Min", 1);
+                m_MaxField = AddMinMaxField(fieldsPanel, "Max", 2);
                 Add(fieldsPanel);
             }
         }
@@ -87,83 +108,56 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_PropertyInfo.SetValue(m_Node, value, null);
             if (m_SliderInput != null)
                 m_SliderInput.value = newValue;
+            m_PropertyInfo.SetValue(m_Node, m_Value, null);
             this.MarkDirtyRepaint();
         }
 
-        FloatField AddField(VisualElement panel, string label, int index, Vector3 initValiue)
+        void UpdateSlider()
         {
-            var field = new FloatField { userData = index, value = initValiue[index] };
-
-            if (label != "")
-            {
-                var l = new Label(label);
-                panel.Add(l);
-                var dragger = new FieldMouseDragger<double>(field);
-                dragger.SetDragZone(l);
-            }
-
-            field.RegisterCallback<MouseDownEvent>(Repaint);
-            field.RegisterCallback<MouseMoveEvent>(Repaint);
-            field.RegisterValueChangedCallback(evt =>
-                {
-                    var value = (Vector3)m_PropertyInfo.GetValue(m_Node, null);
-                    value[index] = (float)evt.newValue;
-                    m_PropertyInfo.SetValue(m_Node, value, null);
-                    m_UndoGroup = -1;
-                    this.MarkDirtyRepaint();
-                });
-            field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
-                {
-                    if (m_UndoGroup == -1)
-                    {
-                        m_UndoGroup = Undo.GetCurrentGroup();
-                        m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                    }
-                    float newValue;
-                    if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
-                        newValue = 0f;
-                    var value = (Vector3)m_PropertyInfo.GetValue(m_Node, null);
-                    value[index] = newValue;
-                    m_PropertyInfo.SetValue(m_Node, value, null);
-                    if(evt.newData.Length != 0 
-                        && evt.newData[evt.newData.Length-1] != '.' 
-                        && evt.newData[evt.newData.Length-1] != ',')
-                        UpdateSlider(m_SliderPanel, index, value);
-                    this.MarkDirtyRepaint();
-                });
-            field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
-                {
-                    if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
-                    {
-                        Undo.RevertAllDownToGroup(m_UndoGroup);
-                        m_UndoGroup = -1;
-                        m_Value = (Vector3)m_PropertyInfo.GetValue(m_Node, null);
-                        UpdateSlider(m_SliderPanel, index, m_Value);
-                        evt.StopPropagation();
-                    }
-                    this.MarkDirtyRepaint();
-                });
-            panel.Add(field);
-            return field;
+            m_SliderPanel.Remove(m_Slider);
+            m_Slider = new Slider(m_Value.y, m_Value.z) { value = m_Value.x };
+            m_Slider.RegisterValueChangedCallback((evt) => OnChangeSlider(evt.newValue));
+            m_SliderPanel.Add(m_Slider);
+            m_SliderPanel.Add(m_SliderInput);
         }
 
-        void UpdateSlider(VisualElement panel, int index, Vector3 value)
+        FloatField AddMinMaxField(VisualElement panel, string label, int index)
         {
-            value.x = Mathf.Max(Mathf.Min(value.x, value.z), value.y);
-            panel.Remove(m_Slider);
-            m_Slider = new Slider(value.y, value.z);
-            m_Slider.RegisterValueChangedCallback((evt) => OnChangeSlider(evt.newValue));
+            var floatField = new FloatField { value = m_Value[index] };
+            if (label != null)
+            {
+                var labelField = new Label(label);
+                panel.Add(labelField);
+            }
 
-            m_Slider.lowValue = value.y;
-            m_Slider.highValue = value.z;
-            m_Slider.value = value.x;
-            panel.Add(m_Slider);
+            floatField.RegisterValueChangedCallback(evt =>
+            {
+                m_Value[index] = (float)evt.newValue;
+                m_PropertyInfo.SetValue(m_Node, m_Value, null);
+                this.MarkDirtyRepaint();
+            });
+            floatField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+            {
+                if (index == 1)
+                {
+                    m_Value[index] = Mathf.Min(m_Value[index], m_Value.z);
+                    m_MinField.value = m_Value[index];
+                }
+                else
+                {
+                    m_Value[index] = Mathf.Max(m_Value[index], m_Value.y);
+                    m_MaxField.value = m_Value[index];
+                }
+                float newValue = Mathf.Max(Mathf.Min(m_Value.x, m_Value.z), m_Value.y);
+                m_Value.x = newValue;
+                m_SliderInput.value = newValue;
+                UpdateSlider();
+                m_PropertyInfo.SetValue(m_Node, m_Value, null);
+                this.MarkDirtyRepaint();
+            });
 
-            panel.Remove(m_SliderInput);
-            if (index != 0)
-                m_SliderInput = AddField(panel, "", 0, value);
-            m_SliderInput.value = value.x;
-            panel.Add(m_SliderInput);
+            panel.Add(floatField);
+            return floatField;
         }
 
         void Repaint<T>(MouseEventBase<T> evt) where T : MouseEventBase<T>, new()

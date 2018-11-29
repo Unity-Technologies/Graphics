@@ -27,17 +27,21 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     Varyings Vert(Attributes input)
     {
         Varyings output;
+
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
         return output;
     }
 
     float4 Frag(Varyings input) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 #if defined(UNITY_SINGLE_PASS_STEREO)
         // The computed PixelCoordToViewDir matrix doesn't seem to capture stereo eye offset. 
         // So for VR, we compute WSPosition using the stereo matrices instead.
