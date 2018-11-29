@@ -2,7 +2,7 @@
 #define HD_SHADOW_CONTEXT_HLSL
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "HDShadowManager.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowManager.cs.hlsl"
 
 struct HDShadowContext
 {

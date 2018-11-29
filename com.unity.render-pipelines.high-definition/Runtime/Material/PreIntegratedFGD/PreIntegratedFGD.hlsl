@@ -1,4 +1,4 @@
-#include "PreIntegratedFGD.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.cs.hlsl"
 
 TEXTURE2D(_PreIntegratedFGD_GGXDisneyDiffuse);
 

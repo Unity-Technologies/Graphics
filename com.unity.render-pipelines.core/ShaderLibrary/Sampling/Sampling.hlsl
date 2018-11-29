@@ -5,8 +5,8 @@
 // Sample generator
 //-----------------------------------------------------------------------------
 
-#include "Fibonacci.hlsl"
-#include "Hammersley.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Fibonacci.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Hammersley.hlsl"
 
 //-----------------------------------------------------------------------------
 // Coordinate system conversion

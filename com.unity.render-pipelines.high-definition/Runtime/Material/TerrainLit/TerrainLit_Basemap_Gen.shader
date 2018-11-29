@@ -29,7 +29,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
             SAMPLER(sampler_Mask0);
             #define OVERRIDE_SAMPLER_NAME sampler_Mask0
         #endif
-        #include "TerrainLitSplatCommon.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSplatCommon.hlsl"
 
         struct Attributes {
             float3 vertex : POSITION;
