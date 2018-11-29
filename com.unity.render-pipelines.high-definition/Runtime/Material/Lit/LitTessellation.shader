@@ -480,6 +480,15 @@ Shader "HDRenderPipeline/LitTessellation"
 
             Cull[_CullMode]
 
+            // To be able to tag stencil with disableSSR information for forward
+            Stencil
+            {
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
             ZWrite On
 
             HLSLPROGRAM
