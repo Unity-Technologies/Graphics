@@ -88,6 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                shadowSoftness;
         public int                  blockerSampleCount;
         public int                  filterSampleCount;
+        public float                minFilterSize;
     }
 
     public enum HDShadowQuality
@@ -265,7 +266,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.shadowFilterParams0.x = shadowRequest.shadowSoftness;
             data.shadowFilterParams0.y = HDShadowUtils.Asfloat(shadowRequest.blockerSampleCount);
             data.shadowFilterParams0.z = HDShadowUtils.Asfloat(shadowRequest.filterSampleCount);
-            data.shadowFilterParams0.w = 0;
+            data.shadowFilterParams0.w = shadowRequest.minFilterSize;
 
             return data;
         }
