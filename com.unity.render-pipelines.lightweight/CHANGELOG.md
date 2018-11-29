@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - LWRP now uses the Unity recorder extension to make it possible to capture the output of Cameras.
 
+### Fixed
+- The foldouts in the Lightweight Asset inspector UI now remember their state.
+
 ## [5.2.0] - 2018-11-27
 ### Added
 - LWRP now handles blits that are required by the device when rendering to the backbuffer.
