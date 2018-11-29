@@ -31,9 +31,9 @@ namespace UnityEditor.VFX.Operator
             public float frequency = 1.0f;
             [/*Range(1, 8),*/ Tooltip("The number of layers of noise.")]
             public int octaves = 1;
-            [Tooltip("The scaling factor applied to each octave. Also known as persistence.")]
+            [Range(0, 1), Tooltip("The scaling factor applied to each octave. Also known as persistence.")]
             public float roughness = 0.5f;
-            [Tooltip("The rate of change of the frequency for each successive octave.")]
+            [Min(0), Tooltip("The rate of change of the frequency for each successive octave.")]
             public float lacunarity = 2.0f;
         }
 
