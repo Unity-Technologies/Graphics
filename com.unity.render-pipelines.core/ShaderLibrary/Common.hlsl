@@ -140,30 +140,30 @@
 
 // Include language header
 #if defined(SHADER_API_XBOXONE)
-#include "API/XBoxOne.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/XBoxOne.hlsl"
 #elif defined(SHADER_API_PSSL)
-#include "API/PSSL.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/PSSL.hlsl"
 #elif defined(SHADER_API_D3D11)
-#include "API/D3D11.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl"
 #elif defined(SHADER_API_METAL)
-#include "API/Metal.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
-#include "API/Vulkan.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Vulkan.hlsl"
 #elif defined(SHADER_API_SWITCH)
-#include "API/Switch.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Switch.hlsl"
 #elif defined(SHADER_API_GLCORE)
-#include "API/GLCore.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLCore.hlsl"
 #elif defined(SHADER_API_GLES3)
-#include "API/GLES3.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES3.hlsl"
 #elif defined(SHADER_API_GLES)
-#include "API/GLES2.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES2.hlsl"
 #else
 #error unsupported shader api
 #endif
-#include "API/Validate.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Validate.hlsl"
 
-#include "Macros.hlsl"
-#include "Random.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)

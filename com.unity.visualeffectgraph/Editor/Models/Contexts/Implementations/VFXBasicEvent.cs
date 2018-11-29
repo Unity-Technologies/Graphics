@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXBasicEvent : VFXContext
     {
-        [VFXSetting, PushButton(typeof(LaunchEventBehavior), "Send")]
+        [VFXSetting, PushButton(typeof(LaunchEventBehavior), "Send"), Delayed]
         public string eventName = "OnPlay";
 
         public VFXBasicEvent() : base(VFXContextType.kEvent, VFXDataType.kNone, VFXDataType.kSpawnEvent) {}

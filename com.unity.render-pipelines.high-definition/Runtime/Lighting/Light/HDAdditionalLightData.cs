@@ -195,6 +195,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int      blockerSampleCount = 24;
         [Range(1, 64)]
         public int      filterSampleCount = 16;
+        [Range(0, 0.001f)]
+        public float minFilterSize = 0.00001f;
 
         HDShadowRequest[]   shadowRequests;
         bool                m_WillRenderShadows;
@@ -408,6 +410,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             shadowRequest.shadowSoftness = shadowSoftness / 100f;
             shadowRequest.blockerSampleCount = blockerSampleCount;
             shadowRequest.filterSampleCount = filterSampleCount;
+            shadowRequest.minFilterSize = minFilterSize;
         }
 
 #if UNITY_EDITOR
