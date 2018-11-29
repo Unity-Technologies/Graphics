@@ -4,7 +4,7 @@
 
 #define USE_DIFFUSE_LAMBERT_BRDF
 
-#include "Lit.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)
