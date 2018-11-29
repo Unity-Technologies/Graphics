@@ -25,11 +25,11 @@ Pass
 	${VFXInclude("Shaders/ParticleLinesSW/Pass.template")}	
 		
 	#pragma fragment frag
-	float frag(ps_input i) : SV_TARGET
+	float4 frag(ps_input i) : SV_TARGET
 	{
 		float alpha = VFXGetFragmentColor(i);
 		VFXClipFragmentColor(alpha,i);
-		return 0;
+		return (float4)0;
 	}
 	ENDHLSL
 }
