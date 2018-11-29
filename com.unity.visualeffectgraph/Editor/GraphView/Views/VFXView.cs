@@ -1558,8 +1558,8 @@ namespace UnityEditor.VFX.UI
             {
                 VFXSystemBorder border = new VFXSystemBorder();
                 m_Systems.Add(border);
-                border.controller = controller.systems[m_Systems.Count()-1];
                 AddElement(border);
+                border.controller = controller.systems[m_Systems.Count() - 1];
             }
         }
         

@@ -287,7 +287,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
         }
 
