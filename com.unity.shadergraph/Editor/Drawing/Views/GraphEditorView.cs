@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
-using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
+        MessageManager m_MessageManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
@@ -77,11 +78,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph)
+        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, MessageManager messageManager)
         {
             m_Graph = graph;
+            m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
-            previewManager = new PreviewManager(graph);
+            previewManager = new PreviewManager(graph, messageManager);
 
             string serializedToggle = EditorUserSettings.GetConfigValue(k_ToggleSettings);
             if (!string.IsNullOrEmpty(serializedToggle))
@@ -233,6 +235,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (graphViewChange.movedElements != null)
             {
+                m_Graph.owner.RegisterCompleteObjectUndo("Move Elements");
+
                 List<GraphElement> nodesInsideGroup = new List<GraphElement>();
                 foreach (var element in graphViewChange.movedElements)
                 {
@@ -376,6 +380,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         HashSet<MaterialNodeView> m_NodeViewHashSet = new HashSet<MaterialNodeView>();
+
+        public void UpdatePreviewShaders()
+        {
+            previewManager.ForceShaderUpdate();
+        }
+        
         public void HandleGraphChanges()
         {
             previewManager.HandleGraphChanges();
@@ -391,7 +401,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.removedNodes)
             {
                 node.UnregisterCallback(OnNodeChanged);
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
@@ -437,7 +448,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_Graph.pastedNodes)
             {
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 m_GraphView.AddToSelection(nodeView);
             }
 
@@ -446,7 +458,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var edge in m_Graph.removedEdges)
             {
-                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && Equals((IEdge)p.userData, edge));
+                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>()
+                    .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge) p.userData, edge));
                 if (edgeView != null)
                 {
                     var nodeView = edgeView.input.node as MaterialNodeView;
@@ -454,6 +467,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         nodesToUpdate.Add(nodeView);
                     }
+
                     edgeView.output.Disconnect(edgeView);
                     edgeView.input.Disconnect(edgeView);
 
@@ -475,6 +489,33 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.UpdatePortInputVisibilities();
 
             UpdateEdgeColors(nodesToUpdate);
+
+            UpdateBadges();
+        }
+
+        void UpdateBadges()
+        {
+            if (!m_MessageManager.nodeMessagesChanged)
+                return;
+            
+            foreach (var messageData in m_MessageManager.GetNodeMessages())
+            {
+                var node = m_Graph.GetNodeFromTempId(messageData.Key);
+
+                if (!(m_GraphView.GetNodeByGuid(node.guid.ToString()) is MaterialNodeView nodeView))
+                    continue;
+
+                if (messageData.Value.Count == 0)
+                {
+                    var badge = nodeView.Q<IconBadge>();
+                    badge?.Detach();
+                    badge?.RemoveFromHierarchy();
+                }
+                else
+                {
+                    nodeView.AttachError(messageData.Value.First().message);
+                }
+            }
         }
 
         List<GraphElement> m_AddNodeGraphElements = new List<GraphElement>();

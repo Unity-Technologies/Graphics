@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
-  m_Version: 4
   shaders:
     defaultPS: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
     debugDisplayLatlongPS: {fileID: 4800000, guid: c1d1d149a043a5349ba367da6c2051ba,
@@ -29,9 +29,9 @@ MonoBehaviour:
       type: 3}
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
     colorPyramidCS: {fileID: 7200000, guid: 4e3267a1135742441a14298d8dcac04a, type: 3}
+    colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
     depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
     copyChannelCS: {fileID: 7200000, guid: a4d45eda75e8e474dbe24a31f741f3b4, type: 3}
-    texturePaddingCS: {fileID: 7200000, guid: 6736f53014c69f84aa2130aeae99730b, type: 3}
     applyDistortionCS: {fileID: 7200000, guid: 2fa6c0e3fe6dc3145a4156f21913fe5c, type: 3}
     screenSpaceReflectionsCS: {fileID: 7200000, guid: d1de9ac7d9016204da289affe9677942,
       type: 3}
@@ -94,7 +94,6 @@ MonoBehaviour:
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
     shadowBlurMomentsCS: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08,
       type: 3}
-    debugShadowMapPS: {fileID: 4800000, guid: ee25e539f5594f44085e0a9000c15d9b, type: 3}
     debugHDShadowMapPS: {fileID: 4800000, guid: 93d40cc9a6e13994f86f576a624efa18,
       type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a,
@@ -109,11 +108,5 @@ MonoBehaviour:
     defaultTerrainMat: {fileID: 2100000, guid: 22ff8771d87ef27429e670136399094b, type: 2}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
-  shaderGraphs:
-    autodeskInteractiveSG: {fileID: 4800000, guid: 7252379db4c18b641b517f2c91bb57e1,
-      type: 3}
-    autodeskInteractiveTransparentSG: {fileID: 4800000, guid: ee2ce0be66f45d9449d71ba9b49c2acd,
-      type: 3}
-    autodeskInteractiveMaskedSG: {fileID: 4800000, guid: 29c4adff654862b40a2e9fb2015a42c3,
-      type: 3}
-    colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}
+    colorGradient: {fileID: 0}
+  m_Version: 4

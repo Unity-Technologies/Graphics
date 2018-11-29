@@ -68,7 +68,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.IsFalse(node.drawState.expanded);
         }
 
-        private class SetErrorNode : TestNode
+        class SetErrorNode : TestNode
         {
             public void SetError()
             {

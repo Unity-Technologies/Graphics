@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
 
@@ -104,7 +103,7 @@ namespace UnityEditor.ShaderGraph
 
         public SubGraphNode()
         {
-            name = "Sub-graph";
+            name = "Sub Graph";
         }
 
         public override bool allowedInSubGraph
@@ -314,8 +313,16 @@ namespace UnityEditor.ShaderGraph
                 referencedGraph.OnEnable();
                 referencedGraph.ValidateGraph();
 
-                if (referencedGraph.GetNodes<INode>().Any(x => x.hasError))
-                    hasError = true;
+                var errorCount = referencedGraph.GetNodes<AbstractMaterialNode>().Count(x => x.hasError);
+
+                if (errorCount > 0)
+                {
+                    var plural = "";
+                    if (errorCount > 1)
+                        plural = "s";
+                    ((AbstractMaterialGraph) owner).AddValidationError(tempId,
+                        string.Format("Sub Graph contains {0} node{1} with errors", errorCount, plural));
+                }
             }
 
             ValidateShaderStage();
