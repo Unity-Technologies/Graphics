@@ -218,6 +218,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             List<Light2D> pointLights = Light2D.GetPointLights();
             if (pointLights != null && pointLights.Count > 0)
             {
+                cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
                 RenderNormals(renderContext, cullResults, drawSettings, filterSettings);
 
                 cmdBuffer.BeginSample("2D Point Lights");

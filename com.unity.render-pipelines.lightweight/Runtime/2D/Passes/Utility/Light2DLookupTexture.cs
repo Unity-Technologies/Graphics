@@ -39,6 +39,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                         // red   = 1-0 distance
                         // green  = 1-0 angle
+                        // blue = direction.x
+                        // alpha = direction.y
 
                         float red;
                         if (x == WIDTH - 1 || y == HEIGHT - 1)
@@ -50,7 +52,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         float angle = Mathf.Acos(cosAngle) / Mathf.PI; // 0-1 
 
                         float green = Mathf.Clamp(1 - angle, 0.0f, 1.0f);
-                        Color color = new Color(red, green, 0, 0);
+                        float blue = direction.x;
+                        float alpha = direction.y;
+
+                        Color color = new Color(red, green, blue, alpha);
+
                         
                         m_LightLookupTexture.SetPixel(x, y, color);
                     }

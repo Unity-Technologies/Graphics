@@ -34,9 +34,10 @@ uniform sampler2D _SpecularLightingTex;
 uniform sampler2D _AmbientLightingTex;
 uniform sampler2D _RimLightingTex;
 uniform sampler2D _PointLightingTex;
-uniform sampler2D _MainTex;
 uniform sampler2D _PointLightCookieTex;
+uniform sampler2D _MainTex;
 uniform fixed4 _MainTex_ST;
+
 uniform fixed4 _AmbientColor;
 
 uniform float4 _PointLightPosition;
@@ -116,7 +117,11 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 	#if USE_SPECULAR_TEXTURE
 		appliedSpecularColor = (mask.r * (specular.rgb + pointLightColor)) + diffuseColor.rgb;  // mask.r is the specular channel
 	#else
-		appliedSpecularColor = diffuseColor.rgb;
+		#if USE_POINT_LIGHTS
+			appliedSpecularColor = (mask.r * pointLightColor) + diffuseColor.rgb;
+		#else
+			appliedSpecularColor = diffuseColor.rgb;
+		#endif
 	#endif
 
 	// Rim calculation

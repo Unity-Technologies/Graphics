@@ -36,7 +36,7 @@
 				float2 screenUV : TEXCOORD1;
 				float2 lookupUV : TEXCOORD2;	   // This is used for light relative direction
 				float2 lookupNoRotUV : TEXCOORD3;  // This is used for screen relative direction of a light
-				float4 lightDirection: TEXCOORD4;
+				//float4 lightDirection: TEXCOORD4;
             };
 
             sampler2D _MainTex;
@@ -64,7 +64,7 @@
 				float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
 				o.lookupUV = 0.5 * (lightSpacePos.xy + 1);
 				o.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
-				o.lightDirection = worldSpacePos - _LightPosition;
+				//o.lightDirection = worldSpacePos - _LightPosition;
 
 				float4 clipVertex = o.vertex / o.vertex.w;
 				o.screenUV = ComputeScreenPos(clipVertex);
@@ -95,7 +95,7 @@
 				attenuation = attenuation * spotAttenuation;
 
 				// Calculate final color
-				half2 dirToLight = i.lightDirection.xy;
+				half2 dirToLight = half2(lookupValueNoRot.b, lookupValueNoRot.a);
 				half2 normal = half2(normalUnpacked.x, normalUnpacked.y);
 				half cosAngle = (1-usingDefaultNormalMap) * saturate(dot(dirToLight, normal)) + usingDefaultNormalMap;
 				half4 color = main.a *_LightColor * attenuation;
