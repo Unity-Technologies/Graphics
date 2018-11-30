@@ -171,25 +171,25 @@
 
 // Error on GLES2 undefined functions
 #ifdef SHADER_API_GLES
-#define BitFieldExtract ERROR_ON_UNSUPPORTED_FUNC(BitFieldExtract)
-#define IsBitSet ERROR_ON_UNSUPPORTED_FUNC(IsBitSet)
-#define SetBit ERROR_ON_UNSUPPORTED_FUNC(SetBit)
-#define ClearBit ERROR_ON_UNSUPPORTED_FUNC(ClearBit)
-#define ToggleBit ERROR_ON_UNSUPPORTED_FUNC(ToggleBit)
-#define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNC(FastMulBySignOfNegZero)
-#define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNC(LODDitheringTransition)
+#define BitFieldExtract ERROR_ON_UNSUPPORTED_FUNCTION(BitFieldExtract)
+#define IsBitSet ERROR_ON_UNSUPPORTED_FUNCTION(IsBitSet)
+#define SetBit ERROR_ON_UNSUPPORTED_FUNCTION(SetBit)
+#define ClearBit ERROR_ON_UNSUPPORTED_FUNCTION(ClearBit)
+#define ToggleBit ERROR_ON_UNSUPPORTED_FUNCTION(ToggleBit)
+#define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNCTION(FastMulBySignOfNegZero)
+#define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNCTION(LODDitheringTransition)
 #endif
 
 // On everything but GCN consoles we error on cross-lane operations
 #ifndef SUPPORTS_WAVE_INTRINSICS
-#define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNC(WaveActiveAllTrue)
-#define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNC(WaveActiveAnyTrue)
-#define WaveActiveMin ERROR_ON_UNSUPPORTED_FUNC(WaveActiveMin)
-#define WaveActiveMax ERROR_ON_UNSUPPORTED_FUNC(WaveActiveMax)
-#define WaveActiveBallot ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBallot)
-#define WaveActiveSum ERROR_ON_UNSUPPORTED_FUNC(WaveActiveSum)
-#define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBitAnd)
-#define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBitOr)
+#define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAllTrue)
+#define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAnyTrue)
+#define WaveActiveMin ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMin)
+#define WaveActiveMax ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMax)
+#define WaveActiveBallot ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBallot)
+#define WaveActiveSum ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveSum)
+#define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitAnd)
+#define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitOr)
 #endif
 
 #if !defined(SHADER_API_GLES)
