@@ -44,7 +44,6 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute PivotY              = new VFXAttribute("pivotY", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute PivotZ              = new VFXAttribute("pivotZ", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.Uint32);
-        public static readonly VFXAttribute ParticleIndex       = new VFXAttribute("particleIndex", VFXValueType.Uint32);
         public static readonly VFXAttribute AxisX               = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right));
         public static readonly VFXAttribute AxisY               = new VFXAttribute("axisY", VFXValue.Constant(Vector3.up));
         public static readonly VFXAttribute AxisZ               = new VFXAttribute("axisZ", VFXValue.Constant(Vector3.forward));
@@ -54,7 +53,7 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute EventCount          = new VFXAttribute("eventCount", VFXValueType.Uint32);
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
-        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, ParticleIndex };
+        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId };
         public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
         public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount };
 
@@ -122,6 +121,16 @@ namespace UnityEditor.VFX
                 return AllVariadicAttribute[index];
 
             throw new ArgumentException(string.Format("Unable to find attribute expression : {0}", attributeName));
+        }
+
+        public static bool Exist(string attributeName)
+        {
+            bool exist = Array.Exists(AllAttribute, e => e.name == attributeName);
+
+            if (!exist)
+                exist = Array.Exists(AllVariadicAttribute, e => e.name == attributeName);
+
+            return exist;
         }
 
         public string name;

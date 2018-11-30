@@ -139,7 +139,7 @@ namespace UnityEditor.VFX.Test
             }
 
             [VFXSetting]
-            public bool switchSourceCode;
+            public bool switchSourceCode = false;
 
             public static string[] sourceCodeVariant = { "/*rlbtmxcxbitlahdw*/", "/*qxrkittomkkiouqf*/" };
 
