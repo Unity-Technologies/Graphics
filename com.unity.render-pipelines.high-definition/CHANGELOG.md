@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.3.0-preview] - 2018-11-xx
 
 ### Fixed
+- Fixed logic to disable FPTL with stereo rendering
 - Fixed stacklit transmission and sun highlight
 
 ### Changed
