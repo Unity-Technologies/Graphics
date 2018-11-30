@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Errors in the compiled shader are now displayed as badges on the appropriate node.
 
+### Fixed
+- When you convert an inline node to a `Property` node, this no longer allows duplicate property names.
+- When you move a node, you'll now be asked to save the Graph file.
+- You can now Undo edits to Property parameters on the Blackboard.
+- You can now Undo conversions between `Property` nodes and inline nodes.
+- You can now Undo moving a node.
+- You can no longer select the `Texture2D` Property type `Mode`, if the Property is not exposed.
+- The `Vector1` Property type now handles default values more intuitively when switching `Mode` dropdown.
+- The `Color` node control is now a consistent width.
+- Function declarations no longer contain double delimiters.
+- The `Slider` node control now functions correctly.
+
 ## [5.2.0] - 2018-11-27
 ### Added
 - Shader Graph now has __Group Node__, where you can group together several nodes. You can use this to keep your Graphs organized and nice.

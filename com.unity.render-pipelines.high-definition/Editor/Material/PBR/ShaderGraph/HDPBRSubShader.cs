@@ -307,7 +307,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
                 "FragInputs.worldToTangent",
-                "FragInputs.positionRWS",
+                "FragInputs.positionRWS",	// NOTE : world-space pos is necessary for any lighting pass
                 "FragInputs.texCoord1",
                 "FragInputs.texCoord2"
             },

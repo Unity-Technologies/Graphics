@@ -37,7 +37,7 @@ real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_ARGS(textureName, samplerName),
 #define UNPACK_NORMAL_FUNC UnpackNormalmapRGorAG
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGorAG
 #endif
-#include "SampleUVMappingNormalInternal.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMappingNormalInternal.hlsl"
 #undef ADD_NORMAL_FUNC_SUFFIX
 #undef UNPACK_NORMAL_FUNC
 #undef UNPACK_DERIVATIVE_FUNC
@@ -46,7 +46,7 @@ real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_ARGS(textureName, samplerName),
 #define ADD_NORMAL_FUNC_SUFFIX(Name) Name##AG
 #define UNPACK_NORMAL_FUNC UnpackNormalAG
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
-#include "SampleUVMappingNormalInternal.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMappingNormalInternal.hlsl"
 #undef ADD_NORMAL_FUNC_SUFFIX
 #undef UNPACK_NORMAL_FUNC
 #undef UNPACK_DERIVATIVE_FUNC
@@ -55,7 +55,7 @@ real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_ARGS(textureName, samplerName),
 #define ADD_NORMAL_FUNC_SUFFIX(Name) Name##RGB
 #define UNPACK_NORMAL_FUNC UnpackNormalRGB
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGB
-#include "SampleUVMappingNormalInternal.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMappingNormalInternal.hlsl"
 #undef ADD_NORMAL_FUNC_SUFFIX
 #undef UNPACK_NORMAL_FUNC
 #undef UNPACK_DERIVATIVE_FUNC

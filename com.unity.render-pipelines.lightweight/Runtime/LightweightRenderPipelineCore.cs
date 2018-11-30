@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.LWRP
         public float maxShadowDistance;
         public bool postProcessEnabled;
         public PostProcessLayer postProcessLayer;
+        public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > captureActions;
     }
 
     public struct ShadowData
