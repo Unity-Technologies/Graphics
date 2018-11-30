@@ -64,13 +64,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const int AlphaSlotId = 13;
 
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
-        public const int AlphaThresholdSlotId = 14;
+        public const int AlphaClipThresholdSlotId = 14;
 
-        public const string AlphaClipThresholdDepthPrepassSlotName = "AlphaClipThresholdDepthPrepass";
-        public const int AlphaThresholdDepthPrepassSlotId = 15;
-
-        public const string AlphaClipThresholdDepthPostpassSlotName = "AlphaClipThresholdDepthPostpass";
-        public const int AlphaThresholdDepthPostpassSlotId = 16;
+        public const string BentNormalSlotName = "BentNormal";
+        public const int BentNormalSlotId = 15;
 
 
         public enum MaterialType
@@ -106,13 +103,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Anisotropy = 1 << AnisotropySlotId,
             Emission = 1 << EmissionSlotId,
             Alpha = 1 << AlphaSlotId,
-            AlphaThreshold = 1 << AlphaThresholdSlotId,
-            AlphaThresholdDepthPrepass = 1 << AlphaThresholdDepthPrepassSlotId,
-            AlphaThresholdDepthPostpass = 1 << AlphaThresholdDepthPostpassSlotId
+            AlphaClipThreshold = 1 << AlphaClipThresholdSlotId,
+            BentNormal = 1 << BentNormalSlotId
         }
 
-        const SlotMask CottonWoolSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.SpecularOcclusion | SlotMask.Normal | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Specular | SlotMask.DiffusionProfile | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.Emission | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass;
-        const SlotMask SilkSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.SpecularOcclusion | SlotMask.Normal | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Specular | SlotMask.DiffusionProfile | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.Emission | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass;
+        const SlotMask CottonWoolSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.SpecularOcclusion | SlotMask.Normal | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Specular | SlotMask.DiffusionProfile | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.Emission | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.BentNormal;
+        const SlotMask SilkSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.SpecularOcclusion | SlotMask.Normal | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Specular | SlotMask.DiffusionProfile | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.Emission | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.BentNormal;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
@@ -465,6 +461,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 validSlots.Add(NormalSlotId);
             }
 
+            // BentNormal
+            if (MaterialTypeUsesSlotMask(SlotMask.BentNormal))
+            {
+                AddSlot(new NormalMaterialSlot(BentNormalSlotId, BentNormalSlotName, BentNormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
+                validSlots.Add(BentNormalSlotId);
+            }
+
             // Smoothness
             if (MaterialTypeUsesSlotMask(SlotMask.Smoothness))
             {
@@ -536,24 +539,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             // Alpha threshold
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaThreshold) && alphaTest.isOn)
+            if (MaterialTypeUsesSlotMask(SlotMask.AlphaClipThreshold) && alphaTest.isOn)
             {
-                AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(AlphaThresholdSlotId);
-            }
-
-            // Alpha threshold depth prepass
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaThresholdDepthPrepass) && surfaceType == SurfaceType.Transparent && alphaTest.isOn && alphaTestDepthPrepass.isOn)
-            {
-                AddSlot(new Vector1MaterialSlot(AlphaThresholdDepthPrepassSlotId, AlphaClipThresholdDepthPrepassSlotName, AlphaClipThresholdDepthPrepassSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(AlphaThresholdDepthPrepassSlotId);
-            }
-
-            // Alpha threshold depth postpass
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaThresholdDepthPostpass) && surfaceType == SurfaceType.Transparent && alphaTest.isOn && alphaTestDepthPostpass.isOn)
-            {
-                AddSlot(new Vector1MaterialSlot(AlphaThresholdDepthPostpassSlotId, AlphaClipThresholdDepthPostpassSlotName, AlphaClipThresholdDepthPostpassSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(AlphaThresholdDepthPostpassSlotId);
+                AddSlot(new Vector1MaterialSlot(AlphaClipThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                validSlots.Add(AlphaClipThresholdSlotId);
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);
@@ -614,8 +603,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public bool RequiresSplitLighting()
         {
-            // TODO: Check this with SEB
-            return true;
+            return subsurfaceScattering.isOn;
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -633,29 +621,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             });
 
             base.CollectShaderProperties(collector, generationMode);
-        }
-
-        public int GetStencilWriteMask()
-        {
-            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            if (!m_ReceivesSSR)
-            {
-                stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            }
-            return stencilWriteMask;
-        }
-        public int GetStencilRef()
-        {
-            int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if (RequiresSplitLighting())
-            {
-                stencilRef = (int)StencilLightingUsage.SplitLighting;
-            }
-            if (!m_ReceivesSSR)
-            {
-                stencilRef |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            }
-            return stencilRef;
         }
     }
 }
