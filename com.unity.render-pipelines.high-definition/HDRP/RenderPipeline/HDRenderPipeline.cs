@@ -1185,6 +1185,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
+                        // Render color pyramid again to include forward transparent items.
+                        RenderColorPyramid(hdCamera, cmd, renderContext, true);
+
                         // Render All forward error
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd);
 
