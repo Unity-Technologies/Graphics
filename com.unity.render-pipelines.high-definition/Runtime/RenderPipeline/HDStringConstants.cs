@@ -384,7 +384,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _Source = Shader.PropertyToID("_Source");
         public static readonly int _Destination = Shader.PropertyToID("_Destination");
         public static readonly int _Mip0 = Shader.PropertyToID("_Mip0");
+        public static readonly int _SourceMip = Shader.PropertyToID("_SourceMip");
         public static readonly int _SrcOffsetAndLimit = Shader.PropertyToID("_SrcOffsetAndLimit");
+        public static readonly int _SrcScaleBias = Shader.PropertyToID("_SrcScaleBias");
+        public static readonly int _SrcUvLimits = Shader.PropertyToID("_SrcUvLimits");
         public static readonly int _DstOffset         = Shader.PropertyToID("_DstOffset");
         public static readonly int _DepthMipChain = Shader.PropertyToID("_DepthMipChain");
 

@@ -228,8 +228,8 @@ Shader "Hidden/HDRenderPipeline/Fabric"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl"
-            #include "ShaderPass/FabricDepthPass.hlsl"
-            #include "FabricData.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/ShaderPass/FabricDepthPass.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -254,9 +254,9 @@ Shader "Hidden/HDRenderPipeline/Fabric"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl"
-            #include "ShaderPass/FabricSharePass.hlsl"
-            #include "FabricData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/ShaderPass/FabricSharePass.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricData.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
         }
@@ -281,9 +281,9 @@ Shader "Hidden/HDRenderPipeline/Fabric"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl"
-            #include "ShaderPass/FabricDepthPass.hlsl"
-            #include "FabricData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/ShaderPass/FabricDepthPass.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricData.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
         }
@@ -314,9 +314,9 @@ Shader "Hidden/HDRenderPipeline/Fabric"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl"
-            #include "ShaderPass/FabricSharePass.hlsl"
-            #include "FabricData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/ShaderPass/FabricSharePass.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricData.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
         }
@@ -382,9 +382,9 @@ Shader "Hidden/HDRenderPipeline/Fabric"
 
             //...this will include #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl" but also LightLoop which the forward pass directly uses.
 
-            #include "ShaderPass/FabricSharePass.hlsl"
-            #include "FabricData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/ShaderPass/FabricSharePass.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricData.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
         }

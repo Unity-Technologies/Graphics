@@ -2,7 +2,7 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in Fabric.cs which generates Fabric.cs.hlsl
-#include "Fabric.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
@@ -391,7 +391,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                     bsdfData, bsdfData.normalWS, V);
 }
 
-#include "FabricReference.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricReference.hlsl"
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------

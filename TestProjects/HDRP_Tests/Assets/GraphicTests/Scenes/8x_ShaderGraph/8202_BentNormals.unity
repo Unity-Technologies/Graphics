@@ -94,7 +94,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
     m_ExportTrainingData: 0
-  m_LightingDataAsset: {fileID: 112000002, guid: 35472ddaa5af0fc4b9722a5392cefd98,
+  m_LightingDataAsset: {fileID: 112000004, guid: 35472ddaa5af0fc4b9722a5392cefd98,
     type: 2}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -191,7 +191,7 @@ PrefabInstance:
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
-      value: 0.0002
+      value: 0.001
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}

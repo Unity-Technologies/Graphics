@@ -1,4 +1,4 @@
-#include "Decal.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 
 #ifndef SCALARIZE_LIGHT_LOOP
 #define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && defined(LIGHTLOOP_TILE_PASS) && SHADERPASS == SHADERPASS_FORWARD)

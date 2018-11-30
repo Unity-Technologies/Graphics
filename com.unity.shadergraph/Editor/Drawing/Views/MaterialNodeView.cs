@@ -197,8 +197,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             ClearError();
             var badge = IconBadge.CreateError(errString);
             Add(badge);
-            var title = this.Q("title");
-            badge.AttachTo(title, SpriteAlignment.RightCenter);
+            var myTitle = this.Q("title");
+            badge.AttachTo(myTitle, SpriteAlignment.RightCenter);
         }
 
         public void ClearError()

@@ -2,7 +2,7 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#include "VertMesh.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
