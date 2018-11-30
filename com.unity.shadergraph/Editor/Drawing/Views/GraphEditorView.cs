@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.StyleSheets;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
@@ -484,6 +485,35 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in nodesToUpdate)
                 node.UpdatePortInputVisibilities();
+
+            foreach (var slice in m_Graph.createdControlsSlices)
+            {
+                var nodeState = slice.nodeTypeState;
+                for (var i = slice.startIndex; i < slice.startIndex + slice.length; i++)
+                {
+                    var controlRef = m_Graph.createdControls[i];
+                    var initialControl = nodeState.controls[controlRef.index];
+                    var node = (AbstractMaterialNode) m_Graph.GetNodeFromTempId(initialControl.nodeId);
+                    var nodesResult = ListPool<Node>.Get();
+                    graphView.nodes.ToList(nodesResult);
+                    var nodeView = nodesResult.OfType<MaterialNodeView>().First(x => x.node == node);
+                    ListPool<Node>.Release(nodesResult);
+
+                    Vector4 Getter() => new Vector4(nodeState.controls[controlRef.index].value, 0);
+
+                    void Setter(Vector4 value)
+                    {
+                        var control = nodeState.controls[controlRef.index];
+                        control.value = value.x;
+                        control.wasModified = true;
+                        nodeState.controls[controlRef.index] = control;
+                        nodeState.modifiedNodes.Add(node.tempId.index);
+                    }
+
+                    nodeView.AddControl(new MultiFloatControlView(initialControl.label, null, null, null, null, node,
+                        typeof(float), Getter, Setter));
+                }
+            }
 
             UpdateEdgeColors(nodesToUpdate);
         }
