@@ -96,7 +96,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     for (int i = 0; i < lights.Count; i++)
                     {
                         Light2D light = lights[i];
-                        if (light.IsLitLayer(layerToRender) && light.isActiveAndEnabled)
+                        
+                        if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled)
                         {
                             Material shapeLightMaterial = light.GetMaterial();
                             if (shapeLightMaterial != null)

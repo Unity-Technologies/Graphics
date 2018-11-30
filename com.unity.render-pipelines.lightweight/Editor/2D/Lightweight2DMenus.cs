@@ -13,13 +13,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             GameObject go = new GameObject("New Light 2d");
             go.AddComponent<Light2D>();
         }
-
-        [MenuItem("GameObject/2D Object/Lit Sprite")]
-        static void CreateLitSprite()
-        {
-            GameObject go = new GameObject("New Lit Sprite");
-            SpriteRenderer sprite = go.AddComponent<SpriteRenderer>();
-            sprite.material = new Material(Shader.Find("Lightweight Render Pipeline/2D/Sprite-Lit-Default"));
-        }
     }
 }
