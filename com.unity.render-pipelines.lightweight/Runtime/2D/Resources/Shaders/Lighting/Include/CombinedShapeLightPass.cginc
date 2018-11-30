@@ -38,7 +38,6 @@ uniform sampler2D _MainTex;
 uniform sampler2D _PointLightCookieTex;
 uniform fixed4 _MainTex_ST;
 uniform fixed4 _AmbientColor;
-uniform fixed4 _RimColor;
 
 uniform float4 _PointLightPosition;
 uniform float4 _PointLightColor;
@@ -83,39 +82,50 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 
 	fixed4 specular = 0;
 	#if USE_SPECULAR_TEXTURE
-		specular = tex2D(_SpecularLightingTex, i.lightingUV);
+		specular = tex2D(_SpecularLightingTex, i.lightingUV) * _LightIntensityScale;
 	#else
-		specular.rgb = 0;
-		specular.a = 0;
+		specular = 0;
 	#endif
-	specular = specular * _LightIntensityScale;
 
 	fixed4 ambientColor;
 	#if USE_AMBIENT_TEXTURE
-		ambientColor = tex2D(_AmbientLightingTex, i.lightingUV);
+		ambientColor = tex2D(_AmbientLightingTex, i.lightingUV) * mask.b * _LightIntensityScale;  // mask.b is the ambient occlusion channel
 	#else
-		ambientColor = _AmbientColor;
+		ambientColor = _AmbientColor * _LightIntensityScale;
 	#endif
-	ambientColor = ambientColor * mask.b * _LightIntensityScale; // mask is ambient occulusion
-
+	
 	fixed4 rimColor;
 	#if USE_RIM_TEXTURE
-		rimColor = tex2D(_RimLightingTex, i.lightingUV);
+		rimColor = tex2D(_RimLightingTex, i.lightingUV) * _LightIntensityScale;
 	#else
-		rimColor = _RimColor;
+		rimColor = 0;
 	#endif
-	rimColor = rimColor * _LightIntensityScale;
 
-	fixed3 pointLightColor = tex2D(_PointLightingTex, i.lightingUV) *  _LightIntensityScale;
+	fixed3 pointLightColor;
+	#if USE_POINT_LIGHTS
+		pointLightColor = tex2D(_PointLightingTex, i.lightingUV) *  _LightIntensityScale;
+	#else
+		pointLightColor = 0;
+	#endif
 
 	// Diffuse calculation
 	fixed3 diffuseColor = main.rgb * (specular.rgb + pointLightColor + ambientColor.rgb);
 
 	// Specular calculation
-	fixed3 appliedSpecularColor = (mask.r * (specular.rgb + pointLightColor)) + diffuseColor.rgb;
+	fixed3 appliedSpecularColor;
+	#if USE_SPECULAR_TEXTURE
+		appliedSpecularColor = (mask.r * (specular.rgb + pointLightColor)) + diffuseColor.rgb;  // mask.r is the specular channel
+	#else
+		appliedSpecularColor = diffuseColor.rgb;
+	#endif
 
-	fixed rimAlpha = mask.g;
-	fixed3 appliedRimColor = rimAlpha * rimColor.rgb + appliedSpecularColor;
+	// Rim calculation
+	fixed3 appliedRimColor;
+	#if USE_RIM_TEXTURE
+		appliedRimColor = mask.g * rimColor.rgb + appliedSpecularColor;  // mask.g is the rim channel
+	#else
+		appliedRimColor = appliedSpecularColor;
+	#endif
 
 	fixed4 finalOutput;
 	finalOutput.rgb = appliedRimColor;
