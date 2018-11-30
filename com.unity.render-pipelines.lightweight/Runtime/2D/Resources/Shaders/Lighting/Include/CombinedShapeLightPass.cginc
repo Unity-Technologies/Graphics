@@ -30,10 +30,6 @@ uniform fixed4 _MaskTex_ST;
 uniform sampler2D _NormalMap;
 uniform fixed4 _NormalMap_ST;
 
-uniform float _SpecularMultiplier;
-uniform float _AmbientMultiplier;
-uniform float _RimMultiplier;
-
 uniform sampler2D _SpecularLightingTex;
 uniform sampler2D _AmbientLightingTex;
 uniform sampler2D _RimLightingTex;
@@ -85,17 +81,14 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 	fixed4 main = i.color * tex2D(_MainTex, i.uv);
 	fixed4 mask = tex2D(_MaskTex, i.uv);									// Mask Order (For RGBA) - Specular, Rim, Ambient Occlusion
 
-	fixed4 shapeLight = 0;
+	fixed4 specular = 0;
 	#if USE_SPECULAR_TEXTURE
-		shapeLight = tex2D(_SpecularLightingTex, i.lightingUV);
+		specular = tex2D(_SpecularLightingTex, i.lightingUV);
 	#else
-		shapeLight.rgb = 0;
-		shapeLight.a = 0;
+		specular.rgb = 0;
+		specular.a = 0;
 	#endif
-	shapeLight = shapeLight * _LightIntensityScale;
-
-	fixed maxValue = max(shapeLight.r, max(shapeLight.g, shapeLight.b));
-	fixed3 shapeLightClampColor = (shapeLight.rgb / maxValue);
+	specular = specular * _LightIntensityScale;
 
 	fixed4 ambientColor;
 	#if USE_AMBIENT_TEXTURE
@@ -103,8 +96,7 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 	#else
 		ambientColor = _AmbientColor;
 	#endif
-	ambientColor = _AmbientMultiplier * ambientColor * mask.b * _LightIntensityScale; // mask is ambient occulusion
-
+	ambientColor = ambientColor * mask.b * _LightIntensityScale; // mask is ambient occulusion
 
 	fixed4 rimColor;
 	#if USE_RIM_TEXTURE
@@ -112,27 +104,18 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 	#else
 		rimColor = _RimColor;
 	#endif
-	rimColor = _RimMultiplier * rimColor * _LightIntensityScale;
+	rimColor = rimColor * _LightIntensityScale;
 
 	fixed3 pointLightColor = tex2D(_PointLightingTex, i.lightingUV) *  _LightIntensityScale;
-	//float pointMaxValue = max(pointLightColor.r, max(pointLightColor.g, pointLightColor.b));
-	//fixed3 pointLightClampColor = (_PointLightColor.rgb / pointMaxValue);
-	fixed3 pointLightClampColor = fixed3(1, 1, 1);
 
 	// Diffuse calculation
-	fixed3 diffuseAmbientLight = ambientColor.rgb * main.rgb;
-	fixed3 diffuseShapeLight = clamp(shapeLight.rgb * shapeLight.a * main.rgb, 0, shapeLightClampColor);  // Clamp is pretty expensive
-	fixed3 diffusePointLight = clamp(pointLightColor * main.rgb, 0, pointLightClampColor);   // Clamp is pretty expensive
-	fixed3 diffuseColor = diffuseShapeLight + diffusePointLight + diffuseAmbientLight;
+	fixed3 diffuseColor = main.rgb * (specular.rgb + pointLightColor + ambientColor.rgb);
 
 	// Specular calculation
-	fixed specularAlpha = mask.r;
-	fixed3 specularShapeLight = clamp(shapeLight.a * shapeLight.rgb, 0, shapeLightClampColor);
-	fixed3 specularPointLight = clamp(pointLightColor, 0, pointLightClampColor);
-	fixed3 specularColor = (specularAlpha * _SpecularMultiplier * (specularShapeLight + specularPointLight)) + diffuseColor.rgb;
+	fixed3 appliedSpecularColor = (mask.r * (specular.rgb + pointLightColor)) + diffuseColor.rgb;
 
-	fixed rimAlpha = rimColor.a * mask.g;
-	fixed3 appliedRimColor = rimAlpha * rimColor.rgb + specularColor;
+	fixed rimAlpha = mask.g;
+	fixed3 appliedRimColor = rimAlpha * rimColor.rgb + appliedSpecularColor;
 
 	fixed4 finalOutput;
 	finalOutput.rgb = appliedRimColor;
