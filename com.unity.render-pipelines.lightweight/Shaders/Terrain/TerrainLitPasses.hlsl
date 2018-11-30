@@ -227,11 +227,16 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     half weight;
     half4 mixedDiffuse;
     half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
+    defaultSmoothness += half4(_MaskMapRemapOffset0.a, _MaskMapRemapOffset1.a, _MaskMapRemapOffset2.a, _MaskMapRemapOffset3.a);
+    defaultSmoothness *= half4(_MaskMapRemapScale0.a, _MaskMapRemapScale1.a, _MaskMapRemapScale2.a, _MaskMapRemapScale3.a);
     SplatmapMix(IN, defaultSmoothness, splatControl, weight, mixedDiffuse, normalTS);
 
     half3 albedo = mixedDiffuse.rgb;
     half smoothness = mixedDiffuse.a;
-    half metallic = dot(splatControl, half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3));
+    half4 defaultMetallic = half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3);
+    defaultMetallic += half4(_MaskMapRemapOffset0.r, _MaskMapRemapOffset1.r, _MaskMapRemapOffset2.r, _MaskMapRemapOffset3.r);
+    defaultMetallic *= half4(_MaskMapRemapScale0.r, _MaskMapRemapScale1.r, _MaskMapRemapScale3.r, _MaskMapRemapScale3.r);
+    half metallic = dot(splatControl, defaultMetallic);
     half alpha = weight;
 #endif
 
