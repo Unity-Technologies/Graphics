@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed bent Normal for Fabric master node in shader graph
 - Fixed PBR master node lightlayers
 - Fixed stacklit transmission and sun highlight
+- Fixed logic to disable FPTL with stereo rendering
 
 ### Changed
 - Added a StackLit master node replacing the InspectorUI version. IMPORTANT: All previously authored StackLit Materials will be lost. You need to recreate them with the master node.
