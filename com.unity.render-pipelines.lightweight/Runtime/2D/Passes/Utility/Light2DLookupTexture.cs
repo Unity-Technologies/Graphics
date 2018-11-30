@@ -14,8 +14,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             const float WIDTH = 256;
             const float HEIGHT = 256;
+            TextureFormat textureFormat = TextureFormat.ARGB32;
+            if (SystemInfo.SupportsTextureFormat(TextureFormat.RGBAHalf))
+                textureFormat = TextureFormat.RGBAHalf;
+            else if (SystemInfo.SupportsTextureFormat(TextureFormat.RGBAFloat))
+                textureFormat = TextureFormat.RGBAFloat;
 
-            m_LightLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT, TextureFormat.RGBAHalf, false);
+            m_LightLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT, textureFormat, false);
             m_LightLookupTexture.filterMode = FilterMode.Bilinear;
             m_LightLookupTexture.wrapMode = TextureWrapMode.Clamp;
             if (m_LightLookupTexture != null)
@@ -34,8 +39,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                         // red   = 1-0 distance
                         // green  = 1-0 angle
-                        // blue = direction.x
-                        // alpha = direction.y
 
                         float red;
                         if (x == WIDTH - 1 || y == HEIGHT - 1)
@@ -46,12 +49,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         float cosAngle = Vector2.Dot(Vector2.down, relPos.normalized);
                         float angle = Mathf.Acos(cosAngle) / Mathf.PI; // 0-1 
 
-                        //float angle = (Mathf.Acos(x/WIDTH) / (2 * Mathf.PI)); // 0-1 
                         float green = Mathf.Clamp(1 - angle, 0.0f, 1.0f);
-                        float blue = direction.x;
-                        float alpha = direction.y;
-
-                        Color color = new Color(red, green, blue, alpha);
+                        Color color = new Color(red, green, 0, 0);
+                        
                         m_LightLookupTexture.SetPixel(x, y, color);
                     }
                 }

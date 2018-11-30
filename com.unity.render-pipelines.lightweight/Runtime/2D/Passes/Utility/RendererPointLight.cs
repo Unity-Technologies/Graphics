@@ -268,6 +268,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         float outerAngle = GetNormalizedAngle(light.m_PointLightOuterAngle);
                         float innerRadiusMult = 1 / (1 - innerRadius);
 
+                        cmdBuffer.SetGlobalVector("_LightPosition", light.transform.position);
                         cmdBuffer.SetGlobalMatrix("_LightInvMatrix", lightInverseMatrix);
                         cmdBuffer.SetGlobalMatrix("_LightNoRotInvMatrix", lightNoRotInverseMatrix);
                         cmdBuffer.SetGlobalFloat("_InnerRadiusMult", innerRadiusMult);
