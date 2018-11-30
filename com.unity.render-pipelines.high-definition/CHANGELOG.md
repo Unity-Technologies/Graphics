@@ -27,9 +27,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed divide by 0 in refraction causing NaN
 - Fixed disable rough refraction support
 - Fixed refraction, SSS and atmospheric scattering for VR
-- Fixed forward clustered lighting for VR (double-wide)
+- Fixed forward clustered lighting for VR (double-wide).
 - Fixed Light's UX to not allow negative intensity
 - Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
+- Fixed forward clustered lighting for VR (double-wide).
+- Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
+- Fixed Decals and SSR diable flags for all shader graph master node (Lit, Fabric, StackLit, PBR)
+- Fixed Distortion blend mode for shader graph master node (Lit, StackLit)
+- Fixed bent Normal for Fabric master node in shader graph
+- Fixed PBR master node lightlayers
 
 ### Changed
 - Rename "Regular" in Diffusion profile UI "Thick Object"
