@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             set
             {
                 m_TypeState = value;
-                m_ShaderNodeTypeName = value?.shaderNodeType.GetType().FullName;
+                m_ShaderNodeTypeName = value?.baseNodeType.GetType().FullName;
             }
         }
 
@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
 
             if (typeState != null)
             {
-                m_ShaderNodeTypeName = typeState.shaderNodeType.GetType().FullName;
+                m_ShaderNodeTypeName = typeState.baseNodeType.GetType().FullName;
             }
         }
 
@@ -114,10 +114,10 @@ namespace UnityEditor.ShaderGraph
         public void UpdateStateReference()
         {
             var materialOwner = (AbstractMaterialGraph)owner;
-            typeState = materialOwner.nodeTypeStates.FirstOrDefault(x => x.shaderNodeType.GetType().FullName == shaderNodeTypeName);
+            typeState = materialOwner.nodeTypeStates.FirstOrDefault(x => x.baseNodeType.GetType().FullName == shaderNodeTypeName);
             if (typeState == null)
             {
-                throw new InvalidOperationException($"Cannot find an {nameof(IShaderNodeType)} with type name {shaderNodeTypeName}");
+                throw new InvalidOperationException($"Cannot find an {nameof(ShaderNodeType)} with type name {shaderNodeTypeName}");
             }
             UpdateSlots();
         }
@@ -256,27 +256,20 @@ namespace UnityEditor.ShaderGraph
         // TODO: This should be inserted at a higher level, but it will do for now
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
-            var i = 0;
-            foreach (var source in typeState.hlslSources)
+            registry.ProvideFunction(function.source.value, builder =>
             {
-                var name = $"{typeState.shaderNodeType.GetType().FullName?.Replace(".", "_")}_{i}";
-                registry.ProvideFunction(name, builder =>
+                switch (function.source.type)
                 {
-                    switch (source.type)
-                    {
-                        case HlslSourceType.File:
-                            builder.AppendLine($"#include \"{source.source}\"");
-                            break;
-                        case HlslSourceType.String:
-                            builder.AppendLines(source.source);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                });
-
-                i++;
-            }
+                    case HlslSourceType.File:
+                        builder.AppendLine($"#include \"{function.source.value}\"");
+                        break;
+                    case HlslSourceType.String:
+                        builder.AppendLines(function.source.value);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            });
         }
 
         public override void GetSourceAssetDependencies(List<string> paths)
@@ -285,7 +278,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (source.type == HlslSourceType.File)
                 {
-                    paths.Add(source.source);
+                    paths.Add(source.value);
                 }
             }
         }

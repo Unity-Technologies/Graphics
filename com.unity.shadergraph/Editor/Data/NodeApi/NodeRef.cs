@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_CurrentSetupContextId != m_Graph.currentContextId)
             {
-                throw new InvalidOperationException($"{nameof(NodeRef)} is only valid during the call to {nameof(IShaderNodeType)}.{nameof(IShaderNodeType.OnChange)} it was provided for.");
+                throw new InvalidOperationException($"{nameof(NodeRef)} is only valid during the {nameof(ShaderNodeType)} it was provided for.");
             }
         }
     }

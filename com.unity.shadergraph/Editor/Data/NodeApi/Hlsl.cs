@@ -1,28 +1,29 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.ShaderGraph
 {
-    struct HlslSource
+    public struct HlslSource
     {
-        public HlslSourceType type;
-        public string source;
-    }
+        public HlslSourceType type { get; private set; }
+        public string value { get; private set; }
 
-    public struct HlslSourceRef
-    {
-        // TODO: Use versioning
-        readonly int m_Index;
-
-        internal int index => m_Index - 1;
-
-        public bool isValid => index > 0;
-
-        internal HlslSourceRef(int index)
+        public static HlslSource File(string source)
         {
-            m_Index = index + 1;
+            if (!System.IO.File.Exists(Path.GetFullPath(source)))
+            {
+                throw new ArgumentException($"Cannot open file at \"{source}\"");
+            }
+            
+            return new HlslSource
+            {
+                type = HlslSourceType.File,
+                value = source
+            };
         }
     }
 
@@ -110,7 +111,7 @@ namespace UnityEditor.ShaderGraph
 
     public struct HlslFunctionDescriptor
     {
-        public HlslSourceRef source { get; set; }
+        public HlslSource source { get; set; }
         public string name { get; set; }
         public HlslArgumentList arguments { get; set; }
         public OutputPortRef returnValue { get; set; }

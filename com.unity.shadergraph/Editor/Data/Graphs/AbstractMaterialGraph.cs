@@ -247,26 +247,47 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var type in assembly.GetTypes())
                 {
-                    if (type == typeof(IShaderNodeType) || type == typeof(object) || !typeof(IShaderNodeType).IsAssignableFrom(type))
+                    if (type.IsAbstract || type == typeof(object) || !typeof(ShaderNodeType).IsAssignableFrom(type))
                     {
                         continue;
+                    }
+
+                    var typeHasError = false;
+
+                    if (!type.IsSealed)
+                    {
+                        // There are performance benefits to be had if the class is sealed. Users can still do
+                        // inheritance if they insist, but the leaf class must be sealed. I think it's reasonable to
+                        // require that you cannot have a node inheriting from another node, but instead have to put
+                        // whatever common functionality you have into an abstract base class.
+                        Debug.LogError($"{type.FullName} implements {nameof(ShaderNodeType)}, but is not sealed.");
+                        typeHasError = true;
                     }
 
                     var constructor = type.GetConstructor(Type.EmptyTypes);
                     if (constructor == null)
                     {
-                        Debug.LogError($"{type.FullName} implements {nameof(IShaderNodeType)}, but does not have a public, parameterless constructor.");
+                        Debug.LogError($"{type.FullName} implements {nameof(ShaderNodeType)}, but does not have a public, parameterless constructor.");
+                        typeHasError = true;
+                    }
+
+                    if (typeHasError)
+                    {
                         continue;
                     }
 
                     try
                     {
-                        var state = new NodeTypeState { id = nodeTypeStates.Count, owner = this, shaderNodeType = (IShaderNodeType)constructor.Invoke(null) };
+                        var stateType = typeof(NodeTypeState<>).MakeGenericType(type);
+                        var state = (NodeTypeState)stateType.GetConstructor(Type.EmptyTypes).Invoke(null);
+                        state.id = nodeTypeStates.Count;
+                        state.owner = this;
+                        state.baseNodeType = (ShaderNodeType)constructor.Invoke(null);
                         var context = new NodeSetupContext(this, m_CurrentContextId, state);
-                        state.shaderNodeType.Setup(ref context);
+                        state.baseNodeType.Setup(ref context);
                         if (!context.nodeTypeCreated)
                         {
-                            throw new InvalidOperationException($"An {nameof(IShaderNodeType)} must provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
+                            throw new InvalidOperationException($"An {nameof(ShaderNodeType)} must provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
                         }
                         nodeTypeStates.Add(state);
                     }
@@ -290,10 +311,10 @@ namespace UnityEditor.ShaderGraph
                 if (state.isDirty)
                 {
                     var previousCreatedControlsCount = createdControls.Count;
-                    var context = new NodeTypeChangeContext(this, m_CurrentContextId, state, createdControls);
+                    var context = new NodeChangeContext(this, m_CurrentContextId, state, createdControls);
                     try
                     {
-                        state.shaderNodeType.OnChange(ref context);
+                        state.DispatchChanges(context);
                     }
                     catch (Exception e)
                     {

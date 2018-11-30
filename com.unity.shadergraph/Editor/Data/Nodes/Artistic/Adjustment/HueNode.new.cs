@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    class NewHueNode : IShaderNodeType
+    sealed class NewHueNode : ShaderNodeType
     {
         InputPortRef m_InPort;
         InputPortRef m_OffsetPort;
         OutputPortRef m_OutPort;
 
-        public void Setup(ref NodeSetupContext context)
+        public override void Setup(ref NodeSetupContext context)
         {
             m_InPort = context.CreateInputPort(0, "In", PortValue.Vector3());
             m_OffsetPort = context.CreateInputPort(1, "Offset", PortValue.Vector1(0.5f));
@@ -25,46 +24,34 @@ namespace UnityEditor.ShaderGraph
             context.CreateType(type);
         }
 
-        HlslSourceRef m_Source;
-
-        public void OnChange(ref NodeTypeChangeContext context)
+        public override void OnNodeAdded(NodeChangeContext context, NodeRef node)
         {
-            // TODO: Figure out what should cause the user to create the hlsl source
-            // TODO: How does sharing files between multiple node types work?
-            if (!m_Source.isValid)
+            var data = (HueData) context.GetData(node);
+            if (data == null)
             {
-                m_Source = context.CreateHlslSource("Packages/com.unity.shadergraph/Editor/Data/Nodes/Artistic/Adjustment/HueNode.hlsl");
+                data = new HueData { offsetFactor = 1f };
+                context.SetData(node, data);
             }
 
-            foreach (var node in context.addedNodes)
+            data.offsetFactorControl = context.CreateControl(node, "Offset Factor", data.offsetFactor);
+            data.offsetFactorValue = context.CreateHlslValue(data.offsetFactor);
+
+            context.SetHlslFunction(node, new HlslFunctionDescriptor
             {
-                var data = (HueData) context.GetData(node);
-                if (data == null)
-                {
-                    data = new HueData { offsetFactor = 1f };
-                    context.SetData(node, data);
-                }
+                source = HlslSource.File("Packages/com.unity.shadergraph/Editor/Data/Nodes/Artistic/Adjustment/HueNode.hlsl"),
+                name = "Unity_Hue",
+                arguments = new HlslArgumentList { m_InPort, m_OffsetPort, data.offsetFactorValue },
+                returnValue = m_OutPort
+            });
+        }
 
-                data.offsetFactorControl = context.CreateControl(node, "Offset Factor", data.offsetFactor);
-                data.offsetFactorValue = context.CreateHlslValue(data.offsetFactor);
-
-                context.SetHlslFunction(node, new HlslFunctionDescriptor
-                {
-                    source = m_Source,
-                    name = "Unity_Hue",
-                    arguments = new HlslArgumentList { m_InPort, m_OffsetPort, data.offsetFactorValue },
-                    returnValue = m_OutPort
-                });
-            }
-
-            foreach (var node in context.modifiedNodes)
+        public override void OnNodeModified(NodeChangeContext context, NodeRef node)
+        {
+            var data = (HueData) context.GetData(node);
+            if (context.WasControlModified(data.offsetFactorControl))
             {
-                var data = (HueData) context.GetData(node);
-                if (context.WasControlModified(data.offsetFactorControl))
-                {
-                    data.offsetFactor = context.GetControlValue(data.offsetFactorControl);
-                    context.SetHlslValue(data.offsetFactorValue, data.offsetFactor);
-                }
+                data.offsetFactor = context.GetControlValue(data.offsetFactorControl);
+                context.SetHlslValue(data.offsetFactorValue, data.offsetFactor);
             }
         }
 

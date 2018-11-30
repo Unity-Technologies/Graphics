@@ -5,14 +5,14 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public struct NodeTypeChangeContext
+    public struct NodeChangeContext
     {
         readonly AbstractMaterialGraph m_Graph;
         readonly int m_Id;
         readonly NodeTypeState m_TypeState;
         readonly List<ControlRef> m_CreatedControls;
 
-        internal NodeTypeChangeContext(AbstractMaterialGraph graph, int id, NodeTypeState typeState, List<ControlRef> createdControls) : this()
+        internal NodeChangeContext(AbstractMaterialGraph graph, int id, NodeTypeState typeState, List<ControlRef> createdControls) : this()
         {
             m_Graph = graph;
             m_Id = id;
@@ -25,10 +25,6 @@ namespace UnityEditor.ShaderGraph
         internal int id => m_Id;
 
         internal NodeTypeState typeState => m_TypeState;
-
-        public NodeRefEnumerable addedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.addedNodes);
-
-        public NodeRefEnumerable modifiedNodes => new NodeRefEnumerable(m_Graph, m_Id, m_TypeState.modifiedNodes);
 
         public object GetData(NodeRef nodeRef)
         {
@@ -53,20 +49,6 @@ namespace UnityEditor.ShaderGraph
 
             // TODO: Maybe do a proper check for whether the type is serializable?
             nodeRef.node.data = value;
-        }
-
-        public HlslSourceRef CreateHlslSource(string source, HlslSourceType type = HlslSourceType.File)
-        {
-            Validate();
-
-            if (type == HlslSourceType.File && !File.Exists(Path.GetFullPath(source)))
-            {
-                throw new ArgumentException($"Cannot open file at \"{source}\"");
-            }
-
-            var hlslSourceRef = new HlslSourceRef(m_TypeState.hlslSources.Count);
-            m_TypeState.hlslSources.Add(new HlslSource { source = source, type = type });
-            return hlslSourceRef;
         }
 
         public void SetHlslFunction(NodeRef nodeRef, HlslFunctionDescriptor functionDescriptor)
@@ -142,7 +124,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_Id != m_Graph.currentContextId)
             {
-                throw new InvalidOperationException($"{nameof(NodeTypeChangeContext)} is only valid during the call to {nameof(IShaderNodeType)}.{nameof(IShaderNodeType.OnChange)} it was provided for.");
+                throw new InvalidOperationException($"{nameof(NodeChangeContext)} is only valid during the {nameof(ShaderNodeType)} it was provided for.");
             }
         }
     }

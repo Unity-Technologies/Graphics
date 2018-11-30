@@ -3,11 +3,10 @@ using System.Linq;
 
 namespace UnityEditor.ShaderGraph
 {
-    class NodeTypeState
+    abstract class NodeTypeState
     {
         public int id;
         public AbstractMaterialGraph owner;
-        public IShaderNodeType shaderNodeType;
         public NodeTypeDescriptor type;
         public List<InputPortDescriptor> inputPorts = new List<InputPortDescriptor>();
         public List<OutputPortDescriptor> outputPorts = new List<OutputPortDescriptor>();
@@ -35,6 +34,36 @@ namespace UnityEditor.ShaderGraph
                 var control = controls[i];
                 control.wasModified = false;
                 controls[i] = control;
+            }
+        }
+        
+        public abstract ShaderNodeType baseNodeType { get; set; }
+
+        public abstract void DispatchChanges(NodeChangeContext context);
+    }
+
+    // This construction allows us to move the virtual call to outside the loop. The calls to the ShaderNodeType in
+    // DispatchChanges are to a generic type parameter, and thus will be devirtualized if T is a sealed class.
+    sealed class NodeTypeState<T> : NodeTypeState where T : ShaderNodeType
+    {
+        public T nodeType { get; set; }
+
+        public override ShaderNodeType baseNodeType
+        {
+            get => nodeType;
+            set => nodeType = (T)value;
+        }
+
+        public override void DispatchChanges(NodeChangeContext context)
+        {
+            foreach (var node in addedNodes)
+            {
+                nodeType.OnNodeAdded(context, new NodeRef(owner, owner.currentContextId, (ProxyShaderNode)owner.m_Nodes[node]));
+            }
+            
+            foreach (var node in modifiedNodes)
+            {
+                nodeType.OnNodeModified(context, new NodeRef(owner, owner.currentContextId, (ProxyShaderNode)owner.m_Nodes[node]));
             }
         }
     }
