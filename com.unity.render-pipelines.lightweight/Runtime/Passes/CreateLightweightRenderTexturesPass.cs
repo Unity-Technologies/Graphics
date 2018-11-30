@@ -49,6 +49,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 colorDescriptor.sRGB = true;
                 colorDescriptor.msaaSamples = (int)samples;
                 cmd.GetTemporaryRT(colorAttachmentHandle.id, colorDescriptor, FilterMode.Bilinear);
+                SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
+                        ClearFlag.None, Color.clear, descriptor.dimension);
             }
 
             if (depthAttachmentHandle != RenderTargetHandle.CameraTarget)
