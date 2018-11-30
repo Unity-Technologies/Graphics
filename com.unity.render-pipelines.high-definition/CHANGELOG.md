@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.3.0-preview] - 2018-11-xx
 
+### Fixed
+- Fixed stacklit transmission and sun highlight
+
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
 
