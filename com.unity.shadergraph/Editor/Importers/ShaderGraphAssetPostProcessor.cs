@@ -48,13 +48,13 @@ namespace UnityEditor.ShaderGraph
             MaterialGraphEditWindow[] windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
             foreach (var matGraphEditWindow in windows)
             {
-                matGraphEditWindow.forceRedrawPreviews = true;
+                matGraphEditWindow.updatePreviewShaders = true;
             }
 
             RegisterShaders(importedAssets);
 
             bool anyShaders = movedAssets.Any(val => val.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
-            anyShaders |= movedAssets.Any(val => val.EndsWith("shadersubgraph", StringComparison.InvariantCultureIgnoreCase));
+            anyShaders |= movedAssets.Any(val => val.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
             if (anyShaders)
                 UpdateAfterAssetChange(movedAssets);
         }

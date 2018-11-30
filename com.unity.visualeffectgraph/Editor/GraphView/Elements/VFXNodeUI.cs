@@ -116,6 +116,7 @@ namespace UnityEditor.VFX.UI
 
         public override void OnSelected()
         {
+            base.OnSelected();
             m_Selected = true;
             UpdateBorder();
         }
@@ -124,6 +125,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Selected = false;
             UpdateBorder();
+            base.OnUnselected();
         }
 
         void UpdateBorder()

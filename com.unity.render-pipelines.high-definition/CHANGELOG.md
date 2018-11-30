@@ -4,7 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.2.0-preview] - 2018-11-xx
+## [5.3.0-preview] - 2018-11-xx
+
+## [5.2.0-preview] - 2018-11-27
 
 ### Added
 - Added option to run Contact Shadows and Volumetrics Voxelization stage in Async Compute
@@ -18,8 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed divide by 0 in refraction causing NaN
 - Fixed disable rough refraction support
 - Fixed refraction, SSS and atmospheric scattering for VR
+- Fixed forward clustered lighting for VR (double-wide)
 - Fixed Light's UX to not allow negative intensity
-
+- Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
 
 ### Changed
 - Rename "Regular" in Diffusion profile UI "Thick Object"

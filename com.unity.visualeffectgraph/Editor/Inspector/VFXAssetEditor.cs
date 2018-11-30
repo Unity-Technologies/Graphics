@@ -456,42 +456,16 @@ public class VisualEffectAssetEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
-        bool needRecompile = false;
-
-        EditorGUI.showMixedValue = motionVectorRenderModeProperty.hasMultipleDifferentValues;
-        EditorGUI.BeginChangeCheck();
-        bool motionVector = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Use Motion Vectors"), motionVectorRenderModeProperty.intValue == (int)MotionVectorGenerationMode.Object);
-        if (EditorGUI.EndChangeCheck())
-        {
-            motionVectorRenderModeProperty.intValue = motionVector ? (int)MotionVectorGenerationMode.Object : (int)MotionVectorGenerationMode.Camera;
-            resourceObject.ApplyModifiedProperties();
-            needRecompile = true;
-        }
-
         if (prewarmDeltaTime!= null && prewarmStepCount != null)
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(prewarmDeltaTime);
+            EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time"));
             EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(prewarmStepCount);
-
+            EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count"));
             if (EditorGUI.EndChangeCheck())
             {
                 resourceObject.ApplyModifiedProperties();
-            }
-        }
-
-        if (needRecompile)
-        {
-            foreach (VisualEffectResource resource in resourceObject.targetObjects)
-            {
-                VFXGraph graph = resource.GetOrCreateGraph() as VFXGraph;
-                if (graph != null)
-                {
-                    graph.SetExpressionGraphDirty();
-                    graph.RecompileIfNeeded();
-                }
             }
         }
 

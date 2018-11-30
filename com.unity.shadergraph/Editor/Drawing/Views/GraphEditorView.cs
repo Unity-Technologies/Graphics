@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
-using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
@@ -38,6 +36,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
+        MessageManager m_MessageManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
@@ -78,11 +77,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph)
+        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, MessageManager messageManager)
         {
             m_Graph = graph;
+            m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
-            previewManager = new PreviewManager(graph);
+            previewManager = new PreviewManager(graph, messageManager);
 
             string serializedToggle = EditorUserSettings.GetConfigValue(k_ToggleSettings);
             if (!string.IsNullOrEmpty(serializedToggle))
@@ -377,6 +377,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         HashSet<MaterialNodeView> m_NodeViewHashSet = new HashSet<MaterialNodeView>();
+
+        public void UpdatePreviewShaders()
+        {
+            previewManager.ForceShaderUpdate();
+        }
+        
         public void HandleGraphChanges()
         {
             previewManager.HandleGraphChanges();
@@ -392,7 +398,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.removedNodes)
             {
                 node.UnregisterCallback(OnNodeChanged);
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
@@ -438,7 +445,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_Graph.pastedNodes)
             {
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 m_GraphView.AddToSelection(nodeView);
             }
 
@@ -447,7 +455,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var edge in m_Graph.removedEdges)
             {
-                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is ShaderEdge && Equals((ShaderEdge)p.userData, edge));
+                var edgeView = m_GraphView.graphElements.ToList().OfType<ShaderEdge>().FirstOrDefault(p => p.userData is ShaderEdge && Equals((ShaderEdge)p.userData, edge));
                 if (edgeView != null)
                 {
                     var nodeView = edgeView.input.node as MaterialNodeView;
@@ -455,6 +463,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         nodesToUpdate.Add(nodeView);
                     }
+
                     edgeView.output.Disconnect(edgeView);
                     edgeView.input.Disconnect(edgeView);
 
@@ -476,33 +485,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.UpdatePortInputVisibilities();
 
             UpdateEdgeColors(nodesToUpdate);
-
-            foreach (var slice in m_Graph.createdControlsSlices)
-            {
-                var typeState = slice.nodeTypeState;
-                for (var i = slice.startIndex; i < slice.startIndex + slice.length; i++)
-                {
-                    var controlRef = m_Graph.createdControls[i];
-                    var initialControlState = typeState.controls[controlRef.index];
-                    var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().First(x => x.node.tempId == initialControlState.nodeId);
-                    var node = nodeView.node;
-                    var controlView = new MultiFloatControlView(initialControlState.label, "", "", "", "", node, typeof(float),
-                        () =>
-                        {
-                            var controlState = typeState.controls[controlRef.index];
-                            return new Vector4(controlState.value, 0, 0, 0);
-                        }, value =>
-                        {
-                            // TODO: Dirty tracking so that IShaderNodeType can be notified of change
-                            var controlState = typeState.controls[controlRef.index];
-                            controlState.wasModified = true;
-                            controlState.value = value.x;
-                            typeState.controls[controlRef.index] = controlState;
-                            typeState.modifiedNodes.Add(node.tempId.index);
-                        });
-                    nodeView.AddControl(controlView);
-                }
-            }
         }
 
         List<GraphElement> m_AddNodeGraphElements = new List<GraphElement>();
