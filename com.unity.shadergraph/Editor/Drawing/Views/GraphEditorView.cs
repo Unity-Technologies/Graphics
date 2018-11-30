@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Drawing.Inspector;
 using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.StyleSheets;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
@@ -455,7 +456,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var edge in m_Graph.removedEdges)
             {
-                var edgeView = m_GraphView.graphElements.ToList().OfType<ShaderEdge>().FirstOrDefault(p => p.userData is ShaderEdge && Equals((ShaderEdge)p.userData, edge));
+                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is ShaderEdge && Equals((ShaderEdge)p.userData, edge));
                 if (edgeView != null)
                 {
                     var nodeView = edgeView.input.node as MaterialNodeView;
