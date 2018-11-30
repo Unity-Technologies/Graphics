@@ -50,7 +50,7 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 col = i.color * _InverseLightIntensityScale;
-				col = col * i.color.a * _InverseLightIntensityScale;
+				col = col * i.color.a;
 				col.a = 1;
 				return col;
 			}
