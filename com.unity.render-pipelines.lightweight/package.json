@@ -5,7 +5,7 @@
     "unity": "2018.3",
     "displayName": "Lightweight RP",
     "dependencies": {
-        "com.unity.postprocessing": "2.0.20",
+        "com.unity.postprocessing": "2.1.1",
         "com.unity.render-pipelines.core": "4.4.0-preview",
         "com.unity.shadergraph": "4.4.0-preview"
     }
