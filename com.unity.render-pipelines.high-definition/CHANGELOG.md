@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed decals with stereo rendering
 - Fixed flip logic for postprocessing + VR
+- Fixed copyStencilBuffer pass for Switch
 
 ## [4.4.0-preview] - 2018-11-30
 
