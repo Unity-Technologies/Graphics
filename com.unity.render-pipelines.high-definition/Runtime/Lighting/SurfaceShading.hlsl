@@ -94,7 +94,10 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         // Due to the floating point arithmetic (see math in ComputeSunLightDirection() and
         // GetBSDFAngle()), we will never arrive at this exact number, so no lighting will be reflected.
         // If we increase the roughness somewhat, the trick still works.
-//        ClampRoughness(bsdfData, light.minRoughness) TODO_FCC_PRE_PR: PUT THIS BACK IN;
+		float roughnessT = GetRoughnessT(bsdfData);
+		float roughnessB = GetRoughnessB(bsdfData);
+		float coatRoughness = GetCoatRoughness(bsdfData);
+		ClampRoughness(roughnessT, roughnessB, coatRoughness);
 
         float3 diffuseBsdf, specularBsdf;
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
