@@ -73,13 +73,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as HDLitMasterNode;
+
+                int stencilDepthPrepassWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
+                int stencilDepthPrepassRef = masterNode.RequiresSplitLighting() ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting;
+                stencilDepthPrepassWriteMask |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
+                stencilDepthPrepassRef |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
+
                 pass.StencilOverride = new List<string>()
                 {
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                    "   WriteMask " + masterNode.GetStencilWriteMask().ToString(),
-                    "   Ref  " + masterNode.GetStencilRef().ToString(),
+                    string.Format("   WriteMask {0}", stencilDepthPrepassWriteMask),
+                    string.Format("   Ref  {0}", stencilDepthPrepassRef),
                     "   Comp Always",
                     "   Pass Replace",
                     "}"
@@ -190,11 +196,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            ColorMaskOverride = "ColorMask 0",
             ExtraDefines = new List<string>()
             {
                 "#define SCENESELECTIONPASS",
-            },
-            ColorMaskOverride = "ColorMask 0",
+            },            
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -217,16 +223,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LightMode = "DepthOnly",
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
-
+            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ZWriteOverride = "ZWrite On",
 
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
-            },
-
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            },            
 
             Includes = new List<string>()
             {
@@ -234,6 +238,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
+                HDLitMasterNode.NormalSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId
@@ -261,7 +266,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 HDLitMasterNode.PositionSlotId
             },
-            UseInPreview = false
+            UseInPreview = false,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as HDLitMasterNode;
+
+                // Note: In GBuffer it is possible to have no Depth prepass, in this case during GBuffer pass we tag DoesntReceiveSSR too
+                int stencilDepthPrepassWriteMask = !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
+                int stencilDepthPrepassRef = !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
+
+                pass.StencilOverride = new List<string>()
+                {
+                    "// Stencil setup",
+                    "Stencil",
+                    "{",
+                    string.Format("   WriteMask {0}", stencilDepthPrepassWriteMask),
+                    string.Format("   Ref  {0}", stencilDepthPrepassRef),
+                    "   Comp Always",
+                    "   Pass Replace",
+                    "}"
+                };
+            }
         };
 
         Pass m_PassMotionVectors = new Pass()
@@ -282,7 +308,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             RequiredFields = new List<string>()
             {
+                "AttributesMesh.normalOS",
+                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
+                "AttributesMesh.uv0",
+                "AttributesMesh.uv1",
+                "AttributesMesh.color",
+                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                "AttributesMesh.uv3",           // DEBUG_DISPLAY
+
+                "FragInputs.worldToTangent",
                 "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
+                "FragInputs.texCoord1",
+                "FragInputs.texCoord2",
+                "FragInputs.texCoord3",
+                "FragInputs.color",
             },
             StencilOverride = new List<string>()
             {
@@ -297,6 +337,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
+                HDLitMasterNode.NormalSlotId,
                 HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId
@@ -315,9 +356,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
             ShaderPassName = "SHADERPASS_DISTORTION",
-            BlendOverride = "Blend One One, One One",   // [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
-            BlendOpOverride = "BlendOp Add, Add",       // Add, [_DistortionBlurBlendOp]
-            ZTestOverride = "ZTest LEqual",             // [_ZTestModeDistortion]
             ZWriteOverride = "ZWrite Off",
             Includes = new List<string>()
             {
@@ -350,9 +388,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (masterNode.distortionMode == DistortionMode.Add)
                 {
                     pass.BlendOverride = "Blend One One, One One";
-                    pass.BlendOpOverride = "BlendOp Add, Max";
+                    pass.BlendOpOverride = "BlendOp Add, Add";
                 }
-                else if (masterNode.distortionMode == DistortionMode.Multiply)
+                else // if (masterNode.distortionMode == DistortionMode.Multiply)
                 {
                     pass.BlendOverride = "Blend DstColor Zero, DstAlpha Zero";
                     pass.BlendOpOverride = "BlendOp Add, Add";
@@ -526,8 +564,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                    "   WriteMask " + masterNode.GetStencilWriteMask().ToString(),
-                    "   Ref  " + masterNode.GetStencilRef().ToString(),
+                    string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
+                    string.Format("   Ref  {0}", masterNode.RequiresSplitLighting() ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting),
                     "   Comp Always",
                     "   Pass Replace",
                     "}"
@@ -609,8 +647,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         activeFields.Add("DoubleSided.Mirror");
                     }
-
-                    activeFields.Add("FragInputs.isFrontFace");     // will need this for determining normal flip mode
+                    // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
+                    activeFields.Add("FragInputs.isFrontFace");
                 }
             }
 
@@ -697,9 +735,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (masterNode.receiveDecals.isOn)
+            if (!masterNode.receiveDecals.isOn)
             {
-                activeFields.Add("Decals");
+                activeFields.Add("DisableDecals");
             }
 
             if (!masterNode.receiveSSR.isOn)
@@ -846,7 +884,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool transparentDepthPrepassActive = transparent && masterNode.alphaTest.isOn && masterNode.alphaTestDepthPrepass.isOn;
                 bool transparentDepthPostpassActive = transparent && masterNode.alphaTest.isOn && masterNode.alphaTestDepthPostpass.isOn;
 
-                GenerateShaderPassLit(masterNode, m_PassGBuffer, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
@@ -854,6 +891,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (opaque)
                 {
                     GenerateShaderPassLit(masterNode, m_PassDepthOnly, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassGBuffer, mode, subShader, sourceAssetDependencyPaths);
                 }
 
                 GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);

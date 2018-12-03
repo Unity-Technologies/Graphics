@@ -107,7 +107,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
             [earlydepthstencil]
             float4 Frag(Varyings input) : SV_Target // use SV_StencilRef in D3D 11.3+
             {
-                return float4(1.0, 0.0, 0.0, 0.0); // 1.0 for true as it passes the condition
+                return PackByte(1);
             }
 
             ENDHLSL

@@ -6,8 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.3.0-preview] - 2018-11-xx
 
+### Fixed
+- Fixed logic to disable FPTL with stereo rendering
+- Fixed stacklit transmission and sun highlight
+- Fixed decals with stereo rendering
+- Fixed flip logic for postprocessing + VR
+
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
+- Removing the simple lightloop used by the simple lit shader
 
 ## [5.2.0-preview] - 2018-11-27
 
@@ -23,9 +30,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed divide by 0 in refraction causing NaN
 - Fixed disable rough refraction support
 - Fixed refraction, SSS and atmospheric scattering for VR
-- Fixed forward clustered lighting for VR (double-wide)
+- Fixed forward clustered lighting for VR (double-wide).
 - Fixed Light's UX to not allow negative intensity
 - Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
+- Fixed forward clustered lighting for VR (double-wide).
+- Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
+- Fixed Decals and SSR diable flags for all shader graph master node (Lit, Fabric, StackLit, PBR)
+- Fixed Distortion blend mode for shader graph master node (Lit, StackLit)
+- Fixed bent Normal for Fabric master node in shader graph
+- Fixed PBR master node lightlayers
 
 ### Changed
 - Rename "Regular" in Diffusion profile UI "Thick Object"

@@ -74,7 +74,6 @@ namespace UnityEditor.Graphing.Util
             foreach (var messageMap in m_Messages)
             {
                 nodeMessagesChanged |= messageMap.Value.Remove(nodeId);
-
             }
         }
 
@@ -106,6 +105,13 @@ namespace UnityEditor.Graphing.Util
                     }
                 }
             }
+        }
+
+        public void ClearAll()
+        {
+            m_Messages.Clear();
+            m_Combined.Clear();
+            nodeMessagesChanged = false;
         }
 
         void DebugPrint()
