@@ -4,6 +4,8 @@ VFXContextUI.graphElement {
     margin-top:0;
     padding-left:0;
     padding-right:0;
+    margin-left:0;
+    margin-right:0;
 
 }
 VFXContextUI > #node-border
@@ -24,14 +26,12 @@ VFXContextUI > #node-border
     margin-right:3;
 }
 
-VFXContextUI > #node-border > #inside > #contents
-{
-    margin-top : 0;
-}
-
 VFXContextUI > #node-border.empty > #inside > #contents
 {
     margin-top : 0;
+    padding-top : 0;
+    margin-bottom : 0;
+    padding-bottom : 0;
 }
 
 /*  update */
@@ -155,14 +155,16 @@ VFXContextUI #header-space
     width:48;
     height:16;
 }
-VFXContextUI #node-border > #inside > #contents
+VFXContextUI > #node-border > #inside > #contents
 {
+    margin-top : 0;
+    padding-top : 4;
     border-radius:6;
     background-color: rgba(63,63,63,0.8);
-    margin-left:4;
-    margin-right:4;
+    margin-left:1;
+    margin-right:1;
 }
-VFXContextUI #node-border > #inside > #contents > #settings
+VFXContextUI > #node-border > #inside > #contents > #settings
 {
     background-color: rgba(0,0,0,0);
 }

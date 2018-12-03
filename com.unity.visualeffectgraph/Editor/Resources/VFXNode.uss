@@ -54,8 +54,8 @@
 
 .VFXNodeUI #settings
 {
-    margin-top:6;
-    margin-bottom:6;
+    margin-top:8;
+    margin-bottom:8;
     margin-right:4;
     margin-left:16; /* this is meant to compense for data anchors connector, so that settings labels are aligned with input labels. */
     padding-right:4;

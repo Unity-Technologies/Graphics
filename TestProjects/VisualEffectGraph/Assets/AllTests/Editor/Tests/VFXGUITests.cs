@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -252,9 +252,9 @@ namespace UnityEditor.VFX.Test
 
             // Adding every block compatible with an init context
 
-            var block = VFXLibrary.GetBlocks().Where(t => t.name == "Test").First();
+            var blockDesc = new VFXModelDescriptor<VFXBlock>(ScriptableObject.CreateInstance<AllType>());
 
-            var newBlock = block.CreateInstance();
+            var newBlock = blockDesc.CreateInstance();
             contextController.AddBlock(0, newBlock);
 
             Assert.IsTrue(newBlock is AllType);

@@ -263,7 +263,7 @@ float SampleShadow_MSM_1tap(float3 tcs, float lightLeakBias, float momentBias, f
 //
 //                  PCSS sampling
 //
-float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float2 sampleBias, float shadowSoftness, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp)
+float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float2 sampleBias, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp)
 {
     uint taaFrameIndex = _TaaFrameInfo.z;
     float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
@@ -277,7 +277,7 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
 
     //2) Penumbra Estimation
     float filterSize = shadowSoftness * PenumbraSize(tcs.z, averageBlockerDepth);
-    filterSize = max(filterSize, 0.000001);
+    filterSize = max(filterSize, minFilterRadius);
 
     //3) Filter
     return PCSS(tcs, filterSize, scale, offset, sampleBias, sampleJitter, tex, compSamp, filterSampleCount);

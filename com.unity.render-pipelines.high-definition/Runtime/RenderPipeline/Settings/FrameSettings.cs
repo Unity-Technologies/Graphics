@@ -146,6 +146,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // GC.Alloc
         // FrameSettings..ctor() 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
+        
+        //saved enum fields for when repainting Debug Menu
+        int m_LitShaderModeEnumIndex;
 
         public FrameSettings() {
         }
@@ -199,6 +202,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.overrides = this.overrides;
 
             this.lightLoopSettings.CopyTo(frameSettings.lightLoopSettings);
+
+            frameSettings.m_LitShaderModeEnumIndex = this.m_LitShaderModeEnumIndex;
         }
 
         public FrameSettings Override(FrameSettings overridedFrameSettings)
@@ -286,14 +291,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
 
-            aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
+            aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass && renderPipelineSettings.supportTransparentDepthPrepass;
             aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors && renderPipelineSettings.supportMotionVectors;
             // Object motion vector are disabled if motion vector are disabled
             aggregate.enableObjectMotionVectors = srcFrameSettings.enableObjectMotionVectors && aggregate.enableMotionVectors;
             aggregate.enableDecals = srcFrameSettings.enableDecals && renderPipelineSettings.supportDecals;
             aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
-            aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
-            aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;
+            aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass && renderPipelineSettings.supportTransparentDepthPostpass;
+            aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion && renderPipelineSettings.supportDistortion;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
@@ -337,6 +342,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
+
+            aggregate.m_LitShaderModeEnumIndex = srcFrameSettings.m_LitShaderModeEnumIndex;
         }
 
         public bool BuildLightListRunsAsync()
@@ -389,10 +396,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: The work will be implemented piecemeal to support all passes
                 enableMotionVectors = enablePostprocess && !enableMSAA;
-                enableDecals = false;
                 enableSSR = false;
             }
         }
+
 
         public static void RegisterDebug(string menuName, FrameSettings frameSettings)
         {
@@ -420,7 +427,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     displayName = "Rendering Settings",
                     children =
                     {
-                        new DebugUI.EnumField { displayName = "Lit Shader Mode", getter = () => (int)frameSettings.shaderLitMode, setter = value => frameSettings.shaderLitMode = (LitShaderMode)value, autoEnum = typeof(LitShaderMode)},
+                        new DebugUI.EnumField { displayName = "Lit Shader Mode", getter = () => (int)frameSettings.shaderLitMode, setter = value => frameSettings.shaderLitMode = (LitShaderMode)value, autoEnum = typeof(LitShaderMode), getIndex = () => frameSettings.m_LitShaderModeEnumIndex, setIndex = value => frameSettings.m_LitShaderModeEnumIndex = value },
                         new DebugUI.BoolField { displayName = "Deferred Depth Prepass", getter = () => frameSettings.enableDepthPrepassWithDeferredRendering, setter = value => frameSettings.enableDepthPrepassWithDeferredRendering = value },
                         new DebugUI.BoolField { displayName = "Enable Opaque Objects", getter = () => frameSettings.enableOpaqueObjects, setter = value => frameSettings.enableOpaqueObjects = value },
                         new DebugUI.BoolField { displayName = "Enable Transparent Objects", getter = () => frameSettings.enableTransparentObjects, setter = value => frameSettings.enableTransparentObjects = value },

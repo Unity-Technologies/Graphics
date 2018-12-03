@@ -126,7 +126,8 @@ namespace UnityEditor.VFX
     class VFXGraph : VFXModel
     {
         // Please add increment reason for each version below
-        public static readonly int CurrentVersion = 0;
+        // size refactor
+        public static readonly int CurrentVersion = 1;
 
         public VisualEffectResource visualEffectResource
         {
@@ -437,7 +438,7 @@ namespace UnityEditor.VFX
         public int version { get { return m_GraphVersion; } }
 
         [SerializeField]
-        private int m_GraphVersion = CurrentVersion;
+        private int m_GraphVersion = 0;
 
         [NonSerialized]
         private bool m_GraphSanitized = false;

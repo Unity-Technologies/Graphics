@@ -1,5 +1,5 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
-#include "LightLoop.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
 //-----------------------------------------------------------------------------
 // LightLoop

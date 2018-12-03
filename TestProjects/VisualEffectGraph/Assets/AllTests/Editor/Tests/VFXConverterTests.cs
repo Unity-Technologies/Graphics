@@ -175,14 +175,16 @@ namespace UnityEditor.VFX.Test
         {
             Assert.AreEqual(conversion.expectedResult, VFXConverter.ConvertTo(conversion.value, conversion.targetType));
         }
-        /*
+
+        //TEMP disable LogAssert.Expect, still failing running on katana
+#if _ENABLE_LOG_EXCEPT_TEST
         [Test]
         public void FailingConvertTest([ValueSource("failingConversions")] Conversion conversion)
         {
-            Assert.IsNull(VFXConverter.ConvertTo(conversion.value, conversion.targetType));
-
             LogAssert.Expect(LogType.Error, string.Format("Cannot cast from {0} to {1}", conversion.value.GetType(), conversion.targetType));
-        }*/
+            Assert.IsNull(VFXConverter.ConvertTo(conversion.value, conversion.targetType));
+        }
+#endif
 
         [Test]
         public void MatrixToTransformTest()

@@ -5,6 +5,10 @@ MaterialNodeView.graphElement.node.MaterialNode {
     margin-right: 0;
 }
 
+MaterialNodeView.master {
+    min-width: 200;
+}
+
 MaterialNodeView #collapsible-area {
     width: 0;
     height: 0;

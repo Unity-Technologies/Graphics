@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class CrossProduct : VFXOperator
+    class CrossProduct : VFXOperatorNumericUniform
     {
         public class InputProperties
         {
@@ -15,12 +15,15 @@ namespace UnityEditor.VFX.Operator
             public Vector3 b = Vector3.up;
         }
 
-        public class OutputProperties
-        {
-            public Vector3 o = Vector3.zero;
-        }
+        protected override sealed string operatorName { get { return "Cross Product"; } }
 
-        override public string name { get { return "Cross Product"; } }
+        protected override sealed ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowVector3Type | ValidTypeRule.allowSpaceable;
+            }
+        }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

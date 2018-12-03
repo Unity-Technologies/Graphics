@@ -1,4 +1,5 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if false
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -165,6 +166,6 @@ namespace UnityEditor.VFX.Test
             UnityEngine.Object.DestroyImmediate(cameraObj);
         }
     }
-#endif
-
 }
+#endif
+#endif

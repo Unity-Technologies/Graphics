@@ -5,7 +5,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 
-#include "TerrainLitSplatCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSplatCommon.hlsl"
 
 // We don't use emission for terrain
 #define _EmissiveColor float3(0,0,0)
@@ -32,17 +32,8 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
         float4 tangentWS;
         tangentWS.xyz = cross(normalWS, GetObjectToWorldMatrix()._13_23_33);
         tangentWS.w = -1;
-        float renormFactor = 1.0 / length(normalWS);
 
-        // bitangent on the fly option in xnormal to reduce vertex shader outputs.
-        // this is the mikktspace transformation (must use unnormalized attributes)
-        float3x3 worldToTangent = CreateWorldToTangent(normalWS, tangentWS.xyz, tangentWS.w);
-
-        // surface gradient based formulation requires a unit length initial normal. We can maintain compliance with mikkts
-        // by uniformly scaling all 3 vectors since normalization of the perturbed normal will cancel it.
-        input.worldToTangent[0] = worldToTangent[0] * renormFactor;
-        input.worldToTangent[1] = worldToTangent[1] * renormFactor;
-        input.worldToTangent[2] = worldToTangent[2] * renormFactor;		// normalizes the interpolated vertex normal
+        input.worldToTangent = BuildWorldToTangent(tangentWS, normalWS);
 
         input.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
     }

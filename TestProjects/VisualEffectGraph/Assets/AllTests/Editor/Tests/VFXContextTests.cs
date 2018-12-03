@@ -63,11 +63,14 @@ namespace UnityEditor.VFX.Test
             CheckContext(ScriptableObject.CreateInstance<ContextTestUpdate>(), VFXContextType.kUpdate);
             CheckContext(ScriptableObject.CreateInstance<ContextTestOutput>(), VFXContextType.kOutput);
 
-            /*CheckContext(ScriptableObject.CreateInstance<ContextTestInitAndUpdate>(), VFXContextType.kNone);
+            /*
+             * //TEMP disable LogAssert.Expect, still failing running on katana
             LogAssert.Expect(LogType.Exception, "ArgumentException: Illegal context type: kInitAndUpdate");
+            CheckContext(ScriptableObject.CreateInstance<ContextTestInitAndUpdate>(), VFXContextType.kNone);
 
+            LogAssert.Expect(LogType.Exception, "ArgumentException: Illegal context type: kAll");
             CheckContext(ScriptableObject.CreateInstance<ContextTestAll>(), VFXContextType.kNone);
-            LogAssert.Expect(LogType.Exception, "ArgumentException: Illegal context type: kAll");*/
+            */
         }
 
         [Test]

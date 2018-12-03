@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditorInternal;
-using UnityEngine;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
 using Object = System.Object;
@@ -913,7 +912,13 @@ namespace UnityEditor.ShaderGraph
             outputList.Add(node);
         }
 
-        public static GenerationResults GetShader(this AbstractMaterialGraph graph, AbstractMaterialNode node, GenerationMode mode, string name)
+        public static GenerationResults GetShader(this AbstractMaterialGraph graph, AbstractMaterialNode node,
+            GenerationMode mode, string name)
+        {
+            return GetShader(graph, node, new List<INode>(), mode, name);
+        }
+        
+        public static GenerationResults GetShader(this AbstractMaterialGraph graph, AbstractMaterialNode node, ICollection<INode> excludedNodes, GenerationMode mode, string name)
         {
             // ----------------------------------------------------- //
             //                         SETUP                         //
@@ -944,7 +949,7 @@ namespace UnityEditor.ShaderGraph
             var activeNodeList = ListPool<INode>.Get();
             if (isUber)
             {
-                var unmarkedNodes = graph.GetNodes<INode>().Where(x => !(x is IMasterNode)).ToDictionary(x => x.guid);
+                var unmarkedNodes = graph.GetNodes<INode>().Where(x => !(x is IMasterNode) && !excludedNodes.Contains(x)).ToDictionary(x => x.guid);
                 while (unmarkedNodes.Any())
                 {
                     var unmarkedNode = unmarkedNodes.FirstOrDefault();
@@ -1331,9 +1336,9 @@ namespace UnityEditor.ShaderGraph
             return graph.GetShader(node, GenerationMode.Preview, String.Format("hidden/preview/{0}", node.GetVariableNameForNode()));
         }
 
-        public static GenerationResults GetUberColorShader(this AbstractMaterialGraph graph)
+        public static GenerationResults GetUberColorShader(this AbstractMaterialGraph graph, ICollection<INode> excludedNodes)
         {
-            return graph.GetShader(null, GenerationMode.Preview, "hidden/preview");
+            return graph.GetShader(null, excludedNodes, GenerationMode.Preview, "hidden/preview");
         }
 
         static Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> s_LegacyTypeRemapping;

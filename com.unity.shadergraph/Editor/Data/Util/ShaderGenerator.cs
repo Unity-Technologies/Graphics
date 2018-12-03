@@ -949,7 +949,7 @@ SubShader
         float4 frag (GraphVertexOutput IN ${FaceSign}) : SV_Target
         {
     ${LocalPixelShader}
-            SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;;
+            SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;
     ${SurfaceInputs}
             SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
     ${SurfaceOutputRemap}

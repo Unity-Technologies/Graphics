@@ -59,7 +59,18 @@
     height:16;
     margin-left:0;
     padding-left:1;
+    margin-bottom:0;
+    padding-bottom:0;
+    -unity-text-align:middle-left;
 }
+
+.propertyrm > VFXLabeledField.fieldContainer,.propertyrm > VFXEnumField.fieldContainer
+{
+    padding-top:1;
+    padding-bottom:1;
+    height:18;
+}
+
 
 .propertyrm VFXMatrix4x4Field.fieldContainer
 {
@@ -80,9 +91,9 @@
     background-image:resource("vfx/spaceworld");
 }
 
-.propertyrm > .unity-float-field
+.propertyrm .unity-base-text-field *
 {
-    margin-bottom:3;
+    -unity-text-align: middle-left;
 }
 
 .propertyrm .fieldContainer > *
@@ -237,6 +248,8 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
     margin-bottom:0;
     margin-left:0;
     margin-right:0;
+    padding-left: 16;
+    -unity-text-align: middle-left;
 }
 
 .propertyrm .sliderField #indeterminate

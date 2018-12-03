@@ -244,6 +244,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ConvertToProperty(DropdownMenuAction action)
         {
+            graph.owner.RegisterCompleteObjectUndo("Convert to Property");
             var selectedNodeViews = selection.OfType<MaterialNodeView>().Select(x => x.node).ToList();
             foreach (var node in selectedNodeViews)
             {
@@ -252,6 +253,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var converter = node as IPropertyFromNode;
                 var prop = converter.AsShaderProperty();
+                prop.displayName = graph.SanitizePropertyName(prop.displayName, prop.guid);
                 graph.AddShaderProperty(prop);
 
                 var propNode = new PropertyNode();
@@ -282,6 +284,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ConvertToInlineNode(DropdownMenuAction action)
         {
+            graph.owner.RegisterCompleteObjectUndo("Convert to Inline Node");
             var selectedNodeViews = selection.OfType<MaterialNodeView>()
                 .Select(x => x.node)
                 .OfType<PropertyNode>();
@@ -536,6 +539,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.drawState = drawState;
                     graph.AddNode(node);
 
+                    // Setting the guid requires the graph to be set first.
                     node.propertyGuid = property.guid;
                 }
             }

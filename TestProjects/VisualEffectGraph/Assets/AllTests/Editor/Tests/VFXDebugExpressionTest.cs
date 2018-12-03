@@ -92,7 +92,9 @@ namespace UnityEditor.VFX.Test
             UnityEngine.Object.DestroyImmediate(gameObj);
             UnityEngine.Object.DestroyImmediate(cameraObj);
         }
-        /*
+
+        //TEMP disable LogAssert.Expect, still failing running on katana
+#if _ENABLE_LOG_EXCEPT_TEST
         [UnityTest]
         public IEnumerator CreateAsset_And_Check_Exception_On_Invalid_Graph()
         {
@@ -136,8 +138,8 @@ namespace UnityEditor.VFX.Test
             graph.RecompileIfNeeded(); //at this point, compilation is still legal
             particleId.outputSlots[0].Link(modulo.inputSlots[0]);
 
-            graph.RecompileIfNeeded();
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("InvalidOperationException"));
+            graph.RecompileIfNeeded();
 
             branch.outputSlots[0].UnlinkAll();
             graph.RecompileIfNeeded(); //Back to a legal state
@@ -148,7 +150,7 @@ namespace UnityEditor.VFX.Test
 
             yield return null;
         }
-        */
+#endif
     }
 }
 #endif

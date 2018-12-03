@@ -95,6 +95,15 @@ namespace UnityEngine.VFX.Test
                     component.Reinit();
                 }
 
+#if UNITY_EDITOR
+                //When we change the graph, if animator was already enable, we should reinitialize animator to force all BindValues
+                var animators = Resources.FindObjectsOfTypeAll<Animator>();
+                foreach (var animator in animators)
+                {
+                    animator.Rebind();
+                }
+#endif
+
                 int waitFrameCount = (int)(simulateTime / frequency);
                 int startFrameIndex = Time.frameCount;
                 int expectedFrameIndex = startFrameIndex + waitFrameCount;

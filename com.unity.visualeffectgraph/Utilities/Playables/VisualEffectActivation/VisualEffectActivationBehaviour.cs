@@ -1,7 +1,8 @@
+#if VFX_HAS_TIMELINE
 using System;
 using UnityEngine;
-using UnityEngine.Playables;
 using UnityEngine.Timeline;
+using UnityEngine.Playables;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.VFX.Utils;
 
@@ -34,9 +35,9 @@ public class VisualEffectActivationBehaviour : PlayableBehaviour
     [SerializeField]
     private ExposedParameter onClipExit = "OnStop";
     [SerializeField]
-    private EventState[] clipEnterEventAttributes;
+    private EventState[] clipEnterEventAttributes = null;
     [SerializeField]
-    private EventState[] clipExitEventAttributes;
+    private EventState[] clipExitEventAttributes = null;
 
     public override void OnPlayableCreate(Playable playable)
     {
@@ -77,3 +78,4 @@ public class VisualEffectActivationBehaviour : PlayableBehaviour
         return evt;
     }
 }
+#endif

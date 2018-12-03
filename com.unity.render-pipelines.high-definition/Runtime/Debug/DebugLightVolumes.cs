@@ -106,21 +106,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             {
                                 m_MaterialProperty.SetColor(_ColorShaderID, new Color(0.0f, 0.5f, 0.0f, 1.0f));
                                 m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                                cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
+                                cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, 0, m_MaterialProperty);
                             }
                             break;
                         case LightTypeExtent.Rectangle:
                             {
                                 m_MaterialProperty.SetColor(_ColorShaderID, new Color(0.0f, 1.0f, 1.0f, 1.0f));
                                 m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                                cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
+                                cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, 0, m_MaterialProperty);
                             }
                             break;
                         case LightTypeExtent.Tube:
                             {
                                 m_MaterialProperty.SetColor(_ColorShaderID, new Color(1.0f, 0.0f, 0.5f, 1.0f));
                                 m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                                cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
+                                cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, 0, m_MaterialProperty);
                             }
                             break;
                         default:
@@ -135,14 +135,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_MaterialProperty.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
                         m_MaterialProperty.SetVector(_RangeShaderID, new Vector3(bottomRadius, bottomRadius, currentLegacyLight.range));
                         m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                        cmd.DrawMesh(DebugShapes.instance.RequestConeMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
+                        cmd.DrawMesh(DebugShapes.instance.RequestConeMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_DebugLightVolumeMaterial, 0, 0, m_MaterialProperty);
                     }
                     else if(currentHDRLight.spotLightShape == SpotLightShape.Box)
                     {
                         m_MaterialProperty.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
                         m_MaterialProperty.SetVector(_RangeShaderID, new Vector3(currentHDRLight.shapeWidth, currentHDRLight.shapeHeight, currentLegacyLight.range));
                         m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, currentLegacyLight.range / 2.0f));
-                        cmd.DrawMesh(DebugShapes.instance.RequestBoxMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
+                        cmd.DrawMesh(DebugShapes.instance.RequestBoxMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_DebugLightVolumeMaterial, 0, 0, m_MaterialProperty);
                     }
                     else if (currentHDRLight.spotLightShape == SpotLightShape.Pyramid)
                     {
@@ -150,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_MaterialProperty.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
                         m_MaterialProperty.SetVector(_RangeShaderID, new Vector3(currentHDRLight.aspectRatio * bottomWidth * 2, bottomWidth * 2 , currentLegacyLight.range));
                         m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                        cmd.DrawMesh(DebugShapes.instance.RequestPyramidMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
+                        cmd.DrawMesh(DebugShapes.instance.RequestPyramidMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_DebugLightVolumeMaterial, 0, 0, m_MaterialProperty);
                     }
                 }
             }
@@ -182,7 +182,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_MaterialProperty.SetColor(_ColorShaderID, new Color(1.0f, 1.0f, 0.0f, 1.0f));
                 m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
                 Matrix4x4 positionMat = Matrix4x4.Translate(currentLegacyProbe.transform.position);
-                cmd.DrawMesh(targetMesh, positionMat, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
+                cmd.DrawMesh(targetMesh, positionMat, m_DebugLightVolumeMaterial, 0, 0, m_MaterialProperty);
             }
 
             // Define which kernel to use based on the lightloop options
