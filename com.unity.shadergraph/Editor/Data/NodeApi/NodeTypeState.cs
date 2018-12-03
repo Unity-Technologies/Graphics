@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public int id;
         public AbstractMaterialGraph owner;
         public NodeTypeDescriptor type;
+        public bool typeCreated;
         public List<InputPortDescriptor> inputPorts = new List<InputPortDescriptor>();
         public List<OutputPortDescriptor> outputPorts = new List<OutputPortDescriptor>();
         public List<HlslSource> hlslSources = new List<HlslSource>();
@@ -69,12 +70,12 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var node in addedNodes)
             {
-                nodeType.OnNodeAdded(context, new NodeRef(owner, owner.currentContextId, (ProxyShaderNode)owner.m_Nodes[node]));
+                nodeType.OnNodeAdded(context, new ShaderNode(owner, owner.currentStateId, (ProxyShaderNode)owner.m_Nodes[node]));
             }
-            
+
             foreach (var node in modifiedNodes)
             {
-                nodeType.OnNodeModified(context, new NodeRef(owner, owner.currentContextId, (ProxyShaderNode)owner.m_Nodes[node]));
+                nodeType.OnNodeModified(context, new ShaderNode(owner, owner.currentStateId, (ProxyShaderNode)owner.m_Nodes[node]));
             }
         }
     }

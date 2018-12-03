@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
         InputPortRef m_OffsetPort;
         OutputPortRef m_OutPort;
 
-        public override void Setup(ref NodeSetupContext context)
+        public override void Setup(NodeSetupContext context)
         {
             m_InPort = context.CreateInputPort(0, "In", PortValue.Vector3());
             m_OffsetPort = context.CreateInputPort(1, "Offset", PortValue.Vector1(0.5f));
@@ -24,13 +24,13 @@ namespace UnityEditor.ShaderGraph
             context.CreateType(type);
         }
 
-        public override void OnNodeAdded(NodeChangeContext context, NodeRef node)
+        public override void OnNodeAdded(NodeChangeContext context, ShaderNode node)
         {
-            var data = (HueData) context.GetData(node);
+            var data = (HueData) node.data;
             if (data == null)
             {
                 data = new HueData { offsetFactor = 1f };
-                context.SetData(node, data);
+                node.data = data;
             }
 
             data.offsetFactorControl = context.CreateControl(node, "Offset Factor", data.offsetFactor);
@@ -45,9 +45,9 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public override void OnNodeModified(NodeChangeContext context, NodeRef node)
+        public override void OnNodeModified(NodeChangeContext context, ShaderNode node)
         {
-            var data = (HueData) context.GetData(node);
+            var data = (HueData) node.data;
             if (context.WasControlModified(data.offsetFactorControl))
             {
                 data.offsetFactor = context.GetControlValue(data.offsetFactorControl);

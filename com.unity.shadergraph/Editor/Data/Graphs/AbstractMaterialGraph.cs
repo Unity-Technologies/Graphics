@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return m_PastedNodes; }
         }
-        
+
         #endregion
 
         #region Group Data
@@ -227,9 +227,9 @@ namespace UnityEditor.ShaderGraph
 
         public List<NodeTypeState> nodeTypeStates { get; } = new List<NodeTypeState>();
 
-        int m_CurrentContextId = 1;
+        int m_CurrentStateId = 1;
 
-        public int currentContextId => m_CurrentContextId;
+        public int currentStateId => m_CurrentStateId;
 
         [NonSerialized]
         public List<ControlRef> createdControls = new List<ControlRef>();
@@ -242,7 +242,7 @@ namespace UnityEditor.ShaderGraph
         public AbstractMaterialGraph()
         {
             m_GroupNodes[Guid.Empty] = new List<AbstractMaterialNode>();
-            
+
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypes())
@@ -280,12 +280,13 @@ namespace UnityEditor.ShaderGraph
                     {
                         var stateType = typeof(NodeTypeState<>).MakeGenericType(type);
                         var state = (NodeTypeState)stateType.GetConstructor(Type.EmptyTypes).Invoke(null);
-                        state.id = nodeTypeStates.Count;
+                        state.id = nodeTypeStates.Count + 1;
+                        m_CurrentStateId = state.id;
                         state.owner = this;
                         state.nodeType = (ShaderNodeType)constructor.Invoke(null);
-                        var context = new NodeSetupContext(this, m_CurrentContextId, state);
-                        state.nodeType.Setup(ref context);
-                        if (!context.nodeTypeCreated)
+                        var context = new NodeSetupContext(this, m_CurrentStateId, state);
+                        state.nodeType.Setup(context);
+                        if (!state.typeCreated)
                         {
                             throw new InvalidOperationException($"An {nameof(ShaderNodeType)} must provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
                         }
@@ -298,7 +299,7 @@ namespace UnityEditor.ShaderGraph
                     finally
                     {
                         // We only want the context to be usable for the call to Setup. See NodeSetupContext.Validate().
-                        m_CurrentContextId = Math.Max(m_CurrentContextId + 1, 1);
+                        m_CurrentStateId = -1;
                     }
                 }
             }
@@ -310,8 +311,9 @@ namespace UnityEditor.ShaderGraph
             {
                 if (state.isDirty)
                 {
+                    m_CurrentStateId = state.id + 1;
                     var previousCreatedControlsCount = createdControls.Count;
-                    var context = new NodeChangeContext(this, m_CurrentContextId, state, createdControls);
+                    var context = new NodeChangeContext(this, m_CurrentStateId, state, createdControls);
                     try
                     {
                         state.DispatchChanges(context);
@@ -336,7 +338,7 @@ namespace UnityEditor.ShaderGraph
                             });
                         }
                         state.ClearChanges();
-                        m_CurrentContextId = Math.Max(m_CurrentContextId + 1, 1);
+                        m_CurrentStateId = -1;
                     }
                 }
             }
@@ -833,7 +835,7 @@ namespace UnityEditor.ShaderGraph
         {
             messageManager?.AddOrAppendError(this, id, new ShaderMessage(errorMessage));;
         }
-        
+
         public void ReplaceWith(IGraph other)
         {
             var otherMg = other as AbstractMaterialGraph;

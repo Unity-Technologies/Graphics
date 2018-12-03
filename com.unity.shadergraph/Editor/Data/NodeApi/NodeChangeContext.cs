@@ -26,40 +26,15 @@ namespace UnityEditor.ShaderGraph
 
         internal NodeTypeState typeState => m_TypeState;
 
-        public object GetData(NodeRef nodeRef)
-        {
-            Validate();
-
-            return nodeRef.node.data;
-        }
-
-        // TODO: Decide whether this should be immediate
-        // The issue could be that an exception is thrown mid-way, and then the node is left in a halfway broken state.
-        // Maybe we can verify that it's valid immediately, but then postpone setting the value until the whole method
-        // finishes.
-        public void SetData(NodeRef nodeRef, object value)
-        {
-            Validate();
-
-            var type = value.GetType();
-            if (type.GetConstructor(Type.EmptyTypes) == null)
-            {
-                throw new ArgumentException($"{type.FullName} cannot be used as node data because it doesn't have a public, parameterless constructor.");
-            }
-
-            // TODO: Maybe do a proper check for whether the type is serializable?
-            nodeRef.node.data = value;
-        }
-
-        public void SetHlslFunction(NodeRef nodeRef, HlslFunctionDescriptor functionDescriptor)
+        public void SetHlslFunction(ShaderNode shaderNode, HlslFunctionDescriptor functionDescriptor)
         {
             Validate();
             // TODO: Validation
             // Return value must be an output port
             // All output ports must be assigned exactly once
             // TODO: Copy input
-            nodeRef.node.function = functionDescriptor;
-            nodeRef.node.Dirty(ModificationScope.Graph);
+            shaderNode.node.function = functionDescriptor;
+            shaderNode.node.Dirty(ModificationScope.Graph);
         }
 
         // TODO: Create an overload per uniform type
@@ -83,12 +58,12 @@ namespace UnityEditor.ShaderGraph
             m_TypeState.hlslValues[hlslValueRef.index] = hlslValue;
         }
 
-        public ControlRef CreateControl(NodeRef nodeRef, string label, float value)
+        public ControlRef CreateControl(ShaderNode shaderNode, string label, float value)
         {
             Validate();
 
             // TODO: Clean up when a node is deleted
-            var controlDescriptor = new ControlState { nodeId = nodeRef.node.tempId, label = label, value = value };
+            var controlDescriptor = new ControlState { nodeId = shaderNode.node.tempId, label = label, value = value };
             var controlRef = new ControlRef(typeState.controls.Count);
             typeState.controls.Add(controlDescriptor);
             m_CreatedControls.Add(controlRef);
@@ -122,7 +97,7 @@ namespace UnityEditor.ShaderGraph
 
         internal void Validate()
         {
-            if (m_Id != m_Graph.currentContextId)
+            if (m_Id != m_Graph.currentStateId)
             {
                 throw new InvalidOperationException($"{nameof(NodeChangeContext)} is only valid during the {nameof(ShaderNodeType)} it was provided for.");
             }

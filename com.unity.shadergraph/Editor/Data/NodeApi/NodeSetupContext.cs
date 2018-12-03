@@ -10,16 +10,11 @@ namespace UnityEditor.ShaderGraph
         readonly int m_CurrentSetupContextId;
         readonly NodeTypeState m_TypeState;
 
-        bool m_NodeTypeCreated;
-
-        internal bool nodeTypeCreated => m_NodeTypeCreated;
-
         internal NodeSetupContext(AbstractMaterialGraph graph, int currentSetupContextId, NodeTypeState typeState)
         {
             m_Graph = graph;
             m_CurrentSetupContextId = currentSetupContextId;
             m_TypeState = typeState;
-            m_NodeTypeCreated = false;
         }
 
         public void CreateType(NodeTypeDescriptor typeDescriptor)
@@ -30,7 +25,7 @@ namespace UnityEditor.ShaderGraph
 
             // We might allow multiple types later on, or maybe it will go via another API point. For now, we only allow
             // a single node type to be provided.
-            if (m_NodeTypeCreated)
+            if (m_TypeState.typeCreated)
             {
                 throw new InvalidOperationException($"An {nameof(ShaderNodeType)} can only have 1 type.");
             }
@@ -84,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             m_TypeState.type.inputs = new List<InputPortRef>(typeDescriptor.inputs);
             m_TypeState.type.outputs = new List<OutputPortRef>(typeDescriptor.outputs);
 
-            m_NodeTypeCreated = true;
+            m_TypeState.typeCreated = true;
         }
 
         public InputPortRef CreateInputPort(int id, string displayName, PortValue value)
@@ -111,7 +106,7 @@ namespace UnityEditor.ShaderGraph
 
         void Validate()
         {
-            if (m_CurrentSetupContextId != m_Graph.currentContextId)
+            if (m_CurrentSetupContextId != m_Graph.currentStateId)
             {
                 throw new InvalidOperationException($"{nameof(NodeSetupContext)} is only valid during the call to {nameof(ShaderNodeType)}.{nameof(ShaderNodeType.Setup)} it was provided for.");
             }
