@@ -395,7 +395,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: The work will be implemented piecemeal to support all passes
                 enableMotionVectors = enablePostprocess && !enableMSAA;
-                enableDecals = false;
                 enableSSR = false;
             }
         }

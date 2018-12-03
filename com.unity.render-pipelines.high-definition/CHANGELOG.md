@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [4.5.0-preview] - 2018-XX-XX
+
+### Fixed
+- Fixed decals with stereo rendering
+- Fixed flip logic for postprocessing + VR
+- Fixed copyStencilBuffer pass for Switch
+
+### Changed
+- Removing the simple lightloop used by the simple lit shader
+
 ## [4.4.0-preview] - 2018-11-30
 
 ### Added
@@ -17,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed PBR master node lightlayers
 - Fixed stacklit transmission and sun highlight
 - Fixed logic to disable FPTL with stereo rendering
+
 
 ### Changed
 - Added a StackLit master node replacing the InspectorUI version. IMPORTANT: All previously authored StackLit Materials will be lost. You need to recreate them with the master node.

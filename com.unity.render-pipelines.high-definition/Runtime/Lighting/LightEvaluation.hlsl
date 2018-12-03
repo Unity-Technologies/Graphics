@@ -4,6 +4,7 @@
 // Directional Light evaluation helper
 //-----------------------------------------------------------------------------
 
+#ifndef OVERRIDE_EVALUATE_COOKIE_DIRECTIONAL
 float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData light,
                                   float3 lightToSample)
 {
@@ -22,6 +23,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     // We let the sampler handle clamping to border.
     return SampleCookie2D(lightLoopContext, positionNDC, light.cookieIndex, light.tileCookie);
 }
+#endif
 
 // Does not account for precomputed (screen-space or baked) shadows.
 float EvaluateRuntimeSunShadow(LightLoopContext lightLoopContext, PositionInputs posInput,
@@ -166,6 +168,7 @@ void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, o
     }
 }
 
+#ifndef OVERRIDE_EVALUATE_COOKIE_PUNCTUAL
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData light,
                                float3 lightToSample)
 {
@@ -200,6 +203,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     return cookie;
 }
+#endif
 
 // None of the outputs are premultiplied.
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, light.forward).
@@ -276,6 +280,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     attenuation *= shadow;
 }
 
+#ifndef OVERRIDE_EVALUATE_ENV_INTERSECTION
 // Environment map share function
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 
@@ -322,3 +327,4 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     weight = Smoothstep01(weight);
     weight *= light.weight;
 }
+#endif
