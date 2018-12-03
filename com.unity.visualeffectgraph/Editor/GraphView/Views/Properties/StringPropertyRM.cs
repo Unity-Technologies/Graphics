@@ -135,8 +135,8 @@ namespace UnityEditor.VFX.UI
                 m_StringFieldPushButton = new VFXStringFieldPushButton(m_Label, pushButtonProvider.action, pushButtonProvider.buttonName);
                 if (isDelayed)
                 {
-                    m_StringFieldPushButton.textfield.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
-                    m_StringFieldPushButton.textfield.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
+                    m_StringFieldPushButton.textfield.RegisterCallback<BlurEvent>(OnFocusLost);
+                    m_StringFieldPushButton.textfield.RegisterCallback<KeyDownEvent>(OnKeyDown);
                 }
                 return m_StringFieldPushButton;
             }
