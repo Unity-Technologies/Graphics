@@ -36,8 +36,20 @@ namespace UnityEditor.ShaderGraph
                 controls[i] = control;
             }
         }
-        
-        public abstract ShaderNodeType baseNodeType { get; set; }
+
+        ShaderNodeType m_NodeType;
+
+        public ShaderNodeType nodeType
+        {
+            get => m_NodeType;
+            set
+            {
+                SetNodeType(value);
+                m_NodeType = value;
+            }
+        }
+
+        protected abstract void SetNodeType(ShaderNodeType value);
 
         public abstract void DispatchChanges(NodeChangeContext context);
     }
@@ -46,12 +58,11 @@ namespace UnityEditor.ShaderGraph
     // DispatchChanges are to a generic type parameter, and thus will be devirtualized if T is a sealed class.
     sealed class NodeTypeState<T> : NodeTypeState where T : ShaderNodeType
     {
-        public T nodeType { get; set; }
+        public new T nodeType { get; set; }
 
-        public override ShaderNodeType baseNodeType
+        protected override void SetNodeType(ShaderNodeType value)
         {
-            get => nodeType;
-            set => nodeType = (T)value;
+            nodeType = (T)value;
         }
 
         public override void DispatchChanges(NodeChangeContext context)
