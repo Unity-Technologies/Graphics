@@ -282,9 +282,9 @@ namespace UnityEditor.ShaderGraph
                         var state = (NodeTypeState)stateType.GetConstructor(Type.EmptyTypes).Invoke(null);
                         state.id = nodeTypeStates.Count;
                         state.owner = this;
-                        state.baseNodeType = (ShaderNodeType)constructor.Invoke(null);
+                        state.nodeType = (ShaderNodeType)constructor.Invoke(null);
                         var context = new NodeSetupContext(this, m_CurrentContextId, state);
-                        state.baseNodeType.Setup(ref context);
+                        state.nodeType.Setup(ref context);
                         if (!context.nodeTypeCreated)
                         {
                             throw new InvalidOperationException($"An {nameof(ShaderNodeType)} must provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");

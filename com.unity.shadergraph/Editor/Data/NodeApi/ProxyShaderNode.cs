@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             set
             {
                 m_TypeState = value;
-                m_ShaderNodeTypeName = value?.baseNodeType.GetType().FullName;
+                m_ShaderNodeTypeName = value?.nodeType.GetType().FullName;
             }
         }
 
@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
 
             if (typeState != null)
             {
-                m_ShaderNodeTypeName = typeState.baseNodeType.GetType().FullName;
+                m_ShaderNodeTypeName = typeState.nodeType.GetType().FullName;
             }
         }
 
@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph
         public void UpdateStateReference()
         {
             var materialOwner = (AbstractMaterialGraph)owner;
-            typeState = materialOwner.nodeTypeStates.FirstOrDefault(x => x.baseNodeType.GetType().FullName == shaderNodeTypeName);
+            typeState = materialOwner.nodeTypeStates.FirstOrDefault(x => x.nodeType.GetType().FullName == shaderNodeTypeName);
             if (typeState == null)
             {
                 throw new InvalidOperationException($"Cannot find an {nameof(ShaderNodeType)} with type name {shaderNodeTypeName}");
