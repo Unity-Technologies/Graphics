@@ -117,47 +117,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float anisotropy;
         };
 
-        [GenerateHLSL(PackingRules.Exact, false, true, 1350)]
-        public struct BSDFDataPacked
-        {
-            public uint materialFeatures;
-
-            [SurfaceDataAttributes("", false, true)]
-            public Vector3 diffuseColor;
-            public Vector3 fresnel0;
-
-            public float ambientOcclusion;
-            public float specularOcclusion;
-
-            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
-            public Vector3 normalWS;
-
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
-            public Vector3 geomNormalWS;
-
-            public float perceptualRoughness;
-
-            // MaterialFeature dependent attribute
-
-            // SSS
-            public uint diffusionProfile;
-            public float subsurfaceMask;
-
-            // Transmission
-            // + Diffusion Profile
-            public float thickness;
-            public bool useThickObjectMode; // Read from the diffusion profile
-            public Vector3 transmittance;   // Precomputation of transmittance
-
-            // Anisotropic
-            [SurfaceDataAttributes("", true)]
-            public Vector3 tangentWS;
-            [SurfaceDataAttributes("", true)]
-            public Vector3 bitangentWS;
-            public float roughnessT;
-            public float roughnessB;
-            public float anisotropy;
-        };
         //-----------------------------------------------------------------------------
         // Init precomputed textures
         //-----------------------------------------------------------------------------

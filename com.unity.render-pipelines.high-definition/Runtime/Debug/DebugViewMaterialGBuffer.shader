@@ -53,7 +53,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-                BSDFDataPacked bsdfData;
+                BSDFData bsdfData;
                 BuiltinData builtinData;
                 DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
 

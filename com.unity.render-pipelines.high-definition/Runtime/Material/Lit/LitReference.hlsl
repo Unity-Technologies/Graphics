@@ -3,7 +3,7 @@
 //-----------------------------------------------------------------------------
 
 void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
-                           PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData,
+                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                            out float3 diffuseLighting, out float3 specularLighting,
                            int sampleCount = 128)
 {
@@ -53,7 +53,7 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
 //-----------------------------------------------------------------------------
 
 void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
-                           PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData,
+                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                            out float3 diffuseLighting, out float3 specularLighting,
                            uint sampleCount = 512)
 {
@@ -127,7 +127,7 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
 
 // Ref: Moving Frostbite to PBR (Appendix A)
 float3 IntegrateLambertIBLRef(LightLoopContext lightLoopContext,
-                              float3 V, EnvLightData lightData, BSDFDataPacked bsdfData,
+                              float3 V, EnvLightData lightData, BSDFData bsdfData,
                               uint sampleCount = 4096)
 {
     float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), GetNormalWS(bsdfData));
@@ -155,7 +155,7 @@ float3 IntegrateLambertIBLRef(LightLoopContext lightLoopContext,
 }
 
 float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
-                                    float3 V, PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
+                                    float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 4096)
 {
     float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), GetNormalWS(bsdfData));
@@ -190,7 +190,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
 
 // Ref: Moving Frostbite to PBR (Appendix A)
 float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
-                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
+                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                                   uint sampleCount = 2048)
 {
     float3x3 localToWorld;

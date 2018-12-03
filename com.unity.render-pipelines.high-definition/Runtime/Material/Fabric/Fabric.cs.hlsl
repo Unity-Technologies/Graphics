@@ -55,7 +55,7 @@
 #define DEBUGVIEW_FABRIC_BSDFDATA_ANISOTROPY (1369)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Fabric+BSDFDataPacked:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Fabric+BSDFData:  static fields
 //
 #define DEBUGVIEW_FABRIC_BSDFDATAPACKED_MATERIAL_FEATURES (1350)
 #define DEBUGVIEW_FABRIC_BSDFDATAPACKED_DIFFUSE_COLOR (1351)
@@ -121,9 +121,9 @@ struct BSDFData
     float anisotropy;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Fabric+BSDFDataPacked
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Fabric+BSDFData
 // PackingRules = Exact
-struct BSDFDataPacked
+struct BSDFData
 {
     uint materialFeatures;
     float3 diffuseColor;
@@ -272,5 +272,77 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
     }
 }
+
+//
+// Debug functions
+//
+void GetGeneratedBSDFDataPackedDebug(uint paramId, BSDFData bsdfdatapacked, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_MATERIAL_FEATURES:
+            result = GetIndexColor(bsdfdatapacked.materialFeatures);
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_DIFFUSE_COLOR:
+            result = bsdfdatapacked.diffuseColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_FRESNEL0:
+            result = bsdfdatapacked.fresnel0;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_AMBIENT_OCCLUSION:
+            result = bsdfdatapacked.ambientOcclusion.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_SPECULAR_OCCLUSION:
+            result = bsdfdatapacked.specularOcclusion.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_NORMAL_WS:
+            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_NORMAL_VIEW_SPACE:
+            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_GEOMETRIC_NORMAL:
+            result = bsdfdatapacked.geomNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = bsdfdatapacked.geomNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_PERCEPTUAL_ROUGHNESS:
+            result = bsdfdatapacked.perceptualRoughness.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_DIFFUSION_PROFILE:
+            result = GetIndexColor(bsdfdatapacked.diffusionProfile);
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_SUBSURFACE_MASK:
+            result = bsdfdatapacked.subsurfaceMask.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_THICKNESS:
+            result = bsdfdatapacked.thickness.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_USE_THICK_OBJECT_MODE:
+            result = (bsdfdatapacked.useThickObjectMode) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_TRANSMITTANCE:
+            result = bsdfdatapacked.transmittance;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_TANGENT_WS:
+            result = bsdfdatapacked.tangentWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_BITANGENT_WS:
+            result = bsdfdatapacked.bitangentWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_ROUGHNESS_T:
+            result = bsdfdatapacked.roughnessT.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_ROUGHNESS_B:
+            result = bsdfdatapacked.roughnessB.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_BSDFDATAPACKED_ANISOTROPY:
+            result = bsdfdatapacked.anisotropy.xxx;
+            break;
+    }
+}
+
 
 #endif

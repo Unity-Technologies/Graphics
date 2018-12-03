@@ -23,7 +23,7 @@ float3 ComputeSunLightDirection(DirectionalLightData lightData, float3 N, float3
 }
 
 // This function returns transmittance to provide to EvaluateTransmission
-float3 PreEvaluateDirectionalLightTransmission(BSDFDataPacked bsdfData, inout DirectionalLightData light,
+float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout DirectionalLightData light,
                                                inout float3 N, inout float NdotL)
 {
     float3 transmittance = 0.0;
@@ -71,7 +71,7 @@ float3 PreEvaluateDirectionalLightTransmission(BSDFDataPacked bsdfData, inout Di
 DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
                                         PositionInputs posInput, BuiltinData builtinData,
                                         PreLightData preLightData, DirectionalLightData light,
-                                        BSDFDataPacked bsdfData, float3 N, float3 V)
+                                        BSDFData bsdfData, float3 N, float3 V)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -156,7 +156,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
 
 // This function return transmittance to provide to EvaluateTransmission
 float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
-                                            PositionInputs posInput, BSDFDataPacked bsdfData,
+                                            PositionInputs posInput, BSDFData bsdfData,
                                             inout LightData light, float distFrontFaceToLight,
                                             inout float3 N, float3 L, inout float NdotL)
 {
@@ -241,7 +241,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
 DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
                                      PositionInputs posInput, BuiltinData builtinData,
                                      PreLightData preLightData, LightData light,
-                                     BSDFDataPacked bsdfData, float3 N, float3 V)
+                                     BSDFData bsdfData, float3 N, float3 V)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);

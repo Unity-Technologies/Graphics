@@ -25,24 +25,24 @@
 // Define this to sample the environment maps/LTC samples for each lobe, instead of a single sample with an average lobe
 #define USE_COOK_TORRANCE_MULTI_LOBES   1
 
-float3 GetNormalForShadowBias(BSDFDataPacked bsdfData)
+float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
 }
 
-void ClampRoughness(inout BSDFDataPacked bsdfData, float minRoughness)
+void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 {
     // TODO
 }
 
-float ComputeMicroShadowing(BSDFDataPacked bsdfData, float NdotL)
+float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 {
     return 1; // TODO
 }
 
 // No transmission support
 // #define MATERIAL_INCLUDE_TRANSMISSION
-bool MaterialSupportsTransmission(BSDFDataPacked bsdfData)
+bool MaterialSupportsTransmission(BSDFData bsdfData)
 {
     return false;
 }
@@ -64,7 +64,7 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     }
 }
 
-void GetBSDFDataDebug(uint paramId, BSDFDataPacked bsdfData, inout float3 result, inout bool needLinearToSRGB)
+void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
 
@@ -119,7 +119,7 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 //  Material.hlsl (or Lighting.hlsl which includes it) which in turn includes us,
 //  AxF.shader, via the #if defined(UNITY_MATERIAL_*) glue mechanism.
 //
-void ApplyDebugToBSDFData(inout BSDFDataPacked bsdfData)
+void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 {
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
@@ -285,9 +285,9 @@ float   G_smith(float NdotV, float roughness)
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFDataPacked ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
+BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
-    BSDFDataPacked    bsdfData;
+    BSDFData    bsdfData;
     //  ZERO_INITIALIZE(BSDFData, data);
 
     bsdfData.normalWS = surfaceData.normalWS;
@@ -379,7 +379,7 @@ struct PreLightData
     float3      ltcTransformClearcoat_Amplitude;
 };
 
-PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput, inout BSDFDataPacked bsdfData)
+PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData    preLightData;
     //  ZERO_INITIALIZE(PreLightData, preLightData);
@@ -573,7 +573,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
 //    refractedRatio = (1-Fin) * (1-Fout);
 //}
 
-void    ComputeClearcoatReflectionAndExtinction_UsePreLightData(inout float3 viewWS, inout float3 lightWS, BSDFDataPacked bsdfData, PreLightData preLightData, out float3 reflectedRatio, out float3 refractedRatio)
+void    ComputeClearcoatReflectionAndExtinction_UsePreLightData(inout float3 viewWS, inout float3 lightWS, BSDFData bsdfData, PreLightData preLightData, out float3 reflectedRatio, out float3 refractedRatio)
 {
 
     // Computes perfect mirror reflection
@@ -610,7 +610,7 @@ void    ComputeClearcoatReflectionAndExtinction_UsePreLightData(inout float3 vie
 void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
 {
     // To get the data we need to do the whole process - compiler should optimize everything
-    BSDFDataPacked bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
@@ -623,7 +623,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 //-----------------------------------------------------------------------------
 // light transport functions
 //-----------------------------------------------------------------------------
-LightTransportData  GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFDataPacked bsdfData)
+LightTransportData  GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
     LightTransportData lightTransportData;
 
@@ -646,7 +646,7 @@ LightTransportData  GetLightTransportData(SurfaceData surfaceData, BuiltinData b
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
 
-float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData)
+float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
 
     // Evaluate Fresnel term
@@ -673,7 +673,7 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, float3 posit
     return bsdfData.specularColor * F * N;
 }
 
-float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData)
+float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
     float2  exponents = exp2(bsdfData.roughness);
 
@@ -709,7 +709,7 @@ float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, float
     return bsdfData.specularColor * N;
 }
 
-float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData)
+float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
     float   NdotH = dot(H, bsdfData.normalWS);
     float   sqNdotH = Sq(NdotH);
@@ -728,7 +728,7 @@ float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, flo
     return bsdfData.specularColor * F * N * G;
 }
 
-float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData)
+float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
     // Evaluate Fresnel term
     float3  F = F_Schlick(bsdfData.fresnelF0, LdotH);
@@ -746,14 +746,14 @@ float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, float3 posit
     return bsdfData.specularColor * F * N * G;
 }
 
-float3  ComputePhong(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData)
+float3  ComputePhong(float3 H, float LdotH, float NdotL, float NdotV, float3 positionWS, PreLightData preLightData, BSDFData bsdfData)
 {
     return 1000 * float3(1, 0, 1);
 }
 
 
 // This function applies the BSDF. Assumes that NdotL is positive.
-void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData,
+void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting, out float3 specularLighting)
 {
 
@@ -843,7 +843,7 @@ float3  SamplesFlakes(float2 UV, uint sliceIndex, float mipLevel)
 
 #if 0
 // Original code from the SDK, cleaned up a bit...
-float3  CarPaint_BTF(float thetaH, float thetaD, BSDFDataPacked bsdfData)
+float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 {
     float2  UV = bsdfData.flakesUV;
     float   mipLevel = bsdfData.flakesMipLevel;
@@ -924,7 +924,7 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFDataPacked bsdfData)
 #else
 
 // Simplified code
-float3  CarPaint_BTF(float thetaH, float thetaD, BSDFDataPacked bsdfData)
+float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 {
     float2  UV = bsdfData.flakesUV;
     float   mipLevel = bsdfData.flakesMipLevel;
@@ -962,7 +962,7 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFDataPacked bsdfData)
 
 
 // This function applies the BSDF. Assumes that NdotL is positive.
-void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData,
+void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting, out float3 specularLighting)
 {
     float3  viewWS_Clearcoat = viewWS_UnderCoat;    // Keep copy before possible refraction
@@ -1010,7 +1010,7 @@ void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, floa
 #else
 
 // This function applies the BSDF. Assumes that NdotL is positive.
-void    BSDF(float3 viewWS, float3 lightWS, float NdotL, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData,
+void    BSDF(float3 viewWS, float3 lightWS, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
     out float3 diffuseLighting, out float3 specularLighting)
 {
 
@@ -1037,7 +1037,7 @@ void    BSDF(float3 viewWS, float3 lightWS, float NdotL, float3 positionWS, PreL
 
 DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput, PreLightData preLightData,
-                                        DirectionalLightData lightData, BSDFDataPacked bsdfData,
+                                        DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
     return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
@@ -1050,7 +1050,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
                                  bsdfData, bsdfData.normalWS, V);
@@ -1141,7 +1141,7 @@ real PolygonIrradiance(real4x3 L, out float3 F)
 
 DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
                                     float3 viewWS_Clearcoat, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -1330,7 +1330,7 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
 
 DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     float3 viewWS_Clearcoat, PositionInputs posInput,
-    PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -1533,7 +1533,7 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
 DirectLighting  EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 viewWS, PositionInputs posInput,
     PreLightData preLightData, LightData lightData,
-    BSDFDataPacked bsdfData, BuiltinData builtinData)
+    BSDFData bsdfData, BuiltinData builtinData)
 {
 
     if (lightData.lightType == GPULIGHTTYPE_TUBE)
@@ -1552,7 +1552,7 @@ DirectLighting  EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
                                                     PreLightData   preLightData,
-                                                    BSDFDataPacked       bsdfData,
+                                                    BSDFData       bsdfData,
                                                     inout float    reflectionHierarchyWeight)
 {
     IndirectLighting lighting;
@@ -1565,7 +1565,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
 IndirectLighting    EvaluateBSDF_ScreenspaceRefraction( LightLoopContext lightLoopContext,
                                                         float3 viewWS_Clearcoat, PositionInputs posInput,
-                                                        PreLightData preLightData, BSDFDataPacked bsdfData,
+                                                        PreLightData preLightData, BSDFData bsdfData,
                                                         EnvLightData _envLightData,
                                                         inout float hierarchyWeight)
 {
@@ -1589,7 +1589,7 @@ IndirectLighting    EvaluateBSDF_ScreenspaceRefraction( LightLoopContext lightLo
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 viewWS_Clearcoat, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                                     int _influenceShapeType, int _GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
@@ -1768,7 +1768,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
-                        PreLightData preLightData, BSDFDataPacked bsdfData, BuiltinData builtinData, AggregateLighting lighting,
+                        PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
     // There is no AmbientOcclusion from data with AxF, but let's apply our SSAO

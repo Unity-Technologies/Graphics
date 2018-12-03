@@ -213,18 +213,18 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 
 // The only way to get Coat now is with vlayering
-bool IsVLayeredEnabled(BSDFDataPacked bsdfData)
+bool IsVLayeredEnabled(BSDFData bsdfData)
 {
     return (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT));
 }
 
-bool IsCoatNormalMapEnabled(BSDFDataPacked bsdfData)
+bool IsCoatNormalMapEnabled(BSDFData bsdfData)
 {
     return (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP));
 }
 
 // Assume bsdfData.normalWS is init
-void FillMaterialAnisotropy(float anisotropyA, float anisotropyB, float3 tangentWS, float3 bitangentWS, inout BSDFDataPacked bsdfData)
+void FillMaterialAnisotropy(float anisotropyA, float anisotropyB, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
     bsdfData.anisotropyA  = anisotropyA;
     bsdfData.anisotropyB  = anisotropyB;
@@ -232,14 +232,14 @@ void FillMaterialAnisotropy(float anisotropyA, float anisotropyB, float3 tangent
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void FillMaterialIridescence(float mask, float thickness, float ior, inout BSDFDataPacked bsdfData)
+void FillMaterialIridescence(float mask, float thickness, float ior, inout BSDFData bsdfData)
 {
     bsdfData.iridescenceMask = mask;
     bsdfData.iridescenceThickness = thickness;
     bsdfData.iridescenceIor = ior;
 }
 
-void FillMaterialCoatData(float coatPerceptualRoughness, float coatIor, float coatThickness, float3 coatExtinction, inout BSDFDataPacked bsdfData)
+void FillMaterialCoatData(float coatPerceptualRoughness, float coatIor, float coatThickness, float3 coatExtinction, inout BSDFData bsdfData)
 {
     bsdfData.coatPerceptualRoughness = coatPerceptualRoughness;
     bsdfData.coatIor        = coatIor;
@@ -247,29 +247,29 @@ void FillMaterialCoatData(float coatPerceptualRoughness, float coatIor, float co
     bsdfData.coatExtinction = coatExtinction;
 }
 
-float GetCoatEta(in BSDFDataPacked bsdfData)
+float GetCoatEta(in BSDFData bsdfData)
 {
     float eta = bsdfData.coatIor / 1.0;
     //ieta = 1.0 / eta;
     return eta;
 }
 
-float3 GetNormalForShadowBias(BSDFDataPacked bsdfData)
+float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
 }
 
-void ClampRoughness(inout BSDFDataPacked bsdfData, float minRoughness)
+void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 {
     // TODO
 }
 
-float ComputeMicroShadowing(BSDFDataPacked bsdfData, float NdotL)
+float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 {
     return 1; // TODO
 }
 
-bool MaterialSupportsTransmission(BSDFDataPacked bsdfData)
+bool MaterialSupportsTransmission(BSDFData bsdfData)
 {
     return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION);
 }
@@ -356,7 +356,7 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 // Material.hlsl (or Lighting.hlsl which includes it) which in turn includes us,
 // StackLit.shader, via the #if defined(UNITY_MATERIAL_*) glue mechanism.
 //
-void ApplyDebugToBSDFData(inout BSDFDataPacked bsdfData)
+void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 {
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
@@ -434,7 +434,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 //    bsdfData.roughnessBB
 //
 //
-void HazeMapping(float3 fresnel0, float roughnessAT, float roughnessAB, float haziness, float hazeExtent, float hazeExtentAnisotropy, float3 hazyGlossMaxf0, inout BSDFDataPacked bsdfData)
+void HazeMapping(float3 fresnel0, float roughnessAT, float roughnessAB, float haziness, float hazeExtent, float hazeExtentAnisotropy, float3 hazyGlossMaxf0, inout BSDFData bsdfData)
 {
     float w = 10.0; // interpolation steepness weight (Bezier weight of central point)
     bool useBezierToMapKh = true; 
@@ -533,9 +533,9 @@ void HazeMapping(float3 fresnel0, float roughnessAT, float roughnessAB, float ha
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFDataPacked ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
+BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
-    BSDFDataPacked bsdfData;
+	BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
     // IMPORTANT: In our forward only case, all enable flags are statically know at compile time, so the compiler can do compile time optimization
@@ -655,7 +655,7 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     }
 }
 
-void GetBSDFDataDebug(uint paramId, BSDFDataPacked bsdfData, inout float3 result, inout bool needLinearToSRGB)
+void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
 
@@ -914,7 +914,7 @@ float3 GetDirFromAngleAndOrthoFrame(float3 V, float3 N, float newVdotN)
 }
 
 
-void ComputeAdding_GetVOrthoGeomN(BSDFDataPacked bsdfData, float3 V, bool calledPerLight, out float3 vOrthoGeomN, out bool useGeomN, bool testSingularity = false)
+void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLight, out float3 vOrthoGeomN, out bool useGeomN, bool testSingularity = false)
 {
     vOrthoGeomN = (float3)0;
     useGeomN = false;
@@ -1116,7 +1116,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFDataPacked bsdfData, float3 V, bool called
 //       (more like p8, T21 <- T21*TIR, R21 <- R21 + (1-TIR)*T21 )
 //
 //ComputeStatistics(cti, V, vOrthoGeomN, useGeomN, i, bsdfData, preLightData, ctt, R12, T12, R21, T21, s_r12, s_t12, j12, s_r21, s_t21, j21);
-void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bool useGeomN, in int i, in BSDFDataPacked bsdfData,
+void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bool useGeomN, in int i, in BSDFData bsdfData,
                        inout PreLightData preLightData,
                        out float  ctt,
                        out float3 R12,   out float3 T12,   out float3 R21,   out float3 T21,
@@ -1282,7 +1282,7 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
 } //...ComputeStatistics()
 
 
-void ComputeAdding(float _cti, float3 V, in BSDFDataPacked bsdfData, inout PreLightData preLightData, bool calledPerLight = false, bool testSingularity = false)
+void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightData preLightData, bool calledPerLight = false, bool testSingularity = false)
 {
     // _cti should be LdotH or VdotH if calledPerLight == true (symmetric parametrization), V is unused in this case.
     // _cti should be NdotV if calledPerLight == false and no independent coat normal map is used (ie single normal map), V is unused in this case.
@@ -1652,7 +1652,7 @@ void ComputeAdding(float _cti, float3 V, in BSDFDataPacked bsdfData, inout PreLi
 
 
 
-float PreLightData_GetBaseNdotVForFGD(BSDFDataPacked bsdfData, PreLightData preLightData, float NdotV[NB_NORMALS])
+float PreLightData_GetBaseNdotVForFGD(BSDFData bsdfData, PreLightData preLightData, float NdotV[NB_NORMALS])
 {
     float baseLayerNdotV;
     if ( IsCoatNormalMapEnabled(bsdfData) )
@@ -1669,7 +1669,7 @@ float PreLightData_GetBaseNdotVForFGD(BSDFDataPacked bsdfData, PreLightData preL
     return ClampNdotV(baseLayerNdotV);
 }
 
-void PreLightData_SetupNormals(BSDFDataPacked bsdfData, inout PreLightData preLightData, float3 V, out float3 N[NB_NORMALS], out float NdotV[NB_NORMALS] /* clamped */)
+void PreLightData_SetupNormals(BSDFData bsdfData, inout PreLightData preLightData, float3 V, out float3 N[NB_NORMALS], out float NdotV[NB_NORMALS] /* clamped */)
 {
     N[BASE_NORMAL_IDX] = bsdfData.normalWS;
     preLightData.NdotV[BASE_NORMAL_IDX] = dot(N[BASE_NORMAL_IDX], V);
@@ -1694,7 +1694,7 @@ void PreLightData_LoadLtcTransformSpecular(float2 uv, int lobeIdx, inout PreLigh
     preLightData.ltcTransformSpecular[lobeIdx]._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 }
 
-void PreLightData_SetupAreaLights(BSDFDataPacked bsdfData, float3 V, float3 N[NB_NORMALS], float NdotV[NB_NORMALS] /* clamped */, inout PreLightData preLightData)
+void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMALS], float NdotV[NB_NORMALS] /* clamped */, inout PreLightData preLightData)
 {
     // For sampling the LUTs
     float theta[NB_NORMALS];
@@ -1738,7 +1738,7 @@ void PreLightData_SetupAreaLights(BSDFDataPacked bsdfData, float3 V, float3 N[NB
 // makes a normal that is roughness dependent.
 // Also uses
 //     preLightData.iblPerceptualRoughness[] (vs bsdfData.(coat)perceptualRoughness(A|B))
-void PreLightData_SetupAreaLightsAniso(BSDFDataPacked bsdfData, float3 V, float3 N[NB_NORMALS] /* for orthoBasisViewNormalDiffuse */, float3 iblN[TOTAL_NB_LOBES], inout PreLightData preLightData)
+void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_NORMALS] /* for orthoBasisViewNormalDiffuse */, float3 iblN[TOTAL_NB_LOBES], inout PreLightData preLightData)
 {
     // For sampling the LUTs
     float theta[TOTAL_NB_LOBES];
@@ -1791,7 +1791,7 @@ void PreLightData_SetupAreaLightsAniso(BSDFDataPacked bsdfData, float3 V, float3
 #define SPECULAR_OCCLUSION_CONECONE 1
 #define SPECULAR_OCCLUSION_SPTD 2
 
-float3 PreLightData_GetSpecularOcclusion(BSDFDataPacked bsdfData, // PreLightData preLightData,
+float3 PreLightData_GetSpecularOcclusion(BSDFData bsdfData, // PreLightData preLightData,
                                          int specularOcclusionAlgorithm,
                                          float screenSpaceSpecularOcclusion,
                                          float3 V, float3 normalWS, float NdotV /* clamped */,
@@ -1855,7 +1855,7 @@ float3 PreLightData_GetSpecularOcclusion(BSDFDataPacked bsdfData, // PreLightDat
 //     preLightData.screenSpaceAmbientOcclusion
 //     preLightData.hemiSpecularOcclusion[]
 //
-void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFDataPacked bsdfData, float3 V, float3 N[NB_NORMALS], float NdotV[NB_NORMALS] /* clamped */, float3x3 orthoBasisViewNormal[NB_NORMALS],
+void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, float3 V, float3 N[NB_NORMALS], float NdotV[NB_NORMALS] /* clamped */, float3x3 orthoBasisViewNormal[NB_NORMALS],
                                  inout PreLightData preLightData)
 {
     float screenSpaceSpecularOcclusion[TOTAL_NB_LOBES];
@@ -1967,7 +1967,7 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFDataPacked bsdfDat
 
 } // PreLightData_SetupOcclusion
 
-PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFDataPacked bsdfData)
+PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
     ZERO_INITIALIZE(PreLightData, preLightData);
@@ -2353,7 +2353,7 @@ float GetInferredMetallic(float dielectricF0, float3 inDiffuseColor, float3 inFr
     return metallic;
 }
 
-LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFDataPacked bsdfData)
+LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
     LightTransportData lightTransportData;
 
@@ -2481,7 +2481,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 //                           L, V, N, NdotL,
 //                           H, NdotH, savedLdotH, NdotV);
 
-void BSDF_SetupNormalsAndAngles(BSDFDataPacked bsdfData, inout PreLightData preLightData, float inNdotL,
+void BSDF_SetupNormalsAndAngles(BSDFData bsdfData, inout PreLightData preLightData, float inNdotL,
                                 inout float3 L[NB_LV_DIR], inout float3 V[NB_LV_DIR], out float3 N[NB_NORMALS], out float NdotL[NDOTLV_SIZE],
                                 out float3 H, out float NdotH[NB_NORMALS], out float savedLdotH, out float NdotV[NDOTLV_SIZE])
 {
@@ -2649,7 +2649,7 @@ void BSDF_SetupNormalsAndAngles(BSDFDataPacked bsdfData, inout PreLightData preL
 
 } //...BSDF_SetupNormalsAndAngles
 
-void CalculateAnisoAngles(BSDFDataPacked bsdfData, float3 H, float3 L, float3 V, out float TdotH, out float TdotL, out float BdotH, out float BdotL)
+void CalculateAnisoAngles(BSDFData bsdfData, float3 H, float3 L, float3 V, out float TdotH, out float TdotL, out float BdotH, out float BdotL)
 {
     // For anisotropy we must not saturate these values
     TdotH = dot(bsdfData.tangentWS, H);
@@ -2666,7 +2666,7 @@ void CalculateAnisoAngles(BSDFDataPacked bsdfData, float3 H, float3 L, float3 V,
 //  -SSR TODO for StackLit )
 //
 // Assumes that NdotL is positive.
-void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData,
+void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
           out float3 diffuseLighting,
           out float3 specularLighting)
 {
@@ -2810,7 +2810,7 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
 
 }//...BSDF
 
-void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFDataPacked bsdfData, PreLightData preLightData, float3 V, out float3 N, out float unclampedNdotV)
+void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFData bsdfData, PreLightData preLightData, float3 V, out float3 N, out float unclampedNdotV)
 {
     // TODO: This affects transmission and SSS, choose the normal to use when we have
     // both. For now, just use the base:
@@ -2843,7 +2843,7 @@ void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFDataPacked bsdfData, PreLightData 
 //...already included earlier.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
 
-float3 EvaluateTransmission(BSDFDataPacked bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
+float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
 {
     // Apply wrapped lighting to better handle thin objects at grazing angles.
     float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
@@ -3411,7 +3411,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 V, PositionInputs posInput,
     PreLightData preLightData, LightData lightData,
-    BSDFDataPacked bsdfData, BuiltinData builtinData)
+    BSDFData bsdfData, BuiltinData builtinData)
 {
     if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {

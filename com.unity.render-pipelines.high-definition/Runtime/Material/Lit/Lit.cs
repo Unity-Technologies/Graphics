@@ -102,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
 
         [GenerateHLSL(PackingRules.Exact, false, true, 1050)]
-        public struct BSDFData
+        public struct BSDFDataForDebug
         {
             public uint materialFeatures;
 
@@ -159,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         [GenerateHLSL(PackingRules.Exact, false, true, 1050)]
-        public struct BSDFDataPacked
+        public struct BSDFData
         {
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;

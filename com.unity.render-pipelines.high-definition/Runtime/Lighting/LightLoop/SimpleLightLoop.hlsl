@@ -5,7 +5,7 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
-void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFDataPacked bsdfData, BuiltinData builtinData, uint featureFlags,
+void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
                 out float3 diffuseLighting,
                 out float3 specularLighting)
 {

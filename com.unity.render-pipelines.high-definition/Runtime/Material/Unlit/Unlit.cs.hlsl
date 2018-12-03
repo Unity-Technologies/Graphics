@@ -15,7 +15,7 @@
 #define DEBUGVIEW_UNLIT_BSDFDATA_COLOR (350)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFDataPacked:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData:  static fields
 //
 #define DEBUGVIEW_UNLIT_BSDFDATAPACKED_COLOR (350)
 
@@ -33,9 +33,9 @@ struct BSDFData
     float3 color;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFDataPacked
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData
 // PackingRules = Exact
-struct BSDFDataPacked
+struct BSDFData
 {
     float3 color;
 };
@@ -71,7 +71,7 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
 //
 // Debug functions
 //
-void GetGeneratedBSDFDataPackedDebug(uint paramId, BSDFDataPacked bsdfdatapacked, inout float3 result, inout bool needLinearToSRGB)
+void GetGeneratedBSDFDataPackedDebug(uint paramId, BSDFData bsdfdatapacked, inout float3 result, inout bool needLinearToSRGB)
 {
     switch (paramId)
     {

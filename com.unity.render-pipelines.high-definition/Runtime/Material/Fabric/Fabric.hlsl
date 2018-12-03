@@ -23,31 +23,31 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
-float3 GetNormalForShadowBias(BSDFDataPacked bsdfData)
+float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
 }
 
 // Assume bsdfData.normalWS is init
-void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFDataPacked bsdfData)
+void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
     bsdfData.anisotropy = anisotropy;
     bsdfData.tangentWS = tangentWS;
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void ClampRoughness(inout BSDFDataPacked bsdfData, float minRoughness)
+void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 {
     bsdfData.roughnessT = max(minRoughness, bsdfData.roughnessT);
     bsdfData.roughnessB = max(minRoughness, bsdfData.roughnessB);
 }
 
-float ComputeMicroShadowing(BSDFDataPacked bsdfData, float NdotL)
+float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 {
     return 1; // TODO
 }
 
-bool MaterialSupportsTransmission(BSDFDataPacked bsdfData)
+bool MaterialSupportsTransmission(BSDFData bsdfData)
 {
     return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION);
 }
@@ -90,7 +90,7 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 // just before including the core code of the pass (ShaderPassForward.hlsl) we include
 // Material.hlsl (or Lighting.hlsl which includes it) which in turn includes us,
 // Fabric.shader, via the #if defined(UNITY_MATERIAL_*) glue mechanism.
-void ApplyDebugToBSDFData(inout BSDFDataPacked bsdfData)
+void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 {
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
@@ -128,10 +128,10 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFDataPacked ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
+BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
-    BSDFDataPacked bsdfData;
-    ZERO_INITIALIZE(BSDFDataPacked, bsdfData);
+    BSDFData bsdfData;
+    ZERO_INITIALIZE(BSDFData, bsdfData);
 
     // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures = surfaceData.materialFeatures;
@@ -192,7 +192,7 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
 }
 
 // This function call the generated debug function and allow to override the debug output if needed
-void GetBSDFDataDebug(uint paramId, BSDFDataPacked bsdfData, inout float3 result, inout bool needLinearToSRGB)
+void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
 }
@@ -220,7 +220,7 @@ struct PreLightData
 };
 
 // This function is call to precompute heavy calculation before lightloop
-PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFDataPacked bsdfData)
+PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
     // Don't init to zero to allow to track warning about uninitialized data
@@ -270,7 +270,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFDataPa
 void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
 {
     // To get the data we need to do the whole process - compiler should optimize everything
-    BSDFDataPacked bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
@@ -293,7 +293,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 // light transport functions
 //-----------------------------------------------------------------------------
 
-LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFDataPacked bsdfData)
+LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
     LightTransportData lightTransportData;
 
@@ -323,7 +323,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // Silk: Roughness 0.3 - 0.7 - anisotropic - varying specular color
 
 // This function apply BSDF. Assumes that NdotL is positive.
-void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData,
+void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
@@ -384,7 +384,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 
 DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput, PreLightData preLightData,
-                                        DirectionalLightData lightData, BSDFDataPacked bsdfData,
+                                        DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
     return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
@@ -398,7 +398,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
                                  bsdfData, bsdfData.normalWS, V);
@@ -410,7 +410,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -426,7 +426,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -457,7 +457,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
                                                     PreLightData   preLightData,
-                                                    BSDFDataPacked       bsdfData,
+                                                    BSDFData       bsdfData,
                                                     inout float    reflectionHierarchyWeight)
 {
     IndirectLighting lighting;
@@ -470,7 +470,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
 IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopContext,
                                                     float3 V, PositionInputs posInput,
-                                                    PreLightData preLightData, BSDFDataPacked bsdfData,
+                                                    PreLightData preLightData, BSDFData bsdfData,
                                                     EnvLightData envLightData,
                                                     inout float hierarchyWeight)
 {
@@ -489,7 +489,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                                     int influenceShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
@@ -559,7 +559,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
-                        PreLightData preLightData, BSDFDataPacked bsdfData, BuiltinData builtinData, AggregateLighting lighting,
+                        PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
     AmbientOcclusionFactor aoFactor;

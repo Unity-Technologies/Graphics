@@ -218,21 +218,6 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
     #endif
 #endif
 
-// Assume bsdfData.normalWS is init
-void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
-{
-    bsdfData.anisotropy  = anisotropy;
-    bsdfData.tangentWS   = tangentWS;
-    bsdfData.bitangentWS = bitangentWS;
-}
-
-
-void FillMaterialIridescence(float mask, float thickness, inout BSDFData bsdfData)
-{
-    bsdfData.iridescenceMask = mask;
-    bsdfData.iridescenceThickness = thickness;
-}
-
 void FillMaterialClearCoatData(float coatMask, inout float roughness, out float coatRoughness)
 {
     float ieta = lerp(1.0, CLEAR_COAT_IETA, coatMask);
@@ -244,22 +229,7 @@ void FillMaterialClearCoatData(float coatMask, inout float roughness, out float 
     roughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
 }
 
-void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
-{
-    // Uses thickness from SSS's property set
-    bsdfData.ior = ior;
-
-    // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
-    bsdfData.fresnel0 = lerp(IorToFresnel0(ior).xxx, baseColor, metallic);
-
-    bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance);
-    bsdfData.transmittanceMask = transmittanceMask;
-    bsdfData.thickness = max(thickness, 0.0001);
-}
-
-
-
-void FillMaterialTransparencyDataPacked(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, inout BSDFDataPacked bsdfData)
+void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, inout BSDFData bsdfData)
 {
     // Uses thickness from SSS's property set
 	SetIOR(ior, bsdfData);
@@ -312,7 +282,7 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
     if (overrideSpecularColor)
     {
         float3 overrideSpecularColor = _DebugLightingSpecularColor.yzw;
-        bsdfData.fresnel0 = overrideSpecularColor;
+		SetFresnel0(overrideSpecularColor, bsdfData);
     }
 #endif
 }
@@ -340,16 +310,6 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     return normalData;
 }
 
-void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout BSDFData bsdfData)
-{
-    NormalData normalData;
-
-    DecodeFromNormalBuffer(positionSS, normalData);
-
-    bsdfData.normalWS = normalData.normalWS;
-    bsdfData.perceptualRoughness = normalData.perceptualRoughness;
-}
-
 void UpdateSurfaceDataFromNormalData(uint2 positionSS, out float3 normalWS, out float perceptualRoughness)
 {
     NormalData normalData;
@@ -360,17 +320,9 @@ void UpdateSurfaceDataFromNormalData(uint2 positionSS, out float3 normalWS, out 
     perceptualRoughness = normalData.perceptualRoughness;
 }
 
-float3 GetNormalForShadowBias(BSDFDataPacked bsdfData)
+float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return GetNormalWS(bsdfData);
-}
-
-
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    bsdfData.roughnessT    = max(minRoughness, bsdfData.roughnessT);
-    bsdfData.roughnessB    = max(minRoughness, bsdfData.roughnessB);
-    bsdfData.coatRoughness = max(minRoughness, bsdfData.coatRoughness);
 }
 
 void ClampRoughness(inout float roughnessT, inout float roughnessB, inout float coatRoughness, float minRoughness)
@@ -380,7 +332,7 @@ void ClampRoughness(inout float roughnessT, inout float roughnessB, inout float 
     coatRoughness = max(minRoughness, coatRoughness);
 }
 
-float ComputeMicroShadowing(BSDFDataPacked bsdfData, float NdotL)
+float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 {
 #ifdef LIGHT_LAYERS
     return ComputeMicroShadowing(GetAmbientOcclusion(bsdfData), NdotL, _MicroShadowOpacity);
@@ -396,7 +348,7 @@ float ComputeMicroShadowing(float OcclusionData, float NdotL)
 }
 
 
-bool MaterialSupportsTransmission(BSDFDataPacked bsdfData)
+bool MaterialSupportsTransmission(BSDFData bsdfData)
 {
     return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
 }
@@ -405,17 +357,17 @@ bool MaterialSupportsTransmission(BSDFDataPacked bsdfData)
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFDataPacked ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
+BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
-    BSDFDataPacked bsdfData;
-    ZERO_INITIALIZE(BSDFDataPacked, bsdfData);
+	BSDFData bsdfData;
+    ZERO_INITIALIZE(BSDFData, bsdfData);
 
 
     // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures = surfaceData.materialFeatures;
 
     float3 fresnel0 = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
-    bsdfData.fresnel0 = PackToR11G11B10f(fresnel0);
+    SetFresnel0(fresnel0, bsdfData);
     float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     float coatRoughness = 0.0f;
     float thickness = 0.0f;
@@ -457,8 +409,8 @@ BSDFDataPacked ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfac
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        bsdfData.tangentWS = PackToR11G11B10f(surfaceData.tangentWS);
-        bsdfData.bitangentWS = PackToR11G11B10f(cross(surfaceData.normalWS, surfaceData.tangentWS));
+		SetTangentWS(surfaceData.tangentWS, bsdfData);
+        SetBitangentWS(cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
@@ -486,10 +438,13 @@ BSDFDataPacked ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfac
 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
-    FillMaterialTransparencyDataPacked(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, bsdfData);
+	FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, bsdfData);
     InitTransmittanceMask(surfaceData.transmittanceMask, bsdfData);
     InitThickness(max(thickness, 0.0001), bsdfData);
 #endif
+
+	ApplyDebugToBSDFData(bsdfData);
+
 
     return bsdfData;
 }
@@ -671,11 +626,11 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 // If you're not using the feature classification system, pass UINT_MAX.
 // Also, see comment in TileVariantToFeatureFlags. When we are the worse case (i.e last variant), we read the featureflags
 // from the structured buffer use to generate the indirect draw call. It allow to not go through all branch and the branch is scalar (not VGPR)
-uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFDataPacked bsdfData, out BuiltinData builtinData)
+uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsdfData, out BuiltinData builtinData)
 {
     // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID,
     // bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0, etc...
-    ZERO_INITIALIZE(BSDFDataPacked, bsdfData);
+    ZERO_INITIALIZE(BSDFData, bsdfData);
     // Note: Some properties of builtinData are not used, just init all at 0 to silent the compiler
     ZERO_INITIALIZE(BuiltinData, builtinData);
 
@@ -901,7 +856,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFDataPack
 // Function call from the material classification compute shader
 uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
 {
-    BSDFDataPacked bsdfData;
+	BSDFData bsdfData;
     BuiltinData unused;
     // Call the regular function, compiler will optimized out everything not used.
     // Note that all material feature flag bellow are in the same GBuffer (inGBuffer2) and thus material classification only sample one Gbuffer
@@ -932,83 +887,83 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     }
 }
 
-void GetBSDFDataDebug(uint paramId, BSDFDataPacked bsdfData, inout float3 result, inout bool needLinearToSRGB)
+void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     // Overide debug value output to be more readable
     switch (paramId)
     {
-		case DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_DIFFUSE_COLOR:
 			result = GetDiffuseColor(bsdfData);
 			needLinearToSRGB = true;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_FRESNEL0:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_FRESNEL0:
 			result = GetFresnel0(bsdfData);
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_AMBIENT_OCCLUSION:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_AMBIENT_OCCLUSION:
 			result = GetAmbientOcclusion(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_SPECULAR_OCCLUSION:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_SPECULAR_OCCLUSION:
 			result = GetSpecularOcclusion(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_NORMAL_WS:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_NORMAL_WS:
 			result = GetNormalWS(bsdfData) * 0.5 + 0.5;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_PERCEPTUAL_ROUGHNESS:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_PERCEPTUAL_ROUGHNESS:
 			result = GetPerceptualRoughness(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_COAT_MASK:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_COAT_MASK:
 			result = GetCoatMask(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_DIFFUSION_PROFILE:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_DIFFUSION_PROFILE:
 			result = GetIndexColor(GetDiffusionProfile(bsdfData));
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_MASK:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_SUBSURFACE_MASK:
 			result = GetSubsurfaceMask(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_THICKNESS:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_THICKNESS:
 			result = GetThickness(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_TRANSMITTANCE:
 			result = GetTransmittance(bsdfData);
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_TANGENT_WS:
 			result = GetTangentWS(bsdfData) * 0.5 + 0.5;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_BITANGENT_WS:
 			result = GetBitangentWS(bsdfData) * 0.5 + 0.5;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_ROUGHNESS_T:
 			result = GetRoughnessT(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_ROUGHNESS_B:
 			result = GetRoughnessB(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_ANISOTROPY:
 			result = GetAnisotropy(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_IRIDESCENCE_THICKNESS:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_IRIDESCENCE_THICKNESS:
 			result = GetIridescenceThickness(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_IRIDESCENCE_MASK:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_IRIDESCENCE_MASK:
 			result = GetIridescenceMask(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_COAT_ROUGHNESS:
 			result = GetCoatRoughness(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_ABSORPTION_COEFFICIENT:
 			result = GetAbsorptionCoefficient(bsdfData);
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_TRANSMITTANCE_MASK:
 			result = GetTransmittanceMask(bsdfData).xxx;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_NORMAL_VIEW_SPACE:
 			// Convert to view space
 			result = TransformWorldToViewDir(GetNormalWS(bsdfData)) * 0.5 + 0.5;
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_MATERIAL_FEATURES:
 			result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
 			break;
-		case DEBUGVIEW_LIT_BSDFDATA_IOR:
+		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_IOR:
 			result = saturate((GetIOR(bsdfData) - 1.0) / 1.5).xxx;
 			break;
     }
@@ -1055,7 +1010,7 @@ struct PreLightData
 #endif
 };
 
-PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFDataPacked bsdfData)
+PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
     ZERO_INITIALIZE(PreLightData, preLightData);
@@ -1212,7 +1167,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     // In case of deferred, all lighting model operation are done before storage in GBuffer, as we store emissive with bakeDiffuseLighting
 
     // To get the data we need to do the whole process - compiler should optimize everything
-    BSDFDataPacked bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR in forward and in deferred we can't store it anyway)
@@ -1236,7 +1191,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 //-----------------------------------------------------------------------------
 
 
-LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFDataPacked bsdfData)
+LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
     LightTransportData lightTransportData;
 
@@ -1262,7 +1217,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 //-----------------------------------------------------------------------------
 
 // This function apply BSDF. Assumes that NdotL is positive.
-void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData,
+void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
@@ -1362,7 +1317,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 
 DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput, PreLightData preLightData,
-                                        DirectionalLightData lightData, BSDFDataPacked bsdfData,
+                                        DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
     return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
@@ -1375,7 +1330,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
                                  bsdfData, GetNormalWS(bsdfData), V);
@@ -1389,7 +1344,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -1512,7 +1467,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -1653,7 +1608,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 V, PositionInputs posInput,
     PreLightData preLightData, LightData lightData,
-    BSDFDataPacked bsdfData, BuiltinData builtinData)
+	BSDFData bsdfData, BuiltinData builtinData)
 {
     if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {
@@ -1671,7 +1626,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
                                                     PreLightData   preLightData,
-                                                    BSDFDataPacked       bsdfData,
+	BSDFData       bsdfData,
                                                     inout float    reflectionHierarchyWeight)
 {
     IndirectLighting lighting;
@@ -1690,7 +1645,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
 IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopContext,
                                                     float3 V, PositionInputs posInput,
-                                                    PreLightData preLightData, BSDFDataPacked bsdfData,
+                                                    PreLightData preLightData, BSDFData bsdfData,
                                                     EnvLightData envLightData,
                                                     inout float hierarchyWeight)
 {
@@ -1774,7 +1729,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                                     int influenceShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
@@ -1908,7 +1863,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
-                        PreLightData preLightData, BSDFDataPacked bsdfData, BuiltinData builtinData, AggregateLighting lighting,
+                        PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
     AmbientOcclusionFactor aoFactor;

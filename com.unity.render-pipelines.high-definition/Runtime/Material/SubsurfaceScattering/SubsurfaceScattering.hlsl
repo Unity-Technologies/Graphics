@@ -153,29 +153,34 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 
 #ifdef MATERIAL_INCLUDE_SUBSURFACESCATTERING
 
+#ifdef LIT_CS_HLSL
+
+void FillMaterialSSSForPackedLit(uint diffusionProfile, inout BSDFData bsdfData)
+{
+	bsdfData.fresnel0 = PackToR11G11B10f(_TransmissionTintsAndFresnel0[diffusionProfile].a);
+	bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
+	bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
+}
+
+#else
+
 void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
 {
-    bsdfData.diffusionProfile = diffusionProfile;
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
-    bsdfData.subsurfaceMask = subsurfaceMask;
-    bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
-    bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
+	bsdfData.diffusionProfile = diffusionProfile;
+	bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
+	bsdfData.subsurfaceMask = subsurfaceMask;
+	bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
+	bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
 
+#endif
 
-void FillMaterialSSSForPackedLit(uint diffusionProfile, inout BSDFDataPacked bsdfData)
-{
-    bsdfData.fresnel0 = PackToR11G11B10f(_TransmissionTintsAndFresnel0[diffusionProfile].a);
-    bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
-    bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
-}
-
-bool ShouldOutputSplitLighting(BSDFDataPacked bsdfData)
+bool ShouldOutputSplitLighting(BSDFData bsdfData)
 {
     return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING);
 }
 
-float3 GetModifiedDiffuseColorForSSS(BSDFDataPacked bsdfData)
+float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
 {
     // Subsurface scattering mode
     uint   texturingMode = (bsdfData.materialFeatures >> MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
@@ -187,61 +192,68 @@ float3 GetModifiedDiffuseColorForSSS(BSDFDataPacked bsdfData)
 
 #ifdef MATERIAL_INCLUDE_TRANSMISSION
 
+
+#ifdef LIT_CS_HLSL
+
+void FillMaterialTransmissionPacked(uint diffusionProfile, float thickness, out float outThickness, inout BSDFData bsdfData)
+{
+	bsdfData.fresnel0 = PackToR11G11B10f(_TransmissionTintsAndFresnel0[diffusionProfile].a);
+
+	outThickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
+
+	// The difference between the thin and the regular (a.k.a. auto-thickness) modes is the following:
+	// * in the thin object mode, we assume that the geometry is thin enough for us to safely share
+	// the shadowing information between the front and the back faces;
+	// * the thin mode uses baked (textured) thickness for all transmission calculations;
+	// * the thin mode uses wrapped diffuse lighting for the NdotL;
+	// * the auto-thickness mode uses the baked (textured) thickness to compute transmission from
+	// indirect lighting and non-shadow-casting lights; for shadowed lights, it calculates
+	// the thickness using the distance to the closest occluder sampled from the shadow map.
+	// If the distance is large, it may indicate that the closest occluder is not the back face of
+	// the current object. That's not a problem, since large thickness will result in low intensity.
+	bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
+
+	bsdfData.materialFeatures |= useThinObjectMode ? MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS : 0;
+
+	// Compute transmittance using baked thickness here. It may be overridden for direct lighting
+	// in the auto-thickness mode (but is always used for indirect lighting).
+	bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
+		_TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+		outThickness);
+
+}
+
+#else  // LIT_CS_HLSL
+
 // Assume that bsdfData.diffusionProfile is init
 void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDFData bsdfData)
 {
-    bsdfData.diffusionProfile = diffusionProfile;
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
+	bsdfData.diffusionProfile = diffusionProfile;
+	bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
 
-    bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
+	bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
 
-    // The difference between the thin and the regular (a.k.a. auto-thickness) modes is the following:
-    // * in the thin object mode, we assume that the geometry is thin enough for us to safely share
-    // the shadowing information between the front and the back faces;
-    // * the thin mode uses baked (textured) thickness for all transmission calculations;
-    // * the thin mode uses wrapped diffuse lighting for the NdotL;
-    // * the auto-thickness mode uses the baked (textured) thickness to compute transmission from
-    // indirect lighting and non-shadow-casting lights; for shadowed lights, it calculates
-    // the thickness using the distance to the closest occluder sampled from the shadow map.
-    // If the distance is large, it may indicate that the closest occluder is not the back face of
-    // the current object. That's not a problem, since large thickness will result in low intensity.
-    bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
+	// The difference between the thin and the regular (a.k.a. auto-thickness) modes is the following:
+	// * in the thin object mode, we assume that the geometry is thin enough for us to safely share
+	// the shadowing information between the front and the back faces;
+	// * the thin mode uses baked (textured) thickness for all transmission calculations;
+	// * the thin mode uses wrapped diffuse lighting for the NdotL;
+	// * the auto-thickness mode uses the baked (textured) thickness to compute transmission from
+	// indirect lighting and non-shadow-casting lights; for shadowed lights, it calculates
+	// the thickness using the distance to the closest occluder sampled from the shadow map.
+	// If the distance is large, it may indicate that the closest occluder is not the back face of
+	// the current object. That's not a problem, since large thickness will result in low intensity.
+	bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
 
-    bsdfData.materialFeatures |= useThinObjectMode ? MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS : 0;
+	bsdfData.materialFeatures |= useThinObjectMode ? MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS : 0;
 
-    // Compute transmittance using baked thickness here. It may be overridden for direct lighting
-    // in the auto-thickness mode (but is always used for indirect lighting).
-    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
-                                                        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                        bsdfData.thickness);
+	// Compute transmittance using baked thickness here. It may be overridden for direct lighting
+	// in the auto-thickness mode (but is always used for indirect lighting).
+	bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
+		_TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+		bsdfData.thickness);
 }
 
+#endif // LIT_CS_HLSL
 
-void FillMaterialTransmissionPacked(uint diffusionProfile, float thickness, out float outThickness, inout BSDFDataPacked bsdfData)
-{
-    bsdfData.fresnel0 = PackToR11G11B10f(_TransmissionTintsAndFresnel0[diffusionProfile].a);
-
-    outThickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
-
-    // The difference between the thin and the regular (a.k.a. auto-thickness) modes is the following:
-    // * in the thin object mode, we assume that the geometry is thin enough for us to safely share
-    // the shadowing information between the front and the back faces;
-    // * the thin mode uses baked (textured) thickness for all transmission calculations;
-    // * the thin mode uses wrapped diffuse lighting for the NdotL;
-    // * the auto-thickness mode uses the baked (textured) thickness to compute transmission from
-    // indirect lighting and non-shadow-casting lights; for shadowed lights, it calculates
-    // the thickness using the distance to the closest occluder sampled from the shadow map.
-    // If the distance is large, it may indicate that the closest occluder is not the back face of
-    // the current object. That's not a problem, since large thickness will result in low intensity.
-    bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
-
-    bsdfData.materialFeatures |= useThinObjectMode ? MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS : 0;
-
-    // Compute transmittance using baked thickness here. It may be overridden for direct lighting
-    // in the auto-thickness mode (but is always used for indirect lighting).
-    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
-        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-        outThickness);
-
-}
 #endif

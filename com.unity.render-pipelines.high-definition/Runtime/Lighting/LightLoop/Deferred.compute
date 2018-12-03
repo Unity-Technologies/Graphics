@@ -162,7 +162,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-    BSDFDataPacked bsdfData;
+    BSDFData bsdfData;
     BuiltinData builtinData;
     DECODE_FROM_GBUFFER(posInput.positionSS, featureFlags, bsdfData, builtinData);
 

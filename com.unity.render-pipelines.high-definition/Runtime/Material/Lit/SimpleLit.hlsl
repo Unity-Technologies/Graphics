@@ -10,7 +10,7 @@
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
-PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDFDataPacked bsdfData)
+PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
     // Don't init to zero to allow to track warning about uninitialized data
@@ -70,7 +70,7 @@ PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDF
 #ifdef HAS_LIGHTLOOP
 
 // This function apply BSDF. Assumes that NdotL is positive.
-void SimpleBSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFDataPacked bsdfData,
+void SimpleBSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
@@ -147,7 +147,7 @@ void SimpleEvaluateLight_Directional(LightLoopContext lightLoopContext, Position
     attenuation *= shadow;
 }
 
-float3 EvaluateTransmission(BSDFDataPacked bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
+float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
 {
     // Apply wrapped lighting to better handle thin objects at grazing angles.
     float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
@@ -166,7 +166,7 @@ float3 EvaluateTransmission(BSDFDataPacked bsdfData, float3 transmittance, float
 
 DirectLighting SimpleEvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput, PreLightData preLightData,
-                                        DirectionalLightData lightData, BSDFDataPacked bsdfData,
+                                        DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
     DirectLighting lighting;
@@ -309,7 +309,7 @@ void SimpleEvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInp
 
 // This function return transmittance to provide to EvaluateTransmission
 float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, PositionInputs posInput, float distFrontFaceToLight,
-                                            float NdotL, float3 L, BSDFDataPacked bsdfData,
+                                            float NdotL, float3 L, BSDFData bsdfData,
                                             inout float3 normalWS, inout LightData lightData)
 {
     return GetTransmittance(bsdfData);
@@ -317,7 +317,7 @@ float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopCont
 
 DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFDataPacked bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
@@ -423,7 +423,7 @@ void SimpleEvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, Env
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting SimpleEvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                                     int influenceShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
@@ -467,7 +467,7 @@ IndirectLighting SimpleEvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 void SimplePostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
-                        PreLightData preLightData, BSDFDataPacked bsdfData, BuiltinData builtinData, AggregateLighting lighting,
+                        PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
     AmbientOcclusionFactor aoFactor;

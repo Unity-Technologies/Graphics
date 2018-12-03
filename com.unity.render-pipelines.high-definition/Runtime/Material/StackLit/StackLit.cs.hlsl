@@ -96,7 +96,7 @@
 #define DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE (1185)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFDataPacked:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData:  static fields
 //
 #define DEBUGVIEW_STACKLIT_BSDFDATAPACKED_MATERIAL_FEATURES (1150)
 #define DEBUGVIEW_STACKLIT_BSDFDATAPACKED_DIFFUSE_COLOR (1151)
@@ -208,9 +208,9 @@ struct BSDFData
     float3 transmittance;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFDataPacked
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData
 // PackingRules = Exact
-struct BSDFDataPacked
+struct BSDFData
 {
     uint materialFeatures;
     float3 diffuseColor;
@@ -360,7 +360,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
 //
 // Debug functions
 //
-void GetGeneratedBSDFDataDebug(uint paramId, BSDFDataPacked bsdfdata, inout float3 result, inout bool needLinearToSRGB)
+void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 result, inout bool needLinearToSRGB)
 {
     switch (paramId)
     {
