@@ -72,20 +72,20 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData:  static fields
 //
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_DIFFUSE_COLOR (1050)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_FRESNEL0 (1051)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_MATERIAL_FEATURES (1052)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_ROUGHNESSES_AND_OCCLUSIONS (1053)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_SSSDATA (1054)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_ANISO_DATA_AND_FLAGS (1055)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_IRIDESCENCE_AND_MASKS (1056)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_WS (1057)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_VIEW_SPACE (1058)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_TRANSMITTANCE (1059)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_TANGENT_WS (1060)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_BITANGENT_WS (1061)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_ABSORPTION_COEFFICIENT (1062)
-#define DEBUGVIEW_LIT_BSDFDATAPACKED_IOR (1063)
+#define DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR (1050)
+#define DEBUGVIEW_LIT_BSDFDATA_FRESNEL0 (1051)
+#define DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES (1052)
+#define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESSES_AND_OCCLUSIONS (1053)
+#define DEBUGVIEW_LIT_BSDFDATA_SSSDATA (1054)
+#define DEBUGVIEW_LIT_BSDFDATA_ANISO_DATA_AND_FLAGS (1055)
+#define DEBUGVIEW_LIT_BSDFDATA_IRIDESCENCE_AND_MASKS (1056)
+#define DEBUGVIEW_LIT_BSDFDATA_NORMAL_WS (1057)
+#define DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE (1058)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1059)
+#define DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS (1060)
+#define DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS (1061)
+#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1062)
+#define DEBUGVIEW_LIT_BSDFDATA_IOR (1063)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData
 // PackingRules = Exact
@@ -326,52 +326,52 @@ void GetGeneratedBSDFDataForDebugDebug(uint paramId, BSDFDataForDebug bsdfdatafo
 //
 // Debug functions
 //
-void GetGeneratedBSDFDataPackedDebug(uint paramId, BSDFData bsdfdatapacked, inout float3 result, inout bool needLinearToSRGB)
+void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 result, inout bool needLinearToSRGB)
 {
     switch (paramId)
     {
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_DIFFUSE_COLOR:
-            result = bsdfdatapacked.diffuseColor;
+        case DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR:
+            result = bsdfdata.diffuseColor;
             needLinearToSRGB = true;
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_FRESNEL0:
-            result = GetIndexColor(bsdfdatapacked.fresnel0);
+        case DEBUGVIEW_LIT_BSDFDATA_FRESNEL0:
+            result = GetIndexColor(bsdfdata.fresnel0);
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_MATERIAL_FEATURES:
-            result = GetIndexColor(bsdfdatapacked.materialFeatures);
+        case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
+            result = GetIndexColor(bsdfdata.materialFeatures);
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_ROUGHNESSES_AND_OCCLUSIONS:
-            result = GetIndexColor(bsdfdatapacked.roughnessesAndOcclusions);
+        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESSES_AND_OCCLUSIONS:
+            result = GetIndexColor(bsdfdata.roughnessesAndOcclusions);
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_SSSDATA:
-            result = GetIndexColor(bsdfdatapacked.SSSData);
+        case DEBUGVIEW_LIT_BSDFDATA_SSSDATA:
+            result = GetIndexColor(bsdfdata.SSSData);
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_ANISO_DATA_AND_FLAGS:
-            result = GetIndexColor(bsdfdatapacked.anisoDataAndFlags);
+        case DEBUGVIEW_LIT_BSDFDATA_ANISO_DATA_AND_FLAGS:
+            result = GetIndexColor(bsdfdata.anisoDataAndFlags);
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_IRIDESCENCE_AND_MASKS:
-            result = GetIndexColor(bsdfdatapacked.iridescenceAndMasks);
+        case DEBUGVIEW_LIT_BSDFDATA_IRIDESCENCE_AND_MASKS:
+            result = GetIndexColor(bsdfdata.iridescenceAndMasks);
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_WS:
-            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
+        case DEBUGVIEW_LIT_BSDFDATA_NORMAL_WS:
+            result = bsdfdata.normalWS * 0.5 + 0.5;
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_NORMAL_VIEW_SPACE:
-            result = bsdfdatapacked.normalWS * 0.5 + 0.5;
+        case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
+            result = bsdfdata.normalWS * 0.5 + 0.5;
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_TRANSMITTANCE:
-            result = bsdfdatapacked.transmittance;
+        case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
+            result = bsdfdata.transmittance;
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_TANGENT_WS:
-            result = GetIndexColor(bsdfdatapacked.tangentWS);
+        case DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS:
+            result = GetIndexColor(bsdfdata.tangentWS);
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_BITANGENT_WS:
-            result = GetIndexColor(bsdfdatapacked.bitangentWS);
+        case DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS:
+            result = GetIndexColor(bsdfdata.bitangentWS);
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_ABSORPTION_COEFFICIENT:
-            result = GetIndexColor(bsdfdatapacked.absorptionCoefficient);
+        case DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT:
+            result = GetIndexColor(bsdfdata.absorptionCoefficient);
             break;
-        case DEBUGVIEW_LIT_BSDFDATAPACKED_IOR:
-            result = bsdfdatapacked.ior.xxx;
+        case DEBUGVIEW_LIT_BSDFDATA_IOR:
+            result = bsdfdata.ior.xxx;
             break;
     }
 }
