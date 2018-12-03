@@ -49,7 +49,7 @@ float3 PreEvaluateDirectionalLightTransmission(BSDFDataPacked bsdfData, inout Di
                 light.shadowMaskSelector.x = -1;
 
                 // We use the precomputed value (based on "baked" thickness).
-                transmittance = bsdfData.transmittance;
+                transmittance = GetTransmittance(bsdfData);
             }
             else
             {
@@ -97,7 +97,10 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
 		float roughnessT = GetRoughnessT(bsdfData);
 		float roughnessB = GetRoughnessB(bsdfData);
 		float coatRoughness = GetCoatRoughness(bsdfData);
-		ClampRoughness(roughnessT, roughnessB, coatRoughness);
+		ClampRoughness(roughnessT, roughnessB, coatRoughness, light.minRoughness);
+		SetRoughnessT(roughnessT, bsdfData);
+		SetRoughnessB(roughnessB, bsdfData);
+		SetCoatRoughness(coatRoughness, bsdfData);
 
         float3 diffuseBsdf, specularBsdf;
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
@@ -169,7 +172,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
             light.contactShadowIndex   = -1;
             light.shadowMaskSelector.x = -1;
 
-            transmittance = bsdfData.transmittance;
+            transmittance = GetTransmittance(bsdfData);
 
             if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS) && (light.shadowIndex >= 0))
             {
@@ -258,7 +261,13 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         // Simulate a sphere/disk light with this hack
         // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
         // same result) but we don't care as it is a hack anyway
-       // ClampRoughness(bsdfData, light.minRoughness) TODO_FCC_PRE_PR: Restore this;
+		float roughnessT = GetRoughnessT(bsdfData);
+		float roughnessB = GetRoughnessB(bsdfData);
+		float coatRoughness = GetCoatRoughness(bsdfData);
+		ClampRoughness(roughnessT, roughnessB, coatRoughness, light.minRoughness);
+		SetRoughnessT(roughnessT, bsdfData);
+		SetRoughnessB(roughnessB, bsdfData);
+		SetCoatRoughness(coatRoughness, bsdfData);
 
         float3 diffuseBsdf, specularBsdf;
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);

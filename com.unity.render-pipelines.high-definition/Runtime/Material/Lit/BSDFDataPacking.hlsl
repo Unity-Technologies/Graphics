@@ -1,26 +1,12 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
-// TODO: REALLY, CLEANUP.DO IT BEFORE PR.
-
-// TMP UTIL, MOVE SOMEWHERE ELSE OR USE UNPACK BYTE.
-uint Get8BitUint(float f)
-{
-    return (uint)(f * 255.0f + 0.5f);
-}
-
-float Extract8BitFloat(uint data, uint offset)
-{
-    uint floatData = BitFieldExtract(data, offset, 8);
-    return saturate(floatData * rcp(255.0f));
-}
-
 /* Initializers */
 
 // IMPORTANT: Assumes bsdfData.SSSData is 0s in the upper 16 bits. Insert using UBFE if needs updating rather than initialize.
 void InitSSSData(uint diffusionProfile, float subsurfaceMask, inout BSDFDataPacked bsdfData)
 {
     bsdfData.SSSData |= (diffusionProfile << 24);
-    bsdfData.SSSData |= Get8BitUint(subsurfaceMask) << 16;
+    bsdfData.SSSData |= UnpackByte(subsurfaceMask) << 16;
 
 }
 
@@ -33,41 +19,61 @@ void InitThickness(float thickness, inout BSDFDataPacked bsdfData)
 // IMPORTANT: Assumes bsdfData.anisoDataAndFlags is 0s in the upper 24 bits. Insert using UBFE if needs updating rather than initialize.
 void InitAnisoData(float anisotropy, float roughnessT, float roughnessB, inout BSDFDataPacked bsdfData)
 {
-    bsdfData.anisoDataAndFlags |= (Get8BitUint(anisotropy) << 24 | Get8BitUint(roughnessB) << 16 | Get8BitUint(roughnessT) << 8);
+    bsdfData.anisoDataAndFlags |= (UnpackByte(anisotropy) << 24 | UnpackByte(roughnessB) << 16 | UnpackByte(roughnessT) << 8);
 }
 
 // IMPORTANT: Assumes bsdfData.iridescenceAndMasks is 0s in the upper 16 bits. Insert using UBFE if needs updating rather than initialize.
 void InitIridescenceData(float iridescenceThickness, float iridescenceMask, inout BSDFDataPacked bsdfData)
 {
-    bsdfData.iridescenceAndMasks |= (Get8BitUint(iridescenceThickness) << 24 | Get8BitUint(iridescenceMask) << 16);
+    bsdfData.iridescenceAndMasks |= (UnpackByte(iridescenceThickness) << 24 | UnpackByte(iridescenceMask) << 16);
 }
 
 // IMPORTANT: Assumes bsdfData.iridescenceAndMasks is 0s for the eight bits between 8th and 16th. Insert using UBFE if needs updating rather than initialize.
 void InitTransmittanceMask(float transmittanceMask, inout BSDFDataPacked bsdfData)
 {
-    bsdfData.iridescenceAndMasks |= (Get8BitUint(transmittanceMask) << 8);
+    bsdfData.iridescenceAndMasks |= (UnpackByte(transmittanceMask) << 8);
 }
 
 // IMPORTANT: Assumes bsdfData.iridescenceAndMasks is 0s for the lowest 8 bits. Insert using UBFE if needs updating rather than initialize.
 void InitCoatMask(float coatMask, inout BSDFDataPacked bsdfData)
 {
-    bsdfData.iridescenceAndMasks |= Get8BitUint(coatMask);
+    bsdfData.iridescenceAndMasks |= UnpackByte(coatMask);
+}
+
+void InitNormalWS(float3 normalWS, inout BSDFDataPacked bsdfData)
+{
+	bsdfData.normalWS = normalWS;
 }
 
 /* Setters */
-void SetCoatRoughness(float newCoatRoughness, out BSDFDataPacked bsdfData)
+void SetCoatRoughness(float newCoatRoughness, inout BSDFDataPacked bsdfData)
 {
-    BitFieldInsert(0x00ff0000, Get8BitUint(newCoatRoughness) << 16, bsdfData.roughnessesAndOcclusions);
+    BitFieldInsert(0x00ff0000, UnpackByte(newCoatRoughness) << 16, bsdfData.roughnessesAndOcclusions);
 }
 
-void SetRoughnessT(float newRoughnessT, out BSDFDataPacked bsdfData)
+void SetRoughnessT(float newRoughnessT, inout BSDFDataPacked bsdfData)
 {
-    BitFieldInsert(0xff << 16, Get8BitUint(newRoughnessT) << 16, bsdfData.anisoDataAndFlags);
+    BitFieldInsert(0xff << 16, UnpackByte(newRoughnessT) << 16, bsdfData.anisoDataAndFlags);
 }
 
-void SetRoughnessB(float newRoughnessB, out BSDFDataPacked bsdfData)
+void SetRoughnessB(float newRoughnessB, inout BSDFDataPacked bsdfData)
 {
-    BitFieldInsert(0xff << 8, Get8BitUint(newRoughnessB) << 8, bsdfData.anisoDataAndFlags);
+    BitFieldInsert(0xff << 8, UnpackByte(newRoughnessB) << 8, bsdfData.anisoDataAndFlags);
+}
+
+void SetDiffuseColor(float3 diffuseColor, inout BSDFDataPacked bsdfData)
+{
+	bsdfData.diffuseColor = diffuseColor;
+}
+
+void SetIOR(float ior, inout BSDFDataPacked bsdfData)
+{
+	bsdfData.ior = ior;
+}
+
+void SetNormalWS(float3 normalWS, inout BSDFDataPacked bsdfData)
+{
+	bsdfData.normalWS = normalWS;
 }
 
 /* Getters */
@@ -78,22 +84,22 @@ float3 GetFresnel0(BSDFDataPacked bsdfData)
 
 float GetPerceptualRoughness(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.roughnessesAndOcclusions, 24);
+    return UnpackUIntToFloat(bsdfData.roughnessesAndOcclusions, 24, 8);
 }
 
 float GetCoatRoughness(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.roughnessesAndOcclusions, 16);
+    return UnpackUIntToFloat(bsdfData.roughnessesAndOcclusions, 16, 8);
 }
 
 float GetAmbientOcclusion(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.roughnessesAndOcclusions, 8);
+    return UnpackUIntToFloat(bsdfData.roughnessesAndOcclusions, 8, 8);
 }
 
 float GetSpecularOcclusion(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.roughnessesAndOcclusions, 0);
+    return UnpackUIntToFloat(bsdfData.roughnessesAndOcclusions, 0, 8);
 }
 
 uint GetDiffusionProfile(BSDFDataPacked bsdfData)
@@ -103,7 +109,7 @@ uint GetDiffusionProfile(BSDFDataPacked bsdfData)
 
 float GetSubsurfaceMask(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.SSSData, 16);
+    return UnpackUIntToFloat(bsdfData.SSSData, 16, 8);
 }
 
 float GetThickness(BSDFDataPacked bsdfData)
@@ -114,37 +120,37 @@ float GetThickness(BSDFDataPacked bsdfData)
 
 float GetAnisotropy(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.anisoDataAndFlags, 24);
+    return UnpackUIntToFloat(bsdfData.anisoDataAndFlags, 24, 8);
 }
 
 float GetRoughnessT(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.anisoDataAndFlags, 16);
+    return UnpackUIntToFloat(bsdfData.anisoDataAndFlags, 16, 8);
 }
 
 float GetRoughnessB(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.anisoDataAndFlags, 8);
+    return UnpackUIntToFloat(bsdfData.anisoDataAndFlags, 8, 8);
 }
 
 float GetIridescenceThickness(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.iridescenceAndMasks, 24);
+    return UnpackUIntToFloat(bsdfData.iridescenceAndMasks, 24, 8);
 }
 
 float GetIridescenceMask(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.iridescenceAndMasks, 16);
+    return UnpackUIntToFloat(bsdfData.iridescenceAndMasks, 16, 8);
 }
 
 float GetTransmittanceMask(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.iridescenceAndMasks, 8);
+    return UnpackUIntToFloat(bsdfData.iridescenceAndMasks, 8, 8);
 }
 
 float GetCoatMask(BSDFDataPacked bsdfData)
 {
-    return Extract8BitFloat(bsdfData.iridescenceAndMasks, 0);
+    return UnpackUIntToFloat(bsdfData.iridescenceAndMasks, 0, 8);
 }
 
 float3 GetTangentWS(BSDFDataPacked bsdfData)
@@ -162,3 +168,17 @@ float3 GetAbsorptionCoefficient(BSDFDataPacked bsdfData)
     return UnpackFromR11G11B10f(bsdfData.absorptionCoefficient);
 }
 
+float GetIOR(BSDFDataPacked bsdfData)
+{
+	return bsdfData.ior;
+}
+
+float3 GetTransmittance(BSDFDataPacked bsdfData)
+{
+	return bsdfData.transmittance;
+}
+
+float3 GetNormalWS(BSDFDataPacked bsdfData)
+{
+	return bsdfData.normalWS;
+}

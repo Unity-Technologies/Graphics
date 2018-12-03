@@ -28,7 +28,7 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
         float  dist2 = dot(unL, unL);
         float3 L     = normalize(unL);
         float  sinLT = length(cross(L, T));
-        float  NdotL = saturate(dot(bsdfData.normalWS, L));
+        float  NdotL = saturate(dot(GetNormalWS(bsdfData), L));
 
         if (NdotL > 0)
         {
@@ -100,7 +100,7 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
         float cosLNs = saturate(dot(-L, Ns));
 
         // We calculate area reference light with the area integral rather than the solid angle one.
-        float NdotL = saturate(dot(bsdfData.normalWS, L));
+        float NdotL = saturate(dot(GetNormalWS(bsdfData), L));
         float illuminance = cosLNs * NdotL / (sqrDist * lightPdf);
 
         float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
@@ -130,7 +130,7 @@ float3 IntegrateLambertIBLRef(LightLoopContext lightLoopContext,
                               float3 V, EnvLightData lightData, BSDFDataPacked bsdfData,
                               uint sampleCount = 4096)
 {
-    float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), bsdfData.normalWS);
+    float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), GetNormalWS(bsdfData));
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     for (uint i = 0; i < sampleCount; ++i)
@@ -158,8 +158,8 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     float3 V, PreLightData preLightData, EnvLightData lightData, BSDFDataPacked bsdfData,
                                     uint sampleCount = 4096)
 {
-    float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), bsdfData.normalWS);
-    float    NdotV        = ClampNdotV(dot(bsdfData.normalWS, V));
+    float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), GetNormalWS(bsdfData));
+    float    NdotV        = ClampNdotV(dot(GetNormalWS(bsdfData), V));
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     for (uint i = 0; i < sampleCount; ++i)
@@ -197,15 +197,15 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), bsdfData.normalWS);
+        float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), GetNormalWS(bsdfData));
     }
     else
     {
         // We do not have a tangent frame unless we use anisotropic GGX.
-        localToWorld = GetLocalFrame(bsdfData.normalWS);
+        localToWorld = GetLocalFrame(GetNormalWS(bsdfData));
     }
 
-    float  NdotV = ClampNdotV(dot(bsdfData.normalWS, V));
+    float  NdotV = ClampNdotV(dot(GetNormalWS(bsdfData), V));
     float3 acc   = float3(0.0, 0.0, 0.0);
 
     for (uint i = 0; i < sampleCount; ++i)

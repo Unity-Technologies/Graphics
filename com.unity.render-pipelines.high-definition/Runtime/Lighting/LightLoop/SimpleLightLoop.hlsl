@@ -26,7 +26,7 @@ void SimpleLightLoop( float3 V, PositionInputs posInput, PreLightData preLightDa
 
             // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
             // Also, the light direction is not consistent with the sun disk highlight hack, which modifies the light vector.
-            float  NdotL            = dot(bsdfData.normalWS, -light.forward);
+            float  NdotL            = dot(GetNormalWS(bsdfData), -light.forward);
             float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
             bool   evaluateShadows  = (NdotL > 0);
 

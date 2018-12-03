@@ -16,7 +16,7 @@ PreLightData SimpleGetPreLightData(float3 V, PositionInputs posInput, inout BSDF
     // Don't init to zero to allow to track warning about uninitialized data
 
     float perceptualRoughness = GetPerceptualRoughness(bsdfData);
-    float3 N = bsdfData.normalWS;
+    float3 N = GetNormalWS(bsdfData);
     preLightData.NdotV = dot(N, V);
     preLightData.iblPerceptualRoughness = perceptualRoughness;
 
@@ -173,7 +173,7 @@ DirectLighting SimpleEvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     ZERO_INITIALIZE(DirectLighting, lighting);
 
     float3 L = -lightData.forward;
-    float3 N = bsdfData.normalWS;
+    float3 N = GetNormalWS(bsdfData);
     float NdotL = dot(N, L);
 
     float3 transmittance = float3(0.0, 0.0, 0.0);
@@ -312,7 +312,7 @@ float3 SimplePreEvaluatePunctualLightTransmission(LightLoopContext lightLoopCont
                                             float NdotL, float3 L, BSDFDataPacked bsdfData,
                                             inout float3 normalWS, inout LightData lightData)
 {
-    return bsdfData.transmittance;
+    return GetTransmittance(bsdfData);
 }
 
 DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
@@ -327,7 +327,7 @@ DirectLighting SimpleEvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float4 distances; // {d, d^2, 1/d, d_proj}
     GetPunctualLightVectors(posInput.positionWS, lightData, L, lightToSample, distances);
 
-    float3 N     = bsdfData.normalWS;
+    float3 N     = GetNormalWS(bsdfData);
     float  NdotL = dot(N, L);
 
     float3 transmittance = float3(0.0, 0.0, 0.0);
@@ -435,7 +435,7 @@ IndirectLighting SimpleEvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3 R = preLightData.iblR;
 
-    SimpleEvaluateLight_EnvIntersection(posInput.positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
+    SimpleEvaluateLight_EnvIntersection(posInput.positionWS, GetNormalWS(bsdfData), lightData, influenceShapeType, R, weight);
 
     float iblMipLevel;
     // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
@@ -455,7 +455,7 @@ IndirectLighting SimpleEvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
-    envLighting = F_Schlick(GetFresnel0(bsdfData), dot(bsdfData.normalWS, V)) * preLD.rgb;
+    envLighting = F_Schlick(GetFresnel0(bsdfData), dot(GetNormalWS(bsdfData), V)) * preLD.rgb;
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
     envLighting *= weight * lightData.multiplier;
