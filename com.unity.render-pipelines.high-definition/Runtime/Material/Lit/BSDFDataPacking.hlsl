@@ -182,3 +182,9 @@ float3 GetNormalWS(BSDFDataPacked bsdfData)
 {
 	return bsdfData.normalWS;
 }
+
+
+float3 GetDiffuseColor(BSDFDataPacked bsdfData)
+{
+	return bsdfData.diffuseColor;
+}

@@ -432,7 +432,7 @@ BSDFDataPacked ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfac
 
     // There is no metallic with SSS and specular color mode
     float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
-    bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
+    SetDiffuseColor(ComputeDiffuseColor(surfaceData.baseColor, metallic), bsdfData);
 
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
     // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
@@ -782,12 +782,12 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFDataPack
         uint unused;
         UnpackFloatInt8bit(inGBuffer2.b, 8, metallic, unused);
 
-        bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
+        SetDiffuseColor(ComputeDiffuseColor(baseColor, metallic), bsdfData);
         fresnel0 = ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
     }
     else
     {
-        bsdfData.diffuseColor = baseColor;
+		SetDiffuseColor(baseColor, bsdfData);
         fresnel0 = FastSRGBToLinear(inGBuffer2.rgb); // Later possibly overwritten by SSS
     }
 
@@ -934,21 +934,83 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
 
 void GetBSDFDataDebug(uint paramId, BSDFDataPacked bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
-    GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
-
     // Overide debug value output to be more readable
     switch (paramId)
     {
-    case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
-        // Convert to view space
-        result = TransformWorldToViewDir(GetNormalWS(bsdfData)) * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
-        result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
-        break;
-    case DEBUGVIEW_LIT_BSDFDATA_IOR:
-        result = saturate((GetIOR(bsdfData) - 1.0) / 1.5).xxx;
-        break;
+		case DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR:
+			result = GetDiffuseColor(bsdfData);
+			needLinearToSRGB = true;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_FRESNEL0:
+			result = GetFresnel0(bsdfData);
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_AMBIENT_OCCLUSION:
+			result = GetAmbientOcclusion(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_SPECULAR_OCCLUSION:
+			result = GetSpecularOcclusion(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_NORMAL_WS:
+			result = GetNormalWS(bsdfData) * 0.5 + 0.5;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_PERCEPTUAL_ROUGHNESS:
+			result = GetPerceptualRoughness(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_COAT_MASK:
+			result = GetCoatMask(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_DIFFUSION_PROFILE:
+			result = GetIndexColor(GetDiffusionProfile(bsdfData));
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_MASK:
+			result = GetSubsurfaceMask(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_THICKNESS:
+			result = GetThickness(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
+			result = GetTransmittance(bsdfData);
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS:
+			result = GetTangentWS(bsdfData) * 0.5 + 0.5;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS:
+			result = GetBitangentWS(bsdfData) * 0.5 + 0.5;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T:
+			result = GetRoughnessT(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B:
+			result = GetRoughnessB(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY:
+			result = GetAnisotropy(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_IRIDESCENCE_THICKNESS:
+			result = GetIridescenceThickness(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_IRIDESCENCE_MASK:
+			result = GetIridescenceMask(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS:
+			result = GetCoatRoughness(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT:
+			result = GetAbsorptionCoefficient(bsdfData);
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK:
+			result = GetTransmittanceMask(bsdfData).xxx;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
+			// Convert to view space
+			result = TransformWorldToViewDir(GetNormalWS(bsdfData)) * 0.5 + 0.5;
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
+			result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+			break;
+		case DEBUGVIEW_LIT_BSDFDATA_IOR:
+			result = saturate((GetIOR(bsdfData) - 1.0) / 1.5).xxx;
+			break;
     }
 }
 
@@ -1162,11 +1224,11 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     // For SSS we need to take into account the state of diffuseColor 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
     {
-        bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
+        SetDiffuseColor(GetModifiedDiffuseColorForSSS(bsdfData), bsdfData);
     }
 
     // Premultiply (back) bake diffuse lighting information with DisneyDiffuse pre-integration
-    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * GetDiffuseColor(bsdfData);
 }
 
 //-----------------------------------------------------------------------------
@@ -1183,7 +1245,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
     // we want to take some of that into account too.
 
     float roughness = PerceptualRoughnessToRoughness(GetPerceptualRoughness(bsdfData));
-    lightTransportData.diffuseColor = bsdfData.diffuseColor + GetFresnel0(bsdfData) * roughness * 0.5 * surfaceData.metallic;
+    lightTransportData.diffuseColor = GetDiffuseColor(bsdfData) + GetFresnel0(bsdfData) * roughness * 0.5 * surfaceData.metallic;
     lightTransportData.emissiveColor = builtinData.emissiveColor;
 
     return lightTransportData;
@@ -1855,7 +1917,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 #if 0
     GetScreenSpaceAmbientOcclusion(posInput.positionSS, preLightData.NdotV, GetPerceptualRoughness(bsdfData), GetAmbientOcclusion(bsdfData), GetSpecularOcclusion(bsdfData), aoFactor);
 #else
-    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, GetPerceptualRoughness(bsdfData), GetAmbientOcclusion(bsdfData), GetSpecularOcclusion(bsdfData), bsdfData.diffuseColor, fresnel0, aoFactor);
+    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, GetPerceptualRoughness(bsdfData), GetAmbientOcclusion(bsdfData), GetSpecularOcclusion(bsdfData), GetDiffuseColor(bsdfData), fresnel0, aoFactor);
 #endif
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
@@ -1882,7 +1944,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     specularLighting *= 1.0 + fresnel0 * preLightData.energyCompensation;
 
 #ifdef DEBUG_DISPLAY
-    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
+    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, GetDiffuseColor(bsdfData), diffuseLighting, specularLighting);
 #endif
 }
 
