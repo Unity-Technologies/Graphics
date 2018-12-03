@@ -104,6 +104,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Sprite m_LightCookieSprite;
         private Sprite m_PreviousLightCookieSprite = null;
 
+        private BoundingSphere m_LocalBoundingSphere;
+        CullingGroup m_CullingGroup;
+
         static List<Light2D>[] m_Lights = SetupLightArray();
         
         static public List<Light2D>[] SetupLightArray()
@@ -113,6 +116,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 retArray[i] = new List<Light2D>();
 
             return retArray;
+        }
+
+        public BoundingSphere GetBoundingSphere()
+        {
+            BoundingSphere boundingSphere = new BoundingSphere();
+            if (m_LightProjectionType == LightProjectionTypes.Shape)
+            {
+                boundingSphere.radius = m_LocalBoundingSphere.radius;
+                boundingSphere.position = m_LocalBoundingSphere.position + transform.position;
+            }
+            else
+            {
+
+                boundingSphere.radius = m_PointLightOuterRadius;
+                boundingSphere.position = transform.position;
+            }
+            return boundingSphere;            
         }
 
         public void UpdateShapeLightType(ShapeLightTypes type)
@@ -176,7 +196,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private List<Vector2> UpdateFeatheredShapeLightMesh(ContourVertex[] contourPoints, int contourPointCount)
         {
-
             List<Vector2> feathered = new List<Vector2>();
             for (int i = 0; i < contourPointCount; ++i)
             {
@@ -216,8 +235,28 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return data[0];
         }
 
+        void CalculateBoundingSphere(ref Vector3[] vertices)
+        {
+            Vector3 minimum = new Vector3();
+            Vector3 maximum = new Vector3();
+            for(int i=0;i<vertices.Length;i++)
+            {
+                Vector3 vertex = vertices[i];
+                minimum.x = minimum.x <= vertex.x ? minimum.x : vertex.x;
+                minimum.y = minimum.y <= vertex.y ? minimum.y : vertex.y;
+                maximum.x = maximum.x >= vertex.x ? maximum.x : vertex.x;
+                maximum.y = maximum.y >= vertex.y ? maximum.y : vertex.y;
+            }
+
+            m_LocalBoundingSphere.position = 0.5f * (minimum + maximum);
+            m_LocalBoundingSphere.radius = Vector3.Magnitude(maximum - m_LocalBoundingSphere.position);
+        }
+
         public void UpdateShapeLightMesh(Color color)
         {
+            Vector2 rectMax = new Vector2();
+            Vector2 rectMin = new Vector2();
+
 
             Color meshInteriorColor = color;
             Color meshFeatherColor = new Color(color.r, color.g, color.b, 0);
@@ -277,10 +316,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             finalColors.AddRange(colorsI);
             finalColors.AddRange(colorsF);
 
+
+            Vector3[] vertices = finalVertices.ToArray();
             m_Mesh.Clear();
-            m_Mesh.vertices = finalVertices.ToArray();
+            m_Mesh.vertices = vertices;
             m_Mesh.colors = finalColors.ToArray();
             m_Mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
+
+            CalculateBoundingSphere(ref vertices);
         }
 
         public Material GetMaterial()
@@ -416,6 +459,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Mesh.colors = colors;
             m_Mesh.triangles = triangles;
 
+            CalculateBoundingSphere(ref vertices);
+
             return m_Mesh;
         }
 
@@ -456,7 +501,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_Mesh.uv = sprite.uv;
                 m_Mesh.triangles = triangles3d;
                 m_Mesh.colors = colors;
-                //}
+
+                CalculateBoundingSphere(ref vertices3d);
             }
 
 
@@ -515,6 +561,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void OnDestroy()
         {
+            if (m_CullingGroup != null)
+                m_CullingGroup.Dispose();
+
+
             if (m_Lights != null)
             {
                 for (int i = 0; i < m_Lights.Length; i++)
@@ -562,7 +612,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             GetMesh();
             RegisterLight();
-
 
             if (spline.GetPointCount() == 0)
             {
@@ -646,6 +695,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             UpdateLightProjectionType(m_LightProjectionType);
             UpdateShapeLightType(m_ShapeLightType);
+        }
+
+        public bool IsLightVisible(Camera camera)
+        {
+            BoundingSphere[] boundingSpheres = new BoundingSphere[1];
+            boundingSpheres[0] = GetBoundingSphere();
+
+            if (m_CullingGroup == null)
+                m_CullingGroup = new CullingGroup();
+
+            m_CullingGroup.targetCamera = camera;
+            m_CullingGroup.SetBoundingSpheres(boundingSpheres);
+
+            bool isVisible = m_CullingGroup.IsVisible(0);
+            return isVisible;
         }
 
         void OnDrawGizmos()

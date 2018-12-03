@@ -209,7 +209,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
         }
 
-        static public void RenderLights(CommandBuffer cmdBuffer, ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, int layerToRender, Camera camera)
+        static public void RenderLights(Camera camera, CommandBuffer cmdBuffer, ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, int layerToRender)
         {
             //List<GameObject> shadowCasters = GameObject.FindGameObjectsWithTag("Shadow").ToList();
             cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHTS");
@@ -231,7 +231,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     Light2D light = pointLights[i];
 
-                    if (light.IsLitLayer(layerToRender) && light.isActiveAndEnabled)
+                    if (light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera))
                     {
                         // Sort the shadow casters by distance to light, and render the ones furthest first
                         //SortShadowCasters(light, shadowCasters);

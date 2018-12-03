@@ -98,8 +98,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (isLitLayer)
                 {
-                    RendererPointLights.RenderLights(m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender, camera);
-                    RendererShapeLights.RenderLights(m_CommandBuffer, layerToRender);
+                    RendererPointLights.RenderLights(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
+                    RendererShapeLights.RenderLights(camera, m_CommandBuffer, layerToRender);
                     renderBuffersDirty = true;
                 }
                 else if (renderBuffersDirty)
