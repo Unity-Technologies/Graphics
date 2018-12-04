@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class CreateHDLitShaderGraph : EndNameEditAction
     {
-        [MenuItem("Assets/Create/Shader/HD Lit Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/Lit Graph", false, 208)]
         public static void CreateMaterialGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateHDLitShaderGraph>(),

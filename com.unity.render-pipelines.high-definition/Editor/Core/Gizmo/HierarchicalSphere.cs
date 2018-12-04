@@ -66,13 +66,20 @@ namespace UnityEditor.Experimental.Rendering
     {
         const float k_HandleSizeCoef = 0.05f;
 
-        readonly Mesh m_Sphere;
-        readonly Material m_Material;
+        static Material k_Material_Cache;
+        static Material k_Material => (k_Material_Cache == null || k_Material_Cache.Equals(null) ? (k_Material_Cache = new Material(Shader.Find("Hidden/UnlitTransparentColored"))) : k_Material_Cache);
+        static Mesh k_MeshSphere_Cache;
+        static Mesh k_MeshSphere => k_MeshSphere_Cache == null || k_MeshSphere_Cache.Equals(null) ? (k_MeshSphere_Cache = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx")) : k_MeshSphere_Cache;
+
+        Material m_Material;
+        readonly HierarchicalSphere m_Parent;
         Color m_HandleColor;
         Color m_WireframeColor;
         Color m_WireframeColorBehind;
 
-        readonly HierarchicalSphere m_Container;
+        Material material => m_Material == null || m_Material.Equals(null)
+            ? (m_Material = new Material(k_Material))
+            : m_Material;
 
         /// <summary>The position of the center of the box in Handle.matrix space.</summary>
         public Vector3 center { get; set; }
@@ -83,10 +90,11 @@ namespace UnityEditor.Experimental.Rendering
         /// <summary>The baseColor used to fill hull. All other colors are deduced from it.</summary>
         public Color baseColor
         {
-            get { return m_Material.color; }
+            get { return material.color; }
             set
             {
-                m_Material.color = value;
+                value.a = 8f / 255;
+                material.color = value;
                 value.a = 1f;
                 m_HandleColor = value;
                 value.a = 0.7f;
@@ -98,12 +106,11 @@ namespace UnityEditor.Experimental.Rendering
 
         /// <summary>Constructor. Used to setup colors and also the container if any.</summary>
         /// <param name="baseColor">The color of filling. All other colors are deduced from it.</param>
-        /// <param name="container">The HierarchicalSphere containing this sphere. If null, the sphere will not be limited in size.</param>
-        public HierarchicalSphere(Color baseColor, HierarchicalSphere container = null)
+        /// <param name="parent">The HierarchicalSphere containing this sphere. If null, the sphere will not be limited in size.</param>
+        public HierarchicalSphere(Color baseColor, HierarchicalSphere parent = null)
         {
-            m_Container = container;
-            m_Sphere = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-            m_Material = new Material(Shader.Find("Hidden/UnlitTransparentColored"));
+            m_Parent = parent;
+            m_Material = new Material(k_Material);
             this.baseColor = baseColor;
         }
 
@@ -116,25 +123,23 @@ namespace UnityEditor.Experimental.Rendering
             {
                 if (filled)
                 {
-                    m_Material.SetPass(0);
+                    material.SetPass(0);
                     Matrix4x4 drawMatrix = Matrix4x4.TRS((Vector3)Handles.matrix.GetColumn(3), Quaternion.identity, Vector3.one * radius * 2f);
-                    Graphics.DrawMeshNow(m_Sphere, drawMatrix);
+                    Graphics.DrawMeshNow(k_MeshSphere, drawMatrix);
                 }
 
-                Vector3 drawCenter = Vector3.zero;
-                Vector3 viewPlaneNormal;
-                float drawnRadius = radius;
+                var drawCenter = Vector3.zero;
+                var viewPlaneNormal = Vector3.zero;
+                var drawnRadius = radius;
                 if (Camera.current.orthographic)
-                {
                     viewPlaneNormal = Camera.current.transform.forward;
-                }
                 else
                 {
                     viewPlaneNormal = (Vector3)Handles.matrix.GetColumn(3) - Camera.current.transform.position;
-                    float sqrDist = viewPlaneNormal.sqrMagnitude; // squared distance from camera to center
-                    float sqrRadius = radius * radius; // squared radius
-                    float sqrOffset = sqrRadius * sqrRadius / sqrDist; // squared distance from actual center to drawn disc center
-                    float insideAmount = sqrOffset / sqrRadius;
+                    var sqrDist = viewPlaneNormal.sqrMagnitude; // squared distance from camera to center
+                    var sqrRadius = radius * radius; // squared radius
+                    var sqrOffset = sqrRadius * sqrRadius / sqrDist; // squared distance from actual center to drawn disc center
+                    var insideAmount = sqrOffset / sqrRadius;
 
                     // If we are not inside the sphere, calculate where to draw the periphery
                     if (insideAmount < 1)
@@ -146,14 +151,11 @@ namespace UnityEditor.Experimental.Rendering
 
                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                 Handles.DrawWireDisc(Vector3.zero, Vector3.up, radius);
-                //Handles.DrawWireDisc(Vector3.zero, Vector3.right, radius);
-                //Handles.DrawWireDisc(Vector3.zero, Vector3.forward, radius);
                 Handles.DrawWireDisc(drawCenter, viewPlaneNormal, drawnRadius);
+
                 Handles.color = m_WireframeColorBehind;
                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                 Handles.DrawWireDisc(Vector3.zero, Vector3.up, radius);
-                //Handles.DrawWireDisc(Vector3.zero, Vector3.right, radius);
-                //Handles.DrawWireDisc(Vector3.zero, Vector3.forward, radius);
                 Handles.DrawWireDisc(drawCenter, viewPlaneNormal, drawnRadius);
                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Always;
             }
@@ -165,10 +167,8 @@ namespace UnityEditor.Experimental.Rendering
             using (new Handles.DrawingScope(m_HandleColor))
             {
                 radius = Handles.RadiusHandle(Quaternion.identity, center, radius, handlesOnly: true);
-                if(m_Container != null)
-                {
-                    radius = Mathf.Min(radius, m_Container.radius - Vector3.Distance(center, m_Container.center));
-                }
+                if(m_Parent != null)
+                    radius = Mathf.Min(radius, m_Parent.radius - Vector3.Distance(center, m_Parent.center));
             }
         }
     }

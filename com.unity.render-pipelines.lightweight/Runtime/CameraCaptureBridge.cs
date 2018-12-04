@@ -1,4 +1,6 @@
+#if UNITY_EDITOR
 #define USE_REFLECTION
+#endif
 
 using System;
 using System.Collections.Generic;
@@ -88,6 +90,8 @@ namespace UnityEngine.Rendering.LWRP
                      IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> >)
 #elif UNITY_EDITOR
                 UnityEditor.Recorder.Input.CameraCapture.GetActions(camera)
+#else
+                null
 #endif
                 ;
         }

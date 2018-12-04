@@ -7,62 +7,52 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using _ = CoreEditorUtils;
-    using CED = CoreEditorDrawer<GlobalLightLoopSettingsUI, SerializedGlobalLightLoopSettings>;
-
-    class GlobalLightLoopSettingsUI : BaseUI<SerializedGlobalLightLoopSettings>
+    using CED = CoreEditorDrawer<SerializedGlobalLightLoopSettings>;
+    
+    static partial class GlobalLightLoopSettingsUI
     {
-        const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
-        const string cacheInfoFormat = "Reserving {0} in memory at runtime.";
+        enum Expandable
+        {
+            Cookie = 1 << 0,
+            Reflection = 1 << 1,
+            Sky = 1 << 2,
+            LightLoop = 1 << 3
+        }
 
+        readonly static ExpandedState<Expandable, GlobalLightLoopSettings> k_ExpandedState = new ExpandedState<Expandable, GlobalLightLoopSettings>(~(-1), "HDRP");
+        
         static GlobalLightLoopSettingsUI()
         {
             Inspector = CED.Group(
                 CED.FoldoutGroup(
-                    "Cookies",
-                    (s,d,o) => s.isSectionExpandedCoockiesSettings,
-                    FoldoutOption.None,
-                    SectionCookies),
+                    k_CookiesHeaderContent,
+                    Expandable.Cookie,
+                    k_ExpandedState,
+                    Drawer_SectionCookies
+                    ),
                 CED.FoldoutGroup(
-                    "Reflections",
-                    (s, d, o) => s.isSectionExpandedReflectionSettings,
-                    FoldoutOption.None,
-                    SectionReflection),
+                    k_ReflectionsHeaderContent,
+                    Expandable.Reflection,
+                    k_ExpandedState,
+                    Drawer_SectionReflection
+                    ),
                 CED.FoldoutGroup(
-                    "Sky",
-                    (s, d, o) => s.isSectionExpendedSkySettings,
-                    FoldoutOption.None,
-                    SectionSky),
+                    k_SkyHeaderContent,
+                    Expandable.Sky,
+                    k_ExpandedState,
+                    Drawer_SectionSky
+                    ),
                 CED.FoldoutGroup(
-                    "LightLoop",
-                    (s, d, o) => s.isSectionExpendedLightLoopSettings,
-                    FoldoutOption.None,
-                    SectionLightLoop)
+                    k_LightLoopHeaderContent,
+                    Expandable.LightLoop,
+                    k_ExpandedState,
+                    Drawer_LightLoop
+                    )
                 );
         }
-
-#pragma warning disable 618 //CED
+        
         public static readonly CED.IDrawer Inspector;
         
-        public static readonly CED.IDrawer SectionCookies = CED.Action(Drawer_SectionCookies);
-        public static readonly CED.IDrawer SectionReflection = CED.Action(Drawer_SectionReflection);
-        public static readonly CED.IDrawer SectionSky = CED.Action(Drawer_SectionSky);
-        public static readonly CED.IDrawer SectionLightLoop = CED.Action(Drawer_LightLoop);
-#pragma warning restore 618
-
-        public AnimBool isSectionExpandedCoockiesSettings { get { return m_AnimBools[0]; } }
-        public AnimBool isSectionExpandedReflectionSettings { get { return m_AnimBools[1]; } }
-        public AnimBool isSectionExpendedSkySettings { get { return m_AnimBools[2]; } }
-        public AnimBool isSectionExpendedLightLoopSettings { get { return m_AnimBools[3]; } }
-
-        public GlobalLightLoopSettingsUI()
-            : base(4)
-        {
-            isSectionExpandedCoockiesSettings.value = true;
-            isSectionExpandedReflectionSettings.value = true;
-            isSectionExpendedSkySettings.value = true;
-            isSectionExpendedLightLoopSettings.value = true;
-        }
-
         static string HumanizeWeight(long weightInByte)
         {
             if (weightInByte < 500)
@@ -86,123 +76,120 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void Drawer_SectionCookies(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
+        static void Drawer_SectionCookies(SerializedGlobalLightLoopSettings serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(d.cookieSize, _.GetContent("Cookie Size"));
+            EditorGUILayout.PropertyField(serialized.cookieSize, k_CoockieSizeContent);
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(d.cookieTexArraySize, _.GetContent("Texture Array Size"));
+            EditorGUILayout.DelayedIntField(serialized.cookieTexArraySize, k_CookieTextureArraySizeContent);
             if (EditorGUI.EndChangeCheck())
             {
-                d.cookieTexArraySize.intValue = Mathf.Clamp(d.cookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
+                serialized.cookieTexArraySize.intValue = Mathf.Clamp(serialized.cookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
             }
-            long currentCache = TextureCache2D.GetApproxCacheSizeInByte(d.cookieTexArraySize.intValue, d.cookieSize.intValue, 1);
+            long currentCache = TextureCache2D.GetApproxCacheSizeInByte(serialized.cookieTexArraySize.intValue, serialized.cookieSize.intValue, 1);
             if (currentCache > LightLoop.k_MaxCacheSize)
             {
-                int reserved = TextureCache2D.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.cookieSize.intValue, 1);
-                string message = string.Format(cacheErrorFormat, HumanizeWeight(currentCache), reserved);
+                int reserved = TextureCache2D.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, serialized.cookieSize.intValue, 1);
+                string message = string.Format(k_CacheErrorFormat, HumanizeWeight(currentCache), reserved);
                 EditorGUILayout.HelpBox(message, MessageType.Error);
             }
             else
             {
-                string message = string.Format(cacheInfoFormat, HumanizeWeight(currentCache));
+                string message = string.Format(k_CacheInfoFormat, HumanizeWeight(currentCache));
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
-            EditorGUILayout.PropertyField(d.pointCookieSize, _.GetContent("Point Cookie Size"));
+            EditorGUILayout.PropertyField(serialized.pointCookieSize, k_PointCoockieSizeContent);
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(d.cubeCookieTexArraySize, _.GetContent("Cubemap Array Size"));
+            EditorGUILayout.DelayedIntField(serialized.cubeCookieTexArraySize, k_PointCookieTextureArraySizeContent);
             if (EditorGUI.EndChangeCheck())
             {
-                d.cubeCookieTexArraySize.intValue = Mathf.Clamp(d.cubeCookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
+                serialized.cubeCookieTexArraySize.intValue = Mathf.Clamp(serialized.cubeCookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
             }
-            currentCache = TextureCacheCubemap.GetApproxCacheSizeInByte(d.cubeCookieTexArraySize.intValue, d.pointCookieSize.intValue, 1);
+            currentCache = TextureCacheCubemap.GetApproxCacheSizeInByte(serialized.cubeCookieTexArraySize.intValue, serialized.pointCookieSize.intValue, 1);
             if (currentCache > LightLoop.k_MaxCacheSize)
             {
-                int reserved = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.pointCookieSize.intValue, 1);
-                string message = string.Format(cacheErrorFormat, HumanizeWeight(currentCache), reserved);
+                int reserved = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, serialized.pointCookieSize.intValue, 1);
+                string message = string.Format(k_CacheErrorFormat, HumanizeWeight(currentCache), reserved);
                 EditorGUILayout.HelpBox(message, MessageType.Error);
             }
             else
             {
-                string message = string.Format(cacheInfoFormat, HumanizeWeight(currentCache));
+                string message = string.Format(k_CacheInfoFormat, HumanizeWeight(currentCache));
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
-            EditorGUILayout.Space();
         }
 
-        static void Drawer_SectionReflection(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
+        static void Drawer_SectionReflection(SerializedGlobalLightLoopSettings serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(d.reflectionCacheCompressed, _.GetContent("Compress Reflection Probe Cache"));
-            EditorGUILayout.PropertyField(d.reflectionCubemapSize, _.GetContent("Cubemap Size"));
+            EditorGUILayout.PropertyField(serialized.reflectionCacheCompressed, k_CompressProbeCacheContent);
+            EditorGUILayout.PropertyField(serialized.reflectionCubemapSize, k_CubemapSizeContent);
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(d.reflectionProbeCacheSize, _.GetContent("Probe Cache Size"));
+            EditorGUILayout.DelayedIntField(serialized.reflectionProbeCacheSize, k_ProbeCacheSizeContent);
             if (EditorGUI.EndChangeCheck())
             {
-                d.reflectionProbeCacheSize.intValue = Mathf.Clamp(d.reflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
+                serialized.reflectionProbeCacheSize.intValue = Mathf.Clamp(serialized.reflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
             }
-            long currentCache = ReflectionProbeCache.GetApproxCacheSizeInByte(d.reflectionProbeCacheSize.intValue, d.reflectionCubemapSize.intValue, d.supportFabricConvolution.boolValue ? 2 : 1);
+            long currentCache = ReflectionProbeCache.GetApproxCacheSizeInByte(serialized.reflectionProbeCacheSize.intValue, serialized.reflectionCubemapSize.intValue, serialized.supportFabricConvolution.boolValue ? 2 : 1);
             if (currentCache > LightLoop.k_MaxCacheSize)
             {
-                int reserved = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.reflectionCubemapSize.intValue, d.supportFabricConvolution.boolValue ? 2 : 1);
-                string message = string.Format(cacheErrorFormat, HumanizeWeight(currentCache), reserved);
+                int reserved = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, serialized.reflectionCubemapSize.intValue, serialized.supportFabricConvolution.boolValue ? 2 : 1);
+                string message = string.Format(k_CacheErrorFormat, HumanizeWeight(currentCache), reserved);
                 EditorGUILayout.HelpBox(message, MessageType.Error);
             }
             else
             {
-                string message = string.Format(cacheInfoFormat, HumanizeWeight(currentCache));
+                string message = string.Format(k_CacheInfoFormat, HumanizeWeight(currentCache));
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.PropertyField(d.planarReflectionCacheCompressed, _.GetContent("Compress Planar Reflection Probe Cache"));
-            EditorGUILayout.PropertyField(d.planarReflectionCubemapSize, _.GetContent("Planar Reflection Texture Size"));
+            EditorGUILayout.PropertyField(serialized.planarReflectionCacheCompressed, k_CompressPlanarProbeCacheContent);
+            EditorGUILayout.PropertyField(serialized.planarReflectionCubemapSize, k_PlanarTextureSizeContent);
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(d.planarReflectionProbeCacheSize, _.GetContent("Planar Probe Cache Size"));
+            EditorGUILayout.DelayedIntField(serialized.planarReflectionProbeCacheSize, k_PlanarProbeCacheSizeContent);
             if (EditorGUI.EndChangeCheck())
             {
-                d.planarReflectionProbeCacheSize.intValue = Mathf.Clamp(d.planarReflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
+                serialized.planarReflectionProbeCacheSize.intValue = Mathf.Clamp(serialized.planarReflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
             }
-            currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(d.planarReflectionProbeCacheSize.intValue, d.planarReflectionCubemapSize.intValue, 1);
+            currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(serialized.planarReflectionProbeCacheSize.intValue, serialized.planarReflectionCubemapSize.intValue, 1);
             if (currentCache > LightLoop.k_MaxCacheSize)
             {
-                int reserved = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, d.planarReflectionCubemapSize.intValue, 1);
-                string message = string.Format(cacheErrorFormat, HumanizeWeight(currentCache), reserved);
+                int reserved = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, serialized.planarReflectionCubemapSize.intValue, 1);
+                string message = string.Format(k_CacheErrorFormat, HumanizeWeight(currentCache), reserved);
                 EditorGUILayout.HelpBox(message, MessageType.Error);
             }
             else
             {
-                string message = string.Format(cacheInfoFormat, HumanizeWeight(currentCache));
+                string message = string.Format(k_CacheInfoFormat, HumanizeWeight(currentCache));
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
 
-            EditorGUILayout.PropertyField(d.supportFabricConvolution, _.GetContent("Support Fabric BSDF Convolution."));
-            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serialized.supportFabricConvolution, k_SupportFabricBSDFConvolutionContent);
         }
 
-        static void Drawer_SectionSky(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
+        static void Drawer_SectionSky(SerializedGlobalLightLoopSettings serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(d.skyReflectionSize, _.GetContent("Reflection Size"));
-            EditorGUILayout.PropertyField(d.skyLightingOverrideLayerMask, _.GetContent("Lighting Override Mask|This layer mask will define in which layers the sky system will look for sky settings volumes for lighting override"));
-            if (d.skyLightingOverrideLayerMask.intValue == -1)
+            EditorGUILayout.PropertyField(serialized.skyReflectionSize, k_SkyReflectionSizeContent);
+            EditorGUILayout.PropertyField(serialized.skyLightingOverrideLayerMask, k_SkyLightingOverrideMaskContent);
+            if (serialized.skyLightingOverrideLayerMask.intValue == -1)
             {
-                EditorGUILayout.HelpBox("Be careful, Sky Lighting Override Mask is set to Everything. This is most likely a mistake as it serves no purpose.", MessageType.Warning);
+                EditorGUILayout.HelpBox(k_SkyLightingHelpBoxContent, MessageType.Warning);
             }
-            EditorGUILayout.Space();
         }
 
-        static void Drawer_LightLoop(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
+        static void Drawer_LightLoop(SerializedGlobalLightLoopSettings serialized, Editor o)
         {
-            EditorGUILayout.DelayedIntField(d.maxDirectionalLightsOnScreen, _.GetContent("Max Directional Lights On Screen"));
-            EditorGUILayout.DelayedIntField(d.maxPunctualLightsOnScreen, _.GetContent("Max Punctual Lights On Screen"));
-            EditorGUILayout.DelayedIntField(d.maxAreaLightsOnScreen, _.GetContent("Max Area Lights On Screen"));
-            EditorGUILayout.DelayedIntField(d.maxEnvLightsOnScreen, _.GetContent("Max Env Lights On Screen"));
-            EditorGUILayout.DelayedIntField(d.maxDecalsOnScreen, _.GetContent("Max Decals On Screen"));
+            EditorGUILayout.DelayedIntField(serialized.maxDirectionalLightsOnScreen, k_MaxDirectionalContent);
+            EditorGUILayout.DelayedIntField(serialized.maxPunctualLightsOnScreen, k_MaxPonctualContent);
+            EditorGUILayout.DelayedIntField(serialized.maxAreaLightsOnScreen, k_MaxAreaContent);
+            EditorGUILayout.DelayedIntField(serialized.maxEnvLightsOnScreen, k_MaxEnvContent);
+            EditorGUILayout.DelayedIntField(serialized.maxDecalsOnScreen, k_MaxDecalContent);
             
-            d.maxDirectionalLightsOnScreen.intValue = Mathf.Clamp(d.maxDirectionalLightsOnScreen.intValue, 1, LightLoop.k_MaxDirectionalLightsOnScreen);
-            d.maxPunctualLightsOnScreen.intValue = Mathf.Clamp(d.maxPunctualLightsOnScreen.intValue, 1, LightLoop.k_MaxPunctualLightsOnScreen);
-            d.maxAreaLightsOnScreen.intValue = Mathf.Clamp(d.maxAreaLightsOnScreen.intValue, 1, LightLoop.k_MaxAreaLightsOnScreen);
-            d.maxEnvLightsOnScreen.intValue = Mathf.Clamp(d.maxEnvLightsOnScreen.intValue, 1, LightLoop.k_MaxEnvLightsOnScreen);
-            d.maxDecalsOnScreen.intValue = Mathf.Clamp(d.maxDecalsOnScreen.intValue, 1, LightLoop.k_MaxDecalsOnScreen);
+            serialized.maxDirectionalLightsOnScreen.intValue = Mathf.Clamp(serialized.maxDirectionalLightsOnScreen.intValue, 1, LightLoop.k_MaxDirectionalLightsOnScreen);
+            serialized.maxPunctualLightsOnScreen.intValue = Mathf.Clamp(serialized.maxPunctualLightsOnScreen.intValue, 1, LightLoop.k_MaxPunctualLightsOnScreen);
+            serialized.maxAreaLightsOnScreen.intValue = Mathf.Clamp(serialized.maxAreaLightsOnScreen.intValue, 1, LightLoop.k_MaxAreaLightsOnScreen);
+            serialized.maxEnvLightsOnScreen.intValue = Mathf.Clamp(serialized.maxEnvLightsOnScreen.intValue, 1, LightLoop.k_MaxEnvLightsOnScreen);
+            serialized.maxDecalsOnScreen.intValue = Mathf.Clamp(serialized.maxDecalsOnScreen.intValue, 1, LightLoop.k_MaxDecalsOnScreen);
         }
     }
 }

@@ -49,7 +49,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         SerializedHDCamera m_SerializedCamera;
-        HDCameraUI m_UIState = new HDCameraUI();
 
         RenderTexture m_PreviewTexture;
         Camera m_PreviewCamera;
@@ -59,7 +58,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void OnEnable()
         {
             m_SerializedCamera = new SerializedHDCamera(serializedObject);
-            m_UIState.Reset(m_SerializedCamera, Repaint);
 
             m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
             m_PreviewCamera.enabled = false;
@@ -83,17 +81,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            var s = m_UIState;
-            var d = m_SerializedCamera;
+            m_SerializedCamera.Update();
+            
+            HDCameraUI.Inspector.Draw(m_SerializedCamera, this);
 
-            d.Update();
-            s.Update();
-
-#pragma warning disable 612 //Draw
-            HDCameraUI.Inspector.Draw(s, d, this);
-#pragma warning restore 612
-
-            d.Apply();
+            m_SerializedCamera.Apply();
         }
 
         RenderTexture GetPreviewTextureWithSize(int width, int height)

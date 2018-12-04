@@ -362,7 +362,7 @@ namespace UnityEditor.ShaderGraph
             m_Nodes[materialNode.tempId.index] = null;
             m_FreeNodeTempIds.Push(materialNode.tempId);
             m_NodeDictionary.Remove(materialNode.guid);
-            messageManager?.RemoveNode(materialNode.tempId);
+            messageManager.RemoveNode(materialNode.tempId);
             m_RemovedNodes.Add(materialNode);
 
             if (m_GroupNodes.TryGetValue(materialNode.groupGuid, out var nodes))

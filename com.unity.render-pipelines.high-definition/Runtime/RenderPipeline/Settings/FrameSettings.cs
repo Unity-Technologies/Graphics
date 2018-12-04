@@ -206,29 +206,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.m_LitShaderModeEnumIndex = this.m_LitShaderModeEnumIndex;
         }
 
-        public FrameSettings Override(FrameSettings overridedFrameSettings)
+        public void ApplyOverrideOn(FrameSettings overridedFrameSettings)
         {
             if(overrides == 0)
-            {
-                //nothing to override
-                return overridedFrameSettings;
-            }
+                return;
 
-            FrameSettings result = new FrameSettings(overridedFrameSettings);
             Array values = Enum.GetValues(typeof(FrameSettingsOverrides));
             foreach(FrameSettingsOverrides val in values)
             {
                 if((val & overrides) > 0)
                 {
-                    s_Overrides[val](result, this);
+                    s_Overrides[val](overridedFrameSettings, this);
                 }
             }
 
-            result.lightLoopSettings = lightLoopSettings.Override(overridedFrameSettings.lightLoopSettings);
+            lightLoopSettings.ApplyOverrideOn(overridedFrameSettings.lightLoopSettings);
 
             //propagate override to be chained
-            result.overrides = overrides | overridedFrameSettings.overrides;
-            return result;
+            overridedFrameSettings.overrides = overrides | overridedFrameSettings.overrides;
         }
 
         // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
@@ -396,7 +391,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: The work will be implemented piecemeal to support all passes
                 enableMotionVectors = enablePostprocess && !enableMSAA;
-                enableDecals = false;
                 enableSSR = false;
             }
         }

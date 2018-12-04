@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.InverseTRS;
+                return VFXExpressionOperation.InverseMatrix;
             }
         }
 
