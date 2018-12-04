@@ -1452,7 +1452,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     finalDoubleWideBlit.SetFloat(HDShaderIDs._BlitMipLevel, 0.0f);
                                     finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
                                     finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                                    cmd.Blit(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, finalDoubleWideBlit);
+                                    int pass = 1; // triangle, bilinear (from Blit.shader)
+                                    cmd.Blit(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, finalDoubleWideBlit, pass);
 #else
                                     cmd.BlitFullscreenTriangle(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget); // Prior to 2019.1's y-flip fixes, we didn't need a flip in the shader
 #endif
