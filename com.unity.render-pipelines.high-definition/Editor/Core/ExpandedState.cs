@@ -9,60 +9,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public struct ExpandedState<TState, TTarget>
         where TState : struct, IConvertible
     {
-        /// <summary>Key is automatically computed regarding the target type given</summary>
-        public readonly string stateKey;
+        EditorPrefBoolFlags<TState> m_State;
 
         /// <summary>Constructor will create the key to store in the EditorPref the state given generic type passed.</summary>
         /// <param name="defaultValue">If key did not exist, it will be created with this value for initialization.</param>
         public ExpandedState(TState defaultValue, string prefix = "CoreRP")
         {
-            stateKey = string.Format("{0}:{1}:UI_State", prefix, typeof(TTarget).Name);
+            String Key = string.Format("{0}:{1}:UI_State", prefix, typeof(TTarget).Name);
+            m_State = new EditorPrefBoolFlags<TState>(Key);
 
             //register key if not already there
-            if (!EditorPrefs.HasKey(stateKey))
+            if (!EditorPrefs.HasKey(Key))
             {
-                EditorPrefs.SetInt(stateKey, (int)(object)defaultValue);
+                EditorPrefs.SetInt(Key, (int)(object)defaultValue);
             }
         }
-        
-        uint expandedState { get { return (uint)EditorPrefs.GetInt(stateKey); } set { EditorPrefs.SetInt(stateKey, (int)value); } }
         
         /// <summary>Get or set the state given the mask.</summary>
         public bool this[TState mask]
         {
-            get { return GetExpandedAreas(mask); }
-            set { SetExpandedAreas(mask, value); }
+            get { return m_State.HasFlag(mask); }
+            set { m_State.SetFlag(mask, value); }
         }
 
         /// <summary>Accessor to the expended state of this specific mask.</summary>
         public bool GetExpandedAreas(TState mask)
         {
-            // note on cast:
-            //   - to object always ok
-            //   - to int ok because of IConvertible. Cannot directly go to uint
-            return (expandedState & (uint)(int)(object)mask) > 0;
+            return m_State.HasFlag(mask);
         }
 
         /// <summary>Setter to the expended state.</summary>
         public void SetExpandedAreas(TState mask, bool value)
         {
-            uint state = expandedState;
-            // note on cast:
-            //   - to object always ok
-            //   - to int ok because of IConvertible. Cannot directly go to uint
-            uint workMask = (uint)(int)(object)mask;
+            m_State.SetFlag(mask, value);
+        }
 
-            if (value)
-            {
-                state |= workMask;
-            }
-            else
-            {
-                workMask = ~workMask;
-                state &= workMask;
-            }
+        /// <summary> Utility to set all states to true </summary>
+        public void ExpandAll()
+        {
+            m_State.rawValue = ~(-1);
+        }
 
-            expandedState = state;
+        /// <summary> Utility to set all states to false </summary>
+        public void CollapseAll()
+        {
+            m_State.rawValue = 0;
         }
     }
 }

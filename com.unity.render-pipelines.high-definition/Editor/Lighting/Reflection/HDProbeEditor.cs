@@ -27,15 +27,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         HDProbe IHDProbeEditor.GetTarget(Object editorTarget) => GetTarget(editorTarget);
 
         TSerialized m_SerializedHDProbe;
-        protected HDProbeUI m_UIState;
-        protected HDProbeUI[] m_UIHandleState;
         protected HDProbe[] m_TypedTargets;
 
         public override void OnInspectorGUI()
         {
             m_SerializedHDProbe.Update();
             EditorGUI.BeginChangeCheck();
-            Draw(m_UIState, m_SerializedHDProbe, this);
+            Draw(m_SerializedHDProbe, this);
             if (EditorGUI.EndChangeCheck())
                 m_SerializedHDProbe.Apply();
         }
@@ -43,14 +41,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected virtual void OnEnable()
         {
             m_SerializedHDProbe = NewSerializedObject(serializedObject);
-            m_UIState = new HDProbeUI();
 
             m_TypedTargets = new HDProbe[targets.Length];
-            m_UIHandleState = new HDProbeUI[m_TypedTargets.Length];
             for (var i = 0; i < m_TypedTargets.Length; i++)
             {
                 m_TypedTargets[i] = GetTarget(targets[i]);
-                m_UIHandleState[i] = new HDProbeUI();
             }
 
             foreach (var target in serializedObject.targetObjects)
@@ -67,48 +62,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 
         }
 
-        protected virtual void Draw(HDProbeUI s, TSerialized p, Editor o)
+        protected virtual void Draw(TSerialized serialized, Editor owner)
         {
-            HDProbeUI.Drawer<TProvider>.DrawToolbars(s, p, o);
-            HDProbeUI.Drawer<TProvider>.DrawPrimarySettings(s, p, o);
-            if (DrawAndSetSectionFoldout(s, HDProbeUI.Flag.SectionExpandedProjection, "Projection Settings"))
-            {
-                ++EditorGUI.indentLevel;
-                HDProbeUI.Drawer<TProvider>.DrawProjectionSettings(s, p, o);
-                --EditorGUI.indentLevel;
-            }
-            if (DrawAndSetSectionFoldout(s, HDProbeUI.Flag.SectionExpandedInfluence, "Influence Volume"))
-            {
-                ++EditorGUI.indentLevel;
-                HDProbeUI.Drawer<TProvider>.DrawInfluenceSettings(s, p, o);
-                --EditorGUI.indentLevel;
-            }
-            if (DrawAndSetSectionFoldout(s, HDProbeUI.Flag.SectionExpandedCapture, "Capture Settings"))
-            {
-                DrawAdditionalCaptureSettings(s, p, o);
-                HDProbeUI.Drawer<TProvider>.DrawCaptureSettings(s, p, o);
-            }
-            if (DrawAndSetSectionFoldout(s, HDProbeUI.Flag.SectionExpandedCustom, "Custom Settings"))
-                HDProbeUI.Drawer<TProvider>.DrawCustomSettings(s, p, o);
-            HDProbeUI.Drawer<TProvider>.DrawBakeButton(s, p, o);
+            HDProbeUI.Drawer<TProvider>.DrawToolbars(serialized, owner);
+            HDProbeUI.Drawer<TProvider>.DrawPrimarySettings(serialized, owner);
+
+            //note: cannot use 'using CED = something' due to templated type passed.
+            CoreEditorDrawer<TSerialized>.Group(
+                CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_ProxySettingsHeader, HDProbeUI.Expandable.Projection, HDProbeUI.k_ExpandedState,
+                    HDProbeUI.Drawer<TProvider>.DrawProjectionSettings),
+                CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_InfluenceVolumeHeader, HDProbeUI.Expandable.Influence, HDProbeUI.k_ExpandedState,
+                    HDProbeUI.Drawer<TProvider>.DrawInfluenceSettings,
+                    HDProbeUI.Drawer_DifferentShapeError
+                    ),
+                CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_CaptureSettingsHeader, HDProbeUI.Expandable.Capture, HDProbeUI.k_ExpandedState,
+                    DrawAdditionalCaptureSettings,
+                    HDProbeUI.Drawer<TProvider>.DrawCaptureSettings),
+                CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_CustomSettingsHeader, HDProbeUI.Expandable.Custom, HDProbeUI.k_ExpandedState,
+                    HDProbeUI.Drawer<TProvider>.DrawCustomSettings),
+                CoreEditorDrawer<TSerialized>.Group(HDProbeUI.Drawer<TProvider>.DrawBakeButton)
+                ).Draw(serialized, owner);
         }
 
-        protected virtual void DrawHandles(HDProbeUI s, TSerialized d, Editor o) { }
-        protected virtual void DrawAdditionalCaptureSettings(HDProbeUI s, TSerialized d, Editor o) { }
-
-        // TODO: generalize this
-        static bool DrawAndSetSectionFoldout(HDProbeUI s, HDProbeUI.Flag flag, string title)
-            => s.SetFlag(flag, HDEditorUtils.DrawSectionFoldout(title, s.HasFlag(flag)));
+        protected virtual void DrawHandles(TSerialized serialized, Editor owner) { }
+        protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) { }
 
         protected void OnSceneGUI()
         {
-            m_UIState.Update(m_SerializedHDProbe);
             m_SerializedHDProbe.Update();
 
             EditorGUI.BeginChangeCheck();
-            HDProbeUI.DrawHandles(m_UIState, m_SerializedHDProbe, this);
+            HDProbeUI.DrawHandles(m_SerializedHDProbe, this);
             HDProbeUI.Drawer<TProvider>.DoToolbarShortcutKey(this);
-            DrawHandles(m_UIState, m_SerializedHDProbe, this);
+            DrawHandles(m_SerializedHDProbe, this);
             if (EditorGUI.EndChangeCheck())
                 m_SerializedHDProbe.Apply();
         }

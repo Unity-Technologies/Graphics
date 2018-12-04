@@ -7,12 +7,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CanEditMultipleObjects]
     class ReflectionProxyVolumeComponentEditor : Editor
     {
-        static readonly Color k_HandleColor = new Color(0 / 255f, 0xE5 / 255f, 0xFF / 255f, 8f / 255).gamma;
+        static readonly Color k_HandleColor = new Color(0 / 255f, 0xE5 / 255f, 0xFF / 255f, 1f).gamma;
 
         HierarchicalSphere m_SphereHandle;
         HierarchicalBox m_BoxHandle;
         SerializedReflectionProxyVolumeComponent m_SerializedData;
-        ReflectionProxyVolumeComponentUI m_UIState = new ReflectionProxyVolumeComponentUI();
         ReflectionProxyVolumeComponent[] m_TypedTargets;
 
         void OnEnable()
@@ -21,11 +20,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             System.Array.Resize(ref m_TypedTargets, serializedObject.targetObjects.Length);
             for (int i = 0; i < serializedObject.targetObjects.Length; ++i)
                 m_TypedTargets[i] = (ReflectionProxyVolumeComponent)serializedObject.targetObjects[i];
-
-            m_UIState = m_UIState ?? new ReflectionProxyVolumeComponentUI();
-
+            
             m_SphereHandle = new HierarchicalSphere(k_HandleColor);
-            m_BoxHandle = new HierarchicalBox(k_HandleColor)
+            m_BoxHandle = new HierarchicalBox(k_HandleColor, new[] { k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor })
             {
                 monoHandle = false
             };
@@ -33,16 +30,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            var s = m_UIState;
-            var d = m_SerializedData;
-            var o = this;
+            m_SerializedData.Update();
 
-            d.Update();
-            s.Update(d);
+            ProxyVolumeUI.SectionShape.Draw(m_SerializedData.proxyVolume, this);
 
-            ReflectionProxyVolumeComponentUI.Inspector.Draw(s, d, o);
-
-            d.Apply();
+            m_SerializedData.Apply();
         }
 
         void OnSceneGUI()

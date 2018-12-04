@@ -6,23 +6,23 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class HDProbeUI
+    static partial class HDProbeUI
     {
         static List<HDProbe> s_DrawHandles_Target = new List<HDProbe>();
-        internal static void DrawHandles(HDProbeUI s, SerializedHDProbe d, Editor o)
+        internal static void DrawHandles(SerializedHDProbe serialized, Editor owner)
         {
-            var probe = d.target;
+            var probe = serialized.target;
 
             switch (EditMode.editMode)
             {
                 case EditBaseShape:
-                    InfluenceVolumeUI.DrawHandles_EditBase(s.probeSettings.influence, d.probeSettings.influence, o, probe.transform);
+                    InfluenceVolumeUI.DrawHandles_EditBase(serialized.probeSettings.influence, owner, probe.transform);
                     break;
                 case EditInfluenceShape:
-                    InfluenceVolumeUI.DrawHandles_EditInfluence(s.probeSettings.influence, d.probeSettings.influence, o, probe.transform);
+                    InfluenceVolumeUI.DrawHandles_EditInfluence(serialized.probeSettings.influence, owner, probe.transform);
                     break;
                 case EditInfluenceNormalShape:
-                    InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.probeSettings.influence, d.probeSettings.influence, o, probe.transform);
+                    InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(serialized.probeSettings.influence, owner, probe.transform);
                     break;
                 case EditCapturePosition:
                 case EditMirrorPosition:
@@ -32,8 +32,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         SerializedProperty target;
                         switch (EditMode.editMode)
                         {
-                            case EditCapturePosition: target = d.probeSettings.proxyCapturePositionProxySpace; break;
-                            case EditMirrorPosition: target = d.probeSettings.proxyMirrorPositionProxySpace; break;
+                            case EditCapturePosition: target = serialized.probeSettings.proxyCapturePositionProxySpace; break;
+                            case EditMirrorPosition: target = serialized.probeSettings.proxyMirrorPositionProxySpace; break;
                             default: throw new ArgumentOutOfRangeException();
                         }
 
@@ -48,8 +48,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         var proxyToWorldMatrix = probe.proxyToWorld;
 
-                        var target = d.probeSettings.proxyMirrorRotationProxySpace;
-                        var position = d.probeSettings.proxyMirrorPositionProxySpace.vector3Value;
+                        var target = serialized.probeSettings.proxyMirrorRotationProxySpace;
+                        var position = serialized.probeSettings.proxyMirrorPositionProxySpace.vector3Value;
 
                         using (new Handles.DrawingScope(proxyToWorldMatrix))
                         {

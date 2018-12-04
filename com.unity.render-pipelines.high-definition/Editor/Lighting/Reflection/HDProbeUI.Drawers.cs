@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using _ = UnityEditor.Rendering.CoreEditorUtils;
 
-    partial class HDProbeUI
+    static partial class HDProbeUI
     {
         [Flags]
         internal enum ToolBar
@@ -100,7 +100,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             // Tool bars
-            public static void DrawToolbars(HDProbeUI s, SerializedHDProbe d, Editor o)
+            public static void DrawToolbars(SerializedHDProbe serialized, Editor owner)
             {
                 var provider = new TProvider();
 
@@ -109,7 +109,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GUI.changed = false;
 
                 for (int i = 0; i < k_ListModes.Length; ++i)
-                    EditMode.DoInspectorToolbar(k_ListModes[i], k_ListContent[i], HDEditorUtils.GetBoundsGetter(o), o);
+                    EditMode.DoInspectorToolbar(k_ListModes[i], k_ListContent[i], HDEditorUtils.GetBoundsGetter(owner), owner);
 
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
@@ -147,7 +147,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             // Drawers
-            public static void DrawPrimarySettings(HDProbeUI s, SerializedHDProbe p, Editor o)
+            public static void DrawPrimarySettings(SerializedHDProbe serialized, Editor owner)
             {
                 const string modeGUIContent = "Type|'Baked' uses the 'Auto Baking' mode from the Lighting window. " +
                     "If it is enabled then baking is automatic otherwise manual bake is needed (use the bake button below). \n" +
@@ -157,95 +157,92 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var provider = new TProvider();
 
 #if !ENABLE_BAKED_PLANAR
-                if (p is SerializedPlanarReflectionProbe)
+                if (serialized is SerializedPlanarReflectionProbe)
                 {
-                    p.probeSettings.mode.intValue = (int)ProbeSettings.Mode.Realtime;
+                    serialized.probeSettings.mode.intValue = (int)ProbeSettings.Mode.Realtime;
                 }
                 else
                 { 
 #endif
 
                 // Probe Mode
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = p.probeSettings.mode.hasMultipleDifferentValues;
-                EditorGUILayout.IntPopup(p.probeSettings.mode, k_ModeContents, k_ModeValues, _.GetContent(modeGUIContent));
+                EditorGUI.showMixedValue = serialized.probeSettings.mode.hasMultipleDifferentValues;
+                EditorGUILayout.IntPopup(serialized.probeSettings.mode, k_ModeContents, k_ModeValues, _.GetContent(modeGUIContent));
                 EditorGUI.showMixedValue = false;
-                if (EditorGUI.EndChangeCheck())
-                    s.SetModeTarget(p.probeSettings.mode.intValue);
 
 #if !ENABLE_BAKED_PLANAR
                 }
 #endif
 
-                    switch ((ProbeSettings.Mode)p.probeSettings.mode.intValue)
+                switch ((ProbeSettings.Mode)serialized.probeSettings.mode.intValue)
                 {
                     case ProbeSettings.Mode.Realtime:
                         {
-                            EditorGUI.showMixedValue = p.probeSettings.realtimeMode.hasMultipleDifferentValues;
-                            EditorGUILayout.PropertyField(p.probeSettings.realtimeMode);
+                            EditorGUI.showMixedValue = serialized.probeSettings.realtimeMode.hasMultipleDifferentValues;
+                            EditorGUILayout.PropertyField(serialized.probeSettings.realtimeMode);
                             EditorGUI.showMixedValue = false;
                             break;
                         }
                     case ProbeSettings.Mode.Custom:
                         {
-                            EditorGUI.showMixedValue = p.customTexture.hasMultipleDifferentValues;
+                            EditorGUI.showMixedValue = serialized.customTexture.hasMultipleDifferentValues;
                             EditorGUI.BeginChangeCheck();
                             var customTexture = EditorGUILayout.ObjectField(
-                                _.GetContent("Texture"), p.customTexture.objectReferenceValue, provider.customTextureType, false
+                                _.GetContent("Texture"), serialized.customTexture.objectReferenceValue, provider.customTextureType, false
                             );
                             EditorGUI.showMixedValue = false;
                             if (EditorGUI.EndChangeCheck())
-                                p.customTexture.objectReferenceValue = customTexture;
+                                serialized.customTexture.objectReferenceValue = customTexture;
                             break;
                         }
                 }
             }
 
-            public static void DrawCaptureSettings(HDProbeUI s, SerializedHDProbe p, Editor o)
+            public static void DrawCaptureSettings(SerializedHDProbe serialized, Editor owner)
             {
                 var provider = new TProvider();
                 ProbeSettingsUI.Draw(
-                    s.probeSettings, p.probeSettings, o,
-                    p.probeSettingsOverride,
+                    serialized.probeSettings, owner,
+                    serialized.probeSettingsOverride,
                     provider.displayedCaptureSettings, provider.overrideableCaptureSettings
                 );
             }
 
-            public static void DrawCustomSettings(HDProbeUI s, SerializedHDProbe p, Editor o)
+            public static void DrawCustomSettings(SerializedHDProbe serialized, Editor owner)
             {
                 var provider = new TProvider();
                 ProbeSettingsUI.Draw(
-                    s.probeSettings, p.probeSettings, o,
-                    p.probeSettingsOverride,
+                    serialized.probeSettings, owner,
+                    serialized.probeSettingsOverride,
                     provider.displayedAdvancedSettings, provider.overrideableAdvancedSettings
                 );
             }
 
-            public static void DrawInfluenceSettings(HDProbeUI s, SerializedHDProbe p, Editor o)
+            public static void DrawInfluenceSettings(SerializedHDProbe serialized, Editor owner)
             {
                 var provider = new TProvider();
-                InfluenceVolumeUI.Draw<TProvider>(s.probeSettings.influence, p.probeSettings.influence, o);
+                InfluenceVolumeUI.Draw<TProvider>(serialized.probeSettings.influence, owner);
             }
 
-            public static void DrawProjectionSettings(HDProbeUI s, SerializedHDProbe d, Editor o)
+            public static void DrawProjectionSettings(SerializedHDProbe serialized, Editor owner)
             {
-                EditorGUILayout.PropertyField(d.proxyVolume, proxyVolumeContent);
+                EditorGUILayout.PropertyField(serialized.proxyVolume, k_ProxyVolumeContent);
 
-                if (d.target.proxyVolume == null)
+                if (serialized.target.proxyVolume == null)
                 {
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(d.probeSettings.proxyUseInfluenceVolumeAsProxyVolume);
+                    EditorGUILayout.PropertyField(serialized.probeSettings.proxyUseInfluenceVolumeAsProxyVolume);
                     if (EditorGUI.EndChangeCheck())
-                        d.Apply();
+                        serialized.Apply();
                 }
 
-                if (d.proxyVolume.objectReferenceValue != null)
+                if (serialized.proxyVolume.objectReferenceValue != null)
                 {
-                    var proxy = (ReflectionProxyVolumeComponent)d.proxyVolume.objectReferenceValue;
-                    if ((int)proxy.proxyVolume.shape != d.probeSettings.influence.shape.enumValueIndex
+                    var proxy = (ReflectionProxyVolumeComponent)serialized.proxyVolume.objectReferenceValue;
+                    if ((int)proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.enumValueIndex
                         && proxy.proxyVolume.shape != ProxyShape.Infinite)
                         EditorGUILayout.HelpBox(
-                            proxyInfluenceShapeMismatchHelpBoxText,
+                            k_ProxyInfluenceShapeMismatchHelpBoxText,
                             MessageType.Error,
                             true
                             );
@@ -253,7 +250,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 else
                 {
                     EditorGUILayout.HelpBox(
-                            d.probeSettings.proxyUseInfluenceVolumeAsProxyVolume.boolValue ? noProxyHelpBoxText : noProxyInfiniteHelpBoxText,
+                            serialized.probeSettings.proxyUseInfluenceVolumeAsProxyVolume.boolValue ? k_NoProxyHelpBoxText : k_NoProxyInfiniteHelpBoxText,
                             MessageType.Info,
                             true
                             );
@@ -262,10 +259,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             static readonly string[] k_BakeCustomOptionText = { "Bake as new Cubemap..." };
             static readonly string[] k_BakeButtonsText = { "Bake All Reflection Probes" };
-            public static void DrawBakeButton(HDProbeUI s, SerializedHDProbe d, Editor o)
+            public static void DrawBakeButton(SerializedHDProbe serialized, Editor owner)
             {
                 // Disable baking of multiple probes with different modes
-                if (d.probeSettings.mode.hasMultipleDifferentValues)
+                if (serialized.probeSettings.mode.hasMultipleDifferentValues)
                 {
                     EditorGUILayout.HelpBox(
                         "Baking is not possible when selecting probe with different modes",
@@ -275,13 +272,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 // Check if current mode support baking
-                var mode = (ProbeSettings.Mode)d.probeSettings.mode.intValue;
+                var mode = (ProbeSettings.Mode)serialized.probeSettings.mode.intValue;
                 var doesModeSupportBaking = mode == ProbeSettings.Mode.Custom || mode == ProbeSettings.Mode.Baked;
                 if (!doesModeSupportBaking)
                     return;
 
                 // Check if all scene are saved to a file (requirement to bake probes)
-                foreach (var target in d.serializedObject.targetObjects)
+                foreach (var target in serialized.serializedObject.targetObjects)
                 {
                     var comp = (Component)target;
                     var go = comp.gameObject;
@@ -312,12 +309,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                     switch ((int)data)
                                     {
                                         case 0:
-                                            RenderInCustomAsset(d.target, false);
+                                            RenderInCustomAsset(serialized.target, false);
                                             break;
                                     }
                                 }))
                             {
-                                RenderInCustomAsset(d.target, true);
+                                RenderInCustomAsset(serialized.target, true);
                             }
                             break;
                         }
@@ -332,7 +329,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 break;
                             }
 
-                            GUI.enabled = d.target.enabled;
+                            GUI.enabled = serialized.target.enabled;
 
                             // Bake button in non-continous mode
                             if (ButtonWithDropdownList(
@@ -348,7 +345,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                     },
                                     GUILayout.ExpandWidth(true)))
                             {
-                                HDBakedReflectionSystem.BakeProbes(new HDProbe[] { d.target });
+                                HDBakedReflectionSystem.BakeProbes(new HDProbe[] { serialized.target });
                                 GUIUtility.ExitGUI();
                             }
 
@@ -406,15 +403,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        protected static void Drawer_DifferentShapeError(HDProbeUI s, SerializedHDProbe d, Editor o)
+        static internal void Drawer_DifferentShapeError(SerializedHDProbe serialized, Editor owner)
         {
-            var proxy = d.proxyVolume.objectReferenceValue as ReflectionProxyVolumeComponent;
+            var proxy = serialized.proxyVolume.objectReferenceValue as ReflectionProxyVolumeComponent;
             if (proxy != null
-                && (int)proxy.proxyVolume.shape != d.probeSettings.influence.shape.enumValueIndex
+                && (int)proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.enumValueIndex
                 && proxy.proxyVolume.shape != ProxyShape.Infinite)
             {
                 EditorGUILayout.HelpBox(
-                    proxyInfluenceShapeMismatchHelpBoxText,
+                    k_ProxyInfluenceShapeMismatchHelpBoxText,
                     MessageType.Error,
                     true
                     );
