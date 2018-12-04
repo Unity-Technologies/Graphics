@@ -705,7 +705,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("Material.Iridescence");
             }
-            if (masterNode.subsurfaceScattering.isOn)
+            if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
             {
                 activeFields.Add("Material.SubsurfaceScattering");
             }
@@ -749,7 +749,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate
             // into a single $GeometricSpecularAA pedicate.
             //
-            // ($SurfaceDescription.* pedicates are useful to make sure the field is present in the struct in the template.
+            // ($SurfaceDescription.* predicates are useful to make sure the field is present in the struct in the template.
             // The field will be present if both the master node and pass have the slotid, see this set intersection we make
             // in GenerateSurfaceDescriptionStruct(), with HDSubShaderUtilities.FindMaterialSlotsOnNode().)
             //
