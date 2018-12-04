@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removing the simple lightloop used by the simple lit shader
 
+## [4.4.1-preview] - 2018-12-03
+
 ## [4.4.0-preview] - 2018-11-30
 
 ### Added
