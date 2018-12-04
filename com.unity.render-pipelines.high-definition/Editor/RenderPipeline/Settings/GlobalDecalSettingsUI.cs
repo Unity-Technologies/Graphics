@@ -6,7 +6,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<GlobalDecalSettingsUI, SerializedGlobalDecalSettings>;
 
+#pragma warning disable 618 // TODO: update to IUpdateable interface
     class GlobalDecalSettingsUI : BaseUI<SerializedGlobalDecalSettings>
+#pragma warning restore 618
     {
         static GlobalDecalSettingsUI()
         {

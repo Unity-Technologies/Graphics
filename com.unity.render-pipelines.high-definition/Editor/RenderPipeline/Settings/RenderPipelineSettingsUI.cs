@@ -7,7 +7,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<RenderPipelineSettingsUI, SerializedRenderPipelineSettings>;
 
+#pragma warning disable 618 // TODO: update to IUpdateable interface
     class RenderPipelineSettingsUI : BaseUI<SerializedRenderPipelineSettings>
+#pragma warning restore 618
     {
         static RenderPipelineSettingsUI()
         {

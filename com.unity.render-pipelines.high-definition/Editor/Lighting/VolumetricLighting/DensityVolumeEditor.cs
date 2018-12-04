@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 var shapeBox = shapeBoxes[targets[i] as DensityVolume] = new HierarchicalBox(Styles.k_GizmoColorBase, Styles.k_BaseHandlesColor);
                 shapeBox.monoHandle = false;
-                blendBoxes[targets[i] as DensityVolume] = new HierarchicalBox(Styles.k_GizmoColorBase, InfluenceVolumeUI.k_HandlesColor, container: shapeBox);
+                blendBoxes[targets[i] as DensityVolume] = new HierarchicalBox(Styles.k_GizmoColorBase, InfluenceVolumeUI.k_HandlesColor, parent: shapeBox);
             }
             
             //init save of state if first time

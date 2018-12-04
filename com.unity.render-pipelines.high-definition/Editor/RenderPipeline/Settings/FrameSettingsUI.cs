@@ -3,7 +3,9 @@ using UnityEngine.Events;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
+#pragma warning disable 618 // TODO: update to IUpdateable interface
     partial class FrameSettingsUI : BaseUI<SerializedFrameSettings>
+#pragma warning restore 618
     {
         const int k_AnimBoolsSize = 6;
 

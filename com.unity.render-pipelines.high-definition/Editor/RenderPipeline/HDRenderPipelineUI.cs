@@ -8,7 +8,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using CED = CoreEditorDrawer<HDRenderPipelineUI, SerializedHDRenderPipelineAsset>;
 
+#pragma warning disable 618 // TODO: update to IUpdateable interface
     class HDRenderPipelineUI : BaseUI<SerializedHDRenderPipelineAsset>
+#pragma warning restore 618
     {
         static readonly GUIContent defaultFrameSettingsContent = CoreEditorUtils.GetContent("Default Frame Settings For");
         static readonly GUIContent renderPipelineResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Resources|Set of resources that need to be loaded when creating stand alone");

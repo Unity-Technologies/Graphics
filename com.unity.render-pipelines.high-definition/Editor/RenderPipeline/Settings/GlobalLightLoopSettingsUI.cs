@@ -9,7 +9,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<GlobalLightLoopSettingsUI, SerializedGlobalLightLoopSettings>;
 
+#pragma warning disable 618 // TODO: update to IUpdateable interface
     class GlobalLightLoopSettingsUI : BaseUI<SerializedGlobalLightLoopSettings>
+#pragma warning restore 618
     {
         const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
         const string cacheInfoFormat = "Reserving {0} in memory at runtime.";
