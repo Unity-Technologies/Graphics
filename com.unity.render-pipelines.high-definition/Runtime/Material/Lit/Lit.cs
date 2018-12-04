@@ -101,86 +101,54 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, true, 1050)]
-        public struct BSDFDataForDebug
-        {
-            public uint materialFeatures;
-
-            [SurfaceDataAttributes("", false, true)]
-            public Vector3 diffuseColor;
-            public Vector3 fresnel0;
-
-            public float ambientOcclusion; // Caution: This is accessible only if light layer is enabled, otherwise it is 1
-            public float specularOcclusion;
-
-            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
-            public Vector3 normalWS;
-            public float perceptualRoughness;
-
-            public float coatMask;
-
-            // MaterialFeature dependent attribute
-
-            // SpecularColor fold into fresnel0
-
-            // SSS
-            public uint diffusionProfile;
-            public float subsurfaceMask;
-
-            // Transmission
-            // + Diffusion Profile
-            public float thickness;
-            public bool useThickObjectMode; // Read from the diffusion profile
-            public Vector3 transmittance;   // Precomputation of transmittance
-
-            // Anisotropic
-            [SurfaceDataAttributes("", true)]
-            public Vector3 tangentWS;
-            [SurfaceDataAttributes("", true)]
-            public Vector3 bitangentWS;
-            public float roughnessT;
-            public float roughnessB;
-            public float anisotropy;
-
-            // Iridescence
-            public float iridescenceThickness;
-            public float iridescenceMask;
-
-            // ClearCoat
-            public float coatRoughness; // Automatically fill
-
-            // Forward property only
-
-            // Transparency
-            public float ior;
-            // Reuse thickness from SSS
-            public Vector3 absorptionCoefficient;
-            public float transmittanceMask;
-        };
-
-        [GenerateHLSL(PackingRules.Exact, false, true, 1050)]
+        [GenerateHLSL(PackingRules.Exact, false, true, 1050, false, true)]
         public struct BSDFData
         {
-            [SurfaceDataAttributes("", false, true)]
+            [PackingAttribute("DiffuseColor", FieldPacking.NoPacking, 0, false, true)]
             public Vector3 diffuseColor;
-            public uint fresnel0;                           // R11G11B10
+            [PackingAttribute("Fresnel0", FieldPacking.R11G11B10, 0, false, true)]
+            public uint fresnel0;
 
+            [PackingAttribute("MaterialFeatures", FieldPacking.NoPacking, 0)]
             public uint materialFeatures;
-            public uint roughnessesAndOcclusions;           // [perceptualRoughness, coatRoughness, ambientOcclusion, specularOcclusion]
-            public uint SSSData;                            // [diffusionProfile (8bit), subsurfaceMask (8bit), thickness (16 bit)] << This whole thing could fit in 16bit.
-            public uint anisoDataAndFlags;                  // [anisotropy (8bit), roughnessT (8bit), roughnessB (8bit), flags [useThickObjectMode, 7 unused] (8bit)]
 
+            [PackingAttribute("PerceptualRoughness", FieldPacking.Float8bit, 24), 
+            PackingAttribute("CoatRoughness", FieldPacking.Float8bit, 16),
+            PackingAttribute("AmbientOcclusion", FieldPacking.Float8bit, 8),
+            PackingAttribute("SpecularOcclusion", FieldPacking.Float8bit, 0)] 
+            public uint roughnessesAndOcclusions;
 
-            public uint iridescenceAndMasks;               // [iridescenceThickness (8bit), iridescenceMask (8bit), transmittanceMask (8bit), coatMask (8bit)]
-            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
+            [PackingAttribute("DiffusionProfile", FieldPacking.Uint8bit, 24), 
+            PackingAttribute("SubsurfaceMask", FieldPacking.Float8bit, 16),
+            PackingAttribute("Thickness", FieldPacking.Float16bit, 0)] 
+            public uint SSSData;                            
+
+            [PackingAttribute("Anisotropy", FieldPacking.Float8bit, 24), 
+            PackingAttribute("RoughnessT", FieldPacking.Float8bit, 16),
+            PackingAttribute("RoughnessB", FieldPacking.Float8bit, 8),
+            PackingAttribute("Flags", FieldPacking.Uint8bit, 0)] 
+            public uint anisoDataAndFlags;
+
+            [PackingAttribute("IridescenceThickness", FieldPacking.Float8bit, 24), 
+            PackingAttribute("IridescenceMask", FieldPacking.Float8bit, 16),
+            PackingAttribute("TransmittanceMask", FieldPacking.Float8bit, 8),
+            PackingAttribute("CoatMask", FieldPacking.Float8bit, 0)] 
+            public uint iridescenceAndMasks;
+
+            [PackingAttribute(new string[] { "NormalWS", "NormalViewSpace" }, FieldPacking.NoPacking, 0, true, false)]
             public Vector3 normalWS;
 
+            [PackingAttribute("Transmittance", FieldPacking.NoPacking)]
             public Vector3 transmittance;                   // Precomputation of transmittance
-            public uint tangentWS;                          // R11G11B10
+            [PackingAttribute("TangentWS", FieldPacking.R11G11B10, 0, true)]
+            public uint tangentWS;
 
-            public uint bitangentWS;                        // R11G11B10
-            public uint absorptionCoefficient;              // R11G11B10                                                               
-            public float ior;                               // Could do some remapping
+            [PackingAttribute("BitangentWS", FieldPacking.R11G11B10, 0, true)]
+            public uint bitangentWS;
+            [PackingAttribute("AbsorptionCoefficient", FieldPacking.R11G11B10, 0, false, true)]
+            public uint absorptionCoefficient;
+            [PackingAttribute("IOR", FieldPacking.NoPacking)]
+            public float ior;                               
         };
 
 

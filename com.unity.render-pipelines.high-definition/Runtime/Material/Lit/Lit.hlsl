@@ -397,7 +397,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
     {
         // Assign profile id and overwrite fresnel0
-        InitSSSData(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+		InitDiffusionProfile(surfaceData.diffusionProfile, bsdfData);
+		InitSubsurfaceMask(surfaceData.subsurfaceMask, bsdfData);
         FillMaterialSSSForPackedLit(surfaceData.diffusionProfile, bsdfData);
     }
 
@@ -415,7 +416,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-        InitIridescenceData(surfaceData.iridescenceThickness, surfaceData.iridescenceMask, bsdfData);
+		InitIridescenceThickness(surfaceData.iridescenceThickness, bsdfData);
+		InitIridescenceMask(surfaceData.iridescenceMask, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
@@ -434,7 +436,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     float roughnessT = 0.0f;
     float roughnessB = 0.0f;
     ConvertAnisotropyToRoughness(perceptualRoughness, surfaceData.anisotropy, roughnessT, roughnessB);
-    InitAnisoData(surfaceData.anisotropy, roughnessT, roughnessB, bsdfData);
+	InitAnisotropy(surfaceData.anisotropy, bsdfData);
+	InitRoughnessT(roughnessT, bsdfData);
+	InitRoughnessB(roughnessB, bsdfData);
 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
@@ -771,7 +775,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         // The neutral value of subsurfaceMask is 0 (handled by ZERO_INITIALIZE).
         if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
         {
-            InitSSSData(sssData.diffusionProfile, sssData.subsurfaceMask, bsdfData);
+			InitDiffusionProfile(sssData.diffusionProfile, bsdfData);
+			InitSubsurfaceMask(sssData.subsurfaceMask, bsdfData);
         }
 
         // The neutral value of thickness and transmittance is 0 (handled by ZERO_INITIALIZE).
@@ -825,7 +830,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // The neutral value of iridescenceMask is 0 (handled by ZERO_INITIALIZE).
     if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-        InitIridescenceData(inGBuffer2.r, inGBuffer2.g, bsdfData);
+		InitIridescenceThickness(inGBuffer2.r, bsdfData);
+		InitIridescenceMask(inGBuffer2.g, bsdfData);
     }
 
     float coatRoughness = 0.0f;
@@ -848,7 +854,9 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // perceptualRoughness can be modify by FillMaterialClearCoatData, so ConvertAnisotropyToClampRoughness must be call after
     float roughnessT, roughnessB;
     ConvertAnisotropyToRoughness(perceptualRoughness, anisotropy, roughnessT, roughnessB);
-    InitAnisoData(anisotropy, roughnessT, roughnessB, bsdfData);
+	InitAnisotropy(anisotropy, bsdfData);
+	InitRoughnessT(roughnessT, bsdfData);
+	InitRoughnessB(roughnessB, bsdfData);
 
     return pixelFeatureFlags;
 }
@@ -889,84 +897,24 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
 
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
+
+	GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
+
     // Overide debug value output to be more readable
     switch (paramId)
     {
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_DIFFUSE_COLOR:
-			result = GetDiffuseColor(bsdfData);
-			needLinearToSRGB = true;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_FRESNEL0:
-			result = GetFresnel0(bsdfData);
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_AMBIENT_OCCLUSION:
-			result = GetAmbientOcclusion(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_SPECULAR_OCCLUSION:
-			result = GetSpecularOcclusion(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_NORMAL_WS:
-			result = GetNormalWS(bsdfData) * 0.5 + 0.5;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_PERCEPTUAL_ROUGHNESS:
-			result = GetPerceptualRoughness(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_COAT_MASK:
-			result = GetCoatMask(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_DIFFUSION_PROFILE:
-			result = GetIndexColor(GetDiffusionProfile(bsdfData));
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_SUBSURFACE_MASK:
-			result = GetSubsurfaceMask(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_THICKNESS:
-			result = GetThickness(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_TRANSMITTANCE:
-			result = GetTransmittance(bsdfData);
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_TANGENT_WS:
-			result = GetTangentWS(bsdfData) * 0.5 + 0.5;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_BITANGENT_WS:
-			result = GetBitangentWS(bsdfData) * 0.5 + 0.5;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_ROUGHNESS_T:
-			result = GetRoughnessT(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_ROUGHNESS_B:
-			result = GetRoughnessB(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_ANISOTROPY:
-			result = GetAnisotropy(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_IRIDESCENCE_THICKNESS:
-			result = GetIridescenceThickness(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_IRIDESCENCE_MASK:
-			result = GetIridescenceMask(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_COAT_ROUGHNESS:
-			result = GetCoatRoughness(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_ABSORPTION_COEFFICIENT:
-			result = GetAbsorptionCoefficient(bsdfData);
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_TRANSMITTANCE_MASK:
-			result = GetTransmittanceMask(bsdfData).xxx;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_NORMAL_VIEW_SPACE:
-			// Convert to view space
-			result = TransformWorldToViewDir(GetNormalWS(bsdfData)) * 0.5 + 0.5;
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_MATERIAL_FEATURES:
-			result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
-			break;
-		case DEBUGVIEW_LIT_BSDFDATAFORDEBUG_IOR:
-			result = saturate((GetIOR(bsdfData) - 1.0) / 1.5).xxx;
-			break;
-    }
+	case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
+		// Convert to view space
+		result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+		break;
+	case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
+		result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+		break;
+	case DEBUGVIEW_LIT_BSDFDATA_IOR:
+		result = saturate((bsdfData.ior - 1.0) / 1.5).xxx;
+		break;
+
+	}
 }
 
 //-----------------------------------------------------------------------------

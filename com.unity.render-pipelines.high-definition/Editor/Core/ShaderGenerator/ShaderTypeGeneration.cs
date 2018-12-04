@@ -150,20 +150,36 @@ namespace UnityEditor.Experimental.Rendering
 
         class DebugFieldInfo
         {
-            public DebugFieldInfo(string defineName, string fieldName, Type fieldType, bool isDirection, bool isSRGB)
+            public DebugFieldInfo(string defineName, string fieldName, Type fieldType, bool isDirection, bool isSRGB, string displayName = "")
             {
                 this.defineName = defineName;
                 this.fieldName = fieldName;
                 this.fieldType = fieldType;
                 this.isDirection = isDirection;
                 this.isSRGB = isSRGB;
+                this.displayName = displayName;
             }
 
             public string defineName;
             public string fieldName;
+            public string displayName;
             public Type fieldType;
             public bool isDirection;
             public bool isSRGB;
+        }
+
+        class PackedFieldInfo
+        {
+            public PackedFieldInfo(PackingAttribute packingAttribute, Type fieldType, string fieldName)
+            {
+                this.packingAttribute = packingAttribute;
+                this.fieldType = fieldType;
+                this.fieldName = fieldName;
+            }
+
+            public PackingAttribute packingAttribute;
+            public Type fieldType;
+            public string fieldName;
         }
 
         void Error(string error)
@@ -546,9 +562,274 @@ namespace UnityEditor.Experimental.Rendering
             return shaderText;
         }
 
+        public string EmitFunctionsForPacked()
+        {
+            string shaderText = string.Empty;
+
+            // In case users ask for debug functions
+            if (!attr.needParamDebug)
+                return shaderText;
+
+            // Specific to HDRenderPipeline
+            string lowerStructName = type.Name.ToLower();
+
+            shaderText += "//\n";
+            shaderText += "// Debug functions\n";
+            shaderText += "//\n";
+
+            shaderText += "void GetGenerated" + type.Name + "Debug(uint paramId, " + type.Name + " " + lowerStructName + ", inout float3 result, inout bool needLinearToSRGB)\n";
+            shaderText += "{\n";
+            shaderText += "    switch (paramId)\n";
+            shaderText += "    {\n";
+
+            foreach (var debugField in m_DebugFields)
+            {
+                shaderText += "        case " + debugField.defineName + ":\n";
+                if (debugField.fieldType == typeof(float))
+                {
+                    if (debugField.isDirection)
+                    {
+                        shaderText += "            result = Get" + debugField.displayName + "(" + lowerStructName + ")"+".xxx * 0.5 + 0.5;\n";
+                    }
+                    else
+                    {
+                        shaderText += "            result = Get" + debugField.displayName + "(" + lowerStructName + ")" + ".xxx;\n";
+                    }
+                }
+                else if (debugField.fieldType == typeof(Vector2))
+                {
+                    shaderText += "            result = float3(" + "Get" + debugField.displayName + "(" + lowerStructName + "), 0.0);\n";
+                }
+                else if (debugField.fieldType == typeof(Vector3))
+                {
+                    if (debugField.isDirection)
+                    {
+                        shaderText += "            result = Get" + debugField.displayName + "(" + lowerStructName + ")" + " * 0.5 + 0.5;\n";
+                    }
+                    else
+                    {
+                        shaderText += "            result = Get" + debugField.displayName + "(" + lowerStructName + ")" + ";\n";
+                    }
+                }
+                else if (debugField.fieldType == typeof(Vector4))
+                {
+                    shaderText += "            result = Get" + debugField.displayName + "(" + lowerStructName + ")" + ".xyz;\n";
+                }
+                else if (debugField.fieldType == typeof(bool))
+                {
+                    shaderText += "            result = (" + "Get" + debugField.displayName + "(" + lowerStructName + ") ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);\n";
+                }
+                else if (debugField.fieldType == typeof(uint) || debugField.fieldType == typeof(int))
+                {
+                    shaderText += "            result = GetIndexColor(" + "Get" + debugField.displayName + "(" + lowerStructName + "));\n";
+                }
+                else // This case left is suppose to be a complex structure. Either we don't support it or it is an enum. Consider it is an enum with GetIndexColor, user can override it if he want.
+                {
+                    shaderText += "            result = GetIndexColor(" + "Get" + debugField.displayName + "(" + lowerStructName + "));\n";
+                }
+
+                if (debugField.isSRGB)
+                {
+                    shaderText += "            needLinearToSRGB = true;\n";
+                }
+
+                shaderText += "            break;\n";
+            }
+
+            shaderText += "    }\n";
+            shaderText += "}\n";
+
+            return shaderText;
+        }
+
         public string Emit()
         {
             return EmitDefines() + EmitTypeDecl() + EmitAccessors();
+        }
+
+        private string EmitPackedGetters()
+        {
+            string gettersString = "";
+            foreach (PackedFieldInfo packedInfo in m_PackedFieldsInfos)
+            {
+                string funcSignature = "Get" + packedInfo.packingAttribute.displayNames[0] + "(in " + type.Name + " bsdfData)";
+                string funcBody = "\n{\n    ";
+
+                switch (packedInfo.packingAttribute.packingScheme)
+                {
+                    case FieldPacking.Float8bit:
+                        funcSignature = "float " + funcSignature;
+                        funcBody += "return UnpackUIntToFloat(bsdfData." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 8);";
+                        break;
+                    case FieldPacking.Float16bit:
+                        funcSignature = "float " + funcSignature;
+                        funcBody += "return UnpackUIntToFloat(bsdfData." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 16);";
+                        break;
+                    case FieldPacking.Uint8bit:
+                        funcSignature = "uint " + funcSignature;
+                        funcBody += "return BitFieldExtract(bsdfData." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 8);";
+                        break;
+                    case FieldPacking.R11G11B10:
+                        funcSignature = "float3 " + funcSignature;
+                        funcBody += "return UnpackFromR11G11B10f(bsdfData." + packedInfo.fieldName + ");";
+                        break;
+                    case FieldPacking.NoPacking:
+                        if (packedInfo.fieldType == typeof(uint))
+                        {
+                            funcSignature = "uint " + funcSignature;
+                        }
+                        else if (packedInfo.fieldType == typeof(float))
+                        {
+                            funcSignature = "float " + funcSignature;
+                        }
+                        else if (packedInfo.fieldType == typeof(Vector3))
+                        {
+                            funcSignature = "float3 " + funcSignature;
+                        }
+                        else if (packedInfo.fieldType == typeof(Vector4))
+                        {
+                            funcSignature = "float4 " + funcSignature;
+                        }
+                        funcBody += "return (bsdfData." + packedInfo.fieldName + ");";
+                        break;
+                    default:
+                        funcSignature = "ERROR_Packing_field_not_specified\n ";
+                        break;
+                }
+
+                funcBody += "\n}\n";
+                gettersString += funcSignature + funcBody;
+            }
+            return gettersString;
+        }
+        private string EmitPackedSetters()
+        {
+            string settersString = "";
+            foreach (PackedFieldInfo packedInfo in m_PackedFieldsInfos)
+            {
+                PackingAttribute attr = packedInfo.packingAttribute;
+                string funcSignature = "\n\n void Set" + attr.displayNames[0] + "(";
+                string newParamName = "new" + attr.displayNames[0];
+                string funcBody = "{\n    ";
+
+                switch (attr.packingScheme)
+                {
+                    case FieldPacking.Float8bit:
+                        funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        funcBody += "BitFieldInsert(0xff << " + attr.offsetInSource + ", UnpackByte(" + newParamName + ") << " + attr.offsetInSource + ", bsdfData." + packedInfo.fieldName + ");";
+                        break;
+                    case FieldPacking.Float16bit:
+                        funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        funcBody += "BitFieldInsert(0xffff << " + attr.offsetInSource + ", UnpackShort(" + newParamName + ") << " + attr.offsetInSource + ", bsdfData." + packedInfo.fieldName + ");";
+                        break;
+                    case FieldPacking.Uint8bit:
+                        funcSignature += "uint " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        funcBody += "BitFieldInsert(0xff << " + attr.offsetInSource + ", (" + newParamName + ") << " + attr.offsetInSource + ", bsdfData." + packedInfo.fieldName + ");";
+                        break;
+                    case FieldPacking.R11G11B10:
+                        funcSignature += "float3 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        funcBody += "bsdfData." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamName + ");";
+                        break;
+                    case FieldPacking.NoPacking:
+                        if (packedInfo.fieldType == typeof(uint))
+                        {
+                            funcSignature += "uint " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        }
+                        else if (packedInfo.fieldType == typeof(float))
+                        {
+                            funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        }
+                        else if (packedInfo.fieldType == typeof(Vector3))
+                        {
+                            funcSignature += "float3 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        }
+                        else if (packedInfo.fieldType == typeof(Vector4))
+                        {
+                            funcSignature += "float4 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        }
+                        funcBody += "bsdfData." + packedInfo.fieldName + " = " + newParamName + ";";
+                        break;
+                    default:
+                        funcSignature = "\n\n ERROR_Packing_field_not_specified\n ";
+                        break;
+                }
+
+                funcSignature += "\n";
+                funcBody += "\n}\n";
+
+
+                settersString += funcSignature + funcBody;
+            }
+            return settersString;
+        }
+        private string EmitPackedInit()
+        {
+            string initString = "";
+            foreach (PackedFieldInfo packedInfo in m_PackedFieldsInfos)
+            {
+                PackingAttribute attr = packedInfo.packingAttribute;
+                string funcSignature = "void Init" + attr.displayNames[0] + "(";
+                string newParamName = "new" + attr.displayNames[0];
+                string funcBody = "{\n    ";
+
+                switch (attr.packingScheme)
+                {
+                    case FieldPacking.Float8bit:
+                        funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        funcBody += "bsdfData." + packedInfo.fieldName + " |= UnpackByte(" + newParamName + ") << " + attr.offsetInSource + ";";
+                        break;
+                    case FieldPacking.Float16bit:
+                        funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        funcBody += "bsdfData." + packedInfo.fieldName + " |= UnpackShort(" + newParamName + ") << " + attr.offsetInSource + ";";
+                        break;
+                    case FieldPacking.Uint8bit:
+                        funcSignature += "uint " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        funcBody += "bsdfData." + packedInfo.fieldName + " |= (" + newParamName + ") << " + attr.offsetInSource + ";";
+                        break;
+                    case FieldPacking.R11G11B10:
+                        funcSignature += "float3 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        funcBody += "bsdfData." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamName + ");";
+                        break;
+                    case FieldPacking.NoPacking:
+                        if (packedInfo.fieldType == typeof(uint))
+                        {
+                            funcSignature += "uint " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        }
+                        else if (packedInfo.fieldType == typeof(float))
+                        {
+                            funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        }
+                        else if (packedInfo.fieldType == typeof(Vector3))
+                        {
+                            funcSignature += "float3 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        }
+                        else if (packedInfo.fieldType == typeof(Vector4))
+                        {
+                            funcSignature += "float4 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                        }
+                        funcBody += "bsdfData." + packedInfo.fieldName + " = " + newParamName + ";";
+                        break;
+                    default:
+                        funcSignature = "\n\n ERROR_Packing_field_not_specified\n ";
+                        break;
+                }
+
+                funcSignature += "\n";
+                funcBody += "\n}\n";
+                initString += funcSignature + funcBody;
+            }
+            return initString;
+        }
+
+        public string EmitPackedInfo()
+        {
+            string pathToPackingHeader = "#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl\"\n";
+            string packedStructCode = pathToPackingHeader + EmitPackedGetters() + EmitPackedSetters() + "\n // Important: Init functions assume the field is filled with 0s, use setters otherwise. \n" + EmitPackedInit() + "\n";
+            if(attr.needParamDebug)
+            {
+                packedStructCode += EmitFunctionsForPacked();
+            }
+            return packedStructCode;
         }
 
         // This function is a helper to follow unity convention
@@ -574,6 +855,7 @@ namespace UnityEditor.Experimental.Rendering
             FieldInfo[] fields = type.GetFields();
             m_ShaderFields = new List<ShaderFieldInfo>();
             m_DebugFields = new List<DebugFieldInfo>();
+            m_PackedFieldsInfos = new List<PackedFieldInfo>();
 
             if (type.IsEnum)
             {
@@ -632,7 +914,7 @@ namespace UnityEditor.Experimental.Rendering
                     continue;
                 }
 
-                if (attr.needParamDebug)
+                if (attr.needParamDebug && !attr.containsPackedFields)
                 {
                     List<string> displayNames = new List<string>();
                     displayNames.Add(field.Name);
@@ -656,17 +938,69 @@ namespace UnityEditor.Experimental.Rendering
                         sRGBDisplay = propertyAttr[0].sRGBDisplay;
                     }
 
-                    string className = type.FullName.Substring(type.FullName.LastIndexOf((".")) + 1); // ClassName include nested class
-                    className = className.Replace('+', '_'); // FullName is Class+NestedClass replace by Class_NestedClass
 
-                    foreach (string it in displayNames)
+                    if(!attr.containsPackedFields)
                     {
-                        string fieldName = it.Replace(' ', '_');
-                        string name = InsertUnderscore(fieldName);
-                        string defineName = ("DEBUGVIEW_" + className + "_" + name).ToUpper();
-                        m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
+                        string className = type.FullName.Substring(type.FullName.LastIndexOf((".")) + 1); // ClassName include nested class
+                        className = className.Replace('+', '_'); // FullName is Class+NestedClass replace by Class_NestedClass
 
-                        m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, fieldType, isDirection, sRGBDisplay));
+                        foreach (string it in displayNames)
+                        {
+                            string fieldName = it.Replace(' ', '_');
+                            string name = InsertUnderscore(fieldName);
+                            string defineName = ("DEBUGVIEW_" + className + "_" + name).ToUpper();
+                            m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
+
+                            m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, fieldType, isDirection, sRGBDisplay));
+                        }
+                    }
+                }
+
+                if(attr.containsPackedFields)
+                {
+                    // Define only once, it is safe to assume that colors and directions are not packed with something else
+                    bool isDirection = false;
+                    bool sRGBDisplay = false;
+
+                    if (Attribute.IsDefined(field, typeof(PackingAttribute)))
+                    {
+                        var packingAttributes = (PackingAttribute[])field.GetCustomAttributes(typeof(PackingAttribute), false);
+                        isDirection = packingAttributes[0].isDirection;
+                        sRGBDisplay = packingAttributes[0].sRGBDisplay;
+                        // Generate debug names
+                        string className = type.FullName.Substring(type.FullName.LastIndexOf((".")) + 1); // ClassName include nested class
+                        className = className.Replace('+', '_'); // FullName is Class+NestedClass replace by Class_NestedClass
+                        foreach (PackingAttribute packAttr in packingAttributes)
+                        {
+                            List<string> displayNames = new List<string>();
+
+                            displayNames.AddRange(packAttr.displayNames);
+                            foreach (string it in displayNames)
+                            {
+                                string fieldName = it.Replace(' ', '_');
+                                string name = InsertUnderscore(fieldName);
+                                string defineName = ("DEBUGVIEW_" + className + "_" + name).ToUpper();
+                                m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
+
+                                Type typeForDebug = typeof(uint);
+                                if(packAttr.packingScheme == FieldPacking.Float8bit || packAttr.packingScheme == FieldPacking.Float16bit)
+                                {
+                                    typeForDebug = typeof(float);
+                                }
+                                else if(packAttr.packingScheme == FieldPacking.R11G11B10)
+                                {
+                                    typeForDebug = typeof(Vector3);
+                                }
+                                else if(packAttr.packingScheme == FieldPacking.NoPacking)
+                                {
+                                    typeForDebug = fieldType;
+                                }
+
+                                m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, typeForDebug, isDirection, sRGBDisplay, packAttr.displayNames[0]));
+                            }
+
+                            m_PackedFieldsInfos.Add(new PackedFieldInfo(packAttr, fieldType, field.Name));
+                        }
                     }
                 }
 
@@ -725,6 +1059,11 @@ namespace UnityEditor.Experimental.Rendering
             get { return m_ShaderFields.Count > 0; }
         }
 
+        public bool hasPackedInfo
+        {
+            get { return m_PackedFieldsInfos.Count > 0; }
+        }
+
         public bool hasStatics
         {
             get { return m_Statics.Count > 0; }
@@ -748,5 +1087,8 @@ namespace UnityEditor.Experimental.Rendering
         List<ShaderFieldInfo> m_ShaderFields;
         List<ShaderFieldInfo> m_PackedFields;
         List<DebugFieldInfo> m_DebugFields;
+
+        // Fields from PackingAttribute
+        List<PackedFieldInfo> m_PackedFieldsInfos;
     }
 }

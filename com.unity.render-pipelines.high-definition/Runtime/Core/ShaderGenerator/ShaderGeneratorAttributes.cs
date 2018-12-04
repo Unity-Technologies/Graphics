@@ -9,22 +9,33 @@ namespace UnityEngine.Experimental.Rendering
         Aggressive
     };
 
+    public enum FieldPacking
+    {
+        NoPacking = 0,
+        R11G11B10,
+        Float8bit,
+        Float16bit,
+        Uint8bit
+    }
+
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class | AttributeTargets.Enum)]
     public class GenerateHLSL : System.Attribute
     {
         public PackingRules packingRules;
+        public bool containsPackedFields;
         public bool needAccessors; // Whether or not to generate the accessors
         public bool needParamDebug; // // Whether or not to generate define for each field of the struct + debug function (use in HDRenderPipeline)
         public int paramDefinesStart; // Start of the generated define
         public bool omitStructDeclaration; // Whether to skip "struct <name> {" etc
 
-        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needParamDebug = false, int paramDefinesStart = 1, bool omitStructDeclaration = false)
+        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needParamDebug = false, int paramDefinesStart = 1, bool omitStructDeclaration = false, bool containsPackedFields = false)
         {
             packingRules = rules;
             this.needAccessors = needAccessors;
             this.needParamDebug = needParamDebug;
             this.paramDefinesStart = paramDefinesStart;
             this.omitStructDeclaration = omitStructDeclaration;
+            this.containsPackedFields = containsPackedFields;
         }
     }
 
@@ -65,4 +76,36 @@ namespace UnityEngine.Experimental.Rendering
             this.elementType = elementType;
         }
     }
+
+
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    public class PackingAttribute : System.Attribute
+    {
+        public string[] displayNames;
+        public FieldPacking packingScheme;
+        public int offsetInSource;
+        public bool isDirection;
+        public bool sRGBDisplay;
+
+        public PackingAttribute(string[] displayName, FieldPacking packingScheme = FieldPacking.NoPacking, int offsetInSource = 0, bool isDirection = false, bool sRGBDisplay = false)
+        {
+            displayNames = displayName;
+            this.packingScheme = packingScheme;
+            this.offsetInSource = offsetInSource;
+            this.isDirection = isDirection;
+            this.sRGBDisplay = sRGBDisplay;
+        }
+
+        public PackingAttribute(string displayName = "", FieldPacking packingScheme = FieldPacking.NoPacking, int offsetInSource = 0, bool isDirection = false, bool sRGBDisplay = false)
+        {
+            displayNames = new string[1];
+            displayNames[0] = displayName;
+            this.packingScheme = packingScheme;
+            this.offsetInSource = offsetInSource;
+            this.isDirection = isDirection;
+            this.sRGBDisplay = sRGBDisplay;
+        }
+    }
+
+
 }

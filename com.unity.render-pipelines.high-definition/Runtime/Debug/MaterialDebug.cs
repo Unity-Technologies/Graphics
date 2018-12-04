@@ -95,7 +95,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Note: One field can have multiple name. This is to allow to have different debug view mode for the same field
                 // like for example display normal in world space or in view space. Same field but two different modes.
                 List<String> displayNames = new List<string>();
-                displayNames.Add(field.Name);
+
+                if (Attribute.IsDefined(field, typeof(PackingAttribute)))
+                {
+                    var packingAttributes = (PackingAttribute[])field.GetCustomAttributes(typeof(PackingAttribute), false);
+                    foreach(PackingAttribute packAttr in packingAttributes)
+                    {
+                        displayNames.AddRange(packAttr.displayNames);
+                    }
+                }
+                else
+                {
+                    displayNames.Add(field.Name);
+                }
 
                 // Check if the display name have been override by the users
                 if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
@@ -228,7 +240,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Gbuffer debug
                 FillWithPropertiesEnum(typeof(DebugViewGbuffer), ref debugViewMaterialGBufferStringsList, ref debugViewMaterialGBufferValuesList, "");
-                FillWithProperties(typeof(Lit.BSDFDataForDebug), ref debugViewMaterialGBufferStringsList, ref debugViewMaterialGBufferValuesList, "");
+                FillWithProperties(typeof(Lit.BSDFData), ref debugViewMaterialGBufferStringsList, ref debugViewMaterialGBufferValuesList, "");
 
                 // Convert to array for UI
                 debugViewMaterialStrings = debugViewMaterialStringsList.ToArray();

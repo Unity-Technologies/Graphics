@@ -138,9 +138,17 @@ namespace UnityEditor.Experimental.Rendering
 
                     foreach (var gen in it.Value)
                     {
-                        if (gen.hasStatics && gen.hasFields && gen.needParamDebug)
+                        if (gen.hasStatics && gen.hasFields && gen.needParamDebug && !gen.hasPackedInfo)
                         {
                             writer.Write(gen.EmitFunctions() + "\n");
+                        }
+                    }
+
+                    foreach (var gen in it.Value)
+                    {
+                        if(gen.hasPackedInfo)
+                        {
+                            writer.Write(gen.EmitPackedInfo() + "\n");
                         }
                     }
 
