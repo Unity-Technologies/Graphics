@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Distortion blend mode for shader graph master node (Lit, StackLit)
 - Fixed bent Normal for Fabric master node in shader graph
 - Fixed PBR master node lightlayers
+- Fixed shader stripping for built-in lit shaders.
 
 ### Changed
 - Rename "Regular" in Diffusion profile UI "Thick Object"
