@@ -261,14 +261,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Subsurface Scattering", indentLevel)), (row) =>
+            if (m_Node.surfaceType != SurfaceType.Transparent)
             {
-                row.Add(new Toggle(), (toggle) =>
+                ps.Add(new PropertyRow(CreateLabel("Subsurface Scattering", indentLevel)), (row) =>
                 {
-                    toggle.value = m_Node.subsurfaceScattering.isOn;
-                    toggle.OnToggleChanged(ChangeSubsurfaceScattering);
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.subsurfaceScattering.isOn;
+                        toggle.OnToggleChanged(ChangeSubsurfaceScattering);
+                    });
                 });
-            });
+            }
 
             ps.Add(new PropertyRow(CreateLabel("Transmission", indentLevel)), (row) =>
             {
