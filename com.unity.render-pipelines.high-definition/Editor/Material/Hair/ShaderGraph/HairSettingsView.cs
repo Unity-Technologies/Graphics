@@ -6,13 +6,14 @@ using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.Experimental.Rendering.HDPipeline;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 {
-    class FabricSettingsView : VisualElement
+    class HairSettingsView : VisualElement
     {
-        FabricMasterNode m_Node;
+        HairMasterNode m_Node;
 
         IntegerField m_SortPiorityField;
 
@@ -26,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             return new Label(label + text);
         }
 
-        public FabricSettingsView(FabricMasterNode node)
+        public HairSettingsView(HairMasterNode node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -113,6 +114,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                         toggle.OnToggleChanged(ChangeAlphaTestPostpass);
                     });
                 });
+
+                ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Shadow", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaTestShadow.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaTestShadow);
+                    });
+                });
                 --indentLevel;
             }
 
@@ -122,24 +132,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 {
                     field.value = m_Node.doubleSidedMode;
                     field.RegisterValueChangedCallback(ChangeDoubleSidedMode);
-                });
-            });
-
-            ps.Add(new PropertyRow(CreateLabel("Energy Conserving Specular", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.energyConservingSpecular.isOn;
-                    toggle.OnToggleChanged(ChangeEnergyConservingSpecular);
-                });
-            });
-
-            ps.Add(new PropertyRow(CreateLabel("Material Type", indentLevel)), (row) =>
-            {
-                row.Add(new EnumField(FabricMasterNode.MaterialType.CottonWool), (field) =>
-                {
-                    field.value = m_Node.materialType;
-                    field.RegisterValueChangedCallback(ChangeMaterialType);
                 });
             });
 
@@ -165,9 +157,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             }
 
-
-
-           ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -182,6 +172,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 {
                     toggle.value = m_Node.receiveSSR.isOn;
                     toggle.OnToggleChanged(ChangeSSR);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Specular AA", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.specularAA.isOn;
+                    toggle.OnToggleChanged(ChangeSpecularAA);
                 });
             });
 
@@ -215,15 +214,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
         }
 
-        void ChangeMaterialType(ChangeEvent<Enum> evt)
-        {
-            if (Equals(m_Node.materialType, evt.newValue))
-                return;
-
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Material Type Change");
-            m_Node.materialType = (FabricMasterNode.MaterialType)evt.newValue;
-        }
-
         void ChangeTransmission(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Transmission Change");
@@ -234,7 +224,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
         void ChangeSubsurfaceScattering(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("SSS Change");
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Subsurface Scattering Change");
             ToggleData td = m_Node.subsurfaceScattering;
             td.isOn = evt.newValue;
             m_Node.subsurfaceScattering = td;
@@ -243,7 +233,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
         void ChangeBlendMode(ChangeEvent<Enum> evt)
         {
             // Make sure the mapping is correct by handling each case.
-            AlphaMode alphaMode = GetAlphaMode((FabricMasterNode.AlphaModeFabric)evt.newValue);
+            AlphaMode alphaMode = GetAlphaMode((HairMasterNode.AlphaModeLit)evt.newValue);
 
             if (Equals(m_Node.alphaMode, alphaMode))
                 return;
@@ -311,6 +301,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.alphaTestDepthPostpass = td;
         }
 
+        void ChangeAlphaTestShadow(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Shadow Change");
+            ToggleData td = m_Node.alphaTestShadow;
+            td.isOn = evt.newValue;
+            m_Node.alphaTestShadow = td;
+        }
+
         void ChangeDecal(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Decal Change");
@@ -327,12 +325,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.receiveSSR = td;
         }
 
-        void ChangeEnergyConservingSpecular(ChangeEvent<bool> evt)
+        void ChangeSpecularAA(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Energy Conserving Specular Change");
-            ToggleData td = m_Node.energyConservingSpecular;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Specular AA Change");
+            ToggleData td = m_Node.specularAA;
             td.isOn = evt.newValue;
-            m_Node.energyConservingSpecular = td;
+            m_Node.specularAA = td;
         }
 
         void ChangeSpecularOcclusionMode(ChangeEvent<Enum> evt)
@@ -344,40 +342,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.specularOcclusionMode = (SpecularOcclusionMode)evt.newValue;
         }
 
-        public AlphaMode GetAlphaMode(FabricMasterNode.AlphaModeFabric alphaModeLit)
+        public AlphaMode GetAlphaMode(HairMasterNode.AlphaModeLit alphaModeLit)
         {
             switch (alphaModeLit)
             {
-                case FabricMasterNode.AlphaModeFabric.Alpha:
+                case HairMasterNode.AlphaModeLit.Alpha:
                     return AlphaMode.Alpha;
-                case FabricMasterNode.AlphaModeFabric.PremultipliedAlpha:
+                case HairMasterNode.AlphaModeLit.PremultipliedAlpha:
                     return AlphaMode.Premultiply;
-                case FabricMasterNode.AlphaModeFabric.Additive:
+                case HairMasterNode.AlphaModeLit.Additive:
                     return AlphaMode.Additive;
                 default:
                     {
                         Debug.LogWarning("Not supported: " + alphaModeLit);
                         return AlphaMode.Alpha;
                     }
-
+                    
             }
         }
 
-        public FabricMasterNode.AlphaModeFabric GetAlphaModeLit(AlphaMode alphaMode)
+        public HairMasterNode.AlphaModeLit GetAlphaModeLit(AlphaMode alphaMode)
         {
             switch (alphaMode)
             {
                 case AlphaMode.Alpha:
-                    return FabricMasterNode.AlphaModeFabric.Alpha;
+                    return HairMasterNode.AlphaModeLit.Alpha;
                 case AlphaMode.Premultiply:
-                    return FabricMasterNode.AlphaModeFabric.PremultipliedAlpha;
+                    return HairMasterNode.AlphaModeLit.PremultipliedAlpha;
                 case AlphaMode.Additive:
-                    return FabricMasterNode.AlphaModeFabric.Additive;
+                    return HairMasterNode.AlphaModeLit.Additive;
                 default:
                     {
                         Debug.LogWarning("Not supported: " + alphaMode);
-                        return FabricMasterNode.AlphaModeFabric.Alpha;
-                    }
+                        return HairMasterNode.AlphaModeLit.Alpha;
+                    }                    
             }
         }
     }
