@@ -30,6 +30,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("", false, true)]
             public Vector3 color;
         };
-
     }
 }

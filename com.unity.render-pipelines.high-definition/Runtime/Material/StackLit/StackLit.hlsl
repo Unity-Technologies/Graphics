@@ -637,6 +637,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
 }
+
 //-----------------------------------------------------------------------------
 // Debug method (use to display values)
 //-----------------------------------------------------------------------------
