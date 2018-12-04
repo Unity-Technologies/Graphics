@@ -10,7 +10,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/BSDFDataPacking.hlsl"
 
 //-----------------------------------------------------------------------------
 // Configuration
