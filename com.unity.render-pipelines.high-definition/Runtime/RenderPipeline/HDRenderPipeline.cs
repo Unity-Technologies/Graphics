@@ -2384,7 +2384,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 context.command = cmd;
                 context.camera = hdcamera.camera;
                 context.sourceFormat = RenderTextureFormat.ARGBHalf;
-                context.flip = (hdcamera.camera.targetTexture == null) && (hdcamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY);
+                context.flip = (hdcamera.camera.targetTexture == null) || (hdcamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY);
 #if !UNITY_2019_1_OR_NEWER // Y-flip correction available in 2019.1
                 context.flip = context.flip && (!hdcamera.camera.stereoEnabled);
 #endif
