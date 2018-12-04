@@ -68,37 +68,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal override HDProbe GetTarget(Object editorTarget) => editorTarget as HDProbe;
 
         protected override void DrawAdditionalCaptureSettings(
-            HDProbeUI s, SerializedPlanarReflectionProbe d, Editor o
+            SerializedPlanarReflectionProbe serialized, Editor owner
         )
         {
-            var isReferencePositionRelevant = d.probeSettings.mode.intValue != (int)ProbeSettings.Mode.Realtime;
+            var isReferencePositionRelevant = serialized.probeSettings.mode.intValue != (int)ProbeSettings.Mode.Realtime;
             if (!isReferencePositionRelevant)
                 return;
 
             ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(d.localReferencePosition, _.GetContent("Reference Local Position"));
+            EditorGUILayout.PropertyField(serialized.localReferencePosition, _.GetContent("Reference Local Position"));
             --EditorGUI.indentLevel;
         }
 
-        protected override void DrawHandles(
-            HDProbeUI s,
-            SerializedPlanarReflectionProbe d,
-            Editor o
-        )
+        protected override void DrawHandles(SerializedPlanarReflectionProbe serialized, Editor owner)
         {
-            base.DrawHandles(s, d, o);
+            base.DrawHandles(serialized, owner);
 
             SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
 
-            if (d.probeSettings.mode.intValue != (int)ProbeSettings.Mode.Realtime)
+            if (serialized.probeSettings.mode.intValue != (int)ProbeSettings.Mode.Realtime)
             {
-                using (new Handles.DrawingScope(Matrix4x4.TRS(d.target.transform.position, d.target.transform.rotation, Vector3.one)))
+                using (new Handles.DrawingScope(Matrix4x4.TRS(serialized.target.transform.position, serialized.target.transform.rotation, Vector3.one)))
                 {
-                    var referencePosition = d.localReferencePosition.vector3Value;
+                    var referencePosition = serialized.localReferencePosition.vector3Value;
                     EditorGUI.BeginChangeCheck();
                     referencePosition = Handles.PositionHandle(referencePosition, Quaternion.identity);
                     if (EditorGUI.EndChangeCheck())
-                        d.localReferencePosition.vector3Value = referencePosition;
+                        serialized.localReferencePosition.vector3Value = referencePosition;
                 }
             }
         }
@@ -169,7 +165,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             var mat = Matrix4x4.TRS(probe.transform.position, probe.transform.rotation, Vector3.one);
             InfluenceVolumeUI.DrawGizmos(
-                e.m_UIState.probeSettings.influence,
                 probe.influenceVolume,
                 mat,
                 InfluenceVolumeUI.HandleType.None,

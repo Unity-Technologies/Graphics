@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public bool SetFlag(T f, bool v)
         {
             if (v) rawValue |= (uint)(int)(object)f;
-            else rawValue = ~(uint)(int)(object)f;
+            else rawValue &= ~(uint)(int)(object)f;
             return v;
         }
 

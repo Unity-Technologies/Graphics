@@ -18,7 +18,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var mat = Matrix4x4.TRS(reflectionProbe.transform.position, reflectionProbe.transform.rotation, Vector3.one);
             var hdprobe = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
             InfluenceVolumeUI.DrawGizmos(
-                e.m_UIState.probeSettings.influence,
                 hdprobe.influenceVolume,
                 mat,
                 InfluenceVolumeUI.HandleType.None,

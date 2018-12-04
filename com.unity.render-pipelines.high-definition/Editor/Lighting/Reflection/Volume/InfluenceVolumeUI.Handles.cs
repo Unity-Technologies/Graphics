@@ -5,104 +5,104 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class InfluenceVolumeUI
     {
-        public static void DrawHandles_EditBase(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Transform transform)
+        public static void DrawHandles_EditBase(SerializedInfluenceVolume serialized, Editor owner, Transform transform)
         {
-            switch ((InfluenceShape)d.shape.intValue)
+            switch ((InfluenceShape)serialized.shape.intValue)
             {
                 case InfluenceShape.Box:
-                    DrawBoxHandle(s, d, o, transform, s.boxBaseHandle);
+                    DrawBoxHandle(serialized, owner, transform, s_BoxBaseHandle);
                     break;
                 case InfluenceShape.Sphere:
                     using (new Handles.DrawingScope(Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one)))
                     {
-                        s.sphereBaseHandle.center = Vector3.zero;
-                        s.sphereBaseHandle.radius = d.sphereRadius.floatValue;
+                        s_SphereBaseHandle.center = Vector3.zero;
+                        s_SphereBaseHandle.radius = serialized.sphereRadius.floatValue;
 
                         EditorGUI.BeginChangeCheck();
-                        s.sphereBaseHandle.DrawHull(true);
-                        s.sphereBaseHandle.DrawHandle();
+                        s_SphereBaseHandle.DrawHull(true);
+                        s_SphereBaseHandle.DrawHandle();
                         if (EditorGUI.EndChangeCheck())
                         {
-                            float radius = s.sphereBaseHandle.radius;
-                            d.sphereRadius.floatValue = radius;
-                            d.sphereBlendDistance.floatValue = Mathf.Clamp(d.sphereBlendDistance.floatValue, 0, radius);
-                            d.sphereBlendNormalDistance.floatValue = Mathf.Clamp(d.sphereBlendNormalDistance.floatValue, 0, radius);
+                            float radius = s_SphereBaseHandle.radius;
+                            serialized.sphereRadius.floatValue = radius;
+                            serialized.sphereBlendDistance.floatValue = Mathf.Clamp(serialized.sphereBlendDistance.floatValue, 0, radius);
+                            serialized.sphereBlendNormalDistance.floatValue = Mathf.Clamp(serialized.sphereBlendNormalDistance.floatValue, 0, radius);
                         }
                         break;
                     }
             }
         }
 
-        public static void DrawHandles_EditInfluence(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Transform transform)
+        public static void DrawHandles_EditInfluence(SerializedInfluenceVolume serialized, Editor owner, Transform transform)
         {
             // Synchronize base handles
-            s.boxBaseHandle.center = Vector3.zero;
-            s.boxBaseHandle.size = d.boxSize.vector3Value;
-            s.sphereBaseHandle.center = Vector3.zero;
-            s.sphereBaseHandle.radius = d.sphereRadius.floatValue;
+            s_BoxBaseHandle.center = Vector3.zero;
+            s_BoxBaseHandle.size = serialized.boxSize.vector3Value;
+            s_SphereBaseHandle.center = Vector3.zero;
+            s_SphereBaseHandle.radius = serialized.sphereRadius.floatValue;
 
-            switch ((InfluenceShape)d.shape.intValue)
+            switch ((InfluenceShape)serialized.shape.intValue)
             {
                 case InfluenceShape.Box:
                     EditorGUI.BeginChangeCheck();
-                    DrawBoxFadeHandle(s, d, o, transform, s.boxInfluenceHandle, d.boxBlendDistancePositive, d.boxBlendDistanceNegative);
+                    DrawBoxFadeHandle(serialized, owner, transform, s_BoxInfluenceHandle, serialized.boxBlendDistancePositive, serialized.boxBlendDistanceNegative);
                     if (EditorGUI.EndChangeCheck())
                     {
                         //save advanced/simplified saved data
-                        if (d.editorAdvancedModeEnabled.boolValue)
+                        if (serialized.editorAdvancedModeEnabled.boolValue)
                         {
-                            d.editorAdvancedModeBlendDistancePositive.vector3Value = d.boxBlendDistancePositive.vector3Value;
-                            d.editorAdvancedModeBlendDistanceNegative.vector3Value = d.boxBlendDistanceNegative.vector3Value;
+                            serialized.editorAdvancedModeBlendDistancePositive.vector3Value = serialized.boxBlendDistancePositive.vector3Value;
+                            serialized.editorAdvancedModeBlendDistanceNegative.vector3Value = serialized.boxBlendDistanceNegative.vector3Value;
                         }
                         else
-                            d.editorSimplifiedModeBlendDistance.floatValue = d.boxBlendDistancePositive.vector3Value.x;
-                        d.Apply();
+                            serialized.editorSimplifiedModeBlendDistance.floatValue = serialized.boxBlendDistancePositive.vector3Value.x;
+                        serialized.Apply();
                     }
                     break;
                 case InfluenceShape.Sphere:
-                    DrawSphereFadeHandle(s, d, o, transform, s.sphereInfluenceHandle, d.sphereBlendDistance);
+                    DrawSphereFadeHandle(serialized, owner, transform, s_SphereInfluenceHandle, serialized.sphereBlendDistance);
                     break;
             }
         }
 
-        public static void DrawHandles_EditInfluenceNormal(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Transform transform)
+        public static void DrawHandles_EditInfluenceNormal(SerializedInfluenceVolume serialized, Editor owner, Transform transform)
         {
             // Synchronize base handles
-            s.boxBaseHandle.center = Vector3.zero;
-            s.boxBaseHandle.size = d.boxSize.vector3Value;
-            s.sphereBaseHandle.center = Vector3.zero;
-            s.sphereBaseHandle.radius = d.sphereRadius.floatValue;
+            s_BoxBaseHandle.center = Vector3.zero;
+            s_BoxBaseHandle.size = serialized.boxSize.vector3Value;
+            s_SphereBaseHandle.center = Vector3.zero;
+            s_SphereBaseHandle.radius = serialized.sphereRadius.floatValue;
 
-            switch ((InfluenceShape)d.shape.intValue)
+            switch ((InfluenceShape)serialized.shape.intValue)
             {
                 case InfluenceShape.Box:
                     EditorGUI.BeginChangeCheck();
-                    DrawBoxFadeHandle(s, d, o, transform, s.boxInfluenceNormalHandle, d.boxBlendNormalDistancePositive, d.boxBlendNormalDistanceNegative);
+                    DrawBoxFadeHandle(serialized, owner, transform, s_BoxInfluenceNormalHandle, serialized.boxBlendNormalDistancePositive, serialized.boxBlendNormalDistanceNegative);
                     if (EditorGUI.EndChangeCheck())
                     {
                         //save advanced/simplified saved data
-                        if (d.editorAdvancedModeEnabled.boolValue)
+                        if (serialized.editorAdvancedModeEnabled.boolValue)
                         {
-                            d.editorAdvancedModeBlendNormalDistancePositive.vector3Value = d.boxBlendNormalDistancePositive.vector3Value;
-                            d.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = d.boxBlendNormalDistanceNegative.vector3Value;
+                            serialized.editorAdvancedModeBlendNormalDistancePositive.vector3Value = serialized.boxBlendNormalDistancePositive.vector3Value;
+                            serialized.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = serialized.boxBlendNormalDistanceNegative.vector3Value;
                         }
                         else
-                            d.editorSimplifiedModeBlendNormalDistance.floatValue = d.boxBlendNormalDistancePositive.vector3Value.x;
-                        d.Apply();
+                            serialized.editorSimplifiedModeBlendNormalDistance.floatValue = serialized.boxBlendNormalDistancePositive.vector3Value.x;
+                        serialized.Apply();
                     }
                     break;
                 case InfluenceShape.Sphere:
-                    DrawSphereFadeHandle(s, d, o, transform, s.sphereInfluenceNormalHandle, d.sphereBlendNormalDistance);
+                    DrawSphereFadeHandle(serialized, owner, transform, s_SphereInfluenceNormalHandle, serialized.sphereBlendNormalDistance);
                     break;
             }
         }
 
-        static void DrawBoxHandle(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Transform transform, HierarchicalBox box)
+        static void DrawBoxHandle(SerializedInfluenceVolume serialized, Editor owner, Transform transform, HierarchicalBox box)
         {
             using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, transform.rotation, Vector3.one)))
             {
                 box.center = Quaternion.Inverse(transform.rotation) * transform.position;
-                box.size = d.boxSize.vector3Value;
+                box.size = serialized.boxSize.vector3Value;
 
                 EditorGUI.BeginChangeCheck();
                 box.DrawHull(true);
@@ -114,12 +114,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     transform.position = newPosition;
 
                     // Clamp blend distances
-                    var blendPositive = d.boxBlendDistancePositive.vector3Value;
-                    var blendNegative = d.boxBlendDistanceNegative.vector3Value;
-                    var blendNormalPositive = d.boxBlendNormalDistancePositive.vector3Value;
-                    var blendNormalNegative = d.boxBlendNormalDistanceNegative.vector3Value;
+                    var blendPositive = serialized.boxBlendDistancePositive.vector3Value;
+                    var blendNegative = serialized.boxBlendDistanceNegative.vector3Value;
+                    var blendNormalPositive = serialized.boxBlendNormalDistancePositive.vector3Value;
+                    var blendNormalNegative = serialized.boxBlendNormalDistanceNegative.vector3Value;
                     var size = box.size;
-                    d.boxSize.vector3Value = size;
+                    serialized.boxSize.vector3Value = size;
                     var halfSize = size * .5f;
                     for (int i = 0; i < 3; ++i)
                     {
@@ -128,48 +128,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         blendNormalPositive[i] = Mathf.Clamp(blendNormalPositive[i], 0f, halfSize[i]);
                         blendNormalNegative[i] = Mathf.Clamp(blendNormalNegative[i], 0f, halfSize[i]);
                     }
-                    d.boxBlendDistancePositive.vector3Value = blendPositive;
-                    d.boxBlendDistanceNegative.vector3Value = blendNegative;
-                    d.boxBlendNormalDistancePositive.vector3Value = blendNormalPositive;
-                    d.boxBlendNormalDistanceNegative.vector3Value = blendNormalNegative;
+                    serialized.boxBlendDistancePositive.vector3Value = blendPositive;
+                    serialized.boxBlendDistanceNegative.vector3Value = blendNegative;
+                    serialized.boxBlendNormalDistancePositive.vector3Value = blendNormalPositive;
+                    serialized.boxBlendNormalDistanceNegative.vector3Value = blendNormalNegative;
 
-                    if (d.editorAdvancedModeEnabled.boolValue)
+                    if (serialized.editorAdvancedModeEnabled.boolValue)
                     {
-                        d.editorAdvancedModeBlendDistancePositive.vector3Value = d.boxBlendDistancePositive.vector3Value;
-                        d.editorAdvancedModeBlendDistanceNegative.vector3Value = d.boxBlendDistanceNegative.vector3Value;
-                        d.editorAdvancedModeBlendNormalDistancePositive.vector3Value = d.boxBlendNormalDistancePositive.vector3Value;
-                        d.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = d.boxBlendNormalDistanceNegative.vector3Value;
+                        serialized.editorAdvancedModeBlendDistancePositive.vector3Value = serialized.boxBlendDistancePositive.vector3Value;
+                        serialized.editorAdvancedModeBlendDistanceNegative.vector3Value = serialized.boxBlendDistanceNegative.vector3Value;
+                        serialized.editorAdvancedModeBlendNormalDistancePositive.vector3Value = serialized.boxBlendNormalDistancePositive.vector3Value;
+                        serialized.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = serialized.boxBlendNormalDistanceNegative.vector3Value;
                     }
                     else
                     {
-                        d.editorSimplifiedModeBlendDistance.floatValue = Mathf.Min(
-                            d.boxBlendDistancePositive.vector3Value.x,
-                            d.boxBlendDistancePositive.vector3Value.y,
-                            d.boxBlendDistancePositive.vector3Value.z,
-                            d.boxBlendDistanceNegative.vector3Value.x,
-                            d.boxBlendDistanceNegative.vector3Value.y,
-                            d.boxBlendDistanceNegative.vector3Value.z);
-                        d.boxBlendDistancePositive.vector3Value = d.boxBlendDistanceNegative.vector3Value = Vector3.one * d.editorSimplifiedModeBlendDistance.floatValue;
-                        d.editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Min(
-                            d.boxBlendNormalDistancePositive.vector3Value.x,
-                            d.boxBlendNormalDistancePositive.vector3Value.y,
-                            d.boxBlendNormalDistancePositive.vector3Value.z,
-                            d.boxBlendNormalDistanceNegative.vector3Value.x,
-                            d.boxBlendNormalDistanceNegative.vector3Value.y,
-                            d.boxBlendNormalDistanceNegative.vector3Value.z);
-                        d.boxBlendNormalDistancePositive.vector3Value = d.boxBlendNormalDistanceNegative.vector3Value = Vector3.one * d.editorSimplifiedModeBlendNormalDistance.floatValue;
+                        serialized.editorSimplifiedModeBlendDistance.floatValue = Mathf.Min(
+                            serialized.boxBlendDistancePositive.vector3Value.x,
+                            serialized.boxBlendDistancePositive.vector3Value.y,
+                            serialized.boxBlendDistancePositive.vector3Value.z,
+                            serialized.boxBlendDistanceNegative.vector3Value.x,
+                            serialized.boxBlendDistanceNegative.vector3Value.y,
+                            serialized.boxBlendDistanceNegative.vector3Value.z);
+                        serialized.boxBlendDistancePositive.vector3Value = serialized.boxBlendDistanceNegative.vector3Value = Vector3.one * serialized.editorSimplifiedModeBlendDistance.floatValue;
+                        serialized.editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Min(
+                            serialized.boxBlendNormalDistancePositive.vector3Value.x,
+                            serialized.boxBlendNormalDistancePositive.vector3Value.y,
+                            serialized.boxBlendNormalDistancePositive.vector3Value.z,
+                            serialized.boxBlendNormalDistanceNegative.vector3Value.x,
+                            serialized.boxBlendNormalDistanceNegative.vector3Value.y,
+                            serialized.boxBlendNormalDistanceNegative.vector3Value.z);
+                        serialized.boxBlendNormalDistancePositive.vector3Value = serialized.boxBlendNormalDistanceNegative.vector3Value = Vector3.one * serialized.editorSimplifiedModeBlendNormalDistance.floatValue;
                     }
                 }
             }
         }
 
-        static void DrawBoxFadeHandle(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Transform transform, HierarchicalBox box, SerializedProperty positive, SerializedProperty negative)
+        static void DrawBoxFadeHandle(SerializedInfluenceVolume serialized, Editor owner, Transform transform, HierarchicalBox box, SerializedProperty positive, SerializedProperty negative)
         {
             using (new Handles.DrawingScope(Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one)))
             {
                 box.center = -(positive.vector3Value - negative.vector3Value) * 0.5f;
-                box.size = d.boxSize.vector3Value - positive.vector3Value - negative.vector3Value;
-                box.monoHandle = !d.editorAdvancedModeEnabled.boolValue;
+                box.size = serialized.boxSize.vector3Value - positive.vector3Value - negative.vector3Value;
+                box.monoHandle = !serialized.editorAdvancedModeEnabled.boolValue;
 
                 EditorGUI.BeginChangeCheck();
                 box.DrawHandle();
@@ -177,7 +177,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (EditorGUI.EndChangeCheck())
                 {
                     var influenceCenter = Vector3.zero;
-                    var halfInfluenceSize = d.boxSize.vector3Value * .5f;
+                    var halfInfluenceSize = serialized.boxSize.vector3Value * .5f;
 
                     var centerDiff = box.center - influenceCenter;
                     var halfSizeDiff = halfInfluenceSize - box.size * .5f;
@@ -192,22 +192,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void DrawSphereFadeHandle(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o, Transform transform, HierarchicalSphere sphere, SerializedProperty radius)
+        static void DrawSphereFadeHandle(SerializedInfluenceVolume serialized, Editor owner, Transform transform, HierarchicalSphere sphere, SerializedProperty radius)
         {
             //init parent sphere for clamping
-            s.sphereBaseHandle.center = Vector3.zero;
-            s.sphereBaseHandle.radius = d.sphereRadius.floatValue;
+            s_SphereBaseHandle.center = Vector3.zero;
+            s_SphereBaseHandle.radius = serialized.sphereRadius.floatValue;
 
             using (new Handles.DrawingScope(Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one)))
             {
                 sphere.center = Vector3.zero;
-                sphere.radius = d.sphereRadius.floatValue - radius.floatValue;
+                sphere.radius = serialized.sphereRadius.floatValue - radius.floatValue;
 
                 EditorGUI.BeginChangeCheck();
                 sphere.DrawHull(true);
                 sphere.DrawHandle();
                 if (EditorGUI.EndChangeCheck())
-                    radius.floatValue = Mathf.Clamp(d.sphereRadius.floatValue - sphere.radius, 0, d.sphereRadius.floatValue);
+                    radius.floatValue = Mathf.Clamp(serialized.sphereRadius.floatValue - sphere.radius, 0, serialized.sphereRadius.floatValue);
             }
         }
     }
