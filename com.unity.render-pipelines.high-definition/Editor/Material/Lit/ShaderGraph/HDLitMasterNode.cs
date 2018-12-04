@@ -9,11 +9,10 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    [Title("Master", "HDLit")]
+    [Title("Master", "Lit")]
     [FormerName("UnityEditor.ShaderGraph.HDLitMasterNode")]
     class HDLitMasterNode : MasterNode<IHDLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
@@ -96,12 +95,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Alpha,
             PremultipliedAlpha,
             Additive,
-        }
-
-        public enum ProjectionModelLit
-        {
-            Proxy = 0,
-            HiZ = 1,
         }
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
@@ -589,7 +582,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public sealed override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
-            name = "HD Lit Master";
+            name = "Lit Master";
 
             List<int> validSlots = new List<int>();
             if (MaterialTypeUsesSlotMask(SlotMask.Position))
@@ -806,29 +799,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             });
 
             base.CollectShaderProperties(collector, generationMode);
-        }
-
-        public int GetStencilWriteMask()
-        {
-            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            if (!m_ReceivesSSR)
-            {
-                stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            }
-            return stencilWriteMask;
-        }
-        public int GetStencilRef()
-        {
-            int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if (RequiresSplitLighting())
-            {
-                stencilRef = (int)StencilLightingUsage.SplitLighting;
-            }
-            if (!m_ReceivesSSR)
-            {
-                stencilRef |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            }
-            return stencilRef;
         }
     }
 }

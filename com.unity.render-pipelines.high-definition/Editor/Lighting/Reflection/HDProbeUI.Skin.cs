@@ -21,19 +21,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string proxySettingsHeader = "Projection Settings";
         const string additionnalSettingsHeader = "Custom Settings";
 
-        static Dictionary<ToolBar, GUIContent> s_Toolbar_Contents = null;
-        protected static Dictionary<ToolBar, GUIContent> toolbar_Contents
+        static readonly Dictionary<ToolBar, GUIContent> k_ToolbarContents = new Dictionary<ToolBar, GUIContent>
         {
-            get
-            {
-                return s_Toolbar_Contents ?? (s_Toolbar_Contents = new Dictionary<ToolBar, GUIContent>
-                {
-                    { ToolBar.InfluenceShape,  EditorGUIUtility.IconContent("EditCollider", "|Modify the base shape. (SHIFT+1)") },
-                    { ToolBar.Blend,  EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)") },
-                    { ToolBar.NormalBlend,  EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume. (SHIFT+3)") },
-                    { ToolBar.CapturePosition,  EditorGUIUtility.IconContent("MoveTool", "|Change the Offset of the shape.") }
-                });
-            }
-        }
+            { ToolBar.InfluenceShape,  EditorGUIUtility.IconContent("EditCollider", "|Modify the base shape. (SHIFT+1)") },
+            { ToolBar.Blend,  EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)") },
+            { ToolBar.NormalBlend,  EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume. (SHIFT+3)") },
+            { ToolBar.CapturePosition,  EditorGUIUtility.IconContent("MoveTool", "|Change the capture position.") },
+            { ToolBar.MirrorPosition,  EditorGUIUtility.IconContent("MoveTool", "|Change the mirror position.") },
+            { ToolBar.MirrorRotation,  EditorGUIUtility.IconContent("RotateTool", "|Change the mirror rotation.") }
+        };
     }
 }

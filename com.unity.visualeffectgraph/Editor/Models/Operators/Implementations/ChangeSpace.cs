@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
     class ChangeSpace : VFXOperatorNumericUniform
     {
         [VFXSetting, SerializeField]
-        VFXCoordinateSpace m_targetSpace;
+        VFXCoordinateSpace m_targetSpace = VFXCoordinateSpace.Local;
 
         public class InputProperties
         {

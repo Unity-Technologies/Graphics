@@ -6,7 +6,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<HDShadowInitParametersUI, SerializedHDShadowInitParameters>;
 
+#pragma warning disable 618 // TODO: update to IUpdateable interface
     class HDShadowInitParametersUI : BaseUI<SerializedHDShadowInitParameters>
+#pragma warning restore 618
     {
         enum ShadowResolution
         {
@@ -60,8 +62,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.LabelField(_.GetContent("Filtering Qualities"), EditorStyles.boldLabel);
             ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(d.punctualShadowQuality, _.GetContent("Punctual"));
-            EditorGUILayout.PropertyField(d.directionalShadowQuality, _.GetContent("Directional"));
+            EditorGUILayout.PropertyField(d.shadowQuality, _.GetContent("ShadowQuality"));
             --EditorGUI.indentLevel;
 
             EditorGUILayout.Space();

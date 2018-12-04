@@ -1,7 +1,21 @@
 {
     "name": "Unity.VisualEffectGraph.Runtime",
-    "references": [],
+    "references": [
+        "Unity.Timeline"
+    ],
     "optionalUnityReferences": [],
-    "excludePlatforms": []
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.timeline",
+            "expression": "[0.0.0-builtin]",
+            "define": "VFX_HAS_TIMELINE"
+        }
+    ]
 }
-

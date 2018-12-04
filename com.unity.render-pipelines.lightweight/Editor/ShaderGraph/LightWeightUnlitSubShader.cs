@@ -5,11 +5,11 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     [Serializable]
+    [FormerName("UnityEngine.Experimental.Rendering.LightweightPipeline.LightWeightUnlitSubShader")]
     [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
     class LightWeightUnlitSubShader : IUnlitSubShader
     {
@@ -68,6 +68,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+
+                var shaderFiles = Directory.GetFiles(
+                    Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/ShaderLibrary"));
+                sourceAssetDependencyPaths.AddRange(shaderFiles);
             }
 
             string forwardTemplate = File.ReadAllText(templatePath);

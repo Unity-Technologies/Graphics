@@ -1,9 +1,9 @@
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     [CreateAssetMenu()]
-    public class CustomRenderGraphData : RenderGraphData
+    public class CustomRenderGraphData : IRendererData
     {
-        public override RenderGraph Create()
+        public override IRendererSetup Create()
         {
             return new CustomLWPipe(this);
         }

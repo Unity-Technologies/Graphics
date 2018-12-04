@@ -68,7 +68,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.IsFalse(node.drawState.expanded);
         }
 
-        private class SetErrorNode : TestNode
+        class SetErrorNode : TestNode
         {
             public void SetError()
             {
@@ -648,7 +648,7 @@ namespace UnityEditor.Graphing.UnitTests
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
-            graph.RemoveElements(graph.GetNodes<INode>(), graph.edges);
+            graph.RemoveElements(graph.GetNodes<INode>(), graph.edges, Enumerable.Empty<GroupData>());
             Assert.AreEqual(0, graph.GetNodes<INode>().Count());
             Assert.AreEqual(0, graph.edges.Count());
         }

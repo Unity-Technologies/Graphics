@@ -4,12 +4,13 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
 using UnityEngine.Rendering;
-
-namespace UnityEditor.Experimental.Rendering.LightweightPipeline
+using UnityEngine.Rendering.LWRP;
+    
+namespace UnityEditor.Rendering.LWRP
 {
     [Serializable]
+    [FormerName("UnityEditor.Experimental.Rendering.LightweightPipeline.LightWeightPBRSubShader")]
     [FormerName("UnityEditor.ShaderGraph.LightWeightPBRSubShader")]
     class LightWeightPBRSubShader : IPBRSubShader
     {
@@ -95,6 +96,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             {
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+
+                var shaderFiles = Directory.GetFiles(
+                    Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/ShaderLibrary"));
+                sourceAssetDependencyPaths.AddRange(shaderFiles);
             }
 
             string forwardTemplate = File.ReadAllText(templatePath);

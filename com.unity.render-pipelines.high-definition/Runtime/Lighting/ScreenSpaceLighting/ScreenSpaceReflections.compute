@@ -13,6 +13,7 @@
 #define SSR_TRACE_BEHIND_OBJECTS
 #define SSR_TRACE_TOWARDS_EYE
 #define SSR_TRACE_EPS            0.00024414 // 2^-12, should be good up to 4K
+#define SSR_USE_STENCIL // enable to take into account the disable reflection flags
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -81,20 +82,17 @@ void WriteDebugInfo(uint2 positionSS, float4 value)
 [numthreads(8, 8, 1)]
 void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 {
-    // If we are in forward only, the exclusion happens at a later stage. This is detected with _SsrStencilExclusionValue < 0
-    // TODO: It would be good to find a way to skip some work here even in forward.
-    UNITY_BRANCH if (_SsrStencilExclusionValue > 0)
+#ifdef SSR_USE_STENCIL
+    uint stencilVal = UnpackByte(LOAD_TEXTURE2D(_StencilTexture, positionSS).r);
+    bool doesntReceiveSSR = (stencilVal & _SsrStencilExclusionValue) != 0;
+    // Skip SSR for unlit/sky materials as well (check with stencilVal == 0). 
+    doesntReceiveSSR = doesntReceiveSSR || (stencilVal == 0);
+    if (doesntReceiveSSR)
     {
-        uint stencilVal = UnpackByte(LOAD_TEXTURE2D(_StencilTexture, positionSS).r);
-        bool doesntReceiveSSR = (stencilVal & _SsrStencilExclusionValue) != 0;
-        // Skip SSR for unlit materials as well. 
-        doesntReceiveSSR = doesntReceiveSSR || (stencilVal == 0);
-        if (doesntReceiveSSR)
-        {
-            WriteDebugInfo(positionSS, -1);
-            return;
-        }
+        WriteDebugInfo(positionSS, -1);
+        return;
     }
+#endif
 
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
     float  deviceDepth = LOAD_TEXTURE2D(_DepthPyramidTexture, positionSS).r;

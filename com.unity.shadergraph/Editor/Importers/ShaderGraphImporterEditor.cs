@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         {
             var guid = AssetDatabase.AssetPathToGUID(path);
             var extension = Path.GetExtension(path);
-            if (extension == null)
+            if (string.IsNullOrEmpty(extension))
                 return false;
             // Path.GetExtension returns the extension prefixed with ".", so we remove it. We force lower case such that
             // the comparison will be case-insensitive.

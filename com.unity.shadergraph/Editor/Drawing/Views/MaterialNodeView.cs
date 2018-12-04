@@ -9,7 +9,6 @@ using UnityEngine.Rendering;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
-using UnityEngine.UIElements.StyleSheets;
 using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -145,12 +144,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
+                AddToClassList("master");
+
                 if (!masterNode.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
                 {
-                    IconBadge wrongPipeline = IconBadge.CreateError("The current render pipeline is not compatible with this master node.");
-                    Add(wrongPipeline);
-                    VisualElement title = this.Q("title");
-                    wrongPipeline.AttachTo(title, SpriteAlignment.LeftCenter);
+                    AttachError("The current render pipeline is not compatible with this master node.");
                 }
             }
 
@@ -191,6 +189,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                 //titleButtonContainer.Add(m_CollapseButton);
 
                 RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            }
+        }
+
+        public void AttachError(string errString)
+        {
+            ClearError();
+            var badge = IconBadge.CreateError(errString);
+            Add(badge);
+            var myTitle = this.Q("title");
+            badge.AttachTo(myTitle, SpriteAlignment.RightCenter);
+        }
+
+        public void ClearError()
+        {
+            var badge = this.Q<IconBadge>();
+            if(badge != null)
+            {
+                badge.Detach();
+                badge.RemoveFromHierarchy();
             }
         }
 
@@ -242,14 +259,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (evt.target is Node)
             {
-                evt.menu.AppendAction("Copy Shader", CopyToClipboard, node.hasPreview ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
-                evt.menu.AppendAction("Show Generated Code", ShowGeneratedCode, node.hasPreview ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
+                var canViewShader = node.hasPreview || node is IMasterNode;
+                evt.menu.AppendAction("Copy Shader", CopyToClipboard, _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
+                evt.menu.AppendAction("Show Generated Code", ShowGeneratedCode, _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden);
             }
 
             base.BuildContextualMenu(evt);
         }
 
-        void CopyToClipboard()
+        void CopyToClipboard(DropdownMenuAction action)
         {
             GUIUtility.systemCopyBuffer = ConvertToShader();
         }
@@ -259,7 +277,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return new string(name.Where(c => !Char.IsWhiteSpace(c)).ToArray());
         }
 
-        public void ShowGeneratedCode()
+        public void ShowGeneratedCode(DropdownMenuAction action)
         {
             string name = GetFirstAncestorOfType<GraphEditorView>().assetName;
 
@@ -466,7 +484,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var newHeight = inputView.parent.layout.height;
             foreach (var element in inputView.parent.Children())
                 newHeight = Mathf.Max(newHeight, element.style.top.value.value + element.layout.height);
-            if (Math.Abs(inputView.parent.style.height.value.value - newHeight) > 1e-3)                
+            if (Math.Abs(inputView.parent.style.height.value.value - newHeight) > 1e-3)
                 inputView.parent.style.height = newHeight;
         }
 
@@ -554,6 +572,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 portInputView.Dispose();
 
             node = null;
+            userData = null;
             if (m_PreviewRenderData != null)
             {
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;

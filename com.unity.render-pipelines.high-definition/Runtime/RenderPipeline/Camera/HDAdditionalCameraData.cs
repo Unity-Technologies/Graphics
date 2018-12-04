@@ -9,6 +9,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Camera))]
     public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        public enum FlipYMode
+        {
+            Automatic,
+            ForceFlipY
+        }
+
         [HideInInspector]
         const int currentVersion = 1;
 
@@ -57,6 +63,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float aperture = 8f;
         public float shutterSpeed = 1f / 200f;
         public float iso = 400f;
+        public FlipYMode flipYMode;
 
         // Event used to override HDRP rendering for this particular camera.
         public event Action<ScriptableRenderContext, HDCamera> customRender;
@@ -78,6 +85,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This is the purpose of this class
         bool m_IsDebugRegistered = false;
         string m_CameraRegisterName;
+
+        public bool IsDebugRegistred()
+        {
+            return m_IsDebugRegistered;
+        }
 
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
@@ -106,6 +118,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //data.isEditorCameraPreview = isEditorCameraPreview;
         }
 
+        public void SetPersistentFrameSettings(FrameSettings settings)
+        {
+            m_FrameSettings = settings;
+            m_frameSettingsIsDirty = true;
+        }
+
         // This is the function use outside to access FrameSettings. It return the current state of FrameSettings for the camera
         // taking into account the customization via the debug menu
         public FrameSettings GetFrameSettings()
@@ -127,14 +145,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_frameSettingsIsDirty || assetFrameSettingsIsDirty)
             {
                 // We do a copy of the settings to those effectively used
-                if (renderingPath == RenderingPath.UseGraphicsSettings)
-                {
-                    defaultFrameSettings.CopyTo(m_FrameSettingsRuntime);
-                }
-                else
-                {
-                    m_FrameSettings.Override(defaultFrameSettings).CopyTo(m_FrameSettingsRuntime);
-                }
+                defaultFrameSettings.CopyTo(m_FrameSettingsRuntime);
+
+                if (renderingPath == RenderingPath.Custom)
+                    m_FrameSettings.ApplyOverrideOn(m_FrameSettingsRuntime);
 
                 m_frameSettingsIsDirty = false;
             }
@@ -158,6 +172,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
                 {
                     FrameSettings.RegisterDebug(m_camera.name, GetFrameSettings());
+                    DebugDisplaySettings.RegisterCamera(m_camera.name);
                 }
                 m_CameraRegisterName = m_camera.name;
                 m_IsDebugRegistered = true;
@@ -174,6 +189,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
                 {
                     FrameSettings.UnRegisterDebug(m_CameraRegisterName);
+                    DebugDisplaySettings.UnRegisterCamera(m_CameraRegisterName);
                 }
                 m_IsDebugRegistered = false;
             }

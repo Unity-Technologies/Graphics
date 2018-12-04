@@ -26,10 +26,13 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
     #endif
 
     #if HDRP_MATERIAL_TYPE_SIMPLE
-    SimpleLightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
-    #else
-    LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+    // If we are in the simple mode, we do not support area lights
+    featureFlags &= ~(LIGHTFEATUREFLAGS_AREA);
+    // If we are in the simple mode, we do not support refraction
+    featureFlags &= ~(LIGHTFEATUREFLAGS_SSREFRACTION);
     #endif
+
+    LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
     #ifdef _BLENDMODE_PRE_MULTIPLY
     diffuseLighting *= builtinData.opacity;

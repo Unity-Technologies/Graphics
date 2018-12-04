@@ -1,192 +1,194 @@
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
+using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteAlways]
-    public abstract class HDProbe : MonoBehaviour, ISerializationCallbackReceiver
+    public abstract partial class HDProbe : MonoBehaviour
     {
-        [SerializeField, FormerlySerializedAs("proxyVolumeComponent"), FormerlySerializedAs("m_ProxyVolumeReference")]
-        ReflectionProxyVolumeComponent m_ProxyVolume = null;
-        [SerializeField]
-        bool m_InfiniteProjection = true; //usable when no proxy set
+        [Serializable]
+        public struct RenderData
+        {
+            public Matrix4x4 worldToCameraRHS;
+            public Matrix4x4 projectionMatrix;
+            public Vector3 capturePosition;
 
-        [SerializeField]
-        InfluenceVolume m_InfluenceVolume;
+            public RenderData(CameraSettings camera, CameraPositionSettings position)
+            {
+                worldToCameraRHS = position.GetUsedWorldToCameraMatrix();
+                projectionMatrix = camera.frustum.GetUsedProjectionMatrix();
+                capturePosition = position.position;
+            }
+        }
 
+        // Serialized Data
         [SerializeField]
-        FrameSettings m_FrameSettings = null;
+        // This one is protected only to have access during migration of children classes.
+        // In children classes, it must be used only during the migration.
+        protected ProbeSettings m_ProbeSettings = ProbeSettings.@default;
+#pragma warning disable 649
+        [SerializeField]
+        ProbeSettingsOverride m_ProbeSettingsOverride;
+        [SerializeField]
+        ReflectionProxyVolumeComponent m_ProxyVolume;
+#pragma warning restore 649
 
-        [SerializeField]
-        CaptureSettings m_CaptureSettings = new CaptureSettings();
-
-        [SerializeField, FormerlySerializedAsAttribute("dimmer"), FormerlySerializedAsAttribute("m_Dimmer"), FormerlySerializedAsAttribute("multiplier")]
-        float m_Multiplier = 1.0f;
-        [SerializeField, FormerlySerializedAsAttribute("weight")]
-        [Range(0.0f, 1.0f)]
-        float m_Weight = 1.0f;
-
-        [SerializeField]
-        ReflectionProbeMode m_Mode = ReflectionProbeMode.Baked;
-        [SerializeField]
-        ReflectionProbeRefreshMode m_RefreshMode = ReflectionProbeRefreshMode.OnAwake;
-        
-        RenderTexture m_RealtimeTexture = null;
-        [SerializeField]
-        Texture m_CustomTexture;
         [SerializeField]
         Texture m_BakedTexture;
         [SerializeField]
-        bool m_RenderDynamicObjects;
+        Texture m_CustomTexture;
+        [SerializeField]
+        RenderData m_BakedRenderData;
+        [SerializeField]
+        RenderData m_CustomRenderData;
 
-        /// <summary>Light layer to use by this probe.</summary>
-        public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
+        // Runtime Data
+        RenderTexture m_RealtimeTexture;
+        RenderData m_RealtimeRenderData;
 
-        // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
-        public uint GetLightLayers()
+        // Public API
+        // Texture asset
+        public Texture bakedTexture => m_BakedTexture;
+        public Texture customTexture => m_CustomTexture;
+        public RenderTexture realtimeTexture => m_RealtimeTexture;
+        public Texture texture => GetTexture(mode);
+        public Texture GetTexture(ProbeSettings.Mode targetMode)
         {
-            int value = (int)(lightLayers);
-            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
-        }
-
-        /// <summary>ProxyVolume currently used by this probe.</summary>
-        public ReflectionProxyVolumeComponent proxyVolume { get { return m_ProxyVolume; } }
-
-        /// <summary>InfluenceVolume of the probe.</summary>
-        public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } private set { m_InfluenceVolume = value; } }
-
-        /// <summary>Frame settings in use with this probe.</summary>
-        public FrameSettings frameSettings { get { return m_FrameSettings; } }
-
-        public CaptureSettings captureSettings { get { return m_CaptureSettings; } }
-
-        /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
-        public float multiplier { get { return m_Multiplier; } set { m_Multiplier = value; } }
-        /// <summary>Weight for blending amongst probes (non PBR parameter).</summary>
-        public float weight { get { return m_Weight; } set { m_Weight = value; } }
-        
-        /// <summary>Get the Custom Texture used</summary>
-        public virtual Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }
-        /// <summary>Get the backed acquired Texture</summary>
-        public virtual Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; } }
-        /// <summary>Get the realtime acquired Render Texture</summary>
-        public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
-        /// <summary>Get the currently used Texture</summary>
-        public Texture currentTexture
-        {
-            get
+            switch (targetMode)
             {
-                switch (mode)
-                {
-                    default:
-                    case ReflectionProbeMode.Baked:
-                        return bakedTexture;
-                    case ReflectionProbeMode.Custom:
-                        return customTexture;
-                    case ReflectionProbeMode.Realtime:
-                        return realtimeTexture;
-                }
+                case ProbeSettings.Mode.Baked: return m_BakedTexture;
+                case ProbeSettings.Mode.Custom: return m_CustomTexture;
+                case ProbeSettings.Mode.Realtime: return m_RealtimeTexture;
+                default: throw new ArgumentOutOfRangeException();
             }
         }
-        /// <summary>Render dynamic objects with custom texture as background</summary>
-        public bool renderDynamicObjects { get { return m_RenderDynamicObjects; } set { m_RenderDynamicObjects = value; } }
+        public Texture SetTexture(ProbeSettings.Mode targetMode, Texture texture)
+        {
+            if (targetMode == ProbeSettings.Mode.Realtime && !(texture is RenderTexture))
+                throw new ArgumentException("'texture' must be a RenderTexture for the Realtime mode.");
 
+            switch (targetMode)
+            {
+                case ProbeSettings.Mode.Baked: return m_BakedTexture = texture;
+                case ProbeSettings.Mode.Custom: return m_CustomTexture = texture;
+                case ProbeSettings.Mode.Realtime: return m_RealtimeTexture = (RenderTexture)texture;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public RenderData bakedRenderData { get => m_BakedRenderData; internal set => m_BakedRenderData = value; }
+        public RenderData customRenderData { get => m_CustomRenderData; internal set => m_CustomRenderData = value; }
+        public RenderData realtimeRenderData { get => m_RealtimeRenderData; internal set => m_RealtimeRenderData = value; }
+        public RenderData renderData => GetRenderData(mode);
+        public RenderData GetRenderData(ProbeSettings.Mode targetMode)
+        {
+            switch (mode)
+            {
+                case ProbeSettings.Mode.Baked: return bakedRenderData;
+                case ProbeSettings.Mode.Custom: return customRenderData;
+                case ProbeSettings.Mode.Realtime: return realtimeRenderData;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+        public void SetRenderData(ProbeSettings.Mode targetMode, RenderData renderData)
+        {
+            switch (mode)
+            {
+                case ProbeSettings.Mode.Baked: bakedRenderData = renderData; break;
+                case ProbeSettings.Mode.Custom: customRenderData = renderData; break;
+                case ProbeSettings.Mode.Realtime: realtimeRenderData = renderData; break;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        // Settings
+        // General
+        public ProbeSettings.ProbeType type { get => m_ProbeSettings.type; protected set => m_ProbeSettings.type = value; }
         /// <summary>The capture mode.</summary>
-        public virtual ReflectionProbeMode mode
-        {
-            get { return m_Mode; }
-            set { m_Mode = value; }
-        }
-        /// <summary>Refreshing rate of the capture for Realtime capture mode.</summary>
-        public virtual ReflectionProbeRefreshMode refreshMode
-        {
-            get { return m_RefreshMode; }
-            set { m_RefreshMode = value; }
-        }
+        public ProbeSettings.Mode mode { get => m_ProbeSettings.mode; set => m_ProbeSettings.mode = value; }
+        public ProbeSettings.RealtimeMode realtimeMode { get => m_ProbeSettings.realtimeMode; set => m_ProbeSettings.realtimeMode = value; }
 
+        // Lighting
+        /// <summary>Light layer to use by this probe.</summary>
+        public LightLayerEnum lightLayers
+        { get => m_ProbeSettings.lighting.lightLayer; set => m_ProbeSettings.lighting.lightLayer = value; }
+        // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
+        public uint lightLayersAsUInt => lightLayers < 0 ? (uint)LightLayerEnum.Everything : (uint)lightLayers;
+        /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
+        public float multiplier
+        { get => m_ProbeSettings.lighting.multiplier; set => m_ProbeSettings.lighting.multiplier = value; }
+        /// <summary>Weight for blending amongst probes (non PBR parameter).</summary>
+        public float weight
+        { get => m_ProbeSettings.lighting.weight; set => m_ProbeSettings.lighting.weight = value; }
+
+        // Proxy
+        /// <summary>ProxyVolume currently used by this probe.</summary>
+        public ReflectionProxyVolumeComponent proxyVolume => m_ProxyVolume;
+        public bool useInfluenceVolumeAsProxyVolume => m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume;
         /// <summary>Is the projection at infinite? Value could be changed by Proxy mode.</summary>
-        public bool infiniteProjection
-        {
-            get
-            {
-                return (proxyVolume != null && proxyVolume.proxyVolume.shape == ProxyShape.Infinite)
-                    || (proxyVolume == null && m_InfiniteProjection);
-            }
-            set
-            {
-                m_InfiniteProjection = value;
-            }
-        }
+        public bool isProjectionInfinite
+            => m_ProxyVolume != null && m_ProxyVolume.proxyVolume.shape == ProxyShape.Infinite
+            || m_ProxyVolume == null && !m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume;
 
-        internal Matrix4x4 influenceToWorld
+        // Influence
+        /// <summary>InfluenceVolume of the probe.</summary>
+        public InfluenceVolume influenceVolume
         {
-            get
-            {
-                var tr = transform;
-                var influencePosition = influenceVolume.GetWorldPosition(tr);
-                return Matrix4x4.TRS(
-                    influencePosition,
-                    tr.rotation,
-                    Vector3.one
-                    );
-            }
+            get => m_ProbeSettings.influence ?? (m_ProbeSettings.influence = new InfluenceVolume());
+            private set => m_ProbeSettings.influence = value;
         }
-        internal Vector3 influenceExtents
-        {
-            get
-            {
-                switch (influenceVolume.shape)
-                {
-                    default:
-                    case InfluenceShape.Box:
-                        return influenceVolume.boxSize * 0.5f;
-                    case InfluenceShape.Sphere:
-                        return influenceVolume.sphereRadius * Vector3.one;
-                }
-            }
-        }
+        internal Matrix4x4 influenceToWorld => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+
+        // Camera
+        /// <summary>Frame settings in use with this probe.</summary>
+        public FrameSettings frameSettings => m_ProbeSettings.camera.frameSettings;
+        internal Vector3 influenceExtents => influenceVolume.extents;
         internal Matrix4x4 proxyToWorld
+            => proxyVolume != null
+            ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
+            : influenceToWorld;
+        public Vector3 proxyExtents
+            => proxyVolume != null ? proxyVolume.proxyVolume.extents : influenceExtents;
+
+        public BoundingSphere boundingSphere => influenceVolume.GetBoundingSphereAt(transform.position);
+        public Bounds bounds => influenceVolume.GetBoundsAt(transform.position);
+
+        internal ProbeSettings settings
         {
             get
             {
-                return proxyVolume != null
-                    ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
-                    : influenceToWorld;
-            }
-        }
-        public virtual Vector3 proxyExtents
-        {
-            get
-            {
-                return proxyVolume != null
-                    ? proxyVolume.proxyVolume.extents
-                    : influenceExtents;
-            }
-        }
-        internal virtual Vector3 capturePosition
-        {
-            get
-            {
-                return transform.position; //at the moment capture position is at probe position
+                var settings = m_ProbeSettings;
+                // Special case here, we reference a component that is a wrapper
+                // So we need to update with the actual value for the proxyVolume
+                settings.proxy = m_ProxyVolume?.proxyVolume;
+                settings.influence = settings.influence ?? new InfluenceVolume();
+                return settings;
             }
         }
 
-        internal virtual void Awake()
-        {
-            if (influenceVolume == null)
-                influenceVolume = new InfluenceVolume();
-            influenceVolume.Init(this);
-        }
+        internal bool wasRenderedAfterOnEnable { get; set; } = false;
+        internal int lastRenderedFrame { get; set; } = int.MinValue;
 
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-        }
+        // API
+        /// <summary>
+        /// Prepare the probe for culling.
+        /// You should call this method when you update the <see cref="influenceVolume"/> parameters during runtime.
+        /// </summary>
+        public virtual void PrepareCulling() { }
 
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        void OnEnable()
         {
-            influenceVolume.Init(this);
+            wasRenderedAfterOnEnable = false;
+            PrepareCulling();
+            HDProbeSystem.RegisterProbe(this);
         }
+        void OnDisable() => HDProbeSystem.UnregisterProbe(this);
 
-        internal virtual void UpdatedInfluenceVolumeShape(Vector3 size, Vector3 offset) { }
+        void OnValidate()
+        {
+            HDProbeSystem.UnregisterProbe(this);
+
+            if (isActiveAndEnabled)
+                HDProbeSystem.RegisterProbe(this);
+        }
     }
 }

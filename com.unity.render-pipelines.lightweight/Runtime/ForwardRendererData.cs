@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     [CreateAssetMenu()]
     public class ForwardRendererData : IRendererData

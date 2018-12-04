@@ -1,7 +1,8 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Copy the given color target to the current camera target
@@ -16,6 +17,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
+		private bool requiresSRGConversion { get; set; }
+        private bool killAlpha { get; set; }
         Material m_BlitMaterial;
 
         public FinalBlitPass(Material blitMaterial)
@@ -28,10 +31,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorAttachmentHandle"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorAttachmentHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorAttachmentHandle, bool requiresSRGConversion, bool killAlpha)
         {
             this.colorAttachmentHandle = colorAttachmentHandle;
             this.descriptor = baseDescriptor;
+            this.requiresSRGConversion = requiresSRGConversion;
+            this.killAlpha = killAlpha;
         }
 
         /// <inheritdoc/>
@@ -45,7 +50,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             CommandBuffer cmd = CommandBufferPool.Get(k_FinalBlitTag);
 
-            if (renderingData.cameraData.isStereoEnabled)
+            if (requiresSRGConversion)
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+            else
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+
+            if (killAlpha)
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.KillAlpha);
+            else
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
+
+            if (renderingData.cameraData.isStereoEnabled || renderingData.cameraData.isSceneViewCamera)
             {
                 cmd.Blit(colorAttachmentHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
             }

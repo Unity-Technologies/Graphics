@@ -1,17 +1,17 @@
+using System;
 using System.Collections.Generic;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using System.Linq;
 using UnityEditor.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [CustomEditorForRenderPipeline(typeof(ReflectionProbe), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    partial class HDReflectionProbeEditor : HDProbeEditor
+    sealed partial class HDReflectionProbeEditor : HDProbeEditor<HDProbeSettingsProvider, SerializedHDReflectionProbe>
     {
+        #region Context Menu
         [MenuItem("CONTEXT/ReflectionProbe/Remove Component", false, 0)]
         static void RemoveReflectionProbe(MenuCommand menuCommand)
         {
@@ -42,68 +42,72 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             reflectionProbe.Reset();
             // To avoid duplicating init code we copy default settings to Reset additional data
             // Note: we can't call this code inside the HDAdditionalReflectionData, thus why we don't wrap it in Reset() function
-            if(HDUtils.s_DefaultHDAdditionalReflectionData.influenceVolume == null)
-            {
-                HDUtils.s_DefaultHDAdditionalReflectionData.Awake();
-            }
-            HDUtils.s_DefaultHDAdditionalReflectionData.CopyTo(reflectionProbeAdditionalData);
+            EditorUtility.CopySerialized(HDUtils.s_DefaultHDAdditionalReflectionData, reflectionProbeAdditionalData);
         }
+        #endregion
 
-        static Dictionary<ReflectionProbe, HDReflectionProbeEditor> s_ReflectionProbeEditors = new Dictionary<ReflectionProbe, HDReflectionProbeEditor>();
-
-        internal override HDProbe GetTarget(Object editorTarget)
-        {
-            HDReflectionProbeEditor e = s_ReflectionProbeEditors[(ReflectionProbe)editorTarget];
-            return (HDProbe)e.m_AdditionalDataSerializedObject.targetObjects.First(a => ((HDAdditionalReflectionData)a).reflectionProbe == editorTarget);
-        }
-
-        protected override void Draw(HDProbeUI s, SerializedHDProbe serialized, Editor owner)
-        {
-#pragma warning disable 612 //Draw
-            HDReflectionProbeUI.Inspector.Draw(s, serialized, owner);
-#pragma warning restore 612
-        }
-
-        static HDReflectionProbeEditor GetEditorFor(ReflectionProbe p)
-        {
-            HDReflectionProbeEditor e;
-            if (s_ReflectionProbeEditors.TryGetValue(p, out e)
-                && e != null
-                && !e.Equals(null)
-                && ArrayUtility.IndexOf(e.targets, p) != -1)
-                return e;
-
-            return null;
-        }
-        
-        SerializedObject m_AdditionalDataSerializedObject;
-
-        public bool sceneViewEditing
-        {
-            get { return HDProbeUI.IsProbeEditMode(EditMode.editMode) && EditMode.IsOwner(this); }
-        }
-        
         protected override void OnEnable()
         {
-            var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
-            m_AdditionalDataSerializedObject = new SerializedObject(additionalData);
-            m_SerializedHDProbe = new SerializedHDReflectionProbe(serializedObject, m_AdditionalDataSerializedObject);
-
-            foreach (var t in targets)
-            {
-                var p = (ReflectionProbe)t;
-                s_ReflectionProbeEditors[p] = this;
-            }
-
             base.OnEnable();
-            
             InitializeTargetProbe();
-
-            HDAdditionalReflectionData probe = (HDAdditionalReflectionData)m_AdditionalDataSerializedObject.targetObject;
-            probe.influenceVolume.Init(probe);
-
-            //unhide previously hidden components if any
-            probe.hideFlags = HideFlags.None;
         }
+
+        internal override HDProbe GetTarget(UnityEngine.Object editorTarget)
+            => ((ReflectionProbe)editorTarget).GetComponent<HDAdditionalReflectionData>();
+        protected override SerializedHDReflectionProbe NewSerializedObject(SerializedObject so)
+        {
+            var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
+            var addSO = new SerializedObject(additionalData);
+            return new SerializedHDReflectionProbe(so, addSO);
+        }
+    }
+
+    struct HDProbeSettingsProvider : HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
+    {
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawOffset => true;
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawNormal => true;
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawFace => true;
+
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCaptureSettings => new ProbeSettingsOverride
+        {
+            probe = ProbeSettingsFields.proxyCapturePositionProxySpace,
+            camera = new CameraSettingsOverride
+            {
+                camera = (CameraSettingsFields)(-1) & ~(
+                    CameraSettingsFields.frustumFieldOfView
+                    | CameraSettingsFields.frustumAspect
+                    | CameraSettingsFields.flipYMode
+                    | CameraSettingsFields.cullingInvertFaceCulling
+                    | CameraSettingsFields.frustumMode
+                    | CameraSettingsFields.frustumProjectionMatrix
+                )
+            }
+        };
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.overrideableCaptureSettings => new ProbeSettingsOverride();
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedAdvancedSettings => new ProbeSettingsOverride
+        {
+            probe = ProbeSettingsFields.lightingLightLayer
+                | ProbeSettingsFields.lightingMultiplier
+                | ProbeSettingsFields.lightingWeight,
+            camera = new CameraSettingsOverride
+            {
+                camera = CameraSettingsFields.none
+            }
+        };
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.overrideableAdvancedSettings => new ProbeSettingsOverride();
+
+        Type HDProbeUI.IProbeUISettingsProvider.customTextureType => typeof(Cubemap);
+        static readonly HDProbeUI.ToolBar[] k_ToolBars
+        = { HDProbeUI.ToolBar.InfluenceShape | HDProbeUI.ToolBar.NormalBlend | HDProbeUI.ToolBar.Blend, HDProbeUI.ToolBar.CapturePosition };
+        HDProbeUI.ToolBar[] HDProbeUI.IProbeUISettingsProvider.toolbars => k_ToolBars;
+
+        static Dictionary<KeyCode, HDProbeUI.ToolBar> k_ToolbarShortCutKey = new Dictionary<KeyCode, HDProbeUI.ToolBar>
+        {
+            { KeyCode.Alpha1, HDProbeUI.ToolBar.InfluenceShape },
+            { KeyCode.Alpha2, HDProbeUI.ToolBar.Blend },
+            { KeyCode.Alpha3, HDProbeUI.ToolBar.NormalBlend },
+            { KeyCode.Alpha4, HDProbeUI.ToolBar.CapturePosition }
+        };
+        Dictionary<KeyCode, HDProbeUI.ToolBar> HDProbeUI.IProbeUISettingsProvider.shortcuts => k_ToolbarShortCutKey;
     }
 }

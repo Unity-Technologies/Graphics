@@ -90,14 +90,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector4    depthEncodingParams;
             public Vector4    depthDecodingParams;
 
-            public VBufferParameters(Vector3Int viewportResolution, Vector2 distanceRange, float camNear, float camFar, float camVFoV, float sliceDistributionUniformity)
+            public VBufferParameters(Vector3Int viewportResolution, float depthExtent, float camNear, float camFar, float camVFoV, float sliceDistributionUniformity)
             {
                 viewportSize = viewportResolution;
 
                 // The V-Buffer is sphere-capped, while the camera frustum is not.
-                // Typically, we will use the 'distanceRange' directly.
-                // However, for shallow camera frusta, it is useful to shrink the V-Buffer to improve the precision.
-                // In such cases, we want the distance range to cover the entire depth interval.
+                // We always start from the near plane of the camera.
 
                 float aspectRatio    = viewportResolution.x / (float)viewportResolution.y;
                 float farPlaneHeight = 2.0f * Mathf.Tan(0.5f * camVFoV) * camFar;
@@ -105,13 +103,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float farPlaneMaxDim = Mathf.Max(farPlaneWidth, farPlaneHeight);
                 float farPlaneDist   = Mathf.Sqrt(camFar * camFar + 0.25f * farPlaneMaxDim * farPlaneMaxDim);
 
-                float nearDist = Math.Max(distanceRange.x, camNear);
-                float farDist  = Math.Min(distanceRange.y, farPlaneDist);
-
-                if (nearDist >= farDist)
-                {
-                    Debug.Log("The effective distance range of the volumetric lighting buffer is 0. Please increase the range, or adjust the near and far planes of the camera.");
-                }
+                float nearDist = camNear;
+                float farDist  = Math.Min(nearDist + depthExtent, farPlaneDist);
 
                 float c = 2 - 2 * sliceDistributionUniformity; // remap [0, 1] -> [2, 0]
                       c = Mathf.Max(c, 0.001f);                // Avoid NaNs
@@ -283,7 +276,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var controller = VolumeManager.instance.stack.GetComponent<VolumetricLightingController>();
 
-            return new VBufferParameters(viewportResolution, controller.distanceRange.value,
+            return new VBufferParameters(viewportResolution, controller.depthExtent.value,
                                          hdCamera.camera.nearClipPlane,
                                          hdCamera.camera.farClipPlane,
                                          hdCamera.camera.fieldOfView,
@@ -558,7 +551,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes)
+        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes, LightLoop lightLoop)
         {
             if (!hdCamera.frameSettings.enableVolumetrics)
                 return;
@@ -606,6 +599,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     volumeAtlas = CoreUtils.blackVolumeTexture;
+                }
+
+                if(hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
+                {
+                    // We explicitly set the big tile info even though it is set globally, since this could be running async before the PushGlobalParams
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileX, lightLoop.GetNumTileBigTileX(hdCamera));
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileY, lightLoop.GetNumTileBigTileY(hdCamera));
+                    if (hdCamera.frameSettings.lightLoopSettings.enableBigTilePrepass)
+                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, lightLoop.GetBigTileLightList());
                 }
 
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);

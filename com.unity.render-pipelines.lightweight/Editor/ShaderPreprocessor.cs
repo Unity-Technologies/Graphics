@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.Build;
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.LightweightPipeline
+namespace UnityEditor.Rendering.LWRP
 {
     internal class ShaderPreprocessor : IPreprocessShaders
     {
@@ -32,6 +31,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
         ShaderKeyword m_Lightmap = new ShaderKeyword("LIGHTMAP_ON");
         ShaderKeyword m_DirectionalLightmap = new ShaderKeyword("DIRLIGHTMAP_COMBINED");
+        ShaderKeyword m_KillAlpha = new ShaderKeyword("_KILL_ALPHA");
 
         ShaderKeyword m_DeprecatedVertexLights = new ShaderKeyword("_VERTEX_LIGHTS");
         ShaderKeyword m_DeprecatedShadowsEnabled = new ShaderKeyword("_SHADOWS_ENABLED");
@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
 
-        bool StripUnusedShader(ShaderFeatures features, Shader shader)
+        bool StripUnusedShader(ShaderFeatures features, Shader shader, ShaderCompilerData compilerData)
         {
             if (shader.name.Contains("Debug"))
                 return true;
@@ -56,6 +56,15 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows) &&
                 shader.name.Contains("ScreenSpaceShadows"))
                 return true;
+
+            if (shader.name == "Hidden/Lightweight Render Pipeline/Blit")
+            {
+                bool preserveAlpha = PlayerSettings.preserveFramebufferAlpha && compilerData.platformKeywordSet.IsEnabled(BuiltinShaderDefine.SHADER_API_MOBILE);
+                bool shaderPreserveAlpha = !compilerData.shaderKeywordSet.IsEnabled(m_KillAlpha);
+
+                if (preserveAlpha != shaderPreserveAlpha)
+                    return true;
+            }
 
             return false;
         }
@@ -167,7 +176,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            if (StripUnusedShader(features, shader))
+            if (StripUnusedShader(features, shader, compilerData))
                 return true;
 
             if (StripUnusedPass(features, snippetData))

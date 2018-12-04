@@ -116,7 +116,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/044_Lighting_ReflectionProbe.unity
     guid: 0feef353efdf045989e9c2b501774338
-  - enabled: 0
+  - enabled: 1
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/045_CustomLWPipe.unity
     guid: 349df85634812cd4e9157f31eace4abe
   - enabled: 1

@@ -23,10 +23,6 @@ public class ShaderGraphTestSceneController : MonoBehaviour {
     protected bool viewingSG = true;
     protected int maxMode;
 
-    // UI
-    protected bool showUI = true;
-    protected TestSceneCanvasController canvasController;
-
     // Camera movement
     private bool cameraMovement = true;
     protected GameObject cameraGO;
@@ -91,17 +87,6 @@ public class ShaderGraphTestSceneController : MonoBehaviour {
         currentDist = Vector3.Distance(cameraGO.transform.position, transform.position);
         rotX = cameraGO.transform.eulerAngles.x;
         rotY = cameraGO.transform.eulerAngles.y;
-
-        canvasController = FindObjectOfType<TestSceneCanvasController>();
-        if (canvasController != null) 
-        {
-            canvasController.gameObject.SetActive(false);
-            canvasController.UpdateText(null, mode, maxMode, viewingSG);
-        }
-        else
-        {
-            Debug.Log("No Canvas Controller found");
-        }
     }
 
     public void Update()
@@ -113,11 +98,6 @@ public class ShaderGraphTestSceneController : MonoBehaviour {
         if (Input.anyKeyDown)
         {
             activated = true;
-
-            if (canvasController != null)
-            {
-                canvasController.gameObject.SetActive(true);
-            }
 
             mode = 1;
             changed = true;
@@ -143,12 +123,8 @@ public class ShaderGraphTestSceneController : MonoBehaviour {
         {
             viewingSG = !viewingSG;
             changed = true;
-        }
-        if (Input.GetKeyDown("q"))
-        {
-            showUI = !showUI;
-            changed = true;
-            if (canvasController != null) canvasController.gameObject.SetActive(showUI);
+            if (viewingSG) Debug.Log("Viewing Shader Graph " + Time.time);
+            else Debug.Log("Viewing HDRP Mat " + Time.time);
         }
         if (Input.GetKeyDown("z"))
         {
@@ -187,8 +163,6 @@ public class ShaderGraphTestSceneController : MonoBehaviour {
                 }
             }
             if (mode == 0) currentObj = null;
-
-            if (canvasController != null) canvasController.UpdateText(currentObj ? currentObj.name : null, mode, maxMode, viewingSG);
         }
 
         if (dirLight != null && rotateLight)

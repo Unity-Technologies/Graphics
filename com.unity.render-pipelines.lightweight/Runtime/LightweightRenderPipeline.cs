@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Experimental.Rendering.LightweightPipeline;
+using UnityEditor.Rendering.LWRP;
 #endif
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Experimental.Rendering.LWRP;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     public interface IBeforeCameraRender
     {
@@ -32,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static int _ScaledScreenParams;
         }
 
+        
         const string k_RenderCameraTag = "Render Camera";
 
         public ScriptableRenderer renderer { get; private set; }
@@ -82,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public bool supportsSoftShadows { get; private set; }
             public bool supportsDynamicBatching { get; private set; }
             public bool mixedLightingSupported { get; private set; }
-            public IRendererSetup renderGraph { get; private set; }
+            public IRendererSetup rendererSetup { get; private set; }
 
             public static PipelineSettings Create(LightweightRenderPipelineAsset asset)
             {
@@ -101,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cache.mainLightRenderingMode = asset.mainLightRenderingMode;
                 cache.supportsMainLightShadows = asset.supportsMainLightShadows;
                 cache.mainLightShadowmapResolution = asset.mainLightShadowmapResolution;
-                
+
                 // Additional light settings
                 cache.additionalLightsRenderingMode = asset.additionalLightsRenderingMode;
                 cache.maxAdditionalLights = asset.maxAdditionalLightsCount;
@@ -120,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Advanced settings
                 cache.supportsDynamicBatching = asset.supportsDynamicBatching;
                 cache.mixedLightingSupported = asset.supportsMixedLighting;
-                cache.renderGraph = asset.CreateRenderGraph();
+                cache.rendererSetup = asset.CreateRendererSetup();
                 
                 return cache;
             }
@@ -133,12 +134,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             SetSupportedRenderingFeatures();
 
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
+
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
             PerCameraBuffer._InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
-            
+
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != settings.msaaSampleCount)
                 QualitySettings.antiAliasing = settings.msaaSampleCount;
@@ -146,6 +149,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Shader.globalRenderPipeline = "LightweightPipeline";
 
             Lightmapping.SetDelegate(lightsDelegate);
+
+            CameraCaptureBridge.enabled = true;
         }
 
         protected override void Dispose(bool disposing)
@@ -163,6 +168,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_PerCameraRenderGraphs.Clear();
 
             Lightmapping.ResetDelegate();
+            CameraCaptureBridge.enabled = false;
         }
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -204,6 +210,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
                 SetupPerCameraShaderConstants(cameraData);
 
+                if (pipelineInstance.settings.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
+                    pipelineInstance.settings.maxAdditionalLights == 0)
+                {
+                    cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+                }
+
                 cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -223,25 +235,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 renderer.Clear();
 
-                IRendererSetup renderGraph = settings.renderGraph;
-                if (additionalCameraData != null && additionalCameraData.renderGraphData != null)
+                IRendererSetup rendererSetup = settings.rendererSetup;
+                if (additionalCameraData != null && additionalCameraData.rendererData != null)
                 {
-                    if (pipelineInstance.m_PerCameraRenderGraphs.ContainsKey(additionalCameraData.renderGraphData))
-                        renderGraph = pipelineInstance.m_PerCameraRenderGraphs[additionalCameraData.renderGraphData];
+                    if (pipelineInstance.m_PerCameraRenderGraphs.ContainsKey(additionalCameraData.rendererData))
+                        rendererSetup = pipelineInstance.m_PerCameraRenderGraphs[additionalCameraData.rendererData];
                     else
-                        renderGraph = additionalCameraData.renderGraphData.Create();
+                        rendererSetup = additionalCameraData.rendererData.Create();
                 }
 
-                renderGraph.Setup(renderer, ref renderingData);
+                rendererSetup.Setup(renderer, ref renderingData);
                 renderer.Execute(context, ref renderingData);
             }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
             context.Submit();
-#if UNITY_EDITOR
-            Handles.DrawGizmos(camera);
-#endif
         }
 
         static void SetSupportedRenderingFeatures()
@@ -318,6 +327,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool canSkipFrontToBackSorting = (camera.opaqueSortMode == OpaqueSortMode.Default && hasHSRGPU) || camera.opaqueSortMode == OpaqueSortMode.NoDistanceSort;
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
+            cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(camera);
         }
 
         static void InitializeRenderingData(PipelineSettings settings, ref CameraData cameraData, ref CullingResults cullResults,
@@ -325,7 +335,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             var visibleLights = cullResults.visibleLights;
 
-            int mainLightIndex = GetMainLight(settings, visibleLights);
+            int mainLightIndex = GetMainLightIndex(settings, visibleLights);
             bool mainLightCastShadows = false;
             bool additionalLightsCastShadows = false;
 
@@ -359,6 +369,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             InitializeLightData(settings, visibleLights, mainLightIndex, maxVisibleAdditionalLights, maxPerObjectAdditionalLights, out renderingData.lightData);
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
+
+            bool platformNeedsToKillAlpha = Application.platform == RuntimePlatform.IPhonePlayer ||
+                Application.platform == RuntimePlatform.Android ||
+                Application.platform == RuntimePlatform.tvOS;
+            renderingData.killAlphaInFinalBlit = !Graphics.preserveFramebufferAlpha && platformNeedsToKillAlpha;
         }
 
         static void InitializeShadowData(PipelineSettings settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
@@ -452,29 +467,39 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         // Main Light is always a directional light
-        static int GetMainLight(PipelineSettings settings, NativeArray<VisibleLight> visibleLights)
+        static int GetMainLightIndex(PipelineSettings settings, NativeArray<VisibleLight> visibleLights)
         {
             int totalVisibleLights = visibleLights.Length;
 
             if (totalVisibleLights == 0 || settings.mainLightRenderingMode != LightRenderingMode.PerPixel)
                 return -1;
 
+            Light sunLight = RenderSettings.sun;
+            int brightestDirectionalLightIndex = -1;
+            float brightestLightIntensity = 0.0f;
             for (int i = 0; i < totalVisibleLights; ++i)
             {
-                VisibleLight currLight = visibleLights[i];
+                VisibleLight currVisibleLight = visibleLights[i];
+                Light currLight = currVisibleLight.light;
 
                 // Particle system lights have the light property as null. We sort lights so all particles lights
                 // come last. Therefore, if first light is particle light then all lights are particle lights.
                 // In this case we either have no main light or already found it.
-                if (currLight.light == null)
+                if (currLight == null)
                     break;
 
-                // In case no shadow light is present we will return the brightest directional light
-                if (currLight.lightType == LightType.Directional)
+                if (currLight == sunLight)
                     return i;
+
+                // In case no shadow light is present we will return the brightest directional light
+                if (currVisibleLight.lightType == LightType.Directional && currLight.intensity > brightestLightIntensity)
+                {
+                    brightestLightIntensity = currLight.intensity;
+                    brightestDirectionalLightIndex = i;
+                }
             }
 
-            return -1;
+            return brightestDirectionalLightIndex;
         }
 
         static void SetupPerFrameShaderConstants()
