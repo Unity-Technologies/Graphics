@@ -1,6 +1,6 @@
 Pass
 {
-    // based on FabricPass.template
+    // based on HDHairPass.template
     Name "$splice(PassName)"
     Tags { "LightMode" = "$splice(LightMode)" }
 
@@ -32,7 +32,7 @@ Pass
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
-    $Material.CottonWool:               #define _MATERIAL_FEATURE_COTTON_WOOL 1
+    $Material.KajiyaKay:                #define _MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1
     $Material.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
     $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
     $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
@@ -45,10 +45,10 @@ Pass
     $SpecularOcclusionFromAO:           #define _SPECULAR_OCCLUSION_FROM_AO 1
     $SpecularOcclusionFromAOBentNormal: #define _SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL 1
     $SpecularOcclusionCustom:           #define _SPECULAR_OCCLUSION_CUSTOM 1
-    $Specular.EnergyConserving:         #define _ENERGY_CONSERVING_SPECULAR 1
     $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
+
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
     //-------------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ Pass
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING
     #endif
-
+    
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
 
@@ -113,10 +113,10 @@ Pass
     #define HAS_LIGHTLOOP
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 #else
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
 #endif
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
@@ -155,7 +155,7 @@ $include("SharedCode.template.hlsl")
         // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
         if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
         {
-            surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+            surfaceData.diffuseColor.xyz = surfaceData.diffuseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
         }
 
         if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
@@ -180,37 +180,35 @@ $include("SharedCode.template.hlsl")
         ZERO_INITIALIZE(SurfaceData, surfaceData);
 
         // copy across graph values, if defined
-        $SurfaceDescription.Albedo:                     surfaceData.baseColor =                 surfaceDescription.Albedo;
-        $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
-        $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
-        $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion =          surfaceDescription.Occlusion;
-        $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
-        $SurfaceDescription.DiffusionProfile:           surfaceData.diffusionProfile =          surfaceDescription.DiffusionProfile;
-        $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
-        $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
-        $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
-        
+        $SurfaceDescription.Albedo:                         surfaceData.diffuseColor =                  surfaceDescription.Albedo;
+        $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
+        $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;        
+        $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
+        $SurfaceDescription.DiffusionProfile:               surfaceData.diffusionProfile =              surfaceDescription.DiffusionProfile;
+        $SurfaceDescription.SubsurfaceMask:                 surfaceData.subsurfaceMask =                surfaceDescription.SubsurfaceMask;
+        $SurfaceDescription.Thickness:                      surfaceData.thickness =                     surfaceDescription.Thickness;
+
+        $SurfaceDescription.SpecularTint:                   surfaceData.specularTint =                  surfaceDescription.SpecularTint;
+        $SurfaceDescription.SpecularShift:                  surfaceData.specularShift =                 surfaceDescription.SpecularShift;
+
+        $SurfaceDescription.SecondarySmoothness:            surfaceData.secondaryPerceptualSmoothness = surfaceDescription.SecondarySmoothness;
+        $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
+        $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
+     
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = 0;
 
-        // Transform the preprocess macro into a material feature (note that silk flag is deduced from the abscence of this one)
-#ifdef _MATERIAL_FEATURE_COTTON_WOOL
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
+        // Transform the preprocess macro into a material feature
+#ifdef _MATERIAL_FEATURE_HAIR_KAJIYA_KAY
+        surfaceData.materialFeatures = MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
 #endif
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING;
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_SUBSURFACE_SCATTERING;
 #endif
 
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION;
-#endif
-
-
-#if defined (_ENERGY_CONSERVING_SPECULAR)
-        // Require to have setup baseColor
-        // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
-        surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_TRANSMISSION;
 #endif
 
         // tangent-space normal
@@ -252,6 +250,13 @@ $include("SharedCode.template.hlsl")
         }
 #endif
 
+#ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
+        surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
+#endif
+
+        // Propagate the geometry normal
+        surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
+
 #ifdef DEBUG_DISPLAY
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {
@@ -286,10 +291,13 @@ $include("SharedCode.template.hlsl")
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+        $AlphaTestPrepass:  DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
+        $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
+        $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
-
+    
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
         InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
