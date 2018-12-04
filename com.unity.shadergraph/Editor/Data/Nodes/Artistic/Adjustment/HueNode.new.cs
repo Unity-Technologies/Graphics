@@ -1,19 +1,28 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     sealed class NewHueNode : ShaderNodeType
     {
-        InputPortRef m_InPort;
-        InputPortRef m_OffsetPort;
-        OutputPortRef m_OutPort;
+        // Name can be specified or generated from variable name (strips `m_` prefix and `Port` suffix)
+        // We can get rid of ID by using variable name instead. Similar to Unity serialization, you will need an
+        // attribute referring to the old name if you do a rename, but I think that's nicer than IDs.
+        [Vector3Port]
+        InputPortRef m_InPort = default;
+
+        // The default port value can be specified, but otherwise it defaults to zero.
+        [Vector1Port(0.5f)]
+        InputPortRef m_OffsetPort = default;
+
+        // Question: Output ports cannot have values, so should we just ignore the value, or have separate attributes
+        // for input and outputs?
+        [Vector3Port]
+        OutputPortRef m_OutPort = default;
 
         public override void Setup(NodeSetupContext context)
         {
-            m_InPort = context.CreateInputPort(0, "In", PortValue.Vector3());
-            m_OffsetPort = context.CreateInputPort(1, "Offset", PortValue.Vector1(0.5f));
-            m_OutPort = context.CreateOutputPort(2, "Out", PortValueType.Vector3);
             var type = new NodeTypeDescriptor
             {
                 path = "Artistic/Adjustment",
@@ -74,11 +83,4 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         public ControlRef offsetFactorControl;
     }
-
-// already defined in old HueNode file
-//    enum HueMode
-//    {
-//        Degrees,
-//        Normalized
-//    }
 }

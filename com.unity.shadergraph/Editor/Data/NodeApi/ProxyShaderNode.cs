@@ -6,6 +6,15 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
+    struct PortIdMapping
+    {
+        public int intId;
+        public string stringId;
+
+        public bool isValid => stringId != null;
+    }
+
     // Currently most of Shader Graph relies on AbstractMaterialNode as an abstraction, so it's a bit of a mouthful to
     // remove it just like that. Therefore we have this class that represents an IShaderNode as a AbstractMaterialNode.
     [Serializable]
@@ -19,6 +28,9 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         string m_ShaderNodeTypeName;
+
+        [SerializeField]
+        List<PortIdMapping> m_PortIdMap = new List<PortIdMapping>();
 
         NodeTypeState m_TypeState;
 
@@ -126,53 +138,83 @@ namespace UnityEditor.ShaderGraph
         {
             var validSlotIds = new List<int>();
 
-            // TODO: Properly handle shaderOutputName (i.e.
-            foreach (var portRef in typeState.type.inputs)
+            // Cull unused entries in the port ID map.
+            var newPortIdMap = new List<PortIdMapping>();
+
+            var inputPortIds = typeState.type.inputs.Select(p => typeState.inputPorts[p.index].id);
+            var outputPortIds = typeState.type.outputs.Select(p => typeState.outputPorts[p.index].id);
+
+            foreach (var id in inputPortIds.Concat(outputPortIds))
             {
-                var port = typeState.inputPorts[portRef.index];
-                var displayName = $"{NodeUtils.GetHLSLSafeName(port.displayName)}{port.id}";
-                switch (port.value.type)
+                var mapping = m_PortIdMap.FirstOrDefault(x => x.stringId == id);
+                if (mapping.isValid)
+                {
+                    newPortIdMap.Add(new PortIdMapping { intId = mapping.intId, stringId = id });
+                    validSlotIds.Add(mapping.intId);
+                }
+            }
+
+            m_PortIdMap = newPortIdMap;
+
+            // Build up a list of free IDs in between the current IDs.
+            validSlotIds.Sort();
+            var lastId = validSlotIds.LastOrDefault();
+            var freeIds = new Queue<int>();
+
+            for (var i = 0; i < validSlotIds.Count - 1; i++)
+            {
+                for (var j = validSlotIds[i] + 1; j < validSlotIds[i + 1]; j++)
+                {
+                    freeIds.Enqueue(j);
+                }
+            }
+
+            void CreatePort(string stringId, string displayName, SlotType direction, PortValue value)
+            {
+                var mapping = m_PortIdMap.FirstOrDefault(x => x.stringId == stringId);
+
+                int id;
+                if (mapping.isValid)
+                {
+                    id = mapping.intId;
+                }
+                else
+                {
+                    id = freeIds.Count > 0 ? freeIds.Dequeue() : ++lastId;
+                    m_PortIdMap.Add(new PortIdMapping { intId = id, stringId = stringId });
+                    validSlotIds.Add(id);
+                }
+
+                var outputName = $"{NodeUtils.GetHLSLSafeName(displayName)}_{stringId}";
+                switch (value.type)
                 {
                     case PortValueType.Vector1:
-                        AddSlot(new Vector1MaterialSlot(port.id, port.displayName, displayName, SlotType.Input, port.value.vector1Value));
+                        AddSlot(new Vector1MaterialSlot(id, displayName, outputName, direction, value.vector1Value));
                         break;
                     case PortValueType.Vector2:
-                        AddSlot(new Vector2MaterialSlot(port.id, port.displayName, displayName, SlotType.Input, port.value.vector2Value));
+                        AddSlot(new Vector2MaterialSlot(id, displayName, outputName, direction, value.vector2Value));
                         break;
                     case PortValueType.Vector3:
-                        AddSlot(new Vector3MaterialSlot(port.id, port.displayName, displayName, SlotType.Input, port.value.vector3Value));
+                        AddSlot(new Vector3MaterialSlot(id, displayName, outputName, direction, value.vector3Value));
                         break;
                     case PortValueType.Vector4:
-                        AddSlot(new Vector4MaterialSlot(port.id, port.displayName, displayName, SlotType.Input, port.value.vector4Value));
+                        AddSlot(new Vector4MaterialSlot(id, displayName, outputName, direction, value.vector4Value));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-                validSlotIds.Add(port.id);
+            }
+
+            foreach (var portRef in typeState.type.inputs)
+            {
+                var port = typeState.inputPorts[portRef.index];
+                CreatePort(port.id, port.displayName, SlotType.Input, port.value);
             }
 
             foreach (var portRef in typeState.type.outputs)
             {
                 var port = typeState.outputPorts[portRef.index];
-                var displayName = $"{NodeUtils.GetHLSLSafeName(port.displayName)}{port.id}";
-                switch (port.type)
-                {
-                    case PortValueType.Vector1:
-                        AddSlot(new Vector1MaterialSlot(port.id, port.displayName, displayName, SlotType.Output, default));
-                        break;
-                    case PortValueType.Vector2:
-                        AddSlot(new Vector2MaterialSlot(port.id, port.displayName, displayName, SlotType.Output, default));
-                        break;
-                    case PortValueType.Vector3:
-                        AddSlot(new Vector3MaterialSlot(port.id, port.displayName, displayName, SlotType.Output, default));
-                        break;
-                    case PortValueType.Vector4:
-                        AddSlot(new Vector4MaterialSlot(port.id, port.displayName, displayName, SlotType.Output, default));
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-                validSlotIds.Add(port.id);
+                CreatePort(port.id, port.displayName, SlotType.Output, new PortValue(port.type));
             }
 
             RemoveSlotsNameNotMatching(validSlotIds, true);
@@ -190,20 +232,22 @@ namespace UnityEditor.ShaderGraph
                     continue;
                 }
 
-                var slotId = typeState.outputPorts[argument.outputPortRef.index].id;
-                var slot = FindSlot<MaterialSlot>(slotId);
+                var stringId = typeState.outputPorts[argument.outputPortRef.index].id;
+                var intId = m_PortIdMap.First(x => x.stringId == stringId).intId;
+                var slot = FindSlot<MaterialSlot>(intId);
                 var typeStr = NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
-                var variableStr = GetVariableNameForSlot(slotId);
+                var variableStr = GetVariableNameForSlot(intId);
                 builder.Append($"{typeStr} {variableStr};");
             }
 
             // Declare variable for return value, and set it to the return value from the following function call.
             if (function.returnValue.isValid)
             {
-                var slotId = typeState.outputPorts[function.returnValue.index].id;
-                var slot = FindSlot<MaterialSlot>(slotId);
+                var stringId = typeState.outputPorts[function.returnValue.index].id;
+                var intId = m_PortIdMap.First(x => x.stringId == stringId).intId;
+                var slot = FindSlot<MaterialSlot>(intId);
                 var typeStr = NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
-                builder.Append($"{typeStr} {GetVariableNameForSlot(slotId)} = ");
+                builder.Append($"{typeStr} {GetVariableNameForSlot(intId)} = ");
             }
 
             // Build up the function call.
@@ -222,12 +266,14 @@ namespace UnityEditor.ShaderGraph
                 switch (argument.type)
                 {
                     case HlslArgumentType.InputPort:
-                        var inputSlotId = typeState.inputPorts[argument.inputPortRef.index].id;
-                        builder.Append(GetSlotValue(inputSlotId, generationMode));
+                        var inputStringId = typeState.inputPorts[argument.inputPortRef.index].id;
+                        var inputIntId = m_PortIdMap.First(x => x.stringId == inputStringId).intId;
+                        builder.Append(GetSlotValue(inputIntId, generationMode));
                         break;
                     case HlslArgumentType.OutputPort:
-                        var outputSlotId = typeState.outputPorts[argument.outputPortRef.index].id;
-                        builder.Append(GetVariableNameForSlot(outputSlotId));
+                        var outputStringId = typeState.outputPorts[argument.outputPortRef.index].id;
+                        var outputIntId = m_PortIdMap.First(x => x.stringId == outputStringId).intId;
+                        builder.Append(GetVariableNameForSlot(outputIntId));
                         break;
                     case HlslArgumentType.Vector1:
                         builder.Append(NodeUtils.FloatToShaderValue(argument.vector1Value));

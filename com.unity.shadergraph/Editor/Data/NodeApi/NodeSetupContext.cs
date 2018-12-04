@@ -82,28 +82,6 @@ namespace UnityEditor.ShaderGraph
             m_TypeState.typeCreated = true;
         }
 
-        public InputPortRef CreateInputPort(int id, string displayName, PortValue value)
-        {
-            if (m_TypeState.inputPorts.Any(x => x.id == id) || m_TypeState.outputPorts.Any(x => x.id == id))
-            {
-                throw new ArgumentException($"A port with id {id} already exists.", nameof(id));
-            }
-
-            m_TypeState.inputPorts.Add(new InputPortDescriptor { id = id, displayName = displayName, value = value });
-            return new InputPortRef(m_TypeState.inputPorts.Count);
-        }
-
-        public OutputPortRef CreateOutputPort(int id, string displayName, PortValueType type)
-        {
-            if (m_TypeState.inputPorts.Any(x => x.id == id) || m_TypeState.outputPorts.Any(x => x.id == id))
-            {
-                throw new ArgumentException($"A port with id {id} already exists.", nameof(id));
-            }
-
-            m_TypeState.outputPorts.Add(new OutputPortDescriptor { id = id, displayName = displayName, type = type });
-            return new OutputPortRef(m_TypeState.outputPorts.Count);
-        }
-
         void Validate()
         {
             if (m_CurrentSetupContextId != m_Graph.currentStateId)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -260,12 +261,11 @@ namespace UnityEditor.ShaderGraph
                         // inheritance if they insist, but the leaf class must be sealed. I think it's reasonable to
                         // require that you cannot have a node inheriting from another node, but instead have to put
                         // whatever common functionality you have into an abstract base class.
-                        Debug.LogError($"{type.FullName} implements {nameof(ShaderNodeType)}, but is not sealed.");
+                        Debug.LogError($"{type.FullName} implements {nameof(ShaderNodeType)}, but is not a sealed type. To fix this, please add the sealed modifier to your class.");
                         typeHasError = true;
                     }
 
-                    var constructor = type.GetConstructor(Type.EmptyTypes);
-                    if (constructor == null)
+                    if (type.GetConstructor(Type.EmptyTypes) == null)
                     {
                         Debug.LogError($"{type.FullName} implements {nameof(ShaderNodeType)}, but does not have a public, parameterless constructor.");
                         typeHasError = true;
@@ -279,17 +279,8 @@ namespace UnityEditor.ShaderGraph
                     try
                     {
                         var stateType = typeof(NodeTypeState<>).MakeGenericType(type);
-                        var state = (NodeTypeState)stateType.GetConstructor(Type.EmptyTypes).Invoke(null);
-                        state.id = nodeTypeStates.Count + 1;
-                        m_CurrentStateId = state.id;
-                        state.owner = this;
-                        state.nodeType = (ShaderNodeType)constructor.Invoke(null);
-                        var context = new NodeSetupContext(this, m_CurrentStateId, state);
-                        state.nodeType.Setup(context);
-                        if (!state.typeCreated)
-                        {
-                            throw new InvalidOperationException($"An {nameof(ShaderNodeType)} must provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
-                        }
+                        m_CurrentStateId = nodeTypeStates.Count + 1;
+                        var state = (NodeTypeState)stateType.GetConstructor(new[] { typeof(AbstractMaterialGraph), typeof(int) }).Invoke(new object[] { this, m_CurrentStateId });
                         nodeTypeStates.Add(state);
                     }
                     catch (Exception e)

@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         [FieldOffset(4)]
         Vector4 m_Vector;
 
-        PortValue(PortValueType type)
+        internal PortValue(PortValueType type)
             : this()
         {
             m_Type = type;

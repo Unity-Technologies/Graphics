@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -38,44 +40,89 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        ShaderNodeType m_NodeType;
-
-        public ShaderNodeType nodeType
-        {
-            get => m_NodeType;
-            set
-            {
-                SetNodeType(value);
-                m_NodeType = value;
-            }
-        }
-
-        protected abstract void SetNodeType(ShaderNodeType value);
+        public ShaderNodeType nodeType { get; protected set; }
 
         public abstract void DispatchChanges(NodeChangeContext context);
     }
 
     // This construction allows us to move the virtual call to outside the loop. The calls to the ShaderNodeType in
     // DispatchChanges are to a generic type parameter, and thus will be devirtualized if T is a sealed class.
-    sealed class NodeTypeState<T> : NodeTypeState where T : ShaderNodeType
+    sealed class NodeTypeState<T> : NodeTypeState where T : ShaderNodeType, new()
     {
-        public new T nodeType { get; set; }
-
-        protected override void SetNodeType(ShaderNodeType value)
+        public NodeTypeState(AbstractMaterialGraph owner, int id)
         {
-            nodeType = (T)value;
+            this.owner = owner;
+            this.id = id;
+            nodeType = new T();
+            base.nodeType = nodeType;
+
+            foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                if (fieldInfo.FieldType != typeof(InputPortRef) && fieldInfo.FieldType != typeof(OutputPortRef))
+                {
+                    continue;
+                }
+
+                var portAttributes = fieldInfo.GetCustomAttributes<PortAttribute>().ToList();
+
+                if (portAttributes.Count == 0)
+                {
+                    throw new InvalidOperationException($"{typeof(T).FullName}.{fieldInfo.Name} has type {fieldInfo.FieldType.Name}, but does not have a port attribute.");
+                }
+
+                if (portAttributes.Count > 1)
+                {
+                    throw new InvalidOperationException($"{typeof(T).FullName}.{fieldInfo.Name} has multiple port attributes.");
+                }
+
+                var portAttribute = portAttributes[0];
+
+                var displayName = fieldInfo.Name;
+                if (displayName.StartsWith("m_"))
+                {
+                    displayName = displayName.Substring(2);
+                }
+                if (displayName.EndsWith("Port"))
+                {
+                    displayName = displayName.Substring(0, displayName.Length - 4);
+                }
+
+                if (fieldInfo.FieldType == typeof(InputPortRef))
+                {
+                    inputPorts.Add(new InputPortDescriptor { id = fieldInfo.Name, displayName = displayName, value = portAttribute.value });
+                    var portRef = new InputPortRef(inputPorts.Count);
+                    fieldInfo.SetValue(nodeType, portRef);
+                }
+                else
+                {
+                    outputPorts.Add(new OutputPortDescriptor { id = fieldInfo.Name, displayName = displayName, type = portAttribute.value.type });
+                    var portRef = new OutputPortRef(outputPorts.Count);
+                    fieldInfo.SetValue(nodeType, portRef);
+                }
+            }
+
+            var context = new NodeSetupContext(owner, id, this);
+            nodeType.Setup(context);
+            if (!typeCreated)
+            {
+                throw new InvalidOperationException($"{typeof(T).FullName}.{nameof(ShaderNodeType.Setup)} did not provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
+            }
         }
+
+        public new T nodeType { get; }
 
         public override void DispatchChanges(NodeChangeContext context)
         {
+            var castNodeType = nodeType;
+
             foreach (var node in addedNodes)
             {
-                nodeType.OnNodeAdded(context, new ShaderNode(owner, owner.currentStateId, (ProxyShaderNode)owner.m_Nodes[node]));
+                castNodeType.OnNodeAdded(context, new ShaderNode(owner, owner.currentStateId, (ProxyShaderNode)owner.m_Nodes[node]));
             }
 
             foreach (var node in modifiedNodes)
             {
-                nodeType.OnNodeModified(context, new ShaderNode(owner, owner.currentStateId, (ProxyShaderNode)owner.m_Nodes[node]));
+                castNodeType.OnNodeModified(context, new ShaderNode(owner, owner.currentStateId, (ProxyShaderNode)owner.m_Nodes[node]));
             }
         }
     }
