@@ -4,7 +4,9 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
+#pragma warning disable 618 // TODO: update to IUpdateable interface
     partial class HDCameraUI : BaseUI<SerializedHDCamera>
+#pragma warning restore 618
     {
         SerializedHDCamera m_SerializedHdCamera;
 

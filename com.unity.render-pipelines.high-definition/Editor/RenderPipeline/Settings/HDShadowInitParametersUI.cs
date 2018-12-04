@@ -6,7 +6,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<HDShadowInitParametersUI, SerializedHDShadowInitParameters>;
 
+#pragma warning disable 618 // TODO: update to IUpdateable interface
     class HDShadowInitParametersUI : BaseUI<SerializedHDShadowInitParameters>
+#pragma warning restore 618
     {
         enum ShadowResolution
         {

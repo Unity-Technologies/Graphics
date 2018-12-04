@@ -1,63 +1,66 @@
 using System;
-using UnityEditor.AnimatedValues;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class InfluenceVolumeUI : BaseUI<SerializedInfluenceVolume>
+    partial class InfluenceVolumeUI : IUpdateable<SerializedInfluenceVolume>
     {
-        const int k_AnimBoolFields = 2;
-        static readonly int k_ShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
+        [Flags]
+        internal enum Flag
+        {
+            None = 0,
+            SectionExpandedShape = 1 << 0,
+            SectionExpandedShapeSphere = 1 << 1,
+            SectionExpandedShapeBox = 1 << 2,
+            ShowInfluenceHandle = 1 << 3
+        }
+
+        EditorPrefBoolFlags<Flag> m_FlagStorage = new EditorPrefBoolFlags<Flag>("InfluenceVolumeUI");
 
         public HierarchicalBox boxBaseHandle;
         public HierarchicalBox boxInfluenceHandle;
         public HierarchicalBox boxInfluenceNormalHandle;
 
-
         public HierarchicalSphere sphereBaseHandle;
         public HierarchicalSphere sphereInfluenceHandle;
         public HierarchicalSphere sphereInfluenceNormalHandle;
 
-        public AnimBool isSectionExpandedShape { get { return m_AnimBools[k_ShapeCount]; } }
-        public bool showInfluenceHandles { get; set; }
+        public bool HasFlag(Flag v) => m_FlagStorage.HasFlag(v);
+        public bool SetFlag(Flag f, bool v) => m_FlagStorage.SetFlag(f, v);
 
         public InfluenceVolumeUI()
-            : base(k_ShapeCount + k_AnimBoolFields)
         {
-            isSectionExpandedShape.value = true;
+            boxBaseHandle = new HierarchicalBox(
+                k_GizmoThemeColorBase, k_HandlesColor
+            );
+            boxInfluenceHandle = new HierarchicalBox(
+                k_GizmoThemeColorInfluence,
+                k_HandlesColor, parent: boxBaseHandle
+            );
+            boxInfluenceNormalHandle = new HierarchicalBox(
+                k_GizmoThemeColorInfluenceNormal,
+                k_HandlesColor, parent: boxBaseHandle
+            );
 
-            Color baseHandle = InfluenceVolumeUI.k_GizmoThemeColorBase;
-            baseHandle.a = 1f;
-            Color[] basehandleColors = new Color[]
+            sphereBaseHandle = new HierarchicalSphere(k_GizmoThemeColorBase);
+            sphereInfluenceHandle = new HierarchicalSphere(
+                k_GizmoThemeColorInfluence, parent: sphereBaseHandle
+            );
+            sphereInfluenceNormalHandle = new HierarchicalSphere(
+                k_GizmoThemeColorInfluenceNormal, parent: sphereBaseHandle
+            );
+        }
+
+        public void Update(SerializedInfluenceVolume v)
+        {
+            m_FlagStorage.SetFlag(Flag.SectionExpandedShapeBox | Flag.SectionExpandedShapeSphere, false);
+            switch ((InfluenceShape)v.shape.intValue)
             {
-                baseHandle, baseHandle, baseHandle,
-                baseHandle, baseHandle, baseHandle
-            };
-            boxBaseHandle = new HierarchicalBox(InfluenceVolumeUI.k_GizmoThemeColorBase, basehandleColors);
-            boxBaseHandle.monoHandle = false;
-            boxInfluenceHandle = new HierarchicalBox(InfluenceVolumeUI.k_GizmoThemeColorInfluence, k_HandlesColor, container: boxBaseHandle);
-            boxInfluenceNormalHandle = new HierarchicalBox(InfluenceVolumeUI.k_GizmoThemeColorInfluenceNormal, k_HandlesColor, container: boxBaseHandle);
-
-            sphereBaseHandle = new HierarchicalSphere(InfluenceVolumeUI.k_GizmoThemeColorBase);
-            sphereInfluenceHandle = new HierarchicalSphere(InfluenceVolumeUI.k_GizmoThemeColorInfluence, container: sphereBaseHandle);
-            sphereInfluenceNormalHandle = new HierarchicalSphere(InfluenceVolumeUI.k_GizmoThemeColorInfluenceNormal, container: sphereBaseHandle);
-        }
-
-        public void SetIsSectionExpanded_Shape(InfluenceShape shape)
-        {
-            SetIsSectionExpanded_Shape((int)shape);
-        }
-
-        public void SetIsSectionExpanded_Shape(int shape)
-        {
-            for (var i = 0; i < k_ShapeCount; i++)
-                m_AnimBools[i].target = shape == i;
-        }
-
-        public AnimBool IsSectionExpanded_Shape(InfluenceShape shapeType)
-        {
-            return m_AnimBools[(int)shapeType];
+                case InfluenceShape.Box: m_FlagStorage.SetFlag(Flag.SectionExpandedShapeBox, true); break;
+                case InfluenceShape.Sphere: m_FlagStorage.SetFlag(Flag.SectionExpandedShapeSphere, true); break;
+            }
         }
     }
 }
