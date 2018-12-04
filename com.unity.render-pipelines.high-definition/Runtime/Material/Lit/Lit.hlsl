@@ -428,7 +428,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     }
 
     // Move this to be an InitX() function.
-    bsdfData.roughnessesAndOcclusions = PackFloat8888(perceptualRoughness, coatRoughness, surfaceData.ambientOcclusion, surfaceData.specularOcclusion);
+	InitPerceptualRoughness(perceptualRoughness, bsdfData);
+	InitCoatRoughness(coatRoughness, bsdfData);
+	InitAmbientOcclusion(coatRoughness, surfaceData.ambientOcclusion);
+	InitSpecularOcclusion(coatRoughness, surfaceData.specularOcclusion);
 
     // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
     // perceptualRoughness is not clamped, and is meant to be used for IBL.
@@ -843,8 +846,10 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         InitCoatMask(coatMask, bsdfData);
     }
 
-    // Move this to be an InitX() function.
-    bsdfData.roughnessesAndOcclusions = PackFloat8888(perceptualRoughness, coatRoughness, ambientOcclusion, specularOcclusion);
+	InitPerceptualRoughness(perceptualRoughness, bsdfData);
+	InitCoatRoughness(coatRoughness, bsdfData);
+	InitAmbientOcclusion(coatRoughness, ambientOcclusion);
+	InitSpecularOcclusion(coatRoughness, specularOcclusion);
 
     // Note: the full code below (for both roughness) only execute when we have enableAnisotropy == true, otherwise as we only use roughnessT compiler will optimize out
     // Mean that in the worst case we always execute it.
