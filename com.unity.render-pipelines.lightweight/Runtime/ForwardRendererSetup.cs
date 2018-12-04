@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    internal class ForwardRenderGraph : RenderGraph
+    internal class ForwardRendererSetup : IRendererSetup
     {
         private DepthOnlyPass m_DepthOnlyPass;
         private MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetHandle m_AdditionalLightsShadowmap;
         private RenderTargetHandle m_ScreenSpaceShadowmap;
 
-        public ForwardRenderGraph(ForwardRenderGraphData data)
+        public ForwardRendererSetup(ForwardRendererData data)
         {
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.copyDepthShader);

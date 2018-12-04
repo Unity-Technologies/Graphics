@@ -92,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             set { m_RequiresOpaqueTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
         }
 
-        public RenderGraphData renderGraphData => (RenderGraphData)m_RenderGraphData;
+        public IRendererData renderGraphData => (IRendererData)m_RenderGraphData;
 		
         public void OnBeforeSerialize()
         {

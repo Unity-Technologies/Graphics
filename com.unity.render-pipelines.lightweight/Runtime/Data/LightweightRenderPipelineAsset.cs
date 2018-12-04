@@ -123,9 +123,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
-        public RenderGraphData renderGraphData
+        public IRendererData renderGraphData
         {
-            get => (RenderGraphData)m_RenderGraphData;
+            get => (IRendererData)m_RenderGraphData;
         }
         
 #if UNITY_EDITOR
@@ -138,14 +138,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static LightweightRenderPipelineAsset Create()
         {
             var instance = CreateInstance<LightweightRenderPipelineAsset>();
-            instance.m_RenderGraphData = LoadResourceFile<RenderGraphData>();
+            instance.m_RenderGraphData = LoadResourceFile<IRendererData>();
             instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
             return instance;
         }
 
-        public RenderGraph CreateRenderGraph()
+        public IRendererSetup CreateRenderGraph()
         {
-            RenderGraphData data = (RenderGraphData)m_RenderGraphData;
+            IRendererData data = (IRendererData)m_RenderGraphData;
             return data.Create();
         }
  

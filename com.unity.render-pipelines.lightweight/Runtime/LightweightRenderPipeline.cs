@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public ScriptableRenderer renderer { get; private set; }
         PipelineSettings settings { get; set; }
-        Dictionary<RenderGraphData, RenderGraph> m_PerCameraRenderGraphs = new Dictionary<RenderGraphData, RenderGraph>();
+        Dictionary<IRendererData, IRendererSetup> m_PerCameraRenderGraphs = new Dictionary<IRendererData, IRendererSetup>();
 
         public static float maxShadowBias
         {
@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public bool supportsSoftShadows { get; private set; }
             public bool supportsDynamicBatching { get; private set; }
             public bool mixedLightingSupported { get; private set; }
-            public RenderGraph renderGraph { get; private set; }
+            public IRendererSetup renderGraph { get; private set; }
 
             public static PipelineSettings Create(LightweightRenderPipelineAsset asset)
             {
@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 renderer.Clear();
 
-                RenderGraph renderGraph = settings.renderGraph;
+                IRendererSetup renderGraph = settings.renderGraph;
                 if (additionalCameraData != null && additionalCameraData.renderGraphData != null)
                 {
                     if (pipelineInstance.m_PerCameraRenderGraphs.ContainsKey(additionalCameraData.renderGraphData))

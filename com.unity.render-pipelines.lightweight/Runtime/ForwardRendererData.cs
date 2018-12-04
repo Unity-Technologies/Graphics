@@ -1,16 +1,16 @@
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     [CreateAssetMenu()]
-    public class ForwardRenderGraphData : RenderGraphData
+    public class ForwardRendererData : IRendererData
     {
         [SerializeField] Shader m_BlitShader = null;
         [SerializeField] Shader m_CopyDepthShader = null;
         [SerializeField] Shader m_ScreenSpaceShadowShader = null;
         [SerializeField] Shader m_SamplingShader = null;
 
-        public override RenderGraph Create()
+        public override IRendererSetup Create()
         {
-            return new ForwardRenderGraph(this);
+            return new ForwardRendererSetup(this);
         }
 
         public Shader blitShader
