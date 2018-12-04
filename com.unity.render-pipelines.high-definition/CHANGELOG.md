@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed point light shadow map culling that wasn't taking into account far plane
 - Fixed usage of SSR with transparent on all master node
 - Fixed SSR and microshadowing on fabric material
+- Fixed shader stripping for built-in lit shaders.
 
 ### Changed
 - Removing the simple lightloop used by the simple lit shader
