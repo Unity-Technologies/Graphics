@@ -1,63 +1,53 @@
 using System;
-using UnityEditor.AnimatedValues;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class InfluenceVolumeUI : BaseUI<SerializedInfluenceVolume>
+    partial class InfluenceVolumeUI
     {
-        const int k_AnimBoolFields = 2;
-        static readonly int k_ShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
+        static HierarchicalBox s_BoxBaseHandle;
+        static HierarchicalBox s_BoxInfluenceHandle;
+        static HierarchicalBox s_BoxInfluenceNormalHandle;
 
-        public HierarchicalBox boxBaseHandle;
-        public HierarchicalBox boxInfluenceHandle;
-        public HierarchicalBox boxInfluenceNormalHandle;
+        static HierarchicalSphere s_SphereBaseHandle;
+        static HierarchicalSphere s_SphereInfluenceHandle;
+        static HierarchicalSphere s_SphereInfluenceNormalHandle;
 
-
-        public HierarchicalSphere sphereBaseHandle;
-        public HierarchicalSphere sphereInfluenceHandle;
-        public HierarchicalSphere sphereInfluenceNormalHandle;
-
-        public AnimBool isSectionExpandedShape { get { return m_AnimBools[k_ShapeCount]; } }
-        public bool showInfluenceHandles { get; set; }
-
-        public InfluenceVolumeUI()
-            : base(k_ShapeCount + k_AnimBoolFields)
+        static InfluenceVolumeUI()
         {
-            isSectionExpandedShape.value = true;
-
-            Color baseHandle = InfluenceVolumeUI.k_GizmoThemeColorBase;
-            baseHandle.a = 1f;
-            Color[] basehandleColors = new Color[]
+            Color[] shapeHandlesColor = new[]
             {
-                baseHandle, baseHandle, baseHandle,
-                baseHandle, baseHandle, baseHandle
+                k_GizmoThemeColorBase,
+                k_GizmoThemeColorBase,
+                k_GizmoThemeColorBase,
+                k_GizmoThemeColorBase,
+                k_GizmoThemeColorBase,
+                k_GizmoThemeColorBase
             };
-            boxBaseHandle = new HierarchicalBox(InfluenceVolumeUI.k_GizmoThemeColorBase, basehandleColors);
-            boxBaseHandle.monoHandle = false;
-            boxInfluenceHandle = new HierarchicalBox(InfluenceVolumeUI.k_GizmoThemeColorInfluence, k_HandlesColor, container: boxBaseHandle);
-            boxInfluenceNormalHandle = new HierarchicalBox(InfluenceVolumeUI.k_GizmoThemeColorInfluenceNormal, k_HandlesColor, container: boxBaseHandle);
 
-            sphereBaseHandle = new HierarchicalSphere(InfluenceVolumeUI.k_GizmoThemeColorBase);
-            sphereInfluenceHandle = new HierarchicalSphere(InfluenceVolumeUI.k_GizmoThemeColorInfluence, container: sphereBaseHandle);
-            sphereInfluenceNormalHandle = new HierarchicalSphere(InfluenceVolumeUI.k_GizmoThemeColorInfluenceNormal, container: sphereBaseHandle);
-        }
+            //important: hierarchical box must be created here or the skin colors
+            //may not be fully charged and handles could be drawn in black
+            s_BoxBaseHandle = new HierarchicalBox(
+                k_GizmoThemeColorBase,
+                shapeHandlesColor);
+            s_BoxInfluenceHandle = new HierarchicalBox(
+                k_GizmoThemeColorInfluence,
+                k_HandlesColor,
+                parent: s_BoxBaseHandle);
+            s_BoxInfluenceNormalHandle = new HierarchicalBox(
+                k_GizmoThemeColorInfluenceNormal,
+                k_HandlesColor,
+                parent: s_BoxBaseHandle);
 
-        public void SetIsSectionExpanded_Shape(InfluenceShape shape)
-        {
-            SetIsSectionExpanded_Shape((int)shape);
-        }
-
-        public void SetIsSectionExpanded_Shape(int shape)
-        {
-            for (var i = 0; i < k_ShapeCount; i++)
-                m_AnimBools[i].target = shape == i;
-        }
-
-        public AnimBool IsSectionExpanded_Shape(InfluenceShape shapeType)
-        {
-            return m_AnimBools[(int)shapeType];
+            s_SphereBaseHandle = new HierarchicalSphere(k_GizmoThemeColorBase);
+            s_SphereInfluenceHandle = new HierarchicalSphere(
+                k_GizmoThemeColorInfluence,
+                parent: s_SphereBaseHandle);
+            s_SphereInfluenceNormalHandle = new HierarchicalSphere(
+                k_GizmoThemeColorInfluenceNormal,
+                parent: s_SphereBaseHandle);
         }
     }
 }

@@ -7,54 +7,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         internal SerializedObject serializedObject;
         
-        internal SerializedProperty renderDynamicObjects;
-        internal SerializedProperty customBakedTexture;
-
-        internal SerializedProperty proxyVolumeReference;
-        internal SerializedProperty infiniteProjection;
-
-        internal SerializedInfluenceVolume influenceVolume;
-        internal SerializedCaptureSettings captureSettings;
-        internal SerializedFrameSettings frameSettings;
-
-        internal SerializedProperty lightLayers;
-        internal SerializedProperty weight;
-        internal SerializedProperty multiplier;
-
-        internal SerializedProperty mode;
-        internal SerializedProperty refreshMode;
-
-        internal SerializedProperty resolution;
-        internal SerializedProperty shadowDistance;
-        internal SerializedProperty cullingMask;
-        internal SerializedProperty useOcclusionCulling;
-        internal SerializedProperty nearClip;
-        internal SerializedProperty farClip;
+        internal SerializedProperty bakedTexture;
+        internal SerializedProperty customTexture;
+        internal SerializedProbeSettings probeSettings;
+        internal SerializedProbeSettingsOverride probeSettingsOverride;
+        internal SerializedProperty proxyVolume;
 
         internal HDProbe target { get { return serializedObject.targetObject as HDProbe; } }
 
         internal SerializedHDProbe(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
-            
-            //Find do not support inheritance override:
-            //customBakedTexture will be assigned again in SerializedHDReflectionProbe
-            customBakedTexture = serializedObject.Find((HDProbe p) => p.customTexture);
-            renderDynamicObjects = serializedObject.Find((HDProbe p) => p.renderDynamicObjects);
 
-            proxyVolumeReference = serializedObject.Find((HDProbe p) => p.proxyVolume);
-            influenceVolume = new SerializedInfluenceVolume(serializedObject.Find((HDProbe p) => p.influenceVolume));
-            captureSettings = new SerializedCaptureSettings(serializedObject.Find((HDProbe p) => p.captureSettings));
-            infiniteProjection = serializedObject.Find((HDProbe p) => p.infiniteProjection);
-
-            frameSettings = new SerializedFrameSettings(serializedObject.Find((HDProbe p) => p.frameSettings));
-
-            lightLayers = serializedObject.Find((HDProbe p) => p.lightLayers);
-            weight = serializedObject.Find((HDProbe p) => p.weight);
-            multiplier = serializedObject.Find((HDProbe p) => p.multiplier);
-
-            mode = serializedObject.Find((HDProbe p) => p.mode);
-            refreshMode = serializedObject.Find((HDProbe p) => p.refreshMode);
+            bakedTexture = serializedObject.Find((HDProbe p) => p.bakedTexture);
+            customTexture = serializedObject.Find((HDProbe p) => p.customTexture);
+            proxyVolume = serializedObject.Find((HDProbe p) => p.proxyVolume);
+            probeSettings = new SerializedProbeSettings(serializedObject.FindProperty("m_ProbeSettings"));
+            probeSettingsOverride = new SerializedProbeSettingsOverride(serializedObject.FindProperty("m_ProbeSettingsOverride"));
         }
 
         internal virtual void Update()

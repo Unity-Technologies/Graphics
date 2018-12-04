@@ -445,12 +445,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (masterNode.transmission.isOn)
             {
-                activeFields.Add("SurfaceDescription.Transmission");
+                activeFields.Add("Material.Transmission");
             }
 
-            if (masterNode.subsurfaceScattering.isOn)
+            if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
             {
-                activeFields.Add("SurfaceDescription.SubsurfaceScattering");
+                activeFields.Add("Material.SubsurfaceScattering");
             }
 
             if (masterNode.IsSlotConnected(FabricMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.BentNormalSlotId))

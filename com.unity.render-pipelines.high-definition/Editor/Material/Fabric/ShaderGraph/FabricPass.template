@@ -33,8 +33,8 @@ Pass
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
     $Material.CottonWool:               #define _MATERIAL_FEATURE_COTTON_WOOL 1
-    $SurfaceDescription.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
-    $SurfaceDescription.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
+    $Material.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
+    $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
     $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
     $BlendMode.Alpha:                   #define _BLENDMODE_ALPHA 1
     $BlendMode.Add:                     #define _BLENDMODE_ADD 1
@@ -188,13 +188,12 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.DiffusionProfile:           surfaceData.diffusionProfile =          surfaceDescription.DiffusionProfile;
         $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
-        $SurfaceDescription.DiffusionProfile:           surfaceData.diffusionProfile =          surfaceDescription.DiffusionProfile;
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
         
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = 0;
 
-// Transform the preprocess macro into a material feature (note that silk flag is deduced from the abscence of this one)
+        // Transform the preprocess macro into a material feature (note that silk flag is deduced from the abscence of this one)
 #ifdef _MATERIAL_FEATURE_COTTON_WOOL
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
 #endif

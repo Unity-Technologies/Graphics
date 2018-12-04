@@ -46,7 +46,6 @@ namespace UnityEngine.VFX.Test
             "ConformAndSDF", // Turbulence is not deterministic
             "13_Decals", //doesn't render TODO investigate why <= this one is in world space
             "05_MotionVectors", //possible GPU Hang on this, skip it temporally
-            "SimpleLit", // Due to an HDRP error ("Recursive rendering is not supported in SRP"), temporarily excluded
         };
 
         [UnityTest, Category("VisualEffect")]

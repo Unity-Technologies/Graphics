@@ -71,7 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
             var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, false);
-            var gpuVP = gpuProj *  worldToViewMatrix * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API.
+            var gpuVP = gpuProj * worldToViewMatrix * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API.
 
             return gpuVP;
         }
@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
             
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
-            float aspectRatio    = screenSize.x * screenSize.w;
+            float aspectRatio = screenSize.x * screenSize.w;
 
             // Compose the matrix.
             float m21 = (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV;
@@ -281,9 +281,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // This particular case is for blitting a camera-scaled texture into a non scaling texture. So we setup the full viewport (implicit in cmd.Blit) but have to scale the input UVs.
-        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination)
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination, bool flip = false)
         {
-            cmd.Blit(source, destination, new Vector2(camera.viewportScale.x, camera.viewportScale.y), Vector2.zero);
+            var scale = new Vector2(camera.viewportScale.x, camera.viewportScale.y);
+            var offset = Vector2.zero;
+            if (flip)
+            {
+                offset.y = scale.y;
+                scale.y *= -1;
+            }
+            cmd.Blit(source, destination, scale, offset);
         }
 
         // This particular case is for blitting a non-scaled texture into a scaled texture. So we setup the partial viewport but don't scale the input UVs.
@@ -393,17 +400,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public struct PackedMipChainInfo
         {
-            public Vector2Int   textureSize;
-            public int          mipLevelCount;
+            public Vector2Int textureSize;
+            public int mipLevelCount;
             public Vector2Int[] mipLevelSizes;
             public Vector2Int[] mipLevelOffsets;
 
-            private bool        m_OffsetBufferWillNeedUpdate;
+            private bool m_OffsetBufferWillNeedUpdate;
 
             public void Allocate()
             {
                 mipLevelOffsets = new Vector2Int[15];
-                mipLevelSizes   = new Vector2Int[15];
+                mipLevelSizes = new Vector2Int[15];
                 m_OffsetBufferWillNeedUpdate = true;
             }
 
@@ -412,12 +419,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // This function is NOT fast, but it is illustrative, and can be optimized later.
             public void ComputePackedMipChainInfo(Vector2Int viewportSize)
             {
-                textureSize        = viewportSize;
-                mipLevelSizes[0]   = viewportSize;
+                textureSize = viewportSize;
+                mipLevelSizes[0] = viewportSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
 
-                int        mipLevel = 0;
-                Vector2Int mipSize  = viewportSize;
+                int mipLevel = 0;
+                Vector2Int mipSize = viewportSize;
 
                 do
                 {
@@ -430,7 +437,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     mipLevelSizes[mipLevel] = mipSize;
 
                     Vector2Int prevMipBegin = mipLevelOffsets[mipLevel - 1];
-                    Vector2Int prevMipEnd   = prevMipBegin + mipLevelSizes[mipLevel - 1];
+                    Vector2Int prevMipEnd = prevMipBegin + mipLevelSizes[mipLevel - 1];
 
                     Vector2Int mipBegin = new Vector2Int();
 
@@ -473,6 +480,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return (x + y - 1) / y;
         }
+
+        public static bool IsQuaternionValid(Quaternion q)
+            => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;
 
         // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
         public static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)

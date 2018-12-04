@@ -6,28 +6,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public sealed class HDRenderPipelineEditor : Editor
     {
         SerializedHDRenderPipelineAsset m_SerializedHDRenderPipeline;
-        HDRenderPipelineUI m_HDRenderPipelineUI = new HDRenderPipelineUI();
 
         void OnEnable()
         {
             m_SerializedHDRenderPipeline = new SerializedHDRenderPipelineAsset(serializedObject);
-            m_HDRenderPipelineUI.Reset(m_SerializedHDRenderPipeline, Repaint);
 
-            HDRenderPipelineUI.Init(m_HDRenderPipelineUI, m_SerializedHDRenderPipeline, this);
+            HDRenderPipelineUI.Init(m_SerializedHDRenderPipeline, this);
         }
 
         public override void OnInspectorGUI()
         {
-            var s = m_HDRenderPipelineUI;
-            var d = m_SerializedHDRenderPipeline;
-            var o = this;
+            var serialized = m_SerializedHDRenderPipeline;
+            
+            serialized.Update();
 
-            s.Update();
-            d.Update();
+            HDRenderPipelineUI.Inspector.Draw(serialized, this);
 
-            HDRenderPipelineUI.Inspector.Draw(s, d, o);
-
-            d.Apply();
+            serialized.Apply();
         }
     }
 }
