@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass;
 
             // Using Contains to include the Tessellation variants
-            bool isBuiltInLit = shader.name.Contains("HDRenderPipeline/Lit") && shader.name.Contains("HDRenderPipeline/LayeredLit") && shader.name.Contains("HDRenderPipeline/TerrainLit");
+            bool isBuiltInLit = shader.name.Contains("HDRenderPipeline/Lit") || shader.name.Contains("HDRenderPipeline/LayeredLit") || shader.name.Contains("HDRenderPipeline/TerrainLit");
 
             if (isDistortionPass && !hdrpAsset.renderPipelineSettings.supportDistortion)
                 return true;
@@ -83,7 +83,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
- 
+
 
             // TODO: Tests for later
             // We need to find a way to strip useless shader features for passes/shader stages that don't need them (example, vertex shaders won't ever need SSS Feature flag)
