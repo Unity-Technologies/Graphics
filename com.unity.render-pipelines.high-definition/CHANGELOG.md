@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals with stereo rendering
 - Fixed flip logic for postprocessing + VR
 - Fixed copyStencilBuffer pass for Switch
+- Fixed point light shadow map culling that wasn't taking into account far plane
 
 ### Changed
 - Removing the simple lightloop used by the simple lit shader
