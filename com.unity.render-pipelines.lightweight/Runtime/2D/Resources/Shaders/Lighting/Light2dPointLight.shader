@@ -36,7 +36,7 @@
 				float2 screenUV : TEXCOORD1;
 				float2 lookupUV : TEXCOORD2;	   // This is used for light relative direction
 				float2 lookupNoRotUV : TEXCOORD3;  // This is used for screen relative direction of a light
-				//float4 lightDirection: TEXCOORD4;
+				float4 lightDirection: TEXCOORD4;
             };
 
             sampler2D _MainTex;
@@ -64,7 +64,11 @@
 				float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
 				o.lookupUV = 0.5 * (lightSpacePos.xy + 1);
 				o.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
-				//o.lightDirection = worldSpacePos - _LightPosition;
+				o.lightDirection = _LightPosition- worldSpacePos;
+				o.lightDirection.z = 1.0;
+				o.lightDirection.w = 0;
+				o.lightDirection.xyz = normalize(o.lightDirection.xyz);
+
 
 				float4 clipVertex = o.vertex / o.vertex.w;
 				o.screenUV = ComputeScreenPos(clipVertex);
@@ -80,10 +84,10 @@
 
 				float usingDefaultNormalMap = (main.x + main.y + main.z) == 0;  // 1 if using a black normal map, 0 if using a custom normal map
 				// Can this be moved to the normal renderer? Is it worth it?
-				half3 normalUnpacked = UnpackNormal(main);
+				float3 normalUnpacked = UnpackNormal(main);
 				
-				normalUnpacked.z = 0;
-				normalUnpacked = normalize(normalUnpacked);
+				//normalUnpacked.z = 0;
+				//normalUnpacked = normalize(normalUnpacked);
 
 				// Inner Radius
 				half  attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
@@ -95,9 +99,9 @@
 				attenuation = attenuation * spotAttenuation;
 
 				// Calculate final color
-				half2 dirToLight = half2(lookupValueNoRot.b, lookupValueNoRot.a);
-				half2 normal = half2(normalUnpacked.x, normalUnpacked.y);
-				half cosAngle = (1-usingDefaultNormalMap) * saturate(dot(dirToLight, normal)) + usingDefaultNormalMap;
+				float3 dirToLight = i.lightDirection; // half2(lookupValueNoRot.b, lookupValueNoRot.a);
+				float3 normal = normalUnpacked; // half2(normalUnpacked.x, normalUnpacked.y);
+				float cosAngle = (1-usingDefaultNormalMap) * saturate(dot(dirToLight, normal)) + usingDefaultNormalMap;
 				half4 color = main.a *_LightColor * attenuation;
 				fixed4 finalColor = color * cosAngle; /*  +color * main.z * attenuation); */
 
