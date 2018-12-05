@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.LWRP
                 renderer.Clear();
 
                 IRendererSetup rendererSetup = settings.rendererSetup;
-                if (additionalCameraData != null && additionalCameraData.rendererData != null)
+                if (additionalCameraData != null && additionalCameraData.rendererType == RendererOverrideOption.Custom && additionalCameraData.rendererData != null)
                 {
                     if (pipelineInstance.m_PerCameraRenderGraphs.ContainsKey(additionalCameraData.rendererData))
                         rendererSetup = pipelineInstance.m_PerCameraRenderGraphs[additionalCameraData.rendererData];
