@@ -188,7 +188,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
                 uint diffusionProfile = GetDiffusionProfile(bsdfData);
 				transmittance = GetTransmittance(bsdfData);
 #else
-				uint diffusionProfile = GetDiffusionProfile(bsdfData.diffusionProfile);
+				uint diffusionProfile = bsdfData.diffusionProfile;
 				transmittance = bsdfData.transmittance;
 #endif
 				float thicknessInMeters = thicknessInUnits * _WorldScales[diffusionProfile].x;
