@@ -92,7 +92,7 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 
 #ifndef TERRAIN_SPLAT_BASEPASS
 
-void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
+void SplatmapMix(VertexOutput IN, out half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
 {
     splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
     weight = dot(splatControl, 1.0h);
@@ -105,13 +105,11 @@ void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splatControl, ou
     // lighting result can be correctly weighted.
     splatControl /= (weight + HALF_MIN);
 
-    half4 alpha = defaultAlpha * splatControl;
-
     mixedDiffuse = 0.0h;
-    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, IN.uvSplat01.xy) * half4(splatControl.rrr, alpha.r);
-    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, IN.uvSplat01.zw) * half4(splatControl.ggg, alpha.g);
-    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, IN.uvSplat23.xy) * half4(splatControl.bbb, alpha.b);
-    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, IN.uvSplat23.zw) * half4(splatControl.aaa, alpha.a);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, IN.uvSplat01.xy) * half4(splatControl.rrr, 1.0h);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, IN.uvSplat01.zw) * half4(splatControl.ggg, 1.0h);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, IN.uvSplat23.xy) * half4(splatControl.bbb, 1.0h);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, IN.uvSplat23.zw) * half4(splatControl.aaa, 1.0h);
 
 #ifdef _NORMALMAP
     half4 nrm = 0.0f;
@@ -226,23 +224,48 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     half4 splatControl;
     half weight;
     half4 mixedDiffuse;
-    half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
-    defaultSmoothness += half4(_MaskMapRemapOffset0.a, _MaskMapRemapOffset1.a, _MaskMapRemapOffset2.a, _MaskMapRemapOffset3.a);
-    defaultSmoothness *= half4(_MaskMapRemapScale0.a, _MaskMapRemapScale1.a, _MaskMapRemapScale2.a, _MaskMapRemapScale3.a);
-    SplatmapMix(IN, defaultSmoothness, splatControl, weight, mixedDiffuse, normalTS);
+    
+    half4 masks[4];
+    
+#ifdef _MASKMAP
+    masks[0] = SAMPLE_TEXTURE2D(_Mask0, sampler_Mask0, IN.uvSplat01.xy);
+    masks[1] = SAMPLE_TEXTURE2D(_Mask1, sampler_Mask0, IN.uvSplat01.zw);
+    masks[2] = SAMPLE_TEXTURE2D(_Mask2, sampler_Mask0, IN.uvSplat23.xy);
+    masks[3] = SAMPLE_TEXTURE2D(_Mask3, sampler_Mask0, IN.uvSplat23.zw);
+#else
+    masks[0] = half4(1.0h, 1.0h, 0.0h, 1.0h);
+    masks[1] = half4(1.0h, 1.0h, 0.0h, 1.0h);
+    masks[2] = half4(1.0h, 1.0h, 0.0h, 1.0h);
+    masks[3] = half4(1.0h, 1.0h, 0.0h, 1.0h);
+#endif
+    
+    SplatmapMix(IN, splatControl, weight, mixedDiffuse, normalTS);
 
     half3 albedo = mixedDiffuse.rgb;
     half smoothness = mixedDiffuse.a;
+    
+    half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
+    defaultSmoothness *= half4(masks[0].a, masks[1].a, masks[2].a, masks[3].a);
+    defaultSmoothness *= half4(_MaskMapRemapScale0.a, _MaskMapRemapScale1.a, _MaskMapRemapScale2.a, _MaskMapRemapScale3.a);
+    defaultSmoothness += half4(_MaskMapRemapOffset0.a, _MaskMapRemapOffset1.a, _MaskMapRemapOffset2.a, _MaskMapRemapOffset3.a);
+    
     half4 defaultMetallic = half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3);
-    defaultMetallic += half4(_MaskMapRemapOffset0.r, _MaskMapRemapOffset1.r, _MaskMapRemapOffset2.r, _MaskMapRemapOffset3.r);
+    defaultMetallic *= half4(masks[0].r, masks[1].r, masks[2].r, masks[3].r);
     defaultMetallic *= half4(_MaskMapRemapScale0.r, _MaskMapRemapScale1.r, _MaskMapRemapScale3.r, _MaskMapRemapScale3.r);
+    defaultMetallic += half4(_MaskMapRemapOffset0.r, _MaskMapRemapOffset1.r, _MaskMapRemapOffset2.r, _MaskMapRemapOffset3.r);
     half metallic = dot(splatControl, defaultMetallic);
+    
+    half4 defaultOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
+    defaultOcclusion *= half4(_MaskMapRemapScale0.g, _MaskMapRemapScale1.g, _MaskMapRemapScale3.g, _MaskMapRemapScale3.g);
+    defaultOcclusion += half4(_MaskMapRemapOffset0.g, _MaskMapRemapOffset1.g, _MaskMapRemapOffset2.g, _MaskMapRemapOffset3.g);
+    half occlusion = dot(splatControl, defaultOcclusion);
+    
     half alpha = weight;
 #endif
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
-    half4 color = LightweightFragmentPBR(inputData, albedo, metallic, half3(0.0h, 0.0h, 0.0h), smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
+    half4 color = LightweightFragmentPBR(inputData, albedo, metallic, half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
     SplatmapFinalColor(color, inputData.fogCoord);
 
