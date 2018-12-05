@@ -113,29 +113,46 @@ namespace UnityEditor.VFX.Operator
             VFXExpression rangeMultiplier = (inputExpression[5].y - inputExpression[5].x);
 
             VFXExpression result;
+            VFXExpression rangeMin = VFXValue.Constant(0.0f);
+            VFXExpression rangeMax = VFXValue.Constant(1.0f);
+
             if (dimensions == DimensionCount.One)
             {
                 if (type == NoiseType.Value)
+                {
                     result = new VFXExpressionValueNoise1D(inputExpression[0], parameters, inputExpression[2]);
+                }
                 else if (type == NoiseType.Perlin)
+                {
                     result = new VFXExpressionPerlinNoise1D(inputExpression[0], parameters, inputExpression[2]);
+                    rangeMin = VFXValue.Constant(-1.0f);
+                }
                 else
+                {
                     result = new VFXExpressionCellularNoise1D(inputExpression[0], parameters, inputExpression[2]);
+                }
 
-                VFXExpression x = VFXOperatorUtility.Fit(result.x, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f), inputExpression[5].x, inputExpression[5].y);
+                VFXExpression x = VFXOperatorUtility.Fit(result.x, rangeMin, rangeMax, inputExpression[5].x, inputExpression[5].y);
                 VFXExpression y = result.y * rangeMultiplier;
                 return new[] { x, y };
             }
             else if (dimensions == DimensionCount.Two)
             {
                 if (type == NoiseType.Value)
+                {
                     result = new VFXExpressionValueNoise2D(inputExpression[0], parameters, inputExpression[2]);
+                }
                 else if (type == NoiseType.Perlin)
+                {
                     result = new VFXExpressionPerlinNoise2D(inputExpression[0], parameters, inputExpression[2]);
+                    rangeMin = VFXValue.Constant(-1.0f);
+                }
                 else
+                {
                     result = new VFXExpressionCellularNoise2D(inputExpression[0], parameters, inputExpression[2]);
+                }
 
-                VFXExpression x = VFXOperatorUtility.Fit(result.x, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f), inputExpression[5].x, inputExpression[5].y);
+                VFXExpression x = VFXOperatorUtility.Fit(result.x, rangeMin, rangeMax, inputExpression[5].x, inputExpression[5].y);
                 VFXExpression y = result.y * rangeMultiplier;
                 VFXExpression z = result.z * rangeMultiplier;
                 return new[] { x, new VFXExpressionCombine(y, z) };
@@ -143,13 +160,20 @@ namespace UnityEditor.VFX.Operator
             else
             {
                 if (type == NoiseType.Value)
+                {
                     result = new VFXExpressionValueNoise3D(inputExpression[0], parameters, inputExpression[2]);
+                }
                 else if (type == NoiseType.Perlin)
+                {
                     result = new VFXExpressionPerlinNoise3D(inputExpression[0], parameters, inputExpression[2]);
+                    rangeMin = VFXValue.Constant(-1.0f);
+                }
                 else
+                {
                     result = new VFXExpressionCellularNoise3D(inputExpression[0], parameters, inputExpression[2]);
+                }
 
-                VFXExpression x = VFXOperatorUtility.Fit(result.x, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f), inputExpression[5].x, inputExpression[5].y);
+                VFXExpression x = VFXOperatorUtility.Fit(result.x, rangeMin, rangeMax, inputExpression[5].x, inputExpression[5].y);
                 VFXExpression y = result.y * rangeMultiplier;
                 VFXExpression z = result.z * rangeMultiplier;
                 VFXExpression w = result.w * rangeMultiplier;

@@ -35,7 +35,7 @@ Shader "Hidden/Default StaticMeshOutput"
 
             v2f vert (appdata v)
             {
-                v2f o;
+                v2f o = (v2f)0;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 return o;
             }

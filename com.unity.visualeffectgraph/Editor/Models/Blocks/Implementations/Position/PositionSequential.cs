@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Block
         }
     }
 
-    [VFXInfo(category = "Position", variantProvider = typeof(PositionSequentialVariantProvider), experimental = true)]
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionSequentialVariantProvider))]
     class PositionSequential : VFXBlock
     {
         public enum SequentialShape
