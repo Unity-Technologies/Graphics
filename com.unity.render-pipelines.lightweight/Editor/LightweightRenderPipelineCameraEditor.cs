@@ -21,11 +21,20 @@ namespace UnityEditor.Rendering.LWRP
             public static GUIContent allowMSAA = EditorGUIUtility.TrTextContent("MSAA", "Use Multi Sample Anti-Aliasing to reduce aliasing.");
             public static GUIContent allowHDR = EditorGUIUtility.TrTextContent("HDR", "High Dynamic Range gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light.", (Texture) null);
 
-            public static GUIContent renderGraph = EditorGUIUtility.TrTextContent("Render Graph", "Render Graph");
+            public static GUIContent rendererType = EditorGUIUtility.TrTextContent("Renderer Type", "Renderer Type");
+            public static GUIContent rendererData = EditorGUIUtility.TrTextContent("Renderer Data", "Renderer Data");
 
             public readonly GUIContent[] renderingPathOptions = { EditorGUIUtility.TrTextContent("Forward") };
             public readonly string hdrDisabledWarning = "HDR rendering is disabled in the Lightweight Render Pipeline asset.";
             public readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Lightweight Render Pipeline asset.";
+
+            public static GUIContent[] displayedRendererTypeOverride =
+            {
+                new GUIContent("Custom"),
+                new GUIContent("Use Pipeline Settings"),
+            };
+
+            public static int[] rendererTypeOptions = Enum.GetValues(typeof(RendererOverrideOption)).Cast<int>().ToArray();
 
             // This is for adding more data like Pipeline Asset option
             public static GUIContent[] displayedAdditionalDataOptions =
@@ -70,7 +79,8 @@ namespace UnityEditor.Rendering.LWRP
         SerializedProperty m_AdditionalCameraDataRenderShadowsProp;
         SerializedProperty m_AdditionalCameraDataRenderDepthProp;
         SerializedProperty m_AdditionalCameraDataRenderOpaqueProp;
-        SerializedProperty m_AdditionalCameraDataRenderGraphProp;
+        SerializedProperty m_AdditionalCameraDataRendererProp;
+        SerializedProperty m_AdditionalCameraDataRendererDataProp;
 
         void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
         {
@@ -112,7 +122,8 @@ namespace UnityEditor.Rendering.LWRP
             m_AdditionalCameraDataRenderShadowsProp = m_AdditionalCameraDataSO.FindProperty("m_RenderShadows");
             m_AdditionalCameraDataRenderDepthProp = m_AdditionalCameraDataSO.FindProperty("m_RequiresDepthTextureOption");
             m_AdditionalCameraDataRenderOpaqueProp = m_AdditionalCameraDataSO.FindProperty("m_RequiresOpaqueTextureOption");
-            m_AdditionalCameraDataRenderGraphProp = m_AdditionalCameraDataSO.FindProperty("m_RenderGraphData");
+            m_AdditionalCameraDataRendererProp = m_AdditionalCameraDataSO.FindProperty("m_RendererOverrideOption");
+            m_AdditionalCameraDataRendererDataProp = m_AdditionalCameraDataSO.FindProperty("m_RendererData");
         }
 
         public void OnDisable()
@@ -216,12 +227,14 @@ namespace UnityEditor.Rendering.LWRP
             bool selectedValueShadows;
             CameraOverrideOption selectedDepthOption;
             CameraOverrideOption selectedOpaqueOption;
+            RendererOverrideOption selectedRendererOption;
 
             if (m_AdditionalCameraDataSO == null)
             {
                 selectedValueShadows = true;
                 selectedDepthOption = CameraOverrideOption.UsePipelineSettings;
                 selectedOpaqueOption = CameraOverrideOption.UsePipelineSettings;
+                selectedRendererOption = RendererOverrideOption.UsePipelineSettings;
             }
             else
             {
@@ -229,6 +242,26 @@ namespace UnityEditor.Rendering.LWRP
                 selectedValueShadows = m_AdditionalCameraData.renderShadows;
                 selectedDepthOption = (CameraOverrideOption)m_AdditionalCameraDataRenderDepthProp.intValue;
                 selectedOpaqueOption =(CameraOverrideOption)m_AdditionalCameraDataRenderOpaqueProp.intValue;
+                selectedRendererOption = (RendererOverrideOption) m_AdditionalCameraDataRendererProp.intValue;
+            }
+
+            // Renderer Type
+            Rect controlRectRendererType = EditorGUILayout.GetControlRect(true);
+
+            if (m_AdditionalCameraDataSO != null)
+                EditorGUI.BeginProperty(controlRectRendererType, Styles.rendererType, m_AdditionalCameraDataRendererProp);
+            EditorGUI.BeginChangeCheck();
+            selectedRendererOption = (RendererOverrideOption)EditorGUI.IntPopup(controlRectRendererType, Styles.rendererType, (int)selectedRendererOption, Styles.displayedRendererTypeOverride, Styles.rendererTypeOptions);
+            if (EditorGUI.EndChangeCheck())
+                hasChanged = true;
+            if (m_AdditionalCameraDataSO != null)
+                EditorGUI.EndProperty();
+
+            if (selectedRendererOption == RendererOverrideOption.Custom && m_AdditionalCameraDataSO != null)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_AdditionalCameraDataRendererDataProp, Styles.rendererData);
+                EditorGUI.indentLevel--;
             }
 
             // Depth Texture
@@ -292,9 +325,6 @@ namespace UnityEditor.Rendering.LWRP
             if(m_AdditionalCameraDataSO != null)
                 EditorGUI.EndProperty();
 
-            if (m_AdditionalCameraDataSO != null)
-                EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderGraphProp, Styles.renderGraph);
-
             if (hasChanged)
             {
                 if (m_AdditionalCameraDataSO == null)
@@ -305,6 +335,7 @@ namespace UnityEditor.Rendering.LWRP
                 m_AdditionalCameraDataRenderShadowsProp.boolValue = selectedValueShadows;
                 m_AdditionalCameraDataRenderDepthProp.intValue = (int)selectedDepthOption;
                 m_AdditionalCameraDataRenderOpaqueProp.intValue = (int)selectedOpaqueOption;
+                m_AdditionalCameraDataRendererProp.intValue = (int)selectedRendererOption;
                 m_AdditionalCameraDataSO.ApplyModifiedProperties();
             }
 
