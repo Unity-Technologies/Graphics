@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Rendering.LWRP

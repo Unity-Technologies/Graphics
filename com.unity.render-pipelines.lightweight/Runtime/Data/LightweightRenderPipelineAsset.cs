@@ -3,7 +3,6 @@ using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
-using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
 
 namespace UnityEngine.Rendering.LWRP
@@ -69,6 +68,12 @@ namespace UnityEngine.Rendering.LWRP
         AllShaders,
     }
 
+    public enum RendererType
+    {
+        ForwardRenderer,
+        Custom,
+    }
+
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
@@ -76,8 +81,9 @@ namespace UnityEngine.Rendering.LWRP
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
 
-        [SerializeField] ScriptableObject m_RenderGraphData = null;
-
+        [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
+        [SerializeField] IRendererData m_RendererData = null;
+        
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
         [SerializeField] bool m_RequireOpaqueTexture = false;
@@ -124,9 +130,9 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
-        public IRendererData renderGraphData
+        public IRendererData rendererData
         {
-            get => (IRendererData)m_RenderGraphData;
+            get => (IRendererData)m_RendererData;
         }
         
 #if UNITY_EDITOR
@@ -139,17 +145,23 @@ namespace UnityEngine.Rendering.LWRP
         public static LightweightRenderPipelineAsset Create()
         {
             var instance = CreateInstance<LightweightRenderPipelineAsset>();
-            instance.m_RenderGraphData = LoadResourceFile<IRendererData>();
+
+            instance.LoadRendererData();
             instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
             return instance;
         }
 
-        public IRendererSetup CreateRendererSetup()
+        void LoadRendererData()
         {
-            IRendererData data = (IRendererData)m_RenderGraphData;
-            return data.Create();
+            switch (m_RendererType)
+            {
+                // Forward Renderer is the fallback renderer that works on all platforms
+                default:
+                    m_RendererData = LoadResourceFile<ForwardRendererData>();
+                    break;
+            }
         }
- 
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
         internal class CreateLightweightPipelineAsset : EndNameEditAction
         {
@@ -206,9 +218,19 @@ namespace UnityEngine.Rendering.LWRP
         }
 #endif
  
-        protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
+        protected override RenderPipeline CreatePipeline()
         {
             return new LightweightRenderPipeline(this);
+        }
+
+        public IRendererSetup CreateRendererSetup()
+        {
+#if UNITY_EDITOR
+            if (m_RendererData == null)
+                LoadRendererData();
+#endif
+
+            return m_RendererData.Create();
         }
 
         Material GetMaterial(DefaultMaterialType materialType)

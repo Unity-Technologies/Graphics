@@ -1,7 +1,6 @@
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
 using UnityEditor.Rendering;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -18,7 +17,8 @@ namespace UnityEngine.Rendering.LWRP
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
             // Render Path
-            public static GUIContent renderPath = EditorGUIUtility.TrTextContent("Render Path", "Render Path");
+            public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Renderer Type", "Renderer Type");
+            public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Renderer Data", "Required by a custom Renderer. If none assigned LWRP fallsback to Forward Renderer.");
 
             // General
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
@@ -67,7 +67,8 @@ namespace UnityEngine.Rendering.LWRP
         SavedBool m_ShadowSettingsFoldout;
         SavedBool m_AdvancedSettingsFoldout;
 
-        SerializedProperty m_RenderGraphDataProp;
+        SerializedProperty m_RendererTypeProp;
+        SerializedProperty m_RendererDataProp;
 
         SerializedProperty m_RequireDepthTextureProp;
         SerializedProperty m_RequireOpaqueTextureProp;
@@ -107,7 +108,17 @@ namespace UnityEngine.Rendering.LWRP
         {
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(m_RenderGraphDataProp, Styles.renderPath);
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(m_RendererTypeProp, Styles.rendererTypeText);
+            if (m_RendererTypeProp.intValue == (int) RendererType.Custom)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_RendererDataProp, Styles.rendererDataText);
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
 
             DrawGeneralSettings();
             DrawQualitySettings();
@@ -120,12 +131,14 @@ namespace UnityEngine.Rendering.LWRP
 
         void OnEnable()
         {
-			m_RenderGraphDataProp = serializedObject.FindProperty("m_RenderGraphData");
             m_GeneralSettingsFoldout = new SavedBool($"{target.GetType()}.GeneralSettingsFoldout", false);
             m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
             m_ShadowSettingsFoldout = new SavedBool($"{target.GetType()}.ShadowSettingsFoldout", false);
             m_AdvancedSettingsFoldout = new SavedBool($"{target.GetType()}.AdvancedSettingsFoldout", false);
+
+            m_RendererTypeProp = serializedObject.FindProperty("m_RendererType");
+            m_RendererDataProp = serializedObject.FindProperty("m_RendererData");
 
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");

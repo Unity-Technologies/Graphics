@@ -32,7 +32,6 @@ namespace UnityEngine.Rendering.LWRP
             public static int _ScaledScreenParams;
         }
 
-        
         const string k_RenderCameraTag = "Render Camera";
 
         public ScriptableRenderer renderer { get; private set; }
