@@ -786,12 +786,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
         {
-            if (debugDisplaySettings.decalsDebugSettings.m_DisplayAtlas)
+            if (debugDisplaySettings.data.decalsDebugSettings.displayAtlas)
             {
                 using (new ProfilingSample(cmd, "Display Decal Atlas", CustomSamplerId.DisplayDebugDecalsAtlas.GetSampler()))
                 {
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0 , 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.decalsDebugSettings.m_MipLevel, true);
+                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0 , 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel, true);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
             }

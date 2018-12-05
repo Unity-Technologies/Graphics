@@ -26,11 +26,11 @@ public class DebugViewController : MonoBehaviour
         {
             case SettingType.Material:
                 hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(gBuffer);
-                hdPipeline.debugDisplaySettings.fullScreenDebugMode = FullScreenDebugMode.None;
+                hdPipeline.debugDisplaySettings.data.fullScreenDebugMode = FullScreenDebugMode.None;
                 break;
             case SettingType.Rendering:
                 hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(0);
-                hdPipeline.debugDisplaySettings.fullScreenDebugMode = (FullScreenDebugMode) fullScreenDebugMode;
+                hdPipeline.debugDisplaySettings.data.fullScreenDebugMode = (FullScreenDebugMode) fullScreenDebugMode;
                 break;
         }
     }
@@ -40,6 +40,6 @@ public class DebugViewController : MonoBehaviour
         HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
         hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(0);
-        hdPipeline.debugDisplaySettings.fullScreenDebugMode = FullScreenDebugMode.None;
+        hdPipeline.debugDisplaySettings.data.fullScreenDebugMode = FullScreenDebugMode.None;
     }
 }
