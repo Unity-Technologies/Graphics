@@ -217,12 +217,15 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
 	// in the auto-thickness mode (but is always used for indirect lighting).
 #ifdef LIT_CS_HLSL
 	SetDiffusionProfile(diffusionProfile, bsdfData);
-	SetTransmittance(ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
-		_TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-		outThickness), bsdfData);
 
 	SetFresnel0(_TransmissionTintsAndFresnel0[diffusionProfile].a, bsdfData);
-	SetThickness(_ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness, bsdfData);
+	float modifiedThickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
+	SetThickness(modifiedThickness, bsdfData);
+
+	SetTransmittance(ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
+		_TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+		modifiedThickness), bsdfData);
+
 #else 
 	bsdfData.diffusionProfile = diffusionProfile;
 	bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
