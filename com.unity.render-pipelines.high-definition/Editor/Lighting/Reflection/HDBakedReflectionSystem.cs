@@ -83,6 +83,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+            // On the C# side, we don't have non blocking asset import APIs, and we don't want to block the
+            //   UI when the user is editing the world.
+            //   So, we skip the baking when the user is editing any UI control.
+            if (GUIUtility.hotControl != 0) 
+                return;
+
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdPipeline))
             {
                 Debug.LogWarning("HDBakedReflectionSystem work with HDRP, " +

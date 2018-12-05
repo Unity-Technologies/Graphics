@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class AutoSizeGrid : MonoBehaviour {
 
 	public GridLayoutGroup layout;
