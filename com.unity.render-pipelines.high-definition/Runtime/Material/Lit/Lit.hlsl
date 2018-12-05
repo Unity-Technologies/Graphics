@@ -400,7 +400,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, thickness, bsdfData);
+        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
@@ -441,7 +441,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Note: Reuse thickness of transmission's property set
 	FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, bsdfData);
     InitTransmittanceMask(surfaceData.transmittanceMask, bsdfData);
-    InitThickness(max(thickness, 0.0001), bsdfData);
+	SetThickness(max(GetThickness(bsdfData), 0.0001), bsdfData);
 #endif
 
 	ApplyDebugToBSDFData(bsdfData);
@@ -779,9 +779,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         // The neutral value of thickness and transmittance is 0 (handled by ZERO_INITIALIZE).
         if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
         {
-            float thickness;
-            FillMaterialTransmission(sssData.diffusionProfile, inGBuffer2.g, thickness, bsdfData);
-            InitThickness(thickness, bsdfData);
+            FillMaterialTransmission(sssData.diffusionProfile, inGBuffer2.g, bsdfData);
         }
     }
     else
