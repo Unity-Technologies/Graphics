@@ -24,14 +24,16 @@ namespace UnityEngine.Experimental.Rendering
         public PackingRules packingRules;
         public bool containsPackedFields;
         public bool needAccessors; // Whether or not to generate the accessors
+        public bool needSetters; // Whether or not to generate setters
         public bool needParamDebug; // // Whether or not to generate define for each field of the struct + debug function (use in HDRenderPipeline)
         public int paramDefinesStart; // Start of the generated define
         public bool omitStructDeclaration; // Whether to skip "struct <name> {" etc
 
-        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needParamDebug = false, int paramDefinesStart = 1, bool omitStructDeclaration = false, bool containsPackedFields = false)
+        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1, bool omitStructDeclaration = false, bool containsPackedFields = false)
         {
             packingRules = rules;
             this.needAccessors = needAccessors;
+            this.needSetters = needSetters;
             this.needParamDebug = needParamDebug;
             this.paramDefinesStart = paramDefinesStart;
             this.omitStructDeclaration = omitStructDeclaration;

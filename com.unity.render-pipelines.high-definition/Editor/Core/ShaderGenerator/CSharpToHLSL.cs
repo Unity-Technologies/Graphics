@@ -130,9 +130,10 @@ namespace UnityEditor.Experimental.Rendering
 
                     foreach (var gen in it.Value)
                     {
-                        if (gen.hasFields && gen.needAccessors)
+                        if (gen.hasFields && gen.needAccessors && !gen.hasPackedInfo)
                         {
                             writer.Write(gen.EmitAccessors() + "\n");
+                            writer.Write(gen.EmitSetters() + "\n");
                         }
                     }
 

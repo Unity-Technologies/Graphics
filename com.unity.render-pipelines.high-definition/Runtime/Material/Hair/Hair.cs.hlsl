@@ -118,6 +118,214 @@ struct BSDFData
 };
 
 //
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.Hair+BSDFData
+//
+uint GetMaterialFeatures(BSDFData value)
+{
+    return value.materialFeatures;
+}
+float GetAmbientOcclusion(BSDFData value)
+{
+    return value.ambientOcclusion;
+}
+float GetSpecularOcclusion(BSDFData value)
+{
+    return value.specularOcclusion;
+}
+float3 GetDiffuseColor(BSDFData value)
+{
+    return value.diffuseColor;
+}
+float3 GetFresnel0(BSDFData value)
+{
+    return value.fresnel0;
+}
+float3 GetSpecularTint(BSDFData value)
+{
+    return value.specularTint;
+}
+float3 GetNormalWS(BSDFData value)
+{
+    return value.normalWS;
+}
+float3 GetGeomNormalWS(BSDFData value)
+{
+    return value.geomNormalWS;
+}
+float GetPerceptualRoughness(BSDFData value)
+{
+    return value.perceptualRoughness;
+}
+uint GetDiffusionProfile(BSDFData value)
+{
+    return value.diffusionProfile;
+}
+float GetSubsurfaceMask(BSDFData value)
+{
+    return value.subsurfaceMask;
+}
+float GetThickness(BSDFData value)
+{
+    return value.thickness;
+}
+bool GetUseThickObjectMode(BSDFData value)
+{
+    return value.useThickObjectMode;
+}
+float3 GetTransmittance(BSDFData value)
+{
+    return value.transmittance;
+}
+float3 GetTangentWS(BSDFData value)
+{
+    return value.tangentWS;
+}
+float3 GetBitangentWS(BSDFData value)
+{
+    return value.bitangentWS;
+}
+float GetRoughnessT(BSDFData value)
+{
+    return value.roughnessT;
+}
+float GetRoughnessB(BSDFData value)
+{
+    return value.roughnessB;
+}
+float GetAnisotropy(BSDFData value)
+{
+    return value.anisotropy;
+}
+float GetSecondaryPerceptualRoughness(BSDFData value)
+{
+    return value.secondaryPerceptualRoughness;
+}
+float3 GetSecondarySpecularTint(BSDFData value)
+{
+    return value.secondarySpecularTint;
+}
+float GetSpecularExponent(BSDFData value)
+{
+    return value.specularExponent;
+}
+float GetSecondarySpecularExponent(BSDFData value)
+{
+    return value.secondarySpecularExponent;
+}
+float GetSpecularShift(BSDFData value)
+{
+    return value.specularShift;
+}
+float GetSecondarySpecularShift(BSDFData value)
+{
+    return value.secondarySpecularShift;
+}
+
+//
+// Setters for UnityEngine.Experimental.Rendering.HDPipeline.Hair+BSDFData
+//
+void SetMaterialFeatures(uint newValue, BSDFData dest )
+{
+    dest.materialFeatures = newValue;
+}
+void SetAmbientOcclusion(float newValue, BSDFData dest )
+{
+    dest.ambientOcclusion = newValue;
+}
+void SetSpecularOcclusion(float newValue, BSDFData dest )
+{
+    dest.specularOcclusion = newValue;
+}
+void SetDiffuseColor(float3 newValue, BSDFData dest )
+{
+    dest.diffuseColor = newValue;
+}
+void SetFresnel0(float3 newValue, BSDFData dest )
+{
+    dest.fresnel0 = newValue;
+}
+void SetSpecularTint(float3 newValue, BSDFData dest )
+{
+    dest.specularTint = newValue;
+}
+void SetNormalWS(float3 newValue, BSDFData dest )
+{
+    dest.normalWS = newValue;
+}
+void SetGeomNormalWS(float3 newValue, BSDFData dest )
+{
+    dest.geomNormalWS = newValue;
+}
+void SetPerceptualRoughness(float newValue, BSDFData dest )
+{
+    dest.perceptualRoughness = newValue;
+}
+void SetDiffusionProfile(uint newValue, BSDFData dest )
+{
+    dest.diffusionProfile = newValue;
+}
+void SetSubsurfaceMask(float newValue, BSDFData dest )
+{
+    dest.subsurfaceMask = newValue;
+}
+void SetThickness(float newValue, BSDFData dest )
+{
+    dest.thickness = newValue;
+}
+void SetUseThickObjectMode(bool newValue, BSDFData dest )
+{
+    dest.useThickObjectMode = newValue;
+}
+void SetTransmittance(float3 newValue, BSDFData dest )
+{
+    dest.transmittance = newValue;
+}
+void SetTangentWS(float3 newValue, BSDFData dest )
+{
+    dest.tangentWS = newValue;
+}
+void SetBitangentWS(float3 newValue, BSDFData dest )
+{
+    dest.bitangentWS = newValue;
+}
+void SetRoughnessT(float newValue, BSDFData dest )
+{
+    dest.roughnessT = newValue;
+}
+void SetRoughnessB(float newValue, BSDFData dest )
+{
+    dest.roughnessB = newValue;
+}
+void SetAnisotropy(float newValue, BSDFData dest )
+{
+    dest.anisotropy = newValue;
+}
+void SetSecondaryPerceptualRoughness(float newValue, BSDFData dest )
+{
+    dest.secondaryPerceptualRoughness = newValue;
+}
+void SetSecondarySpecularTint(float3 newValue, BSDFData dest )
+{
+    dest.secondarySpecularTint = newValue;
+}
+void SetSpecularExponent(float newValue, BSDFData dest )
+{
+    dest.specularExponent = newValue;
+}
+void SetSecondarySpecularExponent(float newValue, BSDFData dest )
+{
+    dest.secondarySpecularExponent = newValue;
+}
+void SetSpecularShift(float newValue, BSDFData dest )
+{
+    dest.specularShift = newValue;
+}
+void SetSecondarySpecularShift(float newValue, BSDFData dest )
+{
+    dest.secondarySpecularShift = newValue;
+}
+
+//
 // Debug functions
 //
 void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)

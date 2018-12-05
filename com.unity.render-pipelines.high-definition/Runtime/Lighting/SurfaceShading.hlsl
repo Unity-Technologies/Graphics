@@ -49,11 +49,7 @@ float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout Directio
                 light.shadowMaskSelector.x = -1;
 
                 // We use the precomputed value (based on "baked" thickness).
-#ifdef LIT_CS_HLSL
                 transmittance = GetTransmittance(bsdfData);
-#else
-				transmittance = bsdfData.transmittance;
-#endif
             }
             else
             {
@@ -184,24 +180,13 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
                 // Warning: based on the artist's input, dependence on the NdotL has been disabled.
                 float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
 
-#ifdef LIT_CS_HLSL
                 uint diffusionProfile = GetDiffusionProfile(bsdfData);
 				transmittance = GetTransmittance(bsdfData);
-#else
-				uint diffusionProfile = bsdfData.diffusionProfile;
-				transmittance = bsdfData.transmittance;
-#endif
+
 				float thicknessInMeters = thicknessInUnits * _WorldScales[diffusionProfile].x;
                 float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
-
-#ifdef LIT_CS_HLSL
                 float thicknessDelta = max(0, thicknessInMillimeters - GetThickness(bsdfData));
-#else
-                // We need to make sure it's not less than the baked thickness to minimize light leaking.
-                float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
-#endif
-
 				float3 S = _ShapeParams[diffusionProfile].rgb;
 
             #if 0

@@ -105,6 +105,7 @@ float4x4 GetShadowToWorld(HDShadowData value)
     return value.shadowToWorld;
 }
 
+
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.HDDirectionalShadowData
 //
@@ -120,6 +121,7 @@ float GetCascadeBorders(HDDirectionalShadowData value, int index)
 {
     return value.cascadeBorders[index];
 }
+
 
 
 #endif

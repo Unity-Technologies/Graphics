@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
 
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, false, true, 1400)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1400)]
         public struct SurfaceData
         {
             [SurfaceDataAttributes("MaterialFeatures")]
@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, true, 1450)]
+        [GenerateHLSL(PackingRules.Exact, true, true, true, 1450)]
         public struct BSDFData
         {
             public uint materialFeatures;

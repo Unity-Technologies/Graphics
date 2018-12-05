@@ -420,48 +420,89 @@ namespace UnityEditor.Experimental.Rendering
             return shaderText;
         }
 
+        public string EmitSetters()
+        {
+            string shaderText = string.Empty;
+
+            if (!hasPackedInfo && attr.needSetters)
+            {
+                shaderText += "//\n";
+                shaderText += "// Setters for " + type.FullName + "\n";
+                shaderText += "//\n";
+                foreach (var shaderField in m_ShaderFields)
+                {
+                    Accessor acc = shaderField.accessor;
+                    string setterName = shaderField.originalName;
+                    setterName = "Set" + char.ToUpper(setterName[0]) + setterName.Substring(1);
+
+                    if (shaderField.arraySize > 0)
+                        shaderText +=  "void " + setterName + "(int index, " + shaderField.typeString  + " newValue, " + type.Name + " dest )\n";
+                    else
+                        shaderText += "void " + setterName + "(" + shaderField.typeString + " newValue, " + type.Name + " dest )\n";
+                    shaderText += "{\n";
+
+                    string arrayAccess = "";
+
+                    if (shaderField.arraySize > 0)
+                    {
+                        arrayAccess = "[index]";
+                    }
+
+                    shaderText +=
+                                //"\t"
+                                "    " // unity convention use space instead of tab...
+                                + "dest." + acc.name + arrayAccess + " = newValue;\n";
+                    shaderText += "}\n";
+                }
+            }
+
+            return shaderText;
+        }
         public string EmitAccessors()
         {
             string shaderText = string.Empty;
 
-            shaderText += "//\n";
-            shaderText += "// Accessors for " + type.FullName + "\n";
-            shaderText += "//\n";
-            foreach (var shaderField in m_ShaderFields)
+            if(!hasPackedInfo)
             {
-                Accessor acc = shaderField.accessor;
-                string accessorName = shaderField.originalName;
-                accessorName = "Get" + char.ToUpper(accessorName[0]) + accessorName.Substring(1);
-
-                if (shaderField.arraySize > 0)
-                    shaderText += shaderField.typeString + " " + accessorName + "(" + type.Name + " value, int index)\n";
-                else
-                    shaderText += shaderField.typeString + " " + accessorName + "(" + type.Name + " value)\n";
-                shaderText += "{\n";
-
-                string swizzle = "";
-                string arrayAccess = "";
-
-                // @TODO:  support matrix type packing?
-                if (shaderField.cols == 1) // @TEMP
+                shaderText += "//\n";
+                shaderText += "// Accessors for " + type.FullName + "\n";
+                shaderText += "//\n";
+                foreach (var shaderField in m_ShaderFields)
                 {
-                    // don't emit redundant swizzles
-                    if (shaderField.originalName != acc.name)
+                    Accessor acc = shaderField.accessor;
+                    string accessorName = shaderField.originalName;
+                    accessorName = "Get" + char.ToUpper(accessorName[0]) + accessorName.Substring(1);
+
+                    if (shaderField.arraySize > 0)
+                        shaderText += shaderField.typeString + " " + accessorName + "(" + type.Name + " value, int index)\n";
+                    else
+                        shaderText += shaderField.typeString + " " + accessorName + "(" + type.Name + " value)\n";
+                    shaderText += "{\n";
+
+                    string swizzle = "";
+                    string arrayAccess = "";
+
+                    // @TODO:  support matrix type packing?
+                    if (shaderField.cols == 1) // @TEMP
                     {
-                        swizzle = "." + "xyzw".Substring(shaderField.swizzleOffset, shaderField.elementCount);
+                        // don't emit redundant swizzles
+                        if (shaderField.originalName != acc.name)
+                        {
+                            swizzle = "." + "xyzw".Substring(shaderField.swizzleOffset, shaderField.elementCount);
+                        }
                     }
-                }
 
-                if (shaderField.arraySize > 0)
-                {
-                    arrayAccess = "[index]";
-                }
+                    if (shaderField.arraySize > 0)
+                    {
+                        arrayAccess = "[index]";
+                    }
 
-                shaderText +=
-                            //"\t"
-                            "    " // unity convention use space instead of tab...
-                            + "return value." + acc.name + swizzle + arrayAccess + ";\n";
-                shaderText += "}\n";
+                    shaderText +=
+                                //"\t"
+                                "    " // unity convention use space instead of tab...
+                                + "return value." + acc.name + swizzle + arrayAccess + ";\n";
+                    shaderText += "}\n";
+                }
             }
 
             return shaderText;
@@ -644,34 +685,40 @@ namespace UnityEditor.Experimental.Rendering
 
         public string Emit()
         {
-            return EmitDefines() + EmitTypeDecl() + EmitAccessors();
+            return EmitDefines() + EmitTypeDecl() + EmitAccessors() + EmitSetters();
         }
 
         private string EmitPackedGetters()
         {
             string gettersString = "";
+
+            gettersString += "//\n";
+            gettersString += "// Accessors for packed fields\n";
+            gettersString += "//\n";
+
             foreach (PackedFieldInfo packedInfo in m_PackedFieldsInfos)
             {
-                string funcSignature = "Get" + packedInfo.packingAttribute.displayNames[0] + "(in " + type.Name + " bsdfData)";
+                string sourceName = type.Name.ToLower();
+                string funcSignature = "Get" + packedInfo.packingAttribute.displayNames[0] + "(in " + type.Name + " " + sourceName + ")";
                 string funcBody = "\n{\n    ";
 
                 switch (packedInfo.packingAttribute.packingScheme)
                 {
                     case FieldPacking.Float8bit:
                         funcSignature = "float " + funcSignature;
-                        funcBody += "return UnpackUIntToFloat(bsdfData." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 8);";
+                        funcBody += "return UnpackUIntToFloat("+ sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 8);";
                         break;
                     case FieldPacking.Float16bit:
                         funcSignature = "float " + funcSignature;
-                        funcBody += "return UnpackUIntToFloat(bsdfData." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 16);";
+                        funcBody += "return UnpackUIntToFloat(" + sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 16);";
                         break;
                     case FieldPacking.Uint8bit:
                         funcSignature = "uint " + funcSignature;
-                        funcBody += "return BitFieldExtract(bsdfData." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 8);";
+                        funcBody += "return BitFieldExtract(" + sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 8);";
                         break;
                     case FieldPacking.R11G11B10:
                         funcSignature = "float3 " + funcSignature;
-                        funcBody += "return UnpackFromR11G11B10f(bsdfData." + packedInfo.fieldName + ");";
+                        funcBody += "return UnpackFromR11G11B10f(" + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     case FieldPacking.NoPacking:
                         if (packedInfo.fieldType == typeof(uint))
@@ -690,7 +737,7 @@ namespace UnityEditor.Experimental.Rendering
                         {
                             funcSignature = "float4 " + funcSignature;
                         }
-                        funcBody += "return (bsdfData." + packedInfo.fieldName + ");";
+                        funcBody += "return (" + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     default:
                         funcSignature = "ERROR_Packing_field_not_specified\n ";
@@ -705,52 +752,59 @@ namespace UnityEditor.Experimental.Rendering
         private string EmitPackedSetters()
         {
             string settersString = "";
+
+            settersString += "//\n";
+            settersString += "// Setters for packed fields\n";
+            settersString += "//\n";
+
             foreach (PackedFieldInfo packedInfo in m_PackedFieldsInfos)
             {
                 PackingAttribute attr = packedInfo.packingAttribute;
-                string funcSignature = "\n\n void Set" + attr.displayNames[0] + "(";
+                string funcSignature = "void Set" + attr.displayNames[0] + "(";
                 string newParamName = "new" + attr.displayNames[0];
                 string funcBody = "{\n    ";
+                string shiftString = attr.offsetInSource != 0 ? (" << " + attr.offsetInSource) : " ";
+                string sourceName = type.Name.ToLower();
 
                 switch (attr.packingScheme)
                 {
                     case FieldPacking.Float8bit:
-                        funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
-                        funcBody += "BitFieldInsert(0xff << " + attr.offsetInSource + ", UnpackByte(" + newParamName + ") << " + attr.offsetInSource + ", bsdfData." + packedInfo.fieldName + ");";
+                        funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        funcBody += "BitFieldInsert(0xff" + shiftString + ", UnpackByte(" + newParamName + ")" + shiftString + ", "+ sourceName +"." + packedInfo.fieldName + ");";
                         break;
                     case FieldPacking.Float16bit:
-                        funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
-                        funcBody += "BitFieldInsert(0xffff << " + attr.offsetInSource + ", UnpackShort(" + newParamName + ") << " + attr.offsetInSource + ", bsdfData." + packedInfo.fieldName + ");";
+                        funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        funcBody += "BitFieldInsert(0xffff" + shiftString + ", UnpackShort(" + newParamName + ")" + shiftString + ", " + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     case FieldPacking.Uint8bit:
-                        funcSignature += "uint " + newParamName + ", inout " + type.Name + " bsdfData)";
-                        funcBody += "BitFieldInsert(0xff << " + attr.offsetInSource + ", (" + newParamName + ") << " + attr.offsetInSource + ", bsdfData." + packedInfo.fieldName + ");";
+                        funcSignature += "uint " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        funcBody += "BitFieldInsert(0xff" + shiftString + ", (" + newParamName + ")" + shiftString + ", " + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     case FieldPacking.R11G11B10:
-                        funcSignature += "float3 " + newParamName + ", inout " + type.Name + " bsdfData)";
-                        funcBody += "bsdfData." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamName + ");";
+                        funcSignature += "float3 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        funcBody += sourceName +"." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamName + ");";
                         break;
                     case FieldPacking.NoPacking:
                         if (packedInfo.fieldType == typeof(uint))
                         {
-                            funcSignature += "uint " + newParamName + ", inout " + type.Name + " bsdfData)";
+                            funcSignature += "uint " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
                         else if (packedInfo.fieldType == typeof(float))
                         {
-                            funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
+                            funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
                         else if (packedInfo.fieldType == typeof(Vector3))
                         {
-                            funcSignature += "float3 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                            funcSignature += "float3 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
                         else if (packedInfo.fieldType == typeof(Vector4))
                         {
-                            funcSignature += "float4 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                            funcSignature += "float4 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
-                        funcBody += "bsdfData." + packedInfo.fieldName + " = " + newParamName + ";";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " = " + newParamName + ";";
                         break;
                     default:
-                        funcSignature = "\n\n ERROR_Packing_field_not_specified\n ";
+                        funcSignature = "ERROR_Packing_field_not_specified\n ";
                         break;
                 }
 
@@ -765,49 +819,57 @@ namespace UnityEditor.Experimental.Rendering
         private string EmitPackedInit()
         {
             string initString = "";
+
+            initString += "//\n";
+            initString += "// Init functions for packed fields.\n";
+            initString += "// Important: Init functions assume the field is filled with 0s, use setters otherwise. \n";
+            initString += "//\n";
+
             foreach (PackedFieldInfo packedInfo in m_PackedFieldsInfos)
             {
                 PackingAttribute attr = packedInfo.packingAttribute;
                 string funcSignature = "void Init" + attr.displayNames[0] + "(";
                 string newParamName = "new" + attr.displayNames[0];
                 string funcBody = "{\n    ";
+                string shiftString = attr.offsetInSource != 0 ? (" << " + attr.offsetInSource) : " ";
+                string sourceName = type.Name.ToLower();
 
                 switch (attr.packingScheme)
                 {
                     case FieldPacking.Float8bit:
-                        funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
-                        funcBody += "bsdfData." + packedInfo.fieldName + " |= UnpackByte(" + newParamName + ") << " + attr.offsetInSource + ";";
+                        funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " |= UnpackByte(" + newParamName + ")" + shiftString + ";";
                         break;
                     case FieldPacking.Float16bit:
-                        funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
-                        funcBody += "bsdfData." + packedInfo.fieldName + " |= UnpackShort(" + newParamName + ") << " + attr.offsetInSource + ";";
+                        funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " |= UnpackShort(" + newParamName + ")" + shiftString + ";";
                         break;
                     case FieldPacking.Uint8bit:
-                        funcSignature += "uint " + newParamName + ", inout " + type.Name + " bsdfData)";
-                        funcBody += "bsdfData." + packedInfo.fieldName + " |= (" + newParamName + ") << " + attr.offsetInSource + ";";
+                        funcSignature += "uint " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " |= (" + newParamName + ")" + shiftString + ";";
                         break;
                     case FieldPacking.R11G11B10:
-                        funcSignature += "float3 " + newParamName + ", inout " + type.Name + " bsdfData)";
-                        funcBody += "bsdfData." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamName + ");";
+                        funcSignature += "float3 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamName + ");";
                         break;
                     case FieldPacking.NoPacking:
                         if (packedInfo.fieldType == typeof(uint))
                         {
-                            funcSignature += "uint " + newParamName + ", inout " + type.Name + " bsdfData)";
+                            funcSignature += "uint " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
                         else if (packedInfo.fieldType == typeof(float))
                         {
-                            funcSignature += "float " + newParamName + ", inout " + type.Name + " bsdfData)";
+                            funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
                         else if (packedInfo.fieldType == typeof(Vector3))
                         {
-                            funcSignature += "float3 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                            funcSignature += "float3 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
                         else if (packedInfo.fieldType == typeof(Vector4))
                         {
-                            funcSignature += "float4 " + newParamName + ", inout " + type.Name + " bsdfData)";
+                            funcSignature += "float4 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
-                        funcBody += "bsdfData." + packedInfo.fieldName + " = " + newParamName + ";";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " = " + newParamName + ";";
                         break;
                     default:
                         funcSignature = "\n\n ERROR_Packing_field_not_specified\n ";
@@ -824,7 +886,7 @@ namespace UnityEditor.Experimental.Rendering
         public string EmitPackedInfo()
         {
             string pathToPackingHeader = "#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl\"\n";
-            string packedStructCode = pathToPackingHeader + EmitPackedGetters() + EmitPackedSetters() + "\n // Important: Init functions assume the field is filled with 0s, use setters otherwise. \n" + EmitPackedInit() + "\n";
+            string packedStructCode = pathToPackingHeader + EmitPackedGetters() + EmitPackedSetters() + EmitPackedInit() + "\n";
             if(attr.needParamDebug)
             {
                 packedStructCode += EmitFunctionsForPacked();

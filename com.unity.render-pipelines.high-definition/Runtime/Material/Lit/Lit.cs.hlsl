@@ -190,343 +190,303 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
 }
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-float3 GetDiffuseColor(in BSDFData bsdfData)
+//
+// Accessors for packed fields
+//
+float3 GetDiffuseColor(in BSDFData bsdfdata)
 {
-    return (bsdfData.diffuseColor);
+    return (bsdfdata.diffuseColor);
 }
-float3 GetFresnel0(in BSDFData bsdfData)
+float3 GetFresnel0(in BSDFData bsdfdata)
 {
-    return UnpackFromR11G11B10f(bsdfData.fresnel0);
+    return UnpackFromR11G11B10f(bsdfdata.fresnel0);
 }
-uint GetMaterialFeatures(in BSDFData bsdfData)
+uint GetMaterialFeatures(in BSDFData bsdfdata)
 {
-    return (bsdfData.materialFeatures);
+    return (bsdfdata.materialFeatures);
 }
-float GetPerceptualRoughness(in BSDFData bsdfData)
+float GetPerceptualRoughness(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.roughnessesAndOcclusions, 24, 8);
+    return UnpackUIntToFloat(bsdfdata.roughnessesAndOcclusions, 24, 8);
 }
-float GetCoatRoughness(in BSDFData bsdfData)
+float GetCoatRoughness(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.roughnessesAndOcclusions, 16, 8);
+    return UnpackUIntToFloat(bsdfdata.roughnessesAndOcclusions, 16, 8);
 }
-float GetAmbientOcclusion(in BSDFData bsdfData)
+float GetAmbientOcclusion(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.roughnessesAndOcclusions, 8, 8);
+    return UnpackUIntToFloat(bsdfdata.roughnessesAndOcclusions, 8, 8);
 }
-float GetSpecularOcclusion(in BSDFData bsdfData)
+float GetSpecularOcclusion(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.roughnessesAndOcclusions, 0, 8);
+    return UnpackUIntToFloat(bsdfdata.roughnessesAndOcclusions, 0, 8);
 }
-uint GetDiffusionProfile(in BSDFData bsdfData)
+uint GetDiffusionProfile(in BSDFData bsdfdata)
 {
-    return BitFieldExtract(bsdfData.SSSData, 24, 8);
+    return BitFieldExtract(bsdfdata.SSSData, 24, 8);
 }
-float GetSubsurfaceMask(in BSDFData bsdfData)
+float GetSubsurfaceMask(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.SSSData, 16, 8);
+    return UnpackUIntToFloat(bsdfdata.SSSData, 16, 8);
 }
-float GetThickness(in BSDFData bsdfData)
+float GetThickness(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.SSSData, 0, 16);
+    return UnpackUIntToFloat(bsdfdata.SSSData, 0, 16);
 }
-float GetAnisotropy(in BSDFData bsdfData)
+float GetAnisotropy(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.anisoDataAndFlags, 24, 8);
+    return UnpackUIntToFloat(bsdfdata.anisoDataAndFlags, 24, 8);
 }
-float GetRoughnessT(in BSDFData bsdfData)
+float GetRoughnessT(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.anisoDataAndFlags, 16, 8);
+    return UnpackUIntToFloat(bsdfdata.anisoDataAndFlags, 16, 8);
 }
-float GetRoughnessB(in BSDFData bsdfData)
+float GetRoughnessB(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.anisoDataAndFlags, 8, 8);
+    return UnpackUIntToFloat(bsdfdata.anisoDataAndFlags, 8, 8);
 }
-uint GetFlags(in BSDFData bsdfData)
+uint GetFlags(in BSDFData bsdfdata)
 {
-    return BitFieldExtract(bsdfData.anisoDataAndFlags, 0, 8);
+    return BitFieldExtract(bsdfdata.anisoDataAndFlags, 0, 8);
 }
-float GetIridescenceThickness(in BSDFData bsdfData)
+float GetIridescenceThickness(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.iridescenceAndMasks, 24, 8);
+    return UnpackUIntToFloat(bsdfdata.iridescenceAndMasks, 24, 8);
 }
-float GetIridescenceMask(in BSDFData bsdfData)
+float GetIridescenceMask(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.iridescenceAndMasks, 16, 8);
+    return UnpackUIntToFloat(bsdfdata.iridescenceAndMasks, 16, 8);
 }
-float GetTransmittanceMask(in BSDFData bsdfData)
+float GetTransmittanceMask(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.iridescenceAndMasks, 8, 8);
+    return UnpackUIntToFloat(bsdfdata.iridescenceAndMasks, 8, 8);
 }
-float GetCoatMask(in BSDFData bsdfData)
+float GetCoatMask(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfData.iridescenceAndMasks, 0, 8);
+    return UnpackUIntToFloat(bsdfdata.iridescenceAndMasks, 0, 8);
 }
-float3 GetNormalWS(in BSDFData bsdfData)
+float3 GetNormalWS(in BSDFData bsdfdata)
 {
-    return (bsdfData.normalWS);
+    return (bsdfdata.normalWS);
 }
-float3 GetTransmittance(in BSDFData bsdfData)
+float3 GetTransmittance(in BSDFData bsdfdata)
 {
-    return (bsdfData.transmittance);
+    return (bsdfdata.transmittance);
 }
-float3 GetTangentWS(in BSDFData bsdfData)
+float3 GetTangentWS(in BSDFData bsdfdata)
 {
-    return UnpackFromR11G11B10f(bsdfData.tangentWS);
+    return UnpackFromR11G11B10f(bsdfdata.tangentWS);
 }
-float3 GetBitangentWS(in BSDFData bsdfData)
+float3 GetBitangentWS(in BSDFData bsdfdata)
 {
-    return UnpackFromR11G11B10f(bsdfData.bitangentWS);
+    return UnpackFromR11G11B10f(bsdfdata.bitangentWS);
 }
-float3 GetAbsorptionCoefficient(in BSDFData bsdfData)
+float3 GetAbsorptionCoefficient(in BSDFData bsdfdata)
 {
-    return UnpackFromR11G11B10f(bsdfData.absorptionCoefficient);
+    return UnpackFromR11G11B10f(bsdfdata.absorptionCoefficient);
 }
-float GetIOR(in BSDFData bsdfData)
+float GetIOR(in BSDFData bsdfdata)
 {
-    return (bsdfData.ior);
+    return (bsdfdata.ior);
 }
-
-
- void SetDiffuseColor(float3 newDiffuseColor, inout BSDFData bsdfData)
+//
+// Setters for packed fields
+//
+void SetDiffuseColor(float3 newDiffuseColor, inout BSDFData bsdfdata)
 {
-    bsdfData.diffuseColor = newDiffuseColor;
+    bsdfdata.diffuseColor = newDiffuseColor;
 }
-
-
- void SetFresnel0(float3 newFresnel0, inout BSDFData bsdfData)
+void SetFresnel0(float3 newFresnel0, inout BSDFData bsdfdata)
 {
-    bsdfData.fresnel0 = PackToR11G11B10f(newFresnel0);
+    bsdfdata.fresnel0 = PackToR11G11B10f(newFresnel0);
 }
-
-
- void SetMaterialFeatures(uint newMaterialFeatures, inout BSDFData bsdfData)
+void SetMaterialFeatures(uint newMaterialFeatures, inout BSDFData bsdfdata)
 {
-    bsdfData.materialFeatures = newMaterialFeatures;
+    bsdfdata.materialFeatures = newMaterialFeatures;
 }
-
-
- void SetPerceptualRoughness(float newPerceptualRoughness, inout BSDFData bsdfData)
+void SetPerceptualRoughness(float newPerceptualRoughness, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 24, UnpackByte(newPerceptualRoughness) << 24, bsdfData.roughnessesAndOcclusions);
+    BitFieldInsert(0xff << 24, UnpackByte(newPerceptualRoughness) << 24, bsdfdata.roughnessesAndOcclusions);
 }
-
-
- void SetCoatRoughness(float newCoatRoughness, inout BSDFData bsdfData)
+void SetCoatRoughness(float newCoatRoughness, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 16, UnpackByte(newCoatRoughness) << 16, bsdfData.roughnessesAndOcclusions);
+    BitFieldInsert(0xff << 16, UnpackByte(newCoatRoughness) << 16, bsdfdata.roughnessesAndOcclusions);
 }
-
-
- void SetAmbientOcclusion(float newAmbientOcclusion, inout BSDFData bsdfData)
+void SetAmbientOcclusion(float newAmbientOcclusion, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 8, UnpackByte(newAmbientOcclusion) << 8, bsdfData.roughnessesAndOcclusions);
+    BitFieldInsert(0xff << 8, UnpackByte(newAmbientOcclusion) << 8, bsdfdata.roughnessesAndOcclusions);
 }
-
-
- void SetSpecularOcclusion(float newSpecularOcclusion, inout BSDFData bsdfData)
+void SetSpecularOcclusion(float newSpecularOcclusion, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 0, UnpackByte(newSpecularOcclusion) << 0, bsdfData.roughnessesAndOcclusions);
+    BitFieldInsert(0xff , UnpackByte(newSpecularOcclusion) , bsdfdata.roughnessesAndOcclusions);
 }
-
-
- void SetDiffusionProfile(uint newDiffusionProfile, inout BSDFData bsdfData)
+void SetDiffusionProfile(uint newDiffusionProfile, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 24, (newDiffusionProfile) << 24, bsdfData.SSSData);
+    BitFieldInsert(0xff << 24, (newDiffusionProfile) << 24, bsdfdata.SSSData);
 }
-
-
- void SetSubsurfaceMask(float newSubsurfaceMask, inout BSDFData bsdfData)
+void SetSubsurfaceMask(float newSubsurfaceMask, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 16, UnpackByte(newSubsurfaceMask) << 16, bsdfData.SSSData);
+    BitFieldInsert(0xff << 16, UnpackByte(newSubsurfaceMask) << 16, bsdfdata.SSSData);
 }
-
-
- void SetThickness(float newThickness, inout BSDFData bsdfData)
+void SetThickness(float newThickness, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xffff << 0, UnpackShort(newThickness) << 0, bsdfData.SSSData);
+    BitFieldInsert(0xffff , UnpackShort(newThickness) , bsdfdata.SSSData);
 }
-
-
- void SetAnisotropy(float newAnisotropy, inout BSDFData bsdfData)
+void SetAnisotropy(float newAnisotropy, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 24, UnpackByte(newAnisotropy) << 24, bsdfData.anisoDataAndFlags);
+    BitFieldInsert(0xff << 24, UnpackByte(newAnisotropy) << 24, bsdfdata.anisoDataAndFlags);
 }
-
-
- void SetRoughnessT(float newRoughnessT, inout BSDFData bsdfData)
+void SetRoughnessT(float newRoughnessT, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 16, UnpackByte(newRoughnessT) << 16, bsdfData.anisoDataAndFlags);
+    BitFieldInsert(0xff << 16, UnpackByte(newRoughnessT) << 16, bsdfdata.anisoDataAndFlags);
 }
-
-
- void SetRoughnessB(float newRoughnessB, inout BSDFData bsdfData)
+void SetRoughnessB(float newRoughnessB, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 8, UnpackByte(newRoughnessB) << 8, bsdfData.anisoDataAndFlags);
+    BitFieldInsert(0xff << 8, UnpackByte(newRoughnessB) << 8, bsdfdata.anisoDataAndFlags);
 }
-
-
- void SetFlags(uint newFlags, inout BSDFData bsdfData)
+void SetFlags(uint newFlags, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 0, (newFlags) << 0, bsdfData.anisoDataAndFlags);
+    BitFieldInsert(0xff , (newFlags) , bsdfdata.anisoDataAndFlags);
 }
-
-
- void SetIridescenceThickness(float newIridescenceThickness, inout BSDFData bsdfData)
+void SetIridescenceThickness(float newIridescenceThickness, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 24, UnpackByte(newIridescenceThickness) << 24, bsdfData.iridescenceAndMasks);
+    BitFieldInsert(0xff << 24, UnpackByte(newIridescenceThickness) << 24, bsdfdata.iridescenceAndMasks);
 }
-
-
- void SetIridescenceMask(float newIridescenceMask, inout BSDFData bsdfData)
+void SetIridescenceMask(float newIridescenceMask, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 16, UnpackByte(newIridescenceMask) << 16, bsdfData.iridescenceAndMasks);
+    BitFieldInsert(0xff << 16, UnpackByte(newIridescenceMask) << 16, bsdfdata.iridescenceAndMasks);
 }
-
-
- void SetTransmittanceMask(float newTransmittanceMask, inout BSDFData bsdfData)
+void SetTransmittanceMask(float newTransmittanceMask, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 8, UnpackByte(newTransmittanceMask) << 8, bsdfData.iridescenceAndMasks);
+    BitFieldInsert(0xff << 8, UnpackByte(newTransmittanceMask) << 8, bsdfdata.iridescenceAndMasks);
 }
-
-
- void SetCoatMask(float newCoatMask, inout BSDFData bsdfData)
+void SetCoatMask(float newCoatMask, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(0xff << 0, UnpackByte(newCoatMask) << 0, bsdfData.iridescenceAndMasks);
+    BitFieldInsert(0xff , UnpackByte(newCoatMask) , bsdfdata.iridescenceAndMasks);
 }
-
-
- void SetNormalWS(float3 newNormalWS, inout BSDFData bsdfData)
+void SetNormalWS(float3 newNormalWS, inout BSDFData bsdfdata)
 {
-    bsdfData.normalWS = newNormalWS;
+    bsdfdata.normalWS = newNormalWS;
 }
-
-
- void SetTransmittance(float3 newTransmittance, inout BSDFData bsdfData)
+void SetTransmittance(float3 newTransmittance, inout BSDFData bsdfdata)
 {
-    bsdfData.transmittance = newTransmittance;
+    bsdfdata.transmittance = newTransmittance;
 }
-
-
- void SetTangentWS(float3 newTangentWS, inout BSDFData bsdfData)
+void SetTangentWS(float3 newTangentWS, inout BSDFData bsdfdata)
 {
-    bsdfData.tangentWS = PackToR11G11B10f(newTangentWS);
+    bsdfdata.tangentWS = PackToR11G11B10f(newTangentWS);
 }
-
-
- void SetBitangentWS(float3 newBitangentWS, inout BSDFData bsdfData)
+void SetBitangentWS(float3 newBitangentWS, inout BSDFData bsdfdata)
 {
-    bsdfData.bitangentWS = PackToR11G11B10f(newBitangentWS);
+    bsdfdata.bitangentWS = PackToR11G11B10f(newBitangentWS);
 }
-
-
- void SetAbsorptionCoefficient(float3 newAbsorptionCoefficient, inout BSDFData bsdfData)
+void SetAbsorptionCoefficient(float3 newAbsorptionCoefficient, inout BSDFData bsdfdata)
 {
-    bsdfData.absorptionCoefficient = PackToR11G11B10f(newAbsorptionCoefficient);
+    bsdfdata.absorptionCoefficient = PackToR11G11B10f(newAbsorptionCoefficient);
 }
-
-
- void SetIOR(float newIOR, inout BSDFData bsdfData)
+void SetIOR(float newIOR, inout BSDFData bsdfdata)
 {
-    bsdfData.ior = newIOR;
+    bsdfdata.ior = newIOR;
 }
-
- // Important: Init functions assume the field is filled with 0s, use setters otherwise. 
-void InitDiffuseColor(float3 newDiffuseColor, inout BSDFData bsdfData)
+//
+// Init functions for packed fields.
+// Important: Init functions assume the field is filled with 0s, use setters otherwise. 
+//
+void InitDiffuseColor(float3 newDiffuseColor, inout BSDFData bsdfdata)
 {
-    bsdfData.diffuseColor = newDiffuseColor;
+    bsdfdata.diffuseColor = newDiffuseColor;
 }
-void InitFresnel0(float3 newFresnel0, inout BSDFData bsdfData)
+void InitFresnel0(float3 newFresnel0, inout BSDFData bsdfdata)
 {
-    bsdfData.fresnel0 = PackToR11G11B10f(newFresnel0);
+    bsdfdata.fresnel0 = PackToR11G11B10f(newFresnel0);
 }
-void InitMaterialFeatures(uint newMaterialFeatures, inout BSDFData bsdfData)
+void InitMaterialFeatures(uint newMaterialFeatures, inout BSDFData bsdfdata)
 {
-    bsdfData.materialFeatures = newMaterialFeatures;
+    bsdfdata.materialFeatures = newMaterialFeatures;
 }
-void InitPerceptualRoughness(float newPerceptualRoughness, inout BSDFData bsdfData)
+void InitPerceptualRoughness(float newPerceptualRoughness, inout BSDFData bsdfdata)
 {
-    bsdfData.roughnessesAndOcclusions |= UnpackByte(newPerceptualRoughness) << 24;
+    bsdfdata.roughnessesAndOcclusions |= UnpackByte(newPerceptualRoughness) << 24;
 }
-void InitCoatRoughness(float newCoatRoughness, inout BSDFData bsdfData)
+void InitCoatRoughness(float newCoatRoughness, inout BSDFData bsdfdata)
 {
-    bsdfData.roughnessesAndOcclusions |= UnpackByte(newCoatRoughness) << 16;
+    bsdfdata.roughnessesAndOcclusions |= UnpackByte(newCoatRoughness) << 16;
 }
-void InitAmbientOcclusion(float newAmbientOcclusion, inout BSDFData bsdfData)
+void InitAmbientOcclusion(float newAmbientOcclusion, inout BSDFData bsdfdata)
 {
-    bsdfData.roughnessesAndOcclusions |= UnpackByte(newAmbientOcclusion) << 8;
+    bsdfdata.roughnessesAndOcclusions |= UnpackByte(newAmbientOcclusion) << 8;
 }
-void InitSpecularOcclusion(float newSpecularOcclusion, inout BSDFData bsdfData)
+void InitSpecularOcclusion(float newSpecularOcclusion, inout BSDFData bsdfdata)
 {
-    bsdfData.roughnessesAndOcclusions |= UnpackByte(newSpecularOcclusion) << 0;
+    bsdfdata.roughnessesAndOcclusions |= UnpackByte(newSpecularOcclusion) ;
 }
-void InitDiffusionProfile(uint newDiffusionProfile, inout BSDFData bsdfData)
+void InitDiffusionProfile(uint newDiffusionProfile, inout BSDFData bsdfdata)
 {
-    bsdfData.SSSData |= (newDiffusionProfile) << 24;
+    bsdfdata.SSSData |= (newDiffusionProfile) << 24;
 }
-void InitSubsurfaceMask(float newSubsurfaceMask, inout BSDFData bsdfData)
+void InitSubsurfaceMask(float newSubsurfaceMask, inout BSDFData bsdfdata)
 {
-    bsdfData.SSSData |= UnpackByte(newSubsurfaceMask) << 16;
+    bsdfdata.SSSData |= UnpackByte(newSubsurfaceMask) << 16;
 }
-void InitThickness(float newThickness, inout BSDFData bsdfData)
+void InitThickness(float newThickness, inout BSDFData bsdfdata)
 {
-    bsdfData.SSSData |= UnpackShort(newThickness) << 0;
+    bsdfdata.SSSData |= UnpackShort(newThickness) ;
 }
-void InitAnisotropy(float newAnisotropy, inout BSDFData bsdfData)
+void InitAnisotropy(float newAnisotropy, inout BSDFData bsdfdata)
 {
-    bsdfData.anisoDataAndFlags |= UnpackByte(newAnisotropy) << 24;
+    bsdfdata.anisoDataAndFlags |= UnpackByte(newAnisotropy) << 24;
 }
-void InitRoughnessT(float newRoughnessT, inout BSDFData bsdfData)
+void InitRoughnessT(float newRoughnessT, inout BSDFData bsdfdata)
 {
-    bsdfData.anisoDataAndFlags |= UnpackByte(newRoughnessT) << 16;
+    bsdfdata.anisoDataAndFlags |= UnpackByte(newRoughnessT) << 16;
 }
-void InitRoughnessB(float newRoughnessB, inout BSDFData bsdfData)
+void InitRoughnessB(float newRoughnessB, inout BSDFData bsdfdata)
 {
-    bsdfData.anisoDataAndFlags |= UnpackByte(newRoughnessB) << 8;
+    bsdfdata.anisoDataAndFlags |= UnpackByte(newRoughnessB) << 8;
 }
-void InitFlags(uint newFlags, inout BSDFData bsdfData)
+void InitFlags(uint newFlags, inout BSDFData bsdfdata)
 {
-    bsdfData.anisoDataAndFlags |= (newFlags) << 0;
+    bsdfdata.anisoDataAndFlags |= (newFlags) ;
 }
-void InitIridescenceThickness(float newIridescenceThickness, inout BSDFData bsdfData)
+void InitIridescenceThickness(float newIridescenceThickness, inout BSDFData bsdfdata)
 {
-    bsdfData.iridescenceAndMasks |= UnpackByte(newIridescenceThickness) << 24;
+    bsdfdata.iridescenceAndMasks |= UnpackByte(newIridescenceThickness) << 24;
 }
-void InitIridescenceMask(float newIridescenceMask, inout BSDFData bsdfData)
+void InitIridescenceMask(float newIridescenceMask, inout BSDFData bsdfdata)
 {
-    bsdfData.iridescenceAndMasks |= UnpackByte(newIridescenceMask) << 16;
+    bsdfdata.iridescenceAndMasks |= UnpackByte(newIridescenceMask) << 16;
 }
-void InitTransmittanceMask(float newTransmittanceMask, inout BSDFData bsdfData)
+void InitTransmittanceMask(float newTransmittanceMask, inout BSDFData bsdfdata)
 {
-    bsdfData.iridescenceAndMasks |= UnpackByte(newTransmittanceMask) << 8;
+    bsdfdata.iridescenceAndMasks |= UnpackByte(newTransmittanceMask) << 8;
 }
-void InitCoatMask(float newCoatMask, inout BSDFData bsdfData)
+void InitCoatMask(float newCoatMask, inout BSDFData bsdfdata)
 {
-    bsdfData.iridescenceAndMasks |= UnpackByte(newCoatMask) << 0;
+    bsdfdata.iridescenceAndMasks |= UnpackByte(newCoatMask) ;
 }
-void InitNormalWS(float3 newNormalWS, inout BSDFData bsdfData)
+void InitNormalWS(float3 newNormalWS, inout BSDFData bsdfdata)
 {
-    bsdfData.normalWS = newNormalWS;
+    bsdfdata.normalWS = newNormalWS;
 }
-void InitTransmittance(float3 newTransmittance, inout BSDFData bsdfData)
+void InitTransmittance(float3 newTransmittance, inout BSDFData bsdfdata)
 {
-    bsdfData.transmittance = newTransmittance;
+    bsdfdata.transmittance = newTransmittance;
 }
-void InitTangentWS(float3 newTangentWS, inout BSDFData bsdfData)
+void InitTangentWS(float3 newTangentWS, inout BSDFData bsdfdata)
 {
-    bsdfData.tangentWS = PackToR11G11B10f(newTangentWS);
+    bsdfdata.tangentWS = PackToR11G11B10f(newTangentWS);
 }
-void InitBitangentWS(float3 newBitangentWS, inout BSDFData bsdfData)
+void InitBitangentWS(float3 newBitangentWS, inout BSDFData bsdfdata)
 {
-    bsdfData.bitangentWS = PackToR11G11B10f(newBitangentWS);
+    bsdfdata.bitangentWS = PackToR11G11B10f(newBitangentWS);
 }
-void InitAbsorptionCoefficient(float3 newAbsorptionCoefficient, inout BSDFData bsdfData)
+void InitAbsorptionCoefficient(float3 newAbsorptionCoefficient, inout BSDFData bsdfdata)
 {
-    bsdfData.absorptionCoefficient = PackToR11G11B10f(newAbsorptionCoefficient);
+    bsdfdata.absorptionCoefficient = PackToR11G11B10f(newAbsorptionCoefficient);
 }
-void InitIOR(float newIOR, inout BSDFData bsdfData)
+void InitIOR(float newIOR, inout BSDFData bsdfdata)
 {
-    bsdfData.ior = newIOR;
+    bsdfdata.ior = newIOR;
 }
 
 //

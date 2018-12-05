@@ -29,6 +29,22 @@ struct BSDFData
 };
 
 //
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData
+//
+float3 GetColor(BSDFData value)
+{
+    return value.color;
+}
+
+//
+// Setters for UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData
+//
+void SetColor(float3 newValue, BSDFData dest )
+{
+    dest.color = newValue;
+}
+
+//
 // Debug functions
 //
 void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
