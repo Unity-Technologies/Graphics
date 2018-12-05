@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Light2d-Shape-Volumetric"
+﻿Shader "Hidden/Light2d-Point-Volumetric"
 {
     Properties
     {

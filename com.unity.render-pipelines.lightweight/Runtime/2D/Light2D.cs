@@ -92,8 +92,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private int m_PreviousParametricSides = -1;
         public int m_ParametricSides = 128;
         static Material m_ShapeCookieSpriteMaterial = null;
+        static Material m_ShapeCookieSpriteVolumeMaterial = null;
         static Material m_ShapeVertexColoredMaterial = null;
-        static Material m_ShapeVertexVolumeColoredMaterial = null;
+        static Material m_ShapeVertexColoredVolumeMaterial = null;
 
         [ColorUsageAttribute(false,true)]
         public Color m_LightColor = Color.white;
@@ -116,7 +117,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [ColorUsageAttribute(true, true)]
         public Color m_VolumetricColor = Color.white;
         public Color m_PreviousVolumetricColor = Color.white;
-
 
         private Bounds m_LocalBounds;
         CullingGroup m_CullingGroup;
@@ -190,7 +190,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_PreviousLightProjectionType = m_LightProjectionType;
             }
         }
-
 
         public ShapeLightTypes ShapeLightType
         {
@@ -359,8 +358,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     if (m_ShapeCookieSpriteMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
                     {
                         Shader shader = Shader.Find("Hidden/Light2d-Sprite-Volumetric");
-                        m_ShapeCookieSpriteMaterial = new Material(shader);
-                        //m_ShapeCookieSpriteMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
+                        if (shader != null)
+                        {
+                            m_ShapeCookieSpriteVolumeMaterial = new Material(shader);
+                            m_ShapeCookieSpriteVolumeMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
+                        }
+                        else
+                            Debug.LogError("Missing shader Light2d-Sprite-Volumetric");
                     }
 
                     return m_ShapeCookieSpriteMaterial;
@@ -368,22 +372,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 else
                 {
                     // This is causing Object.op_inequality fix this
-                    if (m_ShapeVertexVolumeColoredMaterial == null)
+                    if (m_ShapeVertexColoredVolumeMaterial == null)
                     {
                         Shader shader = Shader.Find("Hidden/Light2d-Shape-Volumetric");
-                        m_ShapeVertexVolumeColoredMaterial = new Material(shader);
+                        if(shader != null)
+                            m_ShapeVertexColoredVolumeMaterial = new Material(shader);
+                        else
+                            Debug.LogError("Missing shader Light2d-Shape-Volumetric");
                     }
 
-                    return m_ShapeVertexVolumeColoredMaterial;
+                    return m_ShapeVertexColoredVolumeMaterial;
                 }
             }
 
             return null;
         }
-
-
-
-
 
         public Material GetMaterial()
         {
@@ -395,8 +398,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     if (m_ShapeCookieSpriteMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
                     {
                         Shader shader = Shader.Find("Hidden/Light2D-Sprite");
-                        m_ShapeCookieSpriteMaterial = new Material(shader);
-                        m_ShapeCookieSpriteMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
+                        if (shader != null)
+                        {
+                            m_ShapeCookieSpriteMaterial = new Material(shader);
+                            m_ShapeCookieSpriteMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
+                        }
+                        else
+                            Debug.LogError("Missing shader Light2d-Sprite");
                     }
 
                     return m_ShapeCookieSpriteMaterial;
@@ -407,7 +415,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     if (m_ShapeVertexColoredMaterial == null)
                     {
                         Shader shader = Shader.Find("Hidden/Light2D-Shape");
-                        m_ShapeVertexColoredMaterial = new Material(shader);
+                        if(shader != null)
+                            m_ShapeVertexColoredMaterial = new Material(shader);
+                        else
+                            Debug.LogError("Missing shader Light2d-Shape");
                     }
 
                     return m_ShapeVertexColoredMaterial;
