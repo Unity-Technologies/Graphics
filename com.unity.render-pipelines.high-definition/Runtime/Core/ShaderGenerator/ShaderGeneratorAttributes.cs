@@ -13,9 +13,8 @@ namespace UnityEngine.Experimental.Rendering
     {
         NoPacking = 0,
         R11G11B10,
-        Float8bit,
-        Float16bit,
-        Uint8bit
+        PackedFloat,
+        PackedUint
     }
 
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class | AttributeTargets.Enum)]
@@ -86,19 +85,21 @@ namespace UnityEngine.Experimental.Rendering
         public string[] displayNames;
         public FieldPacking packingScheme;
         public int offsetInSource;
+        public int sizeInBits;
         public bool isDirection;
         public bool sRGBDisplay;
 
-        public PackingAttribute(string[] displayName, FieldPacking packingScheme = FieldPacking.NoPacking, int offsetInSource = 0, bool isDirection = false, bool sRGBDisplay = false)
+        public PackingAttribute(string[] displayName, FieldPacking packingScheme = FieldPacking.NoPacking, int bitSize = 32, int offsetInSource = 0, bool isDirection = false, bool sRGBDisplay = false)
         {
             displayNames = displayName;
             this.packingScheme = packingScheme;
             this.offsetInSource = offsetInSource;
             this.isDirection = isDirection;
             this.sRGBDisplay = sRGBDisplay;
+            this.sizeInBits = bitSize;
         }
 
-        public PackingAttribute(string displayName = "", FieldPacking packingScheme = FieldPacking.NoPacking, int offsetInSource = 0, bool isDirection = false, bool sRGBDisplay = false)
+        public PackingAttribute(string displayName = "", FieldPacking packingScheme = FieldPacking.NoPacking, int bitSize = 0, int offsetInSource = 0, bool isDirection = false, bool sRGBDisplay = false)
         {
             displayNames = new string[1];
             displayNames[0] = displayName;
@@ -106,6 +107,7 @@ namespace UnityEngine.Experimental.Rendering
             this.offsetInSource = offsetInSource;
             this.isDirection = isDirection;
             this.sRGBDisplay = sRGBDisplay;
+            this.sizeInBits = bitSize;
         }
     }
 

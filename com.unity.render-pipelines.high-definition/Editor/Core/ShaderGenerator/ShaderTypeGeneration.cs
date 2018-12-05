@@ -704,17 +704,13 @@ namespace UnityEditor.Experimental.Rendering
 
                 switch (packedInfo.packingAttribute.packingScheme)
                 {
-                    case FieldPacking.Float8bit:
+                    case FieldPacking.PackedFloat:
                         funcSignature = "float " + funcSignature;
-                        funcBody += "return UnpackUIntToFloat("+ sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 8);";
+                        funcBody += "return UnpackUIntToFloat("+ sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", "+ packedInfo.packingAttribute.sizeInBits +");";
                         break;
-                    case FieldPacking.Float16bit:
-                        funcSignature = "float " + funcSignature;
-                        funcBody += "return UnpackUIntToFloat(" + sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 16);";
-                        break;
-                    case FieldPacking.Uint8bit:
+                    case FieldPacking.PackedUint:
                         funcSignature = "uint " + funcSignature;
-                        funcBody += "return BitFieldExtract(" + sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", 8);";
+                        funcBody += "return BitFieldExtract(" + sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", " + packedInfo.packingAttribute.sizeInBits + ");";
                         break;
                     case FieldPacking.R11G11B10:
                         funcSignature = "float3 " + funcSignature;
@@ -765,20 +761,18 @@ namespace UnityEditor.Experimental.Rendering
                 string funcBody = "{\n    ";
                 string shiftString = attr.offsetInSource != 0 ? (" << " + attr.offsetInSource) : " ";
                 string sourceName = type.Name.ToLower();
+                uint mask = (1u << attr.sizeInBits) - 1u;
+                string maskString = mask.ToString();
 
                 switch (attr.packingScheme)
                 {
-                    case FieldPacking.Float8bit:
+                    case FieldPacking.PackedFloat:
                         funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
-                        funcBody += "BitFieldInsert(0xff" + shiftString + ", UnpackByte(" + newParamName + ")" + shiftString + ", "+ sourceName +"." + packedInfo.fieldName + ");";
+                        funcBody += "BitFieldInsert(" + maskString + shiftString + ", UnpackInt(" + newParamName + ", "+ attr.sizeInBits + ")" + shiftString + ", "+ sourceName +"." + packedInfo.fieldName + ");";
                         break;
-                    case FieldPacking.Float16bit:
-                        funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
-                        funcBody += "BitFieldInsert(0xffff" + shiftString + ", UnpackShort(" + newParamName + ")" + shiftString + ", " + sourceName + "." + packedInfo.fieldName + ");";
-                        break;
-                    case FieldPacking.Uint8bit:
+                    case FieldPacking.PackedUint:
                         funcSignature += "uint " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
-                        funcBody += "BitFieldInsert(0xff" + shiftString + ", (" + newParamName + ")" + shiftString + ", " + sourceName + "." + packedInfo.fieldName + ");";
+                        funcBody += "BitFieldInsert(" + maskString + shiftString + ", (" + newParamName + ")" + shiftString + ", " + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     case FieldPacking.R11G11B10:
                         funcSignature += "float3 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
@@ -836,15 +830,11 @@ namespace UnityEditor.Experimental.Rendering
 
                 switch (attr.packingScheme)
                 {
-                    case FieldPacking.Float8bit:
+                    case FieldPacking.PackedFloat:
                         funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
-                        funcBody += sourceName + "." + packedInfo.fieldName + " |= UnpackByte(" + newParamName + ")" + shiftString + ";";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " |= UnpackInt(" + newParamName + ", "+ attr.sizeInBits + ")" + shiftString + "; ";
                         break;
-                    case FieldPacking.Float16bit:
-                        funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
-                        funcBody += sourceName + "." + packedInfo.fieldName + " |= UnpackShort(" + newParamName + ")" + shiftString + ";";
-                        break;
-                    case FieldPacking.Uint8bit:
+                    case FieldPacking.PackedUint:
                         funcSignature += "uint " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         funcBody += sourceName + "." + packedInfo.fieldName + " |= (" + newParamName + ")" + shiftString + ";";
                         break;
@@ -1045,7 +1035,7 @@ namespace UnityEditor.Experimental.Rendering
                                 m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
 
                                 Type typeForDebug = typeof(uint);
-                                if(packAttr.packingScheme == FieldPacking.Float8bit || packAttr.packingScheme == FieldPacking.Float16bit)
+                                if(packAttr.packingScheme == FieldPacking.PackedFloat)
                                 {
                                     typeForDebug = typeof(float);
                                 }
