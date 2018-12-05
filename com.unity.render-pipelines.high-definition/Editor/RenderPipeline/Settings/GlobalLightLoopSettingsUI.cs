@@ -131,7 +131,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_SectionReflection(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
         {
             EditorGUILayout.PropertyField(d.reflectionCacheCompressed, _.GetContent("Compress Reflection Probe Cache"));
-            EditorGUILayout.PropertyField(d.reflectionCubemapSize, _.GetContent("Cubemap Size"));
+            EditorGUILayout.PropertyField(d.reflectionCubemapSize, _.GetContent("Reflection Cubemap Size"));
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(d.reflectionProbeCacheSize, _.GetContent("Probe Cache Size"));
             if (EditorGUI.EndChangeCheck())
