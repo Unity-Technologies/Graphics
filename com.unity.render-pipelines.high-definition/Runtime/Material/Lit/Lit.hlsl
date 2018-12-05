@@ -209,11 +209,9 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 #if HAS_REFRACTION
     // Note that this option is referred as "Box" in the UI, we are keeping _REFRACTION_PLANE as shader define to avoid complication with already created materials.  
     #if defined(_REFRACTION_PLANE)
-    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
-    #define REFRACTION_MODEL_PACKED(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, GetNormalWS(bsdfData), GetIOR(bsdfData), GetThickness(bsdfData))
+    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, GetNormalWS(bsdfData), GetIOR(bsdfData), GetThickness(bsdfData))
     #elif defined(_REFRACTION_SPHERE)
-    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
-    #define REFRACTION_MODEL_PACKED(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, GetNormalWS(bsdfData), GetIOR(bsdfData), GetThickness(bsdfData))
+    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, GetNormalWS(bsdfData), GetIOR(bsdfData), GetThickness(bsdfData))
     #endif
 #endif
 
@@ -1091,7 +1089,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // refraction (forward only)
 #if HAS_REFRACTION
-    RefractionModelResult refraction = REFRACTION_MODEL_PACKED(V, posInput, bsdfData);
+    RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
     preLightData.transparentRefractV = refraction.rayWS;
     preLightData.transparentPositionWS = refraction.positionWS;
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
