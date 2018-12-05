@@ -156,11 +156,17 @@ namespace UnityEditor.ShaderGraph
 
             m_PortIdMap = newPortIdMap;
 
-            // Build up a list of free IDs in between the current IDs.
             validSlotIds.Sort();
             var lastId = validSlotIds.LastOrDefault();
             var freeIds = new Queue<int>();
 
+            // Add all free IDs up until the first existing ID.
+            for (var i = 0; i < validSlotIds.FirstOrDefault(); i++)
+            {
+                freeIds.Enqueue(i);
+            }
+
+            // Add free IDs that are in between the existing IDs.
             for (var i = 0; i < validSlotIds.Count - 1; i++)
             {
                 for (var j = validSlotIds[i] + 1; j < validSlotIds[i + 1]; j++)
@@ -232,7 +238,7 @@ namespace UnityEditor.ShaderGraph
                     continue;
                 }
 
-                var stringId = typeState.outputPorts[argument.outputPortRef.index].id;
+                var stringId = typeState.outputPorts[argument.outputPort.index].id;
                 var intId = m_PortIdMap.First(x => x.stringId == stringId).intId;
                 var slot = FindSlot<MaterialSlot>(intId);
                 var typeStr = NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
@@ -266,12 +272,12 @@ namespace UnityEditor.ShaderGraph
                 switch (argument.type)
                 {
                     case HlslArgumentType.InputPort:
-                        var inputStringId = typeState.inputPorts[argument.inputPortRef.index].id;
+                        var inputStringId = typeState.inputPorts[argument.inputPort.index].id;
                         var inputIntId = m_PortIdMap.First(x => x.stringId == inputStringId).intId;
                         builder.Append(GetSlotValue(inputIntId, generationMode));
                         break;
                     case HlslArgumentType.OutputPort:
-                        var outputStringId = typeState.outputPorts[argument.outputPortRef.index].id;
+                        var outputStringId = typeState.outputPorts[argument.outputPort.index].id;
                         var outputIntId = m_PortIdMap.First(x => x.stringId == outputStringId).intId;
                         builder.Append(GetVariableNameForSlot(outputIntId));
                         break;

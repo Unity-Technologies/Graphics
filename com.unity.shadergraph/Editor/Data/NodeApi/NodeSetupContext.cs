@@ -76,8 +76,8 @@ namespace UnityEditor.ShaderGraph
                 m_TypeState.type.path = "Uncategorized";
             }
 
-            m_TypeState.type.inputs = new List<InputPortRef>(typeDescriptor.inputs);
-            m_TypeState.type.outputs = new List<OutputPortRef>(typeDescriptor.outputs);
+            m_TypeState.type.inputs = new List<InputPort>(typeDescriptor.inputs);
+            m_TypeState.type.outputs = new List<OutputPort>(typeDescriptor.outputs);
 
             m_TypeState.typeCreated = true;
         }

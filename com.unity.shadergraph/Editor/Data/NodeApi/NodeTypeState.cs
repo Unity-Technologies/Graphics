@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
-                if (fieldInfo.FieldType != typeof(InputPortRef) && fieldInfo.FieldType != typeof(OutputPortRef))
+                if (fieldInfo.FieldType != typeof(InputPort) && fieldInfo.FieldType != typeof(OutputPort))
                 {
                     continue;
                 }
@@ -87,16 +87,16 @@ namespace UnityEditor.ShaderGraph
                     displayName = displayName.Substring(0, displayName.Length - 4);
                 }
 
-                if (fieldInfo.FieldType == typeof(InputPortRef))
+                if (fieldInfo.FieldType == typeof(InputPort))
                 {
                     inputPorts.Add(new InputPortDescriptor { id = fieldInfo.Name, displayName = displayName, value = portAttribute.value });
-                    var portRef = new InputPortRef(inputPorts.Count);
+                    var portRef = new InputPort(inputPorts.Count);
                     fieldInfo.SetValue(nodeType, portRef);
                 }
                 else
                 {
                     outputPorts.Add(new OutputPortDescriptor { id = fieldInfo.Name, displayName = displayName, type = portAttribute.value.type });
-                    var portRef = new OutputPortRef(outputPorts.Count);
+                    var portRef = new OutputPort(outputPorts.Count);
                     fieldInfo.SetValue(nodeType, portRef);
                 }
             }

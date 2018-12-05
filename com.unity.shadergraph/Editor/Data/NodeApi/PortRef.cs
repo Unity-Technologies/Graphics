@@ -2,13 +2,12 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Serializable]
-    public struct InputPortRef
+    public struct InputPort
     {
         internal int value { get; }
         internal int index => value - 1;
 
-        internal InputPortRef(int value)
+        internal InputPort(int value)
         {
             this.value = value;
         }
@@ -16,13 +15,12 @@ namespace UnityEditor.ShaderGraph
         internal bool isValid => value > 0;
     }
 
-    [Serializable]
-    public struct OutputPortRef
+    public struct OutputPort
     {
         internal int value { get; }
         internal int index => value - 1;
 
-        internal OutputPortRef(int value)
+        internal OutputPort(int value)
         {
             this.value = value;
         }

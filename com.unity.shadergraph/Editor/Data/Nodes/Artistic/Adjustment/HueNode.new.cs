@@ -4,22 +4,23 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
     sealed class NewHueNode : ShaderNodeType
     {
         // Name can be specified or generated from variable name (strips `m_` prefix and `Port` suffix)
         // We can get rid of ID by using variable name instead. Similar to Unity serialization, you will need an
         // attribute referring to the old name if you do a rename, but I think that's nicer than IDs.
         [Vector3Port]
-        InputPortRef m_InPort = default;
+        public InputPort inPort;
 
         // The default port value can be specified, but otherwise it defaults to zero.
         [Vector1Port(0.5f)]
-        InputPortRef m_OffsetPort = default;
+        public InputPort offsetPort;
 
         // Question: Output ports cannot have values, so should we just ignore the value, or have separate attributes
         // for input and outputs?
         [Vector3Port]
-        OutputPortRef m_OutPort = default;
+        public OutputPort outPort;
 
         public override void Setup(NodeSetupContext context)
         {
@@ -27,8 +28,8 @@ namespace UnityEditor.ShaderGraph
             {
                 path = "Artistic/Adjustment",
                 name = "New Hue",
-                inputs = new List<InputPortRef> { m_InPort, m_OffsetPort },
-                outputs = new List<OutputPortRef> { m_OutPort }
+                inputs = new List<InputPort> { inPort, offsetPort },
+                outputs = new List<OutputPort> { outPort }
             };
             context.CreateType(type);
         }
@@ -49,8 +50,8 @@ namespace UnityEditor.ShaderGraph
             {
                 source = HlslSource.File("Packages/com.unity.shadergraph/Editor/Data/Nodes/Artistic/Adjustment/HueNode.hlsl"),
                 name = "Unity_Hue",
-                arguments = new HlslArgumentList { m_InPort, m_OffsetPort, data.offsetFactorValue },
-                returnValue = m_OutPort
+                arguments = new HlslArgumentList { inPort, offsetPort, data.offsetFactorValue },
+                returnValue = outPort
             });
         }
 

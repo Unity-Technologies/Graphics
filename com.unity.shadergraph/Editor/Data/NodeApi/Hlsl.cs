@@ -37,21 +37,21 @@ namespace UnityEditor.ShaderGraph
     {
         ArgumentUnion m_Union;
         public HlslArgumentType type { get; }
-        public InputPortRef inputPortRef => m_Union.inputPortRef;
-        public OutputPortRef outputPortRef => m_Union.outputPortRef;
+        public InputPort inputPort => m_Union.inputPort;
+        public OutputPort outputPort => m_Union.outputPort;
         public float vector1Value => m_Union.vector1Value;
         public HlslValueRef valueRef => m_Union.valueRef;
 
-        internal HlslArgument(InputPortRef portRef) : this()
+        internal HlslArgument(InputPort port) : this()
         {
             type = HlslArgumentType.InputPort;
-            m_Union.inputPortRef = portRef;
+            m_Union.inputPort = port;
         }
 
-        internal HlslArgument(OutputPortRef portRef) : this()
+        internal HlslArgument(OutputPort port) : this()
         {
             type = HlslArgumentType.OutputPort;
-            m_Union.outputPortRef = portRef;
+            m_Union.outputPort = port;
         }
 
         internal HlslArgument(float vector1Value) : this()
@@ -70,9 +70,9 @@ namespace UnityEditor.ShaderGraph
         struct ArgumentUnion
         {
             [FieldOffset(0)]
-            public InputPortRef inputPortRef;
+            public InputPort inputPort;
             [FieldOffset(0)]
-            public OutputPortRef outputPortRef;
+            public OutputPort outputPort;
             [FieldOffset(0)]
             public float vector1Value;
             [FieldOffset(0)]
@@ -114,23 +114,23 @@ namespace UnityEditor.ShaderGraph
         public HlslSource source { get; set; }
         public string name { get; set; }
         public HlslArgumentList arguments { get; set; }
-        public OutputPortRef returnValue { get; set; }
+        public OutputPort returnValue { get; set; }
     }
 
     public struct HlslArgumentList : IEnumerable<HlslArgument>
     {
         List<HlslArgument> m_Arguments;
 
-        public void Add(InputPortRef portRef)
+        public void Add(InputPort port)
         {
             m_Arguments = m_Arguments ?? new List<HlslArgument>();
-            m_Arguments.Add(new HlslArgument(portRef));
+            m_Arguments.Add(new HlslArgument(port));
         }
 
-        public void Add(OutputPortRef portRef)
+        public void Add(OutputPort port)
         {
             m_Arguments = m_Arguments ?? new List<HlslArgument>();
-            m_Arguments.Add(new HlslArgument(portRef));
+            m_Arguments.Add(new HlslArgument(port));
         }
 
         public void Add(HlslValueRef valueRef)
