@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader
+- Fixed an issue with flipped depth buffer during postprocessing
 
 ## [4.4.1-preview] - 2018-12-04
 
