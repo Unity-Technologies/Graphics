@@ -390,6 +390,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // However in practice we keep parity between deferred and forward, so we should constrain the various features.
     // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
 
+	InitThickness(surfaceData.thickness, bsdfData);
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
     {
