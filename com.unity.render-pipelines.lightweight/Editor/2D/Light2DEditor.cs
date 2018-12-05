@@ -164,8 +164,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void OnShapeLight(SerializedObject serializedObject)
+        private bool OnShapeLight(SerializedObject serializedObject)
         {
+            bool updateMesh = false;
+
             SerializedProperty shapeLightStyle = serializedObject.FindProperty("m_ShapeLightStyle");
             SerializedProperty shapeLightType = serializedObject.FindProperty("m_ShapeLightType");
             SerializedProperty shapeLightFeathering = serializedObject.FindProperty("m_ShapeLightFeathering");
@@ -182,12 +184,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Sprite)
             {
                 EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(shapeLightSprite, EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite"));
+                updateMesh |= EditorGUI.EndChangeCheck();
                 EditorGUI.indentLevel--;
             }
             else if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Parametric)
             {
                 EditorGUI.indentLevel++;
+
+                if (m_ModifiedMesh)
+                    updateMesh = true;
 
                 int lastShape = shapeLightParametricShape.enumValueIndex;
                 int lastSides = shapeLightParametricSides.intValue;
@@ -221,6 +228,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             EditorGUI.indentLevel--;
+
+            return updateMesh;
         }
 
         private Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, ref float angle)
@@ -408,7 +417,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override void OnInspectorGUI()
         {
-
+            bool updateMesh = false;
             EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.Space();
@@ -431,7 +440,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     break;
                 case (int)Light2D.LightProjectionTypes.Shape:
                     {
-                        OnShapeLight(serializedObject);
+                        updateMesh = OnShapeLight(serializedObject);
                     }
                     break;
             }
@@ -455,7 +464,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_SplineEditor.OnInspectorGUI(lightObject.spline);
             }
 
+
             serializedObject.ApplyModifiedProperties();
+
+            if (updateMesh)
+            {
+                for (int i = 0; i < targets.Length; i++)
+                {
+                    Light2D light = (Light2D)targets[i];
+                    light.UpdateMesh();
+                    light.UpdateMaterial();
+                }
+            }
         }
 
         // Use Internal Bridge Later.

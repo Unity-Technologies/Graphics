@@ -93,6 +93,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int m_ParametricSides = 128;
         static Material m_ShapeCookieSpriteMaterial = null;
         static Material m_ShapeVertexColoredMaterial = null;
+        static Material m_ShapeVertexVolumeColoredMaterial = null;
 
         [ColorUsageAttribute(false,true)]
         public Color m_LightColor = Color.white;
@@ -105,10 +106,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Sprite m_PreviousLightCookieSprite = null;
 
         public bool m_IsVolumetric = false;
+
         [ColorUsageAttribute(true, true)]
         public Color m_VolumetricColor = Color.white;
+        public Color m_PreviousVolumetricColor = Color.white;
 
-        private BoundingSphere m_LocalBoundingSphere;
+
+        private Bounds m_LocalBounds;
         CullingGroup m_CullingGroup;
 
         static List<Light2D>[] m_Lights = SetupLightArray();
@@ -127,8 +131,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             BoundingSphere boundingSphere = new BoundingSphere();
             if (m_LightProjectionType == LightProjectionTypes.Shape)
             {
-                boundingSphere.radius = m_LocalBoundingSphere.radius;
-                boundingSphere.position = m_LocalBoundingSphere.position + transform.position;
+                Vector3 maximum = transform.TransformPoint(m_LocalBounds.max);
+                Vector3 minimum = transform.TransformPoint(m_LocalBounds.min);
+                Vector3 center = 0.5f * (maximum + minimum);
+                float radius = Vector3.Magnitude(maximum - center);
+
+                boundingSphere.radius = radius;
+                boundingSphere.position = center;
             }
             else
             {
@@ -241,6 +250,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void CalculateBoundingSphere(ref Vector3[] vertices)
         {
+            m_LocalBounds = new Bounds();
+
             Vector3 minimum = new Vector3();
             Vector3 maximum = new Vector3();
             for(int i=0;i<vertices.Length;i++)
@@ -252,16 +263,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 maximum.y = maximum.y >= vertex.y ? maximum.y : vertex.y;
             }
 
-            m_LocalBoundingSphere.position = 0.5f * (minimum + maximum);
-            m_LocalBoundingSphere.radius = Vector3.Magnitude(maximum - m_LocalBoundingSphere.position);
+            m_LocalBounds.max = maximum;
+            m_LocalBounds.min = minimum;
         }
 
         public void UpdateShapeLightMesh(Color color)
         {
-            Vector2 rectMax = new Vector2();
-            Vector2 rectMin = new Vector2();
-
-
             Color meshInteriorColor = color;
             Color meshFeatherColor = new Color(color.r, color.g, color.b, 0);
 
@@ -310,6 +317,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var verticesF = tessF.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
             var colorsF = tessF.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
 
+
             List<Vector3> finalVertices = new List<Vector3>();
             List<int> finalIndices = new List<int>();
             List<Color> finalColors = new List<Color>();
@@ -320,15 +328,56 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             finalColors.AddRange(colorsI);
             finalColors.AddRange(colorsF);
 
+            var volumeColors = new Vector4[finalColors.Count];
+            for (int i = 0; i < volumeColors.Length; i++)
+                volumeColors[i] = new Vector4(m_VolumetricColor.r, m_VolumetricColor.g, m_VolumetricColor.b, m_VolumetricColor.a);
 
             Vector3[] vertices = finalVertices.ToArray();
             m_Mesh.Clear();
             m_Mesh.vertices = vertices;
+            m_Mesh.tangents = volumeColors;
             m_Mesh.colors = finalColors.ToArray();
             m_Mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
+            
 
             CalculateBoundingSphere(ref vertices);
         }
+
+        public Material GetVolumeMaterial()
+        {
+            if (m_LightProjectionType == LightProjectionTypes.Shape)
+            {
+                if (m_ShapeLightStyle == CookieStyles.Sprite)
+                {
+                    // This is causing Object.op_inequality fix this
+                    if (m_ShapeCookieSpriteMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
+                    {
+                        Shader shader = Shader.Find("Hidden/Light2dVolumetricSprite");
+                        m_ShapeCookieSpriteMaterial = new Material(shader);
+                        //m_ShapeCookieSpriteMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
+                    }
+
+                    return m_ShapeCookieSpriteMaterial;
+                }
+                else
+                {
+                    // This is causing Object.op_inequality fix this
+                    if (m_ShapeVertexVolumeColoredMaterial == null)
+                    {
+                        Shader shader = Shader.Find("Hidden/Light2dVolumetric");
+                        m_ShapeVertexVolumeColoredMaterial = new Material(shader);
+                    }
+
+                    return m_ShapeVertexVolumeColoredMaterial;
+                }
+            }
+
+            return null;
+        }
+
+
+
+
 
         public Material GetMaterial()
         {
@@ -377,6 +426,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Vector3[] vertices;
             int[] triangles;
             Color[] colors;
+            Vector4[] volumeColors;
 
             int centerIndex;
             if (feathering <= 0.0f || feathering >= 1.0f)
@@ -384,6 +434,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 vertices = new Vector3[1 + sides];
                 triangles = new int[3 * sides];
                 colors = new Color[1 + sides];
+                volumeColors = new Vector4[1 + sides];
                 centerIndex = sides;
             }
             else
@@ -391,14 +442,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 vertices = new Vector3[1 + 2 * sides];
                 colors = new Color[1 + 2 * sides];
                 triangles = new int[3 * 3 * sides];
+                volumeColors = new Vector4[1 + 2 * sides];
                 centerIndex = 2 * sides;
             }
 
 
             Vector3 posOffset = new Vector3(m_ShapeLightOffset.x, m_ShapeLightOffset.y);
             Color transparentColor = new Color(color.r, color.g, color.b, 0);
+            Color volumeColor = new Vector4(m_VolumetricColor.r, m_VolumetricColor.g, m_VolumetricColor.b, m_VolumetricColor.a);
             vertices[centerIndex] = Vector3.zero + posOffset;
             colors[centerIndex] = color;
+            volumeColors[centerIndex] = volumeColor;
 
             float radiansPerSide = 2 * Mathf.PI / sides;
             for (int i = 0; i < sides; i++)
@@ -412,6 +466,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     vertexIndex = (i + 1) % sides;
                     vertices[vertexIndex] = endPoint;
                     colors[vertexIndex] = color;
+                    volumeColors[vertexIndex] = volumeColor;
 
                     int triangleIndex = 3 * i;
                     triangles[triangleIndex] = (i + 1) % sides;
@@ -423,6 +478,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     vertexIndex = (i + 1) % sides;
                     vertices[vertexIndex] = endPoint;
                     colors[vertexIndex] = transparentColor;
+                    volumeColors[vertexIndex] = volumeColor;
 
                     int triangleIndex = 3 * i;
                     triangles[triangleIndex] = vertexIndex;
@@ -439,6 +495,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                     colors[vertexIndex] = transparentColor;
                     colors[vertexIndex + 1] = color;
+                    volumeColors[vertexIndex] = volumeColor;
+                    volumeColors[vertexIndex + 1] = volumeColor;
 
                     // Triangle 1 (Tip)
                     int triangleIndex = 9 * i;
@@ -462,6 +520,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Mesh.vertices = vertices;
             m_Mesh.colors = colors;
             m_Mesh.triangles = triangles;
+            m_Mesh.tangents = volumeColors;
 
             CalculateBoundingSphere(ref vertices);
 
@@ -478,6 +537,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Vector2[] vertices2d = sprite.vertices;
                 Vector3[] vertices3d = new Vector3[vertices2d.Length];
                 Color[] colors = new Color[vertices2d.Length];
+                Vector4[] volumeColor = new Vector4[vertices2d.Length];
 
                 ushort[] triangles2d = sprite.triangles;
                 int[] triangles3d = new int[triangles2d.Length];
@@ -493,6 +553,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     //vertices3d[vertexIdx] = new Vector3(pos.x + m_ShapeLightOffset.x, pos.y + m_ShapeLightOffset.y);
                     vertices3d[vertexIdx] = pos;
                     colors[vertexIdx] = color;
+                    volumeColor[vertexIdx] = new Vector4(m_VolumetricColor.r, m_VolumetricColor.g, m_VolumetricColor.b, m_VolumetricColor.a);
                 }
 
                 for (int triangleIdx = 0; triangleIdx < triangles2d.Length; triangleIdx++)
@@ -634,7 +695,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #endif
         }
 
-
         bool CheckForColorChange(Color i, ref Color j)
         {
             bool retVal = i.r != j.r || i.g != j.g || i.b != j.b || i.a != j.a;
@@ -681,7 +741,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             rebuildMesh |= CheckForChange<float>(m_ShapeLightFeathering, ref m_PreviousShapeLightFeathering);
             rebuildMesh |= CheckForVector2Change(m_ShapeLightOffset, ref m_PreviousShapeLightOffset);
             rebuildMesh |= CheckForChange<int>(m_ParametricSides, ref m_PreviousParametricSides);
-            
+            rebuildMesh |= CheckForColorChange(m_VolumetricColor, ref m_PreviousVolumetricColor);
+
             //rebuildMesh |= CheckForChange<>
             if (rebuildMesh)
             {
@@ -721,6 +782,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #if UNITY_EDITOR
             if (Selection.activeGameObject != transform.gameObject)
                 Gizmos.DrawIcon(transform.position, "PointLight Gizmo", true);
+
+
+            //BoundingSphere sphere = GetBoundingSphere();
+            //Gizmos.color = Color.white;
+            //Gizmos.DrawWireSphere(sphere.position, sphere.radius);
 #endif
         }
 

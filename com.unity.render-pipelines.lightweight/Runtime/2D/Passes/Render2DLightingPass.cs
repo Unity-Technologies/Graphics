@@ -125,6 +125,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 drawSettings.SetShaderPassName(0, m_CombinedShapeLightPassName);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
                 Profiler.EndSample();
+
+                if (isLitLayer)
+                {
+                    m_CommandBuffer.Clear();
+                    RendererShapeLights.RenderLightVolumes(camera, m_CommandBuffer, layerToRender);
+                    context.ExecuteCommandBuffer(m_CommandBuffer);
+                }
             }
 
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
