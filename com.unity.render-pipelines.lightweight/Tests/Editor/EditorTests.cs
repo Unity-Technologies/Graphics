@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.Rendering.LWRP;
 
 class EditorTests
@@ -18,6 +19,7 @@ class EditorTests
         Assert.AreEqual(asset.defaultUIOverdrawMaterial, null);
         Assert.AreEqual(asset.defaultUIETC1SupportedMaterial, null);
         Assert.AreEqual(asset.default2DMaterial, null);
+        ScriptableObject.DestroyImmediate(asset);
     }
 
     [Test]
@@ -54,5 +56,6 @@ class EditorTests
             asset.maxAdditionalLightsCount = 32;
             Assert.LessOrEqual(asset.maxAdditionalLightsCount, LightweightRenderPipeline.maxPerObjectLightCount);
         }
+        ScriptableObject.Destroy(asset);
     }
 }

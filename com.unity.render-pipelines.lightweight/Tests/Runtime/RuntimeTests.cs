@@ -10,26 +10,34 @@ class RuntimeTests
     [UnityTest]
     public IEnumerator PipelineHasCorrectRenderingSettings()
     {
+        RenderPipelineAsset prevAsset = GraphicsSettings.renderPipelineAsset;
+
+        LightweightRenderPipelineAsset asset = ScriptableObject.CreateInstance<LightweightRenderPipelineAsset>();
+        GraphicsSettings.renderPipelineAsset = asset;
         yield return null;
 
-        LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
-        Assert.AreNotEqual(asset, null, "LWRP asset is not assigned in the GraphicsSettings.");
         Assert.AreEqual(Shader.globalRenderPipeline, "LightweightPipeline", "Wrong render pipeline shader tag.");
         Assert.AreEqual(GraphicsSettings.lightsUseLinearIntensity, true, "LWRP must use linear light intensities.");
+
+        GraphicsSettings.renderPipelineAsset = prevAsset;
+        yield return null;
+
+        ScriptableObject.DestroyImmediate(asset);
     }
 
     [UnityTest]
     public IEnumerator PipelineRestoreCorrectSettingsWhenSwitchingToBuiltinPipeline()
     {
-        yield return null;
-
-        LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
-        Assert.AreNotEqual(asset, null, "LWRP asset is not assigned in the GraphicsSettings.");
-        GraphicsSettings.renderPipelineAsset = null;
-
-        yield return null;
-
-        Assert.AreEqual(Shader.globalRenderPipeline, "", "Render Pipeline shader tag is not restored.");
+        RenderPipelineAsset prevAsset = GraphicsSettings.renderPipelineAsset;
+        LightweightRenderPipelineAsset asset = ScriptableObject.CreateInstance<LightweightRenderPipelineAsset>();
         GraphicsSettings.renderPipelineAsset = asset;
+        yield return null;
+
+        GraphicsSettings.renderPipelineAsset = null;
+        yield return null;
+        
+        Assert.AreEqual(Shader.globalRenderPipeline, "", "Render Pipeline shader tag is not restored.");
+        GraphicsSettings.renderPipelineAsset = prevAsset;
+        ScriptableObject.DestroyImmediate(asset);
     }
 }
