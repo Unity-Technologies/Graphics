@@ -164,9 +164,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel--;
         }
 
-        private bool OnShapeLight(SerializedObject serializedObject)
+        private void OnShapeLight(SerializedObject serializedObject)
         {
-            bool updateMesh = false;
             SerializedProperty shapeLightStyle = serializedObject.FindProperty("m_ShapeLightStyle");
             SerializedProperty shapeLightType = serializedObject.FindProperty("m_ShapeLightType");
             SerializedProperty shapeLightFeathering = serializedObject.FindProperty("m_ShapeLightFeathering");
@@ -183,21 +182,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Sprite)
             {
                 EditorGUI.indentLevel++;
-
-                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(shapeLightSprite, EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite"));
-                updateMesh |= EditorGUI.EndChangeCheck();
-
                 EditorGUI.indentLevel--;
             }
             else if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Parametric)
             {
                 EditorGUI.indentLevel++;
-
-                if (m_ModifiedMesh)
-                {
-                    updateMesh = true;
-                }
 
                 int lastShape = shapeLightParametricShape.enumValueIndex;
                 int lastSides = shapeLightParametricSides.intValue;
@@ -227,17 +217,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 Vector2 lastOffset = shapeLightOffset.vector2Value;
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
-
-                // update the light meshes if either the sides or feathering has changed;
-                updateMesh |= (lastSides != shapeLightParametricSides.intValue || lastFeathering != shapeLightFeathering.floatValue || lastOffset.x != shapeLightOffset.vector2Value.x || lastOffset.y != shapeLightOffset.vector2Value.y || lastShape != shapeLightParametricShape.enumValueIndex);
                 EditorGUI.indentLevel--;
             }
 
-            if (prevShapeLightStyle != shapeLightStyle.intValue)
-                updateMesh = true; ;
-
             EditorGUI.indentLevel--;
-            return updateMesh;
         }
 
         private Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, ref float angle)
@@ -435,8 +418,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             SerializedProperty lightProjectionType = serializedObject.FindProperty("m_LightProjectionType");
             SerializedProperty lightColor = serializedObject.FindProperty("m_LightColor");
             SerializedProperty applyToLayers = serializedObject.FindProperty("m_ApplyToLayers");
+            SerializedProperty isVolumetric = serializedObject.FindProperty("m_IsVolumetric");
+            SerializedProperty volumetricColor = serializedObject.FindProperty("m_VolumetricColor");
 
-            bool updateMesh = false;
             EditorGUILayout.PropertyField(lightProjectionType, EditorGUIUtility.TrTextContent("Light Type", "Specify the light type"));
             switch (lightProjectionType.intValue)
             {
@@ -447,14 +431,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     break;
                 case (int)Light2D.LightProjectionTypes.Shape:
                     {
-                        updateMesh = OnShapeLight(serializedObject);
+                        OnShapeLight(serializedObject);
                     }
                     break;
             }
 
             Color previousColor = lightColor.colorValue;
             EditorGUILayout.PropertyField(lightColor, EditorGUIUtility.TrTextContent("Light Color", "Specify the light color"));
-            updateMesh = updateMesh || (previousColor != lightColor.colorValue);
+
+            EditorGUILayout.PropertyField(isVolumetric, EditorGUIUtility.TrTextContent("Is Volumetric", "Specifies if this light is volumetric"));
+            if (isVolumetric.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(volumetricColor, EditorGUIUtility.TrTextContent("Light Volume Color", "Specify the color of the light volume"));
+                EditorGUI.indentLevel--;
+            }
 
             InternalEditorBridge.SortingLayerField(EditorGUIUtility.TrTextContent("Target Sorting Layer", "Apply this light to the specifed layer"), applyToLayers, EditorStyles.popup, EditorStyles.label);
 
@@ -465,19 +456,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             serializedObject.ApplyModifiedProperties();
-
-            EditorGUILayout.LabelField("");
-            // EditorGUILayout.LabelField("Hold SHIFT to preview lighting");
-
-            if (updateMesh)
-            {
-                for (int i = 0; i < targets.Length; i++)
-                {
-                    Light2D light = (Light2D)targets[i];
-                    light.UpdateMesh();
-                    light.UpdateMaterial();
-                }
-            }
         }
 
         // Use Internal Bridge Later.

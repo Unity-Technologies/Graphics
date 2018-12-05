@@ -104,6 +104,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Sprite m_LightCookieSprite;
         private Sprite m_PreviousLightCookieSprite = null;
 
+        public bool m_IsVolumetric = false;
+        [ColorUsageAttribute(true, true)]
+        public Color m_VolumetricColor = Color.white;
+
         private BoundingSphere m_LocalBoundingSphere;
         CullingGroup m_CullingGroup;
 
