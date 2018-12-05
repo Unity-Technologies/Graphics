@@ -66,9 +66,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderOpaquesTag);
             using (new ProfilingSample(cmd, k_RenderOpaquesTag))
             {
-                RenderBufferLoadAction colorLoadOp = GetColorLoadAction(renderingData.cameraData.camera.clearFlags);
+                RenderBufferLoadAction colorLoadOp = (CoreUtils.HasFlag(clearFlag, ClearFlag.Color))
+                    ? RenderBufferLoadAction.DontCare
+                    : RenderBufferLoadAction.Load;
                 RenderBufferStoreAction colorStoreOp = RenderBufferStoreAction.Store;
-                RenderBufferLoadAction depthLoadOp = GetDepthLoadAction(renderingData.cameraData.camera.clearFlags);
+
+                RenderBufferLoadAction depthLoadOp = (CoreUtils.HasFlag(clearFlag, ClearFlag.Depth))
+                    ? RenderBufferLoadAction.DontCare
+                    : RenderBufferLoadAction.Load;
+
                 RenderBufferStoreAction depthStoreOp = RenderBufferStoreAction.Store;
 
                 SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), colorLoadOp, colorStoreOp,
@@ -93,34 +99,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        private RenderBufferLoadAction GetColorLoadAction(CameraClearFlags flags)
-        {
-            switch (flags)
-            {
-                case CameraClearFlags.Skybox:
-                case CameraClearFlags.SolidColor:
-                default:
-                    return RenderBufferLoadAction.DontCare;
-                case CameraClearFlags.Depth:
-                case CameraClearFlags.Nothing:
-                    return RenderBufferLoadAction.Load;
-            }
-        }
-
-        private RenderBufferLoadAction GetDepthLoadAction(CameraClearFlags flags)
-        {
-            switch (flags)
-            {
-                case CameraClearFlags.Skybox:
-                case CameraClearFlags.SolidColor:
-                case CameraClearFlags.Depth:
-                default:
-                    return RenderBufferLoadAction.DontCare;
-                case CameraClearFlags.Nothing:
-                    return RenderBufferLoadAction.Load;
-            }
         }
     }
 }
