@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [PackingAttribute("DiffusionProfile", FieldPacking.PackedUint, 8, 24), 
             PackingAttribute("SubsurfaceMask", FieldPacking.PackedFloat, 8, 16),
-            PackingAttribute("Thickness", FieldPacking.PackedFloat, 16, 0, 1.0f, 2.5f)] 
+            PackingAttribute("IOR", FieldPacking.PackedFloat, 16, 0, 1.0f, 2.5f)] 
             public uint SSSData;                            
 
             [PackingAttribute("Anisotropy", FieldPacking.PackedFloat, 8, 24), 
@@ -147,8 +147,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public uint bitangentWS;
             [PackingAttribute("AbsorptionCoefficient", FieldPacking.R11G11B10, 0, 32, 0, 1, false, true)]
             public uint absorptionCoefficient;
-            [PackingAttribute("IOR", FieldPacking.NoPacking)]
-            public float ior;                               
+            [PackingAttribute("Thickness", FieldPacking.NoPacking)]
+            public float thickness;                               
         };
 
 

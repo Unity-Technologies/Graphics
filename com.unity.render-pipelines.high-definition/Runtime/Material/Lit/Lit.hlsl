@@ -902,13 +902,13 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
     {
 	case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
 		// Convert to view space
-		result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+		result = TransformWorldToViewDir(GetNormalWS(bsdfData)) * 0.5 + 0.5;
 		break;
 	case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
 		result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
 		break;
 	case DEBUGVIEW_LIT_BSDFDATA_IOR:
-		result = saturate((bsdfData.ior - 1.0) / 1.5).xxx;
+		result = saturate((GetIOR(bsdfData) - 1.0) / 1.5).xxx;
 		break;
 
 	}

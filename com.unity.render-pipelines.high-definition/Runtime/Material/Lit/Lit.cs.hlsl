@@ -52,7 +52,7 @@
 #define DEBUGVIEW_LIT_BSDFDATA_SPECULAR_OCCLUSION (1056)
 #define DEBUGVIEW_LIT_BSDFDATA_DIFFUSION_PROFILE (1057)
 #define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_MASK (1058)
-#define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1059)
+#define DEBUGVIEW_LIT_BSDFDATA_IOR (1059)
 #define DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY (1060)
 #define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T (1061)
 #define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B (1062)
@@ -67,7 +67,7 @@
 #define DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS (1071)
 #define DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS (1072)
 #define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1073)
-#define DEBUGVIEW_LIT_BSDFDATA_IOR (1074)
+#define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1074)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData
 // PackingRules = Exact
@@ -111,7 +111,7 @@ struct BSDFData
     uint tangentWS;
     uint bitangentWS;
     uint absorptionCoefficient;
-    float ior;
+    float thickness;
 };
 
 //
@@ -229,7 +229,7 @@ float GetSubsurfaceMask(in BSDFData bsdfdata)
 {
     return UnpackUIntToFloat(bsdfdata.SSSData, 16, 8);
 }
-float GetThickness(in BSDFData bsdfdata)
+float GetIOR(in BSDFData bsdfdata)
 {
     return ((UnpackUIntToFloat(bsdfdata.SSSData, 0, 16) * 1.5) + 1);
 }
@@ -285,9 +285,9 @@ float3 GetAbsorptionCoefficient(in BSDFData bsdfdata)
 {
     return UnpackFromR11G11B10f(bsdfdata.absorptionCoefficient);
 }
-float GetIOR(in BSDFData bsdfdata)
+float GetThickness(in BSDFData bsdfdata)
 {
-    return (bsdfdata.ior);
+    return (bsdfdata.thickness);
 }
 //
 // Setters for packed fields
@@ -328,9 +328,9 @@ void SetSubsurfaceMask(float newSubsurfaceMask, inout BSDFData bsdfdata)
 {
     BitFieldInsert(255 << 16, UnpackInt(newSubsurfaceMask, 8) << 16, bsdfdata.SSSData);
 }
-void SetThickness(float newThickness, inout BSDFData bsdfdata)
+void SetIOR(float newIOR, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(65535 , UnpackInt(((newThickness - 1) / 1.5), 16) , bsdfdata.SSSData);
+    BitFieldInsert(65535 , UnpackInt(((newIOR - 1) / 1.5), 16) , bsdfdata.SSSData);
 }
 void SetAnisotropy(float newAnisotropy, inout BSDFData bsdfdata)
 {
@@ -384,9 +384,9 @@ void SetAbsorptionCoefficient(float3 newAbsorptionCoefficient, inout BSDFData bs
 {
     bsdfdata.absorptionCoefficient = PackToR11G11B10f(newAbsorptionCoefficient);
 }
-void SetIOR(float newIOR, inout BSDFData bsdfdata)
+void SetThickness(float newThickness, inout BSDFData bsdfdata)
 {
-    bsdfdata.ior = newIOR;
+    bsdfdata.thickness = newThickness;
 }
 //
 // Init functions for packed fields.
@@ -428,9 +428,9 @@ void InitSubsurfaceMask(float newSubsurfaceMask, inout BSDFData bsdfdata)
 {
     bsdfdata.SSSData |= UnpackInt(newSubsurfaceMask, 8) << 16; 
 }
-void InitThickness(float newThickness, inout BSDFData bsdfdata)
+void InitIOR(float newIOR, inout BSDFData bsdfdata)
 {
-    bsdfdata.SSSData |= UnpackInt(((newThickness - 1) / 1.5), 16) ; 
+    bsdfdata.SSSData |= UnpackInt(((newIOR - 1) / 1.5), 16) ; 
 }
 void InitAnisotropy(float newAnisotropy, inout BSDFData bsdfdata)
 {
@@ -484,9 +484,9 @@ void InitAbsorptionCoefficient(float3 newAbsorptionCoefficient, inout BSDFData b
 {
     bsdfdata.absorptionCoefficient = PackToR11G11B10f(newAbsorptionCoefficient);
 }
-void InitIOR(float newIOR, inout BSDFData bsdfdata)
+void InitThickness(float newThickness, inout BSDFData bsdfdata)
 {
-    bsdfdata.ior = newIOR;
+    bsdfdata.thickness = newThickness;
 }
 
 //
@@ -525,8 +525,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_MASK:
             result = GetSubsurfaceMask(bsdfdata).xxx;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_THICKNESS:
-            result = GetThickness(bsdfdata).xxx;
+        case DEBUGVIEW_LIT_BSDFDATA_IOR:
+            result = GetIOR(bsdfdata).xxx;
             break;
         case DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY:
             result = GetAnisotropy(bsdfdata).xxx;
@@ -571,8 +571,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             result = GetAbsorptionCoefficient(bsdfdata);
             needLinearToSRGB = true;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_IOR:
-            result = GetIOR(bsdfdata).xxx;
+        case DEBUGVIEW_LIT_BSDFDATA_THICKNESS:
+            result = GetThickness(bsdfdata).xxx;
             break;
     }
 }
