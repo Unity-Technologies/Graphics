@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Light2DPointLight"
+﻿Shader "Hidden/Light2D-Point"
 {
     Properties
     {

@@ -133,18 +133,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     {
                         Light2D light = lights[i];
 
-                        //if (light != null && light.isActiveAndEnabled && light.ShapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
-                        //{
-                        Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
-                        if (shapeLightVolumeMaterial != null)
+                        if (light != null && light.isActiveAndEnabled && light.IsVolumetric && light.ShapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
-                            Mesh lightMesh = light.GetMesh();
-                            if (lightMesh != null)
+                            Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
+                            if (shapeLightVolumeMaterial != null)
                             {
-                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
+                                Mesh lightMesh = light.GetMesh();
+                                if (lightMesh != null)
+                                {
+                                    cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
+                                }
                             }
                         }
-                        //}
                     }
                 }
             }

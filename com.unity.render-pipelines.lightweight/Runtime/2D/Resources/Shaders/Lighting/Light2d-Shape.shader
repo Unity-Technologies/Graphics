@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Light2DVertexColored"
+﻿Shader "Hidden/Light2D-Shape"
 {
 	Properties
 	{

@@ -56,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             if(m_PointLightingMat == null)
             {
-                Shader pointLightShader = Shader.Find("Hidden/Light2DPointLight");
+                Shader pointLightShader = Shader.Find("Hidden/Light2D-Point");
                 m_PointLightingMat = new Material(pointLightShader);
             }
 

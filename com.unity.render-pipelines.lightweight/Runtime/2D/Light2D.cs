@@ -105,7 +105,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Sprite m_LightCookieSprite;
         private Sprite m_PreviousLightCookieSprite = null;
 
-        public bool m_IsVolumetric = false;
+        [SerializeField]
+        private bool m_IsVolumetric = false;
+        public bool IsVolumetric
+        {
+            get { return m_IsVolumetric; }
+            set { m_IsVolumetric = value; }
+        }
 
         [ColorUsageAttribute(true, true)]
         public Color m_VolumetricColor = Color.white;
@@ -352,7 +358,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     // This is causing Object.op_inequality fix this
                     if (m_ShapeCookieSpriteMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
                     {
-                        Shader shader = Shader.Find("Hidden/Light2dVolumetricSprite");
+                        Shader shader = Shader.Find("Hidden/Light2d-Sprite-Volumetric");
                         m_ShapeCookieSpriteMaterial = new Material(shader);
                         //m_ShapeCookieSpriteMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
                     }
@@ -364,7 +370,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     // This is causing Object.op_inequality fix this
                     if (m_ShapeVertexVolumeColoredMaterial == null)
                     {
-                        Shader shader = Shader.Find("Hidden/Light2dVolumetric");
+                        Shader shader = Shader.Find("Hidden/Light2d-Shape-Volumetric");
                         m_ShapeVertexVolumeColoredMaterial = new Material(shader);
                     }
 
@@ -388,7 +394,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     // This is causing Object.op_inequality fix this
                     if (m_ShapeCookieSpriteMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
                     {
-                        Shader shader = Shader.Find("Hidden/Light2DSprite");
+                        Shader shader = Shader.Find("Hidden/Light2D-Sprite");
                         m_ShapeCookieSpriteMaterial = new Material(shader);
                         m_ShapeCookieSpriteMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
                     }
@@ -400,7 +406,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     // This is causing Object.op_inequality fix this
                     if (m_ShapeVertexColoredMaterial == null)
                     {
-                        Shader shader = Shader.Find("Hidden/Light2DVertexColored");
+                        Shader shader = Shader.Find("Hidden/Light2D-Shape");
                         m_ShapeVertexColoredMaterial = new Material(shader);
                     }
 
