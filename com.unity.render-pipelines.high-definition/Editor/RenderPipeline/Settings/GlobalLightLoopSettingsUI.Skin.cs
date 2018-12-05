@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
 
         static readonly GUIContent k_CompressProbeCacheContent = CoreEditorUtils.GetContent("Compress Reflection Probe Cache");
-        static readonly GUIContent k_CubemapSizeContent = CoreEditorUtils.GetContent("Cubemap Size");
+        static readonly GUIContent k_CubemapSizeContent = CoreEditorUtils.GetContent("Reflection Cubemap Size");
         static readonly GUIContent k_ProbeCacheSizeContent = CoreEditorUtils.GetContent("Probe Cache Size");
 
         static readonly GUIContent k_CompressPlanarProbeCacheContent = CoreEditorUtils.GetContent("Compress Planar Reflection Probe Cache");
