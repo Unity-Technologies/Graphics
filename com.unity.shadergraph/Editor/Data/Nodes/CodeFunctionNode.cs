@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public abstract class CodeFunctionNode : AbstractMaterialNode
+    abstract class CodeFunctionNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IGeneratesFunction
         , IMayRequireNormal
@@ -255,7 +255,7 @@ namespace UnityEditor.ShaderGraph
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGBA))
                     s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGB))
-                    s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
+                    s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, ColorMode.Default, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None || par.IsOut)
                     s = MaterialSlot.CreateMaterialSlot(
                             ConvertTypeToSlotValueType(par),
@@ -340,7 +340,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);
@@ -380,7 +380,9 @@ namespace UnityEditor.ShaderGraph
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
+            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision 
+                + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
+                + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
 
         private string GetFunctionHeader()

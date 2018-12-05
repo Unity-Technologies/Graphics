@@ -5,7 +5,8 @@ Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: AnimatedCookie_Mat2
   m_Shader: {fileID: 4800000, guid: acc1d0a5e8c5f2945bf425c697b55e52, type: 3}
   m_ShaderKeywords: _NORMALMAP_TANGENT_SPACE

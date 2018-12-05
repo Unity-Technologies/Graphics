@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Trigonometry", "Arctangent")]
-    public class ArctangentNode : CodeFunctionNode
+    class ArctangentNode : CodeFunctionNode
     {
         public ArctangentNode()
         {

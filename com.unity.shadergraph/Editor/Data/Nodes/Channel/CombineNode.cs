@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Channel", "Combine")]
-    public class CombineNode : CodeFunctionNode
+    class CombineNode : CodeFunctionNode
     {
         public CombineNode()
         {

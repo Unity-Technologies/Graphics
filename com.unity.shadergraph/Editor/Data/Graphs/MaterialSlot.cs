@@ -4,14 +4,13 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEngine.Experimental.UIElements;
 
-[assembly: InternalsVisibleTo("Unity.ShaderGraph.EditorTests")]
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class MaterialSlot : ISlot
+    abstract class MaterialSlot : ISlot
     {
         const string k_NotInit =  "Not Initilaized";
 

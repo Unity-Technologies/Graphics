@@ -6,9 +6,17 @@ EnumConversionControlView {
     padding-bottom: 4;
 }
 
-EnumConversionControlView > EnumField {
-    flex: 1;
-    margin-left: 0;
+
+.unity-base-field {
+    width: 80;
+	flex:1;
+    margin-top: 1;
+    margin-bottom: 1;
+}
+
+.unity-base-field__input {
+	flex:1;
+	margin-left: 0;
     margin-right: 0;
     margin-top: 0;
     margin-bottom: 0;

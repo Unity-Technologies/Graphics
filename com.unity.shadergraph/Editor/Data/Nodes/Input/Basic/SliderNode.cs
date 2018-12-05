@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Basic", "Slider")]
-    public class SliderNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class SliderNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private Vector3 m_Value = new Vector3(0f, 0f, 1f);
@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
                 return;

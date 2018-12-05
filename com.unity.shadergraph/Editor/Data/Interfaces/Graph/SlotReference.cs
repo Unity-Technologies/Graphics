@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.Graphing
 {
     [Serializable]
-    public struct SlotReference : ISerializationCallbackReceiver, IEquatable<SlotReference>
+    struct SlotReference : ISerializationCallbackReceiver, IEquatable<SlotReference>
     {
         [SerializeField]
         private int m_SlotId;

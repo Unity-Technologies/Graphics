@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class ColorRGBAMaterialSlot : Vector4MaterialSlot
+    class ColorRGBAMaterialSlot : Vector4MaterialSlot
     {
         public ColorRGBAMaterialSlot() {}
 

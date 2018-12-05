@@ -7,7 +7,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Basic", "Vector 1")]
-    public class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private float m_Value = 0;
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, InputSlotXId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var inputValue = GetSlotValue(InputSlotXId, generationMode);
             visitor.AddShaderChunk(precision + " " + GetVariableNameForSlot(OutputSlotId) + " = " + inputValue + ";", false);

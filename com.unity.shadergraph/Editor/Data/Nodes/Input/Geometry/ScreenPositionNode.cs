@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Geometry", "Screen Position")]
-    public class ScreenPositionNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition
+    class ScreenPositionNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireScreenPosition
     {
         public ScreenPositionNode()
         {
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), m_ScreenSpaceType.ToValueAsVariable()), true);
         }

@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Maximum")]
-    public class MaximumNode : CodeFunctionNode
+    class MaximumNode : CodeFunctionNode
     {
         public MaximumNode()
         {

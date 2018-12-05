@@ -16,15 +16,17 @@ SliderControlView > #SliderPanel {
     flex-grow: 1;
 }
 
-SliderControlView > #SliderPanel > Slider {
+.unity-slider,
+.unity-slider .unity-base-field__input {
     margin-left: 0;
     margin-right: 0;
     flex-direction: row;
     flex-grow: 1;
     min-width: 164;
+    overflow:visible;
 }
 
-SliderControlView > #SliderPanel > FloatField {
+SliderControlView > #SliderPanel > .unity-text-field {
     margin-left: 4;
     margin-right: 0;
     flex-direction: row;
@@ -40,7 +42,7 @@ SliderControlView > #FieldsPanel {
 }
 
 SliderControlView > #FieldsPanel > Label {
-    margin-left: 0;
+    margin-left: 2;
     margin-right: 8;
 }
 
@@ -49,4 +51,5 @@ SliderControlView > #FieldsPanel > FloatField {
     margin-right: 0;
     flex-direction: row;
     flex-grow: 1;
+    width: 40;
 }

@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEngine.MaterialGraph.ViewDirectionNode")]
     [Title("Input", "Geometry", "View Direction")]
-    public class ViewDirectionNode : GeometryNode, IMayRequireViewDirection
+    class ViewDirectionNode : GeometryNode, IMayRequireViewDirection
     {
         private const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";

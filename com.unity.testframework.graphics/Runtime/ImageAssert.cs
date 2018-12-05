@@ -1,8 +1,12 @@
 using System;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
+using System.Collections.Generic;
 using Unity.Jobs;
+using UnityEditor;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.TestTools.Graphics
 {
@@ -21,8 +25,22 @@ namespace UnityEngine.TestTools.Graphics
         /// <param name="settings">Optional settings that control how the image comparison is performed. Can be null, in which case the rendered image is required to be exactly identical to the reference.</param>
         public static void AreEqual(Texture2D expected, Camera camera, ImageComparisonSettings settings = null)
         {
-            if (!camera)
-                throw new ArgumentNullException("camera");
+            if (camera == null)
+                throw new ArgumentNullException(nameof(camera));
+
+            AreEqual(expected, new List<Camera>{camera}, settings);
+        }
+
+        /// <summary>
+        /// Render an image from the given cameras and compare it to the reference image.
+        /// </summary>
+        /// <param name="expected">The expected image that should be rendered by the camera.</param>
+        /// <param name="cameras">The cameras to render from.</param>
+        /// <param name="settings">Optional settings that control how the image comparison is performed. Can be null, in which case the rendered image is required to be exactly identical to the reference.</param>
+        public static void AreEqual(Texture2D expected, IEnumerable<Camera> cameras, ImageComparisonSettings settings = null)
+        {
+            if (cameras == null)
+                throw new ArgumentNullException(nameof(cameras));
 
             if (settings == null)
                 settings = new ImageComparisonSettings();
@@ -31,22 +49,39 @@ namespace UnityEngine.TestTools.Graphics
             int height = settings.TargetHeight;
             var format = expected != null ? expected.format : TextureFormat.ARGB32;
 
+            // Some HDRP test fail with HDRP batcher because shaders variant are compiled "on the fly" in editor mode.
+            // Persistent PerMaterial CBUFFER is build during culling, but some nodes could use new variants and CBUFFER will be up to date next frame.
+            // ( this is editor specific, standalone player has no frame delay issue because all variants are ready at init stage )
+            // This PR adds a dummy rendered frame before doing the real rendering and compare images ( test already has frame delay, but there is no rendering )
+            int dummyRenderedFrameCount = 1;
+
             var rt = RenderTexture.GetTemporary(width, height, 24);
             Texture2D actual = null;
             try
             {
-                camera.targetTexture = rt;
-                camera.Render();
-                camera.targetTexture = null;
+                for (int i=0;i< dummyRenderedFrameCount+1;i++)        // x frame delay + the last one is the one really tested ( ie 5 frames delay means 6 frames are rendered )
+                {
+                    foreach (var camera in cameras)
+                    {
+                        camera.targetTexture = rt;
+                        camera.Render();
+                        camera.targetTexture = null;
+                    }
 
-                actual = new Texture2D(width, height, format, false);
-                RenderTexture.active = rt;
-                actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-                RenderTexture.active = null;
+					// only proceed the test on the last renderered frame
+					if (dummyRenderedFrameCount == i)
+					{
+						actual = new Texture2D(width, height, format, false);
+						RenderTexture.active = rt;
+						actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+						RenderTexture.active = null;
 
-                actual.Apply();
+						actual.Apply();
 
-                AreEqual(expected, actual, settings);
+						AreEqual(expected, actual, settings);
+					}
+                }
+
             }
             finally
             {
@@ -66,6 +101,12 @@ namespace UnityEngine.TestTools.Graphics
         {
             if (actual == null)
                 throw new ArgumentNullException("actual");
+
+#if UNITY_EDITOR
+            var imagesWritten = new HashSet<string>();
+            var dirName = Path.Combine("Assets/ActualImages", string.Format("{0}/{1}/{2}", UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice));
+            Directory.CreateDirectory(dirName);
+#endif
 
             try
             {
@@ -113,14 +154,40 @@ namespace UnityEngine.TestTools.Graphics
                         diffImage.SetPixels32(diffPixelsArray, 0);
                         diffImage.Apply(false);
 
-                        TestContext.CurrentContext.Test.Properties.Set("DiffImage", Convert.ToBase64String(diffImage.EncodeToPNG()));
+#if UNITY_EDITOR
+                        if (sDontWriteToLog)
+                        {
+                            var bytes = diffImage.EncodeToPNG();
+                            var path = Path.Combine(dirName, TestContext.CurrentContext.Test.Name + ".diff.png");
+                            File.WriteAllBytes(path, bytes);
+                            imagesWritten.Add(path);
+                        }
+                        else
+#endif
+                        TestContext.CurrentContext.Test.Properties.Set("DiffImage", Convert.ToBase64String(diffImage.EncodeToPNG()) );
+
                         throw;
                     }
                 }
             }
             catch (AssertionException)
             {
-                TestContext.CurrentContext.Test.Properties.Set("Image", Convert.ToBase64String(actual.EncodeToPNG()));
+#if UNITY_EDITOR
+                if (sDontWriteToLog)
+                {
+                    var bytes = actual.EncodeToPNG();
+                    var path = Path.Combine(dirName, TestContext.CurrentContext.Test.Name + ".png");
+                    File.WriteAllBytes(path, bytes);
+                    imagesWritten.Add(path);
+
+                    AssetDatabase.Refresh();
+
+                    UnityEditor.TestTools.Graphics.Utils.SetupReferenceImageImportSettings(imagesWritten);
+                }
+                else
+#endif
+                    TestContext.CurrentContext.Test.Properties.Set("Image", Convert.ToBase64String(actual.EncodeToPNG()));
+
                 throw;
             }
         }
@@ -186,7 +253,7 @@ namespace UnityEngine.TestTools.Graphics
             l = Mathf.Pow(l / 10000f, kN);
             m = Mathf.Pow(m / 10000f, kN);
             s = Mathf.Pow(s / 10000f, kN);
-            
+
             // Can we switch to unity.mathematics yet?
             var lms = new Vector3(l, m, s);
             var a = new Vector3(kC1, kC1, kC1) + kC2 * lms;
@@ -220,5 +287,32 @@ namespace UnityEngine.TestTools.Graphics
             float deltaE = Mathf.Sqrt(Mathf.Pow(v1.x - v2.x, 2f) + Mathf.Pow(c1 - c2, 2f) + deltaH * deltaH);
             return deltaE;
         }
+
+#if UNITY_EDITOR
+        // Hack do disable writing to the XML Log of TestRunner (to avoid editor hanging when tests are run locally)
+        static string s_DontWriteToLogPath = "Library/DontWriteToLog";
+
+        static bool sDontWriteToLog
+        {
+            get
+            {
+                return File.Exists( s_DontWriteToLogPath ) ;
+            }
+        }
+
+        [MenuItem("Tests/XML Logging/Disable")]
+        public static void DisableXMLLogging()
+        {
+            File.WriteAllText( s_DontWriteToLogPath, "" );
+        }
+
+        [MenuItem("Tests/XML Logging/Enable")]
+        public static void EnableXMLLogging()
+        {
+            File.Delete(s_DontWriteToLogPath);
+        }
+
+#endif
+
     }
 }

@@ -261,12 +261,14 @@ namespace UnityEngine.Experimental.Rendering
             if(templateImage == null || resultImage == null)
                 return;
 
-            EditorUtility.CopySerialized( resultImage, templateImage );
+
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(resultImage), AssetDatabase.GetAssetPath(templateImage));
             AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
 
             DeleteResults();
         }
-        
+
         public const string ActualImagesRoot = "Assets/ActualImages";
 
         public bool GetImages( GraphicsTestCase _testCase = null )
@@ -288,9 +290,9 @@ namespace UnityEngine.Experimental.Rendering
                 return false; // No reference image found
             }
 
-            var colorSpace = UseGraphicsTestCasesAttribute.Provider.ColorSpace;
-            var platform = UseGraphicsTestCasesAttribute.Provider.Platform;
-            var graphicsDevice = UseGraphicsTestCasesAttribute.Provider.GraphicsDevice;
+            var colorSpace = UseGraphicsTestCasesAttribute.ColorSpace;
+            var platform = UseGraphicsTestCasesAttribute.Platform;
+            var graphicsDevice = UseGraphicsTestCasesAttribute.GraphicsDevice;
 
             var actualImagesDir = Path.Combine(ActualImagesRoot, string.Format("{0}/{1}/{2}", colorSpace, platform, graphicsDevice));
 

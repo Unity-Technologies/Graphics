@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class AbstractMaterialNode : INode, ISerializationCallbackReceiver, IGenerateProperties
+    abstract class AbstractMaterialNode : INode, ISerializationCallbackReceiver, IGenerateProperties
     {
         protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
         protected static List<IEdge> s_TempEdges = new List<IEdge>();
@@ -26,6 +27,12 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private string m_GuidSerialized;
 
+        [NonSerialized]
+        Guid m_GroupGuid;
+
+        [SerializeField]
+        string m_GroupGuidSerialized;
+
         [SerializeField]
         private string m_Name;
 
@@ -33,13 +40,13 @@ namespace UnityEditor.ShaderGraph
         private DrawState m_DrawState;
 
         [NonSerialized]
+        bool m_HasError;
+        
+        [NonSerialized]
         private List<ISlot> m_Slots = new List<ISlot>();
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableSlots = new List<SerializationHelper.JSONSerializedElement>();
-
-        [NonSerialized]
-        private bool m_HasError;
 
         public Identifier tempId { get; set; }
 
@@ -66,6 +73,12 @@ namespace UnityEditor.ShaderGraph
         public Guid guid
         {
             get { return m_Guid; }
+        }
+
+        public Guid groupGuid
+        {
+            get { return m_GroupGuid; }
+            set { m_GroupGuid = value; }
         }
 
         public string name
@@ -148,7 +161,7 @@ namespace UnityEditor.ShaderGraph
             get { return m_HasError; }
             protected set { m_HasError = value; }
         }
-
+        
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
         Guid m_GuidForDefaultVariableName;
@@ -300,9 +313,11 @@ namespace UnityEditor.ShaderGraph
             return ConcreteSlotValueType.Matrix2;
         }
 
+        protected const string k_validationErrorMessage = "Error found during node validation";
         public virtual void ValidateNode()
         {
             var isInError = false;
+            var errorMessage = k_validationErrorMessage;
 
             // all children nodes needs to be updated first
             // so do that here
@@ -317,12 +332,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var fromSocketRef = edge.outputSlot;
                     var outputNode = owner.GetNodeFromGuid(fromSocketRef.nodeGuid);
-                    if (outputNode == null)
-                        continue;
-
-                    outputNode.ValidateNode();
-                    if (outputNode.hasError)
-                        isInError = true;
+                    outputNode?.ValidateNode();
                 }
             }
             ListPool<MaterialSlot>.Release(slots);
@@ -368,7 +378,7 @@ namespace UnityEditor.ShaderGraph
                 var outputConcreteType = outputSlot.concreteValueType;
                 // dynamic input... depends on output from other node.
                 // we need to compare ALL dynamic inputs to make sure they
-                // are compatable.
+                // are compatible.
                 if (inputSlot is DynamicVectorMaterialSlot)
                 {
                     dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot)inputSlot, outputConcreteType);
@@ -406,7 +416,7 @@ namespace UnityEditor.ShaderGraph
 
             // configure the output slots now
             // their slotType will either be the default output slotType
-            // or the above dynanic slotType for dynamic nodes
+            // or the above dynamic slotType for dynamic nodes
             // or error if there is an input error
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);
@@ -436,10 +446,14 @@ namespace UnityEditor.ShaderGraph
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);
             isInError |= s_TempSlots.Any(x => x.hasError);
-            isInError |= CalculateNodeHasError();
+            isInError |= CalculateNodeHasError(ref errorMessage);
             hasError = isInError;
 
-            if (!hasError)
+            if (isInError)
+            {
+                ((AbstractMaterialGraph) owner).AddValidationError(tempId, errorMessage);
+            }
+            else
             {
                 ++version;
             }
@@ -454,7 +468,7 @@ namespace UnityEditor.ShaderGraph
         public int version { get; set; }
 
         //True if error
-        protected virtual bool CalculateNodeHasError()
+        protected virtual bool CalculateNodeHasError(ref string errorMessage)
         {
             return false;
         }
@@ -594,6 +608,7 @@ namespace UnityEditor.ShaderGraph
         public virtual void OnBeforeSerialize()
         {
             m_GuidSerialized = m_Guid.ToString();
+            m_GroupGuidSerialized = m_GroupGuid.ToString();
             m_SerializableSlots = SerializationHelper.Serialize<ISlot>(m_Slots);
         }
 
@@ -603,6 +618,11 @@ namespace UnityEditor.ShaderGraph
                 m_Guid = new Guid(m_GuidSerialized);
             else
                 m_Guid = Guid.NewGuid();
+
+            if (!string.IsNullOrEmpty(m_GroupGuidSerialized))
+                m_GroupGuid = new Guid(m_GroupGuidSerialized);
+            else
+                m_GroupGuid = Guid.Empty;
 
             m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, GraphUtil.GetLegacyTypeRemapping());
             m_SerializableSlots = null;

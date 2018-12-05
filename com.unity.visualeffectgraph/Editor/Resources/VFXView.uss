@@ -1,0 +1,95 @@
+VFXView
+{
+    background-color:#1b1b1b;
+}
+
+.dragdisplay
+{
+    position:absolute;
+    left:0;
+    right: 0;
+    height:4;
+    margin-top:-2;
+    background-color: rgb(210, 152, 0);
+}
+
+.toolbar {
+    background-image: resource("Builtin Skins/DarkSkin/Images/Toolbar.png");
+    -unity-slice-top:2;
+    -unity-slice-bottom:2;
+    height:17;
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    flex-direction:row;
+}
+
+.toolbarItem, .toolbarItem *
+{
+    color:#ababab;
+    font-size:11;
+}
+
+.unity-button.toolbarItem
+{
+    background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button.png");
+    -unity-slice-left:6;
+    -unity-slice-right:6;
+    height:17;
+    min-height:17;
+    margin-left:0;
+    margin-right:0;
+    margin-bottom:0;
+    margin-top:0;
+    padding-left:12;
+    padding-right:12;
+}
+
+.unity-button.toolbarItem:hover:active
+{
+    background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button act.png");
+}
+
+.unity-toggle.toolbarItem
+{
+    background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button.png");
+    -unity-slice-left:6;
+    -unity-slice-right:6;
+    height:17;
+    margin-left:0;
+    margin-right:0;
+    margin-bottom:0;
+    margin-top:0;
+    padding-top:0;
+    padding-bottom:0;
+    padding-left:12;
+    padding-right:12;
+}
+
+.unity-toggle.toolbarItem >* > #unity-checkmark,.unity-toggle.toolbarItem:checked >* > #unity-checkmark,.unity-toggle.toolbarItem:hover:active >* > #unity-checkmark,.unity-toggle.toolbarItem:hover:active:checked >* > #unity-checkmark
+{
+    background-image:none;
+    width:0;
+}
+
+.unity-toggle.toolbarItem > .unity-label.textElement
+{
+    margin-left:0;
+    -unity-text-align:middle-center;
+}
+
+.unity-toggle.toolbarItem:hover:active
+{
+    background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button act.png");
+}
+
+.unity-toggle.toolbarItem:checked
+{
+    background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button on.png");
+}
+
+.unity-toggle.toolbarItem:checked:hover:active
+{
+    background-image: resource("Builtin Skins/DarkSkin/Images/toolbar button act on.png");
+}

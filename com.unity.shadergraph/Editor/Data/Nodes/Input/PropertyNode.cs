@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Property")]
-    public class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled
+    class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled
     {
         private Guid m_PropertyGuid;
 
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var graph = owner as AbstractMaterialGraph;
             var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
@@ -176,11 +176,11 @@ namespace UnityEditor.ShaderGraph
             return property.referenceName;
         }
 
-        protected override bool CalculateNodeHasError()
+        protected override bool CalculateNodeHasError(ref string errorMessage)
         {
             var graph = owner as AbstractMaterialGraph;
 
-            if (!graph.properties.Any(x => x.guid == propertyGuid))
+            if (!propertyGuid.Equals(Guid.Empty) && !graph.properties.Any(x => x.guid == propertyGuid))
                 return true;
 
             return false;

@@ -8,7 +8,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Channel", "Swizzle")]
-    public class SwizzleNode : AbstractMaterialNode, IGeneratesBodyCode
+    class SwizzleNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public SwizzleNode()
         {
@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph
                 alphaChannel = TextureChannel.Red;
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             ValidateChannelCount();
             var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision);

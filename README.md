@@ -1,4 +1,4 @@
-## NOTE: We have migrate reported issues to fogbugz. Please log issues via the in unity bug tracker.
+## NOTE: We have migrated reported issues to FogBugz. You can only log further issues via the Unity bug tracker. To see how, read [this](https://unity3d.com/unity/qa/bug-reporting).
 
 # Unity Scriptable Render Pipeline
 The Scriptable Render Pipeline (SRP) is a new Unity feature in active development. SRP has been designed to give artists and developers the tools they need to create modern, high-fidelity graphics in Unity. Including a built-in Lightweight Render Pipeline for use on all platforms, and a High Definition Render Pipeline (HDRP) for use on compute shader compatible platforms. These features are available in Unity 2018.1+.
@@ -13,8 +13,10 @@ This feature is currently in preview. Some features may change or be removed bef
 
 [High Definition Pipeline Blogpost](https://blogs.unity3d.com/2018/03/16/the-high-definition-render-pipeline-focused-on-visual-quality/)
 
+[The High Definition Render Pipeline: Getting Started Guide for Artists](https://blogs.unity3d.com/2018/09/24/the-high-definition-render-pipeline-getting-started-guide-for-artists/)
+
 ## How to use the latest version
-__Note: The Master branch is our current development branch and may not work on the latest publicly available version of Unity. You should always use the latest release tag and latest Unity beta version for testing purposes.__
+__Note: The Master branch is our current development branch and may not work on the latest publicly available version of Unity. To determine which version of SRP you should use with your version of Unity, go to Package Manager (Window > Package Manager) to see what versions of SRP are available for your version of Unity Editor. Then you can search the Tags tab of the Branch dropdown in the SRP GitHub for that tag number.__
 To use the latest version of the SRP, follow the instructions below:
 
 This repository consists of a folder that should be cloned outside the Assets\ folder of your Unity project. We recommend creating a new project to test SRP. Do not clone this repo into an existing project unless you want to break it, or unless you are updating to a newer version of the SRP repo.
@@ -36,7 +38,6 @@ After the repo has been cloned you will need to run the following console comman
 
 ```
 > git checkout Unity-2018.1.0b2 (or the latest tag)
-> git submodule update --init (This command fetches the Postprocessing module, which is needed to use SRP)
 
 ```
 ### To download the repo using console commands:
@@ -47,7 +48,6 @@ Enter the following commands in your console application of choice:
 > git clone https://github.com/Unity-Technologies/ScriptableRenderPipeline
 > cd ScriptableRenderPipeline
 > git checkout Unity-2018.1.0b2 (or the latest tag)
-> git submodule update --init (This command fetches the Postprocessing module, which is needed to use SRP)
 
 ```
 ## Scriptable Render Pipeline Assets
@@ -87,6 +87,6 @@ Note: Always store your new Render Pipeline Asset outside of the Scriptable Rend
 
 If you want some sample scenes to use with SRP, you can find them at the [ScriptableRenderPipelineData GitHub repository](https://github.com/Unity-Technologies/ScriptableRenderPipelineData).
 
-Clone the repo into your project's Assets\ folder, likely alongside your ScriptableRenderPipeline clone folder.  You can use the same cloning process as described above for the main ScriptableRenderPipeline repo.
+Clone the repo into your project's Assets\ folder.
 
 Previous iterations of the ScriptableRenderPipeline repo owned this sample scene data, in case you noticed it before, and wondered where it went.

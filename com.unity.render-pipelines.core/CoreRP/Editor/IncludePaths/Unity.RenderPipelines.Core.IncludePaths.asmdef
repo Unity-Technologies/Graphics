@@ -1,8 +1,0 @@
-{
-    "name": "Unity.RenderPipelines.Core.IncludePaths",
-    "references": [],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": []
-}

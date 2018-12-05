@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum FloatType
+    enum FloatType
     {
         Default,
         Slider,
@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
-    public class Vector1ShaderProperty : AbstractShaderProperty<float>
+    class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
         public Vector1ShaderProperty()
         {
@@ -29,6 +29,11 @@ namespace UnityEditor.ShaderGraph
         public override Vector4 defaultValue
         {
             get { return new Vector4(value, value, value, value); }
+        }
+
+        public override bool isBatchable
+        {
+            get { return true; }
         }
 
         [SerializeField]
@@ -79,7 +84,7 @@ namespace UnityEditor.ShaderGraph
                     result.Append("\", Float) = ");
                     break;
             }
-            result.Append(value);
+            result.Append(NodeUtils.FloatToShaderValue(value));
             return result.ToString();
         }
 

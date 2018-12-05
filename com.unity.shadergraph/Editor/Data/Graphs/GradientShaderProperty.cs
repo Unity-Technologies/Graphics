@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public static class GradientUtils
+    static class GradientUtils
     {
         public static void GetGradientDeclaration(Gradient gradient, ref ShaderStringBuilder s)
         {
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Serializable]
-    public class GradientShaderProperty : AbstractShaderProperty<Gradient>
+    class GradientShaderProperty : AbstractShaderProperty<Gradient>
     {
         public GradientShaderProperty()
         {
@@ -112,6 +112,11 @@ namespace UnityEditor.ShaderGraph
         public override Vector4 defaultValue
         {
             get { return new Vector4(); }
+        }
+
+        public override bool isBatchable
+        {
+            get { return false; }
         }
 
         public override string GetPropertyBlockString()

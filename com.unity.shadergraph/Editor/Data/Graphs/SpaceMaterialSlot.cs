@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class SpaceMaterialSlot : Vector3MaterialSlot
+    abstract class SpaceMaterialSlot : Vector3MaterialSlot
     {
         [SerializeField]
         private CoordinateSpace m_Space = CoordinateSpace.World;
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            var slot = foundSlot as NormalMaterialSlot;
+            var slot = foundSlot as SpaceMaterialSlot;
             if (slot != null)
                 space = slot.space;
         }

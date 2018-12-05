@@ -6,10 +6,18 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
+    class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
+        public enum DefaultType
+        {
+            White, Black, Grey, Bump
+        }
+
         [SerializeField]
         private bool m_Modifiable = true;
+
+        [SerializeField]
+        private DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
 
         public TextureShaderProperty()
         {
@@ -28,9 +36,20 @@ namespace UnityEditor.ShaderGraph
             set { m_Modifiable = value; }
         }
 
+        public DefaultType defaultType
+        {
+            get { return m_DefaultType; }
+            set { m_DefaultType = value; }
+        }
+
         public override Vector4 defaultValue
         {
             get { return new Vector4(); }
+        }
+
+        public override bool isBatchable
+        {
+            get { return false; }
         }
 
         public override string GetPropertyBlockString()
@@ -45,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);
-            result.Append("\", 2D) = \"white\" {}");
+            result.Append("\", 2D) = \"" + defaultType.ToString().ToLower() + "\" {}");
             return result.ToString();
         }
 

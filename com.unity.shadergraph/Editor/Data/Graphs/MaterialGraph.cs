@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class MaterialGraph : AbstractMaterialGraph, IShaderGraph
+    class MaterialGraph : AbstractMaterialGraph, IShaderGraph
     {
         public IMasterNode masterNode
         {

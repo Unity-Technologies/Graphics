@@ -1,0 +1,19 @@
+{
+    "name": "Unity.RenderPipelines.Lightweight.Editor.Tests",
+    "references": [
+        "Unity.RenderPipelines.Lightweight.Runtime",
+        "Unity.RenderPipelines.Lightweight.Editor"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}

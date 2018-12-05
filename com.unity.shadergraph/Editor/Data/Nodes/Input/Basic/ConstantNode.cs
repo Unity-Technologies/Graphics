@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ConstantType
+    enum ConstantType
     {
         PI,
         TAU,
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input", "Basic", "Constant")]
-    public class ConstantNode : AbstractMaterialNode, IGeneratesBodyCode
+    class ConstantNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         static Dictionary<ConstantType, float> m_constantList = new Dictionary<ConstantType, float>
         {
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_constantList[constant].ToString(CultureInfo.InvariantCulture) + ";", true);
         }

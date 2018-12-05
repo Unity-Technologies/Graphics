@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class CubemapShaderProperty : AbstractShaderProperty<SerializableCubemap>
+    class CubemapShaderProperty : AbstractShaderProperty<SerializableCubemap>
     {
         [SerializeField]
         private bool m_Modifiable = true;
@@ -31,6 +31,11 @@ namespace UnityEditor.ShaderGraph
         public override Vector4 defaultValue
         {
             get { return new Vector4(); }
+        }
+
+        public override bool isBatchable
+        {
+            get { return false; }
         }
 
         public override string GetPropertyBlockString()

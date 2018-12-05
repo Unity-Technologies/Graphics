@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SurfaceMaterialOptions
+    class SurfaceMaterialOptions
     {
         public enum BlendMode
         {
@@ -44,23 +44,6 @@ namespace UnityEditor.ShaderGraph
             Off
         }
 
-        public enum RenderQueue
-        {
-            Background,
-            Geometry,
-            Transparent,
-            Overlay,
-        }
-
-        public enum RenderType
-        {
-            Opaque,
-            Transparent,
-            TransparentCutout,
-            Background,
-            Overlay
-        }
-
         [SerializeField]
         private BlendMode m_SrcBlend = BlendMode.One;
 
@@ -77,12 +60,6 @@ namespace UnityEditor.ShaderGraph
         private ZWrite m_ZWrite = ZWrite.On;
 
         [SerializeField]
-        private RenderQueue m_RenderQueue = RenderQueue.Geometry;
-
-        [SerializeField]
-        private RenderType m_RenderType = RenderType.Opaque;
-
-        [SerializeField]
         private int m_LOD = 200;
 
         public void Init()
@@ -92,20 +69,7 @@ namespace UnityEditor.ShaderGraph
             cullMode = CullMode.Back;
             zTest = ZTest.LEqual;
             zWrite = ZWrite.On;
-            renderQueue = RenderQueue.Geometry;
-            renderType = RenderType.Opaque;
             lod = 200;
-        }
-
-        public void GetTags(ShaderStringBuilder builder)
-        {
-            builder.AppendLine("Tags");
-            using (builder.BlockScope())
-            {
-                builder.AppendLine(@"""RenderPipeline""=""HDRenderPipeline""");
-                builder.AppendLine("\"RenderType\"=\"{0}\"", renderType);
-                builder.AppendLine("\"Queue\"=\"{0}\"", renderQueue);
-            }
         }
 
         public void GetBlend(ShaderStringBuilder builder)
@@ -123,6 +87,11 @@ namespace UnityEditor.ShaderGraph
             builder.AppendLine("ZWrite {0}", zWrite);
         }
 
+        public void GetDepthClip(ShaderStringBuilder builder)
+        {
+            builder.AppendLine("ZClip [_ZClip]");
+        }
+
         public void GetDepthTest(ShaderStringBuilder builder)
         {
             builder.AppendLine("ZTest {0}", zTest);
@@ -133,8 +102,6 @@ namespace UnityEditor.ShaderGraph
         public CullMode cullMode { get { return m_CullMode; } set { m_CullMode = value; } }
         public ZTest zTest { get { return m_ZTest; } set { m_ZTest = value; } }
         public ZWrite zWrite { get { return m_ZWrite; } set { m_ZWrite = value; } }
-        public RenderQueue renderQueue { get { return m_RenderQueue; } set { m_RenderQueue = value; } }
-        public RenderType renderType { get { return m_RenderType; } set { m_RenderType = value; } }
         public int lod { get { return m_LOD; } set { m_LOD = value; } }
     }
 }

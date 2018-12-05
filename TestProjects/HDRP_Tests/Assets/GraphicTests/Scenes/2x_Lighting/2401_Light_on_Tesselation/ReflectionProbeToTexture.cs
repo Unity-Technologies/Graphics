@@ -6,7 +6,7 @@ using UnityEngine.UI;
 [ExecuteInEditMode, RequireComponent(typeof(RawImage))]
 public class ReflectionProbeToTexture : MonoBehaviour
 {
-    [SerializeField] private ReflectionProbe targetProbe;
+    [SerializeField] private ReflectionProbe targetProbe = null;
     [SerializeField] private bool correctGamma = false;
     [SerializeField] private bool boxLayout = false;
     

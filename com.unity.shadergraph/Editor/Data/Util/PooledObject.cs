@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.Graphing
 {
-    public class PooledObject<T> : IDisposable where T : new()
+    class PooledObject<T> : IDisposable where T : new()
     {
         private ObjectPool<T> m_ObjectPool;
 

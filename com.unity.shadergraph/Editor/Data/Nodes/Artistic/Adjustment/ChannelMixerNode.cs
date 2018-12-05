@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "Channel Mixer")]
-    public class ChannelMixerNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class ChannelMixerNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public ChannelMixerNode()
         {
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var sb = new ShaderStringBuilder();
             var inputValue = GetSlotValue(InputSlotId, generationMode);

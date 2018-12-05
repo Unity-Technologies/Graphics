@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -6,14 +7,14 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum MatrixAxis
+    enum MatrixAxis
     {
         Row,
         Column
     }
 
     [Title("Math", "Matrix", "Matrix Split")]
-    public class MatrixSplitNode : AbstractMaterialNode, IGeneratesBodyCode
+    class MatrixSplitNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         const string kInputSlotName = "In";
         const string kOutputSlotM0Name = "M0";
@@ -68,7 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         static int[] s_OutputSlots = {OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId};
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var inputValue = GetSlotValue(InputSlotId, generationMode);
 
@@ -131,6 +132,7 @@ namespace UnityEditor.ShaderGraph
         public override void ValidateNode()
         {
             var isInError = false;
+            var errorMessage = k_validationErrorMessage;
 
             // all children nodes needs to be updated first
             // so do that here
@@ -264,10 +266,14 @@ namespace UnityEditor.ShaderGraph
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);
             isInError |= s_TempSlots.Any(x => x.hasError);
-            isInError |= CalculateNodeHasError();
+            isInError |= CalculateNodeHasError(ref errorMessage);
             hasError = isInError;
 
-            if (!hasError)
+            if (isInError)
+            {
+                ((AbstractMaterialGraph) owner).AddValidationError(tempId, errorMessage);
+            }
+            else
             {
                 ++version;
             }

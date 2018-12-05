@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 public class DebugViewController : MonoBehaviour
 {
@@ -25,12 +26,20 @@ public class DebugViewController : MonoBehaviour
         {
             case SettingType.Material:
                 hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(gBuffer);
-                hdPipeline.debugDisplaySettings.fullScreenDebugMode = FullScreenDebugMode.None;
+                hdPipeline.debugDisplaySettings.data.fullScreenDebugMode = FullScreenDebugMode.None;
                 break;
             case SettingType.Rendering:
                 hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(0);
-                hdPipeline.debugDisplaySettings.fullScreenDebugMode = (FullScreenDebugMode) fullScreenDebugMode;
+                hdPipeline.debugDisplaySettings.data.fullScreenDebugMode = (FullScreenDebugMode) fullScreenDebugMode;
                 break;
         }
+    }
+
+    void OnDestroy()
+    {
+        HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
+        hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(0);
+        hdPipeline.debugDisplaySettings.data.fullScreenDebugMode = FullScreenDebugMode.None;
     }
 }

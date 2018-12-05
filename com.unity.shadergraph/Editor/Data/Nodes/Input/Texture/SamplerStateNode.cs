@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Sampler State")]
-    public class SamplerStateNode : AbstractMaterialNode
+    class SamplerStateNode : AbstractMaterialNode
     {
         [SerializeField]
         private TextureSamplerState.FilterMode m_filter = TextureSamplerState.FilterMode.Linear;

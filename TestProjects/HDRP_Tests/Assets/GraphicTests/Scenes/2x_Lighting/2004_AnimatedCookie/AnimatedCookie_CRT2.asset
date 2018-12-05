@@ -3,8 +3,9 @@
 --- !u!86 &8600000
 CustomRenderTexture:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: AnimatedCookie_CRT2
   m_ImageContentsHash:
     serializedVersion: 2

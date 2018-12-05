@@ -1,20 +1,17 @@
-using UnityEditor.ShaderGraph;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
-using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(17, ShaderGraphExtension)]
-    public class ShaderGraphImporter : ScriptedImporter
+    [ScriptedImporter(20, Extension)]
+    class ShaderGraphImporter : ScriptedImporter
     {
-        public const string ShaderGraphExtension = "shadergraph";
+        public const string Extension = "shadergraph";
 
         const string k_ErrorShader = @"
 Shader ""Hidden/GraphErrorShader2""
@@ -62,7 +59,7 @@ Shader ""Hidden/GraphErrorShader2""
         {
             var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
             if (oldShader != null)
-                ShaderUtil.ClearShaderErrors(oldShader);
+                ShaderUtil.ClearShaderMessages(oldShader);
 
             List<PropertyCollector.TextureInfo> configuredTextures;
             string path = ctx.assetPath;

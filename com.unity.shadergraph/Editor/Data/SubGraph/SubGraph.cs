@@ -7,7 +7,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SubGraph : AbstractMaterialGraph
+    class SubGraph : AbstractMaterialGraph
         , IGeneratesBodyCode
         , IGeneratesFunction
     {
@@ -47,12 +47,12 @@ namespace UnityEditor.ShaderGraph
             base.AddNode(node);
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             foreach (var node in activeNodes)
             {
                 if (node is IGeneratesBodyCode)
-                    (node as IGeneratesBodyCode).GenerateNodeCode(visitor, generationMode);
+                    (node as IGeneratesBodyCode).GenerateNodeCode(visitor, graphContext, generationMode);
             }
         }
 
@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
                         arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
 
                     // now pass surface inputs
-                    arguments.Add("SurfaceDescriptionInputs IN");
+                    arguments.Add(string.Format("{0} IN", graphContext.graphInputStructName));
 
                     // Now generate outputs
                     foreach (var slot in graphOutputs)
@@ -107,10 +107,10 @@ namespace UnityEditor.ShaderGraph
                     {
                         // Just grab the body from the active nodes
                         var bodyGenerator = new ShaderGenerator();
-                        GenerateNodeCode(bodyGenerator, GenerationMode.ForReals);
+                        GenerateNodeCode(bodyGenerator, graphContext, generationMode);
 
                         if (outputNode != null)
-                            outputNode.RemapOutputs(bodyGenerator, GenerationMode.ForReals);
+                            outputNode.RemapOutputs(bodyGenerator, generationMode);
 
                         s.Append(bodyGenerator.GetShaderString(1));
                     }

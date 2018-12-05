@@ -17,7 +17,7 @@ namespace UnityEditor.TestTools.Graphics
     /// player.
     /// Will also build Lightmaps for specially labelled scenes.
     /// </summary>
-    public class SetupGraphicsTestCases : IPrebuildSetup
+    public class SetupGraphicsTestCases
     {
         static string bakeLabel = "TestRunnerBake";
 
@@ -26,7 +26,7 @@ namespace UnityEditor.TestTools.Graphics
             get
             {
                 var playmodeLauncher =
-                    typeof(UnityEditor.TestTools.RequirePlatformSupportAttribute).Assembly.GetType(
+                    typeof(RequirePlatformSupportAttribute).Assembly.GetType(
                         "UnityEditor.TestTools.TestRunner.PlaymodeLauncher");
                 var isRunningField = playmodeLauncher.GetField("IsRunning");
 
@@ -35,6 +35,11 @@ namespace UnityEditor.TestTools.Graphics
         }
 
         public void Setup()
+        {
+            Setup(EditorGraphicsTestCaseProvider.ReferenceImagesRoot);
+        }
+
+        public void Setup(string rootImageTemplatePath)
         {
             ColorSpace colorSpace;
             BuildTarget buildPlatform;
@@ -61,7 +66,7 @@ namespace UnityEditor.TestTools.Graphics
 
             foreach (var api in graphicsDevices)
             {
-                var images = EditorGraphicsTestCaseProvider.CollectReferenceImagePathsFor(colorSpace, runtimePlatform, api);
+                var images = EditorGraphicsTestCaseProvider.CollectReferenceImagePathsFor(rootImageTemplatePath, colorSpace, runtimePlatform, api);
 
                 Utils.SetupReferenceImageImportSettings(images.Values);
 
@@ -88,7 +93,7 @@ namespace UnityEditor.TestTools.Graphics
                 }
             }
 
-            
+
             // For each scene in the build settings, force build of the lightmaps if it has "DoLightmap" label.
             // Note that in the PreBuildSetup stage, TestRunner has already created a new scene with its testing monobehaviours
 
@@ -96,6 +101,8 @@ namespace UnityEditor.TestTools.Graphics
 
             foreach( EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
             {
+                if (!scene.enabled) continue;
+
                 SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scene.path);
                 var labels = new System.Collections.Generic.List<string>(AssetDatabase.GetLabels(sceneAsset));
                 if ( labels.Contains(bakeLabel) )
@@ -106,11 +113,11 @@ namespace UnityEditor.TestTools.Graphics
                     Scene currentScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(1);
 
                     EditorSceneManagement.EditorSceneManager.SetActiveScene(currentScene);
-                    
+
                     Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
 
                     Lightmapping.Bake();
-    
+
                     EditorSceneManagement.EditorSceneManager.SaveScene( currentScene );
 
                     EditorSceneManagement.EditorSceneManager.SetActiveScene(trScene);

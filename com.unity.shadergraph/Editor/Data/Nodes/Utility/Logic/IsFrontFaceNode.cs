@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
 	[Title("Utility", "Logic", "Is Front Face")]
-	public class IsFrontFaceNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireFaceSign
+	class IsFrontFaceNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireFaceSign
 	{
 		public IsFrontFaceNode()
 		{
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             visitor.AddShaderChunk(string.Format("{0} {1} = max(0, IN.{2});", precision, GetVariableNameForSlot(OutputSlotId), ShaderGeneratorNames.FaceSign), true);
         }

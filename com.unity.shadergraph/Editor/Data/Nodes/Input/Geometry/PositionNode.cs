@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEngine.MaterialGraph.WorldPosNode")]
     [Title("Input", "Geometry", "Position")]
-    public class PositionNode : GeometryNode, IMayRequirePosition
+    class PositionNode : GeometryNode, IMayRequirePosition
     {
         private const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";

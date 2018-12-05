@@ -4,7 +4,7 @@ using System.Text;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class PropertyCollector
+    class PropertyCollector
     {
         public struct TextureInfo
         {
@@ -46,7 +46,15 @@ namespace UnityEditor.ShaderGraph
 
         public void GetPropertiesDeclaration(ShaderStringBuilder builder)
         {
-            foreach (var prop in m_Properties)
+            builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
+            foreach (var prop in m_Properties.Where(n => n.isBatchable))
+            {
+                builder.AppendLine(prop.GetPropertyDeclarationString());
+            }
+            builder.AppendLine("CBUFFER_END");
+            builder.AppendNewLine();
+
+            foreach (var prop in m_Properties.Where(n => !n.isBatchable))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }

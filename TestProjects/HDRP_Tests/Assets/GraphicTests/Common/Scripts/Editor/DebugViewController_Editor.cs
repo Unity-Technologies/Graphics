@@ -15,7 +15,6 @@ public class DebugViewController_Editor : Editor
 
     SerializedProperty s_gBuffer;
     SerializedProperty s_fullScreenDebugMode;
-    SerializedProperty s_waitForFrames;
 
     public void OnEnable()
     {
@@ -23,7 +22,6 @@ public class DebugViewController_Editor : Editor
 
         s_gBuffer = serializedObject.FindProperty("gBuffer");
         s_fullScreenDebugMode = serializedObject.FindProperty("fullScreenDebugMode");
-        s_waitForFrames = serializedObject.FindProperty("waitForFrames");
     }
 
     public override void OnInspectorGUI()
@@ -36,6 +34,9 @@ public class DebugViewController_Editor : Editor
 
             s_settingType.intValue = GUILayout.Toolbar(s_settingType.intValue, new string[] { "Material", "Rendering" });
 
+            // if (MaterialDebugSettings.debugViewMaterialGBufferStrings == null) new MaterialDebugSettings();
+            // if (DebugDisplaySettings.renderingFullScreenDebugStrings == null) new DebugDisplaySettings();
+
             switch ( (DebugViewController.SettingType) s_settingType.intValue )
             {
                 case DebugViewController.SettingType.Material :
@@ -43,12 +44,10 @@ public class DebugViewController_Editor : Editor
                     break;
 
                 case DebugViewController.SettingType.Rendering:
-                s_fullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("GBuffer"), s_fullScreenDebugMode.intValue, DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues);
+                    s_fullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("GBuffer"), s_fullScreenDebugMode.intValue, DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues);
                     break;
             }
         }
-
-        EditorGUILayout.PropertyField(s_waitForFrames);
 
         if ( serializedObject.ApplyModifiedProperties() )
         {

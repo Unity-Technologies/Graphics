@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Projection")]
-    public class ProjectionNode : CodeFunctionNode
+    class ProjectionNode : CodeFunctionNode
     {
         public ProjectionNode()
         {

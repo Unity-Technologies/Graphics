@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using UnityEngine.TestTools;
 
@@ -8,8 +8,7 @@ namespace UnityEditor.TestTools.Graphics
     {
         public void Setup()
         {
-            File.WriteAllLines("Assets/StreamingAssets/SceneList.txt",
-                EditorBuildSettings.scenes.Where(s => s.enabled == true).Select(s => s.path).ToArray());
+            File.WriteAllLines("Assets/StreamingAssets/SceneList.txt", EditorGraphicsTestCaseProvider.GetTestScenePaths());
         }
     }
 }

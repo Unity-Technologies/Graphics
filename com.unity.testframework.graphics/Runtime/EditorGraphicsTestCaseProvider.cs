@@ -1,10 +1,9 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine.TestTools.Graphics;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -12,37 +11,37 @@ namespace UnityEditor.TestTools.Graphics
 {
     internal class EditorGraphicsTestCaseProvider : IGraphicsTestCaseProvider
     {
-        public ColorSpace ColorSpace
+        string m_ReferenceImagePath = string.Empty;
+
+        public EditorGraphicsTestCaseProvider()
         {
-            get
-            {
-                return QualitySettings.activeColorSpace;
-            }
         }
 
-        public RuntimePlatform Platform
+        public EditorGraphicsTestCaseProvider(string referenceImagePath)
         {
-            get
-            {
-                return Application.platform;
-            }
+            m_ReferenceImagePath = referenceImagePath;
         }
 
-        public GraphicsDeviceType GraphicsDevice
+        public static IEnumerable<string> GetTestScenePaths()
         {
-            get
-            {
-                return SystemInfo.graphicsDeviceType;
-            }
+            return EditorBuildSettings.scenes
+                .Where(s => s.enabled)
+                .Select(s => s.path)
+                .Where(s =>
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<SceneAsset>(s);
+                    var labels = AssetDatabase.GetLabels(asset);
+                    return !labels.Contains("ExcludeGfxTests");
+                });
         }
-
 
         public IEnumerable<GraphicsTestCase> GetTestCases()
         {
-            var allImages = CollectReferenceImagePathsFor(QualitySettings.activeColorSpace, Application.platform,
+            var allImages = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath, QualitySettings.activeColorSpace, Application.platform,
                 SystemInfo.graphicsDeviceType);
 
-            foreach (var scenePath in EditorBuildSettings.scenes.Where(s => s.enabled == true).Select(s => s.path).ToArray())
+            var scenes = GetTestScenePaths();
+            foreach (var scenePath in scenes)
             {
                 Texture2D referenceImage = null;
 
@@ -56,21 +55,38 @@ namespace UnityEditor.TestTools.Graphics
             }
         }
 
+        public GraphicsTestCase GetTestCaseFromPath(string scenePath)
+        {
+            GraphicsTestCase output = null;
+
+            var allImages = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath, QualitySettings.activeColorSpace, Application.platform,
+                SystemInfo.graphicsDeviceType);
+
+            Texture2D referenceImage = null;
+
+            string imagePath;
+            if (allImages.TryGetValue(Path.GetFileNameWithoutExtension(scenePath), out imagePath))
+                referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
+
+            output = new GraphicsTestCase(scenePath, referenceImage);
+
+            return output;
+        }
+
         public const string ReferenceImagesRoot = "Assets/ReferenceImages";
 
-        public static Dictionary<string, string> CollectReferenceImagePathsFor(ColorSpace colorSpace, RuntimePlatform runtimePlatform,
+        public static Dictionary<string, string> CollectReferenceImagePathsFor(string referenceImageRoot, ColorSpace colorSpace, RuntimePlatform runtimePlatform,
             GraphicsDeviceType graphicsApi)
         {
             var result = new Dictionary<string, string>();
 
-            if (!Directory.Exists(ReferenceImagesRoot))
+            if (!Directory.Exists(referenceImageRoot))
                 return result;
 
-            var fullPathPrefix = string.Format("{0}/{1}/{2}/{3}/", ReferenceImagesRoot, colorSpace, runtimePlatform, graphicsApi);
+            var fullPathPrefix = string.Format("{0}/{1}/{2}/{3}/", referenceImageRoot, colorSpace, runtimePlatform, graphicsApi);
 
             foreach (var assetPath in AssetDatabase.GetAllAssetPaths()
-                .Where(p => p.StartsWith(ReferenceImagesRoot, StringComparison.OrdinalIgnoreCase))
-                .Where(p => fullPathPrefix.StartsWith(Path.GetDirectoryName(p)))
+                .Where(p => p.StartsWith(fullPathPrefix, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(p => p.Count(ch => ch == '/')))
             {
                 // Skip directories

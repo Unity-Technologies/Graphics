@@ -1,0 +1,4 @@
+{
+    "disableBatchMode": true,
+    "disabledOnPlatforms" : ["Darwin"]
+}

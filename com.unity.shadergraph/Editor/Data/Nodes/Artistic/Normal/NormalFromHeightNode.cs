@@ -7,14 +7,14 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
 
-    public enum OutputSpace
+    enum OutputSpace
     {
         Tangent,
         World
     };
 
     [Title("Artistic", "Normal", "Normal From Height")]
-    public class NormalFromHeightNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal, IMayRequirePosition
+    class NormalFromHeightNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal, IMayRequirePosition
     {
         public NormalFromHeightNode()
         {
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var sb = new ShaderStringBuilder();
 

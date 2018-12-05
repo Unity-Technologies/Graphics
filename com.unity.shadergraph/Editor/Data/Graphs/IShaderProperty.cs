@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IShaderProperty
+    interface IShaderProperty
     {
         string displayName { get; set; }
 
@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph
         bool generatePropertyBlock { get; set; }
         Vector4 defaultValue { get; }
         string overrideReferenceName { get; set; }
+        bool isBatchable { get; }
 
         string GetPropertyBlockString();
         string GetPropertyDeclarationString(string delimiter = ";");

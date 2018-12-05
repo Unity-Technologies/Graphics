@@ -6,14 +6,14 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ColorMode
+    enum ColorMode
     {
         Default,
         HDR
     }
 
     [Title("Input", "Basic", "Color")]
-    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
                 return;

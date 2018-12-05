@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         public int count { get; set; }
     }
 
-    public class ShaderStringBuilder : IDisposable
+    class ShaderStringBuilder : IDisposable
     {
         enum ScopeType
         {
@@ -99,10 +99,20 @@ namespace UnityEditor.ShaderGraph
             m_StringBuilder.Append(value);
         }
 
+        public void Append(string value, int start, int count)
+        {
+            m_StringBuilder.Append(value, start, count);
+        }
+
         [StringFormatMethod("formatString")]
         public void Append(string formatString, params object[] args)
         {
             m_StringBuilder.AppendFormat(formatString, args);
+        }
+
+        public void AppendSpaces(int count)
+        {
+            m_StringBuilder.Append(' ', count);
         }
 
         public void AppendIndentation()

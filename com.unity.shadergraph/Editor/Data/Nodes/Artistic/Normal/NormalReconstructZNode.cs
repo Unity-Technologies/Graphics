@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Normal", "Normal Reconstruct Z")]
-    public class NormalReconstructZNode : CodeFunctionNode
+    class NormalReconstructZNode : CodeFunctionNode
     {
         public NormalReconstructZNode()
         {

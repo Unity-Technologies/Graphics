@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine.Networking;
+using UnityEngine.UIElements;
 
-public class ResizeBorderFrame : VisualElement
+class ResizeBorderFrame : VisualElement
 {
     List<ResizeSideHandle> m_ResizeSideHandles;
 

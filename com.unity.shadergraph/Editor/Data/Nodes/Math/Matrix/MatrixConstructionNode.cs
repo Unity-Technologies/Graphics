@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Matrix", "Matrix Construction")]
-    public class MatrixConstructionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class MatrixConstructionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         const string kInputSlotM0Name = "M0";
         const string kInputSlotM1Name = "M1";
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return string.Format("Unity_MatrixConstruction_{0}", precision);
+            return string.Format("Unity_MatrixConstruction_{0}_{1}", axis, precision);
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new int[] { InputSlotM0Id, InputSlotM1Id, InputSlotM2Id, InputSlotM3Id, Output4x4SlotId, Output3x3SlotId, Output2x2SlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var sb = new ShaderStringBuilder();
             var inputM0Value = GetSlotValue(InputSlotM0Id, generationMode);

@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class WriteShaderToRenderTexture : MonoBehaviour
 {
-    [SerializeField] RenderTexture rt;
-    [SerializeField] Shader shader;
+    [SerializeField] RenderTexture rt = null;
+    [SerializeField] Shader shader = null;
 
 	// Use this for initialization
 	void Start ()

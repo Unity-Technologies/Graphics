@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var path in paths)
             {
-                if (!path.EndsWith(ShaderGraphImporter.ShaderGraphExtension, StringComparison.InvariantCultureIgnoreCase))
+                if (!path.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
                 var mainObj = AssetDatabase.LoadMainAssetAtPath(path);
@@ -48,13 +48,13 @@ namespace UnityEditor.ShaderGraph
             MaterialGraphEditWindow[] windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
             foreach (var matGraphEditWindow in windows)
             {
-                matGraphEditWindow.forceRedrawPreviews = true;
+                matGraphEditWindow.updatePreviewShaders = true;
             }
 
             RegisterShaders(importedAssets);
 
-            bool anyShaders = movedAssets.Any(val => val.EndsWith(ShaderGraphImporter.ShaderGraphExtension, StringComparison.InvariantCultureIgnoreCase));
-            anyShaders |= movedAssets.Any(val => val.EndsWith("shadersubgraph", StringComparison.InvariantCultureIgnoreCase));
+            bool anyShaders = movedAssets.Any(val => val.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
+            anyShaders |= movedAssets.Any(val => val.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
             if (anyShaders)
                 UpdateAfterAssetChange(movedAssets);
         }

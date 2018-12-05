@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Channel", "Flip")]
-    public class FlipNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class FlipNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public FlipNode()
         {
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var sb = new ShaderStringBuilder();
 

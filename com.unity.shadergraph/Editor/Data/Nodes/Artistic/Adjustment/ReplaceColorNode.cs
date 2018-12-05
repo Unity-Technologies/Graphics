@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "Replace Color")]
-    public class ReplaceColorNode : CodeFunctionNode
+    class ReplaceColorNode : CodeFunctionNode
     {
         public ReplaceColorNode()
         {

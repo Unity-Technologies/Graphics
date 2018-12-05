@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum MetalMaterialType
+    enum MetalMaterialType
     {
         Iron,
         Silver,
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input", "PBR", "Metal Reflectance")]
-    public class MetalReflectanceNode : AbstractMaterialNode, IGeneratesBodyCode
+    class MetalReflectanceNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public MetalReflectanceNode()
         {
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             visitor.AddShaderChunk(string.Format("{0}3 {1} = {0}3{2};", precision, GetVariableNameForSlot(kOutputSlotId), m_MaterialList[material].ToString(CultureInfo.InvariantCulture)), true);
         }

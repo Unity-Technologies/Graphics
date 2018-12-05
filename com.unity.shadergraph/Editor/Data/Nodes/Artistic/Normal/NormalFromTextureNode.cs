@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEditor.ShaderGraph.NormalCreateNode")]
     [Title("Artistic", "Normal", "Normal From Texture")]
-    public class NormalFromTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IGenerateProperties, IMayRequireMeshUV
+    class NormalFromTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IGenerateProperties, IMayRequireMeshUV
     {
         public const int TextureInputId = 0;
         public const int UVInputId = 1;
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { TextureInputId, UVInputId, SamplerInputId, OffsetInputId, StrengthInputId, OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var textureValue = GetSlotValue(TextureInputId, generationMode);
             var uvValue = GetSlotValue(UVInputId, generationMode);

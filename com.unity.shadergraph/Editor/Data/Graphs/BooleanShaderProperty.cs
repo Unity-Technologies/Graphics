@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class BooleanShaderProperty : AbstractShaderProperty<bool>
+    class BooleanShaderProperty : AbstractShaderProperty<bool>
     {
         public BooleanShaderProperty()
         {
@@ -22,6 +22,11 @@ namespace UnityEditor.ShaderGraph
         public override Vector4 defaultValue
         {
             get { return new Vector4(); }
+        }
+
+        public override bool isBatchable
+        {
+            get { return true; }
         }
 
         public override string GetPropertyBlockString()

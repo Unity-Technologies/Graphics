@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Matrix3ShaderProperty : MatrixShaderProperty
+    class Matrix3ShaderProperty : MatrixShaderProperty
     {
         public Matrix3ShaderProperty()
         {
@@ -15,6 +15,11 @@ namespace UnityEditor.ShaderGraph
         public override PropertyType propertyType
         {
             get { return PropertyType.Matrix3; }
+        }
+
+        public override bool isBatchable
+        {
+            get { return true; }
         }
 
         public override string GetPropertyDeclarationString(string delimiter = ";")

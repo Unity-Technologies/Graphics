@@ -4,12 +4,13 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class DynamicValueMaterialSlot : MaterialSlot, IMaterialSlotHasValue<Matrix4x4>
+    class DynamicValueMaterialSlot : MaterialSlot, IMaterialSlotHasValue<Matrix4x4>
     {
         [SerializeField]
         private Matrix4x4 m_Value;
@@ -82,7 +83,7 @@ namespace UnityEditor.ShaderGraph
             if (channelCount == 1)
                 return values;
             for (var i = 1; i < channelCount; i++)
-                values += ", " + value.GetRow(0)[i];
+                values += ", " + NodeUtils.FloatToShaderValue(value.GetRow(0)[i]);
             return string.Format("{0}{1}({2})", precision, channelCount, values);
         }
 

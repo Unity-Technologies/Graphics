@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class AbstractShaderProperty<T> : IShaderProperty
+    abstract class AbstractShaderProperty<T> : IShaderProperty
     {
         [SerializeField]
         private T m_Value;
@@ -36,6 +36,7 @@ namespace UnityEditor.ShaderGraph
             set { m_Name = value; }
         }
 
+        [SerializeField]
         string m_DefaultReferenceName;
 
         public string referenceName
@@ -75,6 +76,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public abstract Vector4 defaultValue { get; }
+        public abstract bool isBatchable { get; }
         public abstract string GetPropertyBlockString();
         public abstract string GetPropertyDeclarationString(string delimiter = ";");
 

@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Trigonometry", "Arcsine")]
-    public class ArcsineNode : CodeFunctionNode
+    class ArcsineNode : CodeFunctionNode
     {
         public ArcsineNode()
         {

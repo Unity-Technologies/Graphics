@@ -1,22 +1,22 @@
 using System;
-using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
-    public class Texture3DSlotControlView : VisualElement
+    class Texture3DSlotControlView : VisualElement
     {
         Texture3DInputMaterialSlot m_Slot;
 
         public Texture3DSlotControlView(Texture3DInputMaterialSlot slot)
         {
             m_Slot = slot;
-            AddStyleSheetPath("Styles/Controls/Texture3DSlotControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/Texture3DSlotControlView"));
             var objectField = new ObjectField { objectType = typeof(Texture3D), value = m_Slot.texture };
-            objectField.OnValueChanged(OnValueChanged);
+            objectField.RegisterValueChangedCallback(OnValueChanged);
             Add(objectField);
         }
 

@@ -7,14 +7,14 @@ using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
-    public class SlotConfigurationException : Exception
+    class SlotConfigurationException : Exception
     {
         public SlotConfigurationException(string message)
             : base(message)
         {}
     }
 
-    public static class NodeUtils
+    static class NodeUtils
     {
         public static void SlotConfigurationExceptionIfBadConfiguration(INode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
         {
@@ -79,8 +79,10 @@ namespace UnityEditor.Graphing
             if (nodeList.Contains(node))
                 return;
 
-            var ids = node.GetInputSlots<ISlot>().Select(x => x.id);
-            if (slotIds != null)
+            IEnumerable<int> ids;
+            if (slotIds == null)
+                ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+            else
                 ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
 
             foreach (var slot in ids)

@@ -1,5 +1,5 @@
+using System;
 using System.IO;
-using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.ShaderGraph.Drawing;
@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
 {
 
     [CustomEditor(typeof(ShaderGraphImporter))]
-    public class ShaderGraphImporterEditor : ScriptedImporterEditor
+    class ShaderGraphImporterEditor : ScriptedImporterEditor
     {
         public override void OnInspectorGUI()
         {
@@ -25,7 +25,12 @@ namespace UnityEditor.ShaderGraph
         {
             var guid = AssetDatabase.AssetPathToGUID(path);
             var extension = Path.GetExtension(path);
-            if (extension != ".ShaderGraph" && extension != ".LayeredShaderGraph" && extension != ".ShaderSubGraph" && extension != ".ShaderRemapGraph")
+            if (string.IsNullOrEmpty(extension))
+                return false;
+            // Path.GetExtension returns the extension prefixed with ".", so we remove it. We force lower case such that
+            // the comparison will be case-insensitive.
+            extension = extension.Substring(1).ToLowerInvariant();
+            if (extension != ShaderGraphImporter.Extension && extension != ShaderSubGraphImporter.Extension)
                 return false;
 
             var foundWindow = false;

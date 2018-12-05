@@ -1,24 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
-using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.UIElements;
 using UnityEngine.Rendering;
+
+using UnityEditor.UIElements;
+using Edge = UnityEditor.Experimental.GraphView.Edge;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class MaterialGraphEditWindow : EditorWindow
+    class MaterialGraphEditWindow : EditorWindow
     {
         [SerializeField]
         string m_Selected;
@@ -30,13 +29,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
 
         [NonSerialized]
-        public bool forceRedrawPreviews = false;
+        public bool updatePreviewShaders = false;
 
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
+        bool m_FrameAllAfterLayout;
 
         GraphEditorView m_GraphEditorView;
 
+        MessageManager m_MessageManager;
+        MessageManager messageManager
+        {
+            get { return m_MessageManager ?? (m_MessageManager = new MessageManager()); }
+        }
+        
         GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
@@ -54,7 +60,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.saveRequested += UpdateAsset;
                     m_GraphEditorView.convertToSubgraphRequested += ToSubGraph;
                     m_GraphEditorView.showInProjectRequested += PingAsset;
-                    this.GetRootVisualContainer().Add(graphEditorView);
+                    m_GraphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+                    m_FrameAllAfterLayout = true;
+                    this.rootVisualElement.Add(graphEditorView);
                 }
             }
         }
@@ -124,22 +132,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (graphEditorView == null)
                 {
+                    messageManager.ClearAll();
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                    graphEditorView = new GraphEditorView(this, materialGraph)
+                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
                     {
-                        persistenceKey = selectedGuid,
+                        viewDataKey = selectedGuid,
                         assetName = asset.name.Split('/').Last()
                     };
+                    materialGraph.messageManager = messageManager;
                     m_ColorSpace = PlayerSettings.colorSpace;
                     m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
                 }
 
-                if (forceRedrawPreviews)
+                if (updatePreviewShaders)
                 {
-                    // Redraw all previews
-                    foreach (INode node in m_GraphObject.graph.GetNodes<INode>())
-                        node.Dirty(ModificationScope.Node);
-                    forceRedrawPreviews = false;
+                    m_GraphEditorView.UpdatePreviewShaders();
+                    updatePreviewShaders = false;
                 }
 
                 graphEditorView.HandleGraphChanges();
@@ -158,13 +166,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnDisable()
         {
             graphEditorView = null;
+            messageManager.ClearAll();
         }
 
         void OnDestroy()
         {
             if (graphObject != null)
             {
-                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the shader graph?\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
+                string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the shader graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
                     UpdateAsset();
                 Undo.ClearUndo(graphObject);
                 DestroyImmediate(graphObject);
@@ -191,6 +201,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
+                bool VCSEnabled = (VersionControl.Provider.enabled && VersionControl.Provider.isActive);
+                CheckoutIfValid(path, VCSEnabled);
+
                 if (m_GraphObject.graph.GetType() == typeof(MaterialGraph))
                     UpdateShaderGraphOnDisk(path);
 
@@ -208,7 +221,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ToSubGraph()
         {
-            var path = EditorUtility.SaveFilePanelInProject("Save subgraph", "New SubGraph", "ShaderSubGraph", "");
+            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "");
             path = path.Replace(Application.dataPath, "Assets");
             if (path.Length == 0)
                 return;
@@ -236,6 +249,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.graph.guid,
+                    graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                     graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
                     graphView.selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty),
@@ -246,6 +260,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             var subGraph = new SubGraph();
+            subGraph.path = "Sub Graphs";
             var subGraphOutputNode = new SubGraphOutputNode();
             {
                 var drawState = subGraphOutputNode.drawState;
@@ -416,7 +431,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graphObject.graph.RemoveElements(
                 graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode),
-                Enumerable.Empty<IEdge>());
+                Enumerable.Empty<IEdge>(),
+                Enumerable.Empty<GroupData>());
             graphObject.graph.ValidateGraph();
         }
 
@@ -479,13 +495,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var path = AssetDatabase.GetAssetPath(asset);
                 var extension = Path.GetExtension(path);
+                if (extension == null)
+                    return;
+                // Path.GetExtension returns the extension prefixed with ".", so we remove it. We force lower case such that
+                // the comparison will be case-insensitive.
+                extension = extension.Substring(1).ToLowerInvariant();
                 Type graphType;
                 switch (extension)
                 {
-                    case ".ShaderGraph":
+                    case ShaderGraphImporter.Extension:
                         graphType = typeof(MaterialGraph);
                         break;
-                    case ".ShaderSubGraph":
+                    case ShaderSubGraphImporter.Extension:
                         graphType = typeof(SubGraph);
                         break;
                     default:
@@ -498,15 +519,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
                 graphObject.graph = JsonUtility.FromJson(textGraph, graphType) as IGraph;
+                ((AbstractMaterialGraph) graphObject.graph).messageManager = messageManager;
                 graphObject.graph.OnEnable();
                 graphObject.graph.ValidateGraph();
 
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph)
+                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, messageManager)
                 {
-                    persistenceKey = selectedGuid,
+                    viewDataKey = selectedGuid,
                     assetName = asset.name.Split('/').Last()
                 };
-                graphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
                 titleContent = new GUIContent(asset.name.Split('/').Last());
 
@@ -524,7 +545,30 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnGeometryChanged(GeometryChangedEvent evt)
         {
             graphEditorView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-            graphEditorView.graphView.FrameAll();
+            if (m_FrameAllAfterLayout)
+                graphEditorView.graphView.FrameAll();
+            m_FrameAllAfterLayout = false;
+            foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
+                node.Dirty(ModificationScope.Node);
+        }
+
+        void CheckoutIfValid(string path, bool VCSEnabled)
+        {
+            if (VCSEnabled)
+            {
+                var asset = VersionControl.Provider.GetAssetByPath(path);
+                if (asset != null)
+                {
+                    if (VersionControl.Provider.CheckoutIsValid(asset))
+                    {
+                        var task = VersionControl.Provider.Checkout(asset, VersionControl.CheckoutMode.Both);
+                        task.Wait();
+
+                        if (!task.success)
+                            Debug.Log(task.text + " " + task.resultCode);
+                    }
+                }
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Vector4ShaderProperty : VectorShaderProperty
+    class Vector4ShaderProperty : VectorShaderProperty
     {
         public Vector4ShaderProperty()
         {
@@ -20,6 +20,11 @@ namespace UnityEditor.ShaderGraph
         public override Vector4 defaultValue
         {
             get { return value; }
+        }
+
+        public override bool isBatchable
+        {
+            get { return true; }
         }
 
         public override string GetPropertyDeclarationString(string delimiter = ";")

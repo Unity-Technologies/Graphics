@@ -4,7 +4,172 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.3.0] - 2018-11-xx
+### Added
+- LWRP now uses the Unity recorder extension to make it possible to capture the output of Cameras.
+
+### Fixed
+- The foldouts in the Lightweight Asset inspector UI now remember their state.
+- Added missing meta file for GizmosRenderingPass.cs.
+- Fixed artifacts when using multiple or Depth Only cameras. [Case 1072615](https://issuetracker.unity3d.com/issues/ios-using-multiple-cameras-in-the-scene-in-lightweight-render-pipeline-gives-corrupted-image-in-ios-device)
+- Fixed a typo in ERROR_ON_UNSUPPORTED_FUNCTION() that was causing the shader compiler to run out of memory in GLES2. [Case 1104271] (https://issuetracker.unity3d.com/issues/mobile-os-restarts-because-of-high-memory-usage-when-compiling-shaders-for-opengles2)
+
+## [5.2.0] - 2018-11-27
+### Added
+- LWRP now handles blits that are required by the device when rendering to the backbuffer.
+- You can now enable the SRP Batcher. To do so, go to the `Pipeline Asset`. Under `Advanced`, toggle `SRP Batcher`.
+
+### Changed
+- Renamed shader variable `unity_LightIndicesOffsetAndCount` to `unity_PerObjectLightData`.
+- Shader variables `unity_4LightIndices0` and `unity_4LightIndices1` are now declared as `unity_PerObjectLightIndices` array.
+
+## [5.1.0] - 2018-11-19
+### Added
+- The user documentation for LWRP is now in this GitHub repo, instead of in the separate GitHub wiki. You can find the most up-to-date pages in the [TableOfContents.md](TableOfCotents.md) file. Pages not listed in that file are still in progress.
+
+### Changed
+- The LWRP package is no longer in preview.
+- LWRP built-in render passes are now internal.
+- Changed namespace from `UnityEngine.Experimental.Rendering.LightweightPipeline` to `UnityEngine.Rendering.LWRP`.
+- Changed namespace from `UnityEditor.Experimental.Rendering.LightweightPipeline` to `UnityEditor.Rendering.LWRP`.
+
+### Fixed
+- LWRP now respects the iOS Player setting **Force hard shadows**. When you enable this setting, hardware filtering of shadows is disabled.
+- Scene view mode now renders baked lightmaps correctly. [Case 1092227](https://issuetracker.unity3d.com/issues/lwrp-scene-view-modes-render-objects-black)
+- Shadow bias calculations are now correct for both Shader Graph and Terrain shaders.
+- Blit shader now ignores culling.
+- When you select __Per Vertex__ option for __Additional Lights__, the __Per Object Limit__ option is not greyed out anymore.
+- When you change camera viewport height to values above 1.0, the Unity Editor doesn't freeze anymore. [Case 1097497](https://issuetracker.unity3d.com/issues/macos-lwrp-editor-freezes-after-changing-cameras-viewport-rect-values)
+- When you use AR with LWRP, the following error message is not displayed in the console anymore: "The camera list passed to the render pipeline is either null or empty."
+
+## [5.0.0-preview] - 2018-09-28
+### Added
+- Added occlusion mesh rendering/hookup for VR
+- You can now configure default depth and normal shadow bias values in the pipeline asset.
+- You can now add the `LWRPAdditionalLightData` component to a `Light` to override the default depth and normal shadow bias.
+- You can now log the amount of shader variants in your build. To do so, go to the `Pipeline Asset`. Under `Advanced`, select and set the `Shader Variant Log Level`.
+### Changed
+- Removed the `supportedShaderFeatures` property from LWRP core. The shader stripper now figures out which variants to strip based on the current assigned pipeline Asset in the Graphics settings.
+### Fixed
+- The following error does not appear in console anymore: ("Begin/End Profiler section mismatch")
+- When you select a material with the Lit shader, this no longer causes the following error in the console: ("Material doesn't have..."). [case 1092354](https://fogbugz.unity3d.com/f/cases/1092354/)
+- In the Simple Lit shader, per-vertex additional lights are now shaded properly.
+- Shader variant stripping now works when you're building a Project with Cloud Build. This greatly reduces build times from Cloud Build.
+- Dynamic Objects now receive lighting when the light mode is set to mixed.
+- MSAA now works on Desktop platforms.
+- The shadow bias value is now computed correctly for shadow cascades and different shadow resolutions. [case 1076285](https://issuetracker.unity3d.com/issues/lwrp-realtime-directional-light-shadow-maps-exhibit-artifacts)
+- When you use __Area Light__ with LWRP, __Cast Shadows__ no longer overlaps with other UI elements in the Inspector. [case 1085363](https://issuetracker.unity3d.com/issues/inspector-area-light-cast-shadows-ui-option-is-obscured-by-render-mode-for-lwrp-regression-in-2018-dot-3a3)
+
+### Changed
+Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings. 
+
+## [4.0.0-preview] - 2018-09-28
+### Added
+- When you have enabled Gizmos, they now appear correctly in the Game view.
+- Added requiresDepthPrepass field to RenderingData struct to tell if the runtime platform requires a depth prepass to generate a camera depth texture.
+- The `RenderingData` struct now holds a reference to `CullResults`.
+- When __HDR__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
+- When __MSAA__ is enabled in the Camera but disabled in the Asset, an information box in the Camera Inspector informs you about it.
+- Enabled instancing on the terrain shader.
+- Sorting of opaque objects now respects camera `opaqueSortMode` setting.
+- Sorting of opaque objects disables front-to-back sorting flag, when camera settings allow that and the GPU has hidden surface removal.
+- LWRP now has a Custom Light Explorer that suits its feature set.
+- LWRP now supports Vertex Lit shaders for detail meshes on terrain.
+- LWRP now has three interactive Autodesk shaders: Autodesk Interactive, Autodesk Interactive Masked and Autodesk Interactive Transparent.
+- [Shader API] The `GetMainLight` and `GetAdditionalLight` functions can now compute shadow attenuation and store it in the new `shadowAttenuation` field in `LightData` struct.
+- [Shader API] Added a `VertexPositionInputs` struct that contains vertex position in difference spaces (world, view, hclip).
+- [Shader API] Added a `GetVertexPositionInputs` function to get an initialized `VertexPositionInputs`.
+- [Shader API] Added a `GetPerObjectLightIndex` function to return the per-object index given a for-loop index.
+- [Shader API] Added a `GetShadowCoord` function that takes a `VertexPositionInputs` as input.
+- [ShaderLibrary] Added VertexNormalInputs struct that contains data for per-pixel normal computation.
+- [ShaderLibrary] Added GetVertexNormalInputs function to return an initialized VertexNormalInputs.
+
+### Changed
+- The `RenderingData` struct is now read-only.
+- `ScriptableRenderer`always performs a Clear before calling `IRendererSetup::Setup.` 
+- `ScriptableRenderPass::Execute` no longer takes `CullResults` as input. Instead, use `RenderingData`as input, since that references `CullResults`.
+- `IRendererSetup_Setup` no longer takes `ScriptableRenderContext` and `CullResults` as input.
+- Shader includes are now referenced via package relative paths instead of via the deprecated shader export path mechanism https://docs.unity3d.com/2018.3/Documentation/ScriptReference/ShaderIncludePathAttribute.html.
+- The LWRP Asset settings were re-organized to be more clear.
+- Vertex lighting now controls if additional lights should be shaded per-vertex or per-pixel.
+- Renamed all `Local Lights` nomenclature to `Additional Lights`.
+- Changed shader naming to conform to our SRP shader code convention.
+- [Shader API] Renamed `SpotAttenuation` function to `AngleAttenuation`.
+- [Shader API] Renamed `_SHADOWS_ENABLED` keyword to `_MAIN_LIGHT_SHADOWS`
+- [Shader API] Renamed `_SHADOWS_CASCADE` keyword to `_MAIN_LIGHT_SHADOWS_CASCADE`
+- [Shader API] Renamed `_VERTEX_LIGHTS` keyword to `_ADDITIONAL_LIGHTS_VERTEX`.
+- [Shader API] Renamed `_LOCAL_SHADOWS_ENABLED` to `_ADDITIONAL_LIGHT_SHADOWS`
+- [Shader API] Renamed `GetLight` function to `GetAdditionalLight`.
+- [Shader API] Renamed `GetPixelLightCount` function to `GetAdditionalLightsCount`.
+- [Shader API] Renamed `attenuation` to `distanceAttenuation` in `LightData`.
+- [Shader API] Renamed `GetLocalLightShadowStrength` function to `GetAdditionalLightShadowStrength`.
+- [Shader API] Renamed `SampleScreenSpaceShadowMap` functions to `SampleScreenSpaceShadowmap`.
+- [Shader API] Renamed `MainLightRealtimeShadowAttenuation` function to `MainLightRealtimeShadow`.
+- [Shader API] Renamed light constants from `Directional` and `Local` to `MainLight` and `AdditionalLights`.
+- [Shader API] Renamed `GetLocalLightShadowSamplingData` function to `GetAdditionalLightShadowSamplingData`.
+- [Shader API] Removed OUTPUT_NORMAL macro.
+- [Shader API] Removed `lightIndex` and `substractiveAttenuation` from `LightData`.
+- [Shader API] Removed `ComputeShadowCoord` function. `GetShadowCoord` is provided instead.
+- All `LightweightPipeline` references in API and classes are now named `LightweightRenderPipeline`.
+- Files no longer have the `Lightweight` prefix.
+- Renamed Physically Based shaders to `Lit`, `ParticlesLit`, and `TerrainLit`.
+- Renamed Simple Lighting shaders to `SimpleLit`, and `ParticlesSimpleLit`.
+- [ShaderLibrary] Renamed `InputSurfacePBR.hlsl`, `InputSurfaceSimple.hlsl`, and `InputSurfaceUnlit` to `LitInput.hlsl`, `SimpleLitInput.hlsl`, and `UnlitInput.hlsl`. These files were moved from the `ShaderLibrary` folder to the`Shaders`.
+- [ShaderLibrary] Renamed `LightweightPassLit.hlsl` and `LightweightPassLitSimple.hlsl` to `LitForwardPass.hlsl` and `SimpleLitForwardPass.hlsl`. These files were moved from the `ShaderLibrary` folder to `Shaders`.
+- [ShaderLibrary] Renamed `LightweightPassMetaPBR.hlsl`, `LightweightPassMetaSimple.hlsl` and `LighweightPassMetaUnlit` to `LitMetaPass.hlsl`, `SimpleLitMetaPass.hlsl` and `UnlitMetaPass.hlsl`. These files were moved from the `ShaderLibrary` folder to `Shaders`.
+- [ShaderLibrary] Renamed `LightweightPassShadow.hlsl` to `ShadowCasterPass.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `LightweightPassDepthOnly.hlsl` to `DepthOnlyPass.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `InputSurfaceTerrain.hlsl` to `TerrainLitInput.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `LightweightPassLitTerrain.hlsl` to `TerrainLitPases.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `ParticlesPBR.hlsl` to `ParticlesLitInput.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `InputSurfacePBR.hlsl` to `LitInput.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `InputSurfaceUnlit.hlsl` to `UnlitInput.hlsl`. This file was moved to the `Shaders` folder.
+- [ShaderLibrary] Renamed `InputBuiltin.hlsl` to `UnityInput.hlsl`.
+- [ShaderLibrary] Renamed `LightweightPassMetaCommon.hlsl` to `MetaInput.hlsl`.
+- [ShaderLibrary] Renamed `InputSurfaceCommon.hlsl` to `SurfaceInput.hlsl`.
+- [ShaderLibrary] Removed LightInput struct and GetLightDirectionAndAttenuation. Use GetAdditionalLight function instead.
+- [ShaderLibrary] Removed ApplyFog and ApplyFogColor functions. Use MixFog and MixFogColor instead.
+- [ShaderLibrary] Removed TangentWorldToNormal function. Use TransformTangentToWorld instead.
+- [ShaderLibrary] Removed view direction normalization functions. View direction should always be normalized per pixel for accurate results.
+- [ShaderLibrary] Renamed FragmentNormalWS function to NormalizeNormalPerPixel.
+
+### Fixed
+- If you have more than 16 lights in a scene, LWRP no longer causes random glitches while rendering lights.
+- The Unlit shader now samples Global Illumination correctly.
+- The Inspector window for the Unlit shader now displays correctly.
+- Reduced GC pressure by removing several per-frame memory allocations.
+- The tooltip for the the camera __MSAA__ property now appears correctly.
+- Fixed multiple C# code analysis rule violations.
+- The fullscreen mesh is no longer recreated upon every call to `ScriptableRenderer.fullscreenMesh`.
+
+## [3.3.0-preview]
+### Added
+- Added callbacks to LWRP that can be attached to a camera (IBeforeCameraRender, IAfterDepthPrePass, IAfterOpaquePass, IAfterOpaquePostProcess, IAfterSkyboxPass, IAfterTransparentPass, IAfterRender)
+
+###Changed
+- Clean up LWRP creation of render textures. If we are not going straight to screen ensure that we create both depth and color targets.
+- UNITY_DECLARE_FRAMEBUFFER_INPUT and UNITY_READ_FRAMEBUFFER_INPUT macros were added. They are necessary for reading transient attachments.
+- UNITY_MATRIX_I_VP is now defined.
+- Renamed LightweightForwardRenderer to ScriptableRenderer.
+- Moved all light constants to _LightBuffer CBUFFER. Now _PerCamera CBUFFER contains all other per camera constants.
+- Change real-time attenuation to inverse square.
+- Change attenuation for baked GI to inverse square, to match real-time attenuation.
+- Small optimization in light attenuation shader code.
+
+### Fixed
+- Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.
+
 ## [3.2.0-preview]
+### Changed
+- Receive Shadows property is now exposed in the material instead of in the renderer.
+- The UI for Lightweight asset has been updated with new categories. A more clean structure and foldouts has been added to keep things organized.
+
+### Fixed
+- Shadow casters are now properly culled per cascade. (case 1059142)
+- Rendering no longer breaks when Android platform is selected in Build Settings. (case 1058812)
+- Scriptable passes no longer have missing material references. Now they access cached materials in the renderer.(case 1061353)
+- When you change a Shadow Cascade option in the Pipeline Asset, this no longer warns you that you've exceeded the array size for the _WorldToShadow property.
+- Terrain shader optimizations.
 
 ## [3.1.0-preview]
 

@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Sample Texture 2D Array")]
-    public class SampleTexture2DArrayNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class SampleTexture2DArrayNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotRGBAId = 0;
         public const int OutputSlotRId = 4;
@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var uvName = GetSlotValue(UVInput, generationMode);
             var indexName = GetSlotValue(IndexInputId, generationMode);

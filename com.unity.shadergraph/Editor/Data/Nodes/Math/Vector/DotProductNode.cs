@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Dot Product")]
-    public class DotProductNode : CodeFunctionNode
+    class DotProductNode : CodeFunctionNode
     {
         public DotProductNode()
         {

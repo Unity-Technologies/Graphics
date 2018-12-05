@@ -1,20 +1,21 @@
-using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
-    public class ColorRGBASlotControlView : VisualElement
+    class ColorRGBASlotControlView : VisualElement
     {
         ColorRGBAMaterialSlot m_Slot;
 
         public ColorRGBASlotControlView(ColorRGBAMaterialSlot slot)
         {
-            AddStyleSheetPath("Styles/Controls/ColorRGBASlotControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ColorRGBASlotControlView"));
             m_Slot = slot;
             var colorField = new ColorField { value = slot.value, showEyeDropper = false };
-            colorField.OnValueChanged(OnValueChanged);
+            colorField.RegisterValueChangedCallback(OnValueChanged);
             Add(colorField);
         }
 

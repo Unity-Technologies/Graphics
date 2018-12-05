@@ -3,8 +3,9 @@
 --- !u!86 &8600000
 CustomRenderTexture:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: AnimatedCookie_CRT3
   m_ImageContentsHash:
     serializedVersion: 2
@@ -34,7 +35,7 @@ CustomRenderTexture:
   m_Material: {fileID: 2100000, guid: 0e992de49cc7c5347a1d2fba4351bec9, type: 2}
   m_InitSource: 0
   m_InitMaterial: {fileID: 0}
-  m_InitColor: {r: 0.112679005, g: 1, b: 0, a: 1}
+  m_InitColor: {r: 1, g: 1, b: 1, a: 1}
   m_InitTexture: {fileID: 0}
   m_UpdateMode: 1
   m_InitializationMode: 0

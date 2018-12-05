@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
         NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
-    public static class MayRequireViewDirectionExtensions
+    static class MayRequireViewDirectionExtensions
     {
         public static NeededCoordinateSpace RequiresViewDirection(this ISlot slot)
         {

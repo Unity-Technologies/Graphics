@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.Graphing
 {
     [Serializable]
-    public class Edge : IEdge
+    class Edge : IEdge
     {
         [SerializeField]
         private SlotReference m_OutputSlot;
