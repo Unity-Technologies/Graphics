@@ -394,15 +394,13 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
     {
         // Assign profile id and overwrite fresnel0
-		InitDiffusionProfile(surfaceData.diffusionProfile, bsdfData);
-		InitSubsurfaceMask(surfaceData.subsurfaceMask, bsdfData);
-        FillMaterialSSSForPackedLit(surfaceData.diffusionProfile, bsdfData);
+		FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialTransmissionPacked(surfaceData.diffusionProfile, surfaceData.thickness, thickness, bsdfData);
+        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, thickness, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
@@ -782,7 +780,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
         {
             float thickness;
-            FillMaterialTransmissionPacked(sssData.diffusionProfile, inGBuffer2.g, thickness, bsdfData);
+            FillMaterialTransmission(sssData.diffusionProfile, inGBuffer2.g, thickness, bsdfData);
             InitThickness(thickness, bsdfData);
         }
     }

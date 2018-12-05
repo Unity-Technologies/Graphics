@@ -155,9 +155,12 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 
 #ifdef LIT_CS_HLSL
 
-void FillMaterialSSSForPackedLit(uint diffusionProfile, inout BSDFData bsdfData)
+void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
 {
 	SetFresnel0(_TransmissionTintsAndFresnel0[diffusionProfile].a, bsdfData);
+	InitDiffusionProfile(diffusionProfile, bsdfData);
+	InitSubsurfaceMask(subsurfaceMask, bsdfData);
+
 	bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
 	bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
@@ -195,7 +198,7 @@ float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
 
 #ifdef LIT_CS_HLSL
 
-void FillMaterialTransmissionPacked(uint diffusionProfile, float thickness, out float outThickness, inout BSDFData bsdfData)
+void FillMaterialTransmission(uint diffusionProfile, float thickness, out float outThickness, inout BSDFData bsdfData)
 {
 	SetFresnel0(_TransmissionTintsAndFresnel0[diffusionProfile].a, bsdfData);
 
@@ -217,9 +220,9 @@ void FillMaterialTransmissionPacked(uint diffusionProfile, float thickness, out 
 
 	// Compute transmittance using baked thickness here. It may be overridden for direct lighting
 	// in the auto-thickness mode (but is always used for indirect lighting).
-	bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
+	SetTransmittance(ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
 		_TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-		outThickness);
+		outThickness), bsdfData);
 
 }
 
