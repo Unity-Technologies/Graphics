@@ -165,6 +165,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public HDAdditionalCameraData.FlipYMode flipYMode
+        {
+            get
+            {
+                if (m_AdditionalCameraData != null)
+                    return m_AdditionalCameraData.flipYMode;
+                return HDAdditionalCameraData.FlipYMode.Automatic;
+            }
+        }
+
         static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 

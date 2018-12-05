@@ -65,27 +65,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightLoopSettings.overrides = this.overrides;
         }
 
-        public LightLoopSettings Override(LightLoopSettings overridedFrameSettings)
+        public void ApplyOverrideOn(LightLoopSettings overridedFrameSettings)
         {
             if (overrides == 0)
-            {
-                //nothing to override
-                return overridedFrameSettings;
-            }
+                return;
 
-            LightLoopSettings result = new LightLoopSettings(overridedFrameSettings);
             Array values = Enum.GetValues(typeof(LightLoopSettingsOverrides));
             foreach (LightLoopSettingsOverrides val in values)
             {
                 if ((val & overrides) > 0)
                 {
-                    s_Overrides[val](result, this);
+                    s_Overrides[val](overridedFrameSettings, this);
                 }
             }
 
             //propagate override to be chained
-            result.overrides = overrides | overridedFrameSettings.overrides;
-            return result;
+            overridedFrameSettings.overrides = overrides | overridedFrameSettings.overrides;
         }
 
         // aggregateFrameSettings already contain the aggregation of RenderPipelineSettings and FrameSettings (regular and/or debug)

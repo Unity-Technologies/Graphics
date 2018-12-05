@@ -668,7 +668,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case HDLitMasterNode.MaterialType.SubsurfaceScattering:
                     {
-                        activeFields.Add("Material.SubsurfaceScattering");
+                        if (masterNode.surfaceType != SurfaceType.Transparent)
+                        {
+                            activeFields.Add("Material.SubsurfaceScattering");
+                        }                        
                         if (masterNode.sssTransmission.isOn)
                         {
                             activeFields.Add("Material.Transmission");

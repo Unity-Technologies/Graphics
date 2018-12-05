@@ -67,27 +67,31 @@ namespace UnityEditor.Experimental.Rendering
     public class HierarchicalBox
     {
         const float k_HandleSizeCoef = 0.05f;
+        static Material k_Material_Cache;
+        static Material k_Material => (k_Material_Cache == null || k_Material_Cache.Equals(null) ? (k_Material_Cache = new Material(Shader.Find("Hidden/UnlitTransparentColored"))) : k_Material_Cache);
+        static Mesh k_MeshQuad_Cache;
+        static Mesh k_MeshQuad => k_MeshQuad_Cache == null || k_MeshQuad_Cache.Equals(null) ? (k_MeshQuad_Cache = Resources.GetBuiltinResource<Mesh>("Quad.fbx")) : k_MeshQuad_Cache;
 
         enum NamedFace { Right, Top, Front, Left, Bottom, Back, None }
 
-        readonly Mesh m_Face;
-        readonly Material m_Material;
+        Material m_Material;
         readonly Color[] m_PolychromeHandleColor;
+        readonly HierarchicalBox m_Parent;
         Color m_MonochromeHandleColor;
         Color m_WireframeColor;
         Color m_WireframeColorBehind;
+        int[] m_ControlIDs = new int[6] { 0, 0, 0, 0, 0, 0 };
+        bool m_MonoHandle = true;
 
-        readonly HierarchicalBox m_container;
-
-        private bool m_MonoHandle = true;
+        Material material => m_Material == null || m_Material.Equals(null)
+            ? (m_Material = new Material(k_Material))
+            : m_Material;
 
         /// <summary>
         /// Allow to switch between the mode where all axis are controlled together or not
         /// Note that if there is several handles, they will use the polychrome colors.
         /// </summary>
-        public bool monoHandle { get { return m_MonoHandle; } set { m_MonoHandle = value; } }
-
-        private int[] m_ControlIDs = new int[6] { 0, 0, 0, 0, 0, 0 };
+        public bool monoHandle { get => m_MonoHandle; set => m_MonoHandle = value; }
 
         /// <summary>The position of the center of the box in Handle.matrix space.</summary>
         public Vector3 center { get; set; }
@@ -98,10 +102,11 @@ namespace UnityEditor.Experimental.Rendering
         /// <summary>The baseColor used to fill hull. All other colors are deduced from it except specific handle colors.</summary>
         public Color baseColor
         {
-            get { return m_Material.color; }
+            get { return material.color; }
             set
             {
-                m_Material.color = value;
+                value.a = 8f / 255;
+                material.color = value;
                 value.a = 1f;
                 m_MonochromeHandleColor = value;
                 value.a = 0.7f;
@@ -113,7 +118,7 @@ namespace UnityEditor.Experimental.Rendering
 
         //Note: Handles.Slider not allow to use a specific ControlID.
         //Thus Slider1D is used (with reflection)
-        static PropertyInfo k_scale = Type.GetType("UnityEditor.SnapSettings, UnityEditor").GetProperty("scale");
+        static PropertyInfo k_Scale = Type.GetType("UnityEditor.SnapSettings, UnityEditor").GetProperty("scale");
         static Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
         static MethodInfo k_Slider1D_Do = k_Slider1D
                 .GetMethod(
@@ -138,32 +143,25 @@ namespace UnityEditor.Experimental.Rendering
                     });
             }
         }
-
+        static float snapScale => (float)k_Scale.GetValue(null, null);
 
         /// <summary>Constructor. Used to setup colors and also the container if any.</summary>
         /// <param name="baseColor">The color of each face of the box. Other colors are deduced from it.</param>
         /// <param name="polychromeHandleColors">The color of handle when they are separated. When they are grouped, they use a variation of the faceColor instead.</param>
-        /// <param name="container">The HierarchicalBox containing this box. If null, the box will not be limited in size.</param>
-        public HierarchicalBox(Color baseColor, Color[] polychromeHandleColors = null, HierarchicalBox container = null)
+        /// <param name="parent">The HierarchicalBox containing this box. If null, the box will not be limited in size.</param>
+        public HierarchicalBox(Color baseColor, Color[] polychromeHandleColors = null, HierarchicalBox parent = null)
         {
-            m_container = container;
-            m_Material = new Material(Shader.Find("Hidden/UnlitTransparentColored"));
+            if (polychromeHandleColors != null && polychromeHandleColors.Length != 6)
+                throw new ArgumentException("polychromeHandleColors must be null or have a size of 6.");
+
+            m_Parent = parent;
+            m_Material = new Material(k_Material);
             this.baseColor = baseColor;
-            m_Face = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-            if(polychromeHandleColors != null && polychromeHandleColors.Length != 6)
-            {
-                throw new System.ArgumentException("polychromeHandleColors must be null or have a size of 6.");
-            }
             m_PolychromeHandleColor = polychromeHandleColors ?? new Color[]
             {
                 Handles.xAxisColor, Handles.yAxisColor, Handles.zAxisColor,
                 Handles.xAxisColor, Handles.yAxisColor, Handles.zAxisColor
             };
-        }
-
-        Color GetHandleColor(NamedFace name)
-        {
-            return monoHandle ? m_MonochromeHandleColor : m_PolychromeHandleColor[(int)name];
         }
 
         /// <summary>Draw the hull which means the boxes without the handles</summary>
@@ -172,50 +170,51 @@ namespace UnityEditor.Experimental.Rendering
             Color previousColor = Handles.color;
             if (filled)
             {
-                Vector3 xSize = new Vector3(size.z, size.y, 1f);
-                m_Material.SetPass(0);
-                Graphics.DrawMeshNow(m_Face, Handles.matrix * Matrix4x4.TRS(center + size.x * .5f * Vector3.left, Quaternion.FromToRotation(Vector3.forward, Vector3.left), xSize));
-                Graphics.DrawMeshNow(m_Face, Handles.matrix * Matrix4x4.TRS(center + size.x * .5f * Vector3.right, Quaternion.FromToRotation(Vector3.forward, Vector3.right), xSize));
-                
-                Vector3 ySize = new Vector3(size.x, size.z, 1f);
-                Graphics.DrawMeshNow(m_Face, Handles.matrix * Matrix4x4.TRS(center + size.y * .5f * Vector3.up, Quaternion.FromToRotation(Vector3.forward, Vector3.up), ySize));
-                Graphics.DrawMeshNow(m_Face, Handles.matrix * Matrix4x4.TRS(center + size.y * .5f * Vector3.down, Quaternion.FromToRotation(Vector3.forward, Vector3.down), ySize));
+                // Draw the hull
+                var xSize = new Vector3(size.z, size.y, 1f);
+                material.SetPass(0);
+                Graphics.DrawMeshNow(k_MeshQuad, Handles.matrix * Matrix4x4.TRS(center + size.x * .5f * Vector3.left, Quaternion.FromToRotation(Vector3.forward, Vector3.left), xSize));
+                Graphics.DrawMeshNow(k_MeshQuad, Handles.matrix * Matrix4x4.TRS(center + size.x * .5f * Vector3.right, Quaternion.FromToRotation(Vector3.forward, Vector3.right), xSize));
 
-                Vector3 zSize = new Vector3(size.x, size.y, 1f);
-                Graphics.DrawMeshNow(m_Face, Handles.matrix * Matrix4x4.TRS(center + size.z * .5f * Vector3.forward, Quaternion.identity, zSize));
-                Graphics.DrawMeshNow(m_Face, Handles.matrix * Matrix4x4.TRS(center + size.z * .5f * Vector3.back, Quaternion.FromToRotation(Vector3.forward, Vector3.back), zSize));
+                var ySize = new Vector3(size.x, size.z, 1f);
+                Graphics.DrawMeshNow(k_MeshQuad, Handles.matrix * Matrix4x4.TRS(center + size.y * .5f * Vector3.up, Quaternion.FromToRotation(Vector3.forward, Vector3.up), ySize));
+                Graphics.DrawMeshNow(k_MeshQuad, Handles.matrix * Matrix4x4.TRS(center + size.y * .5f * Vector3.down, Quaternion.FromToRotation(Vector3.forward, Vector3.down), ySize));
 
-                //if contained, also draw handle distance to container here
-                if (m_container != null)
+                var zSize = new Vector3(size.x, size.y, 1f);
+                Graphics.DrawMeshNow(k_MeshQuad, Handles.matrix * Matrix4x4.TRS(center + size.z * .5f * Vector3.forward, Quaternion.identity, zSize));
+                Graphics.DrawMeshNow(k_MeshQuad, Handles.matrix * Matrix4x4.TRS(center + size.z * .5f * Vector3.back, Quaternion.FromToRotation(Vector3.forward, Vector3.back), zSize));
+
+                //if as a parent, also draw handle distance to the parent
+                if (m_Parent != null)
                 {
-                    Vector3 centerDiff = center - m_container.center;
-                    Vector3 xRecal = centerDiff;
-                    Vector3 yRecal = centerDiff;
-                    Vector3 zRecal = centerDiff;
+                    var centerDiff = center - m_Parent.center;
+                    var xRecal = centerDiff;
+                    var yRecal = centerDiff;
+                    var zRecal = centerDiff;
                     xRecal.x = 0;
                     yRecal.y = 0;
                     zRecal.z = 0;
-                    
+
                     Handles.color = GetHandleColor(NamedFace.Left);
-                    Handles.DrawLine(m_container.center + xRecal + m_container.size.x * .5f * Vector3.left, center + size.x * .5f * Vector3.left);
+                    Handles.DrawLine(m_Parent.center + xRecal + m_Parent.size.x * .5f * Vector3.left, center + size.x * .5f * Vector3.left);
 
                     Handles.color = GetHandleColor(NamedFace.Right);
-                    Handles.DrawLine(m_container.center + xRecal + m_container.size.x * .5f * Vector3.right, center + size.x * .5f * Vector3.right);
+                    Handles.DrawLine(m_Parent.center + xRecal + m_Parent.size.x * .5f * Vector3.right, center + size.x * .5f * Vector3.right);
 
                     Handles.color = GetHandleColor(NamedFace.Top);
-                    Handles.DrawLine(m_container.center + yRecal + m_container.size.y * .5f * Vector3.up, center + size.y * .5f * Vector3.up);
+                    Handles.DrawLine(m_Parent.center + yRecal + m_Parent.size.y * .5f * Vector3.up, center + size.y * .5f * Vector3.up);
 
                     Handles.color = GetHandleColor(NamedFace.Bottom);
-                    Handles.DrawLine(m_container.center + yRecal + m_container.size.y * .5f * Vector3.down, center + size.y * .5f * Vector3.down);
+                    Handles.DrawLine(m_Parent.center + yRecal + m_Parent.size.y * .5f * Vector3.down, center + size.y * .5f * Vector3.down);
 
                     Handles.color = GetHandleColor(NamedFace.Front);
-                    Handles.DrawLine(m_container.center + zRecal + m_container.size.z * .5f * Vector3.forward, center + size.z * .5f * Vector3.forward);
+                    Handles.DrawLine(m_Parent.center + zRecal + m_Parent.size.z * .5f * Vector3.forward, center + size.z * .5f * Vector3.forward);
 
                     Handles.color = GetHandleColor(NamedFace.Back);
-                    Handles.DrawLine(m_container.center + zRecal + m_container.size.z * .5f * Vector3.back, center + size.z * .5f * Vector3.back);
+                    Handles.DrawLine(m_Parent.center + zRecal + m_Parent.size.z * .5f * Vector3.back, center + size.z * .5f * Vector3.back);
                 }
             }
-            
+
             Handles.color = m_WireframeColor;
             Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
             Handles.DrawWireCube(center, size);
@@ -230,19 +229,18 @@ namespace UnityEditor.Experimental.Rendering
         public void DrawHandle()
         {
             for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
-                m_ControlIDs[i] = GUIUtility.GetControlID(GetHashCode(), FocusType.Passive);
+                m_ControlIDs[i] = GUIUtility.GetControlID("HierarchicalBox".GetHashCode() + i, FocusType.Passive);
 
             EditorGUI.BeginChangeCheck();
 
-            Vector3 leftPosition = center + size.x * .5f * Vector3.left;
-            Vector3 rightPosition = center + size.x * .5f * Vector3.right;
-            Vector3 topPosition = center + size.y * .5f * Vector3.up;
-            Vector3 bottomPosition = center + size.y * .5f * Vector3.down;
-            Vector3 frontPosition = center + size.z * .5f * Vector3.forward;
-            Vector3 backPosition = center + size.z * .5f * Vector3.back;
+            var leftPosition = center + size.x * .5f * Vector3.left;
+            var rightPosition = center + size.x * .5f * Vector3.right;
+            var topPosition = center + size.y * .5f * Vector3.up;
+            var bottomPosition = center + size.y * .5f * Vector3.down;
+            var frontPosition = center + size.z * .5f * Vector3.forward;
+            var backPosition = center + size.z * .5f * Vector3.back;
 
-            float snapScale = (float)k_scale.GetValue(null, null);
-            NamedFace theChangedFace = NamedFace.None;
+            var theChangedFace = NamedFace.None;
 
             EditorGUI.BeginChangeCheck();
             Slider1D(m_ControlIDs[(int)NamedFace.Left], ref leftPosition, Vector3.left, snapScale, GetHandleColor(NamedFace.Left));
@@ -281,27 +279,15 @@ namespace UnityEditor.Experimental.Rendering
                     float decal = 0f;
                     switch (theChangedFace)
                     {
-                        case NamedFace.Left:
-                            decal = (leftPosition - center - size.x * .5f * Vector3.left).x;
-                            break;
-                        case NamedFace.Right:
-                            decal = -(rightPosition - center - size.x * .5f * Vector3.right).x;
-                            break;
-                        case NamedFace.Top:
-                            decal = -(topPosition - center - size.y * .5f * Vector3.up).y;
-                            break;
-                        case NamedFace.Bottom:
-                            decal = (bottomPosition - center - size.y * .5f * Vector3.down).y;
-                            break;
-                        case NamedFace.Front:
-                            decal = -(frontPosition - center - size.z * .5f * Vector3.forward).z;
-                            break;
-                        case NamedFace.Back:
-                            decal = (backPosition - center - size.z * .5f * Vector3.back).z;
-                            break;
+                        case NamedFace.Left: decal = (leftPosition - center - size.x * .5f * Vector3.left).x; break;
+                        case NamedFace.Right: decal = -(rightPosition - center - size.x * .5f * Vector3.right).x; break;
+                        case NamedFace.Top: decal = -(topPosition - center - size.y * .5f * Vector3.up).y; break;
+                        case NamedFace.Bottom: decal = (bottomPosition - center - size.y * .5f * Vector3.down).y; break;
+                        case NamedFace.Front: decal = -(frontPosition - center - size.z * .5f * Vector3.forward).z; break;
+                        case NamedFace.Back: decal = (backPosition - center - size.z * .5f * Vector3.back).z; break;
                     }
 
-                    Vector3 tempSize = size - Vector3.one * decal;
+                    var tempSize = size - Vector3.one * decal;
 
                     //ensure that the box face are still facing outside
                     for (int axis = 0; axis < 3; ++axis)
@@ -314,14 +300,12 @@ namespace UnityEditor.Experimental.Rendering
                     }
 
                     //ensure containedBox do not exit container
-                    if (m_container != null)
+                    if (m_Parent != null)
                     {
                         for (int axis = 0; axis < 3; ++axis)
                         {
-                            if (tempSize[axis] > m_container.size[axis])
-                            {
-                                tempSize[axis] = m_container.size[axis];
-                            }
+                            if (tempSize[axis] > m_Parent.size[axis])
+                                tempSize[axis] = m_Parent.size[axis];
                         }
                     }
 
@@ -329,45 +313,40 @@ namespace UnityEditor.Experimental.Rendering
                 }
                 else
                 {
-                    Vector3 max = new Vector3(rightPosition.x, topPosition.y, frontPosition.z);
-                    Vector3 min = new Vector3(leftPosition.x, bottomPosition.y, backPosition.z);
+                    var max = new Vector3(rightPosition.x, topPosition.y, frontPosition.z);
+                    var min = new Vector3(leftPosition.x, bottomPosition.y, backPosition.z);
 
                     //ensure that the box face are still facing outside
                     for (int axis = 0; axis < 3; ++axis)
                     {
                         if (min[axis] > max[axis])
                         {
+                            // Control IDs in m_ControlIDs[0-3[ are for positive axes
                             if (GUIUtility.hotControl == m_ControlIDs[axis])
-                            {
                                 max[axis] = min[axis];
-                            }
                             else
-                            {
                                 min[axis] = max[axis];
-                            }
                         }
                     }
 
                     //ensure containedBox do not exit container
-                    if (m_container != null)
+                    if (m_Parent != null)
                     {
                         for (int axis = 0; axis < 3; ++axis)
                         {
-                            if (min[axis] < m_container.center[axis] - m_container.size[axis] * 0.5f)
-                            {
-                                min[axis] = m_container.center[axis] - m_container.size[axis] * 0.5f;
-                            }
-                            if (max[axis] > m_container.center[axis] + m_container.size[axis] * 0.5f)
-                            {
-                                max[axis] = m_container.center[axis] + m_container.size[axis] * 0.5f;
-                            }
+                            if (min[axis] < m_Parent.center[axis] - m_Parent.size[axis] * 0.5f)
+                                min[axis] = m_Parent.center[axis] - m_Parent.size[axis] * 0.5f;
+                            if (max[axis] > m_Parent.center[axis] + m_Parent.size[axis] * 0.5f)
+                                max[axis] = m_Parent.center[axis] + m_Parent.size[axis] * 0.5f;
                         }
                     }
-                    
+
                     center = (max + min) * .5f;
                     size = max - min;
                 }
             }
         }
+
+        Color GetHandleColor(NamedFace name) => monoHandle ? m_MonochromeHandleColor : m_PolychromeHandleColor[(int)name];
     }
 }

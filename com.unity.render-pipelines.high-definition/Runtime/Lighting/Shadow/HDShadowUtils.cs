@@ -15,6 +15,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int Asint(float val)    { unsafe { return *((int*)&val); } }
         public static uint Asuint(float val)  { unsafe { return *((uint*)&val); } }
 
+        static Plane[] s_CachedPlanes = new Plane[6];
+
         static float GetPunctualFilterWidthInTexels(HDCamera camera, LightType lightType)
         {
             var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
@@ -98,54 +100,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projection = Matrix4x4.identity;
             splitData = default(ShadowSplitData);
         }
-
-        public enum CubemapEdge
-        {
-            kCubeEdgePX_PY = 0,
-            kCubeEdgePX_NY,
-            kCubeEdgePX_PZ,
-            kCubeEdgePX_NZ,
-
-            kCubeEdgeNX_PY,
-            kCubeEdgeNX_NY,
-            kCubeEdgeNX_PZ,
-            kCubeEdgeNX_NZ,
-
-            kCubeEdgePY_PZ,
-            kCubeEdgePY_NZ,
-            kCubeEdgeNY_PZ,
-            kCubeEdgeNY_NZ,
-            kCubeEdge_Count
-        };
-
-        public static readonly CubemapEdge[,] kCubemapEdgesPerFace = new CubemapEdge[6, 4]
-        {
-            { CubemapEdge.kCubeEdgePX_PY, CubemapEdge.kCubeEdgePX_NY, CubemapEdge.kCubeEdgePX_PZ, CubemapEdge.kCubeEdgePX_NZ }, // PX
-            { CubemapEdge.kCubeEdgeNX_PY, CubemapEdge.kCubeEdgeNX_NY, CubemapEdge.kCubeEdgeNX_PZ, CubemapEdge.kCubeEdgeNX_NZ }, // NX
-            { CubemapEdge.kCubeEdgePX_PY, CubemapEdge.kCubeEdgeNX_PY, CubemapEdge.kCubeEdgePY_PZ, CubemapEdge.kCubeEdgePY_NZ }, // PY
-            { CubemapEdge.kCubeEdgePX_NY, CubemapEdge.kCubeEdgeNX_NY, CubemapEdge.kCubeEdgeNY_PZ, CubemapEdge.kCubeEdgeNY_NZ }, // NY
-            { CubemapEdge.kCubeEdgePX_PZ, CubemapEdge.kCubeEdgeNX_PZ, CubemapEdge.kCubeEdgePY_PZ, CubemapEdge.kCubeEdgeNY_PZ }, // PZ
-            { CubemapEdge.kCubeEdgePX_NZ, CubemapEdge.kCubeEdgeNX_NZ, CubemapEdge.kCubeEdgePY_NZ, CubemapEdge.kCubeEdgeNY_NZ }  // NZ
-        };
-
-        const float oneOverSqr2 = 0.70710678118654752440084436210485f;
-        public static readonly Vector3[] kCubemapEdgeDirections = new Vector3[(int)CubemapEdge.kCubeEdge_Count]
-        {
-            new Vector3(oneOverSqr2,  oneOverSqr2,            0),
-            new Vector3(oneOverSqr2, -oneOverSqr2,            0),
-            new Vector3(oneOverSqr2,            0,  oneOverSqr2),
-            new Vector3(oneOverSqr2,            0, -oneOverSqr2),
-
-            new Vector3(-oneOverSqr2,  oneOverSqr2,            0),
-            new Vector3(-oneOverSqr2, -oneOverSqr2,            0),
-            new Vector3(-oneOverSqr2,            0,  oneOverSqr2),
-            new Vector3(-oneOverSqr2,            0, -oneOverSqr2),
-
-            new Vector3(0,  oneOverSqr2,  oneOverSqr2),
-            new Vector3(0,  oneOverSqr2, -oneOverSqr2),
-            new Vector3(0, -oneOverSqr2,  oneOverSqr2),
-            new Vector3(0, -oneOverSqr2, -oneOverSqr2)
-        };
 
         // Cubemap faces with flipped z coordinate.
         // These matrices do NOT match what we have in Skybox.cpp.
@@ -262,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
-            splitData.cullingPlaneCount = 4;
+
             // get lightDir
             lightDir = vl.light.transform.forward;
             // calculate the view matrices
@@ -271,18 +225,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector3 inverted_viewpos = kCubemapFaces[faceIdx].MultiplyPoint(-lpos);
             view.SetColumn(3, new Vector4(inverted_viewpos.x, inverted_viewpos.y, inverted_viewpos.z, 1.0f));
 
-            for (int i = 0; i < 4; ++i)
-            {
-                CubemapEdge cubemapEdge = kCubemapEdgesPerFace[faceIdx, i];
-                Vector3 cullingPlaneDirection = kCubemapEdgeDirections[(int)cubemapEdge];
-                splitData.SetCullingPlane(i, new Plane(cullingPlaneDirection, lpos));
-            }
-
             float nearZ = Mathf.Max(nearPlane, k_MinShadowNearPlane);
             proj = Matrix4x4.Perspective(90.0f + guardAngle, 1.0f, nearZ, vl.range);
             // and the compound (deviceProj will potentially inverse-Z)
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
+
+            GeometryUtility.CalculateFrustumPlanes(proj * view, s_CachedPlanes);
+            splitData.cullingPlaneCount = 6;
+            for (int i = 0; i < 6; i++)
+                splitData.SetCullingPlane(i, s_CachedPlanes[i]);
+
             return deviceProj * view;
         }
 

@@ -17,57 +17,69 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             All = ~0
         }
 
-        public static void DrawGizmos(InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix, HandleType editedHandle, HandleType showedHandle)
+        public static void DrawGizmos(InfluenceVolume serialized, Matrix4x4 matrix, HandleType editedHandle, HandleType showedHandle)
         {
-            using (new Handles.DrawingScope(matrix))
+            var mat = Handles.matrix;
+            Handles.matrix = matrix;
+
+            if ((showedHandle & HandleType.Base) != 0)
             {
-                switch (d.shape)
+                switch (serialized.shape)
                 {
                     case InfluenceShape.Box:
-                        if ((showedHandle & HandleType.Base) != 0)
-                        {
-                            s.boxBaseHandle.center = d.offset;
-                            s.boxBaseHandle.size = d.boxSize;
-                            s.boxBaseHandle.DrawHull((editedHandle & HandleType.Base) != 0);
-                        }
-                        if ((showedHandle & HandleType.Influence) != 0)
-                        {
-                            s.boxInfluenceHandle.monoHandle = !s.data.editorAdvancedModeEnabled.boolValue;
-                            s.boxInfluenceHandle.center = d.offset + d.boxBlendOffset;
-                            s.boxInfluenceHandle.size = d.boxSize + d.boxBlendSize;
-                            s.boxInfluenceHandle.DrawHull((editedHandle & HandleType.Influence) != 0);
-                        }
-                        if ((showedHandle & HandleType.InfluenceNormal) != 0)
-                        {
-                            s.boxInfluenceNormalHandle.monoHandle = !s.data.editorAdvancedModeEnabled.boolValue;
-                            s.boxInfluenceNormalHandle.center = d.offset + d.boxBlendNormalOffset;
-                            s.boxInfluenceNormalHandle.size = d.boxSize + d.boxBlendNormalSize;
-                            s.boxInfluenceNormalHandle.DrawHull((editedHandle & HandleType.InfluenceNormal) != 0);
-                        }
+                        s_BoxBaseHandle.baseColor = k_GizmoThemeColorBase;
+                        s_BoxBaseHandle.center = Vector3.zero;
+                        s_BoxBaseHandle.size = serialized.boxSize;
+                        s_BoxBaseHandle.DrawHull(false);
                         break;
-
                     case InfluenceShape.Sphere:
-                        if ((showedHandle & HandleType.Base) != 0)
-                        {
-                            s.sphereBaseHandle.center = d.offset;
-                            s.sphereBaseHandle.radius = d.sphereRadius;
-                            s.sphereBaseHandle.DrawHull((editedHandle & HandleType.Base) != 0);
-                        }
-                        if ((showedHandle & HandleType.Influence) != 0)
-                        {
-                            s.sphereInfluenceHandle.center = d.offset;
-                            s.sphereInfluenceHandle.radius = d.sphereRadius - d.sphereBlendDistance;
-                            s.sphereInfluenceHandle.DrawHull((editedHandle & HandleType.Influence) != 0);
-                        }
-                        if ((showedHandle & HandleType.InfluenceNormal) != 0)
-                        {
-                            s.sphereInfluenceNormalHandle.center = d.offset;
-                            s.sphereInfluenceNormalHandle.radius = d.sphereRadius - d.sphereBlendNormalDistance;
-                            s.sphereInfluenceNormalHandle.DrawHull((editedHandle & HandleType.InfluenceNormal) != 0);
-                        }
+                        s_SphereBaseHandle.baseColor = k_GizmoThemeColorBase;
+                        s_SphereBaseHandle.center = Vector3.zero;
+                        s_SphereBaseHandle.radius = serialized.sphereRadius;
+                        s_SphereBaseHandle.DrawHull(false);
                         break;
                 }
             }
+
+            if ((showedHandle & HandleType.Influence) != 0)
+            {
+                switch (serialized.shape)
+                {
+                    case InfluenceShape.Box:
+                        s_BoxBaseHandle.baseColor = k_GizmoThemeColorInfluence;
+                        s_BoxBaseHandle.center = serialized.boxBlendOffset;
+                        s_BoxBaseHandle.size = serialized.boxSize + serialized.boxBlendSize;
+                        s_BoxBaseHandle.DrawHull(false);
+                        break;
+                    case InfluenceShape.Sphere:
+                        s_SphereBaseHandle.baseColor = k_GizmoThemeColorInfluence;
+                        s_SphereBaseHandle.center = Vector3.zero;
+                        s_SphereBaseHandle.radius = serialized.sphereRadius - serialized.sphereBlendDistance;
+                        s_SphereBaseHandle.DrawHull(false);
+                        break;
+                }
+            }
+
+            if ((showedHandle & HandleType.InfluenceNormal) != 0)
+            {
+                switch (serialized.shape)
+                {
+                    case InfluenceShape.Box:
+                        s_BoxBaseHandle.baseColor = k_GizmoThemeColorInfluenceNormal;
+                        s_BoxBaseHandle.center = serialized.boxBlendNormalOffset;
+                        s_BoxBaseHandle.size = serialized.boxSize + serialized.boxBlendNormalSize;
+                        s_BoxBaseHandle.DrawHull(false);
+                        break;
+                    case InfluenceShape.Sphere:
+                        s_SphereBaseHandle.baseColor = k_GizmoThemeColorInfluenceNormal;
+                        s_SphereBaseHandle.center = Vector3.zero;
+                        s_SphereBaseHandle.radius = serialized.sphereRadius - serialized.sphereBlendNormalDistance;
+                        s_SphereBaseHandle.DrawHull(false);
+                        break;
+                }
+            }
+
+            Handles.matrix = mat;
         }
     }
 }

@@ -1,90 +1,66 @@
-using System;
-using System.Reflection;
 using UnityEngine;
-using System.Linq.Expressions;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class HDReflectionProbeEditor
+    sealed partial class HDReflectionProbeEditor
     {
         static Mesh sphere;
         static Material material;
 
-
         [DrawGizmo(GizmoType.Selected)]
         static void DrawSelectedGizmo(ReflectionProbe reflectionProbe, GizmoType gizmoType)
         {
-            var e = GetEditorFor(reflectionProbe);
+            var e = (HDReflectionProbeEditor)GetEditorFor(reflectionProbe);
             if (e == null)
                 return;
 
-            if (reflectionProbe == e.target)
-            {
-                //will draw every preview, thus no need to do it multiple times
-                Gizmos_CapturePoint(e);
-            }
+            var mat = Matrix4x4.TRS(reflectionProbe.transform.position, reflectionProbe.transform.rotation, Vector3.one);
+            var hdprobe = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
+            InfluenceVolumeUI.DrawGizmos(
+                hdprobe.influenceVolume,
+                mat,
+                InfluenceVolumeUI.HandleType.None,
+                InfluenceVolumeUI.HandleType.Base | InfluenceVolumeUI.HandleType.Influence
+            );
 
-            if (!e.sceneViewEditing)
-                return;
-
-            DrawVerticalRay(reflectionProbe.transform);
+            Gizmos_CapturePoint(reflectionProbe);
         }
 
-        static void DrawVerticalRay(Transform transform)
-        {
-            Ray ray = new Ray(transform.position, Vector3.down);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-            {
-                Handles.color = Color.green;
-                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                Handles.DrawLine(transform.position - Vector3.up * 0.5f, hit.point);
-                Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
-
-                Handles.color = Color.red;
-                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                Handles.DrawLine(transform.position, hit.point);
-                Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
-            }
-        }
-
-        static void Gizmos_CapturePoint(HDReflectionProbeEditor e)
+        static void Gizmos_CapturePoint(ReflectionProbe target)
         {
             if(sphere == null)
-            {
                 sphere = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-            }
             if(material == null)
-            {
                 material = new Material(Shader.Find("Debug/ReflectionProbePreview"));
-            }
-
-            foreach (ReflectionProbe target in e.targets)
-            {
-                material.SetTexture("_Cubemap", GetTexture(e, target));
-                material.SetPass(0);
-                Graphics.DrawMeshNow(sphere, Matrix4x4.TRS(target.transform.position, Quaternion.identity, Vector3.one * capturePointPreviewSize));
-            }
-        }
-
-        static Func<float> s_CapturePointPreviewSizeGetter = ComputeCapturePointPreviewSizeGetter();
-        static Func<float> ComputeCapturePointPreviewSizeGetter()
-        {
-            var type = Type.GetType("UnityEditor.AnnotationUtility,UnityEditor");
-            var property = type.GetProperty("iconSize", BindingFlags.Static | BindingFlags.NonPublic);
-            var lambda = Expression.Lambda<Func<float>>(
-                Expression.Multiply(
-                    Expression.Property(null, property),
-                    Expression.Constant(30.0f)
-                )
+            var probe = target.GetComponent<HDAdditionalReflectionData>();
+            var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);
+            HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
+                probe.settings, probePositionSettings, probe.texture,
+                out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
             );
-            return lambda.Compile();
-        }
+            var capturePosition = cameraPositionSettings.position;
 
-        static float capturePointPreviewSize
-        {
-            get
-            { return s_CapturePointPreviewSizeGetter();
+            material.SetTexture("_Cubemap", probe.texture);
+            material.SetPass(0);
+            Graphics.DrawMeshNow(sphere, Matrix4x4.TRS(capturePosition, Quaternion.identity, Vector3.one * capturePointPreviewSize));
+
+            var ray = new Ray(capturePosition, Vector3.down);
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                var startPoint = capturePosition - Vector3.up * 0.5f * capturePointPreviewSize;
+                var c = InfluenceVolumeUI.k_GizmoThemeColorBase;
+                c.a = 0.8f;
+                Handles.color = c;
+                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                Handles.DrawLine(startPoint, hit.point);
+                Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
+
+                c.a = 0.25f;
+                Handles.color = c;
+                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                Handles.DrawLine(capturePosition, hit.point);
+                Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
             }
         }
     }

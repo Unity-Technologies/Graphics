@@ -6,10 +6,19 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using CED = CoreEditorDrawer<HDRenderPipelineUI, SerializedHDRenderPipelineAsset>;
-
-    class HDRenderPipelineUI : BaseUI<SerializedHDRenderPipelineAsset>
+    using CED = CoreEditorDrawer<SerializedHDRenderPipelineAsset>;
+    
+    static class HDRenderPipelineUI
     {
+        enum Expandable
+        {
+            CameraFrameSettings = 1 << 0,
+            BakedOrCustomProbeFrameSettings = 1 << 1,
+            RealtimeProbeFrameSettings = 1 << 2
+        }
+
+        readonly static ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings, "HDRP");
+
         static readonly GUIContent defaultFrameSettingsContent = CoreEditorUtils.GetContent("Default Frame Settings For");
         static readonly GUIContent renderPipelineResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Resources|Set of resources that need to be loaded when creating stand alone");
         static readonly GUIContent renderPipelineEditorResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Editor Resources|Set of resources that need to be loaded for working in editor");
@@ -24,149 +33,93 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static HDRenderPipelineUI()
         {
             Inspector = CED.Group(
-                SectionPrimarySettings,
+                CED.Group(Drawer_SectionPrimarySettings),
                 CED.space,
                 CED.Select(
-                    (s, d, o) => s.renderPipelineSettings,
-                    (s, d, o) => d.renderPipelineSettings,
+                    (serialized, owner) => serialized.renderPipelineSettings,
                     RenderPipelineSettingsUI.SupportedSettings
                     ),
                 FrameSettingsSection,
                 CED.Select(
-                    (s, d, o) => s.renderPipelineSettings,
-                    (s, d, o) => d.renderPipelineSettings,
+                    (serialized, owner) => serialized.renderPipelineSettings,
                     RenderPipelineSettingsUI.Inspector
                     )
             );
         }
-
-#pragma warning disable 618 //CED
+        
         public static readonly CED.IDrawer Inspector;
-#pragma warning restore 618
 
-#pragma warning disable 618 //CED
-        public static readonly CED.IDrawer SectionPrimarySettings = CED.Action(Drawer_SectionPrimarySettings);
-#pragma warning restore 618
-
-#pragma warning disable 618 //CED
-        public static readonly CED.IDrawer FrameSettingsSection = CED.Group(
-#pragma warning restore 618
-            CED.Action((s,d,o) => {
-                EditorGUILayout.BeginVertical("box");
-                Drawer_TitleDefaultFrameSettings(s, d, o);
-                }),
-            CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedCamera,
-#pragma warning disable 618
-                FadeOption.None,
-#pragma warning restore 618
+        static readonly CED.IDrawer FrameSettingsSection = CED.Group(
+            CED.Group(
+                (serialized, owner) => EditorGUILayout.BeginVertical("box"),
+                Drawer_TitleDefaultFrameSettings
+                ),
+            CED.Conditional(
+                (serialized, owner) => k_ExpandedState[Expandable.CameraFrameSettings],
                 CED.Select(
-                    (s, d, o) => s.defaultFrameSettings,
-                    (s, d, o) => d.defaultFrameSettings,
+                    (serialized, owner) => serialized.defaultFrameSettings,
                     FrameSettingsUI.InspectorInnerbox(withOverride: false)
                     )
                 ),
-            CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedBakedOrCustomReflection,
-#pragma warning disable 618
-                FadeOption.None,
-#pragma warning restore 618
+            CED.Conditional(
+                (serialized, owner) => k_ExpandedState[Expandable.BakedOrCustomProbeFrameSettings],
                 CED.Select(
-                    (s, d, o) => s.defaultCubeReflectionFrameSettings,
-                    (s, d, o) => d.defaultBakedOrCustomReflectionFrameSettings,
+                    (serialized, owner) => serialized.defaultBakedOrCustomReflectionFrameSettings,
                     FrameSettingsUI.InspectorInnerbox(withOverride: false)
                     )
                 ),
-            CED.FadeGroup(
-                (s, d, o, i) => s.isSectionExpandedRealtimeReflection,
-#pragma warning disable 618
-                FadeOption.None,
-#pragma warning restore 618
+            CED.Conditional(
+                (serialized, owner) => k_ExpandedState[Expandable.RealtimeProbeFrameSettings],
                 CED.Select(
-                    (s, d, o) => s.defaultPlanarReflectionFrameSettings,
-                    (s, d, o) => d.defaultRealtimeReflectionFrameSettings,
+                    (serialized, owner) => serialized.defaultRealtimeReflectionFrameSettings,
                     FrameSettingsUI.InspectorInnerbox(withOverride: false)
                     )
                 ),
-            CED.Action((s, d, o) => EditorGUILayout.EndVertical())
+            CED.Group((serialized, owner) => EditorGUILayout.EndVertical())
             );
 
-        public FrameSettingsUI defaultFrameSettings = new FrameSettingsUI();
-        public FrameSettingsUI defaultCubeReflectionFrameSettings = new FrameSettingsUI();
-        public FrameSettingsUI defaultPlanarReflectionFrameSettings = new FrameSettingsUI();
-        public RenderPipelineSettingsUI renderPipelineSettings = new RenderPipelineSettingsUI();
-        
-        public AnimBool isSectionExpandedCamera { get { return m_AnimBools[0]; } }
-        public AnimBool isSectionExpandedBakedOrCustomReflection { get { return m_AnimBools[1]; } }
-        public AnimBool isSectionExpandedRealtimeReflection { get { return m_AnimBools[2]; } }
-
-        public HDRenderPipelineUI()
-            : base(3)
+        static public void Init(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            isSectionExpandedCamera.value = true;
-        }
-
-        public override void Reset(SerializedHDRenderPipelineAsset data, UnityAction repaint)
-        {
-            renderPipelineSettings.Reset(data.renderPipelineSettings, repaint);
-            defaultFrameSettings.Reset(data.defaultFrameSettings, repaint);
-            defaultCubeReflectionFrameSettings.Reset(data.defaultBakedOrCustomReflectionFrameSettings, repaint);
-            defaultPlanarReflectionFrameSettings.Reset(data.defaultRealtimeReflectionFrameSettings, repaint);
-            base.Reset(data, repaint);
-        }
-
-        public override void Update()
-        {
-            renderPipelineSettings.Update();
-            defaultFrameSettings.Update();
-            defaultCubeReflectionFrameSettings.Update();
-            defaultPlanarReflectionFrameSettings.Update();
-            base.Update();
-        }
-
-        static public void Init(HDRenderPipelineUI s, SerializedHDRenderPipelineAsset d, Editor o)
-        {
-            s.isSectionExpandedCamera.value = false;
-            s.isSectionExpandedBakedOrCustomReflection.value = false;
-            s.isSectionExpandedRealtimeReflection.value = false;
+            k_ExpandedState.CollapseAll();
             switch (selectedFrameSettings)
             {
                 case SelectedFrameSettings.Camera:
-                    s.isSectionExpandedCamera.value = true;
+                    k_ExpandedState.SetExpandedAreas(Expandable.CameraFrameSettings, true);
                     break;
                 case SelectedFrameSettings.BakedOrCustomReflection:
-                    s.isSectionExpandedBakedOrCustomReflection.value = true;
+                    k_ExpandedState.SetExpandedAreas(Expandable.BakedOrCustomProbeFrameSettings, true);
                     break;
                 case SelectedFrameSettings.RealtimeReflection:
-                    s.isSectionExpandedRealtimeReflection.value = true;
+                    k_ExpandedState.SetExpandedAreas(Expandable.RealtimeProbeFrameSettings, true);
                     break;
             }
         }
 
-        static void Drawer_TitleDefaultFrameSettings(HDRenderPipelineUI s, SerializedHDRenderPipelineAsset d, Editor o)
+        static void Drawer_TitleDefaultFrameSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(defaultFrameSettingsContent, EditorStyles.boldLabel);
             EditorGUI.BeginChangeCheck();
             selectedFrameSettings = (SelectedFrameSettings)EditorGUILayout.EnumPopup(selectedFrameSettings);
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
-                Init(s, d, o);
+                Init(serialized, owner);
             }
             GUILayout.EndHorizontal();
         }
 
-        static void Drawer_SectionPrimarySettings(HDRenderPipelineUI s, SerializedHDRenderPipelineAsset d, Editor o)
+        static void Drawer_SectionPrimarySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(d.renderPipelineResources, renderPipelineResourcesContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineResources, renderPipelineResourcesContent);
 
-            HDRenderPipelineAsset hdrpAsset = d.serializedObject.targetObject as HDRenderPipelineAsset;
+            HDRenderPipelineAsset hdrpAsset = serialized.serializedObject.targetObject as HDRenderPipelineAsset;
             hdrpAsset.renderPipelineEditorResources = EditorGUILayout.ObjectField(renderPipelineEditorResourcesContent, hdrpAsset.renderPipelineEditorResources, typeof(HDRenderPipelineEditorResources), allowSceneObjects: false) as HDRenderPipelineEditorResources;
 
-            EditorGUILayout.PropertyField(d.diffusionProfileSettings, diffusionProfileSettingsContent);
-            // EditorGUILayout.PropertyField(d.allowShaderVariantStripping, enableShaderVariantStrippingContent);
-            EditorGUILayout.PropertyField(d.enableSRPBatcher, enableSRPBatcher);
-            EditorGUILayout.PropertyField(d.enableVariantStrippingLog, enableVariantStrippingLog);
+            EditorGUILayout.PropertyField(serialized.diffusionProfileSettings, diffusionProfileSettingsContent);
+            // EditorGUILayout.PropertyField(serialized.allowShaderVariantStripping, enableShaderVariantStrippingContent);
+
+            EditorGUILayout.PropertyField(serialized.enableSRPBatcher, enableSRPBatcher);
+            EditorGUILayout.PropertyField(serialized.enableVariantStrippingLog, enableVariantStrippingLog);
         }
     }
 }
