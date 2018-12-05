@@ -322,11 +322,11 @@ float3 GetNormalForShadowBias(BSDFData bsdfData)
     return GetNormalWS(bsdfData);
 }
 
-void ClampRoughness(inout float roughnessT, inout float roughnessB, inout float coatRoughness, float minRoughness)
+void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 {
-    roughnessT = max(minRoughness, roughnessT);
-    roughnessB = max(minRoughness, roughnessB);
-    coatRoughness = max(minRoughness, coatRoughness);
+    SetRoughnessT(max(minRoughness, GetRoughnessT(bsdfData)), bsdfData);
+	SetRoughnessB(max(minRoughness, GetRoughnessB(bsdfData)), bsdfData);
+	SetCoatRoughness(max(minRoughness, GetCoatRoughness(bsdfData)), bsdfData);
 }
 
 float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)

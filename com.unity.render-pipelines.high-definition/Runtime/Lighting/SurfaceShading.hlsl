@@ -98,17 +98,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         // Due to the floating point arithmetic (see math in ComputeSunLightDirection() and
         // GetBSDFAngle()), we will never arrive at this exact number, so no lighting will be reflected.
         // If we increase the roughness somewhat, the trick still works.
-#ifdef LIT_CS_HLSL
-		float roughnessT = GetRoughnessT(bsdfData);
-		float roughnessB = GetRoughnessB(bsdfData);
-		float coatRoughness = GetCoatRoughness(bsdfData);
-		ClampRoughness(roughnessT, roughnessB, coatRoughness, light.minRoughness);
-		SetRoughnessT(roughnessT, bsdfData);
-		SetRoughnessB(roughnessB, bsdfData);
-		SetCoatRoughness(coatRoughness, bsdfData);
-#else
 		ClampRoughness(bsdfData, light.minRoughness);
-#endif
 
         float3 diffuseBsdf, specularBsdf;
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
@@ -193,27 +183,27 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
                 // Therefore, we need to find the thickness along the normal.
                 // Warning: based on the artist's input, dependence on the NdotL has been disabled.
                 float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
+
 #ifdef LIT_CS_HLSL
                 uint diffusionProfile = GetDiffusionProfile(bsdfData);
-                float thicknessInMeters = thicknessInUnits * _WorldScales[GetDiffusionProfile(bsdfData)].x;
 				transmittance = GetTransmittance(bsdfData);
 #else
-                float thicknessInMeters = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
+				uint diffusionProfile = GetDiffusionProfile(bsdfData.diffusionProfile);
 				transmittance = bsdfData.transmittance;
 #endif
+				float thicknessInMeters = thicknessInUnits * _WorldScales[diffusionProfile].x;
                 float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
 
 #ifdef LIT_CS_HLSL
                 float thicknessDelta = max(0, thicknessInMillimeters - GetThickness(bsdfData));
-
-                float3 S = _ShapeParams[diffusionProfile].rgb;
 #else
                 // We need to make sure it's not less than the baked thickness to minimize light leaking.
                 float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
-
-                float3 S = _ShapeParams[bsdfData.diffusionProfile].rgb;
 #endif
+
+				float3 S = _ShapeParams[diffusionProfile].rgb;
+
             #if 0
                 float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
             #else
@@ -269,18 +259,9 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         // Simulate a sphere/disk light with this hack
         // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
         // same result) but we don't care as it is a hack anyway
-#ifdef LIT_CS_HLSL
-		float roughnessT = GetRoughnessT(bsdfData);
-		float roughnessB = GetRoughnessB(bsdfData);
-		float coatRoughness = GetCoatRoughness(bsdfData);
-		ClampRoughness(roughnessT, roughnessB, coatRoughness, light.minRoughness);
-		SetRoughnessT(roughnessT, bsdfData);
-		SetRoughnessB(roughnessB, bsdfData);
-		SetCoatRoughness(coatRoughness, bsdfData);
-#else
 		ClampRoughness(bsdfData, light.minRoughness);
-#endif
-        float3 diffuseBsdf, specularBsdf;
+
+		float3 diffuseBsdf, specularBsdf;
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
 
         if (surfaceReflection)
