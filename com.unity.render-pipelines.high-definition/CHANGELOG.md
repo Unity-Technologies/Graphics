@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added new API to perform a camera rendering
 - Add suport for hair master node (Double kajiya kay - Lambert)
+- Added Reset behaviour in DebugMenu (ingame mapping is right joystick + B)
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -20,6 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed usage of SSR with transparent on all master node
 - Fixed SSR and microshadowing on fabric material
 - Fixed blit pass for stereo rendering
+- Fixed windows and in-game DebugMenu sync.
+- Fixed FrameSettings' LitShaderMode sync when opening DebugMenu.
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).

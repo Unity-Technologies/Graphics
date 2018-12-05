@@ -19,6 +19,9 @@ namespace UnityEngine.Experimental.Rendering
 
             if (DebugManager.instance.GetAction(DebugAction.EnableDebugMenu) != 0.0f)
                 DebugManager.instance.displayRuntimeUI = !DebugManager.instance.displayRuntimeUI;
+
+            if (DebugManager.instance.displayRuntimeUI && DebugManager.instance.GetAction(DebugAction.ResetAll) != 0.0f)
+                DebugManager.instance.Reset();
         }
     }
 }
