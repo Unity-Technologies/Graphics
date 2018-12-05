@@ -516,7 +516,6 @@ real2 Unpack888ToFloat2(real3 x)
 
     return cb / 4095.0;
 }
-
 #endif // SHADER_API_GLES
 
 #endif // UNITY_PACKING_INCLUDED

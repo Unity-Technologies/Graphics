@@ -157,7 +157,7 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 
 void FillMaterialSSSForPackedLit(uint diffusionProfile, inout BSDFData bsdfData)
 {
-	bsdfData.fresnel0 = PackToR11G11B10f(_TransmissionTintsAndFresnel0[diffusionProfile].a);
+	SetFresnel0(_TransmissionTintsAndFresnel0[diffusionProfile].a, bsdfData);
 	bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
 	bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
@@ -197,7 +197,7 @@ float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
 
 void FillMaterialTransmissionPacked(uint diffusionProfile, float thickness, out float outThickness, inout BSDFData bsdfData)
 {
-	bsdfData.fresnel0 = PackToR11G11B10f(_TransmissionTintsAndFresnel0[diffusionProfile].a);
+	SetFresnel0(_TransmissionTintsAndFresnel0[diffusionProfile].a, bsdfData);
 
 	outThickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
 

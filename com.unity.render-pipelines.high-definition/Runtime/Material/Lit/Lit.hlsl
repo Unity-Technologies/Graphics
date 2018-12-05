@@ -234,9 +234,9 @@ void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, f
 	SetIOR(ior, bsdfData);
 
     // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
-    bsdfData.fresnel0 = PackToR11G11B10f(lerp(IorToFresnel0(ior).xxx, baseColor, metallic));
+    SetFresnel0(lerp(IorToFresnel0(ior).xxx, baseColor, metallic), bsdfData);
 
-    bsdfData.absorptionCoefficient = PackToR11G11B10f(TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance));
+	SetAbsorptionCoefficient(TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance), bsdfData);
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -751,7 +751,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         fresnel0 = FastSRGBToLinear(inGBuffer2.rgb); // Later possibly overwritten by SSS
     }
 
-    bsdfData.fresnel0 = PackToR11G11B10f(fresnel0);
+	SetFresnel0(fresnel0, bsdfData);
 
     float specularOcclusion;
     if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
@@ -823,8 +823,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
             frame[1] = cross(frame[2], frame[0]);
         }
 
-        bsdfData.tangentWS = PackToR11G11B10f(frame[0]);
-        bsdfData.bitangentWS = PackToR11G11B10f(frame[1]);
+		SetTangentWS(frame[0], bsdfData);
+		SetBitangentWS(frame[1], bsdfData);
 
     }
 
@@ -990,7 +990,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         {
             float3 prevFresnel0 = GetFresnel0(bsdfData);
             float iridescenceThickness = GetIridescenceMask(bsdfData);
-            bsdfData.fresnel0 = PackToR11G11B10f(lerp(prevFresnel0, EvalIridescence(topIor, viewAngle, iridescenceThickness, prevFresnel0), iridescenceMask));
+            SetFresnel0(lerp(prevFresnel0, EvalIridescence(topIor, viewAngle, iridescenceThickness, prevFresnel0), iridescenceMask), bsdfData);
         }
     }
 
@@ -1002,7 +1002,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // but here we go from clear coat (1.5) to material, we need to update fresnel0
         // Note: Schlick is a poor approximation of Fresnel when ieta is 1 (1.5 / 1.5), schlick target 1.4 to 2.2 IOR.
         float3 prevFresnel0 = GetFresnel0(bsdfData);
-        bsdfData.fresnel0 = PackToR11G11B10f(lerp(prevFresnel0, ConvertF0ForAirInterfaceToF0ForClearCoat15(prevFresnel0), coatMask));
+		SetFresnel0(lerp(prevFresnel0, ConvertF0ForAirInterfaceToF0ForClearCoat15(prevFresnel0), coatMask), bsdfData);
 
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(NdotV, CLEAR_COAT_ROUGHNESS);
         preLightData.coatIblR = reflect(-V, N);

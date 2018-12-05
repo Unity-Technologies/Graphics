@@ -275,7 +275,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int                             m_DebugViewEngine = 0;  // No enum there because everything is generated from BSDFData
         DebugViewVarying     m_DebugViewVarying = DebugViewVarying.None;
         DebugViewProperties  m_DebugViewProperties = DebugViewProperties.None;
-        int                             m_DebugViewGBuffer = 0; // Can't use GBuffer enum here because the values are actually split between this enum and values from Lit.BSDFDataForDebug
+        int                             m_DebugViewGBuffer = 0; // Can't use GBuffer enum here because the values are actually split between this enum and values from Lit.BSDFData
 
         public int GetDebugMaterialIndex()
         {
