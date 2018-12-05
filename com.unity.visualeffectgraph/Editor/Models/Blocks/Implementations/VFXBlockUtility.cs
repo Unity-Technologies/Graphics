@@ -92,7 +92,6 @@ namespace UnityEditor.VFX.Block
         {
             var data = context.GetData();
 
-            string size = data.IsCurrentAttributeRead(VFXAttribute.Size, context) ? "size" : VFXAttribute.kDefaultSize.ToString();
             string scaleX = data.IsCurrentAttributeRead(VFXAttribute.ScaleX, context) ? "scaleX" : "1.0f";
             string scaleY = nbComponents >= 2 && data.IsCurrentAttributeRead(VFXAttribute.ScaleY, context) ? "scaleY" : "1.0f";
             string scaleZ = nbComponents >= 3 && data.IsCurrentAttributeRead(VFXAttribute.ScaleZ, context) ? "scaleZ" : "1.0f";

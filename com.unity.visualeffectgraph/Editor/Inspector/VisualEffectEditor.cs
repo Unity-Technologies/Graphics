@@ -22,17 +22,17 @@ namespace UnityEditor.VFX
     class FakeObject : ScriptableObject
 #endif
     {
-        public float aFloat;
-        public Vector2 aVector2;
-        public Vector3 aVector3;
-        public Vector4 aVector4;
-        public Color aColor;
-        public UnityObject anObject;
-        public AnimationCurve anAnimationCurve;
-        public Gradient aGradient;
-        public int anInt;
-        public long anUInt;
-        public bool aBool;
+        public float aFloat = 0.0f;
+        public Vector2 aVector2 = Vector2.zero;
+        public Vector3 aVector3 = Vector3.zero;
+        public Vector4 aVector4 = Vector4.zero;
+        public Color aColor = Color.black;
+        public UnityObject anObject = null;
+        public AnimationCurve anAnimationCurve = null;
+        public Gradient aGradient = null;
+        public int anInt = 0;
+        public long anUInt = 0u;
+        public bool aBool = false;
     }
 
 
