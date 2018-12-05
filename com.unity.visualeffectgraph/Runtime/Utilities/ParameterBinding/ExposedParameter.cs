@@ -11,7 +11,9 @@ namespace UnityEngine.VFX.Utils
     {
         [SerializeField]
         private string m_Name;
+#if !UNITY_EDITOR
         private int m_Id;
+#endif
 
         public static implicit operator ExposedParameter(string name)
         {
@@ -51,13 +53,17 @@ namespace UnityEngine.VFX.Utils
 
         public ExposedParameter()
         {
+#if !UNITY_EDITOR
             m_Id = -1;
+#endif
         }
 
         private ExposedParameter(string name)
         {
             m_Name = name;
+#if !UNITY_EDITOR
             m_Id = -1;
+#endif
         }
 
         public override string ToString()

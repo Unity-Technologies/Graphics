@@ -1778,42 +1778,6 @@ MonoBehaviour:
   m_ParameterInfo: []
   m_GraphVersion: 1
   m_saved: 1
---- !u!114 &114580782075365614
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114580782075365614}
-  m_MasterData:
-    m_Owner: {fileID: 114844034984825746}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
-    m_Space: 2147483647
-  m_Property:
-    name: angleZ
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 8926484042661614538}
 --- !u!114 &114585322639290288
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2640,10 +2604,10 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
-  - {fileID: 114580782075365614}
-  attribute: angleZ
+  - {fileID: 8926484042661614587}
+  attribute: angle
   location: 0
-  mask: xyz
+  mask: z
 --- !u!114 &114849254726903720
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3502,35 +3466,35 @@ VisualEffectResource:
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    color = Color;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma
       vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID
       : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = (id >> 3) + instanceID * 1024;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if
-      USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn
-      o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\t\tfloat
-      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x800) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x3 + 0xA00) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x3 + 0xA01) << 2));\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleY = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      size = (float)0.1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat
-      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
-      age = asfloat(attributeBuffer.Load((index * 0x3 + 0xA02) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
-      (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x3 + 0xA01) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
-      (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 position
-      = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\t\tfloat
-      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x800) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x3 + 0xA00) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleY = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      size = (float)0.1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat
-      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
-      age = asfloat(attributeBuffer.Load((index * 0x3 + 0xA02) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint deadCount
+      = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount = deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\tfloat3
+      position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\tfloat
+      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x800) << 2));\n\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x3 + 0xA00) << 2));\n\t\t\t\t\t\tfloat3
+      color = float3(1,1,1);\n\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\tbool
+      alive = (attributeBuffer.Load((index * 0x3 + 0xA01) << 2));\n\t\t\t\t\t\tfloat3
+      axisX = float3(1,0,0);\n\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\tfloat3
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\tfloat
+      angleY = (float)0;\n\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\tfloat
+      size = (float)0.1;\n\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x3 + 0xA02) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tbool
+      alive = (attributeBuffer.Load((index * 0x3 + 0xA01) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tif
+      (!alive)\n\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\tfloat3 position
+      = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\tfloat
+      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x800) << 2));\n\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x3 + 0xA00) << 2));\n\t\t\t\t\t\tfloat3
+      color = float3(1,1,1);\n\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\tfloat3
+      axisX = float3(1,0,0);\n\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\tfloat3
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\tfloat
+      angleY = (float)0;\n\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\tfloat
+      size = (float)0.1;\n\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x3 + 0xA02) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   Orient_2( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position,
       float3(0,0,0));\n\t\t\t\t}\n\t\t\t\tAttributeFromCurve_7DF18695( /*inout */size,
       age, lifetime, Size_b);\n\t\t\t\t{\n\t\t\t\t    SetAttribute_FDD06EC7( /*inout
@@ -3594,9 +3558,9 @@ VisualEffectResource:
       == 1)\n\t\t\t\t\tuv = i.VFX_VARYING_OFFSETS.xz * float2(i.VFX_VARYING_OFFSETS.y,1);\n\t\t\t\telse\n\t\t\t\t\tuv
       = i.VFX_VARYING_OFFSETS.zy * float2(i.VFX_VARYING_OFFSETS.x,1);\n\t\t\t\treturn
       uv * 0.5f + 0.5f;\n\t\t\t#else\n\t\t\t\treturn 0.0f;\n\t\t\t#endif\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
-      fragment frag\n\t\t\tfloat frag(ps_input i) : SV_Target0\n\t\t\t{\n\t\t\t\tfloat
+      fragment frag\n\t\t\tfloat4 frag(ps_input i) : SV_Target0\n\t\t\t{\n\t\t\t\tfloat
       alpha = VFXGetFragmentColor(i).a;\t\t\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\t\treturn
-      0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\n\t\t// Forward pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
+      (float4)0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\n\t\t// Forward pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
       { \"LightMode\"=\"ForwardOnly\" }\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\n\t\t\t\t#if
       VFX_NEEDS_COLOR_INTERPOLATOR\n\t\t\t\tnointerpolation float4 color : COLOR0;\n\t\t\t\t#endif\n\t\t\t\t#if
@@ -3631,35 +3595,35 @@ VisualEffectResource:
       Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    color = Color;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma
       vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID
       : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = (id >> 3) + instanceID * 1024;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\t#if
-      USE_DEAD_LIST_COUNT\n\t\t\t\t\t\t\tif (index >= asuint(nbMax) - deadListCount.Load(0))\n\t\t\t\t\t\t\t\treturn
-      o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\t\tfloat
-      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x800) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x3 + 0xA00) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x3 + 0xA01) << 2));\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleY = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      size = (float)0.1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat
-      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
-      age = asfloat(attributeBuffer.Load((index * 0x3 + 0xA02) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tif
-      (index >= asuint(nbMax))\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tbool
-      alive = (attributeBuffer.Load((index * 0x3 + 0xA01) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\tif
-      (!alive)\n\t\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3 position
-      = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\t\tfloat
-      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x800) << 2));\n\t\t\t\t\t\t\tfloat
-      angleZ = asfloat(attributeBuffer.Load((index * 0x3 + 0xA00) << 2));\n\t\t\t\t\t\t\tfloat3
-      color = float3(1,1,1);\n\t\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\t\tfloat
-      angleY = (float)0;\n\t\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\t\tfloat
-      pivotY = (float)0;\n\t\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\t\tfloat
-      size = (float)0.1;\n\t\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\t\tfloat
-      scaleY = (float)1;\n\t\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\t\tfloat
-      age = asfloat(attributeBuffer.Load((index * 0x3 + 0xA02) << 2));\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
+      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint deadCount
+      = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount = deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\tfloat3
+      position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\tfloat
+      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x800) << 2));\n\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x3 + 0xA00) << 2));\n\t\t\t\t\t\tfloat3
+      color = float3(1,1,1);\n\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\tbool
+      alive = (attributeBuffer.Load((index * 0x3 + 0xA01) << 2));\n\t\t\t\t\t\tfloat3
+      axisX = float3(1,0,0);\n\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\tfloat3
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\tfloat
+      angleY = (float)0;\n\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\tfloat
+      size = (float)0.1;\n\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x3 + 0xA02) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tbool
+      alive = (attributeBuffer.Load((index * 0x3 + 0xA01) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tif
+      (!alive)\n\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t\t\n\t\t\t\t\t\tfloat3 position
+      = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\tfloat
+      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x800) << 2));\n\t\t\t\t\t\tfloat
+      angleZ = asfloat(attributeBuffer.Load((index * 0x3 + 0xA00) << 2));\n\t\t\t\t\t\tfloat3
+      color = float3(1,1,1);\n\t\t\t\t\t\tfloat alpha = (float)1;\n\t\t\t\t\t\tfloat3
+      axisX = float3(1,0,0);\n\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\tfloat3
+      axisZ = float3(0,0,1);\n\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\tfloat
+      angleY = (float)0;\n\t\t\t\t\t\tfloat pivotX = (float)0;\n\t\t\t\t\t\tfloat
+      pivotY = (float)0;\n\t\t\t\t\t\tfloat pivotZ = (float)0;\n\t\t\t\t\t\tfloat
+      size = (float)0.1;\n\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\tfloat
+      scaleY = (float)1;\n\t\t\t\t\t\tfloat scaleZ = (float)1;\n\t\t\t\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x3 + 0xA02) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
       \   Orient_2( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, position,
       float3(0,0,0));\n\t\t\t\t}\n\t\t\t\tAttributeFromCurve_7DF18695( /*inout */size,
       age, lifetime, Size_b);\n\t\t\t\t{\n\t\t\t\t    SetAttribute_FDD06EC7( /*inout
@@ -4708,7 +4672,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114580782075365614}
+  - {fileID: 8926484042661614587}
 --- !u!114 &8926484042661614539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6246,3 +6210,39 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 8926484042661614541}
+--- !u!114 &8926484042661614587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614587}
+  m_MasterData:
+    m_Owner: {fileID: 114844034984825746}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0
+    m_Space: 2147483647
+  m_Property:
+    name: angle
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 8926484042661614538}

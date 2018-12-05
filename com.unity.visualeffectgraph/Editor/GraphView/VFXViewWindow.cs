@@ -42,7 +42,13 @@ namespace  UnityEditor.VFX.UI
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3010)]
+
+        [MenuItem("Window/Visual Effects", false, 3010)]
+        public static void AAToCreateSubmenuAtRightPlace()
+        {
+        }
+        
+        [MenuItem("Window/Visual Effects/Visual Effect Graph",false,3011)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();

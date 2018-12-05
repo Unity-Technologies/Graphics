@@ -58,22 +58,21 @@ ${VFXEnd}
 ${VFXBegin:VFXFragmentCommonFunctions}#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc"${VFXEnd}
 
 ${VFXBegin:VFXLoadAttributesOrCull}
-#if VFX_HAS_INDIRECT_DRAW
+uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
-	if (index >= asuint(nbMax) - deadListCount.Load(0))
-		return o;
-#endif
+deadCount = deadListCount.Load(0);
+#endif	
+if (index >= asuint(nbMax) - deadCount)
+	return o; // cull
 
-	index = indirectBuffer[index];
-	${VFXLoadAttributes}
+#if VFX_HAS_INDIRECT_DRAW
+index = indirectBuffer[index];
+${VFXLoadAttributes}
 #else
-	if (index >= asuint(nbMax))
-		return o;
+${VFXLoadAttributes:{alive}}
+if (!alive)
+	return o;
 	
-	${VFXLoadAttributes:{alive}}
-	if (!alive)
-		return o;
-	
-	${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
 ${VFXEnd}

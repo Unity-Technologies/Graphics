@@ -27,13 +27,13 @@ namespace UnityEditor.VFX.Operator
 
         public class InputPropertiesCommon
         {
-            [Min(0.0f), Tooltip("The frequency of the noise.")]
+            [Tooltip("The frequency of the noise.")]
             public float frequency = 1.0f;
             [/*Range(1, 8),*/ Tooltip("The number of layers of noise.")]
             public int octaves = 1;
-            [Range(0.0f, 1.0f), Tooltip("The scaling factor applied to each octave.")]
-            public float persistence = 0.5f;
-            [Tooltip("The rate of change of the frequency for each successive octave.")]
+            [Range(0, 1), Tooltip("The scaling factor applied to each octave. Also known as persistence.")]
+            public float roughness = 0.5f;
+            [Min(0), Tooltip("The rate of change of the frequency for each successive octave.")]
             public float lacunarity = 2.0f;
         }
 
