@@ -21,7 +21,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed PBR master node lightlayers
 - Fixed stacklit transmission and sun highlight
 - Fixed logic to disable FPTL with stereo rendering
-- Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader
 - Fixed an issue with flipped depth buffer during postprocessing
 - Fixed decals with stereo rendering
 - Fixed flip logic for postprocessing + VR
