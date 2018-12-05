@@ -5,9 +5,10 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [Path("Artistic/Adjustment")]
     sealed class NewHueNode : ShaderNodeType
     {
-        // Name can be specified or generated from variable name (strips `m_` prefix and `Port` suffix)
+        // Name can be specified or generated from variable name (strips `Port` suffix and adds spaces between words)
         // We can get rid of ID by using variable name instead. Similar to Unity serialization, you will need an
         // attribute referring to the old name if you do a rename, but I think that's nicer than IDs.
         [Vector3Port]
@@ -21,18 +22,6 @@ namespace UnityEditor.ShaderGraph
         // for input and outputs?
         [Vector3Port]
         public OutputPort outPort;
-
-        public override void Setup(NodeSetupContext context)
-        {
-            var type = new NodeTypeDescriptor
-            {
-                path = "Artistic/Adjustment",
-                name = "New Hue",
-                inputs = new List<InputPort> { inPort, offsetPort },
-                outputs = new List<OutputPort> { outPort }
-            };
-            context.CreateType(type);
-        }
 
         public override void OnNodeAdded(NodeChangeContext context, ShaderNode node)
         {

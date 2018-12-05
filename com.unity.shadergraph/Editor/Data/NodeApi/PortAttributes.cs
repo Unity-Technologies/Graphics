@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    [AttributeUsage(AttributeTargets.Field)]
     public abstract class PortAttribute : Attribute
     {
         // This makes it so that the base class cannot be inherited outside the assembly.

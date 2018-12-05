@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -10,7 +11,6 @@ namespace UnityEditor.ShaderGraph
         public int id;
         public AbstractMaterialGraph owner;
         public NodeTypeDescriptor type;
-        public bool typeCreated;
         public List<InputPortDescriptor> inputPorts = new List<InputPortDescriptor>();
         public List<OutputPortDescriptor> outputPorts = new List<OutputPortDescriptor>();
         public List<HlslSource> hlslSources = new List<HlslSource>();
@@ -44,6 +44,11 @@ namespace UnityEditor.ShaderGraph
 
         public abstract void DispatchChanges(NodeChangeContext context);
     }
+    
+    static class Regexes
+    {
+        public static readonly Regex camelCaseWords = new Regex(@"(\B[A-Z]+?(?=[A-Z][^A-Z])|\B[A-Z]+?(?=[^A-Z]))");
+    }
 
     // This construction allows us to move the virtual call to outside the loop. The calls to the ShaderNodeType in
     // DispatchChanges are to a generic type parameter, and thus will be devirtualized if T is a sealed class.
@@ -55,58 +60,71 @@ namespace UnityEditor.ShaderGraph
             this.id = id;
             nodeType = new T();
             base.nodeType = nodeType;
+            
+            type.inputs = new List<InputPort>();
+            type.outputs = new List<OutputPort>();
 
-            foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
                 if (fieldInfo.FieldType != typeof(InputPort) && fieldInfo.FieldType != typeof(OutputPort))
                 {
                     continue;
                 }
 
-                var portAttributes = fieldInfo.GetCustomAttributes<PortAttribute>().ToList();
-
-                if (portAttributes.Count == 0)
+                var portAttribute = fieldInfo.GetCustomAttribute<PortAttribute>();
+                if (portAttribute == null)
                 {
                     throw new InvalidOperationException($"{typeof(T).FullName}.{fieldInfo.Name} has type {fieldInfo.FieldType.Name}, but does not have a port attribute.");
                 }
 
-                if (portAttributes.Count > 1)
-                {
-                    throw new InvalidOperationException($"{typeof(T).FullName}.{fieldInfo.Name} has multiple port attributes.");
-                }
-
-                var portAttribute = portAttributes[0];
-
                 var displayName = fieldInfo.Name;
-                if (displayName.StartsWith("m_"))
+                const string portSuffix = "Port";
+                if (displayName.EndsWith(portSuffix) && displayName.Length > portSuffix.Length)
                 {
-                    displayName = displayName.Substring(2);
+                    displayName = displayName.Substring(0, displayName.Length - portSuffix.Length);
                 }
-                if (displayName.EndsWith("Port"))
-                {
-                    displayName = displayName.Substring(0, displayName.Length - 4);
-                }
+
+                displayName = char.ToUpperInvariant(displayName[0]) + Regexes.camelCaseWords.Replace(displayName.Substring(1), " $1");
 
                 if (fieldInfo.FieldType == typeof(InputPort))
                 {
                     inputPorts.Add(new InputPortDescriptor { id = fieldInfo.Name, displayName = displayName, value = portAttribute.value });
                     var portRef = new InputPort(inputPorts.Count);
                     fieldInfo.SetValue(nodeType, portRef);
+                    type.inputs.Add(portRef);
                 }
                 else
                 {
                     outputPorts.Add(new OutputPortDescriptor { id = fieldInfo.Name, displayName = displayName, type = portAttribute.value.type });
                     var portRef = new OutputPort(outputPorts.Count);
                     fieldInfo.SetValue(nodeType, portRef);
+                    type.outputs.Add(portRef);
                 }
             }
 
+            var nameAttribute = typeof(T).GetCustomAttribute<NameAttribute>();
+            type.name = nameAttribute?.name;
+            // Provide auto-generated name if one is not provided.
+            if (string.IsNullOrWhiteSpace(type.name))
+            {
+                type.name = typeof(T).Name;
+
+                // Strip "Node" from the end of the name. We also make sure that we don't strip it to an empty string,
+                // in case someone decided that `Node` was a good name for a class.
+                const string nodeSuffix = "Node";
+                if (type.name.Length > nodeSuffix.Length && type.name.EndsWith(nodeSuffix))
+                {
+                    type.name = type.name.Substring(0, type.name.Length - nodeSuffix.Length);
+                }
+
+                type.name = char.ToUpperInvariant(type.name[0]) + Regexes.camelCaseWords.Replace(type.name.Substring(1), " $1");
+            }
+            
+            var pathAttribute = typeof(T).GetCustomAttribute<PathAttribute>();
+            type.path = pathAttribute?.path ?? "Uncategorized";
+
             var context = new NodeSetupContext(owner, id, this);
             nodeType.Setup(context);
-            if (!typeCreated)
-            {
-                throw new InvalidOperationException($"{typeof(T).FullName}.{nameof(ShaderNodeType.Setup)} did not provide a type via {nameof(NodeSetupContext)}.{nameof(NodeSetupContext.CreateType)}({nameof(NodeTypeDescriptor)}).");
-            }
         }
 
         public new T nodeType { get; }
