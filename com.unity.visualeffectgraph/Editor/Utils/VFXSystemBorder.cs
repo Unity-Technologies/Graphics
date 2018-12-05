@@ -98,8 +98,7 @@ namespace UnityEditor.VFX.UI
             title = m_TitleField.value;
             m_TitleField.visible = false;
 
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-
+            GetFirstAncestorOfType<VFXView>();
             controller.title = title;
         }
 

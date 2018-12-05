@@ -27,7 +27,6 @@ namespace UnityEditor.VFX.Utils
         bool m_ExportUV = false;
         bool m_ExportNormals = true;
         bool m_ExportColors = false;
-        bool m_UniformPrepass = true;
 
         Mesh m_Mesh;
         int m_OutputPointCount = 4096;
