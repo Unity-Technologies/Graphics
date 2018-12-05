@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    [CreateAssetMenu()]
+    //[CreateAssetMenu()]
     public class ForwardRendererData : IRendererData
     {
         [SerializeField] Shader m_BlitShader = null;

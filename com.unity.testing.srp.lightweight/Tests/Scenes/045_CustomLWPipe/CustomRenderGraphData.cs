@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    [CreateAssetMenu()]
+    //[CreateAssetMenu()]
     public class CustomRenderGraphData : IRendererData
     {
         public override IRendererSetup Create()
