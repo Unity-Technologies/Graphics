@@ -104,9 +104,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1050, false, true)]
         public struct BSDFData
         {
-            [PackingAttribute("DiffuseColor", FieldPacking.NoPacking, 128, 0, false, true)]
+            [PackingAttribute("DiffuseColor", FieldPacking.NoPacking, 128, 0, 0, 1, false, true)]
             public Vector3 diffuseColor;
-            [PackingAttribute("Fresnel0", FieldPacking.R11G11B10, 32, 0, false, true)]
+            [PackingAttribute("Fresnel0", FieldPacking.R11G11B10, 32, 0, 0, 1, false, true)]
             public uint fresnel0;
 
             [PackingAttribute("MaterialFeatures", FieldPacking.NoPacking, 0)]
@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [PackingAttribute("DiffusionProfile", FieldPacking.PackedUint, 8, 24), 
             PackingAttribute("SubsurfaceMask", FieldPacking.PackedFloat, 8, 16),
-            PackingAttribute("Thickness", FieldPacking.PackedFloat, 16, 0)] 
+            PackingAttribute("Thickness", FieldPacking.PackedFloat, 16, 0, 1.0f, 2.5f)] 
             public uint SSSData;                            
 
             [PackingAttribute("Anisotropy", FieldPacking.PackedFloat, 8, 24), 
@@ -135,17 +135,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PackingAttribute("CoatMask", FieldPacking.PackedFloat, 8, 0)] 
             public uint iridescenceAndMasks;
 
-            [PackingAttribute(new string[] { "NormalWS", "NormalViewSpace" }, FieldPacking.NoPacking, 0, 128, true, false)]
+            [PackingAttribute(new string[] { "NormalWS", "NormalViewSpace" }, FieldPacking.NoPacking, 0, 128, 0, 1, true, false)]
             public Vector3 normalWS;
 
             [PackingAttribute("Transmittance", FieldPacking.NoPacking)]
             public Vector3 transmittance;                   // Precomputation of transmittance
-            [PackingAttribute("TangentWS", FieldPacking.R11G11B10, 0, 32, true)]
+            [PackingAttribute("TangentWS", FieldPacking.R11G11B10, 0, 32, 0, 1, true)]
             public uint tangentWS;
 
-            [PackingAttribute("BitangentWS", FieldPacking.R11G11B10, 0, 32, true)]
+            [PackingAttribute("BitangentWS", FieldPacking.R11G11B10, 0, 32, 0, 1, true)]
             public uint bitangentWS;
-            [PackingAttribute("AbsorptionCoefficient", FieldPacking.R11G11B10, 0, 32, false, true)]
+            [PackingAttribute("AbsorptionCoefficient", FieldPacking.R11G11B10, 0, 32, 0, 1, false, true)]
             public uint absorptionCoefficient;
             [PackingAttribute("IOR", FieldPacking.NoPacking)]
             public float ior;                               

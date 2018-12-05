@@ -231,7 +231,7 @@ float GetSubsurfaceMask(in BSDFData bsdfdata)
 }
 float GetThickness(in BSDFData bsdfdata)
 {
-    return UnpackUIntToFloat(bsdfdata.SSSData, 0, 16);
+    return ((UnpackUIntToFloat(bsdfdata.SSSData, 0, 16) * 1.5) + 1);
 }
 float GetAnisotropy(in BSDFData bsdfdata)
 {
@@ -330,7 +330,7 @@ void SetSubsurfaceMask(float newSubsurfaceMask, inout BSDFData bsdfdata)
 }
 void SetThickness(float newThickness, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(65535 , UnpackInt(newThickness, 16) , bsdfdata.SSSData);
+    BitFieldInsert(65535 , UnpackInt(((newThickness - 1) / 1.5), 16) , bsdfdata.SSSData);
 }
 void SetAnisotropy(float newAnisotropy, inout BSDFData bsdfdata)
 {
@@ -430,7 +430,7 @@ void InitSubsurfaceMask(float newSubsurfaceMask, inout BSDFData bsdfdata)
 }
 void InitThickness(float newThickness, inout BSDFData bsdfdata)
 {
-    bsdfdata.SSSData |= UnpackInt(newThickness, 16) ; 
+    bsdfdata.SSSData |= UnpackInt(((newThickness - 1) / 1.5), 16) ; 
 }
 void InitAnisotropy(float newAnisotropy, inout BSDFData bsdfdata)
 {

@@ -83,13 +83,14 @@ namespace UnityEngine.Experimental.Rendering
     public class PackingAttribute : System.Attribute
     {
         public string[] displayNames;
+        public float[] range;
         public FieldPacking packingScheme;
         public int offsetInSource;
         public int sizeInBits;
         public bool isDirection;
         public bool sRGBDisplay;
 
-        public PackingAttribute(string[] displayName, FieldPacking packingScheme = FieldPacking.NoPacking, int bitSize = 32, int offsetInSource = 0, bool isDirection = false, bool sRGBDisplay = false)
+        public PackingAttribute(string[] displayName, FieldPacking packingScheme = FieldPacking.NoPacking, int bitSize = 32, int offsetInSource = 0, float minValue = 0.0f, float maxValue = 1.0f, bool isDirection = false, bool sRGBDisplay = false)
         {
             displayNames = displayName;
             this.packingScheme = packingScheme;
@@ -97,9 +98,10 @@ namespace UnityEngine.Experimental.Rendering
             this.isDirection = isDirection;
             this.sRGBDisplay = sRGBDisplay;
             this.sizeInBits = bitSize;
+            this.range = new float[] { minValue, maxValue };
         }
 
-        public PackingAttribute(string displayName = "", FieldPacking packingScheme = FieldPacking.NoPacking, int bitSize = 0, int offsetInSource = 0, bool isDirection = false, bool sRGBDisplay = false)
+        public PackingAttribute(string displayName = "", FieldPacking packingScheme = FieldPacking.NoPacking, int bitSize = 0, int offsetInSource = 0, float minValue = 0.0f, float maxValue = 1.0f, bool isDirection = false, bool sRGBDisplay = false)
         {
             displayNames = new string[1];
             displayNames[0] = displayName;
@@ -108,6 +110,7 @@ namespace UnityEngine.Experimental.Rendering
             this.isDirection = isDirection;
             this.sRGBDisplay = sRGBDisplay;
             this.sizeInBits = bitSize;
+            this.range = new float[] { minValue, maxValue };
         }
     }
 
