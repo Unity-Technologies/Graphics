@@ -428,8 +428,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
 	InitPerceptualRoughness(perceptualRoughness, bsdfData);
 	InitCoatRoughness(coatRoughness, bsdfData);
-	InitAmbientOcclusion(ambientOcclusion, bsdfData);
-	InitSpecularOcclusion(specularOcclusion, bsdfData);
+	InitAmbientOcclusion(surfaceData.ambientOcclusion, bsdfData);
+	InitSpecularOcclusion(surfaceData.specularOcclusion, bsdfData);
 
     // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
     // perceptualRoughness is not clamped, and is meant to be used for IBL.
