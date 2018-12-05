@@ -156,19 +156,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_preIntegratedFGD_CookTorrance.Create();
 
             // LTC data
-
-            m_LtcData = new Texture2DArray(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
-            {
-                hideFlags = HideFlags.HideAndDontSave,
-                wrapMode = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Bilinear,
-                name = CoreUtils.GetTextureAutoName(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, TextureFormat.RGBAHalf, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
-            };
-
-            // Caution: This need to match order define in AxFLTCAreaLight
-            LTCAreaLight.LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, LTCAreaLight.s_LtcMatrixData_GGX);
-
-            m_LtcData.Apply();
+            LTCAreaLight.instance.Build();
         }
 
         public override void Cleanup()
@@ -184,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_precomputedFGDTablesAreInit = false;
 
             // LTC data
-            CoreUtils.Destroy(m_LtcData);
+            LTCAreaLight.instance.Cleanup();
         }
 
         public override void RenderInit(CommandBuffer cmd)
@@ -214,7 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalTexture(_PreIntegratedFGD_CookTorrance, m_preIntegratedFGD_CookTorrance);
 
             // LTC Data
-            Shader.SetGlobalTexture(_AxFLtcData, m_LtcData);
+            LTCAreaLight.instance.Bind();
         }
     }
 }

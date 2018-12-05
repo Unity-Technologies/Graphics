@@ -36,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent useColorTemperature = new GUIContent("Color Temperature", "Choose between RGB and temperature mode for light's color.");
             public readonly GUIContent colorFilter = new GUIContent("Filter", "A colored gel can be put in front of the light source to tint the light.");
             public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Also known as CCT (Correlated color temperature). The color temperature of the electromagnetic radiation emitted from an ideal black body is defined as its surface temperature in Kelvin. White is 6500K");
+            public readonly GUIContent areaLightCookie = new GUIContent("Cookie", "Cookie mask currently assigned to the area light.");
 
             // Additional light data
             public readonly GUIContent directionalIntensity = new GUIContent("Intensity (Lux)", "Illuminance of the directional light at ground level in lux.");
@@ -55,6 +56,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shapeWidthTube = new GUIContent("Length", "Length of the tube light");
             public readonly GUIContent shapeWidthRect = new GUIContent("Size X", "SizeX of the rectangle light");
             public readonly GUIContent shapeHeightRect = new GUIContent("Size Y", "SizeY of the rectangle light");
+            public readonly GUIContent shapeWidthSphere = new GUIContent("Radius", "Radius of the sphere light");
+            public readonly GUIContent shapeWidthDisk = new GUIContent("Radius X", "Radius of the disc light along the X axis");
+            public readonly GUIContent shapeHeightDisk = new GUIContent("Radius Y", "Radius of the disc light along the Y axis");
             public readonly GUIContent aspectRatioPyramid = new GUIContent("Aspect ratio", "");
             public readonly GUIContent shapeWidthBox = new GUIContent("Size X", "");
             public readonly GUIContent shapeHeightBox = new GUIContent("Size Y", "");
@@ -65,7 +69,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent sunDiskSize = new GUIContent("Sun Highlight Disk Size", "Controls the size of the highlight of the sun disk. It's the angle of the sun cone in degrees.");
             public readonly GUIContent sunHaloSize = new GUIContent("Sun Highlight Halo Size", "Controls the size of the halo around the highlight of the sun disk.");
 
-            public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of light. Possible types are Directional, Spot, Point, Rectangle and Tube lights.");
+            public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of light. Possible types are Directional, Spot, Point, Rectangle, Disk, Sphere and Tube lights.");
             public readonly GUIContent[] shapeNames;
             public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When true it simulate a spot light with reflector (mean the intensity of the light will be more focus with narrower angle), otherwise light outside of the cone is simply absorbed (mean intensity is constent whatever the size of the cone).");
             public readonly GUIContent luxAtDistance = new GUIContent("At", "Distance in meter where a surface receive an amount of lighting equivalent to the provided number of lux");

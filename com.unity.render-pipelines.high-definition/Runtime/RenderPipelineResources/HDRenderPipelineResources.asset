@@ -91,6 +91,8 @@ MonoBehaviour:
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
     blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163,
       type: 3}
+    filterAreaLightCookiesPS: {fileID: 4800000, guid: 35ae18d63ef44b949867a28aea75f893,
+      type: 3}
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
     shadowBlurMomentsCS: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08,
       type: 3}

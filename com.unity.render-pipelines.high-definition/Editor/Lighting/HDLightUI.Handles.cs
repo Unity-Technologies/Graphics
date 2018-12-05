@@ -152,6 +152,63 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         // Handles.color reseted at end of scope
                     }
                     break;
+                case LightTypeExtent.Sphere:
+                case LightTypeExtent.Disk:
+                    Matrix4x4   transform = Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one);
+                    if ( src.lightTypeExtent == LightTypeExtent.Sphere )
+                    {   // Make the rendering facing camera
+                        transform = Camera.current.cameraToWorldMatrix;
+                        transform.SetColumn( 3, new Vector4( light.transform.position.x, light.transform.position.y, light.transform.position.z, 1 ) );
+                    }
+
+                    using (new Handles.DrawingScope( transform ))
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        Vector2 widthHeight = new Vector4(src.shapeWidth, src.lightTypeExtent == LightTypeExtent.Disk ? src.shapeHeight : src.shapeWidth);
+                        float range = light.range;
+
+                        // Draw a subdivided ellipse
+                        const int N = 40;
+                        Vector3[]   vertices = new Vector3[2*N];
+                        float   Rx = 0.5f * src.shapeWidth;
+                        float   Ry = src.lightTypeExtent == LightTypeExtent.Disk ? 0.5f * src.shapeHeight : Rx;
+                        for ( int i=0; i < N; i++ )
+                        {
+                            float   a0 = 2*Mathf.PI * i / N;
+                            float   a1 = 2*Mathf.PI * (i+1) / N;
+                            vertices[2*i] = new Vector3( Rx * Mathf.Cos( a0 ), Ry * Mathf.Sin( a0 ), 0 );
+                            vertices[2*i+1] = new Vector3( Rx * Mathf.Cos( a1 ), Ry * Mathf.Sin( a1 ), 0 );
+                        }
+
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = wireframeColorBehind;
+                        Handles.DrawLines( vertices );
+                        range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = wireframeColorAbove;
+                        Handles.DrawLines( vertices );
+                        range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range); //also draw handles
+
+                        // Draw handles
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = handleColorBehind;
+                        widthHeight = CoreLightEditorUtilities.DrawAreaLightHandle(widthHeight, src.lightTypeExtent == LightTypeExtent.Disk);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = handleColorAbove;
+                        widthHeight = CoreLightEditorUtilities.DrawAreaLightHandle(widthHeight, src.lightTypeExtent == LightTypeExtent.Disk);
+
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObjects(new UnityEngine.Object[] { light, src }, src.lightTypeExtent == LightTypeExtent.Disk ? "Adjust Area Disk Light" : "Adjust Area Sphere Light");
+                            src.shapeWidth = widthHeight.x;
+                            if (src.lightTypeExtent == LightTypeExtent.Disk)
+                            {
+                                src.shapeHeight = widthHeight.y;
+                            }
+                            light.range = range;
+                        }
+                    }
+                    break;
             }
         }
 

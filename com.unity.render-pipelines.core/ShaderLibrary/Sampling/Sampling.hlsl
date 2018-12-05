@@ -265,4 +265,23 @@ void SampleDisk(real2   u,
     lightPdf = 1.0 / (PI * radius * radius);
 }
 
+void SampleEllipticalDisk(real2   u,
+                real4x4 localToWorld,
+                real2   radius,
+            out real    lightPdf,
+            out real3   P,
+            out real3   Ns)
+{
+    // Random point at disk surface
+    P  = real3(radius * SampleDiskUniform(u.x, u.y), 0);
+    Ns = real3(0.0, 0.0, -1.0); // Light down (-Z)
+
+    // Transform to world space
+    P = mul(real4(P, 1.0), localToWorld).xyz;
+    Ns = mul(Ns, (real3x3)(localToWorld));
+
+    // pdf is inverse of area
+    lightPdf = 1.0 / (PI * radius.x * radius.y);
+}
+
 #endif // UNITY_SAMPLING_INCLUDED

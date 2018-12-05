@@ -55,10 +55,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Both GGX and Disney Diffuse BRDFs have zero values in columns 1, 3, 5, 7.
                 // Column 8 contains only ones.
-                pixels[i] = new Color((float)LUTTransformInv[i, 0],
-                        (float)LUTTransformInv[i, 2],
-                        (float)LUTTransformInv[i, 4],
-                        (float)LUTTransformInv[i, 6]);
+                pixels[i] = new Color(  (float)LUTTransformInv[i, 0],   // Upload m00
+                                        (float)LUTTransformInv[i, 2],   // Upload m20
+                                        (float)LUTTransformInv[i, 4],   // Upload m11
+                                        (float)LUTTransformInv[i, 6]);  // Upload m02
+            }
+
+            tex.SetPixels(pixels, arrayElement);
+        }
+
+        // BMAYAUX (18/08/29) New LUT shape: as advised by S.Hill, the matrix is now renormalized by its central m11 term
+        // We still have only 4 coefficients to upload as a texture
+        void LoadLUT2(Texture2DArray tex, int arrayElement, TextureFormat format, double[,] LUTTransformInv)
+        {
+            const int count = k_LtcLUTResolution * k_LtcLUTResolution;
+            Color[] pixels = new Color[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                pixels[i] = new Color(  (float)LUTTransformInv[i, 0],   // Upload m00
+                                        (float)LUTTransformInv[i, 2],   // Upload m20
+                                        (float)LUTTransformInv[i, 6],   // Upload m02
+                                        (float)LUTTransformInv[i, 8]);  // Upload m22
             }
 
             tex.SetPixels(pixels, arrayElement);
@@ -70,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_refCounting == 0)
             {
-                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
+                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 2 + 6, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Clamp,
@@ -80,6 +98,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
                 LoadLUT(m_LtcData, 1, TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
+
+
+                // BMAYAUX (18/07/04) New BRDF Fittings
+//Debug.Log( "Updating LTC tables!" );
+                LoadLUT2(m_LtcData, 2, TextureFormat.RGBAHalf, s_LtcMatrixData_GGX);
+                LoadLUT2(m_LtcData, 3, TextureFormat.RGBAHalf, s_LtcMatrixData_Disney);
+                LoadLUT2(m_LtcData, 4, TextureFormat.RGBAHalf, s_LtcMatrixData_CookTorrance);
+                LoadLUT2(m_LtcData, 5, TextureFormat.RGBAHalf, s_LtcMatrixData_Charlie);
+                LoadLUT2(m_LtcData, 6, TextureFormat.RGBAHalf, s_LtcMatrixData_Ward);
+                LoadLUT2(m_LtcData, 7, TextureFormat.RGBAHalf, s_LtcMatrixData_OrenNayar);
 
                 m_LtcData.Apply();
             }

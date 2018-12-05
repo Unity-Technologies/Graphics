@@ -123,6 +123,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, 0, m_MaterialProperty);
                             }
                             break;
+                        case LightTypeExtent.Sphere:
+                            {
+                                m_MaterialProperty.SetColor(_ColorShaderID, new Color(1.0f, 0.0f, 0.5f, 1.0f));
+                                m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
+                                cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
+                            }
+                            break;
+                        case LightTypeExtent.Disk:
+                            {
+                                m_MaterialProperty.SetColor(_ColorShaderID, new Color(1.0f, 0.0f, 0.5f, 1.0f));
+                                m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
+                                cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, -1, m_MaterialProperty);
+                            }
+                            break;
                         default:
                             break;
                     }

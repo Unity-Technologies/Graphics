@@ -72,6 +72,8 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        override protected bool TransferToSliceAreaLight(CommandBuffer cmd, int sliceIndex, Texture[] textureArray) { return false; }
+
         public override Texture GetTexCache()
         {
             return !TextureCache.supportsCubemapArrayTextures ? (Texture)m_CacheNoCubeArray : m_Cache;

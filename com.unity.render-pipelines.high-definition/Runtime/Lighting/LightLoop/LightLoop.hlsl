@@ -234,7 +234,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             while (i <= last && lightData.lightType == GPULIGHTTYPE_TUBE)
             {
-                lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
+                lightData.lightType = GPULIGHTTYPE_TUBE;    // Enforce constant propagation
+                lightData.cookieIndex = -1;                 // Enforce constant propagation
 
                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
                 {
@@ -245,9 +246,37 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 lightData = FetchLight(lightStart, min(++i, last));
             }
 
-            while (i <= last) // GPULIGHTTYPE_RECTANGLE
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_RECTANGLE)
             {
                 lightData.lightType = GPULIGHTTYPE_RECTANGLE; // Enforce constant propagation
+
+                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
+                {
+                    DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                    AccumulateDirectLighting(lighting, aggregateLighting);
+                }
+
+                lightData = FetchLight(lightStart, min(++i, last));
+            }
+
+            while (i <= last && lightData.lightType == GPULIGHTTYPE_SPHERE)
+            {
+                lightData.lightType = GPULIGHTTYPE_SPHERE;  // Enforce constant propagation
+                lightData.cookieIndex = -1;                 // Enforce constant propagation
+
+                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
+                {
+                    DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                    AccumulateDirectLighting(lighting, aggregateLighting);
+                }
+
+                lightData = FetchLight(lightStart, min(++i, last));
+            }
+
+            while (i <= last )// && lightData.lightType == GPULIGHTTYPE_DISK)
+            {
+                lightData.lightType = GPULIGHTTYPE_DISK;    // Enforce constant propagation
+                lightData.cookieIndex = -1;                 // Enforce constant propagation
 
                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
                 {

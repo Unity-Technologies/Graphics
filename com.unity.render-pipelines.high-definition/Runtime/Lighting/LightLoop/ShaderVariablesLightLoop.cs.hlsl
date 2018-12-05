@@ -35,6 +35,6 @@
     uint _CascadeShadowCount;
     int _DebugSingleShadowIndex;
     int _EnvSliceSize;
-
+    uint _CookieSizePOT;
 
 #endif

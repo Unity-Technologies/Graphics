@@ -52,6 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int _DebugSingleShadowIndex;
 
         public int _EnvSliceSize;
+        public uint _CookieSizePOT; // Cookie size = 1 << _CookieSizePOT
     }
 }
 

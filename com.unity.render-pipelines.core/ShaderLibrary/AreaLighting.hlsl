@@ -1,8 +1,8 @@
 #ifndef UNITY_AREA_LIGHTING_INCLUDED
 #define UNITY_AREA_LIGHTING_INCLUDED
 
-#define APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-#define APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
+#define APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT  // Define this to replace rectangular area light polygon by an equivalent sphere (i.e. simpler, doesn't require as much effort for clipping)
+#define APPROXIMATE_SPHERE_LIGHT_NUMERICALLY    // Define this to use numerical approximation instead of exact computation of sphere clipping with horizon plane
 
 // Not normalized by the factor of 1/TWO_PI.
 real3 ComputeEdgeFactor(real3 V1, real3 V2)
@@ -49,7 +49,20 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
     // You can use the following Mathematica code to reproduce our results:
     // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
     // m = NonlinearModelFit[t, x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3)), {a, b, c, d, e}, {x, y}]
-    return saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
+    real    fit = saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
+
+    // BMAYAUX (18/08/27) it appears that the imprecision in fitting leads to light leaking issues
+    // This apparently comes from the fact that the transition when the sphere is going below the horizon is a very sensitive area of the 2D table
+    //  and both a table precomputation or our numerical fitting fail to capture the necessary precision here so I added back a more rigid control
+    //  of the fade that should happen below the horizon...
+    //
+    // Each of these fade routines is equally interesting
+    real    sqCosOmega = cosOmega < 0.0 ? -cosOmega*cosOmega : cosOmega*cosOmega;   // Signed square value
+    real    fade = smoothstep(-sinSqSigma, 0, sqCosOmega);    // This one fade for a shorter time <== Prefer this if using smoothstep
+//    real    fade = step(-0.05*sinSqSigma, sqCosOmega);        // This one is abrupt but does the job... And less expensive than a smoothstep. Problem is, the 0.05 actually should change depending on the size of the sphere (i.e. the sinSqSigma parameter)
+
+    return fade * fit;
+
 #else
     #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
         real sinSqOmega = saturate(1 - cosOmega * cosOmega);
@@ -123,31 +136,118 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 #endif
 }
 
-// Expects non-normalized vertex positions.
-real PolygonIrradiance(real4x3 L)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Samples the area light's associated cookie
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  cookieIndex, the index of the cookie texture in the Texture2DArray
+//  L, the 4 local-space corners of the area light polygon transformed by the LTC M^-1 matrix
+//  F, the *normalized* vector irradiance
+//
+float3   SampleAreaLightCookie( int cookieIndex, float4x3 L, float3 F )
 {
-#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+    // L[0] = top-right
+    // L[1] = bottom-right
+    // L[2] = bottom-left
+    // L[3] = top-left
+    float3  origin = L[2];
+    float3  right = L[1] - origin;
+    float3  up = L[3] - origin;
+
+    float3  normal = cross( right, up );
+    float   sqArea = dot( normal, normal );
+            normal *= rsqrt( sqArea );
+
+    // Compute intersection of irradiance vector with the area light plane
+    float   hitDistance = dot( origin, normal ) / dot( F, normal );
+    float3  hitPosition = hitDistance * normal;
+            hitPosition -= origin;  // Relative to bottom-left corner
+
+    // Here, right and up vectors are not necessarily orthonormal
+    // We create the orthogonal vector "ortho" by projecting "up" onto the vector orthogonal to "right"
+    //  ortho = up - (up.right') * right'
+    // Where right' = right / sqrt( dot( right, right ) ), the normalized right vector
+    float   recSqLengthRight = 1.0 / dot( right, right );
+    float   upRightMixing = dot( up, right );
+    float3  ortho = up - upRightMixing * right * recSqLengthRight;
+
+    // The V coordinate along the "up" vector is simply the projection against the ortho vector
+    float   v = dot( hitPosition, ortho ) / dot( ortho, ortho );
+
+    // The U coordinate is not only the projection against the right vector
+    //  but also the subtraction of the influence of the up vector upon the right vector
+    //  (indeed, if the up & right vectors are not orthogonal then a certain amount of
+    //  the up coordinate also influences the right coordinate)
+    //
+    //       |    up
+    // ortho ^....*--------*
+    //       |   /:       /
+    //       |  / :      /
+    //       | /  :     /
+    //       |/   :    /
+    //       +----+-->*----->
+    //            : right
+    //          mix of up into right that needs to be subtracted from simple projection on right vector
+    //
+    float   u = (dot( hitPosition, right ) - upRightMixing * v) * recSqLengthRight;
+    float2  hitUV = float2( u, v );
+
+    // Assuming the original cosine lobe distribution Do is enclosed in a cone of 90� aperture,
+    //  following the idea of orthogonal projection upon the area light's plane we find the intersection
+    //  of the cone to be a disk of area PI*d� where d is the hit distance we computed above.
+    // We also know the area of the transformed polygon A = sqrt( sqArea ) and we pose the ratio of covered area as PI.d� / A.
+    //
+    // Knowing the area in square texels of the cookie texture A_sqTexels = texture width * texture height (default is 128x128 square texels)
+    //  we can deduce the actual area covered by the cone in square texels as:
+    //  A_covered = Pi.d� / A * A_sqTexels
+    //
+    // From this, we find the mip level as: mip = log2( sqrt( A_covered ) ) = log2( A_covered ) / 2
+    // Also, assuming that A_sqTexels is of the form 2^n * 2^n we get the simplified expression: mip = log2( Pi.d� / A ) / 2 + n
+    //
+//    const float COOKIE_MIPS_COUNT = 7; // Cookie textures are 128x128
+    const float COOKIE_MIPS_COUNT = _CookieSizePOT;
+//    float   mipLevel = 0.25 * log2( 1e-3 + Sq( PI * hitDistance*hitDistance ) / sqArea ) + COOKIE_MIPS_COUNT;
+    float   mipLevel = 0.5 * log2( 1e-8 + PI * hitDistance*hitDistance * rsqrt(sqArea) ) + COOKIE_MIPS_COUNT;
+
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, s_trilinear_clamp_sampler, hitUV, cookieIndex, mipLevel).xyz;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// POLYGONAL AREA LIGHTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Returns the vector form-factor (i.e. vector irradiance/2PI) of the quadrilateral
+// L contains the 4 corners of the quad
+// Returns an average direction vector scaled by the scalar form-factor
+real3   PolygonFormFactor(real4x3 L)
+{
     UNITY_UNROLL
     for (uint i = 0; i < 4; i++)
     {
         L[i] = normalize(L[i]);
     }
 
-    real3 F = real3(0, 0, 0);
+    real3 F  = ComputeEdgeFactor( L[0], L[1] );
+          F += ComputeEdgeFactor( L[1], L[2] );
+          F += ComputeEdgeFactor( L[2], L[3] );
+          F += ComputeEdgeFactor( L[3], L[0] );
 
-    UNITY_UNROLL
-    for (uint edge = 0; edge < 4; edge++)
-    {
-        real3 V1 = L[edge];
-        real3 V2 = L[(edge + 1) % 4];
+    return INV_TWO_PI * F;
+}
 
-        F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
-    }
+// Expects non-normalized vertex positions.
+// L contains the 4 corners of the quad
+real PolygonIrradiance(real4x3 L)
+{
+#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+    real3 F = PolygonFormFactor(L);
 
     // Clamp invalid values to avoid visual artifacts.
-    real f2         = saturate(dot(F, F));
-    real sinSqSigma = min(sqrt(f2), 0.999);
-    real cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
+    real    f = length(F);
+    real    cosOmega   = clamp(F.z / f, -1, 1);
+    real    sinSqSigma = min(f, 0.999);
 
     return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
 #else
@@ -301,6 +401,219 @@ real PolygonIrradiance(real4x3 L)
 #endif
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// DISK AREA LIGHTS
+// From http://blog.selfshadow.com/ltc/webgl/ltc_disk.html
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+// An extended version of the implementation from "How to solve a cubic equation, revisited" (From http://momentsingraphics.de/?p=105)
+real3 SolveCubic(real4 coefficients )
+{
+    // Normalize the polynomial
+//  coefficients.xyz /= coefficients.w; // No use in our case: w=1
+
+    // Divide middle coefficients by three
+    coefficients.yz /= 3.0;
+
+    real  A = coefficients.w;
+    real  B = coefficients.z;
+    real  C = coefficients.y;
+    real  D = coefficients.x;
+
+    // Compute the Hessian and the discriminant
+    real3 Delta = real3(
+        -coefficients.z*coefficients.z + coefficients.y,
+        -coefficients.y*coefficients.z + coefficients.x,
+        dot(real2(coefficients.z, -coefficients.y), coefficients.xy)
+   );
+
+    real  Discriminant = dot(real2(4.0*Delta.x, -Delta.y), Delta.zy);
+
+    real3 RootsA, RootsD;
+
+    real2 xlc, xsc;
+
+    // Algorithm A
+    {
+        real  A_a = 1.0;
+        real  C_a = Delta.x;
+        real  D_a = -2.0*B*Delta.x + Delta.y;
+
+        // Take the cubic root of a normalized complex number
+        real  Theta = atan2( sqrt(Discriminant), -D_a) / 3.0;
+
+        real  x_1a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta );
+        real  x_3a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta + (2.0/3.0)*PI );
+
+        real  xl;
+        if ((x_1a + x_3a) > 2.0*B)
+            xl = x_1a;
+        else
+            xl = x_3a;
+
+        xlc = real2(xl - B, A);
+    }
+
+    // Algorithm D
+    {
+        real  A_d = D;
+        real  C_d = Delta.z;
+        real  D_d = -D*Delta.y + 2.0*C*Delta.z;
+
+        // Take the cubic root of a normalized complex number
+        real  Theta = atan2( D*sqrt(Discriminant), -D_d ) / 3.0;
+
+        real  x_1d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta );
+        real  x_3d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta + (2.0/3.0)*PI );
+
+        real  xs;
+        if (x_1d + x_3d < 2.0*C)
+            xs = x_1d;
+        else
+            xs = x_3d;
+
+        xsc = real2(-D, xs + C);
+    }
+
+    real  E =  xlc.y*xsc.y;
+    real  F = -xlc.x*xsc.y - xlc.y*xsc.x;
+    real  G =  xlc.x*xsc.x;
+
+    real2 xmc = real2(C*F - B*G, -B*F + C*E);
+
+    real3  roots = real3(xsc.x/xsc.y, xmc.x/xmc.y, xlc.x/xlc.y);
+
+    if (roots.x < roots.y && roots.x < roots.z)
+        roots.xyz = roots.yxz;
+    else if (roots.z < roots.x && roots.z < roots.y)
+        roots.xyz = roots.xzy;
+
+    return roots;
+}
+
+// Returns the vector form-factor (i.e. vector irradiance/2PI) of the disc
+// L contains the 4 corners of the quad bounding the elliptical disc, in tangent space
+// Returns an average direction vector scaled by the scalar form-factor
+real3   DiskFormFactor(real4x3 lightVerts)
+{
+    // Initalize ellipse in original clamped-cosine space
+    real3   C  = 0.5 * (lightVerts[0] + lightVerts[2]);
+    real3   V1 = 0.5 * (lightVerts[0] - lightVerts[3]);
+    real3   V2 = 0.5 * (lightVerts[3] - lightVerts[2]);
+
+    real3   V3 = cross(V2, V1);         // Normal to ellipse's plane
+    if( dot( V3, C) < 0.0 )
+        return 0.0;
+
+    // compute eigenvectors of ellipse
+    real    a, b;
+    real    d11 = dot( V1, V1 );
+    real    d22 = dot( V2, V2 );
+    real    d12 = dot( V1, V2 );
+    real    d11d22 = d11 * d22;
+    real    d12d12 = d12 * d12;
+
+//  if ( abs(d12) > 0.0001 * sqrt(d11d22) ) // This produces artifacts due to precision issues
+    if ( d12d12 > 0.0001 * d11d22 )
+    {
+        real    tr = d11 + d22;
+        real    det = -d12d12 + d11d22;
+
+        // use sqrt matrix to solve for eigenvalues
+        det = sqrt(det);
+        real    u = 0.5 * sqrt( max( 0.0, tr - 2.0*det ) );
+        real    v = 0.5 * sqrt( max( 0.0, tr + 2.0*det ) );
+        real    e_max = Sq( u + v );
+        real    e_min = Sq( u - v );
+
+        real3   V1_, V2_;
+        if ( d11 > d22 )
+        {
+            V1_ = d12*V1 + (e_max - d11)*V2;
+            V2_ = d12*V1 + (e_min - d11)*V2;
+        }
+        else
+        {
+            V1_ = d12*V2 + (e_max - d22)*V1;
+            V2_ = d12*V2 + (e_min - d22)*V1;
+        }
+
+        a = 1.0 / e_max;
+        b = 1.0 / e_min;
+        V1 = normalize( V1_ );
+        V2 = normalize( V2_ );
+    }
+    else
+    {
+        a = 1.0 / dot(V1, V1);
+        b = 1.0 / dot(V2, V2);
+        V1 *= sqrt(a);
+        V2 *= sqrt(b);
+    }
+
+    V3 = cross( V1, V2 );
+    if ( dot( C, V3 ) <= 0.0 )
+        V3 = -V3;
+
+    real    L  = dot(V3, C);
+    real    x0 = dot(V1, C) / L;
+    real    y0 = dot(V2, C) / L;
+
+    real    E1 = rsqrt(a);
+    real    E2 = rsqrt(b);
+
+    a *= L*L;
+    b *= L*L;
+
+    real    c0 = a*b;
+    real    c1 = a*b*(1.0 + x0*x0 + y0*y0) - a - b;
+    real    c2 = 1.0 - a*(1.0 + x0*x0) - b*(1.0 + y0*y0);
+    real    c3 = 1.0;
+
+    real3   roots = SolveCubic(real4(c0, c1, c2, c3));
+    real    e1 = roots.x;
+    real    e2 = roots.y;
+    real    e3 = roots.z;
+
+    #if 1
+        real    ae2 = a - e2;
+        real    be2 = b - e2;
+        real3   avgDir = real3( a * x0 * be2, b * y0 * ae2, ae2 * be2 );   // No change except we avoid divisions...
+    #else
+        real3   avgDir = real3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
+    #endif
+
+    avgDir = normalize( mul( avgDir, real3x3( V1, V2, V3 ) ) );
+
+    real    L1 = sqrt( -e2 / e3 );
+    real    L2 = sqrt( -e2 / e1 );
+
+    real    formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
+
+    return formFactor * avgDir;
+}
+
+// L contains the 4 corners of the quad bounding the elliptical disc
+real   LTCEvaluate_Disk(real4x3 L)
+{
+    real3   F = DiskFormFactor(L);
+
+    // Clamp invalid values to avoid visual artifacts.
+    real    f = length(F);
+    real    cosOmega   = clamp(F.z / f, -1, 1);
+    real    sqSinSigma = min(f, 0.999);
+
+    return DiffuseSphereLightIrradiance(sqSinSigma, cosOmega);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// LINEAR AREA LIGHTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
 real LineFpo(real tLDDL, real lrcpD, real rcpD)
 {
     // Compute: ((l / d) / (d * d + l * l)) + (1.0 / (d * d)) * atan(l / d).
@@ -395,6 +708,47 @@ real LTCEvaluate(real3 P1, real3 P2, real3 B, real3x3 invM)
         result = max(INV_PI * width * irradiance, 0.0);
     }
     return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// GENERIC EVALUATE (RECTANGLE + DISK + SPHERE LIGHTS)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+real LTCEvaluate_RectDisk(real4x3 L, bool isRectangleLight)
+{
+    real3   F;
+    if (isRectangleLight)
+        F = PolygonFormFactor(L);
+    else
+        F = DiskFormFactor(L);
+
+    // Clamp invalid values to avoid visual artifacts.
+    real    f = length(F);
+    real    cosOmega   = clamp(F.z / f, -1, 1);
+    real    sqSinSigma = min(f, 0.999);
+
+    return DiffuseSphereLightIrradiance(sqSinSigma, cosOmega);
+}
+
+real3   LTCEvaluate_RectDisk(real4x3 L, bool isRectangleLight, int cookieIndex)
+{
+    real3   F;
+    if (isRectangleLight)
+        F = PolygonFormFactor(L);
+    else
+        F = DiskFormFactor(L);
+
+    // Clamp invalid values to avoid visual artifacts.
+    real    f = length(F);
+            F /= f;
+    real    cosOmega   = clamp(F.z, -1, 1);
+    real    sqSinSigma = min(f, 0.999);
+
+    float3  irradiance = DiffuseSphereLightIrradiance(sqSinSigma, cosOmega);
+    if ( cookieIndex >= 0 )
+        irradiance *= SampleAreaLightCookie( cookieIndex, L, F );
+
+    return irradiance;
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED

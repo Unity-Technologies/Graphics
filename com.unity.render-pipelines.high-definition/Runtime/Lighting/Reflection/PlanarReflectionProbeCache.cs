@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ProbeSize = probeSize;
             m_CacheSize = cacheSize;
-            m_TextureCache = new TextureCache2D("PlanarReflectionProbe");
+            m_TextureCache = new TextureCache2D(hdAsset, "PlanarReflectionProbe");
             m_TextureCache.AllocTextureArray(cacheSize, probeSize, probeSize, probeFormat, isMipmaped);
             m_IBLFilterGGX = iblFilter;
 

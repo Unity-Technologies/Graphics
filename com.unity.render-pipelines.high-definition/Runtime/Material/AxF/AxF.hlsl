@@ -11,8 +11,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFPreIntegratedFGD.hlsl"
 
 // Add support for LTC Area Lights
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFLTCAreaLight/AxFLTCAreaLight.hlsl"
-
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
 
 //-----------------------------------------------------------------------------
 #define CLEAR_COAT_ROUGHNESS 0.03

@@ -38,6 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty minFilterSize;
             public SerializedProperty sunDiskSize;
             public SerializedProperty sunHaloSize;
+            public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
 
             // Editor stuff
             public SerializedProperty useOldInspector;
@@ -118,6 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     minFilterSize = o.Find(x => x.minFilterSize),
                     sunDiskSize = o.Find(x => x.sunDiskSize),
                     sunHaloSize = o.Find(x => x.sunHaloSize),
+                    areaLightCookie = o.Find(x => x.areaLightCookie),
 
                     // Editor stuff
                     useOldInspector = o.Find(x => x.useOldInspector),
@@ -199,6 +201,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case LightTypeExtent.Tube:
                     editorLightShape = LightShape.Tube;
+                    break;
+                case LightTypeExtent.Disk:
+                    editorLightShape = LightShape.Disk;
+                    break;
+                case LightTypeExtent.Sphere:
+                    editorLightShape = LightShape.Sphere;
                     break;
             }
         }

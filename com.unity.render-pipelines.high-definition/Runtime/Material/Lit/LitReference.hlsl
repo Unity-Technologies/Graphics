@@ -73,9 +73,9 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
 
         switch (lightData.lightType)
         {
-            //case GPULIGHTTYPE_SPHERE:
-            //    SampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-            //    break;
+            case GPULIGHTTYPE_SPHERE:
+                SampleSphere(u, localToWorld, 0.5 * lightData.size.x, lightPdf, P, Ns);
+                break;
             //case GPULIGHTTYPE_HEMISPHERE:
             //    SampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
             //    break;
@@ -85,10 +85,11 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
             case GPULIGHTTYPE_RECTANGLE:
                 SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
                 break;
-            //case GPULIGHTTYPE_DISK:
-            //    SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-            //   break;
-            // case GPULIGHTTYPE_TUBE: handled by a separate function.
+            case GPULIGHTTYPE_DISK:
+//                SampleDisk(u, localToWorld, 0.5 * lightData.size.x, lightPdf, P, Ns);
+                SampleEllipticalDisk(u, localToWorld, 0.5 * lightData.size, lightPdf, P, Ns);
+                break;
+            // case GPULIGHTTYPE_LINE: handled by a separate function.
         }
 
         // Get distance

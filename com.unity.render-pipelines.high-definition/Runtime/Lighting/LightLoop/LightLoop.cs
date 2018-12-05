@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return value.localToWorldMatrix.GetColumn(0);
         }
     }
-    
+
     //-----------------------------------------------------------------------------
     // structure definition
     //-----------------------------------------------------------------------------
@@ -462,7 +462,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DecalDatas = new ComputeBuffer(m_MaxDecalsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
-            m_CookieTexArray = new TextureCache2D("Cookie");
+            m_CookieTexArray = new TextureCache2D(hdAsset,"Cookie");
             int coockieSize = gLightLoopSettings.cookieTexArraySize;
             int coockieResolution = (int)gLightLoopSettings.cookieSize;
             if (TextureCache2D.GetApproxCacheSizeInByte(coockieSize, coockieResolution, 1) > k_MaxCacheSize)
@@ -824,7 +824,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.directionalLights.Count >= m_MaxDirectionalLightsOnScreen)
                 return false;
-            
+
             bool contributesToLighting = ((additionalLightData.lightDimmer > 0) && (additionalLightData.affectDiffuse || additionalLightData.affectSpecular)) || (additionalLightData.volumetricDimmer > 0);
 
             if (!contributesToLighting)
@@ -961,7 +961,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!contributesToLighting)
                 return false;
-            
+
             var lightData = new LightData();
 
             lightData.lightLayers = additionalLightData.GetLightLayers();
@@ -991,7 +991,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
                 lightData.rangeAttenuationBias  = 1.0f;
 
-                if (lightData.lightType == GPULightType.Rectangle)
+                if (lightData.lightType == GPULightType.Rectangle
+                    || lightData.lightType == GPULightType.Disk
+                    || lightData.lightType == GPULightType.Sphere)
                 {
                     // Rect lights are currently a special case because they use the normalized
                     // [0, 1] attenuation range rather than the regular [0, r] one.
@@ -1008,7 +1010,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.rangeAttenuationScale = sqrtHuge / (light.range * light.range);
                 lightData.rangeAttenuationBias  = hugeValue;
 
-                if (lightData.lightType == GPULightType.Rectangle)
+                if (lightData.lightType == GPULightType.Rectangle
+                    || lightData.lightType == GPULightType.Disk
+                    || lightData.lightType == GPULightType.Sphere)
                 {
                     // Rect lights are currently a special case because they use the normalized
                     // [0, 1] attenuation range rather than the regular [0, r] one.
@@ -1090,9 +1094,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.size = new Vector2(additionalLightData.shapeRadius * additionalLightData.shapeRadius, 0);
             }
 
-            if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Tube)
+            if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Tube || lightData.lightType == GPULightType.Disk)
             {
                 lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight);
+            }
+            else if (lightData.lightType == GPULightType.Sphere)
+            {
+                lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeWidth);
             }
 
             lightData.lightDimmer           = lightDistanceFade * (additionalLightData.lightDimmer);
@@ -1122,6 +1130,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
                 lightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
             }
+            else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
+            {
+                lightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, additionalLightData.areaLightCookie, false, TextureCache.TextureFilter.AreaLight);
+            }
 
             if (additionalShadowData)
             {
@@ -1131,7 +1143,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-                lightData.shadowDimmer = 1.0f;
+                lightData.shadowDimmer           = 1.0f;
                 lightData.volumetricShadowDimmer = 1.0f;
             }
 
@@ -1311,6 +1323,48 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
             }
+            else if (gpuLightType == GPULightType.Sphere)
+            {
+                Vector3 vx = xAxisVS;
+                Vector3 vy = yAxisVS;
+                Vector3 vz = zAxisVS;
+
+                bound.center   = positionVS;
+                bound.boxAxisX = vx * range;
+                bound.boxAxisY = vy * range;
+                bound.boxAxisZ = vz * range;
+                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.radius = range;
+
+                // fill up ldata
+                lightVolumeData.lightAxisX = vx;
+                lightVolumeData.lightAxisY = vy;
+                lightVolumeData.lightAxisZ = vz;
+                lightVolumeData.lightPos = bound.center;
+                lightVolumeData.radiusSq = range * range;
+                lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
+            }
+            else if (gpuLightType == GPULightType.Disk)
+            {
+                Vector3 dimensions = new Vector3(lightDimensions.x + 2 * range, lightDimensions.y + 2 * range, range); // One-sided
+                Vector3 extents = 0.5f * dimensions;
+                Vector3 centerVS = positionVS + extents.z * zAxisVS;
+
+                bound.center = centerVS;
+                bound.boxAxisX = extents.x * xAxisVS;
+                bound.boxAxisY = extents.y * yAxisVS;
+                bound.boxAxisZ = extents.z * zAxisVS;
+                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.radius = extents.magnitude;
+
+                lightVolumeData.lightPos     = centerVS;
+                lightVolumeData.lightAxisX   = xAxisVS;
+                lightVolumeData.lightAxisY   = yAxisVS;
+                lightVolumeData.lightAxisZ   = zAxisVS;
+                lightVolumeData.boxInnerDist = extents;
+                lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
+            }
             else if (gpuLightType == GPULightType.ProjectorBox)
             {
                 Vector3 dimensions  = new Vector3(lightDimensions.x, lightDimensions.y, range);  // One-sided
@@ -1425,12 +1479,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (influence.envShape)
             {
                 case EnvShapeType.Box:
-            envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
-            envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
-            envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
-            envLightData.blendDistanceNegative = influence.boxBlendDistanceNegative;
-            envLightData.boxSideFadePositive = influence.boxSideFadePositive;
-            envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
+                    envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
+                    envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
+                    envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
+                    envLightData.blendDistanceNegative = influence.boxBlendDistanceNegative;
+                    envLightData.boxSideFadePositive = influence.boxSideFadePositive;
+                    envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
                     break;
                 case EnvShapeType.Sphere:
                     envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;
@@ -1578,7 +1632,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
         {
             m_ShadowManager.UpdateCullingParameters(ref cullingParams);
-            
+
             // In HDRP we don't need per object light/probe info so we disable the native code that handles it.
             cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
         }
@@ -1593,7 +1647,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask &&
                 light.bakingOutput.occlusionMaskChannel != -1;     // We need to have an occlusion mask channel assign, else we have no shadow mask
         }
-        
+
         HDProbe SelectProbe(VisibleReflectionProbe probe, PlanarReflectionProbe planarProbe)
         {
             if (probe.reflectionProbe != null)
@@ -1650,7 +1704,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     worldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Left);
                     rightEyeWorldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Right);
                 }
-                
+
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
 
@@ -1674,7 +1728,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
-                    
+
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         additionalData.ReserveShadows(camera, m_ShadowManager, m_ShadowInitParameters, cullResults, m_FrameSettings, lightIndex);
 
@@ -1751,6 +1805,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     lightVolumeType = LightVolumeType.Box;
                                     break;
 
+                                case LightTypeExtent.Disk:
+                                    if (areaLightCount >= m_MaxAreaLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Disk;
+                                    lightVolumeType = LightVolumeType.Box;
+                                    break;
+
+                                case LightTypeExtent.Sphere:
+                                    if (areaLightCount >= m_MaxAreaLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Sphere;
+                                    lightVolumeType = LightVolumeType.Sphere;
+                                    break;
+
                                 default:
                                     Debug.Assert(false, "Encountered an unknown LightType.");
                                     break;
@@ -1801,7 +1869,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Manage shadow requests
                         if (additionalLightData.WillRenderShadows())
                         {
-                                int shadowRequestCount;
+                            int shadowRequestCount;
                             shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, out shadowRequestCount);
 
 #if UNITY_EDITOR
@@ -1871,7 +1939,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
                     }
-                    
+
                     // Update the compute buffer with the shadow request datas
                     m_ShadowManager.PrepareGPUShadowDatas(cullResults, camera);
 
@@ -2392,6 +2460,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
                 cmd.SetGlobalInt(HDShaderIDs._EnvSliceSize, m_ReflectionProbeCache.GetEnvSliceSize());
+                int v = Mathf.RoundToInt( 1.4426950408889634073599246810019f * Mathf.Log( m_CookieTexArray.GetTexCache().width ) );
+                cmd.SetGlobalInt(HDShaderIDs._CookieSizePOT, v);
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
                 cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
 

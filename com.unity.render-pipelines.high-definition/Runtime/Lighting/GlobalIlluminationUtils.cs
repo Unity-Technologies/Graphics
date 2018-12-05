@@ -166,6 +166,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 ld.InitNoBake(ld.instanceID);
             }
+            else if (add.lightTypeExtent == LightTypeExtent.Disk)
+            {
+                ld.InitNoBake(ld.instanceID);
+            }
+            else if (add.lightTypeExtent == LightTypeExtent.Sphere)
+            {
+                ld.InitNoBake(ld.instanceID);
+            }
             else
             {
                 Debug.Assert(false, "Encountered an unknown LightType.");

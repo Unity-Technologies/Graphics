@@ -182,6 +182,25 @@ namespace UnityEngine.Experimental.Rendering
             return TransferToSlice(cmd, sliceIndex, m_autoContentArray);
         }
 
+        // In case the texture content with which we update the cache is not the input texture, we need to provide the right update count.
+        public bool UpdateSliceAreaLight(CommandBuffer cmd, int sliceIndex, Texture texture, uint textureHash)
+        {
+            m_autoContentArray[0] = texture;
+            return UpdateSliceAreaLight( cmd, sliceIndex, m_autoContentArray, textureHash);
+        }
+
+        public bool UpdateSliceAreaLight(CommandBuffer cmd, int sliceIndex, Texture[] contentArray, uint textureHash)
+        {
+            // Make sure the content matches the size of the texture cache
+            Debug.Assert(contentArray.Length == m_SliceSize);
+
+            // Update the hash
+            SetSliceHash(sliceIndex, textureHash);
+
+            // transfer new slice to sliceIndex from source texture
+            return TransferToSliceAreaLight(cmd, sliceIndex, contentArray);
+        }
+
         public void SetSliceHash(int sliceIndex, uint hash)
         {
             // transfer new slice to sliceIndex from source texture
@@ -190,8 +209,15 @@ namespace UnityEngine.Experimental.Rendering
 
         // Push the content to the internal target slice. Should be overridden by the child class. It will return fals if it fails to update (mainly sub-textures's size do not match)
         protected abstract bool TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture[] textureArray);
+        protected abstract bool TransferToSliceAreaLight(CommandBuffer cmd, int sliceIndex, Texture[] textureArray);
 
-        public int FetchSlice(CommandBuffer cmd, Texture texture, bool forceReinject = false)
+        public enum TextureFilter
+        {
+            Default,
+            AreaLight,
+        }
+
+        public int FetchSlice(CommandBuffer cmd, Texture texture, bool forceReinject = false, TextureFilter filter = TextureFilter.Default)
         {
             bool needUpdate = false;
             var sliceIndex = ReserveSlice(texture, out needUpdate);
@@ -203,7 +229,15 @@ namespace UnityEngine.Experimental.Rendering
             if (sliceIndex != -1 && bSwapSlice)
             {
                 m_autoContentArray[0] = texture;
-                UpdateSlice(cmd, sliceIndex, m_autoContentArray, GetTextureHash(texture));
+                switch ( filter )
+                {
+                    case TextureFilter.Default:
+                        UpdateSlice(cmd, sliceIndex, m_autoContentArray, GetTextureHash(texture));
+                        break;
+                    case TextureFilter.AreaLight:
+                        UpdateSliceAreaLight(cmd, sliceIndex, m_autoContentArray, GetTextureHash(texture));
+                        break;
+                }
             }
 
             return sliceIndex;

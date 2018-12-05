@@ -14,6 +14,8 @@
 #define GPULIGHTTYPE_PROJECTOR_BOX (4)
 #define GPULIGHTTYPE_TUBE (5)
 #define GPULIGHTTYPE_RECTANGLE (6)
+#define GPULIGHTTYPE_SPHERE (7)
+#define GPULIGHTTYPE_DISK (8)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.GPUImageBasedLightingType:  static fields

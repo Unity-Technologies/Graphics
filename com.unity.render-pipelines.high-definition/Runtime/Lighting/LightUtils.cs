@@ -68,15 +68,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // convert intensity (lumen) to nits
-        public static float ConvertDiscLightLumenToLuminance(float intensity, float discRadius)
+        public static float ConvertDiskLightLumenToLuminance(float intensity, float diskRadius)
         {
-            return intensity / ((discRadius * discRadius * Mathf.PI) * Mathf.PI);
+            return intensity / ((diskRadius * diskRadius * Mathf.PI) * Mathf.PI);
         }
 
         // convert intensity (nits) to lumen
-        public static float ConvertDiscLightLuminanceToLumen(float intensity, float discRadius)
+        public static float ConvertDiskLightLuminanceToLumen(float intensity, float diskRadius)
         {
-            return intensity * ((discRadius * discRadius * Mathf.PI) * Mathf.PI);
+            return intensity * ((diskRadius * diskRadius * Mathf.PI) * Mathf.PI);
+        }
+
+        // convert intensity (lumen) to nits
+        public static float ConvertEllipticalDiskLightLumenToLuminance(float intensity, float diskRadiusX, float diskRadiusY)
+        {
+            return intensity / ((diskRadiusX * diskRadiusY * Mathf.PI) * Mathf.PI);
+        }
+
+        // convert intensity (nits) to lumen
+        public static float ConvertEllipticalDiskLightLuminanceToLumen(float intensity, float diskRadiusX, float diskRadiusY)
+        {
+            return intensity * ((diskRadiusX * diskRadiusY * Mathf.PI) * Mathf.PI);
         }
 
         // convert intensity (lumen) to nits
@@ -209,6 +221,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return LightUtils.CalculateLineLightLumenToLuminance(lumen, width);
                 case LightTypeExtent.Rectangle:
                     return LightUtils.ConvertRectLightLumenToLuminance(lumen, width, height);
+                case LightTypeExtent.Disk:
+                    return LightUtils.ConvertEllipticalDiskLightLumenToLuminance(lumen, 0.5f * width, 0.5f * height);
+                case LightTypeExtent.Sphere:
+                    return LightUtils.ConvertSphereLightLumenToLuminance(lumen, 0.5f * width);
             }
 
             return lumen;
@@ -222,6 +238,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return LightUtils.CalculateLineLightLuminanceToLumen(luminance, width);
                 case LightTypeExtent.Rectangle:
                     return LightUtils.ConvertRectLightLuminanceToLumen(luminance, width, height);
+                case LightTypeExtent.Disk:
+                    return LightUtils.ConvertEllipticalDiskLightLuminanceToLumen(luminance, 0.5f * width, 0.5f * height);
+                case LightTypeExtent.Sphere:
+                    return LightUtils.ConvertSphereLightLuminanceToLumen(luminance, 0.5f * width);
             }
 
             return luminance;

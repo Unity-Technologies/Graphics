@@ -19,8 +19,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //Area, <= offline base type not displayed in our case but used for GI of our area light
             Rectangle,
             Tube,
-            //Sphere,
-            //Disc,
+            Sphere,
+            Disk,
         }
 
         internal enum DirectionalLightUnit
@@ -129,7 +129,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     DrawEmissionAdvancedContent
                     ),
                 CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric),
-                CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Rectangle && serialized.editorLightShape != LightShape.Tube,
+                CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Rectangle && serialized.editorLightShape != LightShape.Tube && serialized.editorLightShape != LightShape.Disk && serialized.editorLightShape != LightShape.Sphere,
                     CED.AdvancedFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
                         (serialized, owner) => GetAdvanced(Advanceable.Shadow, serialized, owner),
                         (serialized, owner) => SwitchAdvanced(Advanceable.Shadow, serialized, owner),
@@ -182,11 +182,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void DrawGeneralContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
-            serialized.editorLightShape = (LightShape)EditorGUILayout.Popup(s_Styles.shape, (int)serialized.editorLightShape, s_Styles.shapeNames);
+            LightShape  formerShape = serialized.editorLightShape;
+            serialized.editorLightShape = (LightShape)EditorGUILayout.Popup(s_Styles.shape, (int) formerShape, s_Styles.shapeNames);
             if (EditorGUI.EndChangeCheck())
             {
                 ApplyEditorLightShape(serialized, owner);
-                UpdateLightIntensityUnit(serialized, owner);
+                UpdateLightIntensityUnit(serialized, owner, formerShape);
 
                 // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
@@ -229,7 +230,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.PropertyField(serialized.serializedLightData.spotLightShape, s_Styles.spotLightShape);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        UpdateLightIntensityUnit(serialized, owner);
+                        UpdateLightIntensityUnit(serialized, owner, LightShape.Spot);
                     }
 
                     var spotLightShape = (SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex;
@@ -282,6 +283,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                     break;
 
+                case LightShape.Disk:
+                    EditorGUI.BeginChangeCheck();
+                    serialized.serializedLightData.shapeWidth.floatValue = 2.0f * EditorGUILayout.FloatField( s_Styles.shapeWidthDisk, 0.5f * serialized.serializedLightData.shapeWidth.floatValue );
+                    serialized.serializedLightData.shapeHeight.floatValue = 2.0f * EditorGUILayout.FloatField( s_Styles.shapeHeightDisk, 0.5f * serialized.serializedLightData.shapeHeight.floatValue );
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.settings.areaSizeX.floatValue = serialized.serializedLightData.shapeWidth.floatValue;
+                        serialized.settings.areaSizeY.floatValue = serialized.serializedLightData.shapeHeight.floatValue;
+                    }
+                    break;
+
+                case LightShape.Sphere:
+                    EditorGUI.BeginChangeCheck();
+                    serialized.serializedLightData.shapeWidth.floatValue = 2.0f * EditorGUILayout.FloatField( s_Styles.shapeWidthSphere, 0.5f * serialized.serializedLightData.shapeWidth.floatValue );
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.settings.areaSizeX.floatValue = serialized.serializedLightData.shapeWidth.floatValue;
+                        serialized.settings.areaSizeY.floatValue = serialized.serializedLightData.shapeWidth.floatValue;
+                    }
+                    break;
+
                 case (LightShape)(-1):
                     // don't do anything, this is just to handle multi selection
                     break;
@@ -311,6 +333,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightShape.Point:
                 case LightShape.Rectangle:
                 case LightShape.Tube:
+                case LightShape.Disk:
+                case LightShape.Sphere:
                 // no advanced parameters
                 case (LightShape)(-1):
                     // don't do anything, this is just to handle multi selection
@@ -318,21 +342,78 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 default:
                     Debug.Assert(false, "Not implemented light type");
                     break;
-            }              
+            }
         }
 
-        static void UpdateLightIntensityUnit(SerializedHDLight serialized, Editor owner)
+        static void UpdateLightIntensityUnit(SerializedHDLight serialized, Editor owner, LightShape formerShape)
         {
-            // Box are local directional light
-            if (serialized.editorLightShape == LightShape.Directional ||
-                (serialized.editorLightShape == LightShape.Spot && ((SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex == SpotLightShape.Box)))
+            switch ( serialized.editorLightShape )
             {
+            case LightShape.Directional:
+                // Converting anything to directional => Just use current value as Lux
                 serialized.serializedLightData.lightUnit.enumValueIndex = (int)DirectionalLightUnit.Lux;
                 // We need to reset luxAtDistance to neutral when changing to (local) directional light, otherwise first display value ins't correct
                 serialized.serializedLightData.luxAtDistance.floatValue = 1.0f;
+                break;
+
+            case LightShape.Spot:
+            case LightShape.Point:
+                // Box are local directional light
+                if ( serialized.editorLightShape == LightShape.Spot && (SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex == SpotLightShape.Box )
+                {
+                    // Converting anything to directional => Just use current value as Lux
+                    serialized.serializedLightData.lightUnit.enumValueIndex = (int)DirectionalLightUnit.Lux;
+                    // We need to reset luxAtDistance to neutral when changing to (local) directional light, otherwise first display value ins't correct
+                    serialized.serializedLightData.luxAtDistance.floatValue = 1.0f;
+                    break;
+                }
+
+                switch ( formerShape )
+                {
+                case LightShape.Directional:
+                    // Converting from directional light to point/spot => Just use current lux value as lumens
+                    serialized.serializedLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
+                    break;
+                case LightShape.Spot:
+                case LightShape.Point:
+                    // Converting from same kind of light => Don't chane anything!
+                    break;
+
+                default:
+                    // Converting from area light to point/spot => Recompute lumen value if necessary
+                    ConvertLightIntensity( (LightUnit)serialized.serializedLightData.lightUnit.enumValueIndex, LightUnit.Lumen, serialized, owner );
+                    serialized.serializedLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
+                    break;
+                }
+                break;
+
+            default:
+                // For area lights
+                switch ( formerShape )
+                {
+                case LightShape.Directional:    // Converting from directional to area light => Just use Lux as lumen
+                    serialized.serializedLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
+                    break;
+                case LightShape.Point:          // Converting from point/spot to area light => Recompute lumen value if necessary
+                case LightShape.Spot:
+                    ConvertLightIntensity( (LightUnit)serialized.serializedLightData.lightUnit.enumValueIndex, LightUnit.Lumen, serialized, owner );
+                    serialized.serializedLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
+                    break;
+                default:    // Converting from area light to area light => Temporarily switch to luminance so it's invariant to shape change, then simulate shape change and convert back to required units...
+                    ConvertLightIntensity( (LightUnit) serialized.serializedLightData.lightUnit.enumValueIndex, LightUnit.Luminance, serialized, owner );
+                    LightTypeExtent newExtent = (LightTypeExtent) serialized.serializedLightData.lightTypeExtent.enumValueIndex;
+                    switch ( serialized.editorLightShape )
+                    {
+                        case LightShape.Rectangle: newExtent = LightTypeExtent.Rectangle; break;
+                        case LightShape.Tube: newExtent = LightTypeExtent.Tube; break;
+                        case LightShape.Disk: newExtent = LightTypeExtent.Disk; break;
+                        case LightShape.Sphere: newExtent = LightTypeExtent.Sphere; break;
+                    }
+                    ConvertLightIntensity( LightUnit.Luminance, (LightUnit) serialized.serializedLightData.lightUnit.enumValueIndex, newExtent, serialized, owner );
+                    break;
+                }
+                break;
             }
-            else
-                serialized.serializedLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
         }
 
         static LightUnit LightIntensityUnitPopup(SerializedHDLight serialized, Editor owner)
@@ -368,11 +449,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, SerializedHDLight serialized, Editor owner)
         {
+            ConvertLightIntensity(oldLightUnit, newLightUnit, (LightTypeExtent) serialized.serializedLightData.lightTypeExtent.enumValueIndex, serialized, owner);
+        }
+        static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, LightTypeExtent extent, SerializedHDLight serialized, Editor owner)
+        {
             float intensity = serialized.serializedLightData.intensity.floatValue;
             Light light = (Light)owner.target;
 
             // For punctual lights
-            if ((LightTypeExtent)serialized.serializedLightData.lightTypeExtent.enumValueIndex == LightTypeExtent.Punctual)
+            if (extent == LightTypeExtent.Punctual)
             {
                 // Lumen ->
                 if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Candela)
@@ -408,19 +493,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     intensity = LightUtils.ConvertEvToLux(intensity, serialized.serializedLightData.luxAtDistance.floatValue);
             }
             else  // For area lights
-            {               
+            {
                 if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
-                    intensity = LightUtils.ConvertAreaLightLumenToLuminance((LightTypeExtent)serialized.serializedLightData.lightTypeExtent.enumValueIndex, intensity, serialized.serializedLightData.shapeWidth.floatValue, serialized.serializedLightData.shapeHeight.floatValue);
+                    intensity = LightUtils.ConvertAreaLightLumenToLuminance(extent, intensity, serialized.serializedLightData.shapeWidth.floatValue, serialized.serializedLightData.shapeHeight.floatValue);
                 if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
-                    intensity = LightUtils.ConvertAreaLightLuminanceToLumen((LightTypeExtent)serialized.serializedLightData.lightTypeExtent.enumValueIndex, intensity, serialized.serializedLightData.shapeWidth.floatValue, serialized.serializedLightData.shapeHeight.floatValue);
+                    intensity = LightUtils.ConvertAreaLightLuminanceToLumen(extent, intensity, serialized.serializedLightData.shapeWidth.floatValue, serialized.serializedLightData.shapeHeight.floatValue);
                 if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Ev100)
                     intensity = LightUtils.ConvertLuminanceToEv(intensity);
                 if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Luminance)
                     intensity = LightUtils.ConvertEvToLuminance(intensity);
                 if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
-                    intensity = LightUtils.ConvertAreaLightEvToLumen((LightTypeExtent)serialized.serializedLightData.lightTypeExtent.enumValueIndex, intensity, serialized.serializedLightData.shapeWidth.floatValue, serialized.serializedLightData.shapeHeight.floatValue);
+                    intensity = LightUtils.ConvertAreaLightEvToLumen(extent, intensity, serialized.serializedLightData.shapeWidth.floatValue, serialized.serializedLightData.shapeHeight.floatValue);
                 if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Ev100)
-                    intensity = LightUtils.ConvertAreaLightLumenToEv((LightTypeExtent)serialized.serializedLightData.lightTypeExtent.enumValueIndex, intensity, serialized.serializedLightData.shapeWidth.floatValue, serialized.serializedLightData.shapeHeight.floatValue);
+                    intensity = LightUtils.ConvertAreaLightLumenToEv(extent, intensity, serialized.serializedLightData.shapeWidth.floatValue, serialized.serializedLightData.shapeHeight.floatValue);
             }
 
             serialized.serializedLightData.intensity.floatValue = intensity;
@@ -501,7 +586,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
 
-            // No cookie with area light (maybe in future textured area light ?)
             if (!HDAdditionalLightData.IsAreaLight(serialized.serializedLightData.lightTypeExtent))
             {
                 serialized.settings.DrawCookie();
@@ -514,6 +598,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.PropertyField(serialized.serializedLightData.shapeHeight, s_Styles.cookieSizeY);
                     EditorGUI.indentLevel--;
                 }
+            }
+            else if ((LightTypeExtent)serialized.serializedLightData.lightTypeExtent.enumValueIndex == LightTypeExtent.Rectangle)
+            {
+                EditorGUILayout.ObjectField( serialized.serializedLightData.areaLightCookie, s_Styles.areaLightCookie );
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -595,7 +683,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Slider(serialized.serializedShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
             }
         }
-
 
         static void DrawShadowMapAdvancedContent(SerializedHDLight serialized, Editor owner)
         {
@@ -695,6 +782,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     serialized.settings.lightType.enumValueIndex = (int)LightType.Point;
                     serialized.serializedLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Tube;
                     serialized.settings.shadowsType.enumValueIndex = (int)LightShadows.None;
+                    break;
+                case LightShape.Sphere:
+                    // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
+                    //m_BaseData.type.enumValueIndex = (int)LightType.Area;
+                    serialized.settings.lightType.enumValueIndex = (int)LightType.Point;
+                    serialized.serializedLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Sphere;
+                    serialized.settings.shadowsType.enumValueIndex = (int)LightShadows.None;
+                    break;
+                case LightShape.Disk:
+                    // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
+                    //m_BaseData.type.enumValueIndex = (int)LightType.Area;
+                    serialized.settings.lightType.enumValueIndex = (int)LightType.Point;
+                    serialized.serializedLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Disk;
+                    if (serialized.settings.isRealtime)
+                        serialized.settings.shadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
                 case (LightShape)(-1):
                     // don't do anything, this is just to handle multi selection

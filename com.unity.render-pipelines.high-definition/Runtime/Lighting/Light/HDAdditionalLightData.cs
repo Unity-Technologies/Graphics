@@ -15,19 +15,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Punctual, // Fallback on LightShape type
         Rectangle,
         Tube,
-        // Sphere,
-        // Disc,
+        Sphere,
+        Disk,
     };
 
     public enum SpotLightShape { Cone, Pyramid, Box };
 
     public enum LightUnit
     {
-        Lumen,
-        Candela,
-        Lux,
-        Luminance,
-        Ev100,
+        Lumen,      // lm = total power/flux emitted by the light
+        Candela,    // lm/sr = flux per steradian
+        Lux,        // lm/m² = flux per unit area
+        Luminance,  // lm/m²/sr = flux per unit area and per steradian
+        Ev100,      // ISO 100 Exposure Value (https://en.wikipedia.org/wiki/Exposure_value)
     }
 
     // Light layering
@@ -172,6 +172,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
         public bool displayAreaLightEmissiveMesh = false;
+
+        // Optional cookie for rectangular area lights
+        public Texture  areaLightCookie = null;
 
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
@@ -650,6 +653,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     shapeWidth = lightSize.x;
                     shapeHeight = lightSize.y;
                     break;
+                case LightTypeExtent.Disk:
+                    shapeWidth = lightSize.x;
+                    shapeHeight = lightSize.y;
+                    break;
+                case LightTypeExtent.Sphere:
+                    shapeWidth = lightSize.x;
+                    shapeHeight = lightSize.x;
+                    break;
                 default:
                     break;
             }
@@ -799,6 +810,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         break;
                     case LightTypeExtent.Tube:
                     case LightTypeExtent.Rectangle:
+                    case LightTypeExtent.Sphere:
+                    case LightTypeExtent.Disk:
                         lightUnit = LightUnit.Lumen;
                         intensity = areaIntensity;
                         break;
