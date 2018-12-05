@@ -306,63 +306,63 @@ void SetMaterialFeatures(uint newMaterialFeatures, inout BSDFData bsdfdata)
 }
 void SetPerceptualRoughness(float newPerceptualRoughness, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 24, UnpackInt(newPerceptualRoughness, 8) << 24, bsdfdata.roughnessesAndOcclusions);
+    bsdfdata.roughnessesAndOcclusions = BitFieldInsert(255 << 24, UnpackInt(newPerceptualRoughness, 8) << 24, bsdfdata.roughnessesAndOcclusions);
 }
 void SetCoatRoughness(float newCoatRoughness, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 16, UnpackInt(newCoatRoughness, 8) << 16, bsdfdata.roughnessesAndOcclusions);
+    bsdfdata.roughnessesAndOcclusions = BitFieldInsert(255 << 16, UnpackInt(newCoatRoughness, 8) << 16, bsdfdata.roughnessesAndOcclusions);
 }
 void SetAmbientOcclusion(float newAmbientOcclusion, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 8, UnpackInt(newAmbientOcclusion, 8) << 8, bsdfdata.roughnessesAndOcclusions);
+    bsdfdata.roughnessesAndOcclusions = BitFieldInsert(255 << 8, UnpackInt(newAmbientOcclusion, 8) << 8, bsdfdata.roughnessesAndOcclusions);
 }
 void SetSpecularOcclusion(float newSpecularOcclusion, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 , UnpackInt(newSpecularOcclusion, 8) , bsdfdata.roughnessesAndOcclusions);
+    bsdfdata.roughnessesAndOcclusions = BitFieldInsert(255 , UnpackInt(newSpecularOcclusion, 8) , bsdfdata.roughnessesAndOcclusions);
 }
 void SetDiffusionProfile(uint newDiffusionProfile, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 24, (newDiffusionProfile) << 24, bsdfdata.SSSData);
+    bsdfdata.SSSData = BitFieldInsert(255 << 24, (newDiffusionProfile) << 24, bsdfdata.SSSData);
 }
 void SetSubsurfaceMask(float newSubsurfaceMask, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 16, UnpackInt(newSubsurfaceMask, 8) << 16, bsdfdata.SSSData);
+    bsdfdata.SSSData = BitFieldInsert(255 << 16, UnpackInt(newSubsurfaceMask, 8) << 16, bsdfdata.SSSData);
 }
 void SetIOR(float newIOR, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(65535 , UnpackInt(((newIOR - 1) / 1.5), 16) , bsdfdata.SSSData);
+    bsdfdata.SSSData = BitFieldInsert(65535 , UnpackInt(((newIOR - 1) / 1.5), 16) , bsdfdata.SSSData);
 }
 void SetAnisotropy(float newAnisotropy, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 24, UnpackInt(newAnisotropy, 8) << 24, bsdfdata.anisoDataAndFlags);
+    bsdfdata.anisoDataAndFlags = BitFieldInsert(255 << 24, UnpackInt(newAnisotropy, 8) << 24, bsdfdata.anisoDataAndFlags);
 }
 void SetRoughnessT(float newRoughnessT, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 16, UnpackInt(newRoughnessT, 8) << 16, bsdfdata.anisoDataAndFlags);
+    bsdfdata.anisoDataAndFlags = BitFieldInsert(255 << 16, UnpackInt(newRoughnessT, 8) << 16, bsdfdata.anisoDataAndFlags);
 }
 void SetRoughnessB(float newRoughnessB, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 8, UnpackInt(newRoughnessB, 8) << 8, bsdfdata.anisoDataAndFlags);
+    bsdfdata.anisoDataAndFlags = BitFieldInsert(255 << 8, UnpackInt(newRoughnessB, 8) << 8, bsdfdata.anisoDataAndFlags);
 }
 void SetFlags(uint newFlags, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 , (newFlags) , bsdfdata.anisoDataAndFlags);
+    bsdfdata.anisoDataAndFlags = BitFieldInsert(255 , (newFlags) , bsdfdata.anisoDataAndFlags);
 }
 void SetIridescenceThickness(float newIridescenceThickness, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 24, UnpackInt(newIridescenceThickness, 8) << 24, bsdfdata.iridescenceAndMasks);
+    bsdfdata.iridescenceAndMasks = BitFieldInsert(255 << 24, UnpackInt(newIridescenceThickness, 8) << 24, bsdfdata.iridescenceAndMasks);
 }
 void SetIridescenceMask(float newIridescenceMask, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 16, UnpackInt(newIridescenceMask, 8) << 16, bsdfdata.iridescenceAndMasks);
+    bsdfdata.iridescenceAndMasks = BitFieldInsert(255 << 16, UnpackInt(newIridescenceMask, 8) << 16, bsdfdata.iridescenceAndMasks);
 }
 void SetTransmittanceMask(float newTransmittanceMask, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 << 8, UnpackInt(newTransmittanceMask, 8) << 8, bsdfdata.iridescenceAndMasks);
+    bsdfdata.iridescenceAndMasks = BitFieldInsert(255 << 8, UnpackInt(newTransmittanceMask, 8) << 8, bsdfdata.iridescenceAndMasks);
 }
 void SetCoatMask(float newCoatMask, inout BSDFData bsdfdata)
 {
-    BitFieldInsert(255 , UnpackInt(newCoatMask, 8) , bsdfdata.iridescenceAndMasks);
+    bsdfdata.iridescenceAndMasks = BitFieldInsert(255 , UnpackInt(newCoatMask, 8) , bsdfdata.iridescenceAndMasks);
 }
 void SetNormalWS(float3 newNormalWS, inout BSDFData bsdfdata)
 {

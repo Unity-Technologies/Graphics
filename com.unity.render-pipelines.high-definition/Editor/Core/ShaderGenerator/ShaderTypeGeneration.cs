@@ -795,7 +795,7 @@ namespace UnityEditor.Experimental.Rendering
                         {
                             newParamCode = "((" + newParamCode + " - " + minValue + ") / " + maxMinusMinString + ")";
                         }
-                        funcBody += "BitFieldInsert(" + maskString + shiftString + ", UnpackInt(" + newParamCode + ", "+ attr.sizeInBits + ")" + shiftString + ", "+ sourceName +"." + packedInfo.fieldName + ");";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " = BitFieldInsert(" + maskString + shiftString + ", UnpackInt(" + newParamCode + ", "+ attr.sizeInBits + ")" + shiftString + ", "+ sourceName +"." + packedInfo.fieldName + ");";
                         break;
                     case FieldPacking.PackedUint:
                         funcSignature += "uint " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
@@ -804,7 +804,7 @@ namespace UnityEditor.Experimental.Rendering
                         {
                             newParamCode = "((" + newParamCode + " - " + minValue + ") / " + maxMinusMinString + ")";
                         }
-                        funcBody += "BitFieldInsert(" + maskString + shiftString + ", (" + newParamCode + ")" + shiftString + ", " + sourceName + "." + packedInfo.fieldName + ");";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " = BitFieldInsert(" + maskString + shiftString + ", (" + newParamCode + ")" + shiftString + ", " + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     case FieldPacking.R11G11B10:
                         funcSignature += "float3 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";

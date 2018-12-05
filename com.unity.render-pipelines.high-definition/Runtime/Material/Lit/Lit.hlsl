@@ -215,10 +215,19 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
     #endif
 #endif
 
-void FillMaterialClearCoatData(float coatMask, inout float roughness, out float coatRoughness)
+// Assume bsdfData.normalWS is init
+void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
+{
+	InitAnisotropy(anisotropy, bsdfData);
+	InitTangentWS(tangentWS, bsdfData);
+	InitBitangentWS(bitangentWS, bsdfData);
+}
+
+
+void FillMaterialClearCoatData(float coatMask, inout float roughness, inout BSDFData bsdfData)
 {
     float ieta = lerp(1.0, CLEAR_COAT_IETA, coatMask);
-    coatRoughness = CLEAR_COAT_ROUGHNESS;
+	InitCoatRoughness(CLEAR_COAT_ROUGHNESS, bsdfData);
 
     // Approx to deal with roughness appearance of base layer (should appear rougher)
     float coatRoughnessScale = Sq(ieta);
@@ -226,15 +235,22 @@ void FillMaterialClearCoatData(float coatMask, inout float roughness, out float 
     roughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
 }
 
-void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, inout BSDFData bsdfData)
+void FillMaterialIridescence(float mask, float thickness, inout BSDFData bsdfData)
 {
-    // Uses thickness from SSS's property set
-	SetIOR(ior, bsdfData);
+	SetIridescenceMask(mask, bsdfData);
+	SetIridescenceThickness(thickness, bsdfData);
+}
+
+void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
+{
+	InitIOR(ior, bsdfData);
 
     // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
     SetFresnel0(lerp(IorToFresnel0(ior).xxx, baseColor, metallic), bsdfData);
 
-	SetAbsorptionCoefficient(TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance), bsdfData);
+	InitAbsorptionCoefficient(TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance), bsdfData);
+	InitTransmittanceMask(transmittanceMask, bsdfData);
+	InitThickness(max(thickness, 0.0001), bsdfData);
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -356,32 +372,30 @@ bool MaterialSupportsTransmission(BSDFData bsdfData)
 
 BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
-	BSDFData bsdfData;
+    BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
-
     // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
-    bsdfData.materialFeatures = surfaceData.materialFeatures;
-
-    float3 fresnel0 = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
-    SetFresnel0(fresnel0, bsdfData);
-    float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
-    float coatRoughness = 0.0f;
-    float thickness = 0.0f;
+    bsdfData.materialFeatures    = surfaceData.materialFeatures;
 
     // Standard material
+    InitAmbientOcclusion(surfaceData.ambientOcclusion, bsdfData);
+	InitSpecularOcclusion(surfaceData.specularOcclusion, bsdfData);
 	InitNormalWS(surfaceData.normalWS, bsdfData);
+	float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     // Check if we read value of normal and roughness from buffer. This is a tradeoff
 #ifdef FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER
 #if (SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    UpdateSurfaceDataFromNormalData(positionSS, GetNormalWS(bsdfData), perceptualRoughness);
+    UpdateSurfaceDataFromNormalData(positionSS, bsdfData);
 #endif
 #endif
 
     // There is no metallic with SSS and specular color mode
     float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
-    SetDiffuseColor(ComputeDiffuseColor(surfaceData.baseColor, metallic), bsdfData);
+
+    InitDiffuseColor(ComputeDiffuseColor(surfaceData.baseColor, metallic), bsdfData);
+    InitFresnel0(HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE), bsdfData);
 
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
     // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
@@ -390,12 +404,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // However in practice we keep parity between deferred and forward, so we should constrain the various features.
     // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
 
-	InitThickness(surfaceData.thickness, bsdfData);
-
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
     {
         // Assign profile id and overwrite fresnel0
-		FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
@@ -406,50 +418,41 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-		SetTangentWS(surfaceData.tangentWS, bsdfData);
-        SetBitangentWS(cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
+        FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-		InitIridescenceThickness(surfaceData.iridescenceThickness, bsdfData);
-		InitIridescenceMask(surfaceData.iridescenceMask, bsdfData);
+        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.iridescenceThickness, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Modify perceptualRoughness
-        FillMaterialClearCoatData(surfaceData.coatMask, perceptualRoughness, coatRoughness);
-        InitCoatMask(surfaceData.coatMask, bsdfData);
+        FillMaterialClearCoatData(surfaceData.coatMask, perceptualRoughness, bsdfData);
     }
-
-	InitPerceptualRoughness(perceptualRoughness, bsdfData);
-	InitCoatRoughness(coatRoughness, bsdfData);
-	InitAmbientOcclusion(surfaceData.ambientOcclusion, bsdfData);
-	InitSpecularOcclusion(surfaceData.specularOcclusion, bsdfData);
 
     // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
     // perceptualRoughness is not clamped, and is meant to be used for IBL.
     // perceptualRoughness can be modify by FillMaterialClearCoatData, so ConvertAnisotropyToClampRoughness must be call after
-    float roughnessT = 0.0f;
-    float roughnessB = 0.0f;
-    ConvertAnisotropyToRoughness(perceptualRoughness, surfaceData.anisotropy, roughnessT, roughnessB);
+	float roughnessT, roughnessB;
+	ConvertAnisotropyToRoughness(perceptualRoughness, surfaceData.anisotropy, roughnessT, roughnessB);
 	InitAnisotropy(surfaceData.anisotropy, bsdfData);
 	InitRoughnessT(roughnessT, bsdfData);
 	InitRoughnessB(roughnessB, bsdfData);
+	InitPerceptualRoughness(perceptualRoughness, bsdfData);
 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
-	FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance, bsdfData);
-    InitTransmittanceMask(surfaceData.transmittanceMask, bsdfData);
-	SetThickness(max(GetThickness(bsdfData), 0.0001), bsdfData);
+    FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance,
+        surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
 #endif
 
-	ApplyDebugToBSDFData(bsdfData);
-
+    ApplyDebugToBSDFData(bsdfData);
 
     return bsdfData;
 }
+
 
 //-----------------------------------------------------------------------------
 // conversion function for deferred
@@ -818,6 +821,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
             frame[1] = cross(frame[2], frame[0]);
         }
 
+		SetAnisotropy(anisotropy, bsdfData);
 		SetTangentWS(frame[0], bsdfData);
 		SetBitangentWS(frame[1], bsdfData);
 
@@ -826,21 +830,18 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // The neutral value of iridescenceMask is 0 (handled by ZERO_INITIALIZE).
     if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-		InitIridescenceThickness(inGBuffer2.r, bsdfData);
-		InitIridescenceMask(inGBuffer2.g, bsdfData);
-    }
+		FillMaterialIridescence(inGBuffer2.r, inGBuffer2.g, bsdfData);
+	}
 
-    float coatRoughness = 0.0f;
     // The neutral value of coatMask is 0 (handled by ZERO_INITIALIZE).
     if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Modify perceptualRoughness
-        FillMaterialClearCoatData(coatMask, perceptualRoughness, coatRoughness);
+        FillMaterialClearCoatData(coatMask, perceptualRoughness, bsdfData);
         InitCoatMask(coatMask, bsdfData);
     }
 
 	InitPerceptualRoughness(perceptualRoughness, bsdfData);
-	InitCoatRoughness(coatRoughness, bsdfData);
 	InitAmbientOcclusion(ambientOcclusion, bsdfData);
 	InitSpecularOcclusion(specularOcclusion, bsdfData);
 
