@@ -211,28 +211,16 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
     #if defined(_REFRACTION_PLANE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, GetNormalWS(bsdfData), GetIOR(bsdfData), GetThickness(bsdfData))
     #elif defined(_REFRACTION_SPHERE)
-    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, GetNormalWS(bsdfData), GetIOR(bsdfData), GetThickness(bsdfData))
+    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS,  GetNormalWS(bsdfData), GetIOR(bsdfData), GetThickness(bsdfData))
     #endif
 #endif
 
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
-	InitAnisotropy(anisotropy, bsdfData);
-	InitTangentWS(tangentWS, bsdfData);
-	InitBitangentWS(bitangentWS, bsdfData);
-}
-
-
-void FillMaterialClearCoatData(float coatMask, inout float roughness, inout BSDFData bsdfData)
-{
-    float ieta = lerp(1.0, CLEAR_COAT_IETA, coatMask);
-	InitCoatRoughness(CLEAR_COAT_ROUGHNESS, bsdfData);
-
-    // Approx to deal with roughness appearance of base layer (should appear rougher)
-    float coatRoughnessScale = Sq(ieta);
-    float sigma = RoughnessToVariance(PerceptualRoughnessToRoughness(roughness));
-    roughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
+	SetAnisotropy(anisotropy, bsdfData);
+	SetTangentWS(tangentWS, bsdfData);
+	SetBitangentWS(bitangentWS, bsdfData);
 }
 
 void FillMaterialIridescence(float mask, float thickness, inout BSDFData bsdfData)
@@ -241,16 +229,30 @@ void FillMaterialIridescence(float mask, float thickness, inout BSDFData bsdfDat
 	SetIridescenceThickness(thickness, bsdfData);
 }
 
+// Note: this modify the parameter perceptualRoughness and fresnel0, so they need to be setup
+void FillMaterialClearCoatData(float coatMask, inout float roughness, inout BSDFData bsdfData)
+{
+	SetCoatMask(coatMask, bsdfData);
+    float ieta = lerp(1.0, CLEAR_COAT_IETA, coatMask);
+	SetCoatRoughness(CLEAR_COAT_ROUGHNESS, bsdfData);
+
+    // Approx to deal with roughness appearance of base layer (should appear rougher)
+    float coatRoughnessScale = Sq(ieta);
+    float sigma = RoughnessToVariance(PerceptualRoughnessToRoughness(roughness));
+	roughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
+}
+
 void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
 {
-	InitIOR(ior, bsdfData);
+    // Uses thickness from SSS's property set
+    InitIOR(ior, bsdfData);
 
     // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
     SetFresnel0(lerp(IorToFresnel0(ior).xxx, baseColor, metallic), bsdfData);
 
-	InitAbsorptionCoefficient(TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance), bsdfData);
-	InitTransmittanceMask(transmittanceMask, bsdfData);
-	InitThickness(max(thickness, 0.0001), bsdfData);
+    InitAbsorptionCoefficient(TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance), bsdfData);
+    InitTransmittanceMask(transmittanceMask, bsdfData);
+    SetThickness(max(thickness, 0.0001), bsdfData);
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -323,14 +325,14 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     return normalData;
 }
 
-void UpdateSurfaceDataFromNormalData(uint2 positionSS, out float3 normalWS, out float perceptualRoughness)
+void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout BSDFData bsdfData)
 {
     NormalData normalData;
 
     DecodeFromNormalBuffer(positionSS, normalData);
 
-    normalWS = normalData.normalWS;
-    perceptualRoughness = normalData.perceptualRoughness;
+    SetNormalWS(normalData.normalWS, bsdfData);
+    SetPerceptualRoughness(normalData.perceptualRoughness, bsdfData);
 }
 
 float3 GetNormalForShadowBias(BSDFData bsdfData)
@@ -340,7 +342,7 @@ float3 GetNormalForShadowBias(BSDFData bsdfData)
 
 void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 {
-    SetRoughnessT(max(minRoughness, GetRoughnessT(bsdfData)), bsdfData);
+	SetRoughnessT(max(minRoughness, GetRoughnessT(bsdfData)), bsdfData);
 	SetRoughnessB(max(minRoughness, GetRoughnessB(bsdfData)), bsdfData);
 	SetCoatRoughness(max(minRoughness, GetCoatRoughness(bsdfData)), bsdfData);
 }
@@ -348,18 +350,12 @@ void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 {
 #ifdef LIGHT_LAYERS
-    return ComputeMicroShadowing(GetAmbientOcclusion(bsdfData), NdotL, _MicroShadowOpacity);
+	return ComputeMicroShadowing(GetAmbientOcclusion(bsdfData), NdotL, _MicroShadowOpacity);
 #else
-    // No extra G-Buffer for AO, so 'bsdfData.ambientOcclusion' does not hold a meaningful value.
-    return ComputeMicroShadowing(GetSpecularOcclusion(bsdfData), NdotL, _MicroShadowOpacity);
+	// No extra G-Buffer for AO, so 'bsdfData.ambientOcclusion' does not hold a meaningful value.
+	return ComputeMicroShadowing(GetSpecularOcclusion(bsdfData), NdotL, _MicroShadowOpacity);
 #endif
 }
-
-float ComputeMicroShadowing(float OcclusionData, float NdotL)
-{
-    return ComputeMicroShadowing(OcclusionData, NdotL, _MicroShadowOpacity);
-}
-
 
 bool MaterialSupportsTransmission(BSDFData bsdfData)
 {
@@ -379,9 +375,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.materialFeatures    = surfaceData.materialFeatures;
 
     // Standard material
-    InitAmbientOcclusion(surfaceData.ambientOcclusion, bsdfData);
+	InitAmbientOcclusion(surfaceData.ambientOcclusion, bsdfData);
 	InitSpecularOcclusion(surfaceData.specularOcclusion, bsdfData);
 	InitNormalWS(surfaceData.normalWS, bsdfData);
+
 	float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     // Check if we read value of normal and roughness from buffer. This is a tradeoff
@@ -435,9 +432,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
     // perceptualRoughness is not clamped, and is meant to be used for IBL.
     // perceptualRoughness can be modify by FillMaterialClearCoatData, so ConvertAnisotropyToClampRoughness must be call after
-	float roughnessT, roughnessB;
-	ConvertAnisotropyToRoughness(perceptualRoughness, surfaceData.anisotropy, roughnessT, roughnessB);
-	InitAnisotropy(surfaceData.anisotropy, bsdfData);
+	float roughnessT = 0.0f; 
+	float roughnessB = 0.0f;
+	ConvertAnisotropyToRoughness(perceptualRoughness, GetAnisotropy(bsdfData), roughnessT, roughnessB);
+
 	InitRoughnessT(roughnessT, bsdfData);
 	InitRoughnessB(roughnessB, bsdfData);
 	InitPerceptualRoughness(perceptualRoughness, bsdfData);
@@ -452,7 +450,6 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     return bsdfData;
 }
-
 
 //-----------------------------------------------------------------------------
 // conversion function for deferred
@@ -649,19 +646,21 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // BuiltinData
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
-    float ambientOcclusion = 1.0f;
     // Avoid to introduce a new variant for light layer as it is already long to compile
+	float ambientOcclusion;
     if (_EnableLightLayers)
     {
         float4 inGBuffer4 = LOAD_TEXTURE2D(_LightLayersTexture, positionSS);
         // If we have light layers, take the opportunity to save AO and avoid double occlusion with SSAO
-        ambientOcclusion = inGBuffer4.z;
+		ambientOcclusion = inGBuffer4.z;
         builtinData.renderingLayers = uint(inGBuffer4.w * 255.5);
     }
     else
     {
+		ambientOcclusion = 1.0; // No value available, just settings 1.0. This mean double occlusion with SSAO.
         builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
     }
+	InitAmbientOcclusion(ambientOcclusion, bsdfData);
 
     // We know the GBufferType no need to use abstraction
 #ifdef SHADOWS_SHADOWMASK
@@ -684,19 +683,19 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     uint materialFeatureId;
     UnpackFloatInt8bit(inGBuffer2.a, 8, coatMask, materialFeatureId);
 
-    uint pixelFeatureFlags = MATERIALFEATUREFLAGS_LIT_STANDARD; // Only sky/background do not have the Standard flag.
-    bool pixelHasSubsurface = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_SSS;
+    uint pixelFeatureFlags    = MATERIALFEATUREFLAGS_LIT_STANDARD; // Only sky/background do not have the Standard flag.
+    bool pixelHasSubsurface   = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_SSS;
     bool pixelHasTransmission = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_TRANSMISSION;
-    bool pixelHasAnisotropy = materialFeatureId == GBUFFER_LIT_ANISOTROPIC;
-    bool pixelHasIridescence = materialFeatureId == GBUFFER_LIT_IRIDESCENCE;
-    bool pixelHasClearCoat = coatMask > 0.0;
+    bool pixelHasAnisotropy   = materialFeatureId == GBUFFER_LIT_ANISOTROPIC;
+    bool pixelHasIridescence  = materialFeatureId == GBUFFER_LIT_IRIDESCENCE;
+    bool pixelHasClearCoat    = coatMask > 0.0;
 
     // Disable pixel features disabled by the tile.
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasAnisotropy ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface   ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION          : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasAnisotropy   ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY            : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence  ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat    ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
 
     // In the case of material classification we assign tileFeatureFlags to bsdfData.materialFeatures
     // This mean that the branch inside the tile will be the same (coherency). Remember that a divergent branch
@@ -729,31 +728,31 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     NormalData normalData;
     DecodeFromNormalBuffer(inGBuffer1, positionSS, normalData);
-	SetNormalWS(normalData.normalWS, bsdfData);
+    SetNormalWS(normalData.normalWS, bsdfData);
     float perceptualRoughness = normalData.perceptualRoughness;
 
     // Decompress feature-specific data from the G-Buffer.
     bool pixelHasMetallic = HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE);
-    float3 fresnel0;
 
+	float3 fresnel0;
     if (pixelHasMetallic)
     {
         float metallic;
         uint unused;
         UnpackFloatInt8bit(inGBuffer2.b, 8, metallic, unused);
 
-        SetDiffuseColor(ComputeDiffuseColor(baseColor, metallic), bsdfData);
-        fresnel0 = ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+        bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
+		fresnel0 = ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
     }
     else
     {
-		SetDiffuseColor(baseColor, bsdfData);
-        fresnel0 = FastSRGBToLinear(inGBuffer2.rgb); // Later possibly overwritten by SSS
+        bsdfData.diffuseColor = baseColor;
+		fresnel0 = FastSRGBToLinear(inGBuffer2.rgb); // Later possibly overwritten by SSS
     }
 
 	SetFresnel0(fresnel0, bsdfData);
 
-    float specularOcclusion;
+	float specularOcclusion;
     if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         SSSData sssData;
@@ -768,7 +767,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         UnpackFloatInt8bit(inGBuffer2.b, 16, sssData.subsurfaceMask, sssData.diffusionProfile);
 
         // Reminder: when using SSS we exchange specular occlusion and subsurfaceMask/profileID
-        specularOcclusion = inGBuffer2.r;
+		specularOcclusion = inGBuffer2.r;
 
         // Note: both function assign profile and overwrite fresnel0 (both SSS and Transmission)
         // in case one feature is enabled and not the other.
@@ -776,8 +775,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         // The neutral value of subsurfaceMask is 0 (handled by ZERO_INITIALIZE).
         if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
         {
-			InitDiffusionProfile(sssData.diffusionProfile, bsdfData);
-			InitSubsurfaceMask(sssData.subsurfaceMask, bsdfData);
+            FillMaterialSSS(sssData.diffusionProfile, sssData.subsurfaceMask, bsdfData);
         }
 
         // The neutral value of thickness and transmittance is 0 (handled by ZERO_INITIALIZE).
@@ -788,14 +786,17 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     }
     else
     {
-        specularOcclusion = inGBuffer0.a;
+		specularOcclusion = inGBuffer0.a;
     }
 
-    float anisotropy = 0.0f;
+	SetSpecularOcclusion(specularOcclusion, bsdfData);
+
+
     // Special handling for anisotropy: When anisotropy is present in a tile, the whole tile will use anisotropy to avoid divergent evaluation of GGX that increase the cost
     // Note that it mean that when we have the worse case, we always use Anisotropy and shader like deferred.shader are always the worst case (but only used for debugging)
     if (HasFlag(tileFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
+        float anisotropy = 0;
         float3x3 frame = GetLocalFrame(GetNormalWS(bsdfData));
 
         if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
@@ -813,37 +814,29 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
             float cosOrSin = sqrt(1 - sinOrCos * sinOrCos);
             float sinFrame = storeSin ? sinOrCos : cosOrSin;
             float cosFrame = storeSin ? cosOrSin : sinOrCos;
-            sinFrame = (quadrant & 1) ? -sinFrame : sinFrame;
-            cosFrame = (quadrant & 2) ? -cosFrame : cosFrame;
+                  sinFrame = (quadrant & 1) ? -sinFrame : sinFrame;
+                  cosFrame = (quadrant & 2) ? -cosFrame : cosFrame;
 
             // Rotate the reconstructed tangent around the normal.
             frame[0] = sinFrame * frame[1] + cosFrame * frame[0];
             frame[1] = cross(frame[2], frame[0]);
         }
 
-		SetAnisotropy(anisotropy, bsdfData);
-		SetTangentWS(frame[0], bsdfData);
-		SetBitangentWS(frame[1], bsdfData);
-
+        FillMaterialAnisotropy(anisotropy, frame[0], frame[1], bsdfData);
     }
 
     // The neutral value of iridescenceMask is 0 (handled by ZERO_INITIALIZE).
     if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-		FillMaterialIridescence(inGBuffer2.r, inGBuffer2.g, bsdfData);
-	}
+        FillMaterialIridescence(inGBuffer2.r, inGBuffer2.g, bsdfData);
+    }
 
     // The neutral value of coatMask is 0 (handled by ZERO_INITIALIZE).
     if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Modify perceptualRoughness
         FillMaterialClearCoatData(coatMask, perceptualRoughness, bsdfData);
-        InitCoatMask(coatMask, bsdfData);
     }
-
-	InitPerceptualRoughness(perceptualRoughness, bsdfData);
-	InitAmbientOcclusion(ambientOcclusion, bsdfData);
-	InitSpecularOcclusion(specularOcclusion, bsdfData);
 
     // Note: the full code below (for both roughness) only execute when we have enableAnisotropy == true, otherwise as we only use roughnessT compiler will optimize out
     // Mean that in the worst case we always execute it.
@@ -851,11 +844,14 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
     // perceptualRoughness is not clamped, and is meant to be used for IBL.
     // perceptualRoughness can be modify by FillMaterialClearCoatData, so ConvertAnisotropyToClampRoughness must be call after
-    float roughnessT, roughnessB;
-    ConvertAnisotropyToRoughness(perceptualRoughness, anisotropy, roughnessT, roughnessB);
-	InitAnisotropy(anisotropy, bsdfData);
-	InitRoughnessT(roughnessT, bsdfData);
-	InitRoughnessB(roughnessB, bsdfData);
+	float roughnessT = 0.0f;
+	float roughnessB = 0.0f;
+	ConvertAnisotropyToRoughness(perceptualRoughness, GetAnisotropy(bsdfData), roughnessT, roughnessB);
+	SetPerceptualRoughness(perceptualRoughness, bsdfData);
+	SetRoughnessT(roughnessT, bsdfData);
+	SetRoughnessB(roughnessB, bsdfData);
+
+    ApplyDebugToBSDFData(bsdfData);
 
     return pixelFeatureFlags;
 }
@@ -863,7 +859,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 // Function call from the material classification compute shader
 uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
 {
-	BSDFData bsdfData;
+    BSDFData bsdfData;
     BuiltinData unused;
     // Call the regular function, compiler will optimized out everything not used.
     // Note that all material feature flag bellow are in the same GBuffer (inGBuffer2) and thus material classification only sample one Gbuffer
@@ -896,24 +892,22 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
 
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
-
-	GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
+    GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
 
     // Overide debug value output to be more readable
     switch (paramId)
     {
-	case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
-		// Convert to view space
-		result = TransformWorldToViewDir(GetNormalWS(bsdfData)) * 0.5 + 0.5;
-		break;
-	case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
-		result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
-		break;
-	case DEBUGVIEW_LIT_BSDFDATA_IOR:
-		result = saturate((GetIOR(bsdfData) - 1.0) / 1.5).xxx;
-		break;
-
-	}
+    case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
+        // Convert to view space
+        result = TransformWorldToViewDir(GetNormalWS(bsdfData)) * 0.5 + 0.5;
+        break;
+    case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
+        result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+        break;
+    case DEBUGVIEW_LIT_BSDFDATA_IOR:
+        result = saturate((GetIOR(bsdfData) - 1.0) / 1.5).xxx;
+        break;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -962,12 +956,15 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     PreLightData preLightData;
     ZERO_INITIALIZE(PreLightData, preLightData);
 
-    float perceptualRoughness = GetPerceptualRoughness(bsdfData);
     float3 N = GetNormalWS(bsdfData);
     preLightData.NdotV = dot(N, V);
-    preLightData.iblPerceptualRoughness = perceptualRoughness;
+	float perceptualRoughness = GetPerceptualRoughness(bsdfData);
+	preLightData.iblPerceptualRoughness = perceptualRoughness;
 
     float NdotV = ClampNdotV(preLightData.NdotV);
+
+	float3 fresnel0;
+	float3 prevFresnel0;
 
     // We modify the bsdfData.fresnel0 here for iridescence
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
@@ -981,23 +978,22 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
             viewAngle = sqrt(1.0 + Sq(1.0 / topIor) * (Sq(dot(GetNormalWS(bsdfData), V)) - 1.0));
         }
 
-        float iridescenceMask = GetIridescenceMask(bsdfData);
+		float iridescenceMask = GetIridescenceMask(bsdfData);
         if (iridescenceMask > 0.0)
         {
-            float3 prevFresnel0 = GetFresnel0(bsdfData);
-            float iridescenceThickness = GetIridescenceMask(bsdfData);
-            SetFresnel0(lerp(prevFresnel0, EvalIridescence(topIor, viewAngle, iridescenceThickness, prevFresnel0), iridescenceMask), bsdfData);
+			prevFresnel0 = GetFresnel0(bsdfData);
+			SetFresnel0(lerp(prevFresnel0, EvalIridescence(topIor, viewAngle, GetIridescenceThickness(bsdfData), prevFresnel0), iridescenceMask), bsdfData);
         }
     }
 
     // We modify the bsdfData.fresnel0 here for clearCoat
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        float coatMask = GetCoatMask(bsdfData);
         // Fresnel0 is deduced from interface between air and material (Assume to be 1.5 in Unity, or a metal).
         // but here we go from clear coat (1.5) to material, we need to update fresnel0
         // Note: Schlick is a poor approximation of Fresnel when ieta is 1 (1.5 / 1.5), schlick target 1.4 to 2.2 IOR.
-        float3 prevFresnel0 = GetFresnel0(bsdfData);
+		prevFresnel0 = GetFresnel0(bsdfData);
+		float coatMask = GetCoatMask(bsdfData);
 		SetFresnel0(lerp(prevFresnel0, ConvertF0ForAirInterfaceToF0ForClearCoat15(prevFresnel0), coatMask), bsdfData);
 
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(NdotV, CLEAR_COAT_ROUGHNESS);
@@ -1031,10 +1027,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // If the tile has anisotropy, all the pixels within the tile are evaluated as anisotropic.
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        float3 tangentWS = GetTangentWS(bsdfData);
-        float3 bitangentWS = GetBitangentWS(bsdfData);
+		float3 tangentWS = GetTangentWS(bsdfData);
+		float3 bitangentWS = GetTangentWS(bsdfData);
 
-        float TdotV = dot(tangentWS, V);
+        float TdotV = dot(tangentWS,   V);
         float BdotV = dot(bitangentWS, V);
 
         preLightData.partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, GetRoughnessT(bsdfData), GetRoughnessB(bsdfData));
@@ -1060,14 +1056,14 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.ltcTransformDiffuse = k_identity3x3;
 #else
     // Get the inverse LTC matrix for Disney Diffuse
-    preLightData.ltcTransformDiffuse = 0.0;
+    preLightData.ltcTransformDiffuse      = 0.0;
     preLightData.ltcTransformDiffuse._m22 = 1.0;
     preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
 #endif
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.ltcTransformSpecular = 0.0;
+    preLightData.ltcTransformSpecular      = 0.0;
     preLightData.ltcTransformSpecular._m22 = 1.0;
     preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 
@@ -1090,7 +1086,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
     preLightData.transparentRefractV = refraction.rayWS;
     preLightData.transparentPositionWS = refraction.positionWS;
-    preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
+    preLightData.transparentTransmittance = exp(-GetAbsorptionCoefficient(bsdfData) * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
     preLightData.transparentSSMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
@@ -1114,7 +1110,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     // In case of deferred, all lighting model operation are done before storage in GBuffer, as we store emissive with bakeDiffuseLighting
 
     // To get the data we need to do the whole process - compiler should optimize everything
-	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR in forward and in deferred we can't store it anyway)
@@ -1137,7 +1133,6 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 // light transport functions
 //-----------------------------------------------------------------------------
 
-
 LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
     LightTransportData lightTransportData;
@@ -1152,6 +1147,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
     return lightTransportData;
 }
+
 //-----------------------------------------------------------------------------
 // LightLoop related function (Only include if required)
 // HAS_LIGHTLOOP is define in Lighting.hlsl
@@ -1171,7 +1167,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     float LdotV, NdotH, LdotH, NdotV, invLenLV;
     GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
 
-    float3 fresnel0 = GetFresnel0(bsdfData);
+	float3 fresnel0 = GetFresnel0(bsdfData);
     float3 F = F_Schlick(fresnel0, LdotH);
     // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
     // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
@@ -1187,9 +1183,10 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     {
         float3 H = (L + V) * invLenLV;
 
-        float3 tangentWS = GetTangentWS(bsdfData);
-        float3 bitangentWS = GetBitangentWS(bsdfData);
         // For anisotropy we must not saturate these values
+		float3 tangentWS = GetTangentWS(bsdfData);
+		float3 bitangentWS = GetTangentWS(bsdfData);
+
         float TdotH = dot(tangentWS, H);
         float TdotL = dot(tangentWS, L);
         float BdotH = dot(bitangentWS, H);
@@ -1233,7 +1230,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     {
         // Apply isotropic GGX for clear coat
         // Note: coat F is scalar as it is a dieletric
-        float coatMask = GetCoatMask(bsdfData);
+		float coatMask = GetCoatMask(bsdfData);
         float coatF = F_Schlick(CLEAR_COAT_F0, LdotH) * coatMask;
         // Scale base specular
         specularLighting *= Sq(1.0 - coatF);
@@ -1555,7 +1552,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 V, PositionInputs posInput,
     PreLightData preLightData, LightData lightData,
-	BSDFData bsdfData, BuiltinData builtinData)
+    BSDFData bsdfData, BuiltinData builtinData)
 {
     if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {
@@ -1573,7 +1570,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
                                                     PreLightData   preLightData,
-	BSDFData       bsdfData,
+                                                    BSDFData       bsdfData,
                                                     inout float    reflectionHierarchyWeight)
 {
     IndirectLighting lighting;
@@ -1814,12 +1811,13 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
     AmbientOcclusionFactor aoFactor;
-    float3 fresnel0 = GetFresnel0(bsdfData);
+	float fresnel0 = GetFresnel0(bsdfData);
+	float diffuseColor = GetDiffuseColor(bsdfData);
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
 #if 0
     GetScreenSpaceAmbientOcclusion(posInput.positionSS, preLightData.NdotV, GetPerceptualRoughness(bsdfData), GetAmbientOcclusion(bsdfData), GetSpecularOcclusion(bsdfData), aoFactor);
 #else
-    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, GetPerceptualRoughness(bsdfData), GetAmbientOcclusion(bsdfData), GetSpecularOcclusion(bsdfData), GetDiffuseColor(bsdfData), fresnel0, aoFactor);
+    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, GetPerceptualRoughness(bsdfData), GetAmbientOcclusion(bsdfData), GetSpecularOcclusion(bsdfData), diffuseColor, fresnel0, aoFactor);
 #endif
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
@@ -1846,7 +1844,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     specularLighting *= 1.0 + fresnel0 * preLightData.energyCompensation;
 
 #ifdef DEBUG_DISPLAY
-    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, GetDiffuseColor(bsdfData), diffuseLighting, specularLighting);
+    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, diffuseColor, diffuseLighting, specularLighting);
 #endif
 }
 
