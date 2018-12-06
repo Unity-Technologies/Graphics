@@ -49,7 +49,7 @@ float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout Directio
                 light.shadowMaskSelector.x = -1;
 
                 // We use the precomputed value (based on "baked" thickness).
-                transmittance = bsdfData.transmittance;
+                transmittance = GetTransmittance(bsdfData);
             }
             else
             {
@@ -166,7 +166,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
             light.contactShadowIndex   = -1;
             light.shadowMaskSelector.x = -1;
 
-            transmittance = bsdfData.transmittance;
+            transmittance = GetTransmittance(bsdfData);
 
             if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS) && (light.shadowIndex >= 0))
             {

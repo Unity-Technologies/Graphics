@@ -1486,7 +1486,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 ltcValue *= lightData.diffuseDimmer;
                 // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
                 // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-                lighting.diffuse += bsdfData.transmittance * ltcValue;
+                lighting.diffuse += GetTransmittance(bsdfData) * ltcValue;
             }
 
             // Evaluate the specular part
