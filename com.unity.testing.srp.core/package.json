@@ -1,11 +1,11 @@
 {
 	"name": "com.unity.testing.srp.core",
 	"displayName":"Core Graphics Tests",
-	"version": "4.5.0-preview",
+	"version": "4.6.0-preview",
 	"unity": "2018.3",
 	"description": "Test package containing core graphics tests",
 	"keywords": ["qa", "test", "testing", "tests", "graphics"],
 	"dependencies": {		
-        "com.unity.render-pipelines.core" : "4.5.0-preview"
+        "com.unity.render-pipelines.core" : "4.6.0-preview"
 	}
 }
