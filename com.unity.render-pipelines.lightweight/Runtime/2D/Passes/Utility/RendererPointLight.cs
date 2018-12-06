@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         static Material GetPointLightVolumeMat()
         {
-            if (m_PointLightingMat == null)
+            if (m_PointLightVolumeMat == null)
             {
                 Shader pointLightShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
                 m_PointLightVolumeMat = new Material(pointLightShader);
