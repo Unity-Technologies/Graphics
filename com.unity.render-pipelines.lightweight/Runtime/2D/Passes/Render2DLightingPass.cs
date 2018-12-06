@@ -130,6 +130,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     m_CommandBuffer.Clear();
                     RendererShapeLights.RenderLightVolumes(camera, m_CommandBuffer, layerToRender);
+                    RendererPointLights.RenderLightVolumes(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
                     context.ExecuteCommandBuffer(m_CommandBuffer);
                 }
             }

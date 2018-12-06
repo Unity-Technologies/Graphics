@@ -36,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         static CommandBuffer m_TemporaryCmdBuffer = new CommandBuffer();
 
         static Material m_PointLightingMat = GetPointLightMat();
+        static Material m_PointLightVolumeMat = GetPointLightVolumeMat();
         static Mesh m_Quad;
 
         static RenderTexture m_NormalRT;
@@ -62,6 +63,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             return m_PointLightingMat;
         }
+
+        static Material GetPointLightVolumeMat()
+        {
+            if (m_PointLightingMat == null)
+            {
+                Shader pointLightShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
+                m_PointLightingMat = new Material(pointLightShader);
+            }
+
+            return m_PointLightingMat;
+        }
+
 
         static Mesh GetQuadMesh()
         {
@@ -185,7 +198,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (material != null)
             {
-                material.SetTexture("_MainTex", sourceRT);
+                if(sourceRT != null)
+                    material.SetTexture("_MainTex", sourceRT);
+
                 cmdBuffer.DrawMesh(GetQuadMesh(), matrix, material);
             }
         }
@@ -209,6 +224,50 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
         }
 
+
+        static public void SetShaderGlobals(CommandBuffer cmdBuffer)
+        {
+
+        }
+
+        static public void SetShaderGlobals(CommandBuffer cmdBuffer, Light2D light)
+        {
+            cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
+
+            //=====================================================================================
+            //                          New stuff
+            //=====================================================================================
+            // This is used for the lookup texture
+            Matrix4x4 lightInverseMatrix;
+            Matrix4x4 lightNoRotInverseMatrix;
+            GetScaledLightInvMatrix(light, out lightInverseMatrix, true);
+            GetScaledLightInvMatrix(light, out lightNoRotInverseMatrix, false);
+
+            float innerRadius = GetNormalizedInnerRadius(light);
+            float innerAngle = GetNormalizedAngle(light.m_PointLightInnerAngle);
+            float outerAngle = GetNormalizedAngle(light.m_PointLightOuterAngle);
+            float innerRadiusMult = 1 / (1 - innerRadius);
+
+            cmdBuffer.SetGlobalVector("_LightPosition", light.transform.position);
+            cmdBuffer.SetGlobalMatrix("_LightInvMatrix", lightInverseMatrix);
+            cmdBuffer.SetGlobalMatrix("_LightNoRotInvMatrix", lightNoRotInverseMatrix);
+            cmdBuffer.SetGlobalFloat("_InnerRadiusMult", innerRadiusMult);
+
+            cmdBuffer.SetGlobalFloat("_OuterAngle", outerAngle);
+            cmdBuffer.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
+            cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
+
+            if (light.m_LightCookieSprite != null && light.m_LightCookieSprite.texture != null)
+            {
+                cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHT_COOKIES");
+                cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.m_LightCookieSprite.texture);
+            }
+            else
+            {
+                cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHT_COOKIES");
+            }
+        }
+
         static public void RenderLights(Camera camera, CommandBuffer cmdBuffer, ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, int layerToRender)
         {
             //List<GameObject> shadowCasters = GameObject.FindGameObjectsWithTag("Shadow").ToList();
@@ -222,8 +281,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 RenderNormals(renderContext, cullResults, drawSettings, filterSettings);
 
                 cmdBuffer.BeginSample("2D Point Lights");
-                //cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
-
                 cmdBuffer.SetRenderTarget(m_ColorRT);
                 cmdBuffer.ClearRenderTarget(true, true, k_ClearColor);
 
@@ -236,57 +293,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         // Sort the shadow casters by distance to light, and render the ones furthest first
                         //SortShadowCasters(light, shadowCasters);
 
-                        // Consolidate these later...
-
-                        cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
-
-                        //=====================================================================================
-                        //                          Old stuff
-                        //=====================================================================================
-                        cmdBuffer.SetGlobalColor("_PointLightColor", light.m_LightColor);
-                        cmdBuffer.SetGlobalVector("_PointLightPosition", light.transform.position);
-                        cmdBuffer.SetGlobalFloat("_PointLightOuterRadius", light.m_PointLightOuterRadius);
-                        cmdBuffer.SetGlobalFloat("_PointLightInnerRadius", light.m_PointLightInnerRadius >= (light.m_PointLightOuterRadius - 0.0001f) ? light.m_PointLightOuterRadius - 0.0001f : light.m_PointLightInnerRadius);
-                        cmdBuffer.SetGlobalColor("_PointLightShadowColor", light.m_ShadowColor);
-
-                        float pointLightInnerAngle = Mathf.Deg2Rad * 0.5f * light.m_PointLightInnerAngle;
-                        float pointLightOuterAngle = Mathf.Deg2Rad * 0.5f * light.m_PointLightOuterAngle;
-                        cmdBuffer.SetGlobalFloat("_PointLightInnerAngle", pointLightInnerAngle);
-                        cmdBuffer.SetGlobalFloat("_PointLightOuterAngle", pointLightOuterAngle);
-                        cmdBuffer.SetGlobalVector("_PointLightForward", light.transform.rotation * Vector3.up);
-
-                        //=====================================================================================
-                        //                          New stuff
-                        //=====================================================================================
-                        // This is used for the lookup texture
-                        Matrix4x4 lightInverseMatrix;
-                        Matrix4x4 lightNoRotInverseMatrix;
-                        GetScaledLightInvMatrix(light, out lightInverseMatrix, true);
-                        GetScaledLightInvMatrix(light, out lightNoRotInverseMatrix, false);
-
-                        float innerRadius = GetNormalizedInnerRadius(light);
-                        float innerAngle = GetNormalizedAngle(light.m_PointLightInnerAngle);
-                        float outerAngle = GetNormalizedAngle(light.m_PointLightOuterAngle);
-                        float innerRadiusMult = 1 / (1 - innerRadius);
-
-                        cmdBuffer.SetGlobalVector("_LightPosition", light.transform.position);
-                        cmdBuffer.SetGlobalMatrix("_LightInvMatrix", lightInverseMatrix);
-                        cmdBuffer.SetGlobalMatrix("_LightNoRotInvMatrix", lightNoRotInverseMatrix);
-                        cmdBuffer.SetGlobalFloat("_InnerRadiusMult", innerRadiusMult);
-
-                        cmdBuffer.SetGlobalFloat("_OuterAngle", outerAngle);
-                        cmdBuffer.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
-                        cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
-
-                        if (light.m_LightCookieSprite != null && light.m_LightCookieSprite.texture != null)
-                        {
-                            cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHT_COOKIES");
-                            cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.m_LightCookieSprite.texture);
-                        }
-                        else
-                        {
-                            cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHT_COOKIES");
-                        }
+                        SetShaderGlobals(cmdBuffer, light);
 
                         // We should consider combining all point lights into a single pass instead of rendering them seperately
                         DrawLightQuad(cmdBuffer, light, m_NormalRT, GetPointLightMat());
@@ -323,10 +330,32 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmdBuffer.Clear();
         }
 
-        static public void SetShaderGlobals(CommandBuffer cmdBuffer)
+        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, int layerToRender)
         {
-            //cmdBuffer.SetGlobalColor("_AmbientColor", m_DefaultAmbientColor);
-            //cmdBuffer.SetGlobalTexture("_ShadowTex", m_FullScreenShadowTexture);
+            cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHTS");
+            cmdBuffer.SetGlobalTexture("_PointLightingTex", m_ColorRT);
+
+            List<Light2D> pointLights = Light2D.GetPointLights();
+            if (pointLights != null && pointLights.Count > 0)
+            {
+                cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
+                cmdBuffer.BeginSample("2D Point Lights");
+
+                for (int i = 0; i < pointLights.Count; i++)
+                {
+                    Light2D light = pointLights[i];
+
+                    if (light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera) && light.IsVolumetric)
+                    {
+                        SetShaderGlobals(cmdBuffer, light);
+                        DrawLightQuad(cmdBuffer, light, null, GetPointLightVolumeMat());
+                    }
+                }
+                cmdBuffer.EndSample("2D Point Lights");
+            }
+
+            renderContext.ExecuteCommandBuffer(cmdBuffer);
+            cmdBuffer.Clear();
         }
 
         //static public void Render(int layerToRender, ScriptableRenderContext renderContext, Camera camera)

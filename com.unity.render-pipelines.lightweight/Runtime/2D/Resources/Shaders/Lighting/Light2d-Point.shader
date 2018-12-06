@@ -51,7 +51,6 @@
 			uniform half			_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			uniform half			_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
 			uniform half			_InverseLightIntensityScale;
-			;
 
             v2f vert (appdata v)
             {
@@ -64,7 +63,7 @@
 				float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
 				o.lookupUV = 0.5 * (lightSpacePos.xy + 1);
 				o.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
-				o.lightDirection = _LightPosition- worldSpacePos;
+				o.lightDirection = _LightPosition-worldSpacePos;
 				o.lightDirection.z = 1.0;
 				o.lightDirection.w = 0;
 				o.lightDirection.xyz = normalize(o.lightDirection.xyz);
@@ -80,7 +79,6 @@
 				half4 main = tex2D(_MainTex, i.screenUV);
 				half4 lookupValueNoRot = tex2D(_LightLookup, i.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
 				half4 lookupValue = tex2D(_LightLookup, i.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
-
 
 				float usingDefaultNormalMap = (main.x + main.y + main.z) == 0;  // 1 if using a black normal map, 0 if using a custom normal map
 				// Can this be moved to the normal renderer? Is it worth it?
