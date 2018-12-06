@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.3.0] - 2018-11-xx
 ### Added
 - LWRP now uses the Unity recorder extension to make it possible to capture the output of Cameras.
+- You can now inject a custom render pass before rendering opaque objects. To do so, implement an `IBeforeRender` interface.
+
+### Changed
+- Removed `IAfterDepthPrePass` interface.
 
 ### Fixed
 - The foldouts in the Lightweight Asset inspector UI now remember their state.
