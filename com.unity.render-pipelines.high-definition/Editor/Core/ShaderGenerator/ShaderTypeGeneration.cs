@@ -215,9 +215,9 @@ namespace UnityEditor.Experimental.Rendering
         bool ExtractComplex(FieldInfo field, List<ShaderFieldInfo> shaderFields)
         {
             var floatFields = new List<FieldInfo>();
-            var intFields   = new List<FieldInfo>();
-            var uintFields  = new List<FieldInfo>();
-            var boolFields  = new List<FieldInfo>();
+            var intFields = new List<FieldInfo>();
+            var uintFields = new List<FieldInfo>();
+            var boolFields = new List<FieldInfo>();
             var descs = new string[4] { "x: ", "y: ", "z: ", "w: " };
             int numFields = 0;
 
@@ -436,7 +436,7 @@ namespace UnityEditor.Experimental.Rendering
                     setterName = "Set" + char.ToUpper(setterName[0]) + setterName.Substring(1);
 
                     if (shaderField.arraySize > 0)
-                        shaderText +=  "void " + setterName + "(int index, " + shaderField.typeString  + " newValue, " + type.Name + " dest )\n";
+                        shaderText += "void " + setterName + "(int index, " + shaderField.typeString + " newValue, " + type.Name + " dest )\n";
                     else
                         shaderText += "void " + setterName + "(" + shaderField.typeString + " newValue, " + type.Name + " dest )\n";
                     shaderText += "{\n";
@@ -462,7 +462,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             string shaderText = string.Empty;
 
-            if(!hasPackedInfo)
+            if (!hasPackedInfo)
             {
                 shaderText += "//\n";
                 shaderText += "// Accessors for " + type.FullName + "\n";
@@ -630,7 +630,7 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     if (debugField.isDirection)
                     {
-                        shaderText += "            result = Get" + debugField.displayName + "(" + lowerStructName + ")"+".xxx * 0.5 + 0.5;\n";
+                        shaderText += "            result = Get" + debugField.displayName + "(" + lowerStructName + ")" + ".xxx * 0.5 + 0.5;\n";
                     }
                     else
                     {
@@ -706,32 +706,34 @@ namespace UnityEditor.Experimental.Rendering
                 float maxValue = packedInfo.packingAttribute.range[1];
                 bool renormalizedRange = (minValue != 0.0f || maxValue != 1.0f);
                 string maxMinusMinString = (maxValue - minValue).ToString();
-
+                string minValueString = minValue > 0 ? " +" : " -";
+                minValueString += Math.Abs(minValue).ToString();
 
                 switch (packedInfo.packingAttribute.packingScheme)
                 {
                     case FieldPacking.PackedFloat:
                         funcSignature = "float " + funcSignature;
                         funcBodyBeforeReturn = "UnpackUIntToFloat(" + sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", " + packedInfo.packingAttribute.sizeInBits + ")";
-                        if(renormalizedRange)
+                        if (renormalizedRange)
                         {
-                            funcBodyBeforeReturn = "((" + funcBodyBeforeReturn + " * " + maxMinusMinString + ") + " + minValue.ToString() + ")"; 
+                            funcBodyBeforeReturn = "((" + funcBodyBeforeReturn + " * " + maxMinusMinString + ") " + minValueString + ")";
                         }
-                
+
                         funcBody += "return " + funcBodyBeforeReturn + ";";
                         break;
                     case FieldPacking.PackedUint:
                         funcSignature = "uint " + funcSignature;
                         funcBodyBeforeReturn = "BitFieldExtract(" + sourceName + "." + packedInfo.fieldName + ", " + packedInfo.packingAttribute.offsetInSource + ", " + packedInfo.packingAttribute.sizeInBits + ")";
-                        if (renormalizedRange)
-                        {
-                            funcBodyBeforeReturn = "((" + funcBodyBeforeReturn + " * " + maxMinusMinString + ") + " + minValue.ToString() + ")";
-                        }
                         funcBody += "return " + funcBodyBeforeReturn + ";";
                         break;
                     case FieldPacking.R11G11B10:
                         funcSignature = "float3 " + funcSignature;
-                        funcBody += "return UnpackFromR11G11B10f(" + sourceName + "." + packedInfo.fieldName + ");";
+                        funcBodyBeforeReturn = "UnpackFromR11G11B10f(" + sourceName + "." + packedInfo.fieldName + ")";
+                        if (renormalizedRange)
+                        {
+                            funcBodyBeforeReturn = "((" + funcBodyBeforeReturn + " * " + maxMinusMinString + ") " + minValueString + ")";
+                        }
+                        funcBody += "return " + funcBodyBeforeReturn + ";";
                         break;
                     case FieldPacking.NoPacking:
                         if (packedInfo.fieldType == typeof(uint))
@@ -783,7 +785,11 @@ namespace UnityEditor.Experimental.Rendering
                 float minValue = packedInfo.packingAttribute.range[0];
                 float maxValue = packedInfo.packingAttribute.range[1];
                 bool renormalizedRange = (minValue != 0.0f || maxValue != 1.0f);
-                string maxMinusMinString = (maxValue - minValue).ToString();
+                float maxMinusMinInv = (1.0f / (maxValue - minValue));
+                float minOvermaxMinusMin = minValue * maxMinusMinInv;
+                string minOvermaxMinusMinString = minOvermaxMinusMin > 0 ? " - " : " + ";
+                minOvermaxMinusMinString += (Math.Abs(minOvermaxMinusMin)).ToString();
+                string maxMinusMinInvString = maxMinusMinInv.ToString();
 
                 string newParamCode;
                 switch (attr.packingScheme)
@@ -791,24 +797,25 @@ namespace UnityEditor.Experimental.Rendering
                     case FieldPacking.PackedFloat:
                         funcSignature += "float " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         newParamCode = newParamName;
-                        if(renormalizedRange)
+                        if (renormalizedRange)
                         {
-                            newParamCode = "((" + newParamCode + " - " + minValue + ") / " + maxMinusMinString + ")";
+                            newParamCode = "((" + newParamCode + " * " + maxMinusMinInvString + ") " + minOvermaxMinusMinString + ")";
                         }
-                        funcBody += sourceName + "." + packedInfo.fieldName + " = BitFieldInsert(" + maskString + shiftString + ", UnpackInt(" + newParamCode + ", "+ attr.sizeInBits + ")" + shiftString + ", "+ sourceName +"." + packedInfo.fieldName + ");";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " = BitFieldInsert(" + maskString + shiftString + ", UnpackInt(" + newParamCode + ", " + attr.sizeInBits + ")" + shiftString + ", " + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     case FieldPacking.PackedUint:
                         funcSignature += "uint " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         newParamCode = newParamName;
-                        if (renormalizedRange)
-                        {
-                            newParamCode = "((" + newParamCode + " - " + minValue + ") / " + maxMinusMinString + ")";
-                        }
                         funcBody += sourceName + "." + packedInfo.fieldName + " = BitFieldInsert(" + maskString + shiftString + ", (" + newParamCode + ")" + shiftString + ", " + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     case FieldPacking.R11G11B10:
                         funcSignature += "float3 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
-                        funcBody += sourceName +"." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamName + ");";
+                        newParamCode = newParamName;
+                        if (renormalizedRange)
+                        {
+                            newParamCode = "((" + newParamCode + " * " + maxMinusMinInvString + ") " + minOvermaxMinusMinString + ")";
+                        }
+                        funcBody += sourceName + "." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamCode + ");";
                         break;
                     case FieldPacking.NoPacking:
                         if (packedInfo.fieldType == typeof(uint))
@@ -862,7 +869,12 @@ namespace UnityEditor.Experimental.Rendering
                 float minValue = packedInfo.packingAttribute.range[0];
                 float maxValue = packedInfo.packingAttribute.range[1];
                 bool renormalizedRange = (minValue != 0.0f || maxValue != 1.0f);
-                string maxMinusMinString = (maxValue - minValue).ToString();
+                float maxMinusMinInv = (1.0f / (maxValue - minValue));
+                float minOvermaxMinusMin = minValue * maxMinusMinInv;
+                string minOvermaxMinusMinString = minOvermaxMinusMin > 0 ? " - " : " + ";
+                minOvermaxMinusMinString += (Math.Abs(minOvermaxMinusMin)).ToString();
+                string maxMinusMinInvString = maxMinusMinInv.ToString();
+
 
                 string newParamCode;
                 switch (attr.packingScheme)
@@ -872,22 +884,23 @@ namespace UnityEditor.Experimental.Rendering
                         newParamCode = newParamName;
                         if (renormalizedRange)
                         {
-                            newParamCode = "((" + newParamCode + " - " + minValue + ") / " + maxMinusMinString + ")";
+                            newParamCode = "((" + newParamCode + " * " + maxMinusMinInvString + ") " + minOvermaxMinusMinString + ")";
                         }
-                        funcBody += sourceName + "." + packedInfo.fieldName + " |= UnpackInt(" + newParamCode + ", "+ attr.sizeInBits + ")" + shiftString + "; ";
+                        funcBody += sourceName + "." + packedInfo.fieldName + " |= UnpackInt(" + newParamCode + ", " + attr.sizeInBits + ")" + shiftString + "; ";
                         break;
                     case FieldPacking.PackedUint:
                         funcSignature += "uint " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         newParamCode = newParamName;
-                        if (renormalizedRange)
-                        {
-                            newParamCode = "((" + newParamCode + " - " + minValue + ") / " + maxMinusMinString + ")";
-                        }
                         funcBody += sourceName + "." + packedInfo.fieldName + " |= (" + newParamCode + ")" + shiftString + ";";
                         break;
                     case FieldPacking.R11G11B10:
                         funcSignature += "float3 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
-                        funcBody += sourceName + "." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamName + ");";
+                        newParamCode = newParamName;
+                        if (renormalizedRange)
+                        {
+                            newParamCode = "((" + newParamCode + " * " + maxMinusMinInvString + ") " + minOvermaxMinusMinString + ")";
+                        }
+                        funcBody += sourceName + "." + packedInfo.fieldName + " = PackToR11G11B10f(" + newParamCode + ");";
                         break;
                     case FieldPacking.NoPacking:
                         if (packedInfo.fieldType == typeof(uint))
@@ -924,7 +937,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             string pathToPackingHeader = "#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl\"\n";
             string packedStructCode = pathToPackingHeader + EmitPackedGetters() + EmitPackedSetters() + EmitPackedInit() + "\n";
-            if(attr.needParamDebug)
+            if (attr.needParamDebug)
             {
                 packedStructCode += EmitFunctionsForPacked();
             }
@@ -1038,7 +1051,7 @@ namespace UnityEditor.Experimental.Rendering
                     }
 
 
-                    if(!attr.containsPackedFields)
+                    if (!attr.containsPackedFields)
                     {
                         string className = type.FullName.Substring(type.FullName.LastIndexOf((".")) + 1); // ClassName include nested class
                         className = className.Replace('+', '_'); // FullName is Class+NestedClass replace by Class_NestedClass
@@ -1055,7 +1068,7 @@ namespace UnityEditor.Experimental.Rendering
                     }
                 }
 
-                if(attr.containsPackedFields)
+                if (attr.containsPackedFields)
                 {
                     // Define only once, it is safe to assume that colors and directions are not packed with something else
                     bool isDirection = false;
@@ -1082,15 +1095,15 @@ namespace UnityEditor.Experimental.Rendering
                                 m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
 
                                 Type typeForDebug = typeof(uint);
-                                if(packAttr.packingScheme == FieldPacking.PackedFloat)
+                                if (packAttr.packingScheme == FieldPacking.PackedFloat)
                                 {
                                     typeForDebug = typeof(float);
                                 }
-                                else if(packAttr.packingScheme == FieldPacking.R11G11B10)
+                                else if (packAttr.packingScheme == FieldPacking.R11G11B10)
                                 {
                                     typeForDebug = typeof(Vector3);
                                 }
-                                else if(packAttr.packingScheme == FieldPacking.NoPacking)
+                                else if (packAttr.packingScheme == FieldPacking.NoPacking)
                                 {
                                     typeForDebug = fieldType;
                                 }
