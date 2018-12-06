@@ -171,7 +171,7 @@ float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
 {
     // Subsurface scattering mode
     uint   texturingMode = (bsdfData.materialFeatures >> MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
-    return ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
+    return ApplySubsurfaceScatteringTexturingMode(texturingMode, GetDiffuseColor(bsdfData));
 }
 
 #endif
