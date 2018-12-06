@@ -155,9 +155,9 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 
 void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
 {
-    InitDiffusionProfile(diffusionProfile, bsdfData);
+    SetDiffusionProfile(diffusionProfile, bsdfData);
     SetFresnel0(_TransmissionTintsAndFresnel0[diffusionProfile].a, bsdfData);
-    InitSubsurfaceMask(subsurfaceMask, bsdfData);
+    SetSubsurfaceMask(subsurfaceMask, bsdfData);
     bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
     bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
