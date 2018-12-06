@@ -112,27 +112,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [PackingAttribute("MaterialFeatures", FieldPacking.NoPacking, 0)]
             public uint materialFeatures;
 
-            [PackingAttribute("PerceptualRoughness", FieldPacking.PackedFloat, 8, 24), 
+            [PackingAttribute("PerceptualRoughness", FieldPacking.PackedFloat, 8, 24),
             PackingAttribute("CoatRoughness", FieldPacking.PackedFloat, 8, 16),
             PackingAttribute("AmbientOcclusion", FieldPacking.PackedFloat, 8, 8),
-            PackingAttribute("SpecularOcclusion", FieldPacking.PackedFloat, 8, 0)] 
+            PackingAttribute("SpecularOcclusion", FieldPacking.PackedFloat, 8, 0)]
             public uint roughnessesAndOcclusions;
 
-            [PackingAttribute("DiffusionProfile", FieldPacking.PackedUint, 8, 24), 
+            [PackingAttribute("DiffusionProfile", FieldPacking.PackedUint, 8, 24),
             PackingAttribute("SubsurfaceMask", FieldPacking.PackedFloat, 8, 16),
-            PackingAttribute("IOR", FieldPacking.PackedFloat, 16, 0, 1.0f, 2.5f)] 
-            public uint SSSData;                            
+            PackingAttribute("IOR", FieldPacking.PackedFloat, 16, 0, 1.0f, 2.5f)]
+            public uint SSSData;
 
-            [PackingAttribute("Anisotropy", FieldPacking.PackedFloat, 8, 24), 
-            PackingAttribute("RoughnessT", FieldPacking.PackedFloat, 8, 16),
-            PackingAttribute("RoughnessB", FieldPacking.PackedFloat, 8, 8),
-            PackingAttribute("Flags", FieldPacking.PackedUint, 8, 0)] 
+            [PackingAttribute("Anisotropy", FieldPacking.PackedFloat, 8, 24, -1.0f, 1.0f),
+            PackingAttribute("RoughnessT", FieldPacking.PackedFloat, 8, 16, 0.0f, 2.0f),
+            PackingAttribute("RoughnessB", FieldPacking.PackedFloat, 8, 8, 0.0f, 2.0f),
+            PackingAttribute("Flags", FieldPacking.PackedUint, 8, 0)]
             public uint anisoDataAndFlags;
 
-            [PackingAttribute("IridescenceThickness", FieldPacking.PackedFloat, 8, 24), 
+            [PackingAttribute("IridescenceThickness", FieldPacking.PackedFloat, 8, 24),
             PackingAttribute("IridescenceMask", FieldPacking.PackedFloat, 8, 16),
             PackingAttribute("TransmittanceMask", FieldPacking.PackedFloat, 8, 8),
-            PackingAttribute("CoatMask", FieldPacking.PackedFloat, 8, 0)] 
+            PackingAttribute("CoatMask", FieldPacking.PackedFloat, 8, 0)]
             public uint iridescenceAndMasks;
 
             [PackingAttribute(new string[] { "NormalWS", "NormalViewSpace" }, FieldPacking.NoPacking, 0, 128, 0, 1, true, false)]
@@ -140,15 +140,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [PackingAttribute("Transmittance", FieldPacking.NoPacking)]
             public Vector3 transmittance;                   // Precomputation of transmittance
-            [PackingAttribute("TangentWS", FieldPacking.R11G11B10, 0, 32, 0, 1, true)]
-            public uint tangentWS;
 
-            [PackingAttribute("BitangentWS", FieldPacking.R11G11B10, 0, 32, 0, 1, true)]
+            [PackingAttribute("TangentWS", FieldPacking.R11G11B10, 0, 32, -1.0f, 1.0f, true)]
+            public uint tangentWS;
+            [PackingAttribute("BitangentWS", FieldPacking.R11G11B10, 0, 32, -1.0f, 1.0f, true)]
             public uint bitangentWS;
             [PackingAttribute("AbsorptionCoefficient", FieldPacking.R11G11B10, 0, 32, 0, 1, false, true)]
             public uint absorptionCoefficient;
             [PackingAttribute("Thickness", FieldPacking.NoPacking)]
-            public float thickness;                               
+            public float thickness;
+
         };
 
 
