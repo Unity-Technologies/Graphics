@@ -103,6 +103,79 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1050, false, true)]
         public struct BSDFData
         {
+#if false
+                        
+            [PackingAttribute("MaterialFeatures", FieldPacking.NoPacking, 0)]
+            public uint materialFeatures;
+            
+            [PackingAttribute("DiffuseColor", FieldPacking.NoPacking, 128, 0, 0, 1, false, true)]
+            public Vector3 diffuseColor;
+            [PackingAttribute("Fresnel0", FieldPacking.NoPacking)]
+            public Vector3 fresnel0;
+
+            [PackingAttribute("AmbientOcclusion", FieldPacking.NoPacking)]
+            public float ambientOcclusion; // Caution: This is accessible only if light layer is enabled, otherwise it is 1
+            [PackingAttribute("SpecularOcclusion", FieldPacking.NoPacking)]
+            public float specularOcclusion;
+
+            [PackingAttribute(new string[] { "NormalWS", "NormalViewSpace" }, FieldPacking.NoPacking, 0, 128, 0, 1, true, false)]
+            public Vector3 normalWS;
+            [PackingAttribute("PerceptualRoughness", FieldPacking.NoPacking)]
+            public float perceptualRoughness;
+            [PackingAttribute("CoatMask", FieldPacking.NoPacking)]
+            public float coatMask;
+
+            // MaterialFeature dependent attribute
+
+            // SpecularColor fold into fresnel0
+
+            // SSS
+            [PackingAttribute("DiffusionProfile", FieldPacking.NoPacking)]
+            public uint diffusionProfile;
+            [PackingAttribute("SubsurfaceMask", FieldPacking.NoPacking)]
+            public float subsurfaceMask;
+
+            // Transmission
+            // + Diffusion Profile
+            [PackingAttribute("Thickness", FieldPacking.NoPacking)]
+            public float thickness;
+            [PackingAttribute("Transmittance", FieldPacking.NoPacking)]
+            public Vector3 transmittance;   // Precomputation of transmittance
+
+            // Anisotropic
+            [PackingAttribute("TangentWS", FieldPacking.NoPacking)]
+            public Vector3 tangentWS;
+            [PackingAttribute("BitangentWS", FieldPacking.NoPacking)]
+            public Vector3 bitangentWS;
+            [PackingAttribute("RoughnessT", FieldPacking.NoPacking)]
+            public float roughnessT;
+            [PackingAttribute("RoughnessB", FieldPacking.NoPacking)]
+            public float roughnessB;
+            [PackingAttribute("Anisotropy", FieldPacking.NoPacking)]
+            public float anisotropy;
+
+            // Iridescence
+            [PackingAttribute("IridescenceThickness", FieldPacking.NoPacking)]
+            public float iridescenceThickness;
+            [PackingAttribute("IridescenceMask", FieldPacking.NoPacking)]
+            public float iridescenceMask;
+
+            // ClearCoat
+            [PackingAttribute("CoatRoughness", FieldPacking.NoPacking)]
+            public float coatRoughness; // Automatically fill
+
+            // Forward property only
+
+            // Transparency
+            [PackingAttribute("IOR", FieldPacking.NoPacking)]
+            public float ior;
+            // Reuse thickness from SSS
+            [PackingAttribute("AbsorptionCoefficient", FieldPacking.NoPacking)]
+            public Vector3 absorptionCoefficient;
+            [PackingAttribute("TransmittanceMask", FieldPacking.NoPacking)]
+            public float transmittanceMask;
+
+#else
             [PackingAttribute("DiffuseColor", FieldPacking.NoPacking, 128, 0, 0, 1, false, true)]
             public Vector3 diffuseColor;
             [PackingAttribute("Fresnel0", FieldPacking.R11G11B10, 32, 0, 0, 1, false, true)]
@@ -148,6 +221,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public uint absorptionCoefficient;
             [PackingAttribute("Thickness", FieldPacking.NoPacking)]
             public float thickness;
+#endif
         };
 
         //-----------------------------------------------------------------------------
