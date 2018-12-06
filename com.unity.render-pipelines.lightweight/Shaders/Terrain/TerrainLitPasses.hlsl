@@ -94,7 +94,21 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 
 void SplatmapMix(VertexOutput IN, out half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
 {
-    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
+    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);    
+    half4 diffAlbedo[4];
+    
+    diffAlbedo[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, IN.uvSplat01.xy);
+    diffAlbedo[1] = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, IN.uvSplat01.zw);
+    diffAlbedo[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, IN.uvSplat23.xy);
+    diffAlbedo[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, IN.uvSplat23.zw);
+    
+    // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
+    half4 opacityAsDensity = saturate((half4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splatControl)) * 20.0);
+    opacityAsDensity += 0.001f * splatControl;		// if all weights are zero, default to what the blend mask says
+    half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
+    splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);    
+    
+    // Now that splatControl has changed, we can compute the final weight and normalize
     weight = dot(splatControl, 1.0h);
 
 #if !defined(SHADER_API_MOBILE) && defined(TERRAIN_SPLAT_ADDPASS)
@@ -106,10 +120,10 @@ void SplatmapMix(VertexOutput IN, out half4 splatControl, out half weight, out h
     splatControl /= (weight + HALF_MIN);
 
     mixedDiffuse = 0.0h;
-    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, IN.uvSplat01.xy) * half4(splatControl.rrr, 1.0h);
-    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, IN.uvSplat01.zw) * half4(splatControl.ggg, 1.0h);
-    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, IN.uvSplat23.xy) * half4(splatControl.bbb, 1.0h);
-    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, IN.uvSplat23.zw) * half4(splatControl.aaa, 1.0h);
+    mixedDiffuse += diffAlbedo[0] * half4(_DiffuseRemapScale0.rgb * splatControl.rrr, 1.0h);
+    mixedDiffuse += diffAlbedo[1] * half4(_DiffuseRemapScale1.rgb * splatControl.ggg, 1.0h);
+    mixedDiffuse += diffAlbedo[2] * half4(_DiffuseRemapScale2.rgb * splatControl.bbb, 1.0h);
+    mixedDiffuse += diffAlbedo[3] * half4(_DiffuseRemapScale3.rgb * splatControl.aaa, 1.0h);
 
 #ifdef _NORMALMAP
     half4 nrm = 0.0f;

@@ -8,6 +8,7 @@
 CBUFFER_START(_Terrain)
 half _Metallic0, _Metallic1, _Metallic2, _Metallic3;
 half _Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3;
+half4 _DiffuseRemapScale0, _DiffuseRemapScale1, _DiffuseRemapScale2, _DiffuseRemapScale3;
 half4 _MaskMapRemapOffset0, _MaskMapRemapOffset1, _MaskMapRemapOffset2, _MaskMapRemapOffset3;
 half4 _MaskMapRemapScale0, _MaskMapRemapScale1, _MaskMapRemapScale2, _MaskMapRemapScale3;
 
