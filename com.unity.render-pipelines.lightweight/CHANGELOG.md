@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now inject a custom render pass before rendering opaque objects. To do so, implement an `IBeforeRender` interface.
 
 ### Changed
-- Removed `IBeforeCameraRender` interface. Use `IBeforeRender` instead.
 - Removed `IAfterDepthPrePass` interface.
 
 ### Fixed
