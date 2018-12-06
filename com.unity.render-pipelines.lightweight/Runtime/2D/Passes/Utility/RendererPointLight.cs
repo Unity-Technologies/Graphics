@@ -69,10 +69,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (m_PointLightingMat == null)
             {
                 Shader pointLightShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
-                m_PointLightingMat = new Material(pointLightShader);
+                m_PointLightVolumeMat = new Material(pointLightShader);
             }
 
-            return m_PointLightingMat;
+            return m_PointLightVolumeMat;
         }
 
 
@@ -233,6 +233,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         static public void SetShaderGlobals(CommandBuffer cmdBuffer, Light2D light)
         {
             cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
+            cmdBuffer.SetGlobalColor("_LightVolumeColor", light.m_VolumetricColor);
 
             //=====================================================================================
             //                          New stuff
@@ -288,7 +289,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     Light2D light = pointLights[i];
 
-                    if (light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera))
+                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera))
                     {
                         // Sort the shadow casters by distance to light, and render the ones furthest first
                         //SortShadowCasters(light, shadowCasters);
@@ -345,7 +346,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     Light2D light = pointLights[i];
 
-                    if (light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera) && light.IsVolumetric)
+                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera) && light.IsVolumetric)
                     {
                         SetShaderGlobals(cmdBuffer, light);
                         DrawLightQuad(cmdBuffer, light, null, GetPointLightVolumeMat());

@@ -257,15 +257,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             m_LocalBounds = new Bounds();
 
-            Vector3 minimum = new Vector3();
-            Vector3 maximum = new Vector3();
-            for(int i=0;i<vertices.Length;i++)
+            Vector3 minimum = new Vector3(float.MaxValue, float.MaxValue);
+            Vector3 maximum = new Vector3(float.MinValue, float.MinValue);
+
+            for (int i=0;i<vertices.Length;i++)
             {
                 Vector3 vertex = vertices[i];
-                minimum.x = minimum.x <= vertex.x ? minimum.x : vertex.x;
-                minimum.y = minimum.y <= vertex.y ? minimum.y : vertex.y;
-                maximum.x = maximum.x >= vertex.x ? maximum.x : vertex.x;
-                maximum.y = maximum.y >= vertex.y ? maximum.y : vertex.y;
+                minimum.x = vertex.x < minimum.x ? vertex.x : minimum.x;
+                minimum.y = vertex.y < minimum.y ? vertex.y : minimum.y;
+                maximum.x = vertex.x > maximum.x ? vertex.x : maximum.x;
+                maximum.y = vertex.y > maximum.y ? vertex.y : maximum.y;
             }
 
             m_LocalBounds.max = maximum;
@@ -641,10 +642,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             GetMaterial();
         }
 
+        private void OnDisable()
+        {
+            if (m_CullingGroup != null)
+            {
+                m_CullingGroup.Dispose();
+                m_CullingGroup = null;
+            }
+        }
+
         private void OnDestroy()
         {
             if (m_CullingGroup != null)
+            {
                 m_CullingGroup.Dispose();
+                m_CullingGroup = null;
+            }
 
 
             if (m_Lights != null)
@@ -799,11 +812,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #if UNITY_EDITOR
             if (Selection.activeGameObject != transform.gameObject)
                 Gizmos.DrawIcon(transform.position, "PointLight Gizmo", true);
-
-
-            //BoundingSphere sphere = GetBoundingSphere();
-            //Gizmos.color = Color.white;
-            //Gizmos.DrawWireSphere(sphere.position, sphere.radius);
 #endif
         }
 

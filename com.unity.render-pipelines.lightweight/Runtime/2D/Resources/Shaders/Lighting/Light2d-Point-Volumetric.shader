@@ -45,6 +45,8 @@
 			uniform half			_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
 			uniform half4x4			_LightInvMatrix;
 			uniform half4x4			_LightNoRotInvMatrix;
+			uniform float4			_LightColor;
+			uniform float4			_LightVolumeColor;
 
             v2f vert (appdata v)
             {
@@ -75,7 +77,7 @@
 				spotAttenuation = spotAttenuation * spotAttenuation;
 				attenuation = attenuation * spotAttenuation;
 
-				fixed4 col = i.color * attenuation;
+				fixed4 col = saturate(_LightColor * _LightVolumeColor * attenuation);
 	            return col;
             }
             ENDCG

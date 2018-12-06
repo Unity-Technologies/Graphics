@@ -13,13 +13,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool m_CastsShadows;
 
         [SerializeField]
-        private int[] m_ShadowMeshTriangles;
+        private Sprite m_EmmisionSprite;
         [SerializeField]
-        private Vector3[] m_ShadowMeshVertices;
-        [SerializeField]
-        private Vector3[] m_ShadowMeshNormals;
+        private Color  m_EmmisionColor;
 
-        private Mesh m_ShadowMesh;
+
 
         //public void CreateShadowMesh()
         //{
