@@ -132,8 +132,8 @@ namespace UnityEditor.Experimental.Rendering
                     {
                         if (gen.hasFields && gen.needAccessors && !gen.hasPackedInfo)
                         {
-                            writer.Write(gen.EmitAccessors() + "\n");
-                            writer.Write(gen.EmitSetters() + "\n");
+                            writer.Write(gen.EmitAccessors());
+                            writer.Write(gen.EmitSetters());
                         }
                     }
 

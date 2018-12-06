@@ -168,7 +168,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
         // BSDFData
         //-----------------------------------------------------------------------------
-        [GenerateHLSL(PackingRules.Exact, false, false, true, 1150)]
+        [GenerateHLSL(PackingRules.Exact, true, true, true, 1150)]
         public struct BSDFData
         {
             public uint materialFeatures;

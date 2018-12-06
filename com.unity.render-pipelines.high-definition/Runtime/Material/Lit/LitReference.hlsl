@@ -28,7 +28,7 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
         float  dist2 = dot(unL, unL);
         float3 L     = normalize(unL);
         float  sinLT = length(cross(L, T));
-        float  NdotL = saturate(dot(bsdfData.normalWS, L));
+        float  NdotL = saturate(dot(GetNormalWS(bsdfData), L));
 
         if (NdotL > 0)
         {
@@ -100,7 +100,7 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
         float cosLNs = saturate(dot(-L, Ns));
 
         // We calculate area reference light with the area integral rather than the solid angle one.
-        float NdotL = saturate(dot(bsdfData.normalWS, L));
+        float NdotL = saturate(dot(GetNormalWS(bsdfData), L));
         float illuminance = cosLNs * NdotL / (sqrDist * lightPdf);
 
         float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
@@ -130,7 +130,7 @@ float3 IntegrateLambertIBLRef(LightLoopContext lightLoopContext,
                               float3 V, EnvLightData lightData, BSDFData bsdfData,
                               uint sampleCount = 4096)
 {
-    float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+    float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), GetNormalWS(bsdfData));
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     for (uint i = 0; i < sampleCount; ++i)
@@ -158,8 +158,8 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 4096)
 {
-    float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
-    float    NdotV        = ClampNdotV(dot(bsdfData.normalWS, V));
+	float3x3 localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), GetNormalWS(bsdfData));
+	float    NdotV        = ClampNdotV(dot(GetNormalWS(bsdfData), V));
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     for (uint i = 0; i < sampleCount; ++i)
@@ -177,7 +177,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
             float LdotV = dot(L, V);
             // Note: we call DisneyDiffuse that require to multiply by Albedo / PI. Divide by PI is already taken into account
             // in weightOverPdf of ImportanceSampleLambert call.
-            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
+            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotV, GetPerceptualRoughness(bsdfData));
 
             float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -197,15 +197,15 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
-    }
+		localToWorld = float3x3(GetTangentWS(bsdfData), GetBitangentWS(bsdfData), GetNormalWS(bsdfData));
+	}
     else
     {
         // We do not have a tangent frame unless we use anisotropic GGX.
-        localToWorld = GetLocalFrame(bsdfData.normalWS);
+        localToWorld = GetLocalFrame(GetNormalWS(bsdfData));
     }
 
-    float  NdotV = ClampNdotV(dot(bsdfData.normalWS, V));
+    float  NdotV = ClampNdotV(dot(GetNormalWS(bsdfData), V));
     float3 acc   = float3(0.0, 0.0, 0.0);
 
     for (uint i = 0; i < sampleCount; ++i)
@@ -220,17 +220,17 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
         // GGX BRDF
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
-            ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
+            ImportanceSampleAnisoGGX(u, V, localToWorld, GetRoughnessT(bsdfData), GetRoughnessB(bsdfData), NdotV, L, VdotH, NdotL, weightOverPdf);
         }
         else
         {
-            ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughnessT, NdotV, L, VdotH, NdotL, weightOverPdf);
+            ImportanceSampleGGX(u, V, localToWorld, GetRoughnessT(bsdfData), NdotV, L, VdotH, NdotL, weightOverPdf);
         }
 
         if (NdotL > 0.0)
         {
             // Fresnel component is apply here as describe in ImportanceSampleGGX function
-            float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH) * weightOverPdf;
+            float3 FweightOverPdf = F_Schlick(GetFresnel0(bsdfData), VdotH) * weightOverPdf;
 
             float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
 

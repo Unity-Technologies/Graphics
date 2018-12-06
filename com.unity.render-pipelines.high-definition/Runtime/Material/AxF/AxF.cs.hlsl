@@ -87,6 +87,132 @@ struct BSDFData
 };
 
 //
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.AxF+BSDFData
+//
+float3 GetNormalWS(BSDFData value)
+{
+    return value.normalWS;
+}
+float3 GetTangentWS(BSDFData value)
+{
+    return value.tangentWS;
+}
+float3 GetBiTangentWS(BSDFData value)
+{
+    return value.biTangentWS;
+}
+float3 GetDiffuseColor(BSDFData value)
+{
+    return value.diffuseColor;
+}
+float3 GetSpecularColor(BSDFData value)
+{
+    return value.specularColor;
+}
+float3 GetFresnelF0(BSDFData value)
+{
+    return value.fresnelF0;
+}
+float2 GetRoughness(BSDFData value)
+{
+    return value.roughness;
+}
+float GetHeight_mm(BSDFData value)
+{
+    return value.height_mm;
+}
+float GetAnisotropyAngle(BSDFData value)
+{
+    return value.anisotropyAngle;
+}
+float2 GetFlakesUV(BSDFData value)
+{
+    return value.flakesUV;
+}
+float GetFlakesMipLevel(BSDFData value)
+{
+    return value.flakesMipLevel;
+}
+float3 GetClearcoatColor(BSDFData value)
+{
+    return value.clearcoatColor;
+}
+float3 GetClearcoatNormalWS(BSDFData value)
+{
+    return value.clearcoatNormalWS;
+}
+float GetClearcoatIOR(BSDFData value)
+{
+    return value.clearcoatIOR;
+}
+float3 GetGeomNormalWS(BSDFData value)
+{
+    return value.geomNormalWS;
+}
+//
+// Setters for UnityEngine.Experimental.Rendering.HDPipeline.AxF+BSDFData
+//
+void SetNormalWS(float3 newValue, BSDFData dest )
+{
+    dest.normalWS = newValue;
+}
+void SetTangentWS(float3 newValue, BSDFData dest )
+{
+    dest.tangentWS = newValue;
+}
+void SetBiTangentWS(float3 newValue, BSDFData dest )
+{
+    dest.biTangentWS = newValue;
+}
+void SetDiffuseColor(float3 newValue, BSDFData dest )
+{
+    dest.diffuseColor = newValue;
+}
+void SetSpecularColor(float3 newValue, BSDFData dest )
+{
+    dest.specularColor = newValue;
+}
+void SetFresnelF0(float3 newValue, BSDFData dest )
+{
+    dest.fresnelF0 = newValue;
+}
+void SetRoughness(float2 newValue, BSDFData dest )
+{
+    dest.roughness = newValue;
+}
+void SetHeight_mm(float newValue, BSDFData dest )
+{
+    dest.height_mm = newValue;
+}
+void SetAnisotropyAngle(float newValue, BSDFData dest )
+{
+    dest.anisotropyAngle = newValue;
+}
+void SetFlakesUV(float2 newValue, BSDFData dest )
+{
+    dest.flakesUV = newValue;
+}
+void SetFlakesMipLevel(float newValue, BSDFData dest )
+{
+    dest.flakesMipLevel = newValue;
+}
+void SetClearcoatColor(float3 newValue, BSDFData dest )
+{
+    dest.clearcoatColor = newValue;
+}
+void SetClearcoatNormalWS(float3 newValue, BSDFData dest )
+{
+    dest.clearcoatNormalWS = newValue;
+}
+void SetClearcoatIOR(float newValue, BSDFData dest )
+{
+    dest.clearcoatIOR = newValue;
+}
+void SetGeomNormalWS(float3 newValue, BSDFData dest )
+{
+    dest.geomNormalWS = newValue;
+}
+//
 // Debug functions
 //
 void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)

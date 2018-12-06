@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, false, true, 1250)]
+        [GenerateHLSL(PackingRules.Exact, true, true, true, 1250)]
         public struct BSDFData
         {
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]

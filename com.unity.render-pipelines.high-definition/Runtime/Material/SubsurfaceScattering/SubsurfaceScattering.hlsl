@@ -155,9 +155,9 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 
 void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
 {
-    bsdfData.diffusionProfile = diffusionProfile;
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
-    bsdfData.subsurfaceMask = subsurfaceMask;
+    InitDiffusionProfile(diffusionProfile, bsdfData);
+    SetFresnel0(_TransmissionTintsAndFresnel0[diffusionProfile].a, bsdfData);
+    InitSubsurfaceMask(subsurfaceMask, bsdfData);
     bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
     bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
@@ -181,10 +181,10 @@ float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
 // Assume that bsdfData.diffusionProfile is init
 void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDFData bsdfData)
 {
-    bsdfData.diffusionProfile = diffusionProfile;
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
+    SetDiffusionProfile(diffusionProfile, bsdfData);
+    SetFresnel0(_TransmissionTintsAndFresnel0[diffusionProfile].a, bsdfData);
 
-    bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
+    float modifiedThickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
 
     // The difference between the thin and the regular (a.k.a. auto-thickness) modes is the following:
     // * in the thin object mode, we assume that the geometry is thin enough for us to safely share
@@ -202,9 +202,11 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always used for indirect lighting).
-    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
+    SetTransmittance(ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
                                                         _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                        bsdfData.thickness);
+														modifiedThickness), bsdfData);
+
+	SetThickness(modifiedThickness, bsdfData);
 }
 
 #endif

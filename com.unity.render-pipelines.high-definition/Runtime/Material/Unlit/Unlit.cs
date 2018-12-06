@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, false, true, 350)]
+        [GenerateHLSL(PackingRules.Exact, true, true, true, 350)]
         public struct BSDFData
         {
             [SurfaceDataAttributes("", false, true)]
