@@ -233,7 +233,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         static public void SetShaderGlobals(CommandBuffer cmdBuffer, Light2D light)
         {
             cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
-            cmdBuffer.SetGlobalColor("_LightVolumeColor", light.m_VolumetricColor);
+            cmdBuffer.SetGlobalColor("_LightVolumeColor", new Color(1,1,1, light.LightVolumeOpacity));
 
             //=====================================================================================
             //                          New stuff
@@ -346,7 +346,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     Light2D light = pointLights[i];
 
-                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera) && light.IsVolumetric)
+                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera) && light.LightVolumeOpacity > 0.0f)
                     {
                         SetShaderGlobals(cmdBuffer, light);
                         DrawLightQuad(cmdBuffer, light, null, GetPointLightVolumeMat());

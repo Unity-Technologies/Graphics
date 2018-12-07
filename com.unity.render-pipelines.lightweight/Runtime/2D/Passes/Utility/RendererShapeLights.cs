@@ -133,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     {
                         Light2D light = lights[i];
 
-                        if (light != null && light.isActiveAndEnabled && light.IsVolumetric && light.ShapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                        if (light != null && light.isActiveAndEnabled && light.LightVolumeOpacity > 0.0f && light.ShapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
                             Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
                             if (shapeLightVolumeMaterial != null)

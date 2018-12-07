@@ -107,16 +107,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Sprite m_PreviousLightCookieSprite = null;
 
         [SerializeField]
-        private bool m_IsVolumetric = false;
-        public bool IsVolumetric
-        {
-            get { return m_IsVolumetric; }
-            set { m_IsVolumetric = value; }
-        }
+        private float m_LightVolumeOpacity = 0.0f;
+        private float m_PreviousLightVolumeOpacity = 0.0f;
 
-        [ColorUsageAttribute(true, true)]
-        public Color m_VolumetricColor = Color.white;
-        public Color m_PreviousVolumetricColor = Color.white;
+        public float LightVolumeOpacity
+        {
+            get { return m_LightVolumeOpacity; }
+            set { m_LightVolumeOpacity = value; }
+        }
 
         private Bounds m_LocalBounds;
         CullingGroup m_CullingGroup;
@@ -336,7 +334,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var volumeColors = new Vector4[finalColors.Count];
             for (int i = 0; i < volumeColors.Length; i++)
-                volumeColors[i] = new Vector4(m_VolumetricColor.r, m_VolumetricColor.g, m_VolumetricColor.b, m_VolumetricColor.a);
+                volumeColors[i] = new Vector4(1, 1, 1, m_LightVolumeOpacity);
 
             Vector3[] vertices = finalVertices.ToArray();
             m_Mesh.Clear();
@@ -467,7 +465,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             Vector3 posOffset = new Vector3(m_ShapeLightOffset.x, m_ShapeLightOffset.y);
             Color transparentColor = new Color(color.r, color.g, color.b, 0);
-            Color volumeColor = new Vector4(m_VolumetricColor.r, m_VolumetricColor.g, m_VolumetricColor.b, m_VolumetricColor.a);
+            Color volumeColor = new Vector4(1, 1, 1, m_LightVolumeOpacity);
             vertices[centerIndex] = Vector3.zero + posOffset;
             colors[centerIndex] = color;
             volumeColors[centerIndex] = volumeColor;
@@ -568,7 +566,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     //vertices3d[vertexIdx] = new Vector3(pos.x + m_ShapeLightOffset.x, pos.y + m_ShapeLightOffset.y);
                     vertices3d[vertexIdx] = pos;
                     colors[vertexIdx] = color;
-                    volumeColor[vertexIdx] = new Vector4(m_VolumetricColor.r, m_VolumetricColor.g, m_VolumetricColor.b, m_VolumetricColor.a);
+                    volumeColor[vertexIdx] = new Vector4(1, 1, 1, m_LightVolumeOpacity);
                 }
 
                 for (int triangleIdx = 0; triangleIdx < triangles2d.Length; triangleIdx++)
@@ -770,7 +768,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             rebuildMesh |= CheckForChange<float>(m_ShapeLightFeathering, ref m_PreviousShapeLightFeathering);
             rebuildMesh |= CheckForVector2Change(m_ShapeLightOffset, ref m_PreviousShapeLightOffset);
             rebuildMesh |= CheckForChange<int>(m_ParametricSides, ref m_PreviousParametricSides);
-            rebuildMesh |= CheckForColorChange(m_VolumetricColor, ref m_PreviousVolumetricColor);
+            rebuildMesh |= CheckForChange<float>(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
 
             //rebuildMesh |= CheckForChange<>
             if (rebuildMesh)

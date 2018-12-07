@@ -197,9 +197,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     updateMesh = true;
 
                 int lastShape = shapeLightParametricShape.enumValueIndex;
-                int lastSides = shapeLightParametricSides.intValue;
-                float lastFeathering = shapeLightFeathering.floatValue;
-
                 EditorGUILayout.PropertyField(shapeLightParametricShape, EditorGUIUtility.TrTextContent("Shape", "Specify the shape"));
                 int shape = shapeLightParametricShape.enumValueIndex;
                 if (lastShape != shape)
@@ -213,14 +210,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_ModifiedMesh = false;
 
                 if (shapeLightParametricShape.enumValueIndex == (int)Light2D.ParametricShapes.Circle)
-                {
-                    EditorGUILayout.PropertyField(shapeLightParametricSides, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
-                    if (shapeLightParametricSides.intValue < 3)
-                        shapeLightParametricSides.intValue = 3;
-                }
+                    EditorGUILayout.IntSlider(shapeLightParametricSides, 3, 128, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
 
                 EditorGUILayout.Slider(shapeLightFeathering, 0, 1, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
-
 
                 Vector2 lastOffset = shapeLightOffset.vector2Value;
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
@@ -427,8 +419,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             SerializedProperty lightProjectionType = serializedObject.FindProperty("m_LightProjectionType");
             SerializedProperty lightColor = serializedObject.FindProperty("m_LightColor");
             SerializedProperty applyToLayers = serializedObject.FindProperty("m_ApplyToLayers");
-            SerializedProperty isVolumetric = serializedObject.FindProperty("m_IsVolumetric");
-            SerializedProperty volumetricColor = serializedObject.FindProperty("m_VolumetricColor");
+            SerializedProperty volumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
 
             EditorGUILayout.PropertyField(lightProjectionType, EditorGUIUtility.TrTextContent("Light Type", "Specify the light type"));
             switch (lightProjectionType.intValue)
@@ -448,13 +439,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Color previousColor = lightColor.colorValue;
             EditorGUILayout.PropertyField(lightColor, EditorGUIUtility.TrTextContent("Light Color", "Specify the light color"));
 
-            EditorGUILayout.PropertyField(isVolumetric, EditorGUIUtility.TrTextContent("Is Volumetric", "Specifies if this light is volumetric"));
-            if (isVolumetric.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(volumetricColor, EditorGUIUtility.TrTextContent("Light Volume Color", "Specify the color of the light volume"));
-                EditorGUI.indentLevel--;
-            }
+            EditorGUILayout.Slider(volumetricAlpha, 0, 1, EditorGUIUtility.TrTextContent("Light Volume Opacity", "Specify the light color"));
 
             InternalEditorBridge.SortingLayerField(EditorGUIUtility.TrTextContent("Target Sorting Layer", "Apply this light to the specifed layer"), applyToLayers, EditorStyles.popup, EditorStyles.label);
 

@@ -77,7 +77,7 @@
 				spotAttenuation = spotAttenuation * spotAttenuation;
 				attenuation = attenuation * spotAttenuation;
 
-				fixed4 col = saturate(_LightColor * _LightVolumeColor * attenuation);
+				fixed4 col = _LightColor * _LightVolumeColor * attenuation;
 	            return col;
             }
             ENDCG
