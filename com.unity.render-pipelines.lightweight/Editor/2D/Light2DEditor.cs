@@ -176,12 +176,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             SerializedProperty shapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
             SerializedProperty shapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             SerializedProperty shapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
+            SerializedProperty shapeLightBlending = serializedObject.FindProperty("m_ShapeLightBlending");
 
             int prevShapeLightStyle = shapeLightStyle.intValue;
 
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(shapeLightType, EditorGUIUtility.TrTextContent("Type", "Specify the shape light type"));
             EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
+            EditorGUILayout.PropertyField(shapeLightBlending, EditorGUIUtility.TrTextContent("Blending Mode", "Specify the lights blending mode"));
+
             if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Sprite)
             {
                 EditorGUI.indentLevel++;
@@ -214,7 +217,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     EditorGUILayout.IntSlider(shapeLightParametricSides, 3, 128, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
 
                 EditorGUILayout.Slider(shapeLightFeathering, 0, 1, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
-
                 Vector2 lastOffset = shapeLightOffset.vector2Value;
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
                 EditorGUI.indentLevel--;

@@ -58,6 +58,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Freeform,
         }
 
+        public enum BlendingModes
+        {
+            Additive,
+            Superimpose, // Overlay might be confusing because of the photoshop overlay blending mode
+        }
+
         [SerializeField]
         private LightProjectionTypes m_LightProjectionType = LightProjectionTypes.Shape;
         private LightProjectionTypes m_PreviousLightProjectionType = LightProjectionTypes.Shape;
@@ -91,9 +97,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private int m_PreviousParametricSides = -1;
         public int m_ParametricSides = 128;
-        static Material m_ShapeCookieSpriteMaterial = null;
+        static Material m_ShapeCookieSpriteSuperimposeMaterial = null;
+        static Material m_ShapeCookieSpriteAdditiveMaterial = null;
         static Material m_ShapeCookieSpriteVolumeMaterial = null;
-        static Material m_ShapeVertexColoredMaterial = null;
+
+        static Material m_ShapeVertexColoredSuperimposeMaterial = null;
+        static Material m_ShapeVertexColoredAdditiveMaterial = null;
         static Material m_ShapeVertexColoredVolumeMaterial = null;
 
         [ColorUsageAttribute(false,true)]
@@ -113,6 +122,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField]
         private int m_ShapeLightOrder = 0;
         private int m_PreviousShapeLightOrder = 0;
+
+        [SerializeField]
+        private BlendingModes m_ShapeLightBlending = BlendingModes.Additive;
+        private BlendingModes m_PreviousShapeLightBlending = BlendingModes.Additive;
 
         public float LightVolumeOpacity
         {
@@ -409,33 +422,63 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_ShapeLightStyle == CookieStyles.Sprite)
                 {
                     // This is causing Object.op_inequality fix this
-                    if (m_ShapeCookieSpriteMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
+                    if (m_ShapeCookieSpriteAdditiveMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
                     {
-                        Shader shader = Shader.Find("Hidden/Light2D-Sprite");
+                        Shader shader = Shader.Find("Hidden/Light2D-Sprite-Additive"); ;
+
                         if (shader != null)
                         {
-                            m_ShapeCookieSpriteMaterial = new Material(shader);
-                            m_ShapeCookieSpriteMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
+                            m_ShapeCookieSpriteAdditiveMaterial = new Material(shader);
+                            m_ShapeCookieSpriteAdditiveMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
                         }
                         else
-                            Debug.LogError("Missing shader Light2d-Sprite");
+                            Debug.LogError("Missing shader Light2d-Sprite-Additive");
                     }
 
-                    return m_ShapeCookieSpriteMaterial;
+                    if (m_ShapeCookieSpriteSuperimposeMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
+                    {
+                        Shader shader = Shader.Find("Hidden/Light2D-Sprite-Superimpose"); ;
+
+                        if (shader != null)
+                        {
+                            m_ShapeCookieSpriteSuperimposeMaterial = new Material(shader);
+                            m_ShapeCookieSpriteSuperimposeMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
+                        }
+                        else
+                            Debug.LogError("Missing shader Light2d-Sprite-Superimpose");
+                    }
+
+
+                    if (m_ShapeLightBlending == BlendingModes.Additive)
+                        return m_ShapeCookieSpriteAdditiveMaterial;
+                    else
+                        return m_ShapeCookieSpriteSuperimposeMaterial;
                 }
                 else
                 {
                     // This is causing Object.op_inequality fix this
-                    if (m_ShapeVertexColoredMaterial == null)
+                    if (m_ShapeVertexColoredAdditiveMaterial == null)
                     {
-                        Shader shader = Shader.Find("Hidden/Light2D-Shape");
+                        Shader shader = Shader.Find("Hidden/Light2D-Shape-Additive"); ;
                         if(shader != null)
-                            m_ShapeVertexColoredMaterial = new Material(shader);
+                            m_ShapeVertexColoredAdditiveMaterial = new Material(shader);
                         else
-                            Debug.LogError("Missing shader Light2d-Shape");
+                            Debug.LogError("Missing shader Light2d-Shape-Additive");
                     }
 
-                    return m_ShapeVertexColoredMaterial;
+                    if (m_ShapeVertexColoredSuperimposeMaterial == null)
+                    {
+                        Shader shader = Shader.Find("Hidden/Light2D-Shape-Superimpose"); ;
+                        if (shader != null)
+                            m_ShapeVertexColoredSuperimposeMaterial = new Material(shader);
+                        else
+                            Debug.LogError("Missing shader Light2d-Shape-Superimpose");
+                    }
+
+                    if (m_ShapeLightBlending == BlendingModes.Additive)
+                        return m_ShapeVertexColoredAdditiveMaterial;
+                    else
+                        return m_ShapeVertexColoredSuperimposeMaterial;
                 }
             }
 
@@ -649,7 +692,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void UpdateMaterial()
         {
-            m_ShapeCookieSpriteMaterial = null;
+            m_ShapeCookieSpriteAdditiveMaterial = null;
+            m_ShapeCookieSpriteSuperimposeMaterial = null;
             m_ShapeCookieSpriteVolumeMaterial = null;
             GetMaterial();
         }
@@ -711,7 +755,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     index = (int)m_ShapeLightType;
 
                 if (!m_Lights[index].Contains(this))
-                    m_Lights[index].Add(this);
+                    InsertLight(this);
             }
         }
 
@@ -783,6 +827,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_Lights[(int)LightProjectionTypes.Shape].Remove(this);
                 InsertLight(this);
             }
+
+            // If we changed blending modes then we need to clear our material
+            //if(CheckForChange<BlendingModes>(m_ShapeLightBlending, ref m_PreviousShapeLightBlending))
+            //{
+            //    m_ShapeCookieSpriteMaterial = null;
+            //    m_ShapeVertexColoredMaterial = null;
+            //}
 
             // Mesh Rebuilding
             bool rebuildMesh = false;
