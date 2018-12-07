@@ -38,7 +38,7 @@ float3 GetColor(BSDFData value)
 //
 // Setters for UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData
 //
-void SetColor(float3 newValue, BSDFData dest )
+void SetColor(float3 newValue, inout BSDFData dest )
 {
     dest.color = newValue;
 }

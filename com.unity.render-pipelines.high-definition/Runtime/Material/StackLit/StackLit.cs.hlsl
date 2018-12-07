@@ -302,131 +302,131 @@ float3 GetTransmittance(BSDFData value)
 //
 // Setters for UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData
 //
-void SetMaterialFeatures(uint newValue, BSDFData dest )
+void SetMaterialFeatures(uint newValue, inout BSDFData dest )
 {
     dest.materialFeatures = newValue;
 }
-void SetDiffuseColor(float3 newValue, BSDFData dest )
+void SetDiffuseColor(float3 newValue, inout BSDFData dest )
 {
     dest.diffuseColor = newValue;
 }
-void SetFresnel0(float3 newValue, BSDFData dest )
+void SetFresnel0(float3 newValue, inout BSDFData dest )
 {
     dest.fresnel0 = newValue;
 }
-void SetAmbientOcclusion(float newValue, BSDFData dest )
+void SetAmbientOcclusion(float newValue, inout BSDFData dest )
 {
     dest.ambientOcclusion = newValue;
 }
-void SetNormalWS(float3 newValue, BSDFData dest )
+void SetNormalWS(float3 newValue, inout BSDFData dest )
 {
     dest.normalWS = newValue;
 }
-void SetGeomNormalWS(float3 newValue, BSDFData dest )
+void SetGeomNormalWS(float3 newValue, inout BSDFData dest )
 {
     dest.geomNormalWS = newValue;
 }
-void SetCoatNormalWS(float3 newValue, BSDFData dest )
+void SetCoatNormalWS(float3 newValue, inout BSDFData dest )
 {
     dest.coatNormalWS = newValue;
 }
-void SetBentNormalWS(float3 newValue, BSDFData dest )
+void SetBentNormalWS(float3 newValue, inout BSDFData dest )
 {
     dest.bentNormalWS = newValue;
 }
-void SetPerceptualRoughnessA(float newValue, BSDFData dest )
+void SetPerceptualRoughnessA(float newValue, inout BSDFData dest )
 {
     dest.perceptualRoughnessA = newValue;
 }
-void SetPerceptualRoughnessB(float newValue, BSDFData dest )
+void SetPerceptualRoughnessB(float newValue, inout BSDFData dest )
 {
     dest.perceptualRoughnessB = newValue;
 }
-void SetLobeMix(float newValue, BSDFData dest )
+void SetLobeMix(float newValue, inout BSDFData dest )
 {
     dest.lobeMix = newValue;
 }
-void SetTangentWS(float3 newValue, BSDFData dest )
+void SetTangentWS(float3 newValue, inout BSDFData dest )
 {
     dest.tangentWS = newValue;
 }
-void SetBitangentWS(float3 newValue, BSDFData dest )
+void SetBitangentWS(float3 newValue, inout BSDFData dest )
 {
     dest.bitangentWS = newValue;
 }
-void SetRoughnessAT(float newValue, BSDFData dest )
+void SetRoughnessAT(float newValue, inout BSDFData dest )
 {
     dest.roughnessAT = newValue;
 }
-void SetRoughnessAB(float newValue, BSDFData dest )
+void SetRoughnessAB(float newValue, inout BSDFData dest )
 {
     dest.roughnessAB = newValue;
 }
-void SetRoughnessBT(float newValue, BSDFData dest )
+void SetRoughnessBT(float newValue, inout BSDFData dest )
 {
     dest.roughnessBT = newValue;
 }
-void SetRoughnessBB(float newValue, BSDFData dest )
+void SetRoughnessBB(float newValue, inout BSDFData dest )
 {
     dest.roughnessBB = newValue;
 }
-void SetAnisotropyA(float newValue, BSDFData dest )
+void SetAnisotropyA(float newValue, inout BSDFData dest )
 {
     dest.anisotropyA = newValue;
 }
-void SetAnisotropyB(float newValue, BSDFData dest )
+void SetAnisotropyB(float newValue, inout BSDFData dest )
 {
     dest.anisotropyB = newValue;
 }
-void SetCoatRoughness(float newValue, BSDFData dest )
+void SetCoatRoughness(float newValue, inout BSDFData dest )
 {
     dest.coatRoughness = newValue;
 }
-void SetCoatPerceptualRoughness(float newValue, BSDFData dest )
+void SetCoatPerceptualRoughness(float newValue, inout BSDFData dest )
 {
     dest.coatPerceptualRoughness = newValue;
 }
-void SetCoatIor(float newValue, BSDFData dest )
+void SetCoatIor(float newValue, inout BSDFData dest )
 {
     dest.coatIor = newValue;
 }
-void SetCoatThickness(float newValue, BSDFData dest )
+void SetCoatThickness(float newValue, inout BSDFData dest )
 {
     dest.coatThickness = newValue;
 }
-void SetCoatExtinction(float3 newValue, BSDFData dest )
+void SetCoatExtinction(float3 newValue, inout BSDFData dest )
 {
     dest.coatExtinction = newValue;
 }
-void SetIridescenceIor(float newValue, BSDFData dest )
+void SetIridescenceIor(float newValue, inout BSDFData dest )
 {
     dest.iridescenceIor = newValue;
 }
-void SetIridescenceThickness(float newValue, BSDFData dest )
+void SetIridescenceThickness(float newValue, inout BSDFData dest )
 {
     dest.iridescenceThickness = newValue;
 }
-void SetIridescenceMask(float newValue, BSDFData dest )
+void SetIridescenceMask(float newValue, inout BSDFData dest )
 {
     dest.iridescenceMask = newValue;
 }
-void SetDiffusionProfile(uint newValue, BSDFData dest )
+void SetDiffusionProfile(uint newValue, inout BSDFData dest )
 {
     dest.diffusionProfile = newValue;
 }
-void SetSubsurfaceMask(float newValue, BSDFData dest )
+void SetSubsurfaceMask(float newValue, inout BSDFData dest )
 {
     dest.subsurfaceMask = newValue;
 }
-void SetThickness(float newValue, BSDFData dest )
+void SetThickness(float newValue, inout BSDFData dest )
 {
     dest.thickness = newValue;
 }
-void SetUseThickObjectMode(bool newValue, BSDFData dest )
+void SetUseThickObjectMode(bool newValue, inout BSDFData dest )
 {
     dest.useThickObjectMode = newValue;
 }
-void SetTransmittance(float3 newValue, BSDFData dest )
+void SetTransmittance(float3 newValue, inout BSDFData dest )
 {
     dest.transmittance = newValue;
 }

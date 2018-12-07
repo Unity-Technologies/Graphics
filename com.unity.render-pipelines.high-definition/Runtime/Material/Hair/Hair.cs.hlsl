@@ -223,103 +223,103 @@ float GetSecondarySpecularShift(BSDFData value)
 //
 // Setters for UnityEngine.Experimental.Rendering.HDPipeline.Hair+BSDFData
 //
-void SetMaterialFeatures(uint newValue, BSDFData dest )
+void SetMaterialFeatures(uint newValue, inout BSDFData dest )
 {
     dest.materialFeatures = newValue;
 }
-void SetAmbientOcclusion(float newValue, BSDFData dest )
+void SetAmbientOcclusion(float newValue, inout BSDFData dest )
 {
     dest.ambientOcclusion = newValue;
 }
-void SetSpecularOcclusion(float newValue, BSDFData dest )
+void SetSpecularOcclusion(float newValue, inout BSDFData dest )
 {
     dest.specularOcclusion = newValue;
 }
-void SetDiffuseColor(float3 newValue, BSDFData dest )
+void SetDiffuseColor(float3 newValue, inout BSDFData dest )
 {
     dest.diffuseColor = newValue;
 }
-void SetFresnel0(float3 newValue, BSDFData dest )
+void SetFresnel0(float3 newValue, inout BSDFData dest )
 {
     dest.fresnel0 = newValue;
 }
-void SetSpecularTint(float3 newValue, BSDFData dest )
+void SetSpecularTint(float3 newValue, inout BSDFData dest )
 {
     dest.specularTint = newValue;
 }
-void SetNormalWS(float3 newValue, BSDFData dest )
+void SetNormalWS(float3 newValue, inout BSDFData dest )
 {
     dest.normalWS = newValue;
 }
-void SetGeomNormalWS(float3 newValue, BSDFData dest )
+void SetGeomNormalWS(float3 newValue, inout BSDFData dest )
 {
     dest.geomNormalWS = newValue;
 }
-void SetPerceptualRoughness(float newValue, BSDFData dest )
+void SetPerceptualRoughness(float newValue, inout BSDFData dest )
 {
     dest.perceptualRoughness = newValue;
 }
-void SetDiffusionProfile(uint newValue, BSDFData dest )
+void SetDiffusionProfile(uint newValue, inout BSDFData dest )
 {
     dest.diffusionProfile = newValue;
 }
-void SetSubsurfaceMask(float newValue, BSDFData dest )
+void SetSubsurfaceMask(float newValue, inout BSDFData dest )
 {
     dest.subsurfaceMask = newValue;
 }
-void SetThickness(float newValue, BSDFData dest )
+void SetThickness(float newValue, inout BSDFData dest )
 {
     dest.thickness = newValue;
 }
-void SetUseThickObjectMode(bool newValue, BSDFData dest )
+void SetUseThickObjectMode(bool newValue, inout BSDFData dest )
 {
     dest.useThickObjectMode = newValue;
 }
-void SetTransmittance(float3 newValue, BSDFData dest )
+void SetTransmittance(float3 newValue, inout BSDFData dest )
 {
     dest.transmittance = newValue;
 }
-void SetTangentWS(float3 newValue, BSDFData dest )
+void SetTangentWS(float3 newValue, inout BSDFData dest )
 {
     dest.tangentWS = newValue;
 }
-void SetBitangentWS(float3 newValue, BSDFData dest )
+void SetBitangentWS(float3 newValue, inout BSDFData dest )
 {
     dest.bitangentWS = newValue;
 }
-void SetRoughnessT(float newValue, BSDFData dest )
+void SetRoughnessT(float newValue, inout BSDFData dest )
 {
     dest.roughnessT = newValue;
 }
-void SetRoughnessB(float newValue, BSDFData dest )
+void SetRoughnessB(float newValue, inout BSDFData dest )
 {
     dest.roughnessB = newValue;
 }
-void SetAnisotropy(float newValue, BSDFData dest )
+void SetAnisotropy(float newValue, inout BSDFData dest )
 {
     dest.anisotropy = newValue;
 }
-void SetSecondaryPerceptualRoughness(float newValue, BSDFData dest )
+void SetSecondaryPerceptualRoughness(float newValue, inout BSDFData dest )
 {
     dest.secondaryPerceptualRoughness = newValue;
 }
-void SetSecondarySpecularTint(float3 newValue, BSDFData dest )
+void SetSecondarySpecularTint(float3 newValue, inout BSDFData dest )
 {
     dest.secondarySpecularTint = newValue;
 }
-void SetSpecularExponent(float newValue, BSDFData dest )
+void SetSpecularExponent(float newValue, inout BSDFData dest )
 {
     dest.specularExponent = newValue;
 }
-void SetSecondarySpecularExponent(float newValue, BSDFData dest )
+void SetSecondarySpecularExponent(float newValue, inout BSDFData dest )
 {
     dest.secondarySpecularExponent = newValue;
 }
-void SetSpecularShift(float newValue, BSDFData dest )
+void SetSpecularShift(float newValue, inout BSDFData dest )
 {
     dest.specularShift = newValue;
 }
-void SetSecondarySpecularShift(float newValue, BSDFData dest )
+void SetSecondarySpecularShift(float newValue, inout BSDFData dest )
 {
     dest.secondarySpecularShift = newValue;
 }

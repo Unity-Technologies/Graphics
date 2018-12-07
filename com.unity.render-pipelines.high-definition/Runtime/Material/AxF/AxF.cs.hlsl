@@ -152,63 +152,63 @@ float3 GetGeomNormalWS(BSDFData value)
 //
 // Setters for UnityEngine.Experimental.Rendering.HDPipeline.AxF+BSDFData
 //
-void SetNormalWS(float3 newValue, BSDFData dest )
+void SetNormalWS(float3 newValue, inout BSDFData dest )
 {
     dest.normalWS = newValue;
 }
-void SetTangentWS(float3 newValue, BSDFData dest )
+void SetTangentWS(float3 newValue, inout BSDFData dest )
 {
     dest.tangentWS = newValue;
 }
-void SetBiTangentWS(float3 newValue, BSDFData dest )
+void SetBiTangentWS(float3 newValue, inout BSDFData dest )
 {
     dest.biTangentWS = newValue;
 }
-void SetDiffuseColor(float3 newValue, BSDFData dest )
+void SetDiffuseColor(float3 newValue, inout BSDFData dest )
 {
     dest.diffuseColor = newValue;
 }
-void SetSpecularColor(float3 newValue, BSDFData dest )
+void SetSpecularColor(float3 newValue, inout BSDFData dest )
 {
     dest.specularColor = newValue;
 }
-void SetFresnelF0(float3 newValue, BSDFData dest )
+void SetFresnelF0(float3 newValue, inout BSDFData dest )
 {
     dest.fresnelF0 = newValue;
 }
-void SetRoughness(float2 newValue, BSDFData dest )
+void SetRoughness(float2 newValue, inout BSDFData dest )
 {
     dest.roughness = newValue;
 }
-void SetHeight_mm(float newValue, BSDFData dest )
+void SetHeight_mm(float newValue, inout BSDFData dest )
 {
     dest.height_mm = newValue;
 }
-void SetAnisotropyAngle(float newValue, BSDFData dest )
+void SetAnisotropyAngle(float newValue, inout BSDFData dest )
 {
     dest.anisotropyAngle = newValue;
 }
-void SetFlakesUV(float2 newValue, BSDFData dest )
+void SetFlakesUV(float2 newValue, inout BSDFData dest )
 {
     dest.flakesUV = newValue;
 }
-void SetFlakesMipLevel(float newValue, BSDFData dest )
+void SetFlakesMipLevel(float newValue, inout BSDFData dest )
 {
     dest.flakesMipLevel = newValue;
 }
-void SetClearcoatColor(float3 newValue, BSDFData dest )
+void SetClearcoatColor(float3 newValue, inout BSDFData dest )
 {
     dest.clearcoatColor = newValue;
 }
-void SetClearcoatNormalWS(float3 newValue, BSDFData dest )
+void SetClearcoatNormalWS(float3 newValue, inout BSDFData dest )
 {
     dest.clearcoatNormalWS = newValue;
 }
-void SetClearcoatIOR(float newValue, BSDFData dest )
+void SetClearcoatIOR(float newValue, inout BSDFData dest )
 {
     dest.clearcoatIOR = newValue;
 }
-void SetGeomNormalWS(float3 newValue, BSDFData dest )
+void SetGeomNormalWS(float3 newValue, inout BSDFData dest )
 {
     dest.geomNormalWS = newValue;
 }

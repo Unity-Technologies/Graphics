@@ -436,9 +436,9 @@ namespace UnityEditor.Experimental.Rendering
                     setterName = "Set" + char.ToUpper(setterName[0]) + setterName.Substring(1);
 
                     if (shaderField.arraySize > 0)
-                        shaderText += "void " + setterName + "(int index, " + shaderField.typeString + " newValue, " + type.Name + " dest )\n";
+                        shaderText += "void " + setterName + "(int index, " + shaderField.typeString + " newValue, inout " + type.Name + " dest )\n";
                     else
-                        shaderText += "void " + setterName + "(" + shaderField.typeString + " newValue, " + type.Name + " dest )\n";
+                        shaderText += "void " + setterName + "(" + shaderField.typeString + " newValue, inout " + type.Name + " dest )\n";
                     shaderText += "{\n";
 
                     string arrayAccess = "";
