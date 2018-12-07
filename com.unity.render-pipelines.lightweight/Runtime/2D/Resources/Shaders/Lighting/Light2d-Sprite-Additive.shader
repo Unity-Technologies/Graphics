@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Light2D-Sprite"
+﻿Shader "Hidden/Light2D-Sprite-Additive"
 {
 	Properties
 	{

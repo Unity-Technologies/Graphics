@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Light2D-Shape"
+﻿Shader "Hidden/Light2D-Shape-Additive"
 {
 	Properties
 	{

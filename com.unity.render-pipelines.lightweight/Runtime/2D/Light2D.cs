@@ -171,13 +171,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void InsertLight(Light2D light)
         {
-            int shapeLightType = (int)m_ShapeLightType;
+            int lightType = (int)Light2DTypes.Point;
             int index = 0;
-            
-            while(index < m_Lights[shapeLightType].Count && m_ShapeLightOrder > m_Lights[shapeLightType][index].m_ShapeLightOrder)
-                index++;
 
-            m_Lights[shapeLightType].Insert(index, this);
+            if (m_LightProjectionType == LightProjectionTypes.Shape)
+            {
+                lightType = (int)m_ShapeLightType;
+                while (index < m_Lights[lightType].Count && m_ShapeLightOrder > m_Lights[lightType][index].m_ShapeLightOrder)
+                    index++;
+            }
+
+            m_Lights[lightType].Insert(index, this);
         }
 
         public void UpdateShapeLightType(ShapeLightTypes type)
@@ -824,7 +828,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Sorting
             if(CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && this.m_LightProjectionType == LightProjectionTypes.Shape)
             {
-                m_Lights[(int)LightProjectionTypes.Shape].Remove(this);
+                //m_ShapeLightStyle = CookieStyles.Parametric;
+                //m_ShapLight = ShapeLightTypes.LocalAmbient
+                m_Lights[(int)m_ShapeLightType].Remove(this);
                 InsertLight(this);
             }
 
