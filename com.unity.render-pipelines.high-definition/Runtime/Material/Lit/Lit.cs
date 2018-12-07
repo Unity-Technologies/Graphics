@@ -103,86 +103,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1050, false, true)]
         public struct BSDFData
         {
-#if false
-                        
-            [PackingAttribute("MaterialFeatures", FieldPacking.NoPacking, 0)]
-            public uint materialFeatures;
-            
-            [PackingAttribute("DiffuseColor", FieldPacking.NoPacking, 128, 0, 0, 1, false, true)]
-            public Vector3 diffuseColor;
-            [PackingAttribute("Fresnel0", FieldPacking.NoPacking)]
+            [PackingAttribute("Fresnel0", FieldPacking.NoPacking)]      // Better this way.
             public Vector3 fresnel0;
-
-            [PackingAttribute("AmbientOcclusion", FieldPacking.NoPacking)]
-            public float ambientOcclusion; // Caution: This is accessible only if light layer is enabled, otherwise it is 1
-            [PackingAttribute("SpecularOcclusion", FieldPacking.NoPacking)]
-            public float specularOcclusion;
+            [PackingAttribute("DiffuseColor", FieldPacking.R11G11B10, 32, 0, 0, 1, false, true)]    // Ok
+            public uint diffuseColor;
 
             [PackingAttribute(new string[] { "NormalWS", "NormalViewSpace" }, FieldPacking.NoPacking, 0, 128, 0, 1, true, false)]
             public Vector3 normalWS;
-            [PackingAttribute("PerceptualRoughness", FieldPacking.NoPacking)]
-            public float perceptualRoughness;
-            [PackingAttribute("CoatMask", FieldPacking.NoPacking)]
-            public float coatMask;
-
-            // MaterialFeature dependent attribute
-
-            // SpecularColor fold into fresnel0
-
-            // SSS
-            [PackingAttribute("DiffusionProfile", FieldPacking.NoPacking)]
-            public uint diffusionProfile;
-            [PackingAttribute("SubsurfaceMask", FieldPacking.NoPacking)]
-            public float subsurfaceMask;
-
-            // Transmission
-            // + Diffusion Profile
-            [PackingAttribute("Thickness", FieldPacking.NoPacking)]
-            public float thickness;
-            [PackingAttribute("Transmittance", FieldPacking.NoPacking)]
-            public Vector3 transmittance;   // Precomputation of transmittance
-
-            // Anisotropic
-            [PackingAttribute("TangentWS", FieldPacking.NoPacking)]
-            public Vector3 tangentWS;
-            [PackingAttribute("BitangentWS", FieldPacking.NoPacking)]
-            public Vector3 bitangentWS;
-            [PackingAttribute("RoughnessT", FieldPacking.NoPacking)]
-            public float roughnessT;
-            [PackingAttribute("RoughnessB", FieldPacking.NoPacking)]
-            public float roughnessB;
-            [PackingAttribute("Anisotropy", FieldPacking.NoPacking)]
-            public float anisotropy;
-
-            // Iridescence
-            [PackingAttribute("IridescenceThickness", FieldPacking.NoPacking)]
-            public float iridescenceThickness;
-            [PackingAttribute("IridescenceMask", FieldPacking.NoPacking)]
-            public float iridescenceMask;
-
-            // ClearCoat
-            [PackingAttribute("CoatRoughness", FieldPacking.NoPacking)]
-            public float coatRoughness; // Automatically fill
-
-            // Forward property only
-
-            // Transparency
-            [PackingAttribute("IOR", FieldPacking.NoPacking)]
-            public float ior;
-            // Reuse thickness from SSS
-            [PackingAttribute("AbsorptionCoefficient", FieldPacking.NoPacking)]
-            public Vector3 absorptionCoefficient;
-            [PackingAttribute("TransmittanceMask", FieldPacking.NoPacking)]
-            public float transmittanceMask;
-
-#else
-            [PackingAttribute("DiffuseColor", FieldPacking.NoPacking, 128, 0, 0, 1, false, true)]
-            public Vector3 diffuseColor;
-            [PackingAttribute("Fresnel0", FieldPacking.R11G11B10, 32, 0, 0, 1, false, true)]
-            public uint fresnel0;
-
-            [PackingAttribute("MaterialFeatures", FieldPacking.NoPacking, 0)]
+            // It is important that materialFeature stays in the bottom bits. 
+            [PackingAttribute("TransmittanceMask", FieldPacking.PackedFloat, 5, 27),
+             PackingAttribute("CoatMask", FieldPacking.PackedFloat, 5, 22),
+             PackingAttribute("MaterialFeatures", FieldPacking.PackedUint, 22, 0)]
             public uint materialFeatures;
+
 
             [PackingAttribute("PerceptualRoughness", FieldPacking.PackedFloat, 8, 24),
             PackingAttribute("CoatRoughness", FieldPacking.PackedFloat, 8, 16),
@@ -190,38 +123,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PackingAttribute("SpecularOcclusion", FieldPacking.PackedFloat, 8, 0)]
             public uint roughnessesAndOcclusions;
 
-            [PackingAttribute("DiffusionProfile", FieldPacking.PackedUint, 8, 24),
-            PackingAttribute("SubsurfaceMask", FieldPacking.PackedFloat, 8, 16),
-            PackingAttribute("IOR", FieldPacking.PackedFloat, 16, 0, 1.0f, 2.5f)]
-            public uint SSSData;
+            [PackingAttribute("Transmittance", FieldPacking.R11G11B10)]
+            public uint transmittance;   // Precomputation of transmittance
 
-            [PackingAttribute("Anisotropy", FieldPacking.PackedFloat, 8, 24, -1.0f, 1.0f),
-            PackingAttribute("RoughnessT", FieldPacking.PackedFloat, 8, 16, 0.0f, 2.0f),
-            PackingAttribute("RoughnessB", FieldPacking.PackedFloat, 8, 8, 0.0f, 2.0f),
-            PackingAttribute("Flags", FieldPacking.PackedUint, 8, 0)]
-            public uint anisoDataAndFlags;
-
-            [PackingAttribute("IridescenceThickness", FieldPacking.PackedFloat, 8, 24),
-            PackingAttribute("IridescenceMask", FieldPacking.PackedFloat, 8, 16),
-            PackingAttribute("TransmittanceMask", FieldPacking.PackedFloat, 8, 8),
-            PackingAttribute("CoatMask", FieldPacking.PackedFloat, 8, 0)]
-            public uint iridescenceAndMasks;
-
-            [PackingAttribute(new string[] { "NormalWS", "NormalViewSpace" }, FieldPacking.NoPacking, 0, 128, 0, 1, true, false)]
-            public Vector3 normalWS;
-
-            [PackingAttribute("Transmittance", FieldPacking.NoPacking)]
-            public Vector3 transmittance;                   // Precomputation of transmittance
-
-            [PackingAttribute("TangentWS", FieldPacking.R11G11B10, 0, 32, -1.0f, 1.0f, true)]
-            public uint tangentWS;
-            [PackingAttribute("BitangentWS", FieldPacking.R11G11B10, 0, 32, -1.0f, 1.0f, true)]
-            public uint bitangentWS;
-            [PackingAttribute("AbsorptionCoefficient", FieldPacking.R11G11B10, 0, 32, 0, 1, false, true)]
-            public uint absorptionCoefficient;
             [PackingAttribute("Thickness", FieldPacking.NoPacking)]
             public float thickness;
-#endif
+
+            [PackingAttribute("IOR", FieldPacking.PackedFloat, 12, 20, 1.0f, 2.5f),
+            PackingAttribute("IridescenceMask", FieldPacking.PackedFloat, 4, 16),
+            PackingAttribute("IridescenceThickness", FieldPacking.PackedFloat, 8, 8),
+            PackingAttribute("SubsurfaceMask", FieldPacking.PackedFloat, 4, 4),
+            PackingAttribute("DiffusionProfile", FieldPacking.PackedUint, 4, 0)]
+            public uint IORMasksAndSSS;
+
+            [PackingAttribute("TangentWS", FieldPacking.NoPacking)]     // Better like this. 
+            public Vector3 tangentWS;
+            [PackingAttribute("RoughnessB", FieldPacking.PackedFloat, 12, 20, 0.0f, 2.0f),
+            PackingAttribute("RoughnessT", FieldPacking.PackedFloat, 12, 8, 0.0f, 2.0f),
+            PackingAttribute("Anisotropy", FieldPacking.PackedFloat, 8, 0, -1.0f, 1.0f)]
+            public uint anisoData;
+
+
+            [PackingAttribute("BitangentWS", FieldPacking.NoPacking)]   // Better like this.
+            public Vector3 bitangentWS;
+            [PackingAttribute("AbsorptionCoefficient", FieldPacking.R11G11B10)]
+            public uint absorptionCoefficient;
         };
 
         //-----------------------------------------------------------------------------
