@@ -356,7 +356,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_ShapeLightStyle == CookieStyles.Sprite)
                 {
                     // This is causing Object.op_inequality fix this
-                    if (m_ShapeCookieSpriteMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
+                    if (m_ShapeCookieSpriteVolumeMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
                     {
                         Shader shader = Shader.Find("Hidden/Light2d-Sprite-Volumetric");
                         if (shader != null)
@@ -368,7 +368,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                             Debug.LogError("Missing shader Light2d-Sprite-Volumetric");
                     }
 
-                    return m_ShapeCookieSpriteMaterial;
+                    return m_ShapeCookieSpriteVolumeMaterial;
                 }
                 else
                 {
@@ -547,9 +547,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public Mesh GenerateSpriteMesh(Sprite sprite, Color color)
         {
-
-            //if (m_Mesh == null)
-            //{
             if (sprite != null)
             {
                 Vector2[] vertices2d = sprite.vertices;
@@ -584,6 +581,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_Mesh.uv = sprite.uv;
                 m_Mesh.triangles = triangles3d;
                 m_Mesh.colors = colors;
+                m_Mesh.tangents = volumeColor;
 
                 CalculateBoundingSphere(ref vertices3d);
             }
@@ -639,6 +637,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public void UpdateMaterial()
         {
             m_ShapeCookieSpriteMaterial = null;
+            m_ShapeCookieSpriteVolumeMaterial = null;
             GetMaterial();
         }
 
