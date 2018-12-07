@@ -370,6 +370,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
+	// Anisotropy default is not its minimum, since it could be packed in bsdfData, we need to explictly initialize it to 0 (that will get remapped to 0.5 given its range) 
+	InitAnisotropy(0.0f, bsdfData);
 
     // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures    = surfaceData.materialFeatures;
@@ -630,6 +632,9 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID,
     // bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0, etc...
     ZERO_INITIALIZE(BSDFData, bsdfData);
+	// Anisotropy default is not its minimum, since it could be packed in bsdfData, we need to explictly initialize it to 0 (that will get remapped to 0.5 given its range) 
+	InitAnisotropy(0.0f, bsdfData);
+
     // Note: Some properties of builtinData are not used, just init all at 0 to silent the compiler
     ZERO_INITIALIZE(BuiltinData, builtinData);
 
