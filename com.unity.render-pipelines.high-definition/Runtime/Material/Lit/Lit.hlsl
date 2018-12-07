@@ -219,8 +219,8 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
     SetAnisotropy(anisotropy, bsdfData);
-	SetTangentWS(tangentWS, bsdfData);
-	SetBitangentWS(bitangentWS, bsdfData);
+	InitTangentWS(tangentWS, bsdfData);
+	InitBitangentWS(bitangentWS, bsdfData);
 }
 
 void FillMaterialIridescence(float mask, float thickness, inout BSDFData bsdfData)
@@ -252,7 +252,7 @@ void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, f
 
     InitAbsorptionCoefficient(TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance), bsdfData);
     InitTransmittanceMask(transmittanceMask, bsdfData);
-    SetThickness(max(thickness, 0.0001), bsdfData);
+    InitThickness(max(thickness, 0.0001), bsdfData);
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -950,7 +950,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     float3 N = GetNormalWS(bsdfData);
     preLightData.NdotV = dot(N, V);
-    preLightData.iblPerceptualRoughness = GetPerceptualRoughness(bsdfData);
+	float perceptualRoughness = GetPerceptualRoughness(bsdfData);
+    preLightData.iblPerceptualRoughness = perceptualRoughness;
 
     float NdotV = ClampNdotV(preLightData.NdotV);
 
@@ -1037,7 +1038,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Area light
     // UVs for sampling the LUTs
     float theta = FastACosPos(NdotV); // For Area light - UVs for sampling the LUTs
-    float2 uv = Remap01ToHalfTexelCoord(float2(GetPerceptualRoughness(bsdfData), theta * INV_HALF_PI), LTC_LUT_SIZE);
+    float2 uv = Remap01ToHalfTexelCoord(float2(perceptualRoughness, theta * INV_HALF_PI), LTC_LUT_SIZE);
 
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
@@ -1216,9 +1217,10 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
+		float coatMask = GetCoatMask(bsdfData);
         // Apply isotropic GGX for clear coat
         // Note: coat F is scalar as it is a dieletric
-        float coatF = F_Schlick(CLEAR_COAT_F0, LdotH) * GetCoatMask(bsdfData);
+        float coatF = F_Schlick(CLEAR_COAT_F0, LdotH) * coatMask;
         // Scale base specular
         specularLighting *= Sq(1.0 - coatF);
 
@@ -1230,7 +1232,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // Note: The modification of the base roughness and fresnel0 by the clear coat is already handled in FillMaterialClearCoatData
 
         // Very coarse attempt at doing energy conservation for the diffuse layer based on NdotL. No science.
-        diffuseLighting *= lerp(1, 1.0 - coatF, GetCoatMask(bsdfData));
+        diffuseLighting *= lerp(1, 1.0 - coatF, coatMask);
     }
 }
 
