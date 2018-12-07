@@ -11,7 +11,7 @@
 
 		Pass
 		{
-			Blend SrcAlpha OneMinusSrcAlpha
+			Blend SrcAlpha One
 			BlendOp Add
 			ZWrite Off
 			ZTest Off 
@@ -41,7 +41,7 @@
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-				o.color = saturate(v.color * v.volumeColor);
+				o.color = v.color * v.volumeColor;
                 return o;
             }
 

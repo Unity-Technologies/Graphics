@@ -12,7 +12,7 @@
 
 		Pass
 		{
-			Blend SrcAlpha OneMinusSrcAlpha
+			Blend SrcAlpha One
 			BlendOp Add
 			ZWrite Off
 			ZTest Off 
