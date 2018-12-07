@@ -175,6 +175,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             SerializedProperty shapeLightParametricSides = serializedObject.FindProperty("m_ParametricSides");
             SerializedProperty shapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
             SerializedProperty shapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
+            SerializedProperty shapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
 
             int prevShapeLightStyle = shapeLightStyle.intValue;
 
@@ -218,6 +219,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
                 EditorGUI.indentLevel--;
             }
+
+            EditorGUILayout.PropertyField(shapeLightOrder, EditorGUIUtility.TrTextContent("Light Order", "Shape light order"));
 
             EditorGUI.indentLevel--;
 
@@ -438,10 +441,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             Color previousColor = lightColor.colorValue;
             EditorGUILayout.PropertyField(lightColor, EditorGUIUtility.TrTextContent("Light Color", "Specify the light color"));
-
             EditorGUILayout.Slider(volumetricAlpha, 0, 1, EditorGUIUtility.TrTextContent("Light Volume Opacity", "Specify the light color"));
-
             InternalEditorBridge.SortingLayerField(EditorGUIUtility.TrTextContent("Target Sorting Layer", "Apply this light to the specifed layer"), applyToLayers, EditorStyles.popup, EditorStyles.label);
+
+
+
 
             if (lightObject.m_ParametricShape == Light2D.ParametricShapes.Freeform && lightObject.LightProjectionType == Light2D.LightProjectionTypes.Shape && lightObject.m_ShapeLightStyle != Light2D.CookieStyles.Sprite)
             {

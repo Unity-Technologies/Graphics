@@ -110,6 +110,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private float m_LightVolumeOpacity = 0.0f;
         private float m_PreviousLightVolumeOpacity = 0.0f;
 
+        [SerializeField]
+        private int m_ShapeLightOrder = 0;
+        private int m_PreviousShapeLightOrder = 0;
+
         public float LightVolumeOpacity
         {
             get { return m_LightVolumeOpacity; }
@@ -152,6 +156,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return boundingSphere;            
         }
 
+        public void InsertLight(Light2D light)
+        {
+            int shapeLightType = (int)m_ShapeLightType;
+            int index = 0;
+            
+            while(index < m_Lights[shapeLightType].Count && m_ShapeLightOrder > m_Lights[shapeLightType][index].m_ShapeLightOrder)
+                index++;
+
+            m_Lights[shapeLightType].Insert(index, this);
+        }
+
         public void UpdateShapeLightType(ShapeLightTypes type)
         {
             if (m_LightProjectionType == LightProjectionTypes.Shape)
@@ -159,9 +174,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (type != m_PreviousShapeLightType)
                 {
                     m_Lights[(int)m_ShapeLightType].Remove(this);
-                    m_Lights[(int)type].Add(this);
                     m_ShapeLightType = type;
                     m_PreviousShapeLightType = m_ShapeLightType;
+                    InsertLight(this);
                 }
             }
         }
@@ -762,6 +777,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void LateUpdate()
         {
+            // Sorting
+            if(CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && this.m_LightProjectionType == LightProjectionTypes.Shape)
+            {
+                m_Lights[(int)LightProjectionTypes.Shape].Remove(this);
+                InsertLight(this);
+            }
+
+            // Mesh Rebuilding
             bool rebuildMesh = false;
 
             rebuildMesh |= CheckForColorChange(m_LightColor, ref m_PreviousLightColor);
