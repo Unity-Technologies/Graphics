@@ -99,6 +99,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2006_Spot_Angle_Distance.unity
     guid: c39638d0d6bfcf644b4b6966af6fc876
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2007_FogFallback.unity
+    guid: d04c39af67e5e18449a44f6a7778862f
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2101_GI_Metapass.unity
     guid: 8747b43f8bcf2b44cbc3ece373da65a9
   - enabled: 1
