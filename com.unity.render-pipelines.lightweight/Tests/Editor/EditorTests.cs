@@ -4,6 +4,7 @@ using UnityEngine.Rendering.LWRP;
 
 class EditorTests
 {
+    // When creating LWRP all required resources should be initialized.
     [Test]
     public void ValidateNewAssetResources()
     {
@@ -22,6 +23,7 @@ class EditorTests
         ScriptableObject.DestroyImmediate(asset);
     }
 
+    // When changing LWRP settings, all settings should be valid.
     [Test]
     public void ValidateAssetSettings()
     {
@@ -56,6 +58,6 @@ class EditorTests
             asset.maxAdditionalLightsCount = 32;
             Assert.LessOrEqual(asset.maxAdditionalLightsCount, LightweightRenderPipeline.maxPerObjectLightCount);
         }
-        ScriptableObject.Destroy(asset);
+        ScriptableObject.DestroyImmediate(asset);
     }
 }

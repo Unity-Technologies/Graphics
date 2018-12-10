@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed windows and in-game DebugMenu sync.
 - Fixed FrameSettings' LitShaderMode sync when opening DebugMenu.
 - Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader
+- Fixed an issue with flipped depth buffer during postprocessing
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
