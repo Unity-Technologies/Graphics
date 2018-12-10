@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.3.0-preview] - 2018-11-xx
 ### Added
 - Add spawnTime & spawnCount operator
+- Add seed slot to constant random mode of Attribute from curve and map
 ### Fixed
 - Some fixes in noise library
 - Some fixes in the Visual Effect inspector
 - Visual Effects menu is now is the right place
 - Remove some D3D11, metal and C# warnings
 - Fix in sequential line to include the end point
+- Fix a bug with attributes in Attribute from curve
 
 ## [5.2.0-preview] - 2018-11-27
 ### Added
