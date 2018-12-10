@@ -128,6 +128,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube: return "TextureCube";
                 case VFXValueType.TextureCubeArray: return "TextureCubeArray";
                 case VFXValueType.Matrix4x4: return "float4x4";
+                case VFXValueType.Mesh: return "Buffer<float>";
                 case VFXValueType.Boolean: return "bool";
             }
             throw new NotImplementedException(type.ToString());
@@ -190,6 +191,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray:
                 case VFXValueType.Matrix4x4:
+                case VFXValueType.Mesh:
                 case VFXValueType.Boolean:
                     return true;
             }
@@ -210,6 +212,11 @@ namespace UnityEditor.VFX
             }
 
             return false;
+        }
+
+        public static bool IsTextureOrMesh(VFXValueType type)
+        {
+            return IsTexture(type) || (type == VFXValueType.Mesh);
         }
 
         public static bool IsUniform(VFXValueType type)

@@ -359,10 +359,10 @@ namespace UnityEditor.VFX
 
             var globalDeclaration = new VFXShaderWriter();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
-            globalDeclaration.WriteTexture(contextData.uniformMapper);
+            globalDeclaration.WriteTexturesAndMeshes(contextData.uniformMapper);
 
             var linkedEventOut = context.allLinkedOutputSlot.Where(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>().CanBeCompiled()).ToList();
-            globalDeclaration.WriteEventBuffer(eventListOutName, linkedEventOut.Count);
+            globalDeclaration.WriteEventBuffers(eventListOutName, linkedEventOut.Count);
 
             //< Block processor
             var blockFunction = new VFXShaderWriter();

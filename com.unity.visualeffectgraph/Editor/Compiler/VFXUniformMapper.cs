@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
                     prefix = "uniform_";
                     expressions = m_UniformToName;
                 }
-                else if (VFXExpression.IsTexture(exp.valueType))
+                else if (VFXExpression.IsTextureOrMesh(exp.valueType))
                 {
                     prefix = "texture_";
                     expressions = m_TextureToName;
@@ -76,9 +76,9 @@ namespace UnityEditor.VFX
         public IEnumerable<VFXExpression> textures { get { return m_TextureToName.Keys; } }
 
         // Get only the first name of a uniform (For generated code, we collapse all uniforms using the same expression into a single one)
-        public string GetName(VFXExpression exp)        { return VFXExpression.IsTexture(exp.valueType) ? m_TextureToName[exp].First() : m_UniformToName[exp].First(); }
+        public string GetName(VFXExpression exp)        { return VFXExpression.IsTextureOrMesh(exp.valueType) ? m_TextureToName[exp].First() : m_UniformToName[exp].First(); }
 
-        public List<string> GetNames(VFXExpression exp) { return VFXExpression.IsTexture(exp.valueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
+        public List<string> GetNames(VFXExpression exp) { return VFXExpression.IsTextureOrMesh(exp.valueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
 
         // This retrieves expression to name with additional type conversion where suitable
         public Dictionary<VFXExpression, string> expressionToCode

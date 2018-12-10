@@ -205,16 +205,17 @@ namespace UnityEditor.VFX
             return padding;
         }
 
-        public void WriteTexture(VFXUniformMapper mapper)
+        public void WriteTexturesAndMeshes(VFXUniformMapper mapper)
         {
             foreach (var texture in mapper.textures)
             {
                 WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), mapper.GetName(texture));
-                WriteLineFormat("SamplerState sampler{0};", mapper.GetName(texture));
+                if (VFXExpression.IsTexture(texture.valueType))
+                    WriteLineFormat("SamplerState sampler{0};", mapper.GetName(texture));
             }
         }
 
-        public void WriteEventBuffer(string baseName, int count)
+        public void WriteEventBuffers(string baseName, int count)
         {
             for (int i = 0; i < count; ++i)
             {
@@ -279,6 +280,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D: return "VFXSampler3D";
                 case VFXValueType.TextureCube: return "VFXSamplerCube";
                 case VFXValueType.TextureCubeArray: return "VFXSamplerCubeArray";
+                case VFXValueType.Mesh: return "Buffer<float>";
 
                 default:
                     return VFXExpression.TypeToCode(type);

@@ -10,6 +10,7 @@
 #define FIXED_RAND2(h) float2(FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND3(h) float3(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND4(h) float4(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
+#define RAND_INT RandInt(seed)
 #define KILL {kill = true;}
 #define SAMPLE sampleSignal
 #define SAMPLE_SPLINE_POSITION(v,u) sampleSpline(v.x,u)
@@ -255,6 +256,12 @@ float Rand(inout uint seed)
     return ToFloat01(seed);
 }
 
+int RandInt(inout uint seed)
+{
+    seed = Lcg(seed);
+    return seed;
+}
+
 float FixedRand(uint seed)
 {
     return ToFloat01(AnotherHash(seed));
@@ -324,6 +331,157 @@ float SampleCurve(float4 curveData,float u)
         case 3: uNorm = HalfTexelOffset(saturate(uNorm)); break; // clamp both
     }
     return bakedTexture.SampleLevel(samplerbakedTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
+}
+
+///////////////////
+// Mesh sampling //
+///////////////////
+
+float4 SampleMeshFloat4(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+{
+    if (attributeOffset == -1)
+        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    int offset = vertexIndex * attributeStride + attributeOffset;
+    return float4(vertices[offset], vertices[offset + 1], vertices[offset + 2], vertices[offset + 3]);
+}
+
+float3 SampleMeshFloat3(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+{
+    if (attributeOffset == -1)
+        return float3(0.0f, 0.0f, 0.0f);
+    int offset = vertexIndex * attributeStride + attributeOffset;
+    return float3(vertices[offset], vertices[offset + 1], vertices[offset + 2]);
+}
+
+float2 SampleMeshFloat2(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+{
+    if (attributeOffset == -1)
+        return float2(0.0f, 0.0f);
+    int offset = vertexIndex * attributeStride + attributeOffset;
+    return float2(vertices[offset], vertices[offset + 1]);
+}
+
+float SampleMeshFloat(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+{
+    if (attributeOffset == -1)
+        return 0.0f;
+    int offset = vertexIndex * attributeStride + attributeOffset;
+    return vertices[offset];
+}
+
+float4 SampleMeshColor(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+{
+    if (attributeOffset == -1)
+        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    uint colorByte = asuint(vertices[vertexIndex * attributeStride + attributeOffset]);
+    return float4(uint4(colorByte << 24, colorByte << 16, colorByte << 8, colorByte) & 255) / 255.0f;
+}
+
+///Builds a random Barycentric coordinate which can be used to generate random points on a triangle:
+// float3 point = v0 * barycentric.x + v1 * barycentric.y + v2 * barycentric.z;
+float3 RandomBarycentricCoord(inout uint seed)
+{
+    float2 uv = RAND2;
+    if (uv.x + uv.y > 1.0f)
+        uv = 1.0f - uv;
+
+    float w = 1.0f - uv.x - uv.y;
+    return float3(uv, w);
+}
+
+float3 RandomBarycentricEdgeCoord(inout uint seed)
+{
+    float3 uvw = RandomBarycentricCoord(seed);
+
+    float edge = RAND;
+    if (edge < 1.0f / 3.0f)
+        uvw.x = 0.0f;
+    else if (edge < 2.0f / 3.0f)
+        uvw.y = 0.0f;
+    else
+        uvw.z = 0.0f;
+
+    return uvw;
+}
+
+int3 SampleMeshSurface(Buffer<float> vertices, float surfaceAmount, int attributeOffset, int attributeStride)
+{
+    /*float areaAmount = (surfaceAmount * totalSurfaceArea);
+
+    float lutSize = surfaceAreaOffsets.size();
+    int lutIndex = (int)min(round(areaAmount * lutSize), lutSize - 1.0f);
+    int triangleIndex = 0;
+
+    int startIndex = (int)surfaceAreaOffsets[lutIndex].index;
+    float accArea = surfaceAreaOffsets[lutIndex].area;
+
+    // Forwards search
+    if (accArea <= areaAmount)
+    {
+        for (int i = startIndex; i < surfaceData.size(); i++)
+        {
+            const MeshTriangleData& data = surfaceData[i];
+            accArea += data.area;
+
+            if (accArea >= areaAmount)
+            {
+                triangleIndex = i;
+                break;
+            }
+        }
+    }
+    // Backwards search
+    else
+    {
+        for (int i = startIndex - 1; i >= 0; i--)
+        {
+            const MeshTriangleData& data = surfaceData[i];
+            accArea -= data.area;
+
+            if (accArea < areaAmount)
+            {
+                triangleIndex = i;
+                break;
+            }
+        }
+    }
+
+    int vertexIndex0 = triangleData[triangleIndex].indices[0];
+    int vertexIndex1 = triangleData[triangleIndex].indices[1];
+    int vertexIndex2 = triangleData[triangleIndex].indices[2];
+
+    return int3(vertexIndex0, vertexIndex1, vertexIndex2) * attributeStride + attributeOffset;*/
+    return int3(0, 1, 2) * attributeStride + attributeOffset;
+}
+
+float3 SampleMeshEdgeFloat3(inout uint seed, Buffer<float> vertices, float surfaceAmount, int attributeOffset, int attributeStride)
+{
+    if (attributeOffset == -1)
+        return float3(0.0f, 0.0f, 0.0f);
+
+    int3 offsets = SampleMeshSurface(vertices, surfaceAmount, attributeOffset, attributeStride);
+
+    float3 vertex0 = float3(vertices[offsets.x], vertices[offsets.x + 1], vertices[offsets.x + 2]);
+    float3 vertex1 = float3(vertices[offsets.y], vertices[offsets.y + 1], vertices[offsets.y + 2]);
+    float3 vertex2 = float3(vertices[offsets.z], vertices[offsets.z + 1], vertices[offsets.z + 2]);
+
+    float3 barycentric = RandomBarycentricEdgeCoord(seed);
+    return vertex0 * barycentric.x + vertex1 * barycentric.y + vertex2 * barycentric.z;
+}
+
+float3 SampleMeshSurfaceFloat3(inout uint seed, Buffer<float> vertices, float surfaceAmount, int attributeOffset, int attributeStride)
+{
+    if (attributeOffset == -1)
+        return float3(0.0f, 0.0f, 0.0f);
+
+    int3 offsets = SampleMeshSurface(vertices, surfaceAmount, attributeOffset, attributeStride);
+
+    float3 vertex0 = float3(vertices[offsets.x], vertices[offsets.x + 1], vertices[offsets.x + 2]);
+    float3 vertex1 = float3(vertices[offsets.y], vertices[offsets.y + 1], vertices[offsets.y + 2]);
+    float3 vertex2 = float3(vertices[offsets.z], vertices[offsets.z + 1], vertices[offsets.z + 2]);
+
+    float3 barycentric = RandomBarycentricCoord(seed);
+    return vertex0 * barycentric.x + vertex1 * barycentric.y + vertex2 * barycentric.z;
 }
 
 ///////////
