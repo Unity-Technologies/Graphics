@@ -26,6 +26,17 @@ namespace UnityEditor.Experimental.Rendering
             {
                 EditorGUI.BeginChangeCheck();
                 ShadowCascadeSplitGUI.HandleCascadeSliderGUI(ref cascadePartitionSizes);
+
+                // Float fields for adding values
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Cascade Settings");
+                for( int i = 0; i < cascadePartitionSizes.Length; ++i)
+                {
+                    EditorGUILayout.FloatField(cascadePartitionSizes[i]);
+                }
+                EditorGUILayout.EndHorizontal();
+
+                // Checking changes to update slider and fields accordingly
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (type == typeof(float))
