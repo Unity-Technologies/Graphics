@@ -420,7 +420,7 @@ namespace UnityEditor.Experimental.Rendering
             return shaderText;
         }
 
-        public string EmitSetters()
+        public string EmitSetters(bool generatingInitFunc = false)
         {
             string shaderText = string.Empty;
 
@@ -433,7 +433,8 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     Accessor acc = shaderField.accessor;
                     string setterName = shaderField.originalName;
-                    setterName = "Set" + char.ToUpper(setterName[0]) + setterName.Substring(1);
+                    string setterOrInit = generatingInitFunc ? "Init" : "Set";
+                    setterName = setterOrInit + char.ToUpper(setterName[0]) + setterName.Substring(1);
 
                     if (shaderField.arraySize > 0)
                         shaderText += "void " + setterName + "(int index, " + shaderField.typeString + " newValue, inout " + type.Name + " dest )\n";
@@ -458,6 +459,7 @@ namespace UnityEditor.Experimental.Rendering
 
             return shaderText;
         }
+
         public string EmitAccessors()
         {
             string shaderText = string.Empty;

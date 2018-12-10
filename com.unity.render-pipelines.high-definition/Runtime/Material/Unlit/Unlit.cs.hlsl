@@ -43,6 +43,13 @@ void SetColor(float3 newValue, inout BSDFData dest )
     dest.color = newValue;
 }
 //
+// Setters for UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData
+//
+void InitColor(float3 newValue, inout BSDFData dest )
+{
+    dest.color = newValue;
+}
+//
 // Debug functions
 //
 void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)

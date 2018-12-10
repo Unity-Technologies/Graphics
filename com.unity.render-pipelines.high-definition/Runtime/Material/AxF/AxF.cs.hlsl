@@ -213,6 +213,69 @@ void SetGeomNormalWS(float3 newValue, inout BSDFData dest )
     dest.geomNormalWS = newValue;
 }
 //
+// Setters for UnityEngine.Experimental.Rendering.HDPipeline.AxF+BSDFData
+//
+void InitNormalWS(float3 newValue, inout BSDFData dest )
+{
+    dest.normalWS = newValue;
+}
+void InitTangentWS(float3 newValue, inout BSDFData dest )
+{
+    dest.tangentWS = newValue;
+}
+void InitBiTangentWS(float3 newValue, inout BSDFData dest )
+{
+    dest.biTangentWS = newValue;
+}
+void InitDiffuseColor(float3 newValue, inout BSDFData dest )
+{
+    dest.diffuseColor = newValue;
+}
+void InitSpecularColor(float3 newValue, inout BSDFData dest )
+{
+    dest.specularColor = newValue;
+}
+void InitFresnelF0(float3 newValue, inout BSDFData dest )
+{
+    dest.fresnelF0 = newValue;
+}
+void InitRoughness(float2 newValue, inout BSDFData dest )
+{
+    dest.roughness = newValue;
+}
+void InitHeight_mm(float newValue, inout BSDFData dest )
+{
+    dest.height_mm = newValue;
+}
+void InitAnisotropyAngle(float newValue, inout BSDFData dest )
+{
+    dest.anisotropyAngle = newValue;
+}
+void InitFlakesUV(float2 newValue, inout BSDFData dest )
+{
+    dest.flakesUV = newValue;
+}
+void InitFlakesMipLevel(float newValue, inout BSDFData dest )
+{
+    dest.flakesMipLevel = newValue;
+}
+void InitClearcoatColor(float3 newValue, inout BSDFData dest )
+{
+    dest.clearcoatColor = newValue;
+}
+void InitClearcoatNormalWS(float3 newValue, inout BSDFData dest )
+{
+    dest.clearcoatNormalWS = newValue;
+}
+void InitClearcoatIOR(float newValue, inout BSDFData dest )
+{
+    dest.clearcoatIOR = newValue;
+}
+void InitGeomNormalWS(float3 newValue, inout BSDFData dest )
+{
+    dest.geomNormalWS = newValue;
+}
+//
 // Debug functions
 //
 void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)

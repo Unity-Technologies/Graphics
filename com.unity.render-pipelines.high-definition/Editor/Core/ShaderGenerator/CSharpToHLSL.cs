@@ -134,6 +134,8 @@ namespace UnityEditor.Experimental.Rendering
                         {
                             writer.Write(gen.EmitAccessors());
                             writer.Write(gen.EmitSetters());
+                            const bool emitInitters = true;
+                            writer.Write(gen.EmitSetters(emitInitters));
                         }
                     }
 

@@ -431,6 +431,137 @@ void SetTransmittance(float3 newValue, inout BSDFData dest )
     dest.transmittance = newValue;
 }
 //
+// Setters for UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData
+//
+void InitMaterialFeatures(uint newValue, inout BSDFData dest )
+{
+    dest.materialFeatures = newValue;
+}
+void InitDiffuseColor(float3 newValue, inout BSDFData dest )
+{
+    dest.diffuseColor = newValue;
+}
+void InitFresnel0(float3 newValue, inout BSDFData dest )
+{
+    dest.fresnel0 = newValue;
+}
+void InitAmbientOcclusion(float newValue, inout BSDFData dest )
+{
+    dest.ambientOcclusion = newValue;
+}
+void InitNormalWS(float3 newValue, inout BSDFData dest )
+{
+    dest.normalWS = newValue;
+}
+void InitGeomNormalWS(float3 newValue, inout BSDFData dest )
+{
+    dest.geomNormalWS = newValue;
+}
+void InitCoatNormalWS(float3 newValue, inout BSDFData dest )
+{
+    dest.coatNormalWS = newValue;
+}
+void InitBentNormalWS(float3 newValue, inout BSDFData dest )
+{
+    dest.bentNormalWS = newValue;
+}
+void InitPerceptualRoughnessA(float newValue, inout BSDFData dest )
+{
+    dest.perceptualRoughnessA = newValue;
+}
+void InitPerceptualRoughnessB(float newValue, inout BSDFData dest )
+{
+    dest.perceptualRoughnessB = newValue;
+}
+void InitLobeMix(float newValue, inout BSDFData dest )
+{
+    dest.lobeMix = newValue;
+}
+void InitTangentWS(float3 newValue, inout BSDFData dest )
+{
+    dest.tangentWS = newValue;
+}
+void InitBitangentWS(float3 newValue, inout BSDFData dest )
+{
+    dest.bitangentWS = newValue;
+}
+void InitRoughnessAT(float newValue, inout BSDFData dest )
+{
+    dest.roughnessAT = newValue;
+}
+void InitRoughnessAB(float newValue, inout BSDFData dest )
+{
+    dest.roughnessAB = newValue;
+}
+void InitRoughnessBT(float newValue, inout BSDFData dest )
+{
+    dest.roughnessBT = newValue;
+}
+void InitRoughnessBB(float newValue, inout BSDFData dest )
+{
+    dest.roughnessBB = newValue;
+}
+void InitAnisotropyA(float newValue, inout BSDFData dest )
+{
+    dest.anisotropyA = newValue;
+}
+void InitAnisotropyB(float newValue, inout BSDFData dest )
+{
+    dest.anisotropyB = newValue;
+}
+void InitCoatRoughness(float newValue, inout BSDFData dest )
+{
+    dest.coatRoughness = newValue;
+}
+void InitCoatPerceptualRoughness(float newValue, inout BSDFData dest )
+{
+    dest.coatPerceptualRoughness = newValue;
+}
+void InitCoatIor(float newValue, inout BSDFData dest )
+{
+    dest.coatIor = newValue;
+}
+void InitCoatThickness(float newValue, inout BSDFData dest )
+{
+    dest.coatThickness = newValue;
+}
+void InitCoatExtinction(float3 newValue, inout BSDFData dest )
+{
+    dest.coatExtinction = newValue;
+}
+void InitIridescenceIor(float newValue, inout BSDFData dest )
+{
+    dest.iridescenceIor = newValue;
+}
+void InitIridescenceThickness(float newValue, inout BSDFData dest )
+{
+    dest.iridescenceThickness = newValue;
+}
+void InitIridescenceMask(float newValue, inout BSDFData dest )
+{
+    dest.iridescenceMask = newValue;
+}
+void InitDiffusionProfile(uint newValue, inout BSDFData dest )
+{
+    dest.diffusionProfile = newValue;
+}
+void InitSubsurfaceMask(float newValue, inout BSDFData dest )
+{
+    dest.subsurfaceMask = newValue;
+}
+void InitThickness(float newValue, inout BSDFData dest )
+{
+    dest.thickness = newValue;
+}
+void InitUseThickObjectMode(bool newValue, inout BSDFData dest )
+{
+    dest.useThickObjectMode = newValue;
+}
+void InitTransmittance(float3 newValue, inout BSDFData dest )
+{
+    dest.transmittance = newValue;
+}
+//
 // Debug functions
 //
 void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
