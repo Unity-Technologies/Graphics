@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             add.volumeLayerMask = settings.volumes.layerMask;
             add.volumeAnchorOverride = settings.volumes.anchorOverride;
             // HD Specific
-            add.renderingPath = settings.renderingPath;
+            add.customRenderingSettings = settings.customRenderingSettings;
             add.flipYMode = settings.flipYMode;
 
             add.OnAfterDeserialize();

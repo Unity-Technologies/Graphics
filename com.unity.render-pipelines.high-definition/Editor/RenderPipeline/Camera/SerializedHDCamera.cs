@@ -17,7 +17,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public SerializedProperty clearColorMode;
         public SerializedProperty backgroundColorHDR;
-        public SerializedProperty renderingPath;
+        public SerializedProperty passThrough;
+        public SerializedProperty customRenderingSettings;
         public SerializedProperty clearDepth;
         public SerializedProperty volumeLayerMask;
         public SerializedProperty volumeAnchorOverride;
@@ -45,7 +46,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);
-            renderingPath = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.renderingPath);
+            passThrough = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fullscreenPassthrough);
+            customRenderingSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.customRenderingSettings);
             clearDepth = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearDepth);
             volumeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeLayerMask);
             volumeAnchorOverride = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeAnchorOverride);
