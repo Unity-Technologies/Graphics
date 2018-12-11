@@ -1241,6 +1241,9 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitReference.hlsl"
 
+#define TUBE_AS_RECTANGLE   1
+
+#if !TUBE_AS_RECTANGLE
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Line - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
@@ -1363,6 +1366,8 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     return lighting;
 }
 
+#endif  // #if !TUBE_AS_RECTANGLE
+
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Area - General area lighting
 //-----------------------------------------------------------------------------
@@ -1377,9 +1382,11 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
+#if !TUBE_AS_RECTANGLE
     // Linear lights are an exception
     if ( lightData.lightType == GPULIGHTTYPE_TUBE )
         return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+#endif
 
 #if defined(LIT_DISPLAY_REFERENCE_AREA)
     IntegrateBSDF_AreaRef_TEMP(V, posInput.positionWS, preLightData, lightData, bsdfData,
@@ -1413,6 +1420,24 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
             intensity = 0.0;
         }
     }
+#if TUBE_AS_RECTANGLE
+    ////////////////////////////////////////////////////////////////////////////
+    // Tube pre-processing
+    // The tube is only a front-facing rectangle so let's rebuild a local frame for that rectangle
+    else if ( lightData.lightType == GPULIGHTTYPE_TUBE )
+    {
+        lightData.lightType = GPULIGHTTYPE_RECTANGLE;
+        lightData.size.y = 0.1;
+        float3  light = posInput.positionWS - lightData.positionRWS;
+
+        // The rectangle light can only rotate about its right axis so we must project the light vector into the plane orthogonal
+        //  to the right axis and attempt to align the normal toward this new direction...
+        light -= dot( light, lightData.right ) * lightData.right;
+        float   D = length(light);
+        lightData.forward = D > 1e-3 ? light / D : lightData.forward;   // Replace forward vector
+        lightData.up = cross( lightData.forward, lightData.right );     // Finalize orthonormal basis
+    }
+#endif
 
 
     ////////////////////////////////////////////////////////////////////////////
