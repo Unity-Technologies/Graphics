@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new API to perform a camera rendering
 - Add suport for hair master node (Double kajiya kay - Lambert)
 - Added Reset behaviour in DebugMenu (ingame mapping is right joystick + B)
+- Added default HD scene at new scene creation while in HDRP.
+- Added Wizard helping to configure HDRP project.
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
