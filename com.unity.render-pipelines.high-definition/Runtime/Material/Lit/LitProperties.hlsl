@@ -172,6 +172,7 @@ float _AORemapMax;
 
 float _NormalScale;
 float4 _NormalMap_TexelSize; // Unity facility. This will provide the size of the base normalmap to the shader
+float4 _NormalMapOS_TexelSize; // Unity facility. This will provide the size of the base normalmap to the shader
 
 float4 _DetailMap_ST;
 float _DetailAlbedoScale;
@@ -229,6 +230,7 @@ PROP_DECL(float, _AORemapMax);
 
 PROP_DECL(float, _NormalScale);
 float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normalmap to the shader
+float4 _NormalMapOS0_TexelSize; // Unity facility. This will provide the size of the base normalmap to the shader
 
 float4 _HeightMap0_TexelSize;
 float4 _HeightMap1_TexelSize;
