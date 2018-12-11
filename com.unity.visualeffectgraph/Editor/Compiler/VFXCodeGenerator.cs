@@ -376,7 +376,7 @@ namespace UnityEditor.VFX
                 var block = current.block;
                 var blockIndex = current.blockIndex;
 
-                var parameters = block.attributes.Select(o =>
+                var parameters = block.mergedAttributes.Select(o =>
                 {
                     return new VFXShaderWriter.FunctionParameter
                     {

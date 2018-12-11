@@ -24,8 +24,8 @@ namespace UnityEditor.VFX.Operator
 
         public class ConstantInputProperties
         {
-            [Tooltip("An optional additional hash.")]
-            public uint hash = 0u;
+            [Tooltip("Seed to compute the constant random")]
+            public uint seed = 0u;
         }
 
         public class OutputProperties
