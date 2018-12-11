@@ -137,7 +137,7 @@ namespace UnityEditor.VFX
 
             var mesh = meshReduce.Get<Mesh>();
             var vertexIndex = vertexIndexReduce.Get<int>();
-            return VFXValue.Constant(mesh.vertices[vertexIndex]);
+            return VFXValue.Constant(mesh.colors[vertexIndex].linear);
         }
 
         public sealed override string GetCodeString(string[] parents)
