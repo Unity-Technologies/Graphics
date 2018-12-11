@@ -113,4 +113,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Noise.unity
     guid: 2ede8f56c35c42741a3d56ef5355b552
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Shapes.unity
+    guid: 992c9d842f1594e4fb4c5c03b42b2081
   m_configObjects: {}
