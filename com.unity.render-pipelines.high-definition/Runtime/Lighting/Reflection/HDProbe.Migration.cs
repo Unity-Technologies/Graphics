@@ -8,13 +8,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected enum Version
         {
             Initial,
-            ProbeSettings
+            ProbeSettings,
+            SeparatePassThrough
         }
 
         protected static readonly MigrationDescription<Version, HDProbe> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.ProbeSettings, (HDProbe p) =>
             {
-#pragma warning disable 618
+#pragma warning disable 618 // Type or member is obsolete
                 p.m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume = !p.m_ObsoleteInfiniteProjection;
                 p.m_ProbeSettings.influence = new InfluenceVolume();
                 if (p.m_ObsoleteInfluenceVolume != null)
@@ -39,7 +40,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 p.m_ProbeSettings.camera.volumes.layerMask = p.m_ObsoleteCaptureSettings.volumeLayerMask;
                 p.m_ProbeSettings.camera.volumes.anchorOverride = p.m_ObsoleteCaptureSettings.volumeAnchorOverride;
                 p.m_ProbeSettings.camera.frustum.fieldOfView = p.m_ObsoleteCaptureSettings.fieldOfView;
-                p.m_ProbeSettings.camera.renderingPath = p.m_ObsoleteCaptureSettings.renderingPath;
+                p.m_ProbeSettings.camera.m_ObsoleteRenderingPath = p.m_ObsoleteCaptureSettings.renderingPath;
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.SeparatePassThrough, (HDProbe p) =>
+            {
+                //note: 0 is UseGraphicsSettings
+                const int k_RenderingPathCustom = 1;
+                //note: 2 is PassThrough which was never supported on probes
+#pragma warning disable 618 // Type or member is obsolete
+                p.m_ProbeSettings.camera.customRenderingSettings = p.m_ProbeSettings.camera.m_ObsoleteRenderingPath == k_RenderingPathCustom;
 #pragma warning restore 618
             })
         );

@@ -878,7 +878,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var cmd = CommandBufferPool.Get("");
 
                 // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
-                if (additionalCameraData && additionalCameraData.renderingPath == HDAdditionalCameraData.RenderingPath.FullscreenPassthrough)
+                if (additionalCameraData && additionalCameraData.fullscreenPassthrough)
                 {
                     renderContext.ExecuteCommandBuffer(cmd);
                     CommandBufferPool.Release(cmd);

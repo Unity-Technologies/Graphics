@@ -85,12 +85,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.flipYMode, serialized.flipYMode, _.GetContent("Flip Y"), @override.camera, displayedFields.camera, overridableFields.camera);
-            PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.renderingPath, serialized.renderingPath, _.GetContent("Rendering Path"), @override.camera, displayedFields.camera, overridableFields.camera);
+            PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.customRenderingSettings, serialized.customRenderingSettings, _.GetContent("Custom Frame Settings"), @override.camera, displayedFields.camera, overridableFields.camera);
 
             if ((displayedFields.camera & CameraSettingsFields.frameSettings) != 0)
             {
-                var renderingPath = (HDAdditionalCameraData.RenderingPath)serialized.renderingPath.intValue;
-                if (renderingPath != HDAdditionalCameraData.RenderingPath.UseGraphicsSettings)
+                //Warning, fullscreenPassThrough have been removed from RenderingPath enum
+                //and replaced with a toggle on the camera. If this script aim to be used
+                //on camera too, add it here.
+                
+                if (serialized.customRenderingSettings.boolValue)
                 {
                     // TODO: place it in static cache
                     var drawer = FrameSettingsUI.Inspector(true);
