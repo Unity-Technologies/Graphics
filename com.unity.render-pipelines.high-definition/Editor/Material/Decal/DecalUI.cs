@@ -115,6 +115,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty metallicScale = new MaterialProperty();
         protected const string kMetallicScale = "_MetallicScale";
 
+        protected MaterialProperty colorMapAlphaScale = new MaterialProperty();
+        protected const string kColorMapAlphaScale = "_DecalColorMapAlphaScale";
+
         protected MaterialProperty maskMapBlueScale = new MaterialProperty();
         protected const string kMaskMapBlueScale = "_DecalMaskMapBlueScale";
 
@@ -141,6 +144,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             smoothnessRemapMin = FindProperty(kSmoothnessRemapMin, props);
             smoothnessRemapMax = FindProperty(kSmoothnessRemapMax, props);
             metallicScale = FindProperty(kMetallicScale, props);
+            colorMapAlphaScale = FindProperty(kColorMapAlphaScale, props);
             maskMapBlueScale = FindProperty(kMaskMapBlueScale, props);
 
             // always instanced
@@ -211,6 +215,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUIUtility.labelWidth = 0f;
             float normalBlendSrcValue = normalBlendSrc.floatValue;
             float maskBlendSrcValue =  maskBlendSrc.floatValue;
+            float smoothnessRemapMinValue = smoothnessRemapMin.floatValue;
+            float smoothnessRemapMaxValue = smoothnessRemapMax.floatValue;
+            float AORemapMinValue = AORemapMin.floatValue;
+            float AORemapMaxValue = AORemapMax.floatValue;
 
             Decal.MaskBlendFlags maskBlendFlags = (Decal.MaskBlendFlags)maskBlendMode.floatValue;              
 
@@ -227,7 +235,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.TexturePropertySingleLine((material.GetFloat(kAlbedoMode) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
                         // Currently always display Albedo contribution as we have an albedo tint that apply
                         EditorGUI.indentLevel++;
-                        m_MaterialEditor.ShaderProperty(albedoMode, Styles.AlbedoModeText);
+                        m_MaterialEditor.ShaderProperty(albedoMode, Styles.albedoModeText);
                         EditorGUI.indentLevel--;
                         m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
                         if (material.GetTexture(kNormalMap))
@@ -289,6 +297,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             }
 
                             EditorGUI.indentLevel--;
+                            m_MaterialEditor.ShaderProperty(maskMapBlueScale, Styles.maskMapBlueScaleText);
+                            m_MaterialEditor.ShaderProperty(metallicScale, Styles.metallicText);
+                            EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
+                            EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
                         }
 
                         m_MaterialEditor.ShaderProperty(maskMapBlueScale, Styles.maskMapBlueScaleText);
@@ -306,6 +318,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         normalBlendSrc.floatValue = normalBlendSrcValue;
                         maskBlendSrc.floatValue = maskBlendSrcValue;
                         maskBlendMode.floatValue = (float)maskBlendFlags;
+                        smoothnessRemapMin.floatValue = smoothnessRemapMinValue;
+                        smoothnessRemapMax.floatValue = smoothnessRemapMaxValue;
+                        AORemapMin.floatValue = AORemapMinValue;
+                        AORemapMax.floatValue = AORemapMaxValue;
+
                         foreach (var obj in m_MaterialEditor.targets)
                             SetupMaterialKeywordsAndPassInternal((Material)obj);
                     }
