@@ -224,7 +224,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     float2 detailAlbedoAndSmoothness = 0;
 
-    if ((ADD_IDX(_DetailAlbedoScale) != 0) && (ADD_IDX(_DetailSmoothnessScale != 0)))
+    if ((ADD_IDX(_DetailAlbedoScale) != 0) || (ADD_IDX(_DetailSmoothnessScale != 0)))
     {
         // If the '_DetailMap' is not bound, and the '_DetailNormalMap' is, we set both of these scales to 0.
         // This will prevent us from illegaly reading the unbound texture, and remove the contribution of the '_DetailMap'.
