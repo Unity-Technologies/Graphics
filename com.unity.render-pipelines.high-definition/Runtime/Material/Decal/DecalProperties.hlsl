@@ -13,5 +13,13 @@ float _MaskBlendSrc;
 float _DecalBlend;
 float4 _BaseColor;
 float _DecalMeshDepthBias;
+float _SmoothnessRemapMin;
+float _SmoothnessRemapMax;
+float _AORemapMin;
+float _AORemapMax;
+float _MetallicScale;
+float _DecalColorMapAlphaScale;
+float _DecalMaskMapBlueScale;
+
 
 #endif
