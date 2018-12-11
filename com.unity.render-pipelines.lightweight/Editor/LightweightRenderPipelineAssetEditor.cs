@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.LWRP
             public static GUIContent srpBatcher = EditorGUIUtility.TrTextContent("SRP Batcher (Experimental)", "If enabled, the render pipeline uses the SRP batcher.");
             public static GUIContent dynamicBatching = EditorGUIUtility.TrTextContent("Dynamic Batching", "If enabled, the render pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
             public static GUIContent mixedLightingSupportLabel = EditorGUIUtility.TrTextContent("Mixed Lighting", "Support for mixed light mode.");
-            
+
             public static GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
 
             // Dropdown menu options
@@ -258,9 +258,9 @@ namespace UnityEngine.Rendering.LWRP
 
                 ShadowCascadesOption cascades = (ShadowCascadesOption)m_ShadowCascadesProp.intValue;
                 if (cascades == ShadowCascadesOption.FourCascades)
-                    LightweightRenderPipelineEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
+                    LightweightRenderPipelineEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp, m_ShadowDistanceProp.floatValue);
                 else if (cascades == ShadowCascadesOption.TwoCascades)
-                    LightweightRenderPipelineEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
+                    LightweightRenderPipelineEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue);
 
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);

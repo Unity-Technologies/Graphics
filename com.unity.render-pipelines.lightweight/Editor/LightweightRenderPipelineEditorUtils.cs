@@ -1,10 +1,11 @@
 using System;
+using System.Linq;
 using UnityEngine;
 namespace UnityEditor.Experimental.Rendering
 {
     static class LightweightRenderPipelineEditorUtils
     {
-        public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit)
+        public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit, float distance)
         {
             float[] cascadePartitionSizes = null;
             Type type = typeof(T);
@@ -27,15 +28,6 @@ namespace UnityEditor.Experimental.Rendering
                 EditorGUI.BeginChangeCheck();
                 ShadowCascadeSplitGUI.HandleCascadeSliderGUI(ref cascadePartitionSizes);
 
-                // Float fields for adding values
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Cascade Settings");
-                for( int i = 0; i < cascadePartitionSizes.Length; ++i)
-                {
-                    EditorGUILayout.FloatField(cascadePartitionSizes[i]);
-                }
-                EditorGUILayout.EndHorizontal();
-
                 // Checking changes to update slider and fields accordingly
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -50,6 +42,56 @@ namespace UnityEditor.Experimental.Rendering
                         shadowCascadeSplit.vector3Value = updatedValue;
                     }
                 }
+
+                // Float fields for adding values
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel("Splits");
+
+                if (type == typeof(float))
+                {
+                    var value = shadowCascadeSplit.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    var meterValue = EditorGUILayout.DelayedFloatField((float)Math.Round(value * distance, 2), GUILayout.Width(70f));
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
+                        float percValue = posMeter / distance;
+                        shadowCascadeSplit.floatValue = percValue;
+                    }
+                }
+                else if (type == typeof(Vector3))
+                {
+                    for (int i = 0; i < cascadePartitionSizes.Length; ++i)
+                    {
+                        var vec3value = shadowCascadeSplit.vector3Value;
+                        var threshold = 0.1f/distance;
+                        if (i != 0)
+                        {
+                            GUILayout.FlexibleSpace();
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        var meterValue = EditorGUILayout.DelayedFloatField((float)Math.Round(vec3value[i] * distance, 2), GUILayout.Width(70f));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
+                            float percValue = posMeter / distance;
+                            if (i < cascadePartitionSizes.Length-1)
+                            {
+                                percValue = Math.Min((percValue), (vec3value[i+1]-threshold) );
+                            }
+
+                            if (i != 0)
+                            {
+                                percValue = Math.Max((percValue), (vec3value[i-1]+threshold) );
+                            }
+
+                            vec3value[i] = percValue;
+                            shadowCascadeSplit.vector3Value = vec3value;
+                        }
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
             }
         }
     }
