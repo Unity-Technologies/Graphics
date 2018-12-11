@@ -177,7 +177,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Blend = m_Material.GetFloat("_DecalBlend");
                 m_AlbedoContribution = m_Material.GetFloat("_AlbedoMode");
                 m_BaseColor = m_Material.GetVector("_BaseColor");
-                m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));                
+                m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));
+                m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
+                m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), m_Material.GetFloat("_DecalColorMapAlphaScale"), m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
             }
 
             public DecalSet(Material material)
@@ -416,7 +418,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
                             m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                             m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
-                            if(!perChannelMask)
+                            m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
+                            m_DecalDatas[m_DecalDatasCount].scalingMAB = m_ScalingMAB;
+                            if (!perChannelMask)
                             {
                                 m_DecalDatas[m_DecalDatasCount].blendParams.z = (float)Decal.MaskBlendFlags.Smoothness; 
                             }
@@ -555,6 +559,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private float m_Blend = 0;
             private float m_AlbedoContribution = 0;
             private Vector4 m_BaseColor;
+            private Vector4 m_RemappingAOS;
+            private Vector4 m_ScalingMAB; // metal, base color alpha, mask map blue
             private Vector3 m_BlendParams;
             
             TextureScaleBias m_Diffuse = new TextureScaleBias();

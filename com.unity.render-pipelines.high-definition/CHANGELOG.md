@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added replace blending mode for distortion
 - Added icons for assets.
+- Added new UI for decal material to allow remapping and scaling of some properties
 
 ### Fixed
 - Fixed normal map use for shadow bias with forward lit - now use geometric normal
