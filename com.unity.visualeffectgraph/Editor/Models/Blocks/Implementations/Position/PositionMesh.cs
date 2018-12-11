@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.Block
             Surface
         };
 
-        [VFXSetting]
+        //[VFXSetting] // TODO - support surface sampling
         public PlacementMode Placement = PlacementMode.Vertex;
 
         protected override bool needDirectionWrite { get { return true; } }

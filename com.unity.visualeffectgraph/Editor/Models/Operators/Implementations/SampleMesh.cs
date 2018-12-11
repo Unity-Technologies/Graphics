@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.Operator
             Custom
         };
 
-        [VFXSetting]
+        //[VFXSetting] // TODO - support surface sampling
         public PlacementMode Placement = PlacementMode.Vertex;
 
         [VFXSetting]
@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.Operator
             VFXExpression meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<int>((int)Output));
             VFXExpression meshVertexCount = new VFXExpressionCastIntToFloat(new VFXExpressionMeshVertexCount(mesh));
 
-            if (Placement == PlacementMode.Vertex)
+            //if (Placement == PlacementMode.Vertex)
             {
                 VFXExpression vertexIndex;
 
@@ -146,10 +146,10 @@ namespace UnityEditor.VFX.Operator
                 else
                     return new[] { new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
             }
-            else
+            /*else
             {
-                return new[] { new VFXExpressionBakeMesh(mesh) };
-            }
+                // todo
+            }*/
         }
     }
 }
