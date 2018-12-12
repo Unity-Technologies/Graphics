@@ -80,7 +80,7 @@ namespace UnityEditor.VFX.Block
                     {
                         case SpawnMode.Randomized:
                             {
-                                source += @"int vertexIndex = (int)fmod(RAND * meshVertexCount, meshVertexCount);";
+                                source += @"int vertexIndex = (int)(RAND * 0.9999f * meshVertexCount);";
                             }
                             break;
                         case SpawnMode.Custom:

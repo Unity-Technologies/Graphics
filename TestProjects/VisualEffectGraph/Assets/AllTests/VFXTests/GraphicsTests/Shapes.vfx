@@ -1310,8 +1310,8 @@ VisualEffectResource:
       */\n{\n    size = Size;\n}\nvoid PositionMesh_0(inout float3 position, inout
       uint seed, inout float3 direction, Buffer<float> mesh, int meshVertexStride,
       int meshPositionOffset, int meshNormalOffset, float meshVertexCount) /*positionMode:Surface
-      spawnMode:Randomized */\n{\n    int vertexIndex = (int)fmod(RAND * meshVertexCount,
-      meshVertexCount);\n    position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
+      spawnMode:Randomized */\n{\n    int vertexIndex = (int)(RAND * 0.9999f * meshVertexCount);\n
+      \   position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
       meshVertexStride);\n    direction = SampleMeshFloat3(mesh, (int)vertexIndex,
       meshNormalOffset, meshVertexStride);\n}\nvoid SetAttribute_D238196D(inout float3
       position, float3 Position) /*attribute:position Composition:Multiply Source:Slot
@@ -1346,7 +1346,7 @@ VisualEffectResource:
       (float)6.283185, (float)1, (float)0.1, float2(0.4472136,0.8944272));\n        }\n
       \       {\n            SetAttribute_3278B22F( /*inout */size, (float)0.002);\n
       \       }\n        {\n            PositionMesh_0( /*inout */position,  /*inout
-      */seed,  /*inout */direction, mesh_c, (int)56, (int)0, (int)12, (float)550);\n
+      */seed,  /*inout */direction, mesh_c, (int)14, (int)0, (int)3, (float)550);\n
       \       }\n        {\n            SetAttribute_D238196D( /*inout */position,
       float3(0.075,0.075,0.075));\n        }\n        {\n            SetAttribute_C707D62A(
       /*inout */position, float3(0.1,0.65,0));\n        }\n        \n\r\n\r\n#if VFX_USE_ALIVE_CURRENT\r\n
@@ -2475,8 +2475,8 @@ VisualEffectResource:
       */\n{\n    size = Size;\n}\nvoid PositionMesh_0(inout float3 position, inout
       uint seed, inout float3 direction, Buffer<float> mesh, int meshVertexStride,
       int meshPositionOffset, int meshNormalOffset, float meshVertexCount) /*positionMode:Surface
-      spawnMode:Randomized */\n{\n    int vertexIndex = (int)fmod(RAND * meshVertexCount,
-      meshVertexCount);\n    position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
+      spawnMode:Randomized */\n{\n    int vertexIndex = (int)(RAND * 0.9999f * meshVertexCount);\n
+      \   position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
       meshVertexStride);\n    direction = SampleMeshFloat3(mesh, (int)vertexIndex,
       meshNormalOffset, meshVertexStride);\n}\nvoid SetAttribute_D238196D(inout float3
       position, float3 Position) /*attribute:position Composition:Multiply Source:Slot
@@ -2511,7 +2511,7 @@ VisualEffectResource:
       (float)6.283185, (float)1, (float)0.1, float2(0.4472136,0.8944272));\n        }\n
       \       {\n            SetAttribute_3278B22F( /*inout */size, (float)0.002);\n
       \       }\n        {\n            PositionMesh_0( /*inout */position,  /*inout
-      */seed,  /*inout */direction, mesh_c, (int)56, (int)0, (int)12, (float)515);\n
+      */seed,  /*inout */direction, mesh_c, (int)14, (int)0, (int)3, (float)515);\n
       \       }\n        {\n            SetAttribute_D238196D( /*inout */position,
       float3(0.075,0.075,0.075));\n        }\n        {\n            SetAttribute_C707D62A(
       /*inout */position, float3(0.1,0.475,0));\n        }\n        \n\r\n\r\n#if
@@ -3651,8 +3651,8 @@ VisualEffectResource:
       */\n{\n    size = Size;\n}\nvoid PositionMesh_0(inout float3 position, inout
       uint seed, inout float3 direction, Buffer<float> mesh, int meshVertexStride,
       int meshPositionOffset, int meshNormalOffset, float meshVertexCount) /*positionMode:Surface
-      spawnMode:Randomized */\n{\n    int vertexIndex = (int)fmod(RAND * meshVertexCount,
-      meshVertexCount);\n    position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
+      spawnMode:Randomized */\n{\n    int vertexIndex = (int)(RAND * 0.9999f * meshVertexCount);\n
+      \   position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
       meshVertexStride);\n    direction = SampleMeshFloat3(mesh, (int)vertexIndex,
       meshNormalOffset, meshVertexStride);\n}\nvoid SetAttribute_D238196D(inout float3
       position, float3 Position) /*attribute:position Composition:Multiply Source:Slot
@@ -3687,7 +3687,7 @@ VisualEffectResource:
       (float)6.283185, (float)1, (float)0.1, float2(0.4472136,0.8944272));\n        }\n
       \       {\n            SetAttribute_3278B22F( /*inout */size, (float)0.002);\n
       \       }\n        {\n            PositionMesh_0( /*inout */position,  /*inout
-      */seed,  /*inout */direction, mesh_c, (int)56, (int)0, (int)12, (float)88);\n
+      */seed,  /*inout */direction, mesh_c, (int)14, (int)0, (int)3, (float)88);\n
       \       }\n        {\n            SetAttribute_D238196D( /*inout */position,
       float3(0.075,0.075,0.075));\n        }\n        {\n            SetAttribute_C707D62A(
       /*inout */position, float3(0.1,0.3,0));\n        }\n        \n\r\n\r\n#if VFX_USE_ALIVE_CURRENT\r\n
@@ -4669,8 +4669,8 @@ VisualEffectResource:
       */\n{\n    size = Size;\n}\nvoid PositionMesh_0(inout float3 position, inout
       uint seed, inout float3 direction, Buffer<float> mesh, int meshVertexStride,
       int meshPositionOffset, int meshNormalOffset, float meshVertexCount) /*positionMode:Surface
-      spawnMode:Randomized */\n{\n    int vertexIndex = (int)fmod(RAND * meshVertexCount,
-      meshVertexCount);\n    position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
+      spawnMode:Randomized */\n{\n    int vertexIndex = (int)(RAND * 0.9999f * meshVertexCount);\n
+      \   position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
       meshVertexStride);\n    direction = SampleMeshFloat3(mesh, (int)vertexIndex,
       meshNormalOffset, meshVertexStride);\n}\nvoid SetAttribute_D238196D(inout float3
       position, float3 Position) /*attribute:position Composition:Multiply Source:Slot
@@ -4705,7 +4705,7 @@ VisualEffectResource:
       (float)6.283185, (float)1, (float)0.1, float2(0.4472136,0.8944272));\n        }\n
       \       {\n            SetAttribute_3278B22F( /*inout */size, (float)0.002);\n
       \       }\n        {\n            PositionMesh_0( /*inout */position,  /*inout
-      */seed,  /*inout */direction, mesh_c, (int)48, (int)0, (int)12, (float)2513);\n
+      */seed,  /*inout */direction, mesh_c, (int)12, (int)0, (int)3, (float)2513);\n
       \       }\n        {\n            SetAttribute_D238196D( /*inout */position,
       float3(10,10,10));\n        }\n        {\n            SetAttribute_C707D62A(
       /*inout */position, float3(0.1,0.125,0));\n        }\n        \n\r\n\r\n#if
@@ -5521,8 +5521,8 @@ VisualEffectResource:
       */\n{\n    size = Size;\n}\nvoid PositionMesh_0(inout float3 position, inout
       uint seed, inout float3 direction, Buffer<float> mesh, int meshVertexStride,
       int meshPositionOffset, int meshNormalOffset, float meshVertexCount) /*positionMode:Surface
-      spawnMode:Randomized */\n{\n    int vertexIndex = (int)fmod(RAND * meshVertexCount,
-      meshVertexCount);\n    position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
+      spawnMode:Randomized */\n{\n    int vertexIndex = (int)(RAND * 0.9999f * meshVertexCount);\n
+      \   position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset,
       meshVertexStride);\n    direction = SampleMeshFloat3(mesh, (int)vertexIndex,
       meshNormalOffset, meshVertexStride);\n}\nvoid SetAttribute_D238196D(inout float3
       position, float3 Position) /*attribute:position Composition:Multiply Source:Slot
@@ -5557,7 +5557,7 @@ VisualEffectResource:
       (float)6.283185, (float)1, (float)0.1, float2(0.4472136,0.8944272));\n        }\n
       \       {\n            SetAttribute_3278B22F( /*inout */size, (float)0.002);\n
       \       }\n        {\n            PositionMesh_0( /*inout */position,  /*inout
-      */seed,  /*inout */direction, mesh_c, (int)56, (int)0, (int)12, (float)24);\n
+      */seed,  /*inout */direction, mesh_c, (int)14, (int)0, (int)3, (float)24);\n
       \       }\n        {\n            SetAttribute_D238196D( /*inout */position,
       float3(0.075,0.075,0.075));\n        }\n        {\n            SetAttribute_C707D62A(
       /*inout */position, float3(0.1,-0.05,0));\n        }\n        \n\r\n\r\n#if
@@ -6800,13 +6800,13 @@ VisualEffectResource:
       m_Int:
         m_Array:
         - m_ExpressionIndex: 24
-          m_Value: 48
+          m_Value: 12
         - m_ExpressionIndex: 51
           m_Value: 0
         - m_ExpressionIndex: 52
-          m_Value: 56
+          m_Value: 14
         - m_ExpressionIndex: 72
-          m_Value: 12
+          m_Value: 3
       m_Matrix4x4f:
         m_Array: []
       m_AnimationCurve:

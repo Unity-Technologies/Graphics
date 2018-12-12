@@ -120,12 +120,13 @@ namespace UnityEditor.VFX.Operator
                     case SelectionMode.Random:
                         {
                             VFXExpressionRandom rand = new VFXExpressionRandom(true);
-                            vertexIndex = rand * meshVertexCount;
+                            vertexIndex = rand * VFXValue.Constant<float>(0.9999f) * meshVertexCount;
                         }
                         break;
                     case SelectionMode.Custom:
                         {
                             vertexIndex = new VFXExpressionCastIntToFloat(inputExpression[1]);
+                            vertexIndex = VFXOperatorUtility.Modulo(vertexIndex, meshVertexCount);
                         }
                         break;
                     default:
@@ -133,7 +134,7 @@ namespace UnityEditor.VFX.Operator
                 }
 
                 var outputType = GetOutputType();
-                vertexIndex = new VFXExpressionCastFloatToInt(VFXOperatorUtility.Modulo(vertexIndex, meshVertexCount));
+                vertexIndex = new VFXExpressionCastFloatToInt(vertexIndex);
 
                 if (Output == VertexAttribute.Color)
                     return new[] { new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };

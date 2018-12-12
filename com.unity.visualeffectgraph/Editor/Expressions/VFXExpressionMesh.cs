@@ -20,12 +20,17 @@ namespace UnityEditor.VFX
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            var vertexIndexReduce = constParents[1];
             var meshReduce = constParents[0];
+            var vertexIndexReduce = constParents[1];
+            var channelOffsetReduce = constParents[2];
+            var vertexStrideReduce = constParents[3];
 
             var mesh = meshReduce.Get<Mesh>();
             var vertexIndex = vertexIndexReduce.Get<int>();
-            return VFXValue.Constant(mesh.vertices[vertexIndex]);
+            var channelOffset = channelOffsetReduce.Get<int>();
+            var vertexStride = vertexStrideReduce.Get<int>();
+
+            return VFXValue.Constant(VFXExpressionMesh.GetFloat(mesh, vertexIndex, channelOffset, vertexStride));
         }
 
         public sealed override string GetCodeString(string[] parents)
@@ -48,12 +53,12 @@ namespace UnityEditor.VFX
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            var vertexIndexReduce = constParents[1];
-            var meshReduce = constParents[0];
+            var mesh = constParents[0].Get<Mesh>();
+            var vertexIndex = constParents[1].Get<int>();
+            var channelOffset = constParents[2].Get<int>();
+            var vertexStride = constParents[3].Get<int>();
 
-            var mesh = meshReduce.Get<Mesh>();
-            var vertexIndex = vertexIndexReduce.Get<int>();
-            return VFXValue.Constant(mesh.vertices[vertexIndex]);
+            return VFXValue.Constant(VFXExpressionMesh.GetFloat2(mesh, vertexIndex, channelOffset, vertexStride));
         }
 
         public sealed override string GetCodeString(string[] parents)
@@ -76,12 +81,12 @@ namespace UnityEditor.VFX
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            var vertexIndexReduce = constParents[1];
-            var meshReduce = constParents[0];
+            var mesh = constParents[0].Get<Mesh>();
+            var vertexIndex = constParents[1].Get<int>();
+            var channelOffset = constParents[2].Get<int>();
+            var vertexStride = constParents[3].Get<int>();
 
-            var mesh = meshReduce.Get<Mesh>();
-            var vertexIndex = vertexIndexReduce.Get<int>();
-            return VFXValue.Constant(mesh.vertices[vertexIndex]);
+            return VFXValue.Constant(VFXExpressionMesh.GetFloat3(mesh, vertexIndex, channelOffset, vertexStride));
         }
 
         public sealed override string GetCodeString(string[] parents)
@@ -104,12 +109,12 @@ namespace UnityEditor.VFX
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            var vertexIndexReduce = constParents[1];
-            var meshReduce = constParents[0];
+            var mesh = constParents[0].Get<Mesh>();
+            var vertexIndex = constParents[1].Get<int>();
+            var channelOffset = constParents[2].Get<int>();
+            var vertexStride = constParents[3].Get<int>();
 
-            var mesh = meshReduce.Get<Mesh>();
-            var vertexIndex = vertexIndexReduce.Get<int>();
-            return VFXValue.Constant(mesh.vertices[vertexIndex]);
+            return VFXValue.Constant(VFXExpressionMesh.GetFloat4(mesh, vertexIndex, channelOffset, vertexStride));
         }
 
         public sealed override string GetCodeString(string[] parents)
@@ -132,12 +137,12 @@ namespace UnityEditor.VFX
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            var vertexIndexReduce = constParents[1];
-            var meshReduce = constParents[0];
+            var mesh = constParents[0].Get<Mesh>();
+            var vertexIndex = constParents[1].Get<int>();
+            var channelOffset = constParents[2].Get<int>();
+            var vertexStride = constParents[3].Get<int>();
 
-            var mesh = meshReduce.Get<Mesh>();
-            var vertexIndex = vertexIndexReduce.Get<int>();
-            return VFXValue.Constant(mesh.colors[vertexIndex].linear);
+            return VFXValue.Constant(VFXExpressionMesh.GetColor(mesh, vertexIndex, channelOffset, vertexStride));
         }
 
         public sealed override string GetCodeString(string[] parents)

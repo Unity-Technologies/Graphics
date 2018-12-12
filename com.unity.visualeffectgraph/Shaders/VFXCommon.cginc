@@ -337,43 +337,43 @@ float SampleCurve(float4 curveData,float u)
 // Mesh sampling //
 ///////////////////
 
-float4 SampleMeshFloat4(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+float4 SampleMeshFloat4(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
-    if (attributeOffset == -1)
+    if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    int offset = vertexIndex * attributeStride + attributeOffset;
+    int offset = vertexIndex * vertexStride + channelOffset;
     return float4(vertices[offset], vertices[offset + 1], vertices[offset + 2], vertices[offset + 3]);
 }
 
-float3 SampleMeshFloat3(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+float3 SampleMeshFloat3(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
-    if (attributeOffset == -1)
+    if (channelOffset == -1)
         return float3(0.0f, 0.0f, 0.0f);
-    int offset = vertexIndex * attributeStride + attributeOffset;
+    int offset = vertexIndex * vertexStride + channelOffset;
     return float3(vertices[offset], vertices[offset + 1], vertices[offset + 2]);
 }
 
-float2 SampleMeshFloat2(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+float2 SampleMeshFloat2(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
-    if (attributeOffset == -1)
+    if (channelOffset == -1)
         return float2(0.0f, 0.0f);
-    int offset = vertexIndex * attributeStride + attributeOffset;
+    int offset = vertexIndex * vertexStride + channelOffset;
     return float2(vertices[offset], vertices[offset + 1]);
 }
 
-float SampleMeshFloat(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+float SampleMeshFloat(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
-    if (attributeOffset == -1)
+    if (channelOffset == -1)
         return 0.0f;
-    int offset = vertexIndex * attributeStride + attributeOffset;
+    int offset = vertexIndex * vertexStride + channelOffset;
     return vertices[offset];
 }
 
-float4 SampleMeshColor(Buffer<float> vertices, int vertexIndex, int attributeOffset, int attributeStride)
+float4 SampleMeshColor(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
-    if (attributeOffset == -1)
+    if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint colorByte = asuint(vertices[vertexIndex * attributeStride + attributeOffset]);
+    uint colorByte = asuint(vertices[vertexIndex * vertexStride + channelOffset]);
     return float4(uint4(colorByte << 24, colorByte << 16, colorByte << 8, colorByte) & 255) / 255.0f;
 }
 
