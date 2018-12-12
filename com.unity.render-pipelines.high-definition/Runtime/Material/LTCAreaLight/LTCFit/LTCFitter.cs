@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.LTCFit
         const int           MAX_ITERATIONS = 100;
         const float         FIT_EXPLORE_DELTA = 0.05f;
         const float         TOLERANCE = 1e-5f;
-        const float         MIN_ALPHA = 0.00001f;        // minimal roughness (avoid singularities)
+        const float         MIN_ALPHA = 0.0001f;        // minimal roughness (avoid singularities)
 
         #endregion
 

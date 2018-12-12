@@ -1427,7 +1427,11 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     else if ( lightData.lightType == GPULIGHTTYPE_TUBE )
     {
         lightData.lightType = GPULIGHTTYPE_RECTANGLE;
-        lightData.size.y = 0.1;
+        lightData.size.y = 0.01;
+
+// Arbitrary factor...
+intensity *= 10.0;  // Interesting fact though, the apparent luminance stays constant when size.y and intensity ratio stays constant! TODO: Use this maybe?
+
         float3  light = posInput.positionWS - lightData.positionRWS;
 
         // The rectangle light can only rotate about its right axis so we must project the light vector into the plane orthogonal
