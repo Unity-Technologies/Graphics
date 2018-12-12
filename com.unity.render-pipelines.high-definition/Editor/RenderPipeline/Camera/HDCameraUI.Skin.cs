@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent nearPlaneContent = CoreEditorUtils.GetContent("Near|The closest point relative to the camera that drawing will occur.");
         static readonly GUIContent farPlaneContent = CoreEditorUtils.GetContent("Far|The furthest point relative to the camera that drawing will occur.");
 
-        static readonly GUIContent renderingPathContent = CoreEditorUtils.GetContent("Rendering Path");
+        static readonly GUIContent renderingPathContent = CoreEditorUtils.GetContent("Custom Frame Settings");
 
         static readonly GUIContent apertureContent = CoreEditorUtils.GetContent("Aperture");
         static readonly GUIContent shutterSpeedContent = CoreEditorUtils.GetContent("Shutter Speed (1 / x)");
