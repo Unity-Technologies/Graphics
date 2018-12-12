@@ -43,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     farClipPlane = 734.0f,
                     fieldOfview = 86.75f,
                     orthographicSize = 4,
-                    renderingPath = (int)HDAdditionalCameraData.RenderingPath.UseGraphicsSettings,
+                    renderingPath = (int)LegacyRenderingPath.UseGraphicsSettings,
                     shadowDistance = 151,
                     capturePositionWS = new Vector3(3, 5.24f, 64.2f),
                     captureRotationWS = Quaternion.Euler(62.34f, 185.53f, 323.563f),
@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     farClipPlane = 734.0f,
                     fieldOfview = 86.75f,
                     orthographicSize = 4,
-                    renderingPath = (int)HDAdditionalCameraData.RenderingPath.FullscreenPassthrough,
+                    renderingPath = (int)LegacyRenderingPath.FullscreenPassthrough,
                     shadowDistance = 151,
                     capturePositionWS = new Vector3(3, 5.24f, 64.2f),
                     captureRotationWS = Quaternion.Euler(135.34f, 24.683f, 176.323f),
@@ -81,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     farClipPlane = 734.0f,
                     fieldOfview = 86.75f,
                     orthographicSize = 4,
-                    renderingPath = (int)HDAdditionalCameraData.RenderingPath.Custom,
+                    renderingPath = (int)LegacyRenderingPath.Custom,
                     shadowDistance = 151,
                     capturePositionWS = new Vector3(3, 5.24f, 64.2f),
                     captureRotationWS = Quaternion.Euler(341.35f, 165.2f, 12.25f),
@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     Assert.AreEqual(legacyProbeData.nearClipPlane, settings.camera.frustum.nearClipPlane);
                     Assert.AreEqual(legacyProbeData.farClipPlane, settings.camera.frustum.farClipPlane);
                     Assert.AreEqual(legacyProbeData.fieldOfview, settings.camera.frustum.fieldOfView);
-                    Assert.AreEqual(legacyProbeData.renderingPath, (int)settings.camera.renderingPath);
+                    Assert.AreEqual(legacyProbeData.renderingPath == (int)LegacyRenderingPath.Custom, settings.camera.customRenderingSettings);
                     Assert.IsTrue((influencePositionWS - probe.transform.position).sqrMagnitude < 0.001f);
                     Assert.IsTrue((capturePositionPS - settings.proxySettings.capturePositionProxySpace).sqrMagnitude < 0.001f);
                     Assert.AreEqual(ProbeSettings.ProbeType.ReflectionProbe, settings.type);

@@ -42,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #pragma warning disable 649 // Field never assigned
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
-        RenderingPath m_ObsoleteRenderingPath;
+        int m_ObsoleteRenderingPath;
 #pragma warning restore 649
     }
 }
