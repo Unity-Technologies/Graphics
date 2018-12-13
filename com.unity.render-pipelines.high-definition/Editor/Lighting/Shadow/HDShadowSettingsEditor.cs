@@ -32,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void OnInspectorGUI()
         {
             PropertyField(m_MaxShadowDistance, CoreEditorUtils.GetContent("Max Distance"));
+            Rect firstLine = GUILayoutUtility.GetLastRect();
 
             EditorGUILayout.Space();
             PropertyField(m_CascadeShadowSplitCount, CoreEditorUtils.GetContent("Cascade Count"));
@@ -56,6 +57,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 EditorGUI.indentLevel--;
             }
+
+            HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdrp == null)
+                return;
+
+            firstLine.y -= EditorGUIUtility.singleLineHeight;
+            firstLine.height -= 2;
+            firstLine.x += EditorGUIUtility.labelWidth + 20;
+            firstLine.width -= EditorGUIUtility.labelWidth + 20;
+            bool currentCascadeValue = hdrp.showCascade;
+            bool newCascadeValue = GUI.Toggle(firstLine, currentCascadeValue, EditorGUIUtility.TrTextContent("Visualize Cascades"), EditorStyles.miniButton);
+            if (currentCascadeValue ^ newCascadeValue)
+                hdrp.showCascade = newCascadeValue;
         }
     }
 }

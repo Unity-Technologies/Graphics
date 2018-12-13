@@ -2,11 +2,18 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
+        public GameObject defaultScene;
+        public VolumeProfile defaultVolumeProfile;
+        public PostProcessProfile defaultPostProcessProfile;
+        public DiffusionProfileSettings defaultDiffusionProfileSettings;
+
         [Serializable]
         public sealed class ShaderResources
         {

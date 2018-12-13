@@ -19,9 +19,21 @@ Shader "HDRenderPipeline/Decal"
 		[ToggleUI] _MaskmapSmoothness("_MaskmapSmoothness", Range(0.0, 1.0)) = 1.0
 		[HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0 
 		[HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
+
         // Stencil state
         [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 8 
         [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 8
+
+        // Remapping
+        [HideInInspector] _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
+        [HideInInspector] _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
+        [HideInInspector] _AORemapMin("AORemapMin", Float) = 0.0
+        [HideInInspector] _AORemapMax("AORemapMax", Float) = 1.0
+
+        // scaling
+        [HideInInspector] _MetallicScale("_MetallicScale", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _DecalColorMapAlphaScale("_DecalColorMapAlphaScale", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
     }
 
     HLSLINCLUDE
