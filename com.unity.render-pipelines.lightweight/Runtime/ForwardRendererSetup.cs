@@ -16,12 +16,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private BeginXRRenderingPass m_BeginXrRenderingPass;
         private SetupLightweightConstanstPass m_SetupLightweightConstants;
         private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
-        private CreateColorRenderTexturesPass m_CreatePostOpaqueColorPass;
         private PostProcessPass m_OpaquePostProcessPass;
         private DrawSkyboxPass m_DrawSkyboxPass;
         private CopyDepthPass m_CopyDepthPass;
         private CopyColorPass m_CopyColorPass;
-        private CreateColorRenderTexturesPass m_CreatePostTransparentColorPass;
         private RenderTransparentForwardPass m_RenderTransparentForwardPass;
         private PostProcessPass m_PostProcessPass;
         private CreateColorRenderTexturesPass m_createColorPass;
@@ -63,12 +61,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_BeginXrRenderingPass = new BeginXRRenderingPass();
             m_SetupLightweightConstants = new SetupLightweightConstanstPass();
             m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
-            m_CreatePostOpaqueColorPass = new CreateColorRenderTexturesPass();
             m_OpaquePostProcessPass = new PostProcessPass();
             m_DrawSkyboxPass = new DrawSkyboxPass();
             m_CopyDepthPass = new CopyDepthPass();
             m_CopyColorPass = new CopyColorPass();
-            m_CreatePostTransparentColorPass = new CreateColorRenderTexturesPass();
             m_RenderTransparentForwardPass = new RenderTransparentForwardPass();
             m_PostProcessPass = new PostProcessPass();
             m_FinalBlitPass = new FinalBlitPass();
@@ -96,15 +92,22 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_Initialized = true;
         }
 
-        public static bool RequiresIntermediateColorTexture(ref CameraData cameraData, RenderTextureDescriptor baseDescriptor)
+        public static bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
         {
+            CameraData cameraData = renderingData.cameraData;
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
-            bool noAutoResolveMsaa = cameraData.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
+            bool requiresExplicitMsaaResolve = cameraData.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
+            bool isOffscreenRender = cameraData.camera.targetTexture != null && !cameraData.isSceneViewCamera;    
             bool isCapturing = cameraData.captureActions != null;
-            return noAutoResolveMsaa || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport ||
-                isCapturing;
+
+            bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve;
+            if (isOffscreenRender)
+                return requiresBlitForOffscreenCamera;
+
+            return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+                isTargetTexture2DArray || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
+                    || renderingData.killAlphaInFinalBlit;
         }
 
         List<IBeforeRender> m_BeforeRenderPasses = new List<IBeforeRender>(10);
@@ -142,7 +145,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
-            bool requiresDepthPrepass = resolveShadowsInScreenSpace || renderingData.cameraData.isSceneViewCamera ||
+
+            // Depth prepass is generated in the following cases:
+            // - We resolve shadows in screen space
+            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
+            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
+            bool requiresDepthPrepass = resolveShadowsInScreenSpace ||
+                                        renderingData.cameraData.isSceneViewCamera ||
                                         (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
 
             // For now VR requires a depth prepass until we figure out how to properly resolve texture2DMS in stereo
@@ -157,25 +166,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             camera.GetComponents(m_AfterTransparentPasses);
             camera.GetComponents(m_AfterRenderPasses);
 
-            bool requiresRenderToTexture = RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor)
+            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, baseDescriptor)
                     || m_BeforeRenderPasses.Count != 0
                     || m_AfterOpaquePasses.Count != 0
                     || m_AfterOpaquePostProcessPasses.Count != 0
                     || m_AfterSkyboxPasses.Count != 0
                     || m_AfterTransparentPasses.Count != 0
-                    || m_AfterRenderPasses.Count != 0
-                    || Display.main.requiresBlitToBackbuffer
-                    || renderingData.killAlphaInFinalBlit;
+                    || m_AfterRenderPasses.Count != 0;
 
-            RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
-            RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
+            // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
+            // later by effect requiring it.
+            bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
+
+            RenderTargetHandle colorHandle = (createColorTexture) ? m_ColorAttachment : RenderTargetHandle.CameraTarget;
+            RenderTargetHandle depthHandle = (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget;
 
             var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
-            if (requiresRenderToTexture)
+            if (createColorTexture || createDepthTexture)
             {
-                colorHandle = m_ColorAttachment;
-                depthHandle = m_DepthAttachment;
-
                 m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
                 renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
             }
@@ -185,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (requiresDepthPrepass)
             {
-                m_DepthOnlyPass.Setup(baseDescriptor, m_DepthTexture, SampleCount.One);
+                m_DepthOnlyPass.Setup(baseDescriptor, m_DepthTexture);
                 renderer.EnqueuePass(m_DepthOnlyPass);
             }
 
@@ -215,27 +223,29 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (renderingData.cameraData.postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessingContext))
             {
-                m_CreatePostOpaqueColorPass.Setup(baseDescriptor, m_ColorAttachmentAfterOpaquePost, sampleCount);
-                renderer.EnqueuePass(m_CreatePostOpaqueColorPass);
-                m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle, m_ColorAttachmentAfterOpaquePost, true, false);
+                m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle, colorHandle, true, false);
                 renderer.EnqueuePass(m_OpaquePostProcessPass);
-
-                colorHandle = m_ColorAttachmentAfterOpaquePost;
 
                 foreach (var pass in m_AfterOpaquePostProcessPasses)
                     renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
             }
 
-            if (camera.clearFlags == CameraClearFlags.Skybox)
+            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
             {
-                m_DrawSkyboxPass.Setup(colorHandle, depthHandle);
+                // We can't combine skybox and render opaques passes if there's a custom render pass in between
+                // them. Ideally we need a render graph here that each render pass declares inputs and output
+                // attachments and their Load/Store action so we figure out properly if we can combine passes
+                // and move to interleaved rendering with RenderPass API. 
+                bool combineWithRenderOpaquesPass = m_AfterOpaquePostProcessPasses.Count == 0;
+                m_DrawSkyboxPass.Setup(baseDescriptor, colorHandle, depthHandle, combineWithRenderOpaquesPass);
                 renderer.EnqueuePass(m_DrawSkyboxPass);
             }
 
             foreach (var pass in m_AfterSkyboxPasses)
                 renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
 
-            if (renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass)
+            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
+            if (createDepthTexture)
             {
                 m_CopyDepthPass.Setup(depthHandle, m_DepthTexture);
                 renderer.EnqueuePass(m_CopyDepthPass);
@@ -267,13 +277,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 // perform post with src / dest the same
                 if (renderingData.cameraData.postProcessEnabled)
                 {
-                    m_CreatePostTransparentColorPass.Setup(baseDescriptor, m_ColorAttachmentAfterTransparentPost, sampleCount);
-                    renderer.EnqueuePass(m_CreatePostTransparentColorPass);
-
-                    m_PostProcessPass.Setup(baseDescriptor, colorHandle, m_ColorAttachmentAfterTransparentPost, false, false);
+                    m_PostProcessPass.Setup(baseDescriptor, colorHandle, colorHandle, false, false);
                     renderer.EnqueuePass(m_PostProcessPass);
-
-                    colorHandle = m_ColorAttachmentAfterTransparentPost;
                 }
 
                 //execute after passes
