@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Wizard helping to configure HDRP project.
 - Added new UI for decal material to allow remapping and scaling of some properties
 - Added cascade shadow visualisation toggle in HD shadow settings
+- Added icons for assets.
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
