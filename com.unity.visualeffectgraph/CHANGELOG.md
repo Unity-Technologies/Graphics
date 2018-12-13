@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove some D3D11, metal and C# warnings
 - Fix in sequential line to include the end point
 - Fix a bug with attributes in Attribute from curve
+- Fix source attributes not being taken into account for attribute storage
 
 ## [5.2.0-preview] - 2018-11-27
 ### Added
