@@ -122,6 +122,11 @@ namespace UnityEditor.VFX.Block
                     case AttributeMapSampleMode.Sample3DLOD:
                         properties = properties.Concat(PropertiesFromType("InputPropertiesSample3DLOD"));
                         break;
+                    case AttributeMapSampleMode.RandomConstantPerParticle:
+                        properties = properties.Concat(PropertiesFromType("InputPropertiesRandomConstant"));
+                        break;
+                    default:
+                        break;
                 }
 
                 // Need Composition Input Properties?
@@ -195,7 +200,7 @@ namespace UnityEditor.VFX.Block
                         case AttributeMapSampleMode.Index: samplePos = "index % count"; break;
                         case AttributeMapSampleMode.Sequential: samplePos = "particleId % count"; break;
                         case AttributeMapSampleMode.Random: samplePos = "RAND * count"; break;
-                        case AttributeMapSampleMode.RandomConstantPerParticle: samplePos = "FIXED_RAND(0x8ef09666) * count"; break; // TODO expose hash
+                        case AttributeMapSampleMode.RandomConstantPerParticle: samplePos = "FIXED_RAND(Seed) * count"; break; // TODO expose hash
                     }
 
                     output += string.Format(@"
@@ -259,6 +264,11 @@ uint id = clamp(uint({0}), 0, count - 1);
             [Tooltip("Absolute index to sample")]
             public Vector3 SamplePosition = Vector2.zero;
             public float LOD = 0.0f;
+        }
+        public class InputPropertiesRandomConstant
+        {
+            [Tooltip("Seed to compute the constant random")]
+            public uint Seed = 0;
         }
 
         public class InputPropertiesBlend
