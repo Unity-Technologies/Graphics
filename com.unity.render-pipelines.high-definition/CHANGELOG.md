@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [4.7.0-preview] - 2018-XX-XX??### Added
 - Added replace blending mode for distortion
+- Added icons for assets.
 
 ### Fixed
 - Fixed normal map use for shadow bias with forward lit - now use geometric normal
