@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -320,6 +320,48 @@ namespace UnityEditor.VFX.Test
 
             branch.inputSlots[0].value = true;
             Assert.IsTrue(fnCompareSphere(fnSlotToSphere(branch.outputSlots[0]), sphereA));
+        }
+
+        [Test]
+        public void BranchOperator_With_Transform()
+        {
+            var branch = ScriptableObject.CreateInstance<Operator.Branch>();
+            branch.SetOperandType(typeof(Transform));
+
+            var transformA = new Transform() { position = Vector3.one * 3.0f, angles = Vector3.zero, scale = Vector3.one };
+            var transformB = new Transform() { position = Vector3.one * 4.0f, angles = Vector3.zero, scale = Vector3.one };
+
+            branch.inputSlots[0].value = false;
+            branch.inputSlots[1].value = transformA;
+            branch.inputSlots[2].value = transformB;
+
+            Func<Transform, Transform, bool> fnCompareTransform = delegate (Transform aS, Transform bS)
+            {
+                //Only compare position => didn't modify something else above
+                if (aS.position.x != bS.position.x) return false;
+                if (aS.position.y != bS.position.y) return false;
+                if (aS.position.z != bS.position.z) return false;
+                return true;
+            };
+
+            Func<VFXSlot, Transform> fnSlotToTransform = delegate (VFXSlot slot)
+            {
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var position = context.Compile(slot[0].GetExpression());
+                var angles = context.Compile(slot[1].GetExpression());
+                var scale = context.Compile(slot[2].GetExpression());
+                return new Transform()
+                {
+                    position = position.Get<Vector3>(),
+                    angles = angles.Get<Vector3>(),
+                    scale = scale.Get<Vector3>(),
+                };
+            };
+
+            Assert.IsTrue(fnCompareTransform(fnSlotToTransform(branch.outputSlots[0]), transformB));
+
+            branch.inputSlots[0].value = true;
+            Assert.IsTrue(fnCompareTransform(fnSlotToTransform(branch.outputSlots[0]), transformA));
         }
 
         private static bool IsSlotCompatible(Type output, Type input)
