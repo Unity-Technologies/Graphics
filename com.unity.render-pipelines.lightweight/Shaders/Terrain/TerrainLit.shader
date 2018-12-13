@@ -12,6 +12,10 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
         [HideInInspector] _Normal2("Normal 2 (B)", 2D) = "bump" {}
         [HideInInspector] _Normal1("Normal 1 (G)", 2D) = "bump" {}
         [HideInInspector] _Normal0("Normal 0 (R)", 2D) = "bump" {}
+        [HideInInspector] _Mask3("Mask 3 (A)", 2D) = "grey" {}
+        [HideInInspector] _Mask2("Mask 2 (B)", 2D) = "grey" {}
+        [HideInInspector] _Mask1("Mask 1 (G)", 2D) = "grey" {}
+        [HideInInspector] _Mask0("Mask 0 (R)", 2D) = "grey" {}
         [HideInInspector][Gamma] _Metallic0("Metallic 0", Range(0.0, 1.0)) = 0.0
         [HideInInspector][Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0.0
         [HideInInspector][Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0.0
@@ -129,6 +133,8 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
     }
     Dependency "AddPassShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
     Dependency "BaseMapShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
+    
+    CustomEditor "UnityEditor.Rendering.LWRP.TerrainLitShaderGUI"
 
     Fallback "Hidden/InternalErrorShader"
 }
