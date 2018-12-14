@@ -56,7 +56,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 foreach (string fogStr in fogNames)
                 {
-                    m_FogNames.Add(new GUIContent(fogStr + " Fog"));
+                    // Add Fog on each members of the enum except for None
+                    m_FogNames.Add(new GUIContent(fogStr + (fogStr != "None" ? " Fog" : "")));
                 }
             }
         }
