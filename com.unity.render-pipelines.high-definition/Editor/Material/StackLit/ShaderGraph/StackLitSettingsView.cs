@@ -123,7 +123,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Double Sided", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
             {
                 row.Add(new EnumField(DoubleSidedMode.Disabled), (field) =>
                 {
@@ -391,7 +391,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (Equals(m_Node.doubleSidedMode, evt.newValue))
                 return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Double Sided Mode Change");
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
             m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
         }
 
@@ -627,7 +627,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case StackLitMasterNode.AlphaModeLit.Alpha:
                     return AlphaMode.Alpha;
-                case StackLitMasterNode.AlphaModeLit.PremultipliedAlpha:
+                case StackLitMasterNode.AlphaModeLit.Premultiply:
                     return AlphaMode.Premultiply;
                 case StackLitMasterNode.AlphaModeLit.Additive:
                     return AlphaMode.Additive;
@@ -647,7 +647,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AlphaMode.Alpha:
                     return StackLitMasterNode.AlphaModeLit.Alpha;
                 case AlphaMode.Premultiply:
-                    return StackLitMasterNode.AlphaModeLit.PremultipliedAlpha;
+                    return StackLitMasterNode.AlphaModeLit.Premultiply;
                 case AlphaMode.Additive:
                     return StackLitMasterNode.AlphaModeLit.Additive;
                 default:

@@ -2070,7 +2070,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void RenderForwardError(CullResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, "Render Forward Error", CustomSamplerId.RenderForwardError.GetSampler()))
+            using (new ProfilingSample(cmd, "Forward Error", CustomSamplerId.RenderForwardError.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
                 RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, 0, RenderQueueRange.all, null, m_ErrorMaterial);
@@ -2095,7 +2095,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!hdCamera.frameSettings.enableTransparentPostpass)
                 return;
 
-            using (new ProfilingSample(cmd, "Render Transparent Depth Post ", CustomSamplerId.TransparentDepthPostpass.GetSampler()))
+            using (new ProfilingSample(cmd, "Transparent Depth Post ", CustomSamplerId.TransparentDepthPostpass.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
                 RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_TransparentDepthPostpassNames);
@@ -2461,7 +2461,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (hdCamera.camera.cameraType == CameraType.Reflection || hdCamera.camera.cameraType == CameraType.Preview)
                 return;
 
-            using (new ProfilingSample(cmd, "Render Debug", CustomSamplerId.RenderDebug.GetSampler()))
+            using (new ProfilingSample(cmd, "Debug", CustomSamplerId.RenderDebug.GetSampler()))
             {
                 // First render full screen debug texture
                 if (NeedsFullScreenDebugMode() && m_FullScreenDebugPushed)

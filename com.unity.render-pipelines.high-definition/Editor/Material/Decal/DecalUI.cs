@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static class Styles
         {
-            public static string InputsText = "Inputs";
+            public static string InputsText = "Surface Inputs";
 
             public static GUIContent baseColorText = new GUIContent("BaseColor (RGB) and Opacity (A)", "BaseColor (RGB) and Opacity (A)");
             public static GUIContent baseColorText2 = new GUIContent("Opacity(A)", "Opacity (A)");

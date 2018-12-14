@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderGraph
         public const string DistortionSlotName = "Distortion";
         public const string DistortionBlurSlotName = "DistortionBlur";
         public const string SpecularOcclusionSlotName = "SpecularOcclusion";
+        public const string AlphaClipThresholdShadowSlotName = "AlphaClipThresholdShadow";                
 
         public const int PositionSlotId = 0;
         public const int AlbedoSlotId = 1;
@@ -76,6 +77,7 @@ namespace UnityEditor.ShaderGraph
         public const int DistortionSlotId = 26;
         public const int DistortionBlurSlotId = 27;
         public const int SpecularOcclusionSlotId = 28;
+        public const int AlphaThresholdShadowSlotId = 29;
 
         public enum MaterialType
         {
@@ -91,7 +93,7 @@ namespace UnityEditor.ShaderGraph
         public enum AlphaModeLit
         {
             Alpha,
-            PremultipliedAlpha,
+            Premultiply,
             Additive,
         }
 
@@ -122,14 +124,15 @@ namespace UnityEditor.ShaderGraph
             AlphaThresholdDepthPostpass = 1 << AlphaThresholdDepthPostpassSlotId,
             Anisotropy = 1 << AnisotropySlotId,
             SpecularOcclusion = 1 << SpecularOcclusionSlotId,
+            AlphaThresholdShadow = 1 << AlphaThresholdShadowSlotId
         }
 
-        const SlotMask StandardSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass;
-        const SlotMask SubsurfaceScatteringSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass;
-        const SlotMask AnisotropySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass;
-        const SlotMask IridescenceSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.IridescenceMask | SlotMask.IridescenceLayerThickness | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass;
-        const SlotMask SpecularColorSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Specular | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass;
-        const SlotMask TranslucentSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass;
+        const SlotMask StandardSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow;
+        const SlotMask SubsurfaceScatteringSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow;
+        const SlotMask AnisotropySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow;
+        const SlotMask IridescenceSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.IridescenceMask | SlotMask.IridescenceLayerThickness | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow;
+        const SlotMask SpecularColorSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Specular | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow;
+        const SlotMask TranslucentSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
@@ -352,6 +355,22 @@ namespace UnityEditor.ShaderGraph
                 if (m_AlphaTestDepthPostpass == value.isOn)
                     return;
                 m_AlphaTestDepthPostpass = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
+        bool m_AlphaTestShadow;
+
+        public ToggleData alphaTestShadow
+        {
+            get { return new ToggleData(m_AlphaTestShadow); }
+            set
+            {
+                if (m_AlphaTestShadow == value.isOn)
+                    return;
+                m_AlphaTestShadow = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
             }
@@ -680,18 +699,23 @@ namespace UnityEditor.ShaderGraph
             }
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaThreshold) && alphaTest.isOn)
             {
-                AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaThresholdSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaThresholdDepthPrepass) && surfaceType == SurfaceType.Transparent && alphaTest.isOn && alphaTestDepthPrepass.isOn)
             {
-                AddSlot(new Vector1MaterialSlot(AlphaThresholdDepthPrepassSlotId, AlphaClipThresholdDepthPrepassSlotName, AlphaClipThresholdDepthPrepassSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(AlphaThresholdDepthPrepassSlotId, AlphaClipThresholdDepthPrepassSlotName, AlphaClipThresholdDepthPrepassSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaThresholdDepthPrepassSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaThresholdDepthPostpass) && surfaceType == SurfaceType.Transparent && alphaTest.isOn && alphaTestDepthPostpass.isOn)
             {
-                AddSlot(new Vector1MaterialSlot(AlphaThresholdDepthPostpassSlotId, AlphaClipThresholdDepthPostpassSlotName, AlphaClipThresholdDepthPostpassSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(AlphaThresholdDepthPostpassSlotId, AlphaClipThresholdDepthPostpassSlotName, AlphaClipThresholdDepthPostpassSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaThresholdDepthPostpassSlotId);
+            }
+            if (MaterialTypeUsesSlotMask(SlotMask.AlphaThresholdShadow) && surfaceType == SurfaceType.Transparent && alphaTest.isOn && alphaTestShadow.isOn)
+            {
+                AddSlot(new Vector1MaterialSlot(AlphaThresholdShadowSlotId, AlphaClipThresholdShadowSlotName, AlphaClipThresholdShadowSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
+                validSlots.Add(AlphaThresholdShadowSlotId);
             }
             if (specularAA.isOn)
             {
@@ -714,7 +738,7 @@ namespace UnityEditor.ShaderGraph
             }
             if (HasDistortion())
             {
-                AddSlot(new Vector2MaterialSlot(DistortionSlotId, DistortionSlotName, DistortionSlotName, SlotType.Input, new Vector2(2.0f, -1.0f), ShaderStageCapability.Fragment));
+                AddSlot(new Vector2MaterialSlot(DistortionSlotId, DistortionSlotName, DistortionSlotName, SlotType.Input, new Vector2(0.0f, 0.0f), ShaderStageCapability.Fragment));
                 validSlots.Add(DistortionSlotId);
 
                 AddSlot(new Vector1MaterialSlot(DistortionBlurSlotId, DistortionBlurSlotName, DistortionBlurSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));

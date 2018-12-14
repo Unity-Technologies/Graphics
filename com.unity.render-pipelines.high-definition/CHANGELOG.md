@@ -4,7 +4,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [4.7.0-preview] - 2018-XX-XX
+## [4.7.0-preview] - 2018-XX-XX??### Added
+- Added replace blending mode for distortion
+
+### Fixed
+- Fixed normal map use for shadow bias with forward lit - now use geometric normal
+- Fixed transparent depth prepass and postpass access so they can be use without alpha clipping for lit shader
+- Fixed support of alpha clip shadow for lit master node
+- Fixed unlit master node not compiling
+- Fixed issue with debug display of reflection probe
+- Fixed issue with phong tessellations not working with lit shader
+- Fixed issue with vertex displacement being affected by heightmap setting even if not heightmap where assign
+- Fixed issue with density mode on Lit terrain producing NaN
+
+### Changed
+- Update several properties naming and caption based on feedback from documentation team
+- Remove tile shader variant for transparent backface pass of lit shader
 
 ## [4.6.0-preview] - 2018-12-07
 

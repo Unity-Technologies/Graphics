@@ -61,6 +61,9 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
         // Convert to view space
         result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
         break;
+    case DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+        result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+        break;
     }
 }
 
@@ -74,6 +77,9 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
     case DEBUGVIEW_AXF_BSDFDATA_NORMAL_VIEW_SPACE:
         // Convert to view space
         result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+        break;
+    case DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+        result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
         break;
     }
 }

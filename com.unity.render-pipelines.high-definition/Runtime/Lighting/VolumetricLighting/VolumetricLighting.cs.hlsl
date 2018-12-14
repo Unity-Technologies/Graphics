@@ -64,5 +64,4 @@ float GetPad2(DensityVolumeEngineData value)
     return value.pad2;
 }
 
-
 #endif

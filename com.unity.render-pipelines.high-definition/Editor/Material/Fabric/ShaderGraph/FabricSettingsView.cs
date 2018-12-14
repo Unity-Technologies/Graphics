@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 --indentLevel;
             }
 
-            ps.Add(new PropertyRow(CreateLabel("Double Sided", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
             {
                 row.Add(new EnumField(DoubleSidedMode.Disabled), (field) =>
                 {
@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Receives SSR", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -211,7 +211,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (Equals(m_Node.doubleSidedMode, evt.newValue))
                 return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Double Sided Mode Change");
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
             m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
         }
 
@@ -350,7 +350,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case FabricMasterNode.AlphaModeFabric.Alpha:
                     return AlphaMode.Alpha;
-                case FabricMasterNode.AlphaModeFabric.PremultipliedAlpha:
+                case FabricMasterNode.AlphaModeFabric.Premultiply:
                     return AlphaMode.Premultiply;
                 case FabricMasterNode.AlphaModeFabric.Additive:
                     return AlphaMode.Additive;
@@ -370,7 +370,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AlphaMode.Alpha:
                     return FabricMasterNode.AlphaModeFabric.Alpha;
                 case AlphaMode.Premultiply:
-                    return FabricMasterNode.AlphaModeFabric.PremultipliedAlpha;
+                    return FabricMasterNode.AlphaModeFabric.Premultiply;
                 case AlphaMode.Additive:
                     return FabricMasterNode.AlphaModeFabric.Additive;
                 default:

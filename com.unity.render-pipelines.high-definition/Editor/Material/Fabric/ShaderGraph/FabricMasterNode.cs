@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
         public enum AlphaModeFabric
         {
             Alpha,
-            PremultipliedAlpha,
+            Premultiply,
             Additive,
         }
 

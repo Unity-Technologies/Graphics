@@ -107,11 +107,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings> { }
 
-        [MenuItem("Assets/Create/Rendering/Diffusion Profile Settings", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/Diffusion Profile List", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile Settings.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile List.asset", icon, null);
         }
 
         [MenuItem("Internal/HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
