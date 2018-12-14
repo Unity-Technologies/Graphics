@@ -5,6 +5,7 @@ namespace UnityEditor.ShaderGraph
     public enum DistortionMode
     {
         Add,
-        Multiply
+        Multiply,
+        Replace
     }
 }

@@ -180,7 +180,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.AlphaThresholdShadowSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -390,9 +391,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     pass.BlendOverride = "Blend One One, One One";
                     pass.BlendOpOverride = "BlendOp Add, Add";
                 }
-                else // if (masterNode.distortionMode == DistortionMode.Multiply)
+                else if (masterNode.distortionMode == DistortionMode.Multiply)
                 {
                     pass.BlendOverride = "Blend DstColor Zero, DstAlpha Zero";
+                    pass.BlendOpOverride = "BlendOp Add, Add";
+                }
+                else // (masterNode.distortionMode == DistortionMode.Replace)
+                {
+                    pass.BlendOverride = "Blend One Zero, One Zero";
                     pass.BlendOpOverride = "BlendOp Add, Add";
                 }
             }
@@ -445,7 +451,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "#pragma multi_compile _ SHADOWS_SHADOWMASK",
                 "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
                 "#define LIGHTLOOP_TILE_PASS",
-                "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
+                "#define USE_CLUSTERED_LIGHTLIST",
                 "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
             },
             Includes = new List<string>()
@@ -692,11 +698,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.alphaTest.isOn)
             {
                 int count = 0;
-                if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdSlotId))
+                // If alpha test shadow is enable, we use it, otherwise we use the regular test
+                if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdShadowSlotId) && masterNode.alphaTestShadow.isOn)
+                {
+                    activeFields.Add("AlphaTestShadow");
+                    ++count;
+                }
+                else if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdSlotId))
                 { 
                     activeFields.Add("AlphaTest");
                     ++count;
                 }
+
                 if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdDepthPrepassSlotId))
                 {
                     activeFields.Add("AlphaTestPrepass");
