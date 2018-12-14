@@ -23,9 +23,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Tangent", true)]
             public Vector3  tangentWS;
 
-            [SurfaceDataAttributes("BiTangent", true)]
-            public Vector3  biTangentWS;
-
             // SVBRDF Variables
             [SurfaceDataAttributes("Diffuse Color", false, true)]
             public Vector3  diffuseColor;
@@ -77,7 +74,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3  normalWS;
+            [SurfaceDataAttributes("", true)]
             public Vector3  tangentWS;
+            [SurfaceDataAttributes("", true)]
             public Vector3  biTangentWS;
 
             // SVBRDF Variables
@@ -86,7 +85,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3  fresnelF0;
             public Vector2  roughness;
             public float    height_mm;
-            public float    anisotropyAngle;
 
             // Car Paint Variables
             [SurfaceDataAttributes("")]
