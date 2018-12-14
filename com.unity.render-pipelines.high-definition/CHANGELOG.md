@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new UI for decal material to allow remapping and scaling of some properties
 - Added cascade shadow visualisation toggle in HD shadow settings
 - Added icons for assets.
+- Added replace blending mode for distortion
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -30,12 +31,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FrameSettings' LitShaderMode sync when opening DebugMenu.
 - Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader
 - Fixed an issue with flipped depth buffer during postprocessing
+- Fixed normal map use for shadow bias with forward lit - now use geometric normal
+- Fixed transparent depth prepass and postpass access so they can be use without alpha clipping for lit shader
+- Fixed support of alpha clip shadow for lit master node
+- Fixed unlit master node not compiling
+- Fixed issue with debug display of reflection probe
+- Fixed issue with phong tessellations not working with lit shader
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
 - Removing the simple lightloop used by the simple lit shader
 - Whole refactor of reflection system: Workflow and performance improvement.
 - Separated Passthrough from other RenderingPath
+- Update several properties naming and caption based on feedback from documentation team
+- Remove tile shader variant for transparent backface pass of lit shader
+
 
 ## [5.2.0-preview] - 2018-11-27
 

@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static class Styles
         {
-            public static string InputsText = "Inputs";
+            public static string InputsText = "Surface Inputs";
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // SVBRDF Parameters

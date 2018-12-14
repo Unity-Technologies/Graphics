@@ -187,6 +187,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     alphaCutoff = _AlphaCutoffPrepass;
     #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
     alphaCutoff = _AlphaCutoffPostpass;
+    #elif defined(CUTOFF_TRANSPARENT_DEPTH_SHADOWS)
+    alphaCutoff = _AlphaCutoffShadow;
     #endif
     DoAlphaTest(alpha, alphaCutoff);
 #endif
@@ -223,6 +225,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.specularOcclusion = 1.0; // Will be setup outside of this function
 
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this to keep quiet the compiler, but this is overriden later (0, 0, 0) so if we forget to override the compiler may comply.
+    surfaceData.geomNormalWS = float3(0.0, 0.0, 0.0); // Not used, just to keep compiler quiet.
 
     normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask);
     bentNormalTS = ADD_IDX(GetBentNormalTS)(input, layerTexCoord, normalTS, detailNormalTS, detailMask);
