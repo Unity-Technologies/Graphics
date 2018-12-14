@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Rendering.LWRP;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
@@ -28,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private FinalBlitPass m_FinalBlitPass;
         private CapturePass m_CapturePass;
         private EndXRRenderingPass m_EndXrRenderingPass;
+        private DebugShadowCascadesPass m_DebugShadowCascadesPass;
 
 #if UNITY_EDITOR
         private GizmoRenderingPass m_LitGizmoRenderingPass;
@@ -74,6 +79,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_FinalBlitPass = new FinalBlitPass();
             m_CapturePass = new CapturePass();
             m_EndXrRenderingPass = new EndXRRenderingPass();
+            m_DebugShadowCascadesPass = new DebugShadowCascadesPass();
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass();
@@ -126,6 +132,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RenderTextureDescriptor shadowDescriptor = baseDescriptor;
             shadowDescriptor.dimension = TextureDimension.Tex2D;
 
+            RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
+            RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
+
             bool mainLightShadows = false;
             if (renderingData.shadowData.supportsMainLightShadows)
             {
@@ -133,6 +142,23 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (mainLightShadows)
                     renderer.EnqueuePass(m_MainLightShadowCasterPass);
             }
+
+
+#if UNITY_EDITOR
+            if (renderingData.cameraData.isSceneViewCamera)
+            {
+                DrawCameraMode drawCameraMode = DrawCameraMode.Textured;
+                drawCameraMode = SceneViewDrawMode.GetDrawCameraMode(camera);
+
+                if (drawCameraMode == DrawCameraMode.ShadowCascades)
+                {
+                    m_DebugShadowCascadesPass.Setup(baseDescriptor, colorHandle, depthHandle, clearFlag, camera.backgroundColor);
+                    renderer.EnqueuePass(m_DebugShadowCascadesPass);
+                    return;
+                }
+            }
+#endif
+
 
             if (renderingData.shadowData.supportsAdditionalLightShadows)
             {
@@ -167,8 +193,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     || Display.main.requiresBlitToBackbuffer
                     || renderingData.killAlphaInFinalBlit;
 
-            RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
-            RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
+
 
             var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
             if (requiresRenderToTexture)

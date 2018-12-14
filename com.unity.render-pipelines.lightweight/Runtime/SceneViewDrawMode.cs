@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
+using UnityEngine;
 
 namespace UnityEditor.Rendering.LWRP
 {
@@ -8,7 +9,6 @@ namespace UnityEditor.Rendering.LWRP
         static bool RejectDrawMode(SceneView.CameraMode cameraMode)
         {
             if (cameraMode.drawMode == DrawCameraMode.TexturedWire ||
-                cameraMode.drawMode == DrawCameraMode.ShadowCascades ||
                 cameraMode.drawMode == DrawCameraMode.RenderPaths ||
                 cameraMode.drawMode == DrawCameraMode.AlphaChannel ||
                 cameraMode.drawMode == DrawCameraMode.Overdraw ||
@@ -40,6 +40,20 @@ namespace UnityEditor.Rendering.LWRP
             ArrayList sceneViewArray = SceneView.sceneViews;
             foreach (SceneView sceneView in sceneViewArray)
                 sceneView.onValidateCameraMode -= RejectDrawMode;
+        }
+
+        public static DrawCameraMode GetDrawCameraMode(Camera camera)
+        {
+            ArrayList sceneViewArray = SceneView.sceneViews;
+            foreach (SceneView sceneView in sceneViewArray)
+            {
+                if (sceneView.camera == camera)
+                {
+                    return sceneView.cameraMode.drawMode;
+                }
+            }
+
+            return DrawCameraMode.Textured;
         }
     }
 }

@@ -43,15 +43,18 @@ namespace UnityEditor.Experimental.Rendering
                     }
                 }
 
-                // Float fields for adding values
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.PrefixLabel("Splits");
-
+                var labelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 25;
+                var indentLevel = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0;
                 if (type == typeof(float))
                 {
                     var value = shadowCascadeSplit.floatValue;
+
                     EditorGUI.BeginChangeCheck();
-                    var meterValue = EditorGUILayout.DelayedFloatField((float)Math.Round(value * distance, 2), GUILayout.Width(70f));
+                    var meterValue = EditorGUILayout.DelayedFloatField("1",(float)Math.Round(value * distance, 2), GUILayout.Width(75f));
                     if (EditorGUI.EndChangeCheck())
                     {
                         var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
@@ -71,7 +74,8 @@ namespace UnityEditor.Experimental.Rendering
                         }
 
                         EditorGUI.BeginChangeCheck();
-                        var meterValue = EditorGUILayout.DelayedFloatField((float)Math.Round(vec3value[i] * distance, 2), GUILayout.Width(70f));
+                        var meterValue = EditorGUILayout.DelayedFloatField($"{i+1}", (float)Math.Round(vec3value[i] * distance, 2));
+
                         if (EditorGUI.EndChangeCheck())
                         {
                             var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
@@ -91,6 +95,9 @@ namespace UnityEditor.Experimental.Rendering
                         }
                     }
                 }
+
+                EditorGUIUtility.labelWidth = labelWidth;
+                EditorGUI.indentLevel = indentLevel;
                 EditorGUILayout.EndHorizontal();
             }
         }
