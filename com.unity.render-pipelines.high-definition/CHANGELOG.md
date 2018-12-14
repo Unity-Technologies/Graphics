@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with phong tessellations not working with lit shader
 - Fixed issue with vertex displacement being affected by heightmap setting even if not heightmap where assign
 - Fixed issue with density mode on Lit terrain producing NaN
+- Fixed issue when going back and forth from Lit to LitTesselation for displacement mode
 
 ### Changed
 - Update several properties naming and caption based on feedback from documentation team
