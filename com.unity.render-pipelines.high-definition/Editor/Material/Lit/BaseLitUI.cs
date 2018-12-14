@@ -308,6 +308,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (displacementMode != null)
             {
                 EditorGUI.BeginChangeCheck();
+                FilterDisplacementMode();
                 m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -338,6 +339,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
                     EditorGUI.indentLevel--;
                 }
+            }
+        }
+
+        protected void FilterDisplacementMode()
+        {
+            if(tessellationMode == null)
+            {
+                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Tessellation)
+                    displacementMode.floatValue = (float)DisplacementMode.None;
+            }
+            else
+            {
+                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel || (DisplacementMode)displacementMode.floatValue == DisplacementMode.Vertex)
+                    displacementMode.floatValue = (float)DisplacementMode.None;
             }
         }
 

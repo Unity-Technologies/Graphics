@@ -37,6 +37,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unlit master node not compiling
 - Fixed issue with debug display of reflection probe
 - Fixed issue with phong tessellations not working with lit shader
+- Fixed issue with vertex displacement being affected by heightmap setting even if not heightmap where assign
+- Fixed issue with density mode on Lit terrain producing NaN
+- Fixed issue when going back and forth from Lit to LitTesselation for displacement mode
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
