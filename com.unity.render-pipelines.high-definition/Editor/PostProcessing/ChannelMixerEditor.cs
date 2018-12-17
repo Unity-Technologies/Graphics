@@ -42,9 +42,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Toggle(currentChannel == 0, CoreEditorUtils.GetContent("Red|Red output channel."), EditorStyles.miniButtonLeft)) currentChannel = 0;
-                    if (GUILayout.Toggle(currentChannel == 1, CoreEditorUtils.GetContent("Green|Green output channel."), EditorStyles.miniButtonMid)) currentChannel = 1;
-                    if (GUILayout.Toggle(currentChannel == 2, CoreEditorUtils.GetContent("Blue|Blue output channel."), EditorStyles.miniButtonRight)) currentChannel = 2;
+                    if (GUILayout.Toggle(currentChannel == 0, EditorGUIUtility.TrTextContent("Red", "Red output channel."), EditorStyles.miniButtonLeft)) currentChannel = 0;
+                    if (GUILayout.Toggle(currentChannel == 1, EditorGUIUtility.TrTextContent("Green", "Green output channel."), EditorStyles.miniButtonMid)) currentChannel = 1;
+                    if (GUILayout.Toggle(currentChannel == 2, EditorGUIUtility.TrTextContent("Blue", "Blue output channel."), EditorStyles.miniButtonRight)) currentChannel = 2;
                 }
             }
             if (EditorGUI.EndChangeCheck())
@@ -54,21 +54,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (currentChannel == 0)
             {
-                PropertyField(m_RedOutRedIn, CoreEditorUtils.GetContent("Red"));
-                PropertyField(m_RedOutGreenIn, CoreEditorUtils.GetContent("Green"));
-                PropertyField(m_RedOutBlueIn, CoreEditorUtils.GetContent("Blue"));
+                PropertyField(m_RedOutRedIn, EditorGUIUtility.TrTextContent("Red"));
+                PropertyField(m_RedOutGreenIn, EditorGUIUtility.TrTextContent("Green"));
+                PropertyField(m_RedOutBlueIn, EditorGUIUtility.TrTextContent("Blue"));
             }
             else if (currentChannel == 1)
             {
-                PropertyField(m_GreenOutRedIn, CoreEditorUtils.GetContent("Red"));
-                PropertyField(m_GreenOutGreenIn, CoreEditorUtils.GetContent("Green"));
-                PropertyField(m_GreenOutBlueIn, CoreEditorUtils.GetContent("Blue"));
+                PropertyField(m_GreenOutRedIn, EditorGUIUtility.TrTextContent("Red"));
+                PropertyField(m_GreenOutGreenIn, EditorGUIUtility.TrTextContent("Green"));
+                PropertyField(m_GreenOutBlueIn, EditorGUIUtility.TrTextContent("Blue"));
             }
             else
             {
-                PropertyField(m_BlueOutRedIn, CoreEditorUtils.GetContent("Red"));
-                PropertyField(m_BlueOutGreenIn, CoreEditorUtils.GetContent("Green"));
-                PropertyField(m_BlueOutBlueIn, CoreEditorUtils.GetContent("Blue"));
+                PropertyField(m_BlueOutRedIn, EditorGUIUtility.TrTextContent("Red"));
+                PropertyField(m_BlueOutGreenIn, EditorGUIUtility.TrTextContent("Green"));
+                PropertyField(m_BlueOutBlueIn, EditorGUIUtility.TrTextContent("Blue"));
             }
         }
     }

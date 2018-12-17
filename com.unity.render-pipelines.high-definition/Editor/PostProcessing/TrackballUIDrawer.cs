@@ -146,7 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Override checkbox
             var overrideRect = new Rect(labelRect.x - 17, labelRect.y + 3, 17f, 17f);
-            overrideState.boolValue = GUI.Toggle(overrideRect, overrideState.boolValue, CoreEditorUtils.GetContent("|Override this setting for this volume."), CoreEditorStyles.smallTickbox);
+            overrideState.boolValue = GUI.Toggle(overrideRect, overrideState.boolValue, EditorGUIUtility.TrTextContent("", "Override this setting for this volume."), CoreEditorStyles.smallTickbox);
         }
 
         Vector3 GetInput(Rect bounds, Vector3 hsv, Vector2 thumbPos, float radius)

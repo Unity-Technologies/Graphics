@@ -44,8 +44,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_Tint);
 
             EditorGUILayout.LabelField("Lens Dirt", EditorStyles.miniLabel);
-            PropertyField(m_DirtTexture, CoreEditorUtils.GetContent("Texture"));
-            PropertyField(m_DirtIntensity, CoreEditorUtils.GetContent("Intensity"));
+            PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
+            PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
 
             if (isInAdvancedMode)
             {

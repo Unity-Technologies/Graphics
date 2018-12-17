@@ -72,12 +72,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Adaptation", EditorStyles.miniLabel);
 
-                PropertyField(m_AdaptationMode, CoreEditorUtils.GetContent("Mode"));
+                PropertyField(m_AdaptationMode, EditorGUIUtility.TrTextContent("Mode"));
 
                 if (m_AdaptationMode.value.intValue == (int)AdaptationMode.Progressive)
                 {
-                    PropertyField(m_AdaptationSpeedDarkToLight, CoreEditorUtils.GetContent("Speed Dark to Light"));
-                    PropertyField(m_AdaptationSpeedLightToDark, CoreEditorUtils.GetContent("Speed Light to Dark"));
+                    PropertyField(m_AdaptationSpeedDarkToLight, EditorGUIUtility.TrTextContent("Speed Dark to Light"));
+                    PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
                 }
             }
         }

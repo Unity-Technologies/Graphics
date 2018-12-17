@@ -43,11 +43,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, CoreEditorUtils.GetContent("Shadows"), GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, EditorGUIUtility.TrTextContent("Shadows"), GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Midtones.value, m_Midtones.overrideState, CoreEditorUtils.GetContent("Midtones"), GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Midtones.value, m_Midtones.overrideState, EditorGUIUtility.TrTextContent("Midtones"), GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Highlights.value, m_Highlights.overrideState, CoreEditorUtils.GetContent("Highlights"), GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Highlights.value, m_Highlights.overrideState, EditorGUIUtility.TrTextContent("Highlights"), GetWheelValue);
             }
             EditorGUILayout.Space();
 
@@ -80,17 +80,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Shadow Limits", EditorStyles.miniLabel);
-            PropertyField(m_ShadowsStart, CoreEditorUtils.GetContent("Start"));
+            PropertyField(m_ShadowsStart, EditorGUIUtility.TrTextContent("Start"));
             m_ShadowsStart.value.floatValue = Mathf.Min(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
-            PropertyField(m_ShadowsEnd, CoreEditorUtils.GetContent("End"));
+            PropertyField(m_ShadowsEnd, EditorGUIUtility.TrTextContent("End"));
             m_ShadowsEnd.value.floatValue = Mathf.Max(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
 
             EditorGUILayout.Space();
             
             EditorGUILayout.LabelField("Highlight Limits", EditorStyles.miniLabel);
-            PropertyField(m_HighlightsStart, CoreEditorUtils.GetContent("Start"));
+            PropertyField(m_HighlightsStart, EditorGUIUtility.TrTextContent("Start"));
             m_HighlightsStart.value.floatValue = Mathf.Min(m_HighlightsStart.value.floatValue, m_HighlightsEnd.value.floatValue);
-            PropertyField(m_HighlightsEnd, CoreEditorUtils.GetContent("End"));
+            PropertyField(m_HighlightsEnd, EditorGUIUtility.TrTextContent("End"));
             m_HighlightsEnd.value.floatValue = Mathf.Max(m_HighlightsStart.value.floatValue, m_HighlightsEnd.value.floatValue);
         }
 

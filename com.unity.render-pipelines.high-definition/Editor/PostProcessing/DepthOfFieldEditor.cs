@@ -68,12 +68,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (advanced)
                 {
                     EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
-                    PropertyField(m_NearSampleCount, CoreEditorUtils.GetContent("Sample Count"));
-                    PropertyField(m_NearMaxBlur, CoreEditorUtils.GetContent("Max Radius"));
+                    PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
+                    PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
 
                     EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
-                    PropertyField(m_FarSampleCount, CoreEditorUtils.GetContent("Sample Count"));
-                    PropertyField(m_FarMaxBlur, CoreEditorUtils.GetContent("Max Radius"));
+                    PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
+                    PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
                 }
             }
             else if (mode == (int)DepthOfFieldMode.Manual)
@@ -81,23 +81,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
 
                 EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
-                PropertyField(m_NearFocusStart, CoreEditorUtils.GetContent("Start"));
-                PropertyField(m_NearFocusEnd, CoreEditorUtils.GetContent("End"));
+                PropertyField(m_NearFocusStart, EditorGUIUtility.TrTextContent("Start"));
+                PropertyField(m_NearFocusEnd, EditorGUIUtility.TrTextContent("End"));
 
                 if (advanced)
                 {
-                    PropertyField(m_NearSampleCount, CoreEditorUtils.GetContent("Sample Count"));
-                    PropertyField(m_NearMaxBlur, CoreEditorUtils.GetContent("Max Radius"));
+                    PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
+                    PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
                 }
 
                 EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
-                PropertyField(m_FarFocusStart, CoreEditorUtils.GetContent("Start"));
-                PropertyField(m_FarFocusEnd, CoreEditorUtils.GetContent("End"));
+                PropertyField(m_FarFocusStart, EditorGUIUtility.TrTextContent("Start"));
+                PropertyField(m_FarFocusEnd, EditorGUIUtility.TrTextContent("End"));
 
                 if (advanced)
                 {
-                    PropertyField(m_FarSampleCount, CoreEditorUtils.GetContent("Sample Count"));
-                    PropertyField(m_FarMaxBlur, CoreEditorUtils.GetContent("Max Radius"));
+                    PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
+                    PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
                 }
             }
 

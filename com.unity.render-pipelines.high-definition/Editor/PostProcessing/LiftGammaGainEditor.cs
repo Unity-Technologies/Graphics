@@ -26,11 +26,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                m_TrackballUIDrawer.OnGUI(m_Lift.value, m_Lift.overrideState, CoreEditorUtils.GetContent("Lift"), GetLiftValue);
+                m_TrackballUIDrawer.OnGUI(m_Lift.value, m_Lift.overrideState, EditorGUIUtility.TrTextContent("Lift"), GetLiftValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Gamma.value, m_Gamma.overrideState, CoreEditorUtils.GetContent("Gamma"), GetLiftValue);
+                m_TrackballUIDrawer.OnGUI(m_Gamma.value, m_Gamma.overrideState, EditorGUIUtility.TrTextContent("Gamma"), GetLiftValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Gain.value, m_Gain.overrideState, CoreEditorUtils.GetContent("Gain"), GetLiftValue);
+                m_TrackballUIDrawer.OnGUI(m_Gain.value, m_Gain.overrideState, EditorGUIUtility.TrTextContent("Gain"), GetLiftValue);
             }
         }
 
