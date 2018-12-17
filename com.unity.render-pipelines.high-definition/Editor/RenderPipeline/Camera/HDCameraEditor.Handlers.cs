@@ -4,7 +4,6 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -36,8 +35,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorUtility.CopySerialized(c, m_PreviewCamera);
             var cameraData = c.GetComponent<HDAdditionalCameraData>();
             EditorUtility.CopySerialized(cameraData, m_PreviewAdditionalCameraData);
-            var layer = c.GetComponent<PostProcessLayer>() ?? ComponentSingleton<PostProcessLayer>.instance;
-            EditorUtility.CopySerialized(layer, m_PreviewPostProcessLayer);
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);
             m_PreviewCamera.targetTexture = previewTexture;

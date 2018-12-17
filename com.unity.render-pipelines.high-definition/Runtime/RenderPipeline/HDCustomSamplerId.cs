@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HTileForSSS,
         Forward,
         RenderSSAO,
+        ResolveSSAO,
         RenderShadows,
         ScreenSpaceShadows,
         BuildLightList,
@@ -68,6 +69,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Misc
         VolumeUpdate,
+
+        // Post-processing
+        Exposure,
+        TemporalAntialiasing,
+        DepthOfField,
+        DepthOfFieldKernel,
+        DepthOfFieldCoC,
+        DepthOfFieldPrefilter,
+        DepthOfFieldPyramid,
+        DepthOfFieldDilate,
+        DepthOfFieldTileMax,
+        DepthOfFieldGatherFar,
+        DepthOfFieldGatherNear,
+        DepthOfFieldPreCombine,
+        DepthOfFieldCombine,
+        MotionBlur,
+        PaniniProjection,
+        Bloom,
+        ColorGradingLUTBuilder,
+        UberPost,
+        FinalPost,
 
         Max
     }

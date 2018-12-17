@@ -79,6 +79,23 @@ namespace UnityEditor.Rendering
         }
 
         // UI Helpers
+        public static void DrawFixMeBox(string text, Action action)
+        {
+            EditorGUILayout.HelpBox(text, MessageType.Warning);
+
+            GUILayout.Space(-32);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+
+                if (GUILayout.Button("Fix", GUILayout.Width(60)))
+                    action();
+
+                GUILayout.Space(8);
+            }
+            GUILayout.Space(11);
+        }
+
         public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
         {
             DrawMultipleFields(GetContent(label), ppts, lbls);
@@ -86,15 +103,22 @@ namespace UnityEditor.Rendering
 
         public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] lbls)
         {
-            GUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel(label);
-            GUILayout.BeginVertical();
             var labelWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = 45;
-            for (var i = 0; i < ppts.Length; ++i)
-                EditorGUILayout.PropertyField(ppts[i], lbls[i]);
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PrefixLabel(label);
+
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    EditorGUIUtility.labelWidth = 40;
+                    EditorGUI.indentLevel--;
+                    for (var i = 0; i < ppts.Length; ++i)
+                        EditorGUILayout.PropertyField(ppts[i], lbls[i]);
+                    EditorGUI.indentLevel++;
+                }
+            }
+
             EditorGUIUtility.labelWidth = labelWidth;
         }
 

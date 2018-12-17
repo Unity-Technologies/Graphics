@@ -23,16 +23,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent occlusionCullingContent = CoreEditorUtils.GetContent("Occlusion Culling");
 
         static readonly GUIContent projectionContent = CoreEditorUtils.GetContent("Projection|How the Camera renders perspective.\n\nChoose Perspective to render objects with perspective.\n\nChoose Orthographic to render objects uniformly, with no sense of perspective.");
-        static readonly GUIContent sizeContent = CoreEditorUtils.GetContent("Size");
-        static readonly GUIContent fieldOfViewContent = CoreEditorUtils.GetContent("Field of View|The width of the Camera’s view angle, measured in degrees along the local Y axis.");
+        static readonly GUIContent sizeContent = CoreEditorUtils.GetContent("Size|The vertical size of the camera view.");
+        static readonly GUIContent fieldOfViewContent = CoreEditorUtils.GetContent("Field of View|The camera’s view angle measured in degrees along the selected axis.");
+        static readonly GUIContent focalLengthContent = CoreEditorUtils.GetContent("Focal Length|The simulated distance between the lens and the sensor of the physical camera. Larger values give a narrower field of view.");
+        static readonly GUIContent FOVAxisModeContent = CoreEditorUtils.GetContent("FOV Axis|Field of view axis.");
+        static readonly GUIContent sensorSizeContent = CoreEditorUtils.GetContent("Sensor Size|The size of the camera sensor in millimeters.");
+        static readonly GUIContent lensShiftContent = CoreEditorUtils.GetContent("Shift|Offset from the camera sensor. Use these properties to simulate a shift lens. Measured as a multiple of the sensor size.");
+        static readonly GUIContent physicalCameraContent = CoreEditorUtils.GetContent("Link FOV to Physical Camera|Enables Physical camera mode for FOV calculation. When checked, the field of view is calculated from properties for simulating physical attributes (focal length, sensor size, and lens shift).");
+        static readonly GUIContent cameraTypeContent = CoreEditorUtils.GetContent("Sensor Type|Common sensor sizes. Choose an item to set Sensor Size, or edit Sensor Size for your custom settings.");
+        static readonly GUIContent gateFitContent = CoreEditorUtils.GetContent("Gate Fit|Determines how the rendered area (resolution gate) fits into the sensor area (film gate).");
         static readonly GUIContent nearPlaneContent = CoreEditorUtils.GetContent("Near|The closest point relative to the camera that drawing will occur.");
         static readonly GUIContent farPlaneContent = CoreEditorUtils.GetContent("Far|The furthest point relative to the camera that drawing will occur.");
 
         static readonly GUIContent renderingPathContent = CoreEditorUtils.GetContent("Custom Frame Settings");
 
-        static readonly GUIContent apertureContent = CoreEditorUtils.GetContent("Aperture");
-        static readonly GUIContent shutterSpeedContent = CoreEditorUtils.GetContent("Shutter Speed (1 / x)");
-        static readonly GUIContent isoContent = CoreEditorUtils.GetContent("ISO");
+        // TODO: Tooltips
+        static readonly GUIContent isoContent = CoreEditorUtils.GetContent("Iso|");
+        static readonly GUIContent shutterSpeedContent = CoreEditorUtils.GetContent("Shutter Speed|");
+        static readonly GUIContent apertureContent = CoreEditorUtils.GetContent("Aperture|");
+        static readonly GUIContent bladeCountContent = CoreEditorUtils.GetContent("Blade Count|");
+        static readonly GUIContent curvatureContent = CoreEditorUtils.GetContent("Curvature|");
+        static readonly GUIContent barrelClippingContent = CoreEditorUtils.GetContent("Barrel Clipping|");
+        static readonly GUIContent anamorphismContent = CoreEditorUtils.GetContent("Anamorphism|");
+
+        static readonly GUIContent antialiasingContent = CoreEditorUtils.GetContent("Anti-aliasing|The anti-aliasing method to use.");
+        static readonly GUIContent ditheringContent = CoreEditorUtils.GetContent("Dithering|Should we apply 8-bit dithering to the final render?");
 
         static readonly GUIContent viewportContent = CoreEditorUtils.GetContent("Viewport Rect|Four values that indicate where on the screen this camera view will be drawn. Measured in Viewport Coordinates (values 0–1).");
         static readonly GUIContent depthContent = CoreEditorUtils.GetContent("Depth");
@@ -52,5 +67,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             new GUIContent("None (Main Display)"),
         };
 
+        static readonly GUIContent[] antialiasingModeNames =
+        {
+            new GUIContent("No Anti-aliasing"),
+            new GUIContent("Fast Approximate Anti-aliasing (FXAA)"),
+            new GUIContent("Temporal Anti-aliasing (TAA)")
+        };
     }
 }

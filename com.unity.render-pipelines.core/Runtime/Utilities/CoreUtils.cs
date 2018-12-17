@@ -339,6 +339,13 @@ namespace UnityEngine.Rendering
             return (mask.ToUInt32(null) & flag.ToUInt32(null)) != 0;
         }
 
+        public static void Swap<T>(ref T a, ref T b)
+        {
+            var tmp = a;
+            a = b;
+            b = tmp;
+        }
+
         public static void SetKeyword(CommandBuffer cmd, string keyword, bool state)
         {
             if (state)

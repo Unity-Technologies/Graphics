@@ -7,6 +7,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using CED = CoreEditorDrawer<SerializedLightLoopSettings>;
     
+
     static class LightLoopSettingsUI
     {
         enum Expandable

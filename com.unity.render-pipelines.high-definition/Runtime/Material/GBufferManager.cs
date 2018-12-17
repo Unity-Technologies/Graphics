@@ -1,5 +1,4 @@
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -72,7 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_LightLayers >= 0)
                 cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, m_RTs[m_LightLayers]);
             else
-                cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, RuntimeUtilities.whiteTexture); // This is never use but need to be bind as the read is inside a if
+                cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, Texture2D.whiteTexture); // This is never use but need to be bind as the read is inside a if
         }
 
         // This function will setup the required render target array. This take into account if shadow mask and light layers are enabled or not.

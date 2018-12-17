@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -165,7 +164,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             culling = Culling.@default,
             frameSettings = new FrameSettings(),
             frustum = Frustum.@default,
-            postProcessLayer = null,
             customRenderingSettings = false,
             volumes = Volumes.@default,
             flipYMode = HDAdditionalCameraData.FlipYMode.Automatic,
@@ -176,8 +174,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool customRenderingSettings;
         /// <summary>Frame settings to use.</summary>
         public FrameSettings frameSettings;
-        /// <summary>Post process layer to use.</summary>
-        public PostProcessLayer postProcessLayer;
         /// <summary>Buffer clearing settings to use.</summary>
         public BufferClearing bufferClearing;
         /// <summary>Volumes settings to use.</summary>

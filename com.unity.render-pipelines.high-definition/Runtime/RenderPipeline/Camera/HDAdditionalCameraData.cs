@@ -1,10 +1,90 @@
 using System;
 using UnityEngine.Serialization;
-using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [Serializable]
+    public class HDPhysicalCamera
+    {
+        public const float kMinAperture = 1f;
+        public const float kMaxAperture = 32f;
+        public const int kMinBladeCount = 3;
+        public const int kMaxBladeCount = 11;
+
+        // Camera body
+        [SerializeField] [Min(1f)] int m_Iso = 200;
+        [SerializeField] [Min(0f)] float m_ShutterSpeed = 1f / 200f;
+
+        // Lens
+        // Note: focalLength is already defined in the regular camera component
+        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
+
+        // Aperture shape
+        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
+        [SerializeField] Vector2 m_Curvature = new Vector2(2f, 11f);
+        [SerializeField] [Range(0f, 1f)] float m_BarrelClipping = 0.25f;
+        [SerializeField] [Range(-1f, 1f)] float m_Anamorphism = 0f;
+
+        // Property binding / validation
+        public int iso
+        {
+            get => m_Iso;
+            set => m_Iso = Mathf.Max(value, 1);
+        }
+
+        public float shutterSpeed
+        {
+            get => m_ShutterSpeed;
+            set => m_ShutterSpeed = Mathf.Max(value, 0f);
+        }
+
+        public float aperture
+        {
+            get => m_Aperture;
+            set => m_Aperture = Mathf.Clamp(value, kMinAperture, kMaxAperture);
+        }
+
+        public int bladeCount
+        {
+            get => m_BladeCount;
+            set => m_BladeCount = Mathf.Clamp(value, kMinBladeCount, kMaxBladeCount);
+        }
+
+        public Vector2 curvature
+        {
+            get => m_Curvature;
+            set
+            {
+                m_Curvature.x = Mathf.Max(value.x, kMinAperture);
+                m_Curvature.y = Mathf.Min(value.y, kMaxAperture);
+            }
+        }
+
+        public float barrelClipping
+        {
+            get => m_BarrelClipping;
+            set => m_BarrelClipping = Mathf.Clamp01(value);
+        }
+
+        public float anamorphism
+        {
+            get => m_Anamorphism;
+            set => m_Anamorphism = Mathf.Clamp(value, -1f, 1f);
+        }
+
+        public void CopyTo(HDPhysicalCamera c)
+        {
+            c.iso = iso;
+            c.shutterSpeed = shutterSpeed;
+            c.aperture = aperture;
+            c.bladeCount = bladeCount;
+            c.curvature = curvature;
+            c.barrelClipping = barrelClipping;
+            c.anamorphism = anamorphism;
+        }
+    }
+
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     public partial class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver, IDebugData
@@ -29,6 +109,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             None
         };
 
+        public enum AntialiasingMode
+        {
+            None,
+            FastApproximateAntialiasing,
+            TemporalAntialiasing
+        }
+
         public ClearColorMode clearColorMode = ClearColorMode.Sky;
         [ColorUsage(true, true)]
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
@@ -39,10 +126,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Transform used for the volume interpolation for this camera.")]
         public Transform volumeAnchorOverride;
 
+        public AntialiasingMode antialiasing = AntialiasingMode.None;
+        public bool dithering = false;
+
         // Physical parameters
-        public float aperture = 8f;
-        public float shutterSpeed = 1f / 200f;
-        public float iso = 400f;
+        public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
+
         public FlipYMode flipYMode;
         
         [Tooltip("This will skip rendering settings to directly rendering in fullscreen (for instance: Useful for video)")]
@@ -90,9 +179,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.customRenderingSettings = customRenderingSettings;
             data.volumeLayerMask = volumeLayerMask;
             data.volumeAnchorOverride = volumeAnchorOverride;
-            data.aperture = aperture;
-            data.shutterSpeed = shutterSpeed;
-            data.iso = iso;
+            data.antialiasing = antialiasing;
+            data.dithering = dithering;
+            physicalParameters.CopyTo(data.physicalParameters);
 
             m_FrameSettings.CopyTo(data.m_FrameSettings);
             m_FrameSettingsRuntime.CopyTo(data.m_FrameSettingsRuntime);

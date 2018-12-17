@@ -455,8 +455,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!hdCamera.frameSettings.enableVolumetrics || visualEnvironment.fogType.value != FogType.Volumetric)
             {
-                var neutralTexture = UnityEngine.Rendering.PostProcessing.RuntimeUtilities.transparentTexture3D;
-                cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, neutralTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, HDUtils.clearTexture3D);
                 return;
             }
 

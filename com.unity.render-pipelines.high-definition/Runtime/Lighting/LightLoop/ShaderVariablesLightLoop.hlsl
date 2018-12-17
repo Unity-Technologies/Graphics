@@ -33,4 +33,26 @@
     // XRTODO: Need to stereo-ize access
     TEXTURE2D(_DeferredShadowTexture);
 
+    // Exposure texture - 1x1 RG16F (r: exposure mult, g: exposure EV100)
+    TEXTURE2D(_ExposureTexture);
+    TEXTURE2D(_PrevExposureTexture);
+
+    float GetCurrentExposureMultiplier()
+    {
+#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+        return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
+#else
+        return 1.0;
+#endif
+    }
+
+    float GetPreviousExposureMultiplier()
+    {
+#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+        return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x;
+#else
+        return 1.0;
+#endif
+    }
+
 #endif

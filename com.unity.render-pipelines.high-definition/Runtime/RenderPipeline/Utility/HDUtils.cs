@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -16,6 +15,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
         static public AdditionalShadowData s_DefaultAdditionalShadowData { get { return ComponentSingleton<AdditionalShadowData>.instance; } }
 
+        static Texture2D m_ClearTexture;
+        public static Texture2D clearTexture
+        {
+            get
+            {
+                if (m_ClearTexture == null)
+                {
+                    m_ClearTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "Clear Texture" };
+                    m_ClearTexture.SetPixel(0, 0, Color.clear);
+                    m_ClearTexture.Apply();
+                }
+
+                return m_ClearTexture;
+            }
+        }
+
+        static Texture3D m_ClearTexture3D;
+        public static Texture3D clearTexture3D
+        {
+            get
+            {
+                if (m_ClearTexture3D == null)
+                {
+                    m_ClearTexture3D = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false) { name = "Transparent Texture 3D" };
+                    m_ClearTexture3D.SetPixel(0, 0, 0, Color.clear);
+                    m_ClearTexture3D.Apply();
+                }
+
+                return m_ClearTexture3D;
+            }
+        }
 
         public static Material GetBlitMaterial()
         {
@@ -368,29 +398,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return camera.cameraType == CameraType.Preview && ((additionalCameraData == null) || (additionalCameraData && !additionalCameraData.isEditorCameraPreview));
         }
 
-        // Post-processing misc
-        public static bool IsPostProcessingActive(PostProcessLayer layer)
-        {
-            return layer != null
-                && layer.enabled;
-        }
-
-        public static bool IsTemporalAntialiasingActive(PostProcessLayer layer)
-        {
-            return IsPostProcessingActive(layer)
-                && layer.antialiasingMode == PostProcessLayer.Antialiasing.TemporalAntialiasing
-                && layer.temporalAntialiasing.IsSupported();
-        }
-
         // We need these at runtime for RenderPipelineResources upgrade
         public static string GetHDRenderPipelinePath()
         {
             return "Packages/com.unity.render-pipelines.high-definition/";
-        }
-
-        public static string GetPostProcessingPath()
-        {
-            return "Packages/com.unity.postprocessing/";
         }
 
         public static string GetCorePath()

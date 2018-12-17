@@ -89,6 +89,11 @@ namespace UnityEngine.Experimental.Rendering
 
         public void SwitchResizeMode(RTHandle rth, ResizeMode mode)
         {
+            // Don't do anything is scaling isn't enabled on this RT
+            // TODO: useScaling should probably be moved to ResizeMode.Fixed or something
+            if (!rth.useScaling)
+                return;
+
             switch (mode)
             {
                 case ResizeMode.OnDemand:

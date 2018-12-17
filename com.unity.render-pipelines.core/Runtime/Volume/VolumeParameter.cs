@@ -110,7 +110,10 @@ namespace UnityEngine.Rendering
             {
                 int hash = 17;
                 hash = hash * 23 + overrideState.GetHashCode();
-                hash = hash * 23 + value.GetHashCode();
+
+                if (value != null)
+                    hash = hash * 23 + value.GetHashCode();
+
                 return hash;
             }
         }
@@ -674,6 +677,7 @@ namespace UnityEngine.Rendering
     }
 
     // Used as a container to store custom serialized classes/structs inside volume components
+    // TODO: ObjectParameter<T> doesn't seem to be working as expect, debug me
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public class ObjectParameter<T> : VolumeParameter<T>
     {
@@ -727,9 +731,21 @@ namespace UnityEngine.Rendering
 
             for (int i = 0; i < paramFrom.Count; i++)
             {
-                if (paramOrigin[i].overrideState)
+                // Keep track of the override state for debugging purpose
+                paramOrigin[i].overrideState = paramTo[i].overrideState;
+
+                if (paramTo[i].overrideState)
                     paramOrigin[i].Interp(paramFrom[i], paramTo[i], t);
             }
         }
+    }
+
+    [Serializable]
+    public sealed class AnimationCurveParameter : VolumeParameter<AnimationCurve>
+    {
+        public AnimationCurveParameter(AnimationCurve value, bool overrideState = false)
+            : base(value, overrideState) {}
+
+        // TODO: Curve interpolation
     }
 }
