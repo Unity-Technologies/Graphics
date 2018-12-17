@@ -30,8 +30,6 @@ Shader "HDRenderPipeline/Unlit"
         _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
 
         // Transparency
-        [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
-
         [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0

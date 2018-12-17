@@ -118,7 +118,6 @@ Shader "HDRenderPipeline/Lit"
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
         _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
         _ATDistance("Transmittance Absorption Distance", Float) = 1.0
-        [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)

@@ -347,9 +347,6 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
         // TODO: Handle culling mode for backface culling
 
-        // Transparency
-        [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
-
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)

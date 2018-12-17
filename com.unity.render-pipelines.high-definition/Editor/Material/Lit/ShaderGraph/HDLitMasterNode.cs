@@ -203,6 +203,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        //could be either BaseUnlitGUI.OpaqueRenderQueue or BaseUnlitGUI.TransparentRenderQueue
+        [SerializeField]
+        HDRenderQueue.RenderQueueType m_RenderingPass = HDRenderQueue.RenderQueueType.Opaque;
+
+        public HDRenderQueue.RenderQueueType renderingPass
+        {
+            get { return m_RenderingPass; }
+            set
+            {
+                if (m_RenderingPass == value)
+                    return;
+
+                m_RenderingPass = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         [SerializeField]
         bool m_BlendPreserveSpecular = true;
 
