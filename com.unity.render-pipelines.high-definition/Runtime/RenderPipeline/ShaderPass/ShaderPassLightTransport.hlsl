@@ -31,11 +31,11 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 
     if (unity_MetaVertexControl.x)
     {
-        uv = inputMesh.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
+        uv = inputMesh.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
     }
     else if (unity_MetaVertexControl.y)
     {
-        uv = inputMesh.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+        uv = inputMesh.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
     }
 
     // OpenGL right now needs to actually use the incoming vertex position

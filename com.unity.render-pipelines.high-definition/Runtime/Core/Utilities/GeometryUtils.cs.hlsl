@@ -44,5 +44,4 @@ float GetExtentZ(OrientedBBox value)
     return value.extentZ;
 }
 
-
 #endif

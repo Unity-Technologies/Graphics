@@ -126,7 +126,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 --indentLevel;
             }
 
-            ps.Add(new PropertyRow(CreateLabel("Double Sided", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
             {
                 row.Add(new EnumField(DoubleSidedMode.Disabled), (field) =>
                 {
@@ -166,7 +166,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Receives SSR", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -210,7 +210,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             if (Equals(m_Node.doubleSidedMode, evt.newValue))
                 return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Double Sided Mode Change");
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
             m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
         }
 
@@ -348,7 +348,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             {
                 case HairMasterNode.AlphaModeLit.Alpha:
                     return AlphaMode.Alpha;
-                case HairMasterNode.AlphaModeLit.PremultipliedAlpha:
+                case HairMasterNode.AlphaModeLit.Premultiply:
                     return AlphaMode.Premultiply;
                 case HairMasterNode.AlphaModeLit.Additive:
                     return AlphaMode.Additive;
@@ -368,7 +368,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 case AlphaMode.Alpha:
                     return HairMasterNode.AlphaModeLit.Alpha;
                 case AlphaMode.Premultiply:
-                    return HairMasterNode.AlphaModeLit.PremultipliedAlpha;
+                    return HairMasterNode.AlphaModeLit.Premultiply;
                 case AlphaMode.Additive:
                     return HairMasterNode.AlphaModeLit.Additive;
                 default:
