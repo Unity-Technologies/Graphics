@@ -17,27 +17,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         readonly static ExpandedState<Expandable, RenderPipelineSettings> k_ExpandedState = new ExpandedState<Expandable, RenderPipelineSettings>(Expandable.SupportedFeature, "HDRP");
 
-        static readonly GUIContent k_SupportedFeatureHeaderContent = CoreEditorUtils.GetContent("Render Pipeline Supported Features");
+        static readonly GUIContent k_SupportedFeatureHeaderContent = EditorGUIUtility.TrTextContent("Render Pipeline Supported Features");
 
-        static readonly GUIContent k_SupportShadowMaskContent = CoreEditorUtils.GetContent("Shadow Mask|Enable memory (Extra Gbuffer in deferred) and shader variant for shadow mask.");
-        static readonly GUIContent k_SupportSSRContent = CoreEditorUtils.GetContent("SSR|Enable memory use by SSR effect.");
-        static readonly GUIContent k_SupportSSAOContent = CoreEditorUtils.GetContent("SSAO|Enable memory use by SSAO effect.");
-        static readonly GUIContent k_SupportedSSSContent = CoreEditorUtils.GetContent("Subsurface Scattering");
-        static readonly GUIContent k_SSSSampleCountContent = CoreEditorUtils.GetContent("High quality |This allows for better SSS quality. Warning: high performance cost, do not enable on consoles.");
-        static readonly GUIContent k_SupportVolumetricContent = CoreEditorUtils.GetContent("Volumetrics|Enable memory and shader variant for volumetric.");
-        static readonly GUIContent k_VolumetricResolutionContent = CoreEditorUtils.GetContent("High quality |Increase the resolution of volumetric lighting buffers. Warning: high performance cost, do not enable on consoles.");
-        static readonly GUIContent k_SupportLightLayerContent = CoreEditorUtils.GetContent("LightLayers|Enable light layers. In deferred this imply an extra render target in memory and extra cost.");
-        static readonly GUIContent k_SupportLitShaderModeContent = CoreEditorUtils.GetContent("Supported Lit Shader Mode|Remove all the memory and shader variant of GBuffer of non used mode. The renderer cannot be switch to non selected path anymore.");
-        static readonly GUIContent k_SupportMSAAContent = CoreEditorUtils.GetContent("Support Multi Sampling Anti-Aliasing|This feature only work when only ForwardOnly LitShaderMode is supported.");
-        static readonly GUIContent k_MSAASampleCountContent = CoreEditorUtils.GetContent("MSAA Sample Count|Allow to select the level of MSAA.");
-        static readonly GUIContent k_SupportDecalContent = CoreEditorUtils.GetContent("Decals|Enable memory and variant for decals buffer and cluster decals.");
-        static readonly GUIContent k_SupportMotionVectorContent = CoreEditorUtils.GetContent("Motion Vectors|Motion vector are use for Motion Blur, TAA, temporal re-projection of various effect like SSR.");
-        static readonly GUIContent k_SupportRuntimeDebugDisplayContent = CoreEditorUtils.GetContent("Runtime debug display|Remove all debug display shader variant only in the player. Allow faster build.");
-        static readonly GUIContent k_SupportDitheringCrossFadeContent = CoreEditorUtils.GetContent("Dithering cross fade|Remove all dithering cross fade shader variant only in the player. Allow faster build.");
-        static readonly GUIContent k_SupportDistortion = CoreEditorUtils.GetContent("Distortion|Remove all distortion shader variants only in the player. Allow faster build.");
-        static readonly GUIContent k_SupportTransparentBackface = CoreEditorUtils.GetContent("Transparent Backface|Remove all Transparent backface shader variants only in the player. Allow faster build.");
-        static readonly GUIContent k_SupportTransparentDepthPrepass = CoreEditorUtils.GetContent("Transparent Depth Prepass|Remove all Transparent Depth Prepass shader variants only in the player. Allow faster build.");
-        static readonly GUIContent k_SupportTransparentDepthPostpass = CoreEditorUtils.GetContent("Transparent Depth Postpass|Remove all Transparent Depth Postpass shader variants only in the player. Allow faster build.");
+        static readonly GUIContent k_SupportShadowMaskContent = EditorGUIUtility.TrTextContent("Shadow Mask", "Enable memory (Extra Gbuffer in deferred) and shader variant for shadow mask.");
+        static readonly GUIContent k_SupportSSRContent = EditorGUIUtility.TrTextContent("SSR", "Enable memory use by SSR effect.");
+        static readonly GUIContent k_SupportSSAOContent = EditorGUIUtility.TrTextContent("SSAO", "Enable memory use by SSAO effect.");
+        static readonly GUIContent k_SupportedSSSContent = EditorGUIUtility.TrTextContent("Subsurface Scattering");
+        static readonly GUIContent k_SSSSampleCountContent = EditorGUIUtility.TrTextContent("High quality", "This allows for better SSS quality. Warning: high performance cost, do not enable on consoles.");
+        static readonly GUIContent k_SupportVolumetricContent = EditorGUIUtility.TrTextContent("Volumetrics", "Enable memory and shader variant for volumetric.");
+        static readonly GUIContent k_VolumetricResolutionContent = EditorGUIUtility.TrTextContent("High quality", "Increase the resolution of volumetric lighting buffers. Warning: high performance cost, do not enable on consoles.");
+        static readonly GUIContent k_SupportLightLayerContent = EditorGUIUtility.TrTextContent("LightLayers", "Enable light layers. In deferred this imply an extra render target in memory and extra cost.");
+        static readonly GUIContent k_SupportLitShaderModeContent = EditorGUIUtility.TrTextContent("Supported Lit Shader Mode", "Remove all the memory and shader variant of GBuffer of non used mode. The renderer cannot be switch to non selected path anymore.");
+        static readonly GUIContent k_SupportMSAAContent = EditorGUIUtility.TrTextContent("Support Multi Sampling Anti-Aliasing", "This feature only work when only ForwardOnly LitShaderMode is supported.");
+        static readonly GUIContent k_MSAASampleCountContent = EditorGUIUtility.TrTextContent("MSAA Sample Count", "Allow to select the level of MSAA.");
+        static readonly GUIContent k_SupportDecalContent = EditorGUIUtility.TrTextContent("Decals", "Enable memory and variant for decals buffer and cluster decals.");
+        static readonly GUIContent k_SupportMotionVectorContent = EditorGUIUtility.TrTextContent("Motion Vectors", "Motion vector are use for Motion Blur, TAA, temporal re-projection of various effect like SSR.");
+        static readonly GUIContent k_SupportRuntimeDebugDisplayContent = EditorGUIUtility.TrTextContent("Runtime debug display", "Remove all debug display shader variant only in the player. Allow faster build.");
+        static readonly GUIContent k_SupportDitheringCrossFadeContent = EditorGUIUtility.TrTextContent("Dithering cross fade", "Remove all dithering cross fade shader variant only in the player. Allow faster build.");
+        static readonly GUIContent k_SupportDistortion = EditorGUIUtility.TrTextContent("Distortion", "Remove all distortion shader variants only in the player. Allow faster build.");
+        static readonly GUIContent k_SupportTransparentBackface = EditorGUIUtility.TrTextContent("Transparent Backface", "Remove all Transparent backface shader variants only in the player. Allow faster build.");
+        static readonly GUIContent k_SupportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "Remove all Transparent Depth Prepass shader variants only in the player. Allow faster build.");
+        static readonly GUIContent k_SupportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "Remove all Transparent Depth Postpass shader variants only in the player. Allow faster build.");
 
         static RenderPipelineSettingsUI()
         {

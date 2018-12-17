@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             var w = Cast<DebugUI.Value>(widget);
             var rect = PrepareControlRect();
-            EditorGUI.LabelField(rect, CoreEditorUtils.GetContent(w.displayName), CoreEditorUtils.GetContent(w.GetValue().ToString()));
+            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName), EditorGUIUtility.TrTextContent(w.GetValue().ToString()));
             return true;
         }
     }
@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.BeginChangeCheck();
 
             var rect = PrepareControlRect();
-            bool value = EditorGUI.Toggle(rect, CoreEditorUtils.GetContent(w.displayName), w.GetValue());
+            bool value = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue());
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -67,8 +67,8 @@ namespace UnityEditor.Experimental.Rendering
 
             var rect = PrepareControlRect();
             int value = w.min != null && w.max != null
-                ? EditorGUI.IntSlider(rect, CoreEditorUtils.GetContent(w.displayName), w.GetValue(), w.min(), w.max())
-                : EditorGUI.IntField(rect, CoreEditorUtils.GetContent(w.displayName), w.GetValue());
+                ? EditorGUI.IntSlider(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue(), w.min(), w.max())
+                : EditorGUI.IntField(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue());
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -90,8 +90,8 @@ namespace UnityEditor.Experimental.Rendering
             // No UIntField so we need to max to 0 ourselves or the value will wrap around
             var rect = PrepareControlRect();
             int tmp = w.min != null && w.max != null
-                ? EditorGUI.IntSlider(rect, CoreEditorUtils.GetContent(w.displayName), Mathf.Max(0, (int)w.GetValue()), Mathf.Max(0, (int)w.min()), Mathf.Max(0, (int)w.max()))
-                : EditorGUI.IntField(rect, CoreEditorUtils.GetContent(w.displayName), Mathf.Max(0, (int)w.GetValue()));
+                ? EditorGUI.IntSlider(rect, EditorGUIUtility.TrTextContent(w.displayName), Mathf.Max(0, (int)w.GetValue()), Mathf.Max(0, (int)w.min()), Mathf.Max(0, (int)w.max()))
+                : EditorGUI.IntField(rect, EditorGUIUtility.TrTextContent(w.displayName), Mathf.Max(0, (int)w.GetValue()));
 
             uint value = (uint)Mathf.Max(0, tmp);
 
@@ -114,8 +114,8 @@ namespace UnityEditor.Experimental.Rendering
 
             var rect = PrepareControlRect();
             float value = w.min != null && w.max != null
-                ? EditorGUI.Slider(rect, CoreEditorUtils.GetContent(w.displayName), w.GetValue(), w.min(), w.max())
-                : EditorGUI.FloatField(rect, CoreEditorUtils.GetContent(w.displayName), w.GetValue());
+                ? EditorGUI.Slider(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue(), w.min(), w.max())
+                : EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue());
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -153,7 +153,7 @@ namespace UnityEditor.Experimental.Rendering
                 if (index < 0)
                     index = 0;
 
-                index = EditorGUI.IntPopup(rect, CoreEditorUtils.GetContent(w.displayName), index, w.enumNames, w.indexes);
+                index = EditorGUI.IntPopup(rect, EditorGUIUtility.TrTextContent(w.displayName), index, w.enumNames, w.indexes);
                 value = w.enumValues[index];
             }
 
@@ -179,7 +179,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.BeginChangeCheck();
             Enum value = w.GetValue();
             var rect = PrepareControlRect();
-            value = EditorGUI.EnumFlagsField(rect, CoreEditorUtils.GetContent(w.displayName), value);
+            value = EditorGUI.EnumFlagsField(rect, EditorGUIUtility.TrTextContent(w.displayName), value);
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -198,7 +198,7 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUI.BeginChangeCheck();
 
-            bool value = EditorGUILayout.Foldout(w.GetValue(), CoreEditorUtils.GetContent(w.displayName), true);
+            bool value = EditorGUILayout.Foldout(w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName), true);
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);
@@ -229,7 +229,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.BeginChangeCheck();
 
             var rect = PrepareControlRect();
-            var value = EditorGUI.ColorField(rect, CoreEditorUtils.GetContent(w.displayName), w.GetValue(), w.showPicker, w.showAlpha, w.hdr);
+            var value = EditorGUI.ColorField(rect, EditorGUIUtility.TrTextContent(w.displayName), w.GetValue(), w.showPicker, w.showAlpha, w.hdr);
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);

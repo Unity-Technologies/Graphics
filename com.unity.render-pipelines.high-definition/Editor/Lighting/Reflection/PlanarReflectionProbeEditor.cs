@@ -8,8 +8,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using _ = UnityEditor.Rendering.CoreEditorUtils;
-
     [CustomEditorForRenderPipeline(typeof(PlanarReflectionProbe), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     sealed class PlanarReflectionProbeEditor : HDProbeEditor<PlanarReflectionProbeUISettingsProvider, SerializedPlanarReflectionProbe>
@@ -32,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return false;
         }
 
-        public override GUIContent GetPreviewTitle() => _.GetContent("Planar Reflection");
+        public override GUIContent GetPreviewTitle() => EditorGUIUtility.TrTextContent("Planar Reflection");
 
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
@@ -59,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (m_PreviewedTextures[i] != null)
                     EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], CameraEditorUtils.GUITextureBlit2SRGBMaterial, ScaleMode.ScaleToFit, 0, 1);
                 else
-                    EditorGUI.LabelField(itemRect, _.GetContent("Not Available"));
+                    EditorGUI.LabelField(itemRect, EditorGUIUtility.TrTextContent("Not Available"));
             }
         }
 
@@ -76,7 +74,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
 
             ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(serialized.localReferencePosition, _.GetContent("Reference Local Position"));
+            EditorGUILayout.PropertyField(serialized.localReferencePosition, EditorGUIUtility.TrTextContent("Reference Local Position"));
             --EditorGUI.indentLevel;
         }
 
@@ -84,7 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.DrawHandles(serialized, owner);
 
-            SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
+            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Planar Probe"), OnOverlayGUI, -100, target);
 
             if (serialized.probeSettings.mode.intValue != (int)ProbeSettings.Mode.Realtime)
             {

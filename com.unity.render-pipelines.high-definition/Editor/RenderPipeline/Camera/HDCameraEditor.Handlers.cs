@@ -8,8 +8,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using _ = CoreEditorUtils;
-
     partial class HDCameraEditor
     {
         void OnSceneGUI()
@@ -19,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
                 return;
 
-            SceneViewOverlay_Window(_.GetContent("Camera Preview"), OnOverlayGUI, -100, target);
+            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Camera Preview"), OnOverlayGUI, -100, target);
 
             UnityEditor.CameraEditorUtils.HandleFrustum(c, c.GetInstanceID());
         }

@@ -13,28 +13,17 @@ namespace UnityEditor.Rendering
 
     public static class CoreEditorUtils
     {
-        // GUIContent cache utilities
-        static Dictionary<string, GUIContent> s_GUIContentCache = new Dictionary<string, GUIContent>();
-        
+        [Obsolete("Use EditorGUIUtility.TrTextContent(<title>, <tooltip>) instead.")]
         public static GUIContent GetContent(string textAndTooltip)
         {
-            if (string.IsNullOrEmpty(textAndTooltip))
-                return GUIContent.none;
+            if (textAndTooltip == null)
+                return GUIContent.none; //done in TrTextContent but here we need to split...
 
-            GUIContent content;
-
-            if (!s_GUIContentCache.TryGetValue(textAndTooltip, out content))
-            {
-                var s = textAndTooltip.Split('|');
-                content = new GUIContent(s[0]);
-
-                if (s.Length > 1 && !string.IsNullOrEmpty(s[1]))
-                    content.tooltip = s[1];
-
-                s_GUIContentCache.Add(textAndTooltip, content);
-            }
-
-            return content;
+            var s = textAndTooltip.Split('|');
+            if (s.Length > 1)
+                return EditorGUIUtility.TrTextContent(s[0], s[1]);
+            else
+                return EditorGUIUtility.TrTextContent(s[0]);
         }
 
         // Serialization helpers
@@ -98,7 +87,7 @@ namespace UnityEditor.Rendering
 
         public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
         {
-            DrawMultipleFields(GetContent(label), ppts, lbls);
+            DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, lbls);
         }
 
         public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] lbls)
@@ -146,7 +135,7 @@ namespace UnityEditor.Rendering
 
         public static void DrawHeader(string title)
         {
-            DrawHeader(GetContent(title));
+            DrawHeader(EditorGUIUtility.TrTextContent(title));
         }
 
         public static void DrawHeader(GUIContent title)
@@ -182,7 +171,7 @@ namespace UnityEditor.Rendering
         /// <param name="switchAdvanced"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         public static bool DrawHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> isAdvanced = null, Action switchAdvanced = null)
         {
-            return DrawHeaderFoldout(GetContent(title), state, isBoxed, isAdvanced, switchAdvanced);
+            return DrawHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
         }
 
         /// <summary> Draw a foldout header </summary>
@@ -273,7 +262,7 @@ namespace UnityEditor.Rendering
         /// <param name="switchAdvanced"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         public static bool DrawSubHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> isAdvanced = null, Action switchAdvanced = null)
         {
-            return DrawSubHeaderFoldout(GetContent(title), state, isBoxed, isAdvanced, switchAdvanced);
+            return DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
         }
 
         /// <summary> Draw a foldout header </summary>
@@ -355,7 +344,7 @@ namespace UnityEditor.Rendering
 
         public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null)
         {
-            return DrawHeaderToggle(GetContent(title), group, activeField, contextAction);
+            return DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction);
         }
 
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null)

@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     internal struct OverridableSettingsArea
     {
-        static readonly GUIContent overrideTooltip = CoreEditorUtils.GetContent("|Override this setting in component.");
+        static readonly GUIContent overrideTooltip = EditorGUIUtility.TrTextContent("", "Override this setting in component.");
 
         private struct Field
         {
@@ -175,7 +175,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayoutUtility.GetRect(0f, 17f, GUILayout.ExpandWidth(false));
-                if (GUILayout.Button(CoreEditorUtils.GetContent("All|Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need."), CoreEditorStyles.miniLabelButton, GUILayout.Width(17f), GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("All", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need."), CoreEditorStyles.miniLabelButton, GUILayout.Width(17f), GUILayout.ExpandWidth(false)))
                 {
                     foreach (var field in fields)
                     {
@@ -184,7 +184,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                if (GUILayout.Button(CoreEditorUtils.GetContent("None|Toggle all overrides off."), CoreEditorStyles.miniLabelButton, GUILayout.Width(32f), GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("None", "Toggle all overrides off."), CoreEditorStyles.miniLabelButton, GUILayout.Width(32f), GUILayout.ExpandWidth(false)))
                 {
                     foreach (var field in fields)
                     {

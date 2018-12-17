@@ -65,36 +65,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GUIStyle(EditorStyles.foldout)
             };
             
-            public readonly GUIContent layerNameHeader = CoreEditorUtils.GetContent("Layer name");
-            public readonly GUIContent materialToCopyHeader = CoreEditorUtils.GetContent("Material to copy");
-            public readonly GUIContent uvHeader = CoreEditorUtils.GetContent("UV|Also copy UV when doing the copy.");
-            public readonly GUIContent copyButtonIcon = EditorGUIUtility.IconContent("d_UnityEditor.ConsoleWindow", "|Copy parameters of material to layer. If UV is disabled, UV will not be copied.");
-            public readonly GUIContent layersText = new GUIContent("Surface Inputs");
-            public readonly GUIContent emissiveText = new GUIContent("Emissive");
-            public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
-            public readonly GUIContent layerInfluenceMapMaskText = new GUIContent("Layer Influence Mask", "Layer mask");
-            public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
-            public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
-            public readonly GUIContent objectScaleAffectTileText = new GUIContent("Lock layers 0123 tiling with object Scale", "Tiling of each layers will be affected by the object scale.");
-            public readonly GUIContent objectScaleAffectTileText2 = new GUIContent("Lock layers  123 tiling with object Scale", "Tiling of each influenced layers (all except main layer) will be affected by the object scale.");
+            public readonly GUIContent layerNameHeader = EditorGUIUtility.TrTextContent("Layer name");
+            public readonly GUIContent materialToCopyHeader = EditorGUIUtility.TrTextContent("Material to copy");
+            public readonly GUIContent uvHeader = EditorGUIUtility.TrTextContent("UV", "Also copy UV when doing the copy.");
+            public readonly GUIContent copyButtonIcon = EditorGUIUtility.TrIconContent("d_UnityEditor.ConsoleWindow", "Copy parameters of material to layer. If UV is disabled, UV will not be copied.");
+            public readonly GUIContent layersText = EditorGUIUtility.TrTextContent("Surface Inputs");
+            public readonly GUIContent emissiveText = EditorGUIUtility.TrTextContent("Emissive");
+            public readonly GUIContent layerMapMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask");
+            public readonly GUIContent layerInfluenceMapMaskText = EditorGUIUtility.TrTextContent("Layer Influence Mask", "Layer mask");
+            public readonly GUIContent vertexColorModeText = EditorGUIUtility.TrTextContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
+            public readonly GUIContent layerCountText = EditorGUIUtility.TrTextContent("Layer Count", "Number of layers.");
+            public readonly GUIContent objectScaleAffectTileText = EditorGUIUtility.TrTextContent("Lock layers 0123 tiling with object Scale", "Tiling of each layers will be affected by the object scale.");
+            public readonly GUIContent objectScaleAffectTileText2 = EditorGUIUtility.TrTextContent("Lock layers  123 tiling with object Scale", "Tiling of each influenced layers (all except main layer) will be affected by the object scale.");
 
-            public readonly GUIContent layerTexWorldScaleText = new GUIContent("World Scale", "Tiling factor applied to Planar/Trilinear mapping");
-            public readonly GUIContent UVBlendMaskText = new GUIContent("BlendMask UV Mapping", "Base UV Mapping mode of the layer.");
+            public readonly GUIContent layerTexWorldScaleText = EditorGUIUtility.TrTextContent("World Scale", "Tiling factor applied to Planar/Trilinear mapping");
+            public readonly GUIContent UVBlendMaskText = EditorGUIUtility.TrTextContent("BlendMask UV Mapping", "Base UV Mapping mode of the layer.");
 
-            public readonly GUIContent layeringOptionText = new GUIContent("Layering Options");
+            public readonly GUIContent layeringOptionText = EditorGUIUtility.TrTextContent("Layering Options");
 
-            public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
-            public readonly GUIContent useMainLayerInfluenceModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");
+            public readonly GUIContent useHeightBasedBlendText = EditorGUIUtility.TrTextContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
+            public readonly GUIContent useMainLayerInfluenceModeText = EditorGUIUtility.TrTextContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");
 
-            public readonly GUIContent opacityAsDensityText = new GUIContent("Use Opacity map as Density map", "Use opacity map as (alpha channel of base color) as Density map.");
-            public readonly GUIContent inheritBaseNormalText = new GUIContent("Normal influence", "Inherit the normal from the base layer.");
-            public readonly GUIContent inheritBaseHeightText = new GUIContent("Heightmap influence", "Inherit the height from the base layer.");
-            public readonly GUIContent inheritBaseColorText = new GUIContent("BaseColor influence", "Inherit the base color from the base layer.");
-            public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
+            public readonly GUIContent opacityAsDensityText = EditorGUIUtility.TrTextContent("Use Opacity map as Density map", "Use opacity map as (alpha channel of base color) as Density map.");
+            public readonly GUIContent inheritBaseNormalText = EditorGUIUtility.TrTextContent("Normal influence", "Inherit the normal from the base layer.");
+            public readonly GUIContent inheritBaseHeightText = EditorGUIUtility.TrTextContent("Heightmap influence", "Inherit the height from the base layer.");
+            public readonly GUIContent inheritBaseColorText = EditorGUIUtility.TrTextContent("BaseColor influence", "Inherit the base color from the base layer.");
+            public readonly GUIContent heightTransition = EditorGUIUtility.TrTextContent("Height Transition", "Size in world units of the smooth transition between layers.");
 
-            public readonly GUIContent perPixelDisplacementLayersWarning = new GUIContent("For pixel displacement to work correctly, all layers with a heightmap must use the same UV mapping");
+            public readonly GUIContent perPixelDisplacementLayersWarning = EditorGUIUtility.TrTextContent("For pixel displacement to work correctly, all layers with a heightmap must use the same UV mapping");
 
-            public readonly GUIContent materialReferencesText = new GUIContent("Material To Copy");
+            public readonly GUIContent materialReferencesText = EditorGUIUtility.TrTextContent("Material To Copy");
 
             public StylesLayer()
             {

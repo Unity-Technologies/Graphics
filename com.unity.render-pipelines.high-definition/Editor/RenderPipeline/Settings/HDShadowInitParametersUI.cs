@@ -28,15 +28,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         readonly static ExpandedState<Expandable, HDShadowInitParameters> k_ExpandedState = new ExpandedState<Expandable, HDShadowInitParameters>(Expandable.ShadowSettings, "HDRP");
 
-        static readonly GUIContent k_HeaderContent = CoreEditorUtils.GetContent("Shadows");
+        static readonly GUIContent k_HeaderContent = EditorGUIUtility.TrTextContent("Shadows");
 
-        static readonly GUIContent k_AtlasContent = CoreEditorUtils.GetContent("Atlas");
-        static readonly GUIContent k_ResolutionContent = CoreEditorUtils.GetContent("Resolution");
-        static readonly GUIContent k_Map16bContent = CoreEditorUtils.GetContent("16-bit");
-        static readonly GUIContent k_DynamicRescaleContent = CoreEditorUtils.GetContent("Dynamic Rescale|Scale the shadow map size using the screen size of the light to leave more space for other shadows in the atlas");
-        static readonly GUIContent k_MaxRequestContent = CoreEditorUtils.GetContent("Max Shadow on Screen|Max shadow on screen (S) per frame, 1 point light = 6 S, 1 spot light = 1 S and the directional is 4 S");
-        static readonly GUIContent k_FilteringQualityContent = CoreEditorUtils.GetContent("Filtering Qualities");
-        static readonly GUIContent k_QualityContent = CoreEditorUtils.GetContent("ShadowQuality");
+        static readonly GUIContent k_AtlasContent = EditorGUIUtility.TrTextContent("Atlas");
+        static readonly GUIContent k_ResolutionContent = EditorGUIUtility.TrTextContent("Resolution");
+        static readonly GUIContent k_Map16bContent = EditorGUIUtility.TrTextContent("16-bit");
+        static readonly GUIContent k_DynamicRescaleContent = EditorGUIUtility.TrTextContent("Dynamic Rescale", "Scale the shadow map size using the screen size of the light to leave more space for other shadows in the atlas");
+        static readonly GUIContent k_MaxRequestContent = EditorGUIUtility.TrTextContent("Max Shadow on Screen", "Max shadow on screen (S) per frame, 1 point light = 6 S, 1 spot light = 1 S and the directional is 4 S");
+        static readonly GUIContent k_FilteringQualityContent = EditorGUIUtility.TrTextContent("Filtering Qualities");
+        static readonly GUIContent k_QualityContent = EditorGUIUtility.TrTextContent("ShadowQuality");
 
         public static readonly CED.IDrawer Inspector = CED.FoldoutGroup(
             k_HeaderContent,

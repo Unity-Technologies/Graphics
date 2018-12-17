@@ -390,7 +390,7 @@ namespace UnityEditor.Experimental.Rendering
                         if (panel.children.Count(x => !x.isRuntimeOnly) == 0)
                             continue;
 
-                        var elementRect = GUILayoutUtility.GetRect(CoreEditorUtils.GetContent(panel.displayName), s_Styles.sectionElement, GUILayout.ExpandWidth(true));
+                        var elementRect = GUILayoutUtility.GetRect(EditorGUIUtility.TrTextContent(panel.displayName), s_Styles.sectionElement, GUILayout.ExpandWidth(true));
 
                         if (m_Settings.selectedPanel == i && Event.current.type == EventType.Repaint)
                             s_Styles.selected.Draw(elementRect, false, false, false, false);
