@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
 
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, false, true, 1200)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1200)]
         public struct SurfaceData
         {
             [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
@@ -64,15 +64,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Clearcoat IOR")]
             public float    clearcoatIOR;
 
-            [SurfaceDataAttributes(new string[] {"Geometric Normal"}, true)]
-            public Vector3 geomNormalWS;
+            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space" }, true)]
+            public Vector3  geomNormalWS;
         };
 
         //-----------------------------------------------------------------------------
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, true, 1250)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1250)]
         public struct BSDFData
         {
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
@@ -102,6 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3  clearcoatNormalWS;
             public float    clearcoatIOR;
 
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
         };
 

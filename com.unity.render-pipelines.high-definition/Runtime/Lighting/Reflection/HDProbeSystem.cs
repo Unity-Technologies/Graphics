@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -12,7 +11,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static HDProbeSystem()
         {
             s_Instance = new HDProbeSystemInternal();
-            AssemblyReloadEvents.beforeAssemblyReload += DisposeStaticInstance;
+#if UNITY_EDITOR
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += DisposeStaticInstance;
+#endif
         }
 
         // Don't set the reference to null

@@ -207,6 +207,9 @@ namespace UnityEditor.VFX
             {
                 if (isBlendModeOpaque)
                     yield return "IS_OPAQUE_PARTICLE";
+                else
+                    yield return "IS_TRANSPARENT_PARTICLE";
+
                 if (blendMode == BlendMode.Masked)
                     yield return "USE_ALPHA_TEST";
                 if (supportSoftParticles)

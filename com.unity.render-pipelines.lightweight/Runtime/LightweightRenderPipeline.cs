@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             BeginFrameRendering(cameras);
 
-            GraphicsSettings.lightsUseLinearIntensity = true;
+            GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             SetupPerFrameShaderConstants();
 
             SortCameras(cameras);

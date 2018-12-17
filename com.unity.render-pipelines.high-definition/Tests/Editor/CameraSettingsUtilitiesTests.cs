@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                         anchorOverride = null,
                         layerMask = RandomUtilities.RandomInt(i * 3.5f)
                     },
-                    renderingPath = RandomUtilities.RandomEnum<HDAdditionalCameraData.RenderingPath>(i * 4.5f)
+                    customRenderingSettings = RandomUtilities.RandomBool(i * 4.5f)
                 };
                 var position = new CameraPositionSettings
                 {
@@ -123,7 +123,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                 Assert.AreEqual(settings.volumes.layerMask, add.volumeLayerMask);
                 Assert.AreEqual(settings.volumes.anchorOverride, add.volumeAnchorOverride);
                 // HD Specific
-                Assert.AreEqual(settings.renderingPath, add.renderingPath);
+                Assert.AreEqual(settings.customRenderingSettings, add.customRenderingSettings);
 
                 Object.DestroyImmediate(go);
             }

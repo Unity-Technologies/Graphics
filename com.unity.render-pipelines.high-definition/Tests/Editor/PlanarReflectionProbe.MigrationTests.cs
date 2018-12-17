@@ -4,6 +4,14 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
 {
+    //duplicate formerly used enum RenderingPath here for migration test
+    enum LegacyRenderingPath
+    {
+        UseGraphicsSettings,
+        Custom,
+        FullscreenPassthrough
+    }
+
     public partial class PlanarReflectionProbeTests
     {
         public class MigratePlanarProbeFromVersion_ModeAndTextures
@@ -44,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     farClipPlane = 734.0f,
                     fieldOfview = 86.75f,
                     orthographicSize = 4,
-                    renderingPath = (int)HDAdditionalCameraData.RenderingPath.UseGraphicsSettings,
+                    renderingPath = (int)LegacyRenderingPath.UseGraphicsSettings,
                     shadowDistance = 151,
                     mirrorPositionWS = new Vector3(3, 5.24f, 64.2f),
                     mirrorRotationWS = Quaternion.Euler(15.3f, 93.3f, 243.34f),
@@ -63,7 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     farClipPlane = 734.0f,
                     fieldOfview = 86.75f,
                     orthographicSize = 4,
-                    renderingPath = (int)HDAdditionalCameraData.RenderingPath.FullscreenPassthrough,
+                    renderingPath = (int)LegacyRenderingPath.FullscreenPassthrough,
                     shadowDistance = 151,
                     mirrorPositionWS = new Vector3(3, 5.24f, 64.2f),
                     mirrorRotationWS = Quaternion.Euler(165.3f, 21.678f, 345.214f),
@@ -82,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     farClipPlane = 734.0f,
                     fieldOfview = 86.75f,
                     orthographicSize = 4,
-                    renderingPath = (int)HDAdditionalCameraData.RenderingPath.Custom,
+                    renderingPath = (int)LegacyRenderingPath.Custom,
                     shadowDistance = 151,
                     mirrorPositionWS = new Vector3(3, 5.24f, 64.2f),
                     mirrorRotationWS = Quaternion.Euler(84.134f, 352.4f, 167.36f),
@@ -130,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     Assert.AreEqual(legacyProbeData.nearClipPlane, settings.camera.frustum.nearClipPlane);
                     Assert.AreEqual(legacyProbeData.farClipPlane, settings.camera.frustum.farClipPlane);
                     Assert.AreEqual(legacyProbeData.fieldOfview, settings.camera.frustum.fieldOfView);
-                    Assert.AreEqual(legacyProbeData.renderingPath, (int)settings.camera.renderingPath);
+                    Assert.AreEqual(legacyProbeData.renderingPath == (int)LegacyRenderingPath.Custom, settings.camera.customRenderingSettings);
                     Assert.IsTrue((influencePositionWS - probe.transform.position).sqrMagnitude < 0.001f);
                     Assert.IsTrue((mirrorPositionPS - settings.proxySettings.mirrorPositionProxySpace).sqrMagnitude < 0.001f);
                     Assert.AreEqual(ProbeSettings.ProbeType.PlanarProbe, settings.type);

@@ -104,7 +104,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Timeline.unity
     guid: 9949ad9004662574ca9d59c2e372bdef
-  - enabled: 1
+  - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/SimpleLit.unity
     guid: 61f447f894ffdd741aa7a64ced0311cf
   - enabled: 1

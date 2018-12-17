@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
-using UnityEditor.SceneManagement;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
@@ -47,6 +45,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         HDProbeBakedState[] m_HDProbeBakedStates = new HDProbeBakedState[0];
+        float m_DateSinceLastLegacyWarning = float.MinValue;
+        Dictionary<UnityEngine.Rendering.RenderPipeline, float> m_DateSinceLastInvalidSRPWarning 
+            = new Dictionary<UnityEngine.Rendering.RenderPipeline, float>();
 
         HDBakedReflectionSystem() : base(1)
         {
@@ -83,15 +84,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdPipeline))
+            // On the C# side, we don't have non blocking asset import APIs, and we don't want to block the
+            //   UI when the user is editing the world.
+            //   So, we skip the baking when the user is editing any UI control.
+            if (GUIUtility.hotControl != 0) 
+                return;
+
+            if (!IsCurrentSRPValid(out HDRenderPipeline hdPipeline))
             {
-                Debug.LogWarning("HDBakedReflectionSystem work with HDRP, " +
-                    "please switch your render pipeline or use another reflection system");
+                if (ShouldIssueWarningForCurrentSRP())
+                    Debug.LogWarning("HDBakedReflectionSystem work with HDRP, " +
+                        "please switch your render pipeline or use another reflection system");
+
                 handle.ExitStage((int)BakingStages.ReflectionProbes);
                 handle.SetIsDone(true);
                 return;
             }
-
 
             var ambientProbeHash = sceneStateHash.ambientProbeHash;
             var sceneObjectsHash = sceneStateHash.sceneObjectsHash;
@@ -360,6 +368,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             planarRT.Release();
 
             return true;
+        }
+
+        bool IsCurrentSRPValid(out HDRenderPipeline hdPipeline)
+        {
+            if (RenderPipelineManager.currentPipeline is HDRenderPipeline hd)
+            {
+                hdPipeline = hd;
+                return true;
+            }
+            hdPipeline = default;
+            return false;
+        }
+
+        bool ShouldIssueWarningForCurrentSRP()
+        {
+            var pipeline = RenderPipelineManager.currentPipeline;
+            var issueWarning = false;
+            if (pipeline == null || pipeline.Equals(null))
+            {
+                if (Time.realtimeSinceStartup - m_DateSinceLastLegacyWarning > 1800)
+                {
+                    issueWarning = true;
+                    m_DateSinceLastLegacyWarning = Time.realtimeSinceStartup;
+                }
+            }
+            else if (!m_DateSinceLastInvalidSRPWarning.TryGetValue(
+                RenderPipelineManager.currentPipeline,
+                out float value
+            ))
+            {
+                if ((Time.realtimeSinceStartup - value) > 1800)
+                {
+                    issueWarning = true;
+                    m_DateSinceLastInvalidSRPWarning[RenderPipelineManager.currentPipeline]
+                        = Time.realtimeSinceStartup;
+                }
+            }
+            return issueWarning;
         }
 
         void DeleteCubemapAssets(bool deleteUnusedOnly)

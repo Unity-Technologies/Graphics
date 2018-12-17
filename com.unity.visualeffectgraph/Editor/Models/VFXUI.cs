@@ -160,7 +160,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal void Sanitize(VFXGraph graph)
+        public void Sanitize(VFXGraph graph)
         {
             if (groupInfos != null)
                 foreach (var groupInfo in groupInfos)

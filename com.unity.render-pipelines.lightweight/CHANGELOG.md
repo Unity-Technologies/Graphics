@@ -6,13 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.3.0] - 2018-11-xx
 ### Added
-- LWRP now uses the Unity recorder extension to make it possible to capture the output of Cameras.
+- LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
+- You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
+
+### Changed
+- You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Initialize.
+- LWRP now uses non-square shadowmap textures when it renders directional shadows with 2 shadow cascades. 
+- LWRP now uses ARGB2101010 as the HDR format on mobile devices, when this format is supported.
+- Removed `IAfterDepthPrePass` interface.
 
 ### Fixed
+- Several tweaks to reduce bandwidth consumption on mobile devices.
 - The foldouts in the Lightweight Asset inspector UI now remember their state.
 - Added missing meta file for GizmosRenderingPass.cs.
 - Fixed artifacts when using multiple or Depth Only cameras. [Case 1072615](https://issuetracker.unity3d.com/issues/ios-using-multiple-cameras-in-the-scene-in-lightweight-render-pipeline-gives-corrupted-image-in-ios-device)
-- Fixed a typo in ERROR_ON_UNSUPPORTED_FUNCTION() that was causing the shader compiler to run out of memory in GLES2. [Case 1104271] (https://issuetracker.unity3d.com/issues/mobile-os-restarts-because-of-high-memory-usage-when-compiling-shaders-for-opengles2)
+- Fixed a typo in ERROR_ON_UNSUPPORTED_FUNCTION() that was causing the shader compiler to run out of memory in GLES2. [Case 1104271](https://issuetracker.unity3d.com/issues/mobile-os-restarts-because-of-high-memory-usage-when-compiling-shaders-for-opengles2)
 
 ## [5.2.0] - 2018-11-27
 ### Added
