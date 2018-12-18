@@ -45,6 +45,7 @@ Shader "HDRenderPipeline/AxF"
         // BRDF
         _CarPaint2_BRDFColorMapScale("_CarPaint2_BRDFColorMapScale", Float) = 1        // Scale is useless if we're directly provided a RGBA16F format
         _CarPaint2_BRDFColorMap("_CarPaint2_BRDFColorMap", 2D) = "white" {}
+        _CarPaint2_BRDFColorMapUVScale("_CarPaint2_BRDFColorMapUVScale", Vector) = (1,1,0,0)  // To be used when we have the bit BRDFColorUseDiagonalClamp set in _Flags
 
         // Flakes
         _CarPaint2_FlakeTiling("_CarPaint2_FlakeTiling", Float) = 1

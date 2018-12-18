@@ -108,11 +108,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_FRESNEL_F0:
             result = surfacedata.fresnelF0;
-            needLinearToSRGB = true;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_LOBE:
             result = float3(surfacedata.specularLobe, 0.0);
-            needLinearToSRGB = true;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_HEIGHT:
             result = surfacedata.height_mm.xxx;
@@ -131,7 +129,6 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_NORMAL:
             result = surfacedata.clearcoatNormalWS * 0.5 + 0.5;
-            needLinearToSRGB = true;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_IOR:
             result = surfacedata.clearcoatIOR.xxx;
@@ -186,7 +183,7 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             result = bsdfdata.clearcoatColor;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_NORMAL_WS:
-            result = bsdfdata.clearcoatNormalWS;
+            result = bsdfdata.clearcoatNormalWS * 0.5 + 0.5;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_IOR:
             result = bsdfdata.clearcoatIOR.xxx;

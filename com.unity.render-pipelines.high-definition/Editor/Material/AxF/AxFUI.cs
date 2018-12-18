@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -35,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Car Paint Parameters
             public static GUIContent    BRDFColorMapText = new GUIContent("BRDF Color");
             public static GUIContent    BRDFColorMapScaleText = new GUIContent("BRDF Color Scale");
+            public static GUIContent    BRDFColorMapUVScaleText = new GUIContent("BRDF Color Map UV scale restriction");
 
             public static GUIContent    BTFFlakesMapText = new GUIContent("BTF Flake Color Texture2DArray");
             public static GUIContent    BTFFlakesMapScaleText = new GUIContent("BTF Flakes Scale");
@@ -164,6 +165,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static string               m_CarPaint2_BRDFColorMapScaleText = "_CarPaint2_BRDFColorMapScale";
         protected MaterialProperty  m_CarPaint2_BRDFColorMapScale;
 
+        static string               m_CarPaint2_BRDFColorMapUVScaleText = "_CarPaint2_BRDFColorMapUVScale";
+        protected MaterialProperty  m_CarPaint2_BRDFColorMapUVScale;
+
         static string               m_CarPaint2_BTFFlakeMapText = "_CarPaint2_BTFFlakeMap";
         protected MaterialProperty  m_CarPaint2_BTFFlakeMap = null;
 
@@ -250,6 +254,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_CarPaint2_FlakeThetaFISliceLUTMap = FindProperty(m_CarPaint2_FlakeThetaFISliceLUTMapText, props);
 
             m_CarPaint2_BRDFColorMapScale = FindProperty(m_CarPaint2_BRDFColorMapScaleText, props);
+            m_CarPaint2_BRDFColorMapUVScale = FindProperty(m_CarPaint2_BRDFColorMapUVScaleText, props);
             m_CarPaint2_BTFFlakeMapScale = FindProperty(m_CarPaint2_BTFFlakeMapScaleText, props);
             m_CarPaint2_FlakeTiling = FindProperty(m_CarPaint2_FlakeTilingText, props);
 
@@ -419,6 +424,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.TexturePropertySingleLine(Styles.BRDFColorMapText, m_CarPaint2_BRDFColorMap);
                     m_CarPaint2_BRDFColorMapScale.floatValue = EditorGUILayout.FloatField(Styles.BRDFColorMapScaleText, m_CarPaint2_BRDFColorMapScale.floatValue);
 
+                    bool    brdfColorUseDiagonalClamp = EditorGUILayout.Toggle("BRDF Color Table Diagonal Clamping", (flags & 16) != 0);
+                    if (brdfColorUseDiagonalClamp)
+                    {
+                        ++EditorGUI.indentLevel;
+                        m_CarPaint2_BRDFColorMapUVScale.vectorValue = EditorGUILayout.Vector2Field(Styles.BRDFColorMapUVScaleText, m_CarPaint2_BRDFColorMapUVScale.vectorValue);
+                        --EditorGUI.indentLevel;
+                    }
+                    
+
                     m_MaterialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap);
                     //EditorGUILayout.LabelField( "Texture Dimension = " + m_CarPaint_BTFFlakesMap_sRGB.textureDimension );
                     //EditorGUILayout.LabelField( "Texture Format = " + m_CarPaint_BTFFlakesMap_sRGB.textureValue. );
@@ -457,6 +471,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     flags |= hasClearcoat ? 2U : 0U;
                     flags |= clearcoatUsesRefraction ? 4U : 0U;
                     flags |= useDisplacementMap ? 8U : 0U;
+                    flags |= brdfColorUseDiagonalClamp ? 16U : 0U;
 
 //                    cmd.SetGlobalFloat( HDShaderIDs._TexturingModeFlags, *(float*) &texturingModeFlags );
                     m_Flags.floatValue = (float)flags;
