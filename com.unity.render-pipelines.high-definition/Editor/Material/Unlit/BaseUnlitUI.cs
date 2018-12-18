@@ -319,7 +319,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(transparentSortPriority, StylesBaseUnlit.transparentSortPriorityText);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        transparentSortPriority.floatValue = Mathf.Clamp((int)transparentSortPriority.floatValue, -(int)HDRenderQueue.k_TransparentPriorityQueueRange, (int)HDRenderQueue.k_TransparentPriorityQueueRange);
+                        transparentSortPriority.floatValue = HDRenderQueue.ClampsTransparentRangePriority((int)transparentSortPriority.floatValue);
                     }
                 }
 

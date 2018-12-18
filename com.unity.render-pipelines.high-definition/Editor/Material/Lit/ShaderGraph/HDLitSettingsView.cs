@@ -123,15 +123,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     });
                 });
 
-                ps.Add(new PropertyRow(CreateLabel("Appear in Refraction", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.drawBeforeRefraction.isOn;
-                        toggle.OnToggleChanged(ChangeDrawBeforeRefraction);
-                    });
-                });
-
                 ps.Add(new PropertyRow(CreateLabel("Back Then Front Rendering", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
