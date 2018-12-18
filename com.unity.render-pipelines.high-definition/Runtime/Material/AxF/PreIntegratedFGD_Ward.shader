@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_Ward"
+Shader "Hidden/HDRP/PreIntegratedFGD_Ward"
 {
     SubShader
     {

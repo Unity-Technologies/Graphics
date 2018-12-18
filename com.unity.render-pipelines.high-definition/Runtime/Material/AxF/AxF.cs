@@ -204,18 +204,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_precomputedFGDTablesAreInit = true;
         }
 
-        public override void Bind()
+        public override void Bind(CommandBuffer cmd)
         {
             if (m_preIntegratedFGD_Ward == null ||  m_preIntegratedFGD_CookTorrance == null)
             {
                 throw new Exception("Ward & Cook-Torrance BRDF pre-integration table not available!");
             }
 
-            Shader.SetGlobalTexture(_PreIntegratedFGD_Ward, m_preIntegratedFGD_Ward);
-            Shader.SetGlobalTexture(_PreIntegratedFGD_CookTorrance, m_preIntegratedFGD_CookTorrance);
+            cmd.SetGlobalTexture(_PreIntegratedFGD_Ward, m_preIntegratedFGD_Ward);
+            cmd.SetGlobalTexture(_PreIntegratedFGD_CookTorrance, m_preIntegratedFGD_CookTorrance);
 
             // LTC Data
-            Shader.SetGlobalTexture(_AxFLtcData, m_LtcData);
+            cmd.SetGlobalTexture(_AxFLtcData, m_LtcData);
         }
     }
 }

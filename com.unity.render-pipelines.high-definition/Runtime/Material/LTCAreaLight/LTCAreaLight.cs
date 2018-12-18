@@ -99,9 +99,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(m_refCounting >= 0);
         }
 
-        public void Bind()
+        public void Bind(CommandBuffer cmd)
         {
-            Shader.SetGlobalTexture("_LtcData", m_LtcData);
+            cmd.SetGlobalTexture("_LtcData", m_LtcData);
         }
     }
 }

@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/Blit"
+Shader "Hidden/HDRP/Blit"
 {
     HLSLINCLUDE
 

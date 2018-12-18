@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/CombineLighting"
+Shader "Hidden/HDRP/CombineLighting"
 {
     Properties
     {
