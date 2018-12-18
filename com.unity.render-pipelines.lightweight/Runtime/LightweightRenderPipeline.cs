@@ -31,8 +31,6 @@ namespace UnityEngine.Rendering.LWRP
             public static int _ScaledScreenParams;
         }
 
-
-
         const string k_RenderCameraTag = "Render Camera";
 
         public ScriptableRenderer renderer { get; private set; }
@@ -172,7 +170,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             BeginFrameRendering(cameras);
 
-            GraphicsSettings.lightsUseLinearIntensity = true;
+            GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             SetupPerFrameShaderConstants();
 
             SortCameras(cameras);

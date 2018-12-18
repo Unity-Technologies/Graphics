@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_ResolutionContent = CoreEditorUtils.GetContent("Resolution");
         static readonly GUIContent k_Map16bContent = CoreEditorUtils.GetContent("16-bit");
         static readonly GUIContent k_DynamicRescaleContent = CoreEditorUtils.GetContent("Dynamic Rescale|Scale the shadow map size using the screen size of the light to leave more space for other shadows in the atlas");
-        static readonly GUIContent k_MaxRequestContent = CoreEditorUtils.GetContent("Max Requests|Max shadow requests (SR) per frame, 1 point light = 6 SR, 1 spot light = 1 SR and the directional is 4 SR");
+        static readonly GUIContent k_MaxRequestContent = CoreEditorUtils.GetContent("Max Shadow on Screen|Max shadow on screen (S) per frame, 1 point light = 6 S, 1 spot light = 1 S and the directional is 4 S");
         static readonly GUIContent k_FilteringQualityContent = CoreEditorUtils.GetContent("Filtering Qualities");
         static readonly GUIContent k_QualityContent = CoreEditorUtils.GetContent("ShadowQuality");
 

@@ -54,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float fieldOfView = 90.0f;   //90f for a face of a cubemap
         public float orthographicSize = 5f;
 
-        public HDAdditionalCameraData.RenderingPath renderingPath = HDAdditionalCameraData.RenderingPath.UseGraphicsSettings;
+        public int renderingPath = 0; //0 = former RenderingPath.UseGraphicsSettings
 
         //public float aperture = 8f;
         //public float shutterSpeed = 1f / 200f;

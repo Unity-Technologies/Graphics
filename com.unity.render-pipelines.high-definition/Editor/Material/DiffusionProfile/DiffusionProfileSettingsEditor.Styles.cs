@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         sealed class Styles
         {
-            public readonly GUIContent   profilePreview0           = new GUIContent("Profile Preview");
+            public readonly GUIContent   profilePreview0           = new GUIContent("Diffusion Profile Preview");
             public readonly GUIContent   profilePreview1           = new GUIContent("Shows the fraction of light scattered from the source (center).");
             public readonly GUIContent   profilePreview2           = new GUIContent("The distance to the boundary of the image corresponds to the Max Radius.");
             public readonly GUIContent   profilePreview3           = new GUIContent("Note that the intensity of pixels around the center may be clipped.");
@@ -28,8 +28,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GUIContent("Thick Object",      "Choose this mode for moderately thick objects. For performance reasons, transmitted light ignores occlusion (shadows)."),
                 new GUIContent("Thin Object",  "Choose this mode for thin objects, such as paper or leaves. Transmitted light reuses the shadowing state of the surface.")
             };
-            public readonly GUIContent   profileMinMaxThickness = new GUIContent("Min-Max Thickness (mm)", "Shows the values of the thickness remap below (in millimeters).");
-            public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap (mm)", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
+            public readonly GUIContent   profileMinMaxThickness = new GUIContent("Thickness Remap Values (Min-Max)", "Shows the values of the thickness remap below (in millimeters).");
+            public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap (Min-Max)", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
             public readonly GUIContent   profileWorldScale      = new GUIContent("World Scale", "Size of the world unit in meters.");
             public readonly GUIContent   profileIor             = new GUIContent("Index of Refraction", "Index of refraction. 1.4 for skin. Between 1.3-1.5 for most other material.");
             public readonly GUIStyle     centeredMiniBoldLabel     = new GUIStyle(GUI.skin.label);
