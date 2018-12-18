@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass;
 
             // Using Contains to include the Tessellation variants
-            bool isBuiltInLit = shader.name.Contains("HDRenderPipeline/Lit") || shader.name.Contains("HDRenderPipeline/LayeredLit") || shader.name.Contains("HDRenderPipeline/TerrainLit");
+            bool isBuiltInLit = shader.name.Contains("HDRP/Lit") || shader.name.Contains("HDRP/LayeredLit") || shader.name.Contains("HDRP/TerrainLit");
 
             if (isDistortionPass && !hdrpAsset.renderPipelineSettings.supportDistortion)
                 return true;
