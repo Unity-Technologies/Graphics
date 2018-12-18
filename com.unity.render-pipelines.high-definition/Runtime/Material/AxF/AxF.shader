@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/AxF"
+Shader "HDRP/AxF"
 {
     Properties
     {

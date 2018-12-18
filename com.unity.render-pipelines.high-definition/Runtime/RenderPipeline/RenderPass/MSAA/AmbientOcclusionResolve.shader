@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/AOResolve"
+Shader "Hidden/HDRP/AOResolve"
 {
     HLSLINCLUDE
         #pragma target 4.5

@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/Unlit"
+Shader "HDRP/Unlit"
 {
     Properties
     {
