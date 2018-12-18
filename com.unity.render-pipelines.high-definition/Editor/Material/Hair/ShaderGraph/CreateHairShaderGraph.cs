@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class CreateHairShaderGraph : EndNameEditAction
     {
-        [MenuItem("Assets/Create/Shader/Hair Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/HDRP/Hair Graph", false, 208)]
         public static void CreateMaterialGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateHairShaderGraph>(),

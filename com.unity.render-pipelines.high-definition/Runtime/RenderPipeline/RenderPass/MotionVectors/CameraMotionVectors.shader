@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
+Shader "Hidden/HDRP/CameraMotionVectors"
 {
     HLSLINCLUDE
 

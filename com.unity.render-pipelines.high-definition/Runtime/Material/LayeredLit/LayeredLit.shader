@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/LayeredLit"
+Shader "HDRP/LayeredLit"
 {
     Properties
     {

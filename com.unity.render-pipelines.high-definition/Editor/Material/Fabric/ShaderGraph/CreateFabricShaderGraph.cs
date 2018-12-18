@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class CreateFabricShaderGraph : EndNameEditAction
     {
-        [MenuItem("Assets/Create/Shader/Fabric Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/HDRP/Fabric Graph", false, 208)]
         public static void CreateMaterialGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateFabricShaderGraph>(),

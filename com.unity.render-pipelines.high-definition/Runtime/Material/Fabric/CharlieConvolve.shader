@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/CharlieConvolve"
+Shader "Hidden/HDRP/CharlieConvolve"
 {
     SubShader
     {
