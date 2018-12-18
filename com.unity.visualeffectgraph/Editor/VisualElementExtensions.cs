@@ -1,8 +1,10 @@
-using UnityEngine;
-using UnityEditor;
-using UnityEngine.UIElements;
+using System.Linq;
 using System.Reflection;
 
+using UnityEngine;
+using UnityEngine.UIElements;
+
+using UnityEditor;
 
 static class VisualElementExtensions
 {
@@ -26,9 +28,16 @@ static class VisualElementExtensions
         return (GUIView)m_OwnerPropertyInfo.GetValue(panel, new object[] {});
     }
 
+    // HasFocus on textField should really see if the child TextInput hasFocus
+    public static bool HasFocus<T>(this TextInputBaseField<T> texInput)
+    {
+        return ((VisualElement)texInput.Query(TextInputBaseField<T>.textInputUssName)).HasFocus();
+    }
+
     public static bool HasFocus(this VisualElement visualElement)
     {
         if (visualElement.panel == null) return false;
+
         return visualElement.panel.focusController.focusedElement == visualElement;
     }
 
