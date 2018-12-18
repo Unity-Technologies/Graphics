@@ -141,6 +141,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
             },
+            RequiredFields = new List<string>()
+            {
+                "FragInputs.positionRWS",
+            },
             PixelShaderSlots = new List<int>()
             {
                 UnlitMasterNode.AlphaSlotId,
@@ -216,9 +220,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     pass.BlendOverride = "Blend One One, One One";
                     pass.BlendOpOverride = "BlendOp Add, Add";
                 }
-                else // if (masterNode.distortionMode == DistortionMode.Multiply)
+                else if (masterNode.distortionMode == DistortionMode.Multiply)
                 {
                     pass.BlendOverride = "Blend DstColor Zero, DstAlpha Zero";
+                    pass.BlendOpOverride = "BlendOp Add, Add";
+                }
+                else // (masterNode.distortionMode == DistortionMode.Replace)
+                {
+                    pass.BlendOverride = "Blend One Zero, One Zero";
                     pass.BlendOpOverride = "BlendOp Add, Add";
                 }
                 */
@@ -354,6 +363,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     GenerateShaderPassUnlit(masterNode, m_PassDepthForwardOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
+
+                GenerateShaderPassUnlit(masterNode, m_PassMotionVectors, mode, materialOptions, subShader, sourceAssetDependencyPaths);
 
                 GenerateShaderPassUnlit(masterNode, m_PassForwardOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);                
                 

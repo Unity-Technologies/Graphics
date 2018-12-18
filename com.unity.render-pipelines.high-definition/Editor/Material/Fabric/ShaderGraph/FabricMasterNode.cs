@@ -80,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public enum AlphaModeFabric
         {
             Alpha,
-            PremultipliedAlpha,
+            Premultiply,
             Additive,
         }
 

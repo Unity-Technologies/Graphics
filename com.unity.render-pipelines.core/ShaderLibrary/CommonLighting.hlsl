@@ -255,7 +255,7 @@ real SphericalCapIntersectionSolidArea(real cosC1, real cosC2, real cosB)
     {
         real diff = abs(r1 - r2);
         real den = r1 + r2 - diff;
-        real x = 1.0 - saturate((rd - diff) / den);
+        real x = 1.0 - saturate((rd - diff) / max(den, 0.0001));
         area = smoothstep(0.0, 1.0, x);
         area *= TWO_PI - TWO_PI * max(cosC1, cosC2);
     }
