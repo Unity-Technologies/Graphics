@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with ambient occlusion incorrectly applied to emissiveColor with light layers in deferred
 - Fixed issue with fabric convolution not using the correct convolved texture when fabric convolution is enabled
 - Fixed issue with Thick mode for Transmission that was disabling transmission with directional light
+- Fixed shutdown edge cases with HDRP tests
 - Fixed slowdow when enabling Fabric convolution in HDRP asset
 - Fixed specularAA not compiling in StackLit Master node
 
