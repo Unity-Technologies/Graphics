@@ -12,14 +12,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         delegate void MaterialResetter(Material material);
         static Dictionary<string, MaterialResetter> k_MaterialResetters = new Dictionary<string, MaterialResetter>()
         {
-            { "HDRenderPipeline/LayeredLit",  LayeredLitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRenderPipeline/LayeredLitTessellation", LayeredLitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRenderPipeline/LitTessellation", LitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRenderPipeline/Unlit", UnlitGUI.SetupMaterialKeywordsAndPass },
-            // { "HDRenderPipeline/Fabric",  FabricGUI.SetupMaterialKeywordsAndPass },
-            { "HDRenderPipeline/Decal", DecalUI.SetupMaterialKeywordsAndPass },
-            { "HDRenderPipeline/TerrainLit", TerrainLitGUI.SetupMaterialKeywordsAndPass }
+            { "HDRP/LayeredLit",  LayeredLitGUI.SetupMaterialKeywordsAndPass },
+            { "HDRP/LayeredLitTessellation", LayeredLitGUI.SetupMaterialKeywordsAndPass },
+            { "HDRP/Lit", LitGUI.SetupMaterialKeywordsAndPass },
+            { "HDRP/LitTessellation", LitGUI.SetupMaterialKeywordsAndPass },
+            { "HDRP/Unlit", UnlitGUI.SetupMaterialKeywordsAndPass },
+            { "HDRP/Decal", DecalUI.SetupMaterialKeywordsAndPass },
+            { "HDRP/TerrainLit", TerrainLitGUI.SetupMaterialKeywordsAndPass }
         };
 
         public static T LoadAsset<T>(string relativePath) where T : UnityEngine.Object

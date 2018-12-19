@@ -106,9 +106,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Material != null)
             {
                 Shader shader = m_Material.shader;
-                if ((shader != null) &&  (shader.name != "HDRenderPipeline/Decal"))
+                if ((shader != null) &&  (shader.name != "HDRP/Decal"))
                 {
-                    Debug.LogWarning("Decal projector component material is not using HDRenderPipeline/Decal shader.", this);
+                    Debug.LogWarning("Decal projector component material is not using HDRP/Decal shader.", this);
                 }
             }
         }

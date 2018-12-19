@@ -18,7 +18,7 @@ MonoBehaviour:
     transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
     texturingMode: 0
     transmissionMode: 0
-    thicknessRemap: {x: 0, y: 8.152544}
+    thicknessRemap: {x: 0, y: 20}
     worldScale: 1
     ior: 1.4
   - name: Foliage
@@ -34,7 +34,7 @@ MonoBehaviour:
     transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
     texturingMode: 1
     transmissionMode: 0
-    thicknessRemap: {x: 0, y: 8.152548}
+    thicknessRemap: {x: 0, y: 20}
     worldScale: 1
     ior: 1.4
   - name: Fabric

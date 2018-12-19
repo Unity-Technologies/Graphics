@@ -119,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             bool dirty = false;
 
-            if (mat.shader.name == "HDRenderPipeline/Decal")
+            if (mat.shader.name == "HDRP/Decal")
             {
                 float maskBlendMode = mat.GetFloat("_MaskBlendMode");
 
@@ -182,15 +182,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         string.Format("{0} / {1} materials updated.", i, length),
                         i / (float)(length - 1));
 
-                    if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
-                        mat.shader.name == "HDRenderPipeline/Lit" ||
-                        mat.shader.name == "HDRenderPipeline/LayeredLit" ||
-                        mat.shader.name == "HDRenderPipeline/LayeredLitTessellation" ||
-                        mat.shader.name == "HDRenderPipeline/StackLit" ||
-                        mat.shader.name == "HDRenderPipeline/Unlit" ||
-                        mat.shader.name == "HDRenderPipeline/Fabric" ||
-                        mat.shader.name == "HDRenderPipeline/Decal" ||
-                        mat.shader.name == "HDRenderPipeline/TerrainLit"
+                    if (mat.shader.name == "HDRP/LitTessellation" ||
+                        mat.shader.name == "HDRP/Lit" ||
+                        mat.shader.name == "HDRP/LayeredLit" ||
+                        mat.shader.name == "HDRP/LayeredLitTessellation" ||
+                        mat.shader.name == "HDRP/StackLit" ||
+                        mat.shader.name == "HDRP/Unlit" ||
+                        mat.shader.name == "HDRP/Fabric" ||
+                        mat.shader.name == "HDRP/Decal" ||
+                        mat.shader.name == "HDRP/TerrainLit"
                          )
                     {
                         // We don't handle embed material as we can't rewrite fbx files

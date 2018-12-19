@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
+Shader "Hidden/HDRP/DebugDisplayLatlong"
 {
     SubShader
     {

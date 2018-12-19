@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/Sky/GradientSky"
+Shader "Hidden/HDRP/Sky/GradientSky"
 {
     HLSLINCLUDE
 

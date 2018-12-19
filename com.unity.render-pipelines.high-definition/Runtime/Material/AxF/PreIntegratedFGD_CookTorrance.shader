@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_CookTorrance"
+Shader "Hidden/HDRP/PreIntegratedFGD_CookTorrance"
 {
     SubShader
     {

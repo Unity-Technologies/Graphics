@@ -94,7 +94,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Every other properties of the mesh is updated in HDAdditionalLightData to support timeline and editor records
                 emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
                 if (emissiveMeshRenderer.sharedMaterial == null)
-                    emissiveMeshRenderer.material = new Material(Shader.Find("HDRenderPipeline/Unlit"));
+                    emissiveMeshRenderer.material = new Material(Shader.Find("HDRP/Unlit"));
             }
 
             m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents = false;

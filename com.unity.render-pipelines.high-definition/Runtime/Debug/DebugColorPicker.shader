@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DebugColorPicker"
+Shader "Hidden/HDRP/DebugColorPicker"
 {
     SubShader
     {

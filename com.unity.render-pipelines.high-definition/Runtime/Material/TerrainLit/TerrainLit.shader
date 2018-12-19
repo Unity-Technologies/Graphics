@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/TerrainLit"
+Shader "HDRP/TerrainLit"
 {
     Properties
     {
@@ -316,7 +316,7 @@ Shader "HDRenderPipeline/TerrainLit"
         UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
 
-    Dependency "BaseMapShader" = "Hidden/HDRenderPipeline/TerrainLit_Basemap"
-    Dependency "BaseMapGenShader" = "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
+    Dependency "BaseMapShader" = "Hidden/HDRP/TerrainLit_Basemap"
+    Dependency "BaseMapGenShader" = "Hidden/HDRP/TerrainLit_Basemap_Gen"
     CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.TerrainLitGUI"
 }

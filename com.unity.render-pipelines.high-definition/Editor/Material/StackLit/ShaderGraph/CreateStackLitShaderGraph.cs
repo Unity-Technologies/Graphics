@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     public class CreateStackLitShaderGraph : EndNameEditAction
     {
-        [MenuItem("Assets/Create/Shader/StackLit Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/HDRP/StackLit Graph", false, 208)]
         public static void CreateMaterialGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateStackLitShaderGraph>(),

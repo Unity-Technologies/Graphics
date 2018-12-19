@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
+Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
 {
     HLSLINCLUDE
         #pragma target 4.5

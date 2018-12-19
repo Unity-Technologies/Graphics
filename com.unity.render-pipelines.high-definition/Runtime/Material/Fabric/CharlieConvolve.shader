@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/CharlieConvolve"
+Shader "Hidden/HDRP/CharlieConvolve"
 {
     SubShader
     {
@@ -56,7 +56,7 @@ Shader "Hidden/HDRenderPipeline/CharlieConvolve"
 
                 float perceptualRoughness = MipmapLevelToPerceptualRoughness(_Level);
                 float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-                uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level) * 1000;
+                uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level) * 100;
 
                 float4 val = IntegrateLDCharlie(TEXTURECUBE_PARAM(_MainTex, s_trilinear_clamp_sampler),
                              V, N,
