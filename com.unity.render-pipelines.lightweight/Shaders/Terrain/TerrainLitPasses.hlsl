@@ -92,15 +92,15 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 
 #ifndef TERRAIN_SPLAT_BASEPASS
 
-void SplatmapMix(VertexOutput IN, out half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
+void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, out half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
 {
-    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);    
+    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, uvMainAndLM.xy);    
     half4 diffAlbedo[4];
     
-    diffAlbedo[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, IN.uvSplat01.xy);
-    diffAlbedo[1] = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, IN.uvSplat01.zw);
-    diffAlbedo[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, IN.uvSplat23.xy);
-    diffAlbedo[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, IN.uvSplat23.zw);
+    diffAlbedo[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, uvSplat01.xy);
+    diffAlbedo[1] = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, uvSplat01.zw);
+    diffAlbedo[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, uvSplat23.xy);
+    diffAlbedo[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, uvSplat23.zw);
     
     // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
     half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splatControl)) * 20.0);
@@ -127,10 +127,10 @@ void SplatmapMix(VertexOutput IN, out half4 splatControl, out half weight, out h
 
 #ifdef _NORMALMAP
     half4 nrm = 0.0f;
-    nrm += SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, IN.uvSplat01.xy) * splatControl.r;
-    nrm += SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, IN.uvSplat01.zw) * splatControl.g;
-    nrm += SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, IN.uvSplat23.xy) * splatControl.b;
-    nrm += SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, IN.uvSplat23.zw) * splatControl.a;
+    nrm += SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, uvSplat01.xy) * splatControl.r;
+    nrm += SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, uvSplat01.zw) * splatControl.g;
+    nrm += SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, uvSplat23.xy) * splatControl.b;
+    nrm += SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, uvSplat23.zw) * splatControl.a;
     mixedNormal = UnpackNormal(nrm);
 #endif
 }
@@ -241,7 +241,8 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     half4 mixedDiffuse;
     
     half4 masks[4];
-    SplatmapMix(IN, splatControl, weight, mixedDiffuse, normalTS);
+    //SplatmapMix(IN, splatControl, weight, mixedDiffuse, normalTS);
+    SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, normalTS);
 
     half3 albedo = mixedDiffuse.rgb;
     

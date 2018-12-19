@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.LWRP
         {
             public readonly GUIContent enableHeightBlend = new GUIContent("Enable Height-based Blend", "Blend terrain layers based on height values.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
+            public readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
 
             public readonly GUIContent diffuseTexture = new GUIContent("Diffuse");
             public readonly GUIContent colorTint = new GUIContent("Color Tint");
@@ -39,12 +40,16 @@ namespace UnityEditor.Rendering.LWRP
         {
         }
 
+        // Height blend params
         MaterialProperty enableHeightBlend = null;
         const string kEnableHeightBlend = "_EnableHeightBlend";
 
-        // Height blend
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
+
+        // Per-pixel Normal (while instancing)
+        MaterialProperty enableInstancedPerPixelNormal = null;
+        const string kEnableInstancedPerPixelNormal = "_EnableInstancedPerPixelNormal";
 
         private bool m_ShowChannelRemapping = false;
         enum HeightParametrization
@@ -67,6 +72,70 @@ namespace UnityEditor.Rendering.LWRP
         {
             enableHeightBlend = FindProperty(kEnableHeightBlend, props, false);
             heightTransition = FindProperty(kHeightTransition, props, false);
+            enableInstancedPerPixelNormal = FindProperty(kEnableInstancedPerPixelNormal, props, false);
+        }
+
+        static public void SetupMaterialKeywords(Material material)
+        {
+            bool enableHeightBlend = material.HasProperty(kEnableHeightBlend) && material.GetFloat(kEnableHeightBlend) > 0;
+            CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_HEIGHT", enableHeightBlend);
+
+            bool enableInstancedPerPixelNormal = material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
+            CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
+        }
+
+        public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
+        {
+            if (materialEditorIn == null)
+                throw new ArgumentNullException("materialEditorIn");
+
+            FindMaterialProperties(properties);
+
+            bool optionsChanged = false;
+            EditorGUI.BeginChangeCheck();
+            {
+                if (enableHeightBlend != null)
+                {
+                    EditorGUI.indentLevel++;
+                    materialEditorIn.ShaderProperty(enableHeightBlend, styles.enableHeightBlend);
+                    if (enableHeightBlend.floatValue > 0)
+                    {
+                        EditorGUI.indentLevel++;
+                        materialEditorIn.ShaderProperty(heightTransition, styles.heightTransition);
+                        EditorGUI.indentLevel--;
+                    }
+                    EditorGUI.indentLevel--;
+                }
+                EditorGUILayout.Space();
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                optionsChanged = true;
+            }
+
+            bool enablePerPixelNormalChanged = false;
+            
+            // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
+            materialEditorIn.EnableInstancingField();
+            if (materialEditorIn.IsInstancingEnabled() && enableInstancedPerPixelNormal != null)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
+                materialEditorIn.ShaderProperty(enableInstancedPerPixelNormal, styles.enableInstancedPerPixelNormal);
+                enablePerPixelNormalChanged = EditorGUI.EndChangeCheck();
+                EditorGUI.indentLevel--;
+            }
+
+            if (optionsChanged || enablePerPixelNormalChanged)
+            {
+                foreach (var obj in materialEditorIn.targets)
+                {
+                    SetupMaterialKeywords((Material)obj);
+                }
+            }
+
+            // We should always do this call at the end
+            materialEditorIn.serializedObject.ApplyModifiedProperties();
         }
 
         bool ITerrainLayerCustomUI.OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
@@ -141,6 +210,7 @@ namespace UnityEditor.Rendering.LWRP
 
             var maskMapRemapMin = terrainLayer.maskMapRemapMin;
             var maskMapRemapMax = terrainLayer.maskMapRemapMax;
+            var smoothness = terrainLayer.smoothness;
 
             ++EditorGUI.indentLevel;
             EditorGUI.BeginChangeCheck();
@@ -186,6 +256,7 @@ namespace UnityEditor.Rendering.LWRP
                     min = maskMapRemapMin.w; max = maskMapRemapMax.w;
                     EditorGUILayout.MinMaxSlider(s_Styles.smoothness, ref min, ref max, 0, 1);
                     maskMapRemapMin.w = min; maskMapRemapMax.w = max;
+                    smoothness = 1.0f;
                 }
                 else
                 {
@@ -202,6 +273,7 @@ namespace UnityEditor.Rendering.LWRP
             {
                 terrainLayer.maskMapRemapMin = maskMapRemapMin;
                 terrainLayer.maskMapRemapMax = maskMapRemapMax;
+                terrainLayer.smoothness = smoothness;
             }
             --EditorGUI.indentLevel;
 

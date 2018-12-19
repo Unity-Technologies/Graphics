@@ -54,7 +54,6 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma fragment SplatmapFragment
 
             #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _MASKMAP
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_BASEPASS 1

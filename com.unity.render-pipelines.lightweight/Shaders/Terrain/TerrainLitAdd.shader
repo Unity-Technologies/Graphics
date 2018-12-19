@@ -16,6 +16,10 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
         [HideInInspector][Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0.0
         [HideInInspector][Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0.0
         [HideInInspector][Gamma] _Metallic3("Metallic 3", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Mask3("Mask 3 (A)", 2D) = "grey" {}
+        [HideInInspector] _Mask2("Mask 2 (B)", 2D) = "grey" {}
+        [HideInInspector] _Mask1("Mask 1 (G)", 2D) = "grey" {}
+        [HideInInspector] _Mask0("Mask 0 (R)", 2D) = "grey" {}        
         [HideInInspector] _Smoothness0("Smoothness 0", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _Smoothness1("Smoothness 1", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _Smoothness2("Smoothness 2", Range(0.0, 1.0)) = 1.0
@@ -62,6 +66,7 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _MASKMAP            
             #define TERRAIN_SPLAT_ADDPASS 1
 
             #include "TerrainLitInput.hlsl"

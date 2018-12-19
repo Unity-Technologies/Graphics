@@ -2,6 +2,9 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
 {
     Properties
     {
+        [HideInInspector] [ToggleUI] _EnableHeightBlend("EnableHeightBlend", Float) = 0.0
+        _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
+    
         // set by terrain engine
         [HideInInspector] _Control("Control (RGBA)", 2D) = "red" {}
         [HideInInspector] _Splat3("Layer 3 (A)", 2D) = "grey" {}
@@ -29,8 +32,9 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
         [HideInInspector] _MainTex("BaseMap (RGB)", 2D) = "grey" {}
         [HideInInspector] _Color("Main Color", Color) = (1,1,1,1)
 
+        [ToggleUI] _EnableInstancedPerPixelNormal("Enable Instanced per-pixel normal", Float) = 1.0
         // TODO: Implement ShaderGUI for the shader and display the checkbox only when instancing is enabled.
-        [Toggle(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)] _TERRAIN_INSTANCED_PERPIXEL_NORMAL("Enable Instanced Per-pixel Normal", Float) = 0
+        // [Toggle(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)] _TERRAIN_INSTANCED_PERPIXEL_NORMAL("Enable Instanced Per-pixel Normal", Float) = 0
     }
 
     SubShader
@@ -71,6 +75,7 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _MASKMAP            
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
@@ -133,6 +138,7 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
     }
     Dependency "AddPassShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
     Dependency "BaseMapShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
+    Dependency "BaseMapGenShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit_BasemapGen"
     
     CustomEditor "UnityEditor.Rendering.LWRP.TerrainLitShaderGUI"
 

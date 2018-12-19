@@ -30,7 +30,7 @@ TEXTURE2D(_Normal3);
 #endif
 
 #ifdef _MASKMAP
-TEXTURE2D(_Mask0);      SAMPLER(sample_Mask0);
+TEXTURE2D(_Mask0);      SAMPLER(sampler_Mask0);
 TEXTURE2D(_Mask1);
 TEXTURE2D(_Mask2);
 TEXTURE2D(_Mask3);
