@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportTransparentBackface = true;
         public bool supportTransparentDepthPrepass = true;
         public bool supportTransparentDepthPostpass = true;
-        public SupportedLitShaderMode supportedLitShaderMode = SupportedLitShaderMode.Both;
+        public SupportedLitShaderMode supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly;
 
         // Engine
         [FormerlySerializedAs("supportDBuffer")]
