@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shutdown edge cases with HDRP tests
 - Fixed slowdow when enabling Fabric convolution in HDRP asset
 - Fixed specularAA not compiling in StackLit Master node
+- Fixed material debug view with stereo rendering
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).

@@ -308,6 +308,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), 0, MeshTopology.Triangles, 3, 1);
         }
 
+        public static void BlitCameraTextureStereoDoubleWide(CommandBuffer cmd, RTHandleSystem.RTHandle source)
+        {
+#if UNITY_2019_1_OR_NEWER
+            Material finalDoubleWideBlit = GetBlitMaterial();
+            finalDoubleWideBlit.SetTexture(HDShaderIDs._BlitTexture, source);
+            finalDoubleWideBlit.SetFloat(HDShaderIDs._BlitMipLevel, 0.0f);
+            finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+            finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+            int pass = 1; // triangle, bilinear (from Blit.shader)
+            cmd.Blit(source, BuiltinRenderTextureType.CameraTarget, finalDoubleWideBlit, pass);
+#else
+            // Prior to 2019.1's y-flip fixes, we didn't need a flip in the shader
+            cmd.BlitFullscreenTriangle(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
+#endif
+        }
+
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
         // This will set the proper viewport and UV scale.
         public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
