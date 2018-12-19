@@ -5,7 +5,7 @@ using UnityEditor.Rendering;
 namespace UnityEngine.Rendering.LWRP
 {
     [CustomEditor(typeof(LightweightRenderPipelineAsset))]
-    public partial class LightweightRenderPipelineAssetEditor : Editor
+    public class LightweightRenderPipelineAssetEditor : Editor
     {
         internal class Styles
         {
@@ -19,13 +19,6 @@ namespace UnityEngine.Rendering.LWRP
             // Render Path
             public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Renderer Type", "Renderer Type");
             public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Renderer Data", "Required by a custom Renderer. If none assigned LWRP fallsback to Forward Renderer.");
-
-            public static GUIContent[] rendererTabsText =
-            {
-                EditorGUIUtility.TrTextContent("Forward"),
-                EditorGUIUtility.TrTextContent("Deferred"),
-                EditorGUIUtility.TrTextContent("2D")
-            };
 
             // General
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
@@ -111,8 +104,6 @@ namespace UnityEngine.Rendering.LWRP
 
         internal static LightRenderingMode selectedLightRenderingMode;
 
-        int m_SelectedRendererTab = 0;
-
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -127,19 +118,13 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             EditorGUILayout.Space();
-
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
-            m_SelectedRendererTab = GUILayout.Toolbar(m_SelectedRendererTab, Styles.rendererTabsText, "LargeButton", GUI.ToolbarButtonSize.FitToContents);
-
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndHorizontal();
-
             EditorGUILayout.Space();
 
-            if (m_SelectedRendererTab == (int)RendererType.ForwardRenderer)
-                DrawForwardRendererSettings();
+            DrawGeneralSettings();
+            DrawQualitySettings();
+            DrawLightingSettings();
+            DrawShadowSettings();
+            DrawAdvancedSettings();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -186,9 +171,6 @@ namespace UnityEngine.Rendering.LWRP
 
             m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             selectedLightRenderingMode = (LightRenderingMode)m_AdditionalLightsRenderingModeProp.intValue;
-
-            int rendererType = m_RendererTypeProp.intValue;
-            m_SelectedRendererTab = rendererType == (int)RendererType.Custom ? (int)RendererType.ForwardRenderer : rendererType;
         }
 
         void DrawGeneralSettings()
