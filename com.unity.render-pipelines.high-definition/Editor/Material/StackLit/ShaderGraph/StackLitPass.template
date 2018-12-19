@@ -415,7 +415,7 @@ $include("SharedCode.template.hlsl")
 
         float geometricVariance = 0.0;
         // Note SpecularAA: or GeometricSpecularAA: guarantees surfaceDescription has SpecularAAScreenSpaceVariance and SpecularAAThreshold.
-        $GeometricSpecularAA: geometricVariance = GeometricNormalVariance(input.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance);
+        $GeometricSpecularAA: geometricVariance = GeometricNormalVariance(fragInputs.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance);
 
         // TODO: Handle normal map filtering
         // Also handle texture normal filtering when we have the proper operator nodes and can thus have the variance port

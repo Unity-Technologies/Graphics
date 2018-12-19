@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with ambient occlusion incorrectly applied to emissiveColor with light layers in deferred
 - Fixed issue with fabric convolution not using the correct convolved texture when fabric convolution is enabled
 - Fixed issue with Thick mode for Transmission that was disabling transmission with directional light
+- Fixed slowdow when enabling Fabric convolution in HDRP asset
+- Fixed specularAA not compiling in StackLit Master node
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
@@ -54,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename all HDRenderPipeline to HDRP folder for shaders
 - Rename decal property label (based on doc team feedback)
 - Add command buffer parameter to all Bind() method of material
+- Lit shader mode now default to Deferred to reduce build time
 
 ## [5.2.0-preview] - 2018-11-27
 
