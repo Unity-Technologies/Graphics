@@ -290,13 +290,14 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
+            if (selection.OfType< VFXBlackboardCategory>().Any())
+                return;
+
             if (m_InsertIndex != -1)
             {
                 var parent = GetFirstAncestorOfType<VFXBlackboard>();
                 if (parent != null)
-                {
-                    parent.OnMoveParameter(selection.Cast<VisualElement>().Select(t => t.GetFirstOfType<VFXBlackboardRow>()), this, m_InsertIndex);
-                }
+                    parent.OnMoveParameter(selection.OfType<VisualElement>().Select(t => t.GetFirstOfType<VFXBlackboardRow>()).Where(t=> t!= null), this, m_InsertIndex);
                 SetDragIndicatorVisible(false);
                 evt.StopPropagation();
                 m_InsertIndex = -1;

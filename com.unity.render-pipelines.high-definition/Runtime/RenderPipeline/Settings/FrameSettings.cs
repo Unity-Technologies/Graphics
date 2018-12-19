@@ -50,6 +50,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LightListAsync = 1 << 27,
         SSRAsync = 1 << 28,
         SSAOAsync = 1 << 29,
+        ContactShadowsAsync = 1 << 30,
+        VolumeVoxelizationsAsync = 1 << 31,
     }
 
     // The settings here are per frame settings.
@@ -88,8 +90,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {FrameSettingsOverrides.RealtimePlanarReflection, (a, b) => { a.enableRealtimePlanarReflection = b.enableRealtimePlanarReflection; } },
             {FrameSettingsOverrides.LightListAsync, (a, b) => { a.runLightListAsync = b.runLightListAsync; } },
             {FrameSettingsOverrides.SSRAsync, (a, b) => { a.runSSRAsync= b.runSSRAsync; } },
-            {FrameSettingsOverrides.SSAOAsync, (a, b) => { a.runSSAOAsync = b.runSSAOAsync; } }
-
+            {FrameSettingsOverrides.SSAOAsync, (a, b) => { a.runSSAOAsync = b.runSSAOAsync; } },
+            {FrameSettingsOverrides.ContactShadowsAsync, (a, b) => { a.runContactShadowsAsync = b.runContactShadowsAsync; } },
+            {FrameSettingsOverrides.VolumeVoxelizationsAsync, (a, b) => { a.runVolumeVoxelizationAsync = b.runVolumeVoxelizationAsync; } }
         };
 
         public FrameSettingsOverrides overrides;
@@ -137,10 +140,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool runLightListAsync = true;
         public bool runSSRAsync = true;
         public bool runSSAOAsync = true;
+        public bool runContactShadowsAsync = true;
+        public bool runVolumeVoxelizationAsync = true;
 
         // GC.Alloc
         // FrameSettings..ctor() 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
+        
+        //saved enum fields for when repainting Debug Menu
+        int m_LitShaderModeEnumIndex = 1;   //match Deferred index
 
         public FrameSettings() {
         }
@@ -186,37 +194,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.runLightListAsync = this.runLightListAsync;
             frameSettings.runSSAOAsync = this.runSSAOAsync;
             frameSettings.runSSRAsync = this.runSSRAsync;
+            frameSettings.runContactShadowsAsync = this.runContactShadowsAsync;
+            frameSettings.runVolumeVoxelizationAsync = this.runVolumeVoxelizationAsync;
 
             frameSettings.enableMSAA = this.enableMSAA;
 
             frameSettings.overrides = this.overrides;
 
             this.lightLoopSettings.CopyTo(frameSettings.lightLoopSettings);
+
+            frameSettings.Refresh();
         }
 
-        public FrameSettings Override(FrameSettings overridedFrameSettings)
+        public void ApplyOverrideOn(FrameSettings overridedFrameSettings)
         {
             if(overrides == 0)
-            {
-                //nothing to override
-                return overridedFrameSettings;
-            }
+                return;
 
-            FrameSettings result = new FrameSettings(overridedFrameSettings);
             Array values = Enum.GetValues(typeof(FrameSettingsOverrides));
             foreach(FrameSettingsOverrides val in values)
             {
                 if((val & overrides) > 0)
                 {
-                    s_Overrides[val](result, this);
+                    s_Overrides[val](overridedFrameSettings, this);
                 }
             }
 
-            result.lightLoopSettings = lightLoopSettings.Override(overridedFrameSettings.lightLoopSettings);
+            lightLoopSettings.ApplyOverrideOn(overridedFrameSettings.lightLoopSettings);
 
             //propagate override to be chained
-            result.overrides = overrides | overridedFrameSettings.overrides;
-            return result;
+            overridedFrameSettings.overrides = overrides | overridedFrameSettings.overrides;
+
+            //refresh enums for DebugMenu
+            overridedFrameSettings.Refresh();
         }
 
         // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
@@ -279,14 +289,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
 
-            aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
+            aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass && renderPipelineSettings.supportTransparentDepthPrepass;
             aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors && renderPipelineSettings.supportMotionVectors;
             // Object motion vector are disabled if motion vector are disabled
             aggregate.enableObjectMotionVectors = srcFrameSettings.enableObjectMotionVectors && aggregate.enableMotionVectors;
             aggregate.enableDecals = srcFrameSettings.enableDecals && renderPipelineSettings.supportDecals;
             aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
-            aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
-            aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;
+            aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass && renderPipelineSettings.supportTransparentDepthPostpass;
+            aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion && renderPipelineSettings.supportDistortion;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
@@ -295,6 +305,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.runLightListAsync = aggregate.enableAsyncCompute && srcFrameSettings.runLightListAsync;
             aggregate.runSSRAsync = aggregate.enableAsyncCompute && srcFrameSettings.runSSRAsync;
             aggregate.runSSAOAsync = aggregate.enableAsyncCompute && srcFrameSettings.runSSAOAsync;
+            aggregate.runContactShadowsAsync = aggregate.enableAsyncCompute && srcFrameSettings.runContactShadowsAsync;
+            aggregate.runVolumeVoxelizationAsync = aggregate.enableAsyncCompute && srcFrameSettings.runVolumeVoxelizationAsync;
 
             aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
@@ -328,6 +340,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
+
+            aggregate.Refresh();
+        }
+
+        void Refresh()
+        {
+            // actually, we need to sync up changes done in the debug menu too
+            switch(shaderLitMode)
+            {
+                case LitShaderMode.Forward:
+                    m_LitShaderModeEnumIndex = 0;
+                    break;
+                case LitShaderMode.Deferred:
+                    m_LitShaderModeEnumIndex = 1;
+                    break;
+                default:
+                    throw new ArgumentException("Unknown LitShaderMode");
+            }
         }
 
         public bool BuildLightListRunsAsync()
@@ -343,6 +373,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool SSAORunsAsync()
         {
             return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runSSAOAsync;
+        }
+
+        public bool ContactShadowsRunAsync()
+        {
+            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runContactShadowsAsync;
+        }
+
+        public bool VolumeVoxelizationRunsAsync()
+        {
+            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runVolumeVoxelizationAsync;
         }
 
 
@@ -370,14 +410,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: The work will be implemented piecemeal to support all passes
                 enableMotionVectors = enablePostprocess && !enableMSAA;
-                enableDecals = false;
-                enableDistortion = false;
-                enableRoughRefraction = false;
-                enableSSAO = false;
                 enableSSR = false;
-                enableSubsurfaceScattering = false;
             }
         }
+
 
         public static void RegisterDebug(string menuName, FrameSettings frameSettings)
         {
@@ -405,7 +441,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     displayName = "Rendering Settings",
                     children =
                     {
-                        new DebugUI.EnumField { displayName = "Lit Shader Mode", getter = () => (int)frameSettings.shaderLitMode, setter = value => frameSettings.shaderLitMode = (LitShaderMode)value, autoEnum = typeof(LitShaderMode)},
+                        new DebugUI.EnumField { displayName = "Lit Shader Mode", getter = () => (int)frameSettings.shaderLitMode, setter = value => frameSettings.shaderLitMode = (LitShaderMode)value, autoEnum = typeof(LitShaderMode), getIndex = () => frameSettings.m_LitShaderModeEnumIndex, setIndex = value => frameSettings.m_LitShaderModeEnumIndex = value },
                         new DebugUI.BoolField { displayName = "Deferred Depth Prepass", getter = () => frameSettings.enableDepthPrepassWithDeferredRendering, setter = value => frameSettings.enableDepthPrepassWithDeferredRendering = value },
                         new DebugUI.BoolField { displayName = "Enable Opaque Objects", getter = () => frameSettings.enableOpaqueObjects, setter = value => frameSettings.enableOpaqueObjects = value },
                         new DebugUI.BoolField { displayName = "Enable Transparent Objects", getter = () => frameSettings.enableTransparentObjects, setter = value => frameSettings.enableTransparentObjects = value },
@@ -440,6 +476,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Run Build Light List Async", getter = () => frameSettings.runLightListAsync, setter = value => frameSettings.runLightListAsync = value },
                         new DebugUI.BoolField { displayName = "Run SSR Async", getter = () => frameSettings.runSSRAsync, setter = value => frameSettings.runSSRAsync = value },
                         new DebugUI.BoolField { displayName = "Run SSAO Async", getter = () => frameSettings.runSSAOAsync, setter = value => frameSettings.runSSAOAsync = value },
+                        new DebugUI.BoolField { displayName = "Run Contact Shadows Async", getter = () => frameSettings.runContactShadowsAsync, setter = value => frameSettings.runContactShadowsAsync = value },
+                        new DebugUI.BoolField { displayName = "Run Volume Voxelization Async", getter = () => frameSettings.runVolumeVoxelizationAsync, setter = value => frameSettings.runVolumeVoxelizationAsync = value },
                     }
                 }
             });

@@ -151,6 +151,7 @@ SAMPLER(s_linear_clamp_sampler);
 SAMPLER(s_linear_repeat_sampler);
 SAMPLER(s_trilinear_clamp_sampler);
 SAMPLER(s_trilinear_repeat_sampler);
+SAMPLER_CMP(s_linear_clamp_compare_sampler);
 
 // ----------------------------------------------------------------------------
 
@@ -301,6 +302,8 @@ CBUFFER_START(UnityGlobal)
 
     #define DEFAULT_LIGHT_LAYERS 0xFF
     uint _EnableLightLayers;
+
+    uint _EnableSSRefraction;
 
 CBUFFER_END
 

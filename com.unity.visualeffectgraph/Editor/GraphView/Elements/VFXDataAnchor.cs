@@ -287,7 +287,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
         }
 
@@ -359,13 +359,34 @@ namespace UnityEditor.VFX.UI
                 validTypes = op.validTypes;
             }
 
-            var ports = direction == Direction.Input ? newNodeController.outputPorts : newNodeController.inputPorts;
+            // If linking to a new parameter, copy the slot value and space
+            if (direction == Direction.Input && controller.model != null) //model will be null for upcomming which won't have a value
+            {
+                if (newNodeController is VFXOperatorController)
+                {
+                    var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
+                    if (inlineOperator != null)
+                    {
+                        var value = controller.model.value;
+                        object convertedValue = null;
+                        if (VFXConverter.TryConvertTo(value, inlineOperator.type, out convertedValue))
+                        {
+                            inlineOperator.inputSlots[0].value = convertedValue;
+                        }
 
+                        if (inlineOperator.inputSlots[0].spaceable && controller.model.spaceable)
+                        {
+                            inlineOperator.inputSlots[0].space = controller.model.space;
+                        }
+                    }
+                }
+            }
+
+            var ports = direction == Direction.Input ? newNodeController.outputPorts : newNodeController.inputPorts;
             int count = ports.Count();
             for (int i = 0; i < count; ++i)
             {
                 var port = ports[i];
-
                 if (mySlot != null)
                 {
                     if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
@@ -380,24 +401,6 @@ namespace UnityEditor.VFX.UI
                         if (viewController.CreateLink(controller, port))
                         {
                             break;
-                        }
-                    }
-                }
-            }
-
-            // If linking to a new parameter, copy the slot value
-            if (direction == Direction.Input && controller.model != null) //model will be null for upcomming which won't have a value
-            {
-                if (newNodeController is VFXOperatorController)
-                {
-                    var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
-                    if (inlineOperator != null)
-                    {
-                        var value = controller.model.value;
-                        object convertedValue = null;
-                        if (VFXConverter.TryConvertTo(value, inlineOperator.type, out convertedValue))
-                        {
-                            inlineOperator.inputSlots[0].value = convertedValue;
                         }
                     }
                 }

@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         PlanarReflectionProbe[] m_Probes;
 
         public int visiblePlanarReflectionProbeCount { get; private set; }
-        public PlanarReflectionProbe[] visiblePlanarReflectionProbes { get { return m_VisiblePlanarReflectionProbes; } }
+        public PlanarReflectionProbe[] visiblePlanarReflectionProbes => m_VisiblePlanarReflectionProbes;
 
         internal ReflectionProbeCullResults(ReflectionSystemParameters parameters)
         {
@@ -48,7 +48,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (var i = 0; i < visiblePlanarReflectionProbeCount; ++i)
                 m_VisiblePlanarReflectionProbes[i] = m_Probes[m_PlanarReflectionProbeIndices[i]];
 
-            CullingGroupManager.instance.Free(m_CullingGroup);
             m_CullingGroup = null;
             m_Probes = null;
         }

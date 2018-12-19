@@ -1497,7 +1497,6 @@ namespace UnityEditor.VFX.UI
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            var targetSystem = evt.target as VFXSystemBorder;
             if (evt.target is VFXGroupNode || evt.target is VFXSystemBorder) // Default behaviour only shows the OnCreateNode if the target is the view itself.
                 evt.target = this;
 
@@ -1514,11 +1513,20 @@ namespace UnityEditor.VFX.UI
             if (evt.target is VFXView)
             {
                 evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); },(e) => DropdownMenuAction.Status.Normal);
-            }
-            if (targetSystem != null)
-            {
-                evt.menu.InsertSeparator("", 2);
-                evt.menu.InsertAction(3, string.IsNullOrEmpty(targetSystem.controller.title) ? "Name System" : "Rename System", a => targetSystem.OnRename(), e => DropdownMenuAction.Status.Normal);
+
+                if( evt.triggerEvent is IMouseEvent)
+                {
+                    foreach( var system in m_Systems)
+                    {
+                        Rect bounds = system.worldBound;
+                        if (bounds.Contains((evt.triggerEvent as IMouseEvent).mousePosition))
+                        {
+                            evt.menu.InsertSeparator("", 2);
+                            evt.menu.InsertAction(3, string.IsNullOrEmpty(system.controller.title) ? "Name System" : "Rename System", a => system.OnRename(), e => DropdownMenuAction.Status.Normal);
+                            break;
+                        }
+                    }
+                }
             }
 
             if (evt.target is VFXContextUI)
@@ -1550,8 +1558,8 @@ namespace UnityEditor.VFX.UI
             {
                 VFXSystemBorder border = new VFXSystemBorder();
                 m_Systems.Add(border);
-                border.controller = controller.systems[m_Systems.Count()-1];
                 AddElement(border);
+                border.controller = controller.systems[m_Systems.Count() - 1];
             }
         }
         

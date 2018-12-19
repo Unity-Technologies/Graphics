@@ -315,7 +315,7 @@ namespace UnityEditor.VFX
             {
                 var existingSlots = new List<VFXSlot>(currentSlots);
 
-                // Remove all slots (TODO Uncomment)
+                // Remove all slots
                 for (int i = nbSlots - 1; i >= 0; --i)
                     InnerRemoveSlot(currentSlots[i], false);
 
@@ -352,6 +352,10 @@ namespace UnityEditor.VFX
                     // Find the first slot with same type (should perform a more clever selection based on name distance)
                     if (srcSlot == null)
                         srcSlot = existingSlots.FirstOrDefault(s => s.property.type == dstSlot.property.type);
+
+                    // Try to find a slot that can be implicitely converted
+                    if (srcSlot == null)
+                        srcSlot = existingSlots.FirstOrDefault(s => VFXConverter.CanConvertTo(s.property.type,dstSlot.property.type));
 
                     if (srcSlot != null)
                     {

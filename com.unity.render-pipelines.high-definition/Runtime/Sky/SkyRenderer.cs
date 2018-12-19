@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float debugExposure = 0.0f;
             if (debugSettings != null && debugSettings.DebugNeedsExposure())
             {
-                debugExposure = debugSettings.lightingDebugSettings.debugExposure;
+                debugExposure = debugSettings.data.lightingDebugSettings.debugExposure;
             }
             return skySettings.exposure + debugExposure;
         }

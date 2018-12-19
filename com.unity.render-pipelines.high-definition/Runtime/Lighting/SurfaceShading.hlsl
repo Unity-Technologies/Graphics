@@ -34,28 +34,26 @@ float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout Directio
         // We support some kind of transmission.
         if (NdotL <= 0)
         {
-            // And since the light is back-facing, it's active.
-            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-            {
-                // Care must be taken to bias in the direction of the light.
-                // TODO: change the sign of the bias: faster & uses fewer VGPRs.
-                N = -N;
+            // Care must be taken to bias in the direction of the light.
+            // TODO: change the sign of the bias: faster & uses fewer VGPRs.
+            N = -N;
 
-                // We want to evaluate cookies and light attenuation, so we flip NdotL.
-                NdotL = -NdotL;
+            // We want to evaluate cookies and light attenuation, so we flip NdotL.
+            NdotL = -NdotL;
 
-                // However, we don't want baked or contact shadows.
-                light.contactShadowIndex   = -1;
-                light.shadowMaskSelector.x = -1;
+            // However, we don't want baked or contact shadows.
+            light.contactShadowIndex   = -1;
+            light.shadowMaskSelector.x = -1;
 
-                // We use the precomputed value (based on "baked" thickness).
-                transmittance = bsdfData.transmittance;
-            }
-            else
+            // We use the precomputed value (based on "baked" thickness).
+            transmittance = bsdfData.transmittance;
+
+            if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
             {
                 // The mixed thickness mode is not supported by directional lights
                 // due to poor quality and high performance impact.
                 // Keeping NdotL negative will ensure that nothing is evaluated.
+                light.shadowIndex = -1;
             }
         }
     }

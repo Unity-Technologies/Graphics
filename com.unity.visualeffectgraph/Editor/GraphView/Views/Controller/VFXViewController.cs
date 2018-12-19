@@ -666,7 +666,6 @@ namespace UnityEditor.VFX.UI
 
                 RemoveFromGroupNodes(element as VFXNodeController);
 
-
                 UnityObject.DestroyImmediate(context, true);
             }
             else if (element is VFXBlockController)

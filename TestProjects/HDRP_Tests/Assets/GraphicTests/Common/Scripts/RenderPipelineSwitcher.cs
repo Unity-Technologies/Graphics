@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest
 	    HDRenderPipelineAsset previousPipeline = null;
 	    public HDRenderPipelineAsset targetPipeline = null;
 
-		void Start ()
+		void OnEnable ()
 	    {
 	    	if(previousPipeline == null)
 	    	{
@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest
 	        }
 		}
 
-		void OnDestroy()
+		void OnDisable()
 		{
         	GraphicsSettings.renderPipelineAsset = previousPipeline;
 		}

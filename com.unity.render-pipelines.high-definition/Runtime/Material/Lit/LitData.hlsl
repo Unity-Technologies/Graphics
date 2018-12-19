@@ -296,7 +296,7 @@ float4 ReorientNormalCone(float3 startNormalTS, float startNormalVariance,
 #ifdef _BENTNORMALMAP
 #define _BENTNORMALMAP_IDX
 #endif
-#include "LitDataIndividualLayer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataIndividualLayer.hlsl"
 
 // This maybe call directly by tessellation (domain) shader, thus all part regarding surface gradient must be done
 // in function with FragInputs input as parameters
@@ -333,8 +333,8 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
                         input.positionRWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
-#include "LitDataDisplacement.hlsl"
-#include "LitBuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataDisplacement.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -369,6 +369,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #else
     bentNormalWS = surfaceData.normalWS;
 #endif
+
+    surfaceData.geomNormalWS = input.worldToTangent[2];
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
     // If user provide bent normal then we process a better term
@@ -417,6 +419,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 
-#include "LitDataMeshModification.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataMeshModification.hlsl"
 
 #endif // #ifndef LAYERED_LIT_SHADER

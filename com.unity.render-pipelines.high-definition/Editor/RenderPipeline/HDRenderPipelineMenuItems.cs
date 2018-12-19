@@ -15,17 +15,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public class HDRenderPipelineMenuItems
     {
         // Function used only to check performance of data with and without tessellation
-        [MenuItem("Internal/HDRenderPipeline/Test/Remove tessellation materials (not reversible)")]
+        [MenuItem("Internal/HDRP/Test/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
 
-            var litShader = Shader.Find("HDRenderPipeline/Lit");
-            var layeredLitShader = Shader.Find("HDRenderPipeline/LayeredLit");
+            var litShader = Shader.Find("HDRP/Lit");
+            var layeredLitShader = Shader.Find("HDRP/LayeredLit");
 
             foreach (var mat in materials)
             {
-                if (mat.shader.name == "HDRenderPipeline/LitTessellation")
+                if (mat.shader.name == "HDRP/LitTessellation")
                 {
                     mat.shader = litShader;
                     // We remove all keyword already present
@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     LitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
-                else if (mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                else if (mat.shader.name == "HDRP/LayeredLitTessellation")
                 {
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
@@ -109,14 +109,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings> { }
 
-        [MenuItem("Assets/Create/Rendering/Diffusion profile Settings", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/Diffusion Profile List", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile Settings.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile List.asset", icon, null);
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
+        [MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
             var lights = UnityObject.FindObjectsOfType(typeof(Light)) as Light[];
@@ -135,7 +135,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
+        [MenuItem("Internal/HDRP/Add \"Additional Camera Data\" (if not present)")]
         static void AddAdditionalCameraData()
         {
             var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
@@ -149,7 +149,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // This script is a helper for the artists to re-synchronize all layered materials
-        [MenuItem("Internal/HDRenderPipeline/Synchronize all Layered materials")]
+        [MenuItem("Internal/HDRP/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
@@ -158,7 +158,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             foreach (var mat in materials)
             {
-                if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                if (mat.shader.name == "HDRP/LayeredLit" || mat.shader.name == "HDRP/LayeredLitTessellation")
                 {
                     CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                     LayeredLitGUI.SynchronizeAllLayers(mat);

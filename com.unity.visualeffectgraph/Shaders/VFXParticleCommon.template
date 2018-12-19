@@ -30,14 +30,15 @@ o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadSize}
-float3 size = float3(sizeX,sizeX,sizeX);
-#if VFX_USE_SIZEY_CURRENT
-size.y = sizeY;
+float3 size3 = float3(size,size,size);
+#if VFX_USE_SCALEX_CURRENT
+size3.x *= scaleX;
 #endif
-#if VFX_USE_SIZEZ_CURRENT
-size.z = sizeZ;
-#else
-size.z = min(size.x,size.y);
+#if VFX_USE_SCALEY_CURRENT
+size3.y *= scaleY;
+#endif
+#if VFX_USE_SCALEZ_CURRENT
+size3.z *= scaleZ;
 #endif
 ${VFXEnd}
 
@@ -57,22 +58,21 @@ ${VFXEnd}
 ${VFXBegin:VFXFragmentCommonFunctions}#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc"${VFXEnd}
 
 ${VFXBegin:VFXLoadAttributesOrCull}
-#if VFX_HAS_INDIRECT_DRAW
+uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
-	if (index >= asuint(nbMax) - deadListCount.Load(0))
-		return o;
-#endif
+deadCount = deadListCount.Load(0);
+#endif	
+if (index >= asuint(nbMax) - deadCount)
+	return o; // cull
 
-	index = indirectBuffer[index];
-	${VFXLoadAttributes}
+#if VFX_HAS_INDIRECT_DRAW
+index = indirectBuffer[index];
+${VFXLoadAttributes}
 #else
-	if (index >= asuint(nbMax))
-		return o;
+${VFXLoadAttributes:{alive}}
+if (!alive)
+	return o;
 	
-	${VFXLoadAttributes:{alive}}
-	if (!alive)
-		return o;
-	
-	${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
 ${VFXEnd}

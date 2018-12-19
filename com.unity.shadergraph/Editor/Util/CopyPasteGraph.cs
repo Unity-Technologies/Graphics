@@ -15,6 +15,9 @@ namespace UnityEditor.Graphing.Util
         [NonSerialized]
         HashSet<INode> m_Nodes = new HashSet<INode>();
 
+        [SerializeField]
+        List<GroupData> m_Groups = new List<GroupData>();
+
         [NonSerialized]
         HashSet<IShaderProperty> m_Properties = new HashSet<IShaderProperty>();
 
@@ -44,9 +47,14 @@ namespace UnityEditor.Graphing.Util
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(Guid sourceGraphGuid, IEnumerable<INode> nodes, IEnumerable<IEdge> edges, IEnumerable<IShaderProperty> properties, IEnumerable<IShaderProperty> metaProperties)
+        public CopyPasteGraph(Guid sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<INode> nodes, IEnumerable<IEdge> edges, IEnumerable<IShaderProperty> properties, IEnumerable<IShaderProperty> metaProperties)
         {
             m_SourceGraphGuid = new SerializableGuid(sourceGraphGuid);
+
+            foreach (var groupData in groups)
+            {
+                AddGroup(groupData);
+            }
 
             foreach (var node in nodes)
             {
@@ -63,6 +71,11 @@ namespace UnityEditor.Graphing.Util
 
             foreach (var metaProperty in metaProperties)
                 AddMetaProperty(metaProperty);
+        }
+
+        public void AddGroup(GroupData group)
+        {
+            m_Groups.Add(group);
         }
 
         public void AddNode(INode node)
@@ -88,6 +101,11 @@ namespace UnityEditor.Graphing.Util
         public IEnumerable<T> GetNodes<T>() where T : INode
         {
             return m_Nodes.OfType<T>();
+        }
+
+        public IEnumerable<GroupData> groups
+        {
+            get { return m_Groups; }
         }
 
         public IEnumerable<IEdge> edges

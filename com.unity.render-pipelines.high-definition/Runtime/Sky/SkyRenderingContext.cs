@@ -293,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     skyContext.renderer.SetRenderTargets(m_BuiltinParameters);
                     
                     // If the luxmeter is enabled, we don't render the sky
-                    if (debugSettings.lightingDebugSettings.debugLightingMode != DebugLightingMode.LuxMeter)
+                    if (debugSettings.data.lightingDebugSettings.debugLightingMode != DebugLightingMode.LuxMeter)
                     {
                         // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
                         skyContext.renderer.RenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking);

@@ -209,6 +209,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     alphaCutoff = _AlphaCutoffPrepass;
     #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
     alphaCutoff = _AlphaCutoffPostpass;
+    #elif defined(CUTOFF_TRANSPARENT_DEPTH_SHADOWS)
+    alphaCutoff = _AlphaCutoffShadow;
     #endif
     DoAlphaTest(alpha, alphaCutoff);
 #endif
@@ -270,6 +272,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.specularOcclusion = 1.0; // Will be setup outside of this function
 
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this to keep quiet the compiler, but this is overriden later (0, 0, 0) so if we forget to override the compiler may comply.
+    surfaceData.geomNormalWS = float3(0.0, 0.0, 0.0); // Not used, just to keep compiler quiet.
 
     float normalMapVariance;
     normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailNormalMapVariance, detailMask, normalMapVariance);
@@ -351,7 +354,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = TransformObjectToWorldDir(tangentOS);
     #endif
 #else
-    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+    // Note we don't normalize tangentWS either with a tangentmap above or using the interpolated tangent from the TBN frame
+    // as it will be normalized later with a call to Orthonormalize():
+    surfaceData.tangentWS = input.worldToTangent[0].xyz; // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
 #endif
 
 #ifdef _ANISOTROPYMAP
@@ -384,18 +389,29 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #if HAS_REFRACTION
-    surfaceData.ior = _Ior;
-    surfaceData.transmittanceColor = _TransmittanceColor;
-    #ifdef _TRANSMITTANCECOLORMAP
-    surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(_TransmittanceColorMap, sampler_TransmittanceColorMap, ADD_IDX(layerTexCoord.base)).rgb;
-    #endif
+    if (_EnableSSRefraction)
+    {
+        surfaceData.ior = _Ior;
+        surfaceData.transmittanceColor = _TransmittanceColor;
+#ifdef _TRANSMITTANCECOLORMAP
+        surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(_TransmittanceColorMap, sampler_TransmittanceColorMap, ADD_IDX(layerTexCoord.base)).rgb;
+#endif
 
-    surfaceData.atDistance = _ATDistance;
-    // Thickness already defined with SSS (from both thickness and thicknessMap)
-    surfaceData.thickness *= _ThicknessMultiplier;
-    // Rough refraction don't use opacity. Instead we use opacity as a transmittance mask.
-    surfaceData.transmittanceMask = 1.0 - alpha;
-    alpha = 1.0;
+        surfaceData.atDistance = _ATDistance;
+        // Thickness already defined with SSS (from both thickness and thicknessMap)
+        surfaceData.thickness *= _ThicknessMultiplier;
+        // Rough refraction don't use opacity. Instead we use opacity as a transmittance mask.
+        surfaceData.transmittanceMask = (1.0 - alpha);
+        alpha = 1.0;
+    }
+    else
+    {
+        surfaceData.ior = 1.0;
+        surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
+        surfaceData.atDistance = 1.0;
+        surfaceData.transmittanceMask = 0.0;
+        alpha = 1.0;
+    }
 #else
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);

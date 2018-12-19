@@ -46,24 +46,23 @@ namespace UnityEngine.Rendering.LWRP
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
 
             // Advanced settings
-            public static GUIContent dynamicBatching = EditorGUIUtility.TrTextContent("Dynamic Batching", "If enabled the pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
+            public static GUIContent srpBatcher = EditorGUIUtility.TrTextContent("SRP Batcher (Experimental)", "If enabled, the render pipeline uses the SRP batcher.");
+            public static GUIContent dynamicBatching = EditorGUIUtility.TrTextContent("Dynamic Batching", "If enabled, the render pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
             public static GUIContent mixedLightingSupportLabel = EditorGUIUtility.TrTextContent("Mixed Lighting", "Support for mixed light mode.");
-
+            
             public static GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
-
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
-
         }
 
-        bool m_GeneralSettingsFoldout = false;
-        bool m_QualitySettingsFoldout = false;
-        bool m_LightingSettingsFoldout = false;
-        bool m_ShadowSettingsFoldout = false;
-        bool m_AdvancedSettingsFoldout = false;
+        SavedBool m_GeneralSettingsFoldout;
+        SavedBool m_QualitySettingsFoldout;
+        SavedBool m_LightingSettingsFoldout;
+        SavedBool m_ShadowSettingsFoldout;
+        SavedBool m_AdvancedSettingsFoldout;
 
         SerializedProperty m_RequireDepthTextureProp;
         SerializedProperty m_RequireOpaqueTextureProp;
@@ -91,6 +90,7 @@ namespace UnityEngine.Rendering.LWRP
 
         SerializedProperty m_SoftShadowsSupportedProp;
 
+        SerializedProperty m_SRPBatcher;
         SerializedProperty m_SupportsDynamicBatching;
         SerializedProperty m_MixedLightingSupportedProp;
 
@@ -113,6 +113,12 @@ namespace UnityEngine.Rendering.LWRP
 
         void OnEnable()
         {
+            m_GeneralSettingsFoldout = new SavedBool($"{target.GetType()}.GeneralSettingsFoldout", false);
+            m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
+            m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
+            m_ShadowSettingsFoldout = new SavedBool($"{target.GetType()}.ShadowSettingsFoldout", false);
+            m_AdvancedSettingsFoldout = new SavedBool($"{target.GetType()}.AdvancedSettingsFoldout", false);
+
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
             m_OpaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
@@ -138,6 +144,7 @@ namespace UnityEngine.Rendering.LWRP
             m_ShadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
 
+            m_SRPBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
             m_SupportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
             m_MixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
 
@@ -147,8 +154,8 @@ namespace UnityEngine.Rendering.LWRP
 
         void DrawGeneralSettings()
         {
-            m_GeneralSettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_GeneralSettingsFoldout, Styles.generalSettingsText);
-            if (m_GeneralSettingsFoldout)
+            m_GeneralSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_GeneralSettingsFoldout.value, Styles.generalSettingsText);
+            if (m_GeneralSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTextureText);
@@ -167,8 +174,8 @@ namespace UnityEngine.Rendering.LWRP
 
         void DrawQualitySettings()
         {
-            m_QualitySettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_QualitySettingsFoldout, Styles.qualitySettingsText);
-            if (m_QualitySettingsFoldout)
+            m_QualitySettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_QualitySettingsFoldout.value, Styles.qualitySettingsText);
+            if (m_QualitySettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_HDR, Styles.hdrText);
@@ -185,8 +192,8 @@ namespace UnityEngine.Rendering.LWRP
 
         void DrawLightingSettings()
         {
-            m_LightingSettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_LightingSettingsFoldout, Styles.lightingSettingsText);
-            if (m_LightingSettingsFoldout)
+            m_LightingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_LightingSettingsFoldout.value, Styles.lightingSettingsText);
+            if (m_LightingSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
 
@@ -242,8 +249,8 @@ namespace UnityEngine.Rendering.LWRP
 
         void DrawShadowSettings()
         {
-            m_ShadowSettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadowSettingsFoldout, Styles.shadowSettingsText);
-            if (m_ShadowSettingsFoldout)
+            m_ShadowSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadowSettingsFoldout.value, Styles.shadowSettingsText);
+            if (m_ShadowSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
                 m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, m_ShadowDistanceProp.floatValue));
@@ -267,10 +274,11 @@ namespace UnityEngine.Rendering.LWRP
 
         void DrawAdvancedSettings()
         {
-            m_AdvancedSettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdvancedSettingsFoldout, Styles.advancedSettingsText);
-            if (m_AdvancedSettingsFoldout)
+            m_AdvancedSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdvancedSettingsFoldout.value, Styles.advancedSettingsText);
+            if (m_AdvancedSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_SRPBatcher, Styles.srpBatcher);
                 EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
                 EditorGUILayout.PropertyField(m_MixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
                 EditorGUILayout.PropertyField(m_ShaderVariantLogLevel, Styles.shaderVariantLogLevel);

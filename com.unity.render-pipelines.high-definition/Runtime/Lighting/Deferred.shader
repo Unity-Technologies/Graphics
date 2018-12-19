@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/Deferred"
+Shader "Hidden/HDRP/Deferred"
 {
     Properties
     {

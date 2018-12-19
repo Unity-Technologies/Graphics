@@ -66,10 +66,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderOpaquesTag);
             using (new ProfilingSample(cmd, k_RenderOpaquesTag))
             {
-                RenderBufferLoadAction loadOp = RenderBufferLoadAction.DontCare;
-                RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;
-                SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), loadOp, storeOp,
-                    depthAttachmentHandle.Identifier(), loadOp, storeOp, clearFlag, clearColor, descriptor.dimension);
+                RenderBufferLoadAction colorLoadOp = (CoreUtils.HasFlag(clearFlag, ClearFlag.Color))
+                    ? RenderBufferLoadAction.DontCare
+                    : RenderBufferLoadAction.Load;
+                RenderBufferStoreAction colorStoreOp = RenderBufferStoreAction.Store;
+
+                RenderBufferLoadAction depthLoadOp = (CoreUtils.HasFlag(clearFlag, ClearFlag.Depth))
+                    ? RenderBufferLoadAction.DontCare
+                    : RenderBufferLoadAction.Load;
+
+                RenderBufferStoreAction depthStoreOp = RenderBufferStoreAction.Store;
+
+                SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), colorLoadOp, colorStoreOp,
+                    depthAttachmentHandle.Identifier(), depthLoadOp, depthStoreOp, clearFlag, clearColor, descriptor.dimension);
 
                 // TODO: We need a proper way to handle multiple camera/ camera stack. Issue is: multiple cameras can share a same RT
                 // (e.g, split screen games). However devs have to be dilligent with it and know when to clear/preserve color.
@@ -82,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Camera camera = renderingData.cameraData.camera;
                 XRUtils.DrawOcclusionMesh(cmd, camera, renderingData.cameraData.isStereoEnabled);
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(camera, sortFlags, rendererConfiguration, renderingData.supportsDynamicBatching);
+                var drawSettings = CreateDrawingSettings(camera, sortFlags, rendererConfiguration, renderingData.supportsDynamicBatching, renderingData.lightData.mainLightIndex);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_OpaqueFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader

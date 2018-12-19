@@ -437,20 +437,6 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        public override void SetPosition(Rect newPos)
-        {
-            //if (classList.Contains("vertical"))
-            /*{
-                base.SetPosition(newPos);
-            }
-            else*/
-            {
-                style.position = PositionType.Absolute;
-                style.left = newPos.x;
-                style.top = newPos.y;
-            }
-        }
-
         public void RemoveBlock(VFXBlockUI block)
         {
             if (block == null)

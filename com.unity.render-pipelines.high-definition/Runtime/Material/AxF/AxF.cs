@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
 
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, false, true, 1200)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1200)]
         public struct SurfaceData
         {
             [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
@@ -64,15 +64,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Clearcoat IOR")]
             public float    clearcoatIOR;
 
-            [SurfaceDataAttributes(new string[] {"Geometric Normal"}, true)]
-            public Vector3 geomNormalWS;
+            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space" }, true)]
+            public Vector3  geomNormalWS;
         };
 
         //-----------------------------------------------------------------------------
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, true, 1250)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1250)]
         public struct BSDFData
         {
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
@@ -102,6 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3  clearcoatNormalWS;
             public float    clearcoatIOR;
 
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
         };
 
@@ -203,18 +204,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_precomputedFGDTablesAreInit = true;
         }
 
-        public override void Bind()
+        public override void Bind(CommandBuffer cmd)
         {
             if (m_preIntegratedFGD_Ward == null ||  m_preIntegratedFGD_CookTorrance == null)
             {
                 throw new Exception("Ward & Cook-Torrance BRDF pre-integration table not available!");
             }
 
-            Shader.SetGlobalTexture(_PreIntegratedFGD_Ward, m_preIntegratedFGD_Ward);
-            Shader.SetGlobalTexture(_PreIntegratedFGD_CookTorrance, m_preIntegratedFGD_CookTorrance);
+            cmd.SetGlobalTexture(_PreIntegratedFGD_Ward, m_preIntegratedFGD_Ward);
+            cmd.SetGlobalTexture(_PreIntegratedFGD_CookTorrance, m_preIntegratedFGD_CookTorrance);
 
             // LTC Data
-            Shader.SetGlobalTexture(_AxFLtcData, m_LtcData);
+            cmd.SetGlobalTexture(_AxFLtcData, m_LtcData);
         }
     }
 }

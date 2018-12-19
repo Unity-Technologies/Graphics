@@ -357,6 +357,24 @@ namespace UnityEditor.VFX
             DebugLogAttributes();
         }
 
+        public void ProcessDependencies()
+        {
+            ComputeLayer();
+
+            // Update attributes
+            foreach (var childData in m_DependenciesOut)
+            {
+                foreach (var attrib in childData.m_ReadSourceAttributes)
+                { 
+                    if (!m_StoredCurrentAttributes.ContainsKey(attrib))
+                    {
+                        m_LocalCurrentAttributes.Remove(attrib);
+                        m_StoredCurrentAttributes.Add(attrib, 0);
+                    }
+                }
+            }
+        }
+
         private static uint ComputeLayer(IEnumerable<VFXData> dependenciesIn)
         {
             if (dependenciesIn.Any())
@@ -366,7 +384,7 @@ namespace UnityEditor.VFX
             return 0u;
         }
 
-        public void ComputeLayer()
+        private void ComputeLayer()
         {
             if (!m_DependenciesIn.Any() && !m_DependenciesOut.Any())
             {
@@ -552,6 +570,9 @@ namespace UnityEditor.VFX
 
         private void DebugLogAttributes()
         {
+            if (!VFXViewPreference.advancedLogs)
+                return;
+
             var builder = new StringBuilder();
 
             builder.AppendLine(string.Format("Attributes for data {0} of type {1}", GetHashCode(), GetType()));
@@ -579,8 +600,8 @@ namespace UnityEditor.VFX
                 foreach (var attrib in m_LocalCurrentAttributes)
                     builder.AppendLine(string.Format("\t\tAttribute {0} {1}", attrib.name, attrib.type));
             }
-            if (VFXViewPreference.advancedLogs)
-                Debug.Log(builder.ToString());
+
+            Debug.Log(builder.ToString());
         }
 
         public uint layer

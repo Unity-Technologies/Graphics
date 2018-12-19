@@ -4,12 +4,36 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.3.0] - 2018-11-xx
+### Added
+- LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
+- You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
+
+### Changed
+- You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Initialize.
+- LWRP now uses non-square shadowmap textures when it renders directional shadows with 2 shadow cascades. 
+- LWRP now uses ARGB2101010 as the HDR format on mobile devices, when this format is supported.
+- Removed `IAfterDepthPrePass` interface.
+
+### Fixed
+- Several tweaks to reduce bandwidth consumption on mobile devices.
+- The foldouts in the Lightweight Asset inspector UI now remember their state.
+- Added missing meta file for GizmosRenderingPass.cs.
+- Fixed artifacts when using multiple or Depth Only cameras. [Case 1072615](https://issuetracker.unity3d.com/issues/ios-using-multiple-cameras-in-the-scene-in-lightweight-render-pipeline-gives-corrupted-image-in-ios-device)
+- Fixed a typo in ERROR_ON_UNSUPPORTED_FUNCTION() that was causing the shader compiler to run out of memory in GLES2. [Case 1104271](https://issuetracker.unity3d.com/issues/mobile-os-restarts-because-of-high-memory-usage-when-compiling-shaders-for-opengles2)
+
+## [5.2.0] - 2018-11-27
+### Added
+- LWRP now handles blits that are required by the device when rendering to the backbuffer.
+- You can now enable the SRP Batcher. To do so, go to the `Pipeline Asset`. Under `Advanced`, toggle `SRP Batcher`.
+
+### Changed
+- Renamed shader variable `unity_LightIndicesOffsetAndCount` to `unity_PerObjectLightData`.
+- Shader variables `unity_4LightIndices0` and `unity_4LightIndices1` are now declared as `unity_PerObjectLightIndices` array.
+
 ## [5.1.0] - 2018-11-19
 ### Added
 - The user documentation for LWRP is now in this GitHub repo, instead of in the separate GitHub wiki. You can find the most up-to-date pages in the [TableOfContents.md](TableOfCotents.md) file. Pages not listed in that file are still in progress.
-
-### Fixed
-- LWRP now respects the iOS Player setting **Force hard shadows**. When you enable this setting, hardware filtering of shadows is disabled.
 
 ### Changed
 - The LWRP package is no longer in preview.

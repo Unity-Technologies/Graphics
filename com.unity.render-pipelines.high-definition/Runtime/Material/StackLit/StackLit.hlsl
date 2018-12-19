@@ -3,7 +3,7 @@
 //-----------------------------------------------------------------------------
 
 // SurfaceData is defined in StackLit.cs which generates StackLit.cs.hlsl
-#include "StackLit.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
@@ -14,6 +14,8 @@
 //-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
+#define _VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP // Artistic choice, but this first is better as it tries to keep Fresnel influence
+//#define _VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM
 
 // Choose between Lambert diffuse and Disney diffuse (enable only one of them)
 // TODO Disney Diffuse
@@ -78,6 +80,13 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
 // Needed for MATERIAL_FEATURE_MASK_FLAGS.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
+#if defined(_MATERIAL_FEATURE_COAT) && defined(_MATERIAL_FEATURE_COAT_NORMALMAP)
+#   if defined(_VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP) // calculate as if normal was flip, up to the geometric normal
+#   define VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP
+#   elif defined(_VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM) // use geom normal directly
+#   define VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM
+#   endif
+#endif
 
 // Anisotropic Hack for Area Lights
 #ifdef _ANISOTROPY_FOR_AREA_LIGHTS // shader_feature
@@ -222,6 +231,74 @@ bool IsCoatNormalMapEnabled(BSDFData bsdfData)
 {
     return (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP));
 }
+
+// When no preprocessor exclusions are required, can use these:
+
+// When computing the stack equivalent lobe characteristics when having dual normal
+// maps, we have to make a contradictory assumption on the presence of parallel surfaces
+// at some level. We then calculate some energy reaching the bottom layer of the stack
+// based on Fresnel terms (hack to reduce pre-integrated FGD fetches TODOENERGY).
+//
+// Normally when shading with normal maps, we clamp / saturate diverse values
+// (eg see here BSDF_SetupNormalsAndAngles or CommonLighting's GetBSDFAngle) to avoid 
+// special casing the BSDF evaluation but still shade according to the normal maps.
+// Fresnel is normally evaluated with the LdotH angle, but this normally never "clips" 
+// to the hemisphere (oriented on the normal) the complete BSDF evaluation as LdotH is
+// never negative (H is at most 90 degrees away from L and V).
+//
+// If the surface is away from us, it makes no sense to have reflections from it but then
+// again it should not obstruct other visible surfaces as a complete black point, but
+// this is an understood problem with normal maps (cf displacement maps).
+//
+// For computing the stack, it would be nice to cheat a little if the bottom surface is
+// to be visible, and that's what we already intrinsically do when the "recompute per light"
+// option is used for dirac (directional|puntual) lights: we use LdotH systematically,
+// regardless of the orientation of the normal, and since it is never negative, it won't
+// force regions where the energy stats of the stack are zero for the bottom layer when
+// the top normals are facing away. We let shading computations take care of darkening.
+// Obviously this is still a hack as stated but is more pleasing and is roughly akin to
+// having the top layer "folds" as dual-faced.
+//
+// When no recompute per light is done or we are doing ComputeAdding in the first call in 
+// GetPreLightData for split-sum type of lights (non dirac), we don't have a particular L
+// to use and use clamped NdotV. In that case, the normal is taken as the H vector, and 
+// there will be regions where NdotV can be negative so is clamped near zero. In that case,
+// being in the "grazing angle region", integrated FGD or Fresnel would yeld reflectance
+// operators that yield zero energy transmitted to the bottom layer, and everything reflected
+// by the top - which will eventually shade to nothing since the top normal is facing away.
+//
+// To reproduce the effect cheaply without using the "recompute per light" option,
+// but also for all split sum lights, we add options to "fixup" the top reflectance to never
+// be clamped but act as if it is dual faced. There are two options available: simply use
+// the geometric normal on the top since it should not be back facing to begin the
+// computations - in that case, we lose the Fresnel variations induced by the top normal map
+// and it only affects other parts of BSDF evaluations later for all types of lights.
+// 
+// This is VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM_NORMAL.
+//
+// Otherwise, we also provide a behavior similar to flipping of the normal, and we even
+// saturate a bit less close to zero (than ClampNdotV) to remove the effect of the grazing
+// angle. 
+//
+// This is VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP_NORMAL
+// 
+#define VLAYERED_DUAL_NORMALS_TOP_FIX_DEFAULT 0  // do nothing
+#define VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM_NORMAL 1
+#define VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP_NORMAL 2
+
+int ComputeAdding_GetDualNormalsTopHandlingMethod()
+{
+    int method = VLAYERED_DUAL_NORMALS_TOP_FIX_DEFAULT;
+
+#if defined(VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP) // this is done up to the geometric normal
+    method = VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP_NORMAL;
+#elif defined(VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM)
+    method = VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM_NORMAL;
+#endif
+
+    return method;
+}
+
 
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropyA, float anisotropyB, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
@@ -653,6 +730,9 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
             // Convert to view space
             result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
             break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+            break;
     }
 }
 
@@ -666,6 +746,9 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         case DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_VIEW_SPACE:
             // Convert to view space
             result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
             break;
     }
 }
@@ -1314,6 +1397,31 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     bool useGeomN;
     float3 vOrthoGeomN; // only valid if useGeomN == true
     ComputeAdding_GetVOrthoGeomN(bsdfData, V, calledPerLight, vOrthoGeomN, useGeomN, testSingularity);
+    if (useGeomN)
+    {
+        // We have dual normal maps and we are not called per light, so we aren't in the
+        // symmetric model parametrization (with _cti = LdotH always positive).
+        // Handle an option to fix the coat layer behavior to avoid regions where the top
+        // normal map could completely block bottom shading.
+        int method = ComputeAdding_GetDualNormalsTopHandlingMethod();
+
+        if (method == VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM_NORMAL)
+        {
+            _cti = ClampNdotV(preLightData.geomNdotV);
+        }
+        else if(method == VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP_NORMAL)
+        {
+            // To still have the top normal influence the Fresnel term,
+            // we could do
+            // _cti = ClampNdotV(abs(dot(bsdfData.coatNormalWS, V)));
+            // or use an even coarser clamp to remove more of the dark regions
+            // around the lines where the normal flip,
+            _cti = max(abs(dot(bsdfData.coatNormalWS, V)), 0.1);
+            // and try not to go beyond the geometric normal:
+            // This is important to avoid outer rim boost from that large clamp of 0.1
+            _cti = min(_cti, ClampNdotV(preLightData.geomNdotV));
+        }
+    }
 
     float  cti  = _cti;
     float3 R0i = float3(0.0, 0.0, 0.0), Ri0 = float3(0.0, 0.0, 0.0),
@@ -2667,9 +2775,10 @@ void CalculateAnisoAngles(BSDFData bsdfData, float3 H, float3 L, float3 V, out f
 //  -SSR TODO for StackLit )
 //
 // Assumes that NdotL is positive.
-void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-          out float3 diffuseLighting,
-          out float3 specularLighting)
+void BSDF2(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
+            out float3 diffuseLighting,
+            out float3 specularLighting,
+            out float3 diffuseBsdfNoNdotL)
 {
     float NdotL[NDOTLV_SIZE];
     float NdotV[NDOTLV_SIZE];
@@ -2795,7 +2904,7 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
 
 
     // TODO: config option + diffuse GGX
-    float3 diffuseTerm = Lambert() * max(0, NdotL[DNLV_BASE_IDX]);
+    float3 diffuseTerm = Lambert();
 
 #ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     if( IsVLayeredEnabled(bsdfData) )
@@ -2809,7 +2918,21 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     diffuseLighting = diffuseTerm;
 
+    diffuseBsdfNoNdotL = diffuseLighting;
+    diffuseLighting *= max(0, NdotL[DNLV_BASE_IDX]);
 }//...BSDF
+
+ // Thunk to allow to compile: SurfaceShading.hlsl depends on this prototype
+void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
+    out float3 diffuseLighting,
+    out float3 specularLighting)
+{
+    float3 unused;
+    BSDF2(inV, inL, inNdotL, positionWS, preLightData, bsdfData,
+        diffuseLighting,
+        specularLighting,
+        unused);
+}
 
 void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFData bsdfData, PreLightData preLightData, float3 V, out float3 N, out float unclampedNdotV)
 {
@@ -2861,84 +2984,161 @@ float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL
     return intensity * transmittance;
 }
 
+void GetNLForDirectionalPunctualLights(BSDFData bsdfData, PreLightData preLightData, float3 L, float3 V,
+                                       out float3 mainN, out float3 mainL, out float mainNdotL,
+                                       out bool lightCanOnlyBeTransmitted,
+                                       bool computeSunDiscEffect = true, DirectionalLightData light = (DirectionalLightData)0) // use the 2 later if light is directional
+{
+    // To avoid loosing the coat specular component due to the bottom normal modulation from the bottom normal map,
+    // all the while keeping the code as much the same as with Lit and compatible with the rest of lightloop and
+    // lightevaluation
+    // (wrt to bias handling, shadow mask, shadow map, using only one light evaluation call and one attenuation,
+    // and hidding the handling of transmission with PreEvaluate*LightTransmission() shadow index/mask / NdotL
+    // overrides and N flipping trick),
+    // we will only allow transmission when both NdotL[] are < 0.
+    // For all other cases, the BSDF is evaluated for each lobe using the proper normal, but it also applies the
+    // NdotL projection factor of the direct lighting integral so as to not have to return each layer lighting
+    // components.
+    //
+
+    // Note: we should not use refracted directions provided by BSDF_SetupNormalsAndAngles as we only consider
+    // incoming light here, not "equivalent-lobe" stack BSDF effects (eg see GetPreLightData)
+
+    // For the N, L and NdotL used for the light evaluation, we will use the set of values for which N is closest
+    // to the original light orientation (ie receives the most projected energy).
+
+    float3 N[NB_NORMALS];
+    N[BASE_NORMAL_IDX] = bsdfData.normalWS;
+    N[COAT_NORMAL_IDX] = bsdfData.normalWS;
+    if ( IsCoatNormalMapEnabled(bsdfData) )
+    {
+        N[COAT_NORMAL_IDX] = bsdfData.coatNormalWS;
+    }
+    float3 skewedL[NB_NORMALS]; // L might change according to the normal due to the sun disk hack
+    float NdotL[NB_NORMALS];
+    // ...cf with BSDF_SetupNormalsAndAngles: we dont use NDOTLV_SIZE and NB_LV_DIR as we don't consider the possibility
+    // of using refracted directions for the bottom layer lobes: we are strictly evaluating incoming L now, see comments
+    // where we use refract elsewhere in this file.
+    skewedL[BASE_NORMAL_IDX] = L;
+    skewedL[COAT_NORMAL_IDX] = L;
+    if (computeSunDiscEffect)
+    {
+        // Since we can have two normals, we replace this:
+        //  float3 L = ComputeSunLightDirection(light, N, V);
+        //  float  NdotL = dot(N, L); // Do not saturate
+        // by this:
+        //
+        skewedL[BASE_NORMAL_IDX] = ComputeSunLightDirection(light, N[BASE_NORMAL_IDX], V);
+        skewedL[COAT_NORMAL_IDX] = ComputeSunLightDirection(light, N[COAT_NORMAL_IDX], V);
+    }
+    NdotL[BASE_NORMAL_IDX] = dot(N[BASE_NORMAL_IDX], skewedL[BASE_NORMAL_IDX]);
+    NdotL[COAT_NORMAL_IDX] = dot(N[COAT_NORMAL_IDX], skewedL[COAT_NORMAL_IDX]);
+
+    // For transmission, we're going to use the bottom layer N and NdotL always.
+    // For the rest, we will use the N which produces the biggest NdotL, as we don't want
+    // to early out eg from the bottom layer when the top should have a highlight,
+    // while the final BSDF evaluation will take care of applying the proper NdotL in any
+    // case. 
+    // We could increase the cost and complexity of all this and actually
+    // commit fully to making all these diract-light evaluations local to this file and 
+    // pass to BSDF the L[], V[], etc. arrays instead of hacking our way around just here.
+
+    float maxNdotL = max(NdotL[COAT_NORMAL_IDX], NdotL[BASE_NORMAL_IDX]);
+
+    lightCanOnlyBeTransmitted = maxNdotL < 0; // In case we have NdotL[base] < 0, NdotL[top] > 0, we won't have transmission, too bad.
+
+    mainNdotL = maxNdotL;
+    bool baseIsBrighter = NdotL[BASE_NORMAL_IDX] >= NdotL[COAT_NORMAL_IDX];
+    if (lightCanOnlyBeTransmitted)
+    {
+        // In that case, we always use the base normal:
+        baseIsBrighter = true;
+        mainNdotL = NdotL[BASE_NORMAL_IDX];
+    }
+
+    mainL = baseIsBrighter ? skewedL[BASE_NORMAL_IDX] : skewedL[COAT_NORMAL_IDX];
+    mainN = baseIsBrighter ? N[BASE_NORMAL_IDX] : N[COAT_NORMAL_IDX];
+}
+
+
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
 //-----------------------------------------------------------------------------
 
 DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput, PreLightData preLightData,
-                                        DirectionalLightData lightData, BSDFData bsdfData,
+                                        DirectionalLightData light, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
+    float3 N;
+    float3 L;
+    float NdotL;
+    bool surfaceReflection;
+
+    // Get N, L and NdotL parameters along with if transmission must be evaluated
+    float3 inL = -light.forward;
+    bool lightCanOnlyBeTransmitted;
+    GetNLForDirectionalPunctualLights(bsdfData, preLightData, inL, V,
+                                      N, L, NdotL, lightCanOnlyBeTransmitted, /* computeSunDiscEffect*/ true, light);
+    surfaceReflection = !lightCanOnlyBeTransmitted;
+
+    // The rest is a copy of ShadeSurface_Directional, but without applying NdotL on BSDF diffuse/specular
+    // terms:
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    float3 L = -lightData.forward;
-    float3 N;
-    float unclampedNdotV;
-    EvaluateBSDF_GetNormalUnclampedNdotV(bsdfData, preLightData, V, N, unclampedNdotV);
-    float NdotL = dot(N, L);
+    // Caution: this function modifies N, NdotL, contactShadowIndex and shadowMaskSelector.
+    float3 transmittance = PreEvaluateDirectionalLightTransmission(bsdfData, light, N, NdotL);
 
-    float3 transmittance = float3(0.0, 0.0, 0.0);
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-    {
-        float3 a = 0; float b = 0;
-        // Caution: This function modify N and contactShadowIndex
-        transmittance = PreEvaluateDirectionalLightTransmission(bsdfData, lightData, a, b); // contactShadowIndex is only modify for the code of this function
-    }
-
-    // color and attenuation are outputted  by EvaluateLight:
-    float3 color;
-    float attenuation;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, N, L, 1,
+    float3 color; float attenuation;
+    EvaluateLight_Directional(lightLoopContext, posInput, light, builtinData, N, L, NdotL,
                               color, attenuation);
 
-    float intensity = max(0, attenuation); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
-
-    // Note: the NdotL term is now applied in the BSDF() eval itself to account for different normals.
-    UNITY_BRANCH if (intensity > 0.0)
+    // TODO: transmittance contributes to attenuation, how can we use it for early-out?
+    if (attenuation > 0)
     {
-        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
+        // We must clamp here, otherwise our disk light hack for smooth surfaces does not work.
+        // Explanation: for a perfectly smooth surface, lighting is only reflected if (NdotL = NdotV).
+        // This implies that (NdotH = 1).
+        // Due to the floating point arithmetic (see math in ComputeSunLightDirection() and
+        // GetBSDFAngle()), we will never arrive at this exact number, so no lighting will be reflected.
+        // If we increase the roughness somewhat, the trick still works.
+        ClampRoughness(bsdfData, light.minRoughness);
 
-        lighting.diffuse  *= intensity * lightData.diffuseDimmer;
-        lighting.specular *= intensity * lightData.specularDimmer;
+        float3 diffuseBsdf, specularBsdf, diffuseBsdfNoNdotL;
+        BSDF2(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf, diffuseBsdfNoNdotL);
+
+        if (surfaceReflection)
+        {
+            attenuation *= ComputeMicroShadowing(bsdfData, NdotL);
+            float intensity = attenuation; // Caution: No NdotL attenuation here this is apply in BSDF due to possible refraction and/or dual normal maps 
+
+            lighting.diffuse = diffuseBsdf * (intensity * light.diffuseDimmer);
+            lighting.specular = specularBsdf * (intensity * light.specularDimmer);
+        }
+        else if (MaterialSupportsTransmission(bsdfData))
+        {
+            // Apply wrapped lighting to better handle thin objects at grazing angles.
+            float wrapNdotL = ComputeWrappedDiffuseLighting(NdotL, TRANSMISSION_WRAP_LIGHT);
+            float intensity = attenuation * wrapNdotL;
+
+            // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+            // Note: Disney's LdoV term in 'diffuseBsdf' does not hold a meaningful value
+            // in the context of transmission, but we keep it unaltered for performance reasons.
+            lighting.diffuse = transmittance * (diffuseBsdfNoNdotL * (intensity * light.diffuseDimmer));
+            lighting.specular = 0; // No spec trans, the compiler should optimize
+        }
+
+        // Save ALU by applying light and cookie colors only once.
+        lighting.diffuse *= color;
+        lighting.specular *= color;
     }
-
-    // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-    {
-        float  NdotV = ClampNdotV(unclampedNdotV);
-        float  LdotV = dot(L, V);
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-
-        // VLAYERED_DIFFUSE_ENERGY_HACKED_TERM:
-        // With coat, will need a diffuse energy term here. eg preLightData.diffuseEnergyTransmitted.
-        // Since the light in the transmission calculations is coming through the base from the back of
-        // the face, this is precisely the case we have computed with VLAYERED_DIFFUSE_ENERGY_HACKED_TERM,
-        // to approximate the diffuse light coming through, calculating an upward transmittance e_Ti0 assuming
-        // the last interface of the stack allows some propagation past it for everything not reflected,
-        // (ie T12 = 1.0 - R12 for the base layer interface between base and coat).
-        // As with Lit right now, there's no attempt at diffuse energy conservation vs transmission
-        // (idem with diffuse vs specular BSDF).
-        //
-        // Since we use the same term, we could just apply it in the end to diffuse light since coat
-        // can't produce diffuse lighting, so diffuse lighting from the base interface should all have
-        // the term applied. (Still need to leave the energy term separate from diffuseFGD because of
-        // point/directional lights, see BSDF() )
-        //
-        lighting.diffuse += preLightData.diffuseEnergy * EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseDimmer);
-    }
-
-    // Save ALU by applying light and cookie colors only once.
-    lighting.diffuse  *= color;
-    lighting.specular *= color;
 
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
-        intensity = max(0, attenuation * NdotL);
-        lighting.diffuse = color * intensity * lightData.diffuseDimmer;
+        lighting.diffuse = color * attenuation * saturate(NdotL);
     }
 #endif
 
@@ -2951,78 +3151,75 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData light, BSDFData bsdfData, BuiltinData builtinData)
 {
+    float3 N;
+    float NdotL;
+    float3 L;
+    bool surfaceReflection;
+
+    // Copy of ShadeSurface_Punctual
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    float3 L;
     float3 lightToSample;
     float4 distances; // {d, d^2, 1/d, d_proj}
-    GetPunctualLightVectors(posInput.positionWS, lightData, L, lightToSample, distances);
+    GetPunctualLightVectors(posInput.positionWS, light, L, lightToSample, distances);
 
-    float3 N; float unclampedNdotV;
-    EvaluateBSDF_GetNormalUnclampedNdotV(bsdfData, preLightData, V, N, unclampedNdotV);
-    float  NdotL = dot(N, L);
+    // Get N, L and NdotL parameters along with if transmission must be evaluated
+    bool lightCanOnlyBeTransmitted;
+    GetNLForDirectionalPunctualLights(bsdfData, preLightData, L, V,
+                                      N, L, NdotL, lightCanOnlyBeTransmitted, /* computeSunDiscEffect*/ false);
+    surfaceReflection = !lightCanOnlyBeTransmitted;
 
-    float3 transmittance = float3(0.0, 0.0, 0.0);
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
-    {
-        float3 a = 0; float b = 0;
-        // Caution: This function modify N and lightData.contactShadowIndex
-        transmittance = PreEvaluatePunctualLightTransmission(lightLoopContext, posInput, bsdfData,
-                                                             lightData, distances.x, a, L, b);
-    }
-
-    float3 color;
-    float attenuation;
-
-    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, builtinData, N, L, 1, lightToSample, distances,
+    // Caution: this function modifies N, NdotL, shadowIndex, contactShadowIndex and shadowMaskSelector.
+    float3 transmittance = PreEvaluatePunctualLightTransmission(lightLoopContext, posInput, bsdfData,
+                                                                light, distances.x, N, L, NdotL);
+    float3 color; float attenuation;
+    EvaluateLight_Punctual(lightLoopContext, posInput, light, builtinData, N, L, NdotL, lightToSample, distances,
                            color, attenuation);
 
-
-    float intensity = max(0, attenuation); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
-
-    // Note: the NdotL term is now applied in the BSDF() eval itself to account for different normals.
-    UNITY_BRANCH if (intensity > 0.0)
+    // TODO: transmittance contributes to attenuation, how can we use it for early-out?
+    if (attenuation > 0)
     {
-        // In Lit, we simulate a sphere light with this hack:
+        // Simulate a sphere/disk light with this hack
         // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
         // same result) but we don't care as it is a hack anyway
-        //TODO:
-        // Since BSDF GGX functions now support a roughness of zero, this hack is now mandatory in Lit so that bsdfData has unclamped roughness:
-        // To provide a specular highlight in that case (since a mirror would require the exact H=N), it is the responsibility of this
-        // function to use the lightData provided minRoughness to clamp roughness so that we relax/mollify the singularity effectively
-        // hacking in a cheap sphere light.
-        //bsdfData.coatRoughness = max(bsdfData.coatRoughness, lightData.minRoughness);
-        //bsdfData.roughnessT = max(bsdfData.roughnessT, lightData.minRoughness);
-        //bsdfData.roughnessB = max(bsdfData.roughnessB, lightData.minRoughness);
+        ClampRoughness(bsdfData, light.minRoughness);
 
-        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
+        float3 diffuseBsdf, specularBsdf, diffuseBsdfNoNdotL;
+        BSDF2(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf, diffuseBsdfNoNdotL);
 
-        lighting.diffuse  *= intensity * lightData.diffuseDimmer;
-        lighting.specular *= intensity * lightData.specularDimmer;
+        if (surfaceReflection)
+        {
+            float intensity = attenuation; // Caution: No NdotL attenuation here this is apply in BSDF
+
+            lighting.diffuse  = diffuseBsdf  * (intensity * light.diffuseDimmer);
+            lighting.specular = specularBsdf * (intensity * light.specularDimmer);
+        }
+        else if (MaterialSupportsTransmission(bsdfData))
+        {
+             // Apply wrapped lighting to better handle thin objects at grazing angles.
+            float wrapNdotL = ComputeWrappedDiffuseLighting(NdotL, TRANSMISSION_WRAP_LIGHT);
+            float intensity = attenuation * wrapNdotL;
+
+            // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+            // Note: Disney's LdoV term in 'diffuseBsdf' does not hold a meaningful value
+            // in the context of transmission, but we keep it unaltered for performance reasons.
+            lighting.diffuse  = transmittance * (diffuseBsdfNoNdotL * (intensity * light.diffuseDimmer));
+            lighting.specular = 0; // No spec trans, the compiler should optimize
+        }
+
+        // Save ALU by applying light and cookie colors only once.
+        lighting.diffuse  *= color;
+        lighting.specular *= color;
     }
-
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
-    {
-        float  NdotV = ClampNdotV(unclampedNdotV);
-        float  LdotV = dot(L, V);
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        // VLAYERED_DIFFUSE_ENERGY_HACKED_TERM:
-        lighting.diffuse += preLightData.diffuseEnergy * EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseDimmer);
-    }
-
-    // Save ALU by applying light and cookie colors only once.
-    lighting.diffuse  *= color;
-    lighting.specular *= color;
 
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
-        intensity = max(0, attenuation * NdotL);
-        lighting.diffuse = color * intensity * lightData.diffuseDimmer;
+        lighting.diffuse = color * attenuation * saturate(NdotL);
     }
 #endif
 

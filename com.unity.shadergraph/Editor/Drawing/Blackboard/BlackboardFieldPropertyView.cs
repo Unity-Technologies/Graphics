@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Globalization;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
@@ -23,6 +24,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         IManipulator m_ResetReferenceMenu;
 
+        public delegate void OnExposedToggle();
+        private OnExposedToggle m_OnExposedToggle;
+        
         public BlackboardFieldPropertyView(BlackboardField blackboardField, AbstractMaterialGraph graph, IShaderProperty property)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
@@ -33,6 +37,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ExposedToogle = new Toggle();
             m_ExposedToogle.OnToggleChanged(evt =>
             {
+                m_Graph.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
+                if(m_OnExposedToggle != null)
+                    m_OnExposedToggle();
                 property.generatePropertyBlock = evt.newValue;
                 if (property.generatePropertyBlock)
                 {
@@ -54,6 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ReferenceNameField.isDelayed = true;
             m_ReferenceNameField.RegisterValueChangedCallback(newName =>
                 {
+                    m_Graph.owner.RegisterCompleteObjectUndo("Change reference name");
                     if (m_ReferenceNameField.value != m_Property.referenceName)
                     {
                         string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue, property.guid);
@@ -75,126 +83,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (property is Vector1ShaderProperty)
             {
-                VisualElement floatRow = new VisualElement();
-                VisualElement intRow = new VisualElement();
-                VisualElement modeRow = new VisualElement();
-                VisualElement minRow = new VisualElement();
-                VisualElement maxRow = new VisualElement();
-                FloatField floatField = null;
-
                 var floatProperty = (Vector1ShaderProperty)property;
-
-                if (floatProperty.floatType == FloatType.Integer)
-                {
-                    var field = new IntegerField { value = (int)floatProperty.value };
-                    field.RegisterValueChangedCallback(intEvt =>
-                        {
-                            floatProperty.value = (float)intEvt.newValue;
-                            DirtyNodes();
-                        });
-                    intRow = AddRow("Default", field);
-                }
-                else
-                {
-                    floatField = new FloatField { value = floatProperty.value };
-                    floatField.RegisterValueChangedCallback(evt =>
-                        {
-                            floatProperty.value = (float)evt.newValue;
-                            DirtyNodes();
-                        });
-                    floatRow = AddRow("Default", floatField);
-                }
-
-                var floatModeField = new EnumField((Enum)floatProperty.floatType);
-                floatModeField.value = floatProperty.floatType;
-                floatModeField.RegisterValueChangedCallback(evt =>
-                    {
-                        if (floatProperty.floatType == (FloatType)evt.newValue)
-                            return;
-                        floatProperty = (Vector1ShaderProperty)property;
-                        floatProperty.floatType = (FloatType)evt.newValue;
-                        switch (floatProperty.floatType)
-                        {
-                            case FloatType.Slider:
-                                RemoveElements(new VisualElement[] {floatRow, intRow, modeRow, minRow, maxRow});
-                                var field = new FloatField { value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x) };
-                                floatProperty.value = (float)field.value;
-                                field.RegisterValueChangedCallback(defaultEvt =>
-                            {
-                                floatProperty.value = Mathf.Max(Mathf.Min((float)defaultEvt.newValue, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
-                                field.value = floatProperty.value;
-                                DirtyNodes();
-                            });
-                                floatRow = AddRow("Default", field);
-                                field.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
-                                modeRow = AddRow("Mode", floatModeField);
-                                var minField = new FloatField { value = floatProperty.rangeValues.x };
-                                minField.RegisterValueChangedCallback(minEvt =>
-                            {
-                                floatProperty.rangeValues = new Vector2((float)minEvt.newValue, floatProperty.rangeValues.y);
-                                floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
-                                field.value = floatProperty.value;
-                                DirtyNodes();
-                            });
-                                minRow = AddRow("Min", minField);
-                                var maxField = new FloatField { value = floatProperty.rangeValues.y };
-                                maxField.RegisterValueChangedCallback(maxEvt =>
-                            {
-                                floatProperty.rangeValues = new Vector2(floatProperty.rangeValues.x, (float)maxEvt.newValue);
-                                floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
-                                field.value = floatProperty.value;
-                                DirtyNodes();
-                            });
-                                maxRow = AddRow("Max", maxField);
-                                break;
-                            case FloatType.Integer:
-                                RemoveElements(new VisualElement[] {floatRow, intRow, modeRow, minRow, maxRow});
-                                var intField = new IntegerField { value = (int)floatProperty.value };
-                                intField.RegisterValueChangedCallback(intEvt =>
-                            {
-                                floatProperty.value = (float)intEvt.newValue;
-                                DirtyNodes();
-                            });
-                                intRow = AddRow("Default", intField);
-                                modeRow = AddRow("Mode", floatModeField);
-                                break;
-                            default:
-                                RemoveElements(new VisualElement[] {floatRow, intRow, modeRow, minRow, maxRow});
-                                field = new FloatField { value = floatProperty.value };
-                                field.RegisterValueChangedCallback(defaultEvt =>
-                            {
-                                floatProperty.value = (float)defaultEvt.newValue;
-                                DirtyNodes();
-                            });
-                                floatRow = AddRow("Default", field);
-                                modeRow = AddRow("Mode", floatModeField);
-                                break;
-                        }
-                        DirtyNodes();
-                    });
-                modeRow = AddRow("Mode", floatModeField);
-
-                if (floatProperty.floatType == FloatType.Slider)
-                {
-                    var minField = new FloatField { value = floatProperty.rangeValues.x };
-                    minField.RegisterValueChangedCallback(minEvt =>
-                        {
-                            floatProperty.rangeValues = new Vector2((float)minEvt.newValue, floatProperty.rangeValues.y);
-                            floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
-                            floatField.value = floatProperty.value;
-                            DirtyNodes();
-                        });
-                    minRow = AddRow("Min", minField);
-                    var maxField = new FloatField { value = floatProperty.rangeValues.y };
-                    maxField.RegisterValueChangedCallback(maxEvt =>
-                        {
-                            floatProperty.rangeValues = new Vector2(floatProperty.rangeValues.x, (float)maxEvt.newValue);
-                            floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
-                            floatField.value = floatProperty.value;
-                            DirtyNodes();
-                        });
-                    maxRow = AddRow("Max", maxField);
-                }
+                BuildVector1PropertyView(floatProperty);
             }
             else if (property is Vector2ShaderProperty)
             {
@@ -202,6 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = new Vector2Field { value = vectorProperty.value };
                 field.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
                         vectorProperty.value = evt.newValue;
                         DirtyNodes();
                     });
@@ -213,6 +104,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = new Vector3Field { value = vectorProperty.value };
                 field.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
                         vectorProperty.value = evt.newValue;
                         DirtyNodes();
                     });
@@ -224,6 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = new Vector4Field { value = vectorProperty.value };
                 field.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
                         vectorProperty.value = evt.newValue;
                         DirtyNodes();
                     });
@@ -235,6 +128,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var colorField = new ColorField { value = property.defaultValue, showEyeDropper = false, hdr = colorProperty.colorMode == ColorMode.HDR };
                 colorField.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
                         colorProperty.value = evt.newValue;
                         DirtyNodes();
                     });
@@ -242,6 +136,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var colorModeField = new EnumField((Enum)colorProperty.colorMode);
                 colorModeField.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change Color Mode");
                         if (colorProperty.colorMode == (ColorMode)evt.newValue)
                             return;
                         colorProperty.colorMode = (ColorMode)evt.newValue;
@@ -257,6 +152,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = new ObjectField { value = textureProperty.value.texture, objectType = typeof(Texture) };
                 field.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
                         textureProperty.value.texture = (Texture)evt.newValue;
                         DirtyNodes();
                     });
@@ -264,11 +160,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var defaultModeField = new EnumField((Enum)textureProperty.defaultType);
                 defaultModeField.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change Texture Mode");
                         if (textureProperty.defaultType == (TextureShaderProperty.DefaultType)evt.newValue)
                             return;
                         textureProperty.defaultType = (TextureShaderProperty.DefaultType)evt.newValue;
                         DirtyNodes(ModificationScope.Graph);
                     });
+                void ToggleDefaultModeFieldEnabled()
+                {
+                    defaultModeField.SetEnabled(!defaultModeField.enabledSelf);
+                }
+                m_OnExposedToggle += ToggleDefaultModeFieldEnabled;
                 AddRow("Mode", defaultModeField);
             }
             else if (property is Texture2DArrayShaderProperty)
@@ -277,6 +179,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = new ObjectField { value = textureProperty.value.textureArray, objectType = typeof(Texture2DArray) };
                 field.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
                         textureProperty.value.textureArray = (Texture2DArray)evt.newValue;
                         DirtyNodes();
                     });
@@ -288,6 +191,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = new ObjectField { value = textureProperty.value.texture, objectType = typeof(Texture3D) };
                 field.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
                         textureProperty.value.texture = (Texture3D)evt.newValue;
                         DirtyNodes();
                     });
@@ -299,6 +203,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = new ObjectField { value = cubemapProperty.value.cubemap, objectType = typeof(Cubemap) };
                 field.RegisterValueChangedCallback(evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
                         cubemapProperty.value.cubemap = (Cubemap)evt.newValue;
                         DirtyNodes();
                     });
@@ -309,6 +214,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var booleanProperty = (BooleanShaderProperty)property;
                 EventCallback<ChangeEvent<bool>> onBooleanChanged = evt =>
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
                         booleanProperty.value = evt.newValue;
                         DirtyNodes();
                     };
@@ -327,6 +233,121 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddToClassList("sgblackboardFieldPropertyView");
 
             UpdateReferenceNameResetMenu();
+        }
+
+        void BuildVector1PropertyView(Vector1ShaderProperty floatProperty)
+        {
+            VisualElement[] rows = null;
+
+            switch (floatProperty.floatType)
+            {
+                case FloatType.Slider:
+                    {
+                        float min = Mathf.Min(floatProperty.value, floatProperty.rangeValues.x);
+                        float max = Mathf.Max(floatProperty.value, floatProperty.rangeValues.y);
+                        floatProperty.rangeValues = new Vector2(min, max);
+
+                        var defaultField = new FloatField { value = floatProperty.value };
+                        var minField = new FloatField { value = floatProperty.rangeValues.x };
+                        var maxField = new FloatField { value = floatProperty.rangeValues.y };
+
+                        defaultField.RegisterValueChangedCallback(evt =>
+                        {
+                            var value = (float)evt.newValue;
+                            floatProperty.value = value;
+                            this.MarkDirtyRepaint();
+                        });
+                        defaultField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                        {
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                            float minValue = Mathf.Min(floatProperty.value, floatProperty.rangeValues.x);
+                            float maxValue = Mathf.Max(floatProperty.value, floatProperty.rangeValues.y);
+                            floatProperty.rangeValues = new Vector2(minValue, maxValue);
+                            minField.value = minValue;
+                            maxField.value = maxValue;
+                            DirtyNodes();
+                        });
+                        minField.RegisterValueChangedCallback(evt =>
+                        {
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change Range property minimum");
+                            float newValue = (float)evt.newValue;
+                            floatProperty.rangeValues = new Vector2(newValue, floatProperty.rangeValues.y);
+                            DirtyNodes();
+                        });
+                        minField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                        {
+                            floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
+                            defaultField.value = floatProperty.value;
+                            DirtyNodes();
+                        });
+                        maxField.RegisterValueChangedCallback(evt =>
+                        {
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change Range property maximum");
+                            float newValue = (float)evt.newValue;
+                            floatProperty.rangeValues = new Vector2(floatProperty.rangeValues.x, newValue);
+                            DirtyNodes();
+                        });
+                        maxField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                        {
+                            floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
+                            defaultField.value = floatProperty.value;
+                            DirtyNodes();
+                        });
+                        rows = new VisualElement[4];
+                        rows[0] = CreateRow("Default", defaultField);
+                        rows[2] = CreateRow("Min", minField);
+                        rows[3] = CreateRow("Max", maxField);
+                    }
+                    break;
+                case FloatType.Integer:
+                    {
+                        floatProperty.value = (int)floatProperty.value;
+                        var defaultField = new IntegerField { value = (int)floatProperty.value };
+                        defaultField.RegisterValueChangedCallback(evt =>
+                        {
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                            var value = (int)evt.newValue;
+                            floatProperty.value = value;
+                            this.MarkDirtyRepaint();
+                        });
+                        rows = new VisualElement[2];
+                        rows[0] = CreateRow("Default", defaultField);
+                    }
+                    break;
+                default:
+                    {
+                        var defaultField = new FloatField { value = floatProperty.value };
+                        defaultField.RegisterValueChangedCallback(evt =>
+                        {
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                            var value = (float)evt.newValue;
+                            floatProperty.value = value;
+                            this.MarkDirtyRepaint();
+                        });
+                        rows = new VisualElement[2];
+                        rows[0] = CreateRow("Default", defaultField);
+                    }
+                    break;
+            }
+
+            var modeField = new EnumField(floatProperty.floatType);
+            modeField.RegisterValueChangedCallback(evt =>
+            {
+                m_Graph.owner.RegisterCompleteObjectUndo("Change Vector1 mode");
+                var value = (FloatType)evt.newValue;
+                floatProperty.floatType = value;
+                if (rows != null)
+                    RemoveElements(rows);
+                BuildVector1PropertyView(floatProperty);
+                this.MarkDirtyRepaint();
+            });
+            rows[1] = CreateRow("Mode", modeField);
+
+            if (rows == null)
+                return;
+
+            for (int i = 0; i < rows.Length; i++)
+                Add(rows[i]);
         }
 
         void UpdateReferenceNameResetMenu()
@@ -354,7 +375,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }, DropdownMenuAction.AlwaysEnabled);
         }
 
-        VisualElement AddRow(string labelText, VisualElement control)
+        VisualElement CreateRow(string labelText, VisualElement control)
         {
             VisualElement rowView = new VisualElement();
 
@@ -368,6 +389,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             control.AddToClassList("rowViewControl");
             rowView.Add(control);
 
+            return rowView;
+        }
+
+        VisualElement AddRow(string labelText, VisualElement control)
+        {
+            VisualElement rowView = CreateRow(labelText, control);
             Add(rowView);
             return rowView;
         }

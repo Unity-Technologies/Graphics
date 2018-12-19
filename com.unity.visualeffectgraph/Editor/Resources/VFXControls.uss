@@ -72,6 +72,10 @@ VFXColorField #indeterminate
     padding-left:4;
 }
 
+VFXEnumField .PopupButton
+{
+    padding-bottom:4;
+}
 
 VFXEnumField .PopupButton:hover
 {

@@ -32,7 +32,29 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
             capacity = ((VFXDataParticle)GetData()).capacity;
+            GetData().onModified += DataModified;
         }
+
+        protected void OnDisable()
+        {
+            GetData().onModified -= DataModified;
+        }
+
+        void DataModified(VFXObject o)
+        {
+            capacity = ((VFXDataParticle)o).capacity;
+        }
+
+        public override void OnDataChanges(VFXData oldData, VFXData newData)
+        {
+            if(oldData != null)
+                oldData.onModified -= DataModified;
+            base.OnDataChanges(oldData, newData);
+            if( newData != null)
+                newData.onModified += DataModified;
+            DataModified(newData);
+        }
+
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {

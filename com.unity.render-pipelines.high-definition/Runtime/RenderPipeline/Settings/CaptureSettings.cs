@@ -5,7 +5,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum CameraProjection { Perspective, Orthographic };
 
     [Flags]
-    public enum CaptureSettingsOverrides
+    [Obsolete]
+    public enum ObsoleteCaptureSettingsOverrides
     {
         //CubeResolution = 1 << 0,
         //PlanarResolution = 1 << 1,
@@ -29,11 +30,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public class CaptureSettings
+    [Obsolete]
+    public class ObsoleteCaptureSettings
     {
-        public static CaptureSettings @default = new CaptureSettings();
+        public static ObsoleteCaptureSettings @default = new ObsoleteCaptureSettings();
 
-        public CaptureSettingsOverrides overrides;
+        public ObsoleteCaptureSettingsOverrides overrides;
 
         public HDAdditionalCameraData.ClearColorMode clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
         [ColorUsage(true, true)]
@@ -52,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float fieldOfView = 90.0f;   //90f for a face of a cubemap
         public float orthographicSize = 5f;
 
-        public HDAdditionalCameraData.RenderingPath renderingPath = HDAdditionalCameraData.RenderingPath.UseGraphicsSettings;
+        public int renderingPath = 0; //0 = former RenderingPath.UseGraphicsSettings
 
         //public float aperture = 8f;
         //public float shutterSpeed = 1f / 200f;

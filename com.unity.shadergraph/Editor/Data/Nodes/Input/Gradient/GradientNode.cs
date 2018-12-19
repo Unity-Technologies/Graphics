@@ -43,13 +43,24 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
+                if (m_SerializableAlphaKeys != null && m_SerializableColorKeys != null)
+                {
+                    m_Gradient = new Gradient();
+                    var colorKeys = m_SerializableColorKeys.Select(k => new GradientColorKey(new Color(k.x, k.y, k.z, 1f), k.w)).ToArray();
+                    var alphaKeys = m_SerializableAlphaKeys.Select(k => new GradientAlphaKey(k.x, k.y)).ToArray();
+                    m_SerializableAlphaKeys = null;
+                    m_SerializableColorKeys = null;
+                    m_Gradient.SetKeys(colorKeys, alphaKeys);
+                    m_Gradient.mode = (GradientMode)m_SerializableMode;
+                }
+
                 return m_Gradient;
             }
             set
             {
                 var scope = ModificationScope.Nothing;
 
-                if (!GradientUtils.CheckEquivalency(m_Gradient, value))
+                if (!GradientUtils.CheckEquivalency(gradient, value))
                     scope = scope < ModificationScope.Graph ? ModificationScope.Graph : scope;
 
                 if (scope > ModificationScope.Nothing)
@@ -64,24 +75,15 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-            m_Gradient = new Gradient();
-            var colorKeys = m_SerializableColorKeys.Select(k => new GradientColorKey(new Color(k.x, k.y, k.z, 1f), k.w)).ToArray();
-            var alphaKeys = m_SerializableAlphaKeys.Select(k => new GradientAlphaKey(k.x, k.y)).ToArray();
-            m_SerializableAlphaKeys = null;
-            m_SerializableColorKeys = null;
-            m_Gradient.SetKeys(colorKeys, alphaKeys);
-            m_Gradient.mode = (GradientMode)m_SerializableMode;
-        }
-
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
-            m_SerializableColorKeys = gradient.colorKeys.Select(k => new Vector4(k.color.r, k.color.g, k.color.b, k.time)).ToArray();
-            m_SerializableAlphaKeys = gradient.alphaKeys.Select(k => new Vector2(k.alpha, k.time)).ToArray();
-            m_SerializableMode = (int)gradient.mode;
+            if (m_Gradient != null)
+            {
+                m_SerializableColorKeys = m_Gradient.colorKeys.Select(k => new Vector4(k.color.r, k.color.g, k.color.b, k.time)).ToArray();
+                m_SerializableAlphaKeys = m_Gradient.alphaKeys.Select(k => new Vector2(k.alpha, k.time)).ToArray();
+                m_SerializableMode = (int)m_Gradient.mode;
+            }
         }
 
         public override bool hasPreview { get { return false; } }
@@ -126,7 +128,7 @@ namespace UnityEditor.ShaderGraph
                             GetFunctionName());
                         using (s.BlockScope())
                         {
-                            GradientUtils.GetGradientDeclaration(m_Gradient, ref s);
+                            GradientUtils.GetGradientDeclaration(gradient, ref s);
                             s.AppendLine("return g;", true);
                         }
                     });
@@ -145,19 +147,19 @@ namespace UnityEditor.ShaderGraph
             properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = string.Format("_{0}_Type", GetVariableNameForNode()),
-                floatValue = (int)m_Gradient.mode
+                floatValue = (int)gradient.mode
             });
 
             properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = string.Format("_{0}_ColorsLength", GetVariableNameForNode()),
-                floatValue = m_Gradient.colorKeys.Length
+                floatValue = gradient.colorKeys.Length
             });
 
             properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = string.Format("_{0}_AlphasLength", GetVariableNameForNode()),
-                floatValue = m_Gradient.alphaKeys.Length
+                floatValue = gradient.alphaKeys.Length
             });
 
             for (int i = 0; i < 8; i++)
@@ -165,7 +167,7 @@ namespace UnityEditor.ShaderGraph
                 properties.Add(new PreviewProperty(PropertyType.Vector4)
                 {
                     name = string.Format("_{0}_ColorKey{1}", GetVariableNameForNode(), i),
-                    vector4Value = i < m_Gradient.colorKeys.Length ? GradientUtils.ColorKeyToVector(m_Gradient.colorKeys[i]) : Vector4.zero
+                    vector4Value = i < gradient.colorKeys.Length ? GradientUtils.ColorKeyToVector(gradient.colorKeys[i]) : Vector4.zero
                 });
             }
 
@@ -174,7 +176,7 @@ namespace UnityEditor.ShaderGraph
                 properties.Add(new PreviewProperty(PropertyType.Vector2)
                 {
                     name = string.Format("_{0}_AlphaKey{1}", GetVariableNameForNode(), i),
-                    vector4Value = i < m_Gradient.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(m_Gradient.alphaKeys[i]) : Vector2.zero
+                    vector4Value = i < gradient.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(gradient.alphaKeys[i]) : Vector2.zero
                 });
             }
         }

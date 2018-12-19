@@ -9,7 +9,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public abstract class BaseShaderPreprocessor
     {
         // Common keyword list
-        protected ShaderKeyword m_ShadowMask;
         protected ShaderKeyword m_Transparent;
         protected ShaderKeyword m_DebugDisplay;
         protected ShaderKeyword m_TileLighting;
@@ -23,6 +22,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected ShaderKeyword m_ShadowMedium;
         protected ShaderKeyword m_ShadowHigh;
         protected ShaderKeyword m_WriteNormalBuffer;
+        protected ShaderKeyword m_WriteMSAADepth;
+        protected ShaderKeyword m_SubsurfaceScattering;
 
         protected Dictionary<HDShadowQuality, ShaderKeyword> m_ShadowVariants;
 
@@ -46,6 +47,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
             m_ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
             m_WriteNormalBuffer = new ShaderKeyword("WRITE_NORMAL_BUFFER");
+            m_WriteMSAADepth = new ShaderKeyword("WRITE_MSAA_DEPTH");
+            m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
 
             m_ShadowVariants = new Dictionary<HDShadowQuality, ShaderKeyword>
             {

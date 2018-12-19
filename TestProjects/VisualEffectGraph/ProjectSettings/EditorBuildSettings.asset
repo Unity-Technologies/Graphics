@@ -8,7 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/00_MultiOutput.unity
     guid: 0ecaa798eef075e44a2d6079bb6332cb
-  - enabled: 0
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/01_Animator.unity
     guid: 5b49c2231e77a894db022592c9c27347
   - enabled: 1
@@ -95,16 +95,22 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/ParticleCountLimit.unity
     guid: 83f800ebc86ceb049a76082150c4ebec
-  - enabled: 0
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/HDRPFog.unity
     guid: 0379b72b85eee8045afdaec3b1362957
+  - enabled: 0
+    path: Assets/AllTests/VFXTests/GraphicsTests/HDRPFogVolumetric.unity
+    guid: 2744a8931e888734bae7f74874fefdf5
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Timeline.unity
     guid: 9949ad9004662574ca9d59c2e372bdef
-  - enabled: 0
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/SimpleLit.unity
     guid: 61f447f894ffdd741aa7a64ced0311cf
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/AngularVelocity.unity
     guid: da2063a2a525cb849a6fbdb716cc5b43
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Noise.unity
+    guid: 2ede8f56c35c42741a3d56ef5355b552
   m_configObjects: {}

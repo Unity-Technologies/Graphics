@@ -16,26 +16,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static class Styles
         {
-            public static string InputsText = "Inputs";
+            public static string InputsText = "Surface Inputs";
 
-            public static GUIContent baseColorText = new GUIContent("BaseColor (RGB) and Opacity (A)", "BaseColor (RGB) and Opacity (A)");
-            public static GUIContent baseColorText2 = new GUIContent("Opacity(A)", "Opacity (A)");
+            public static GUIContent baseColorText = new GUIContent("Base Map", "BaseColor (RGB) and Opacity (A)");
+            public static GUIContent baseColorText2 = new GUIContent("Opacity", "Opacity (A)");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Whole decal Opacity");
-            public static GUIContent AlbedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
- 			public static GUIContent MeshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "prevents z-fighting");
-	 		public static GUIContent DrawOrderText = new GUIContent("Draw order", "Controls draw order of decal projectors");
+            public static GUIContent albedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
+ 			public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "prevents z-fighting");
+	 		public static GUIContent drawOrderText = new GUIContent("Draw order", "Controls draw order of decal projectors");
+            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
+            public static GUIContent metallicText = new GUIContent("Metallic Scale", "Metallic Scale");
+            public static GUIContent aoRemappingText = new GUIContent("AO Remapping", "AO remapping");
+            public static GUIContent colorMapAlphaScaleText = new GUIContent("Base color alpha scale", "Color map alpha scale");
+            public static GUIContent maskMapBlueScaleText = new GUIContent("Mask map blue scale", "Mask map blue scale");
 
             public static GUIContent[] maskMapText =
             {
                 new GUIContent("Error", "Mask map"), // Not possible
-                new GUIContent("Mask Map - M(R), Opacity(B)", "Mask map - Metal(R), Opacity(B)"), // Decal.MaskBlendFlags.Metal:
-                new GUIContent("Mask Map - AO(G), Opacity(B)", "Mask map - Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.AO:
-                new GUIContent("Mask Map - M(R), AO(G), Opacity(B)", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO:
-                new GUIContent("Mask Map - Opacity(B), S(A)", "Mask map - Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map - M(R), Opacity(B), S(A)", "Mask map - Metal(R), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map - AO(G), Opacity(B), S(A)", "Mask map - Ambient Occlusion(G), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map - M(R), AO(G), Opacity(B), S(A)", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)") // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Mask map - Metal(R), Opacity(B)"), // Decal.MaskBlendFlags.Metal:
+                new GUIContent("Mask Map", "Mask map - Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.AO:
+                new GUIContent("Mask Map", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO:
+                new GUIContent("Mask Map", "Mask map - Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Mask map - Metal(R), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Mask map - Ambient Occlusion(G), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)") // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
             };
         }
 
@@ -93,6 +98,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
         protected const string kDecalStencilRef = "_DecalStencilRef";
 
+        protected MaterialProperty AORemapMin = new MaterialProperty();
+        protected const string kAORemapMin = "_AORemapMin";
+
+        protected MaterialProperty AORemapMax = new MaterialProperty();
+        protected const string kAORemapMax = "_AORemapMax";
+
+        protected MaterialProperty smoothnessRemapMin = new MaterialProperty();
+        protected const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
+
+        protected MaterialProperty smoothnessRemapMax = new MaterialProperty();
+        protected const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
+
+        protected MaterialProperty metallicScale = new MaterialProperty();
+        protected const string kMetallicScale = "_MetallicScale";
+
+        protected MaterialProperty colorMapAlphaScale = new MaterialProperty();
+        protected const string kColorMapAlphaScale = "_DecalColorMapAlphaScale";
+
+        protected MaterialProperty maskMapBlueScale = new MaterialProperty();
+        protected const string kMaskMapBlueScale = "_DecalMaskMapBlueScale";
+
         protected MaterialEditor m_MaterialEditor;
 
         void FindMaterialProperties(MaterialProperty[] props)
@@ -111,6 +137,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             maskmapSmoothness = FindProperty(kMaskmapSmoothness, props);            
             decalMeshDepthBias = FindProperty(kDecalMeshDepthBias, props);            
             drawOrder = FindProperty(kDrawOrder, props);
+            AORemapMin = FindProperty(kAORemapMin, props);
+            AORemapMax = FindProperty(kAORemapMax, props);
+            smoothnessRemapMin = FindProperty(kSmoothnessRemapMin, props);
+            smoothnessRemapMax = FindProperty(kSmoothnessRemapMax, props);
+            metallicScale = FindProperty(kMetallicScale, props);
+            colorMapAlphaScale = FindProperty(kColorMapAlphaScale, props);
+            maskMapBlueScale = FindProperty(kMaskMapBlueScale, props);
 
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
@@ -180,6 +213,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUIUtility.labelWidth = 0f;
             float normalBlendSrcValue = normalBlendSrc.floatValue;
             float maskBlendSrcValue =  maskBlendSrc.floatValue;
+            float smoothnessRemapMinValue = smoothnessRemapMin.floatValue;
+            float smoothnessRemapMaxValue = smoothnessRemapMax.floatValue;
+            float AORemapMinValue = AORemapMin.floatValue;
+            float AORemapMaxValue = AORemapMax.floatValue;
 
             Decal.MaskBlendFlags maskBlendFlags = (Decal.MaskBlendFlags)maskBlendMode.floatValue;              
 
@@ -196,9 +233,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.TexturePropertySingleLine((material.GetFloat(kAlbedoMode) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
                         // Currently always display Albedo contribution as we have an albedo tint that apply
                         EditorGUI.indentLevel++;
-                        m_MaterialEditor.ShaderProperty(albedoMode, Styles.AlbedoModeText);
+                        m_MaterialEditor.ShaderProperty(albedoMode, Styles.albedoModeText);
                         EditorGUI.indentLevel--;
-
+                        m_MaterialEditor.ShaderProperty(colorMapAlphaScale, Styles.colorMapAlphaScaleText);
                         m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
                         if (material.GetTexture(kNormalMap))
                         {
@@ -239,10 +276,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 maskBlendFlags = Decal.MaskBlendFlags.Smoothness;
                             }
                             EditorGUI.indentLevel--;
+                            m_MaterialEditor.ShaderProperty(maskMapBlueScale, Styles.maskMapBlueScaleText);
+                            m_MaterialEditor.ShaderProperty(metallicScale, Styles.metallicText);
+                            EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
+                            EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
                         }
 
-                        m_MaterialEditor.ShaderProperty(drawOrder, Styles.DrawOrderText);
-                        m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.MeshDecalDepthBiasText);
+                        m_MaterialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
+                        m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.meshDecalDepthBiasText);
                         m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
 
                         EditorGUI.indentLevel--;
@@ -257,6 +298,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         normalBlendSrc.floatValue = normalBlendSrcValue;
                         maskBlendSrc.floatValue = maskBlendSrcValue;
                         maskBlendMode.floatValue = (float)maskBlendFlags;
+                        smoothnessRemapMin.floatValue = smoothnessRemapMinValue;
+                        smoothnessRemapMax.floatValue = smoothnessRemapMaxValue;
+                        AORemapMin.floatValue = AORemapMinValue;
+                        AORemapMax.floatValue = AORemapMaxValue;
+
                         foreach (var obj in m_MaterialEditor.targets)
                             SetupMaterialKeywordsAndPassInternal((Material)obj);
                     }
