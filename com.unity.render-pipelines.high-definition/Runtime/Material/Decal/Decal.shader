@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/Decal"
+Shader "HDRP/Decal"
 {
     Properties
     {

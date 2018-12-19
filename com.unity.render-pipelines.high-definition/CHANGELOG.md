@@ -4,7 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [4.7.0-preview] - 2018-XX-XX??### Added
+## [4.7.0-preview] - 2018-XX-XX
+
+### Added
 - Added replace blending mode for distortion
 - Added icons for assets.
 
@@ -18,10 +20,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with vertex displacement being affected by heightmap setting even if not heightmap where assign
 - Fixed issue with density mode on Lit terrain producing NaN
 - Fixed issue when going back and forth from Lit to LitTesselation for displacement mode
+- Fixed issue with ambient occlusion incorrectly applied to emissiveColor with light layers in deferred
+- Fixed issue with fabric convolution not using the correct convolved texture when fabric convolution is enabled
+- Fixed issue with Thick mode for Transmission that was disabling transmission with directional light
+- Fixed issue on XBoxOne Player throwing error due to ICharpCode.NRefactory.dll
+- Fixed slowdow when enabling Fabric convolution in HDRP asset
+- Fixed specularAA not compiling in StackLit Master node
 
 ### Changed
 - Update several properties naming and caption based on feedback from documentation team
 - Remove tile shader variant for transparent backface pass of lit shader
+- Rename all HDRenderPipeline to HDRP folder for shaders
+- Rename decal property label (based on doc team feedback)
+- Add command buffer parameter to all Bind() method of material
+- Lit shader mode now default to Deferred to reduce build time
 
 ## [4.6.0-preview] - 2018-12-07
 

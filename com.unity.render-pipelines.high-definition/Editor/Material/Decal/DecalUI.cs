@@ -19,8 +19,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public static string InputsText = "Surface Inputs";
 
-            public static GUIContent baseColorText = new GUIContent("BaseColor (RGB) and Opacity (A)", "BaseColor (RGB) and Opacity (A)");
-            public static GUIContent baseColorText2 = new GUIContent("Opacity(A)", "Opacity (A)");
+            public static GUIContent baseColorText = new GUIContent("Base Map", "BaseColor (RGB) and Opacity (A)");
+            public static GUIContent baseColorText2 = new GUIContent("Opacity", "Opacity (A)");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Whole decal Opacity");
             public static GUIContent AlbedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
@@ -30,13 +30,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent[] maskMapText =
             {
                 new GUIContent("Error", "Mask map"), // Not possible
-                new GUIContent("Mask Map - M(R), Opacity(B)", "Mask map - Metal(R), Opacity(B)"), // Decal.MaskBlendFlags.Metal:
-                new GUIContent("Mask Map - AO(G), Opacity(B)", "Mask map - Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.AO:
-                new GUIContent("Mask Map - M(R), AO(G), Opacity(B)", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO:
-                new GUIContent("Mask Map - Opacity(B), S(A)", "Mask map - Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map - M(R), Opacity(B), S(A)", "Mask map - Metal(R), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map - AO(G), Opacity(B), S(A)", "Mask map - Ambient Occlusion(G), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map - M(R), AO(G), Opacity(B), S(A)", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)") // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Mask map - Metal(R), Opacity(B)"), // Decal.MaskBlendFlags.Metal:
+                new GUIContent("Mask Map", "Mask map - Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.AO:
+                new GUIContent("Mask Map", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO:
+                new GUIContent("Mask Map", "Mask map - Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Mask map - Metal(R), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Mask map - Ambient Occlusion(G), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)") // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
             };
         }
 

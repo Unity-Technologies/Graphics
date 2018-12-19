@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DebugLightVolumes"
+Shader "Hidden/HDRP/DebugLightVolumes"
 {
     Properties
     {

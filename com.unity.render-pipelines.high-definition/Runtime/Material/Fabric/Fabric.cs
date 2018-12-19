@@ -140,10 +140,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_CharlieAndFabricLambert, cmd);
         }
 
-        public override void Bind()
+        public override void Bind(CommandBuffer cmd)
         {
-            PreIntegratedFGD.instance.Bind(PreIntegratedFGD.FGDIndex.FGD_CharlieAndFabricLambert);
-            //LTCAreaLight.instance.Bind();
+            PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_CharlieAndFabricLambert);
+            //LTCAreaLight.instance.Bind(cmd);
         }
     }
 }

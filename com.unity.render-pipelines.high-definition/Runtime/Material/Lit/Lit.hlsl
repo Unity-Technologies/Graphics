@@ -606,13 +606,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
     // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
-    // Also if we don't have the room to store AO, then we apply it at this time on bakeDiffuseLighting which will cause a double occlusion with SSAO
-#ifdef LIGHT_LAYERS
-    outGBuffer3 = float4(builtinData.bakeDiffuseLighting + builtinData.emissiveColor, 0.0);
-    // If we have light layers, take the opportunity to save AO and avoid double occlusion with SSAO
-    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, surfaceData.ambientOcclusion, builtinData.renderingLayers / 255.0);
-#else
     outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
+#ifdef LIGHT_LAYERS
+    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, builtinData.renderingLayers / 255.0);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
@@ -645,17 +641,18 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // BuiltinData
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
+    // In deferred ambient occlusion isn't available and is already apply on bakeDiffuseLighting for the GI part.
+    // Caution: even if we store it in the GBuffer we need to apply it on GI and not on emissive color, so AO must be 1.0 in deferred
+    bsdfData.ambientOcclusion = 1.0;
+
     // Avoid to introduce a new variant for light layer as it is already long to compile
     if (_EnableLightLayers)
     {
-        float4 inGBuffer4 = LOAD_TEXTURE2D(_LightLayersTexture, positionSS);
-        // If we have light layers, take the opportunity to save AO and avoid double occlusion with SSAO
-        bsdfData.ambientOcclusion = inGBuffer4.z;
+        float4 inGBuffer4 = LOAD_TEXTURE2D(_LightLayersTexture, positionSS);        
         builtinData.renderingLayers = uint(inGBuffer4.w * 255.5);
     }
     else
     {
-        bsdfData.ambientOcclusion = 1.0; // No value available, just settings 1.0. This mean double occlusion with SSAO.
         builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
     }
 

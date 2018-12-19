@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/LayeredLitTessellation"
+Shader "HDRP/LayeredLitTessellation"
 {
     Properties
     {

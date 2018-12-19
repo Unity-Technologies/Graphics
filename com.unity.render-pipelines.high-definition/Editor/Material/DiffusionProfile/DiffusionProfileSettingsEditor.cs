@@ -50,8 +50,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             base.OnEnable();
 
             // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime
-            m_ProfileMaterial       = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawDiffusionProfile");
-            m_TransmittanceMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
+            m_ProfileMaterial       = CoreUtils.CreateEngineMaterial("Hidden/HDRP/DrawDiffusionProfile");
+            m_TransmittanceMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRP/DrawTransmittanceGraph");
 
             int count = DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1;
             m_Profiles = new List<Profile>();

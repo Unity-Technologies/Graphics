@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/Lit"
+Shader "HDRP/Lit"
 {
     Properties
     {

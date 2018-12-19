@@ -654,7 +654,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             if (emissiveMeshRenderer.sharedMaterial == null)
-                emissiveMeshRenderer.material = new Material(Shader.Find("HDRenderPipeline/Unlit"));
+                emissiveMeshRenderer.material = new Material(Shader.Find("HDRP/Unlit"));
 
             // Update Mesh emissive properties
             emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
