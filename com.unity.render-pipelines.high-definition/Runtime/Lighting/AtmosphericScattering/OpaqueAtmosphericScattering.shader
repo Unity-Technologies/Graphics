@@ -16,6 +16,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
         struct Attributes
         {
@@ -38,11 +39,6 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         {
             PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
-#if defined(UNITY_SINGLE_PASS_STEREO)
-            // XRTODO: fixup and consolidate stereo code relying on _PixelCoordToViewDirWS
-            V = -normalize(posInput.positionWS);
-#endif
-
             if (depth == UNITY_RAW_FAR_CLIP_VALUE)
             {
                 // When a pixel is at far plane, the world space coordinate reconstruction is not reliable.
@@ -59,7 +55,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         float4 Frag(Varyings input) : SV_Target
         {
             float2 positionSS = input.positionCS.xy;
-            float3 V          = normalize(mul(float3(positionSS, 1.0), (float3x3)_PixelCoordToViewDirWS));
+            float3 V          = GetSkyViewDirWS(positionSS, (float3x3)_PixelCoordToViewDirWS);
             float  depth      = LOAD_TEXTURE2D(_CameraDepthTexture, (int2)positionSS).x;
 
             return AtmosphericScatteringCompute(input, V, depth);
@@ -68,7 +64,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         float4 FragMSAA(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
         {
             float2 positionSS = input.positionCS.xy;
-            float3 V          = normalize(mul(float3(positionSS, 1.0), (float3x3)_PixelCoordToViewDirWS));
+            float3 V          = GetSkyViewDirWS(positionSS, (float3x3)_PixelCoordToViewDirWS);
             float  depth      = _DepthTextureMS.Load((int2)positionSS, sampleIndex).x;
 
             return AtmosphericScatteringCompute(input, V, depth);
