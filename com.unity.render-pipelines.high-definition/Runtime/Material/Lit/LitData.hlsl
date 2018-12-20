@@ -105,7 +105,7 @@ float4 SamplePrefilteredNormalMap(TEXTURE2D(normalMap), SAMPLER(samplerState),
         {
             float w = uvMapping.triplanarWeights.x;
 
-            float3 normal  = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uvZY).xyz * 2 - 1;
+            float3 normal  = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uvZY).xyz * 2 - 1; // Unnormalized XYZ normal
             averageNormal += w * normal;
 
             float normalLengthSq = dot(normal, normal);
@@ -124,7 +124,7 @@ float4 SamplePrefilteredNormalMap(TEXTURE2D(normalMap), SAMPLER(samplerState),
         {
             float w = uvMapping.triplanarWeights.y;
 
-            float3 normal  = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uvXZ).xyz * 2 - 1;
+            float3 normal  = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uvXZ).xyz * 2 - 1; // Unnormalized XYZ normal
             averageNormal += w * normal;
 
             float normalLengthSq = dot(normal, normal);
@@ -143,7 +143,7 @@ float4 SamplePrefilteredNormalMap(TEXTURE2D(normalMap), SAMPLER(samplerState),
         {
             float w = uvMapping.triplanarWeights.z;
 
-            float3 normal  = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uvXY).xyz * 2 - 1;
+            float3 normal  = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uvXY).xyz * 2 - 1; // Unnormalized XYZ normal
             averageNormal += w * normal;
 
             float normalLengthSq = dot(normal, normal);
@@ -167,7 +167,7 @@ float4 SamplePrefilteredNormalMap(TEXTURE2D(normalMap), SAMPLER(samplerState),
     }
     else
     {
-        float3 normal = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uv).xyz * 2 - 1;
+        float3 normal = SAMPLE_TEXTURE2D(normalMap, samplerState, uvMapping.uv).xyz * 2 - 1; // Unnormalized XYZ normal
 
         float averageNormalLengthSq = dot(normal, normal);
               averageNormalLength   = sqrt(averageNormalLengthSq);
