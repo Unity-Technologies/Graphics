@@ -413,7 +413,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 MaterialTesselationPropertiesGUI();
                 VertexAnimationPropertiesGUI();
                 MaterialPropertiesGUI(material);
-                DoEmissionArea(material);
                 using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expandable.Advance, this))
                 {
                     if (header.expanded)
