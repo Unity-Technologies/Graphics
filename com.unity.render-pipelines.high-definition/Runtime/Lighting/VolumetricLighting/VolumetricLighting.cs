@@ -251,7 +251,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
                     slices:            d,
                     dimension:         TextureDimension.Tex3D,
-                    colorFormat:       RenderTextureFormat.ARGB32,
+                    colorFormat:       RenderTextureFormat.ARGBHalf, // 8888_sRGB is not precise enough
                     sRGB:              false,
                     enableRandomWrite: true,
                     enableMSAA:        false,

@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed specularAA not compiling in StackLit Master node
 - Fixed material debug view with stereo rendering
 - Fixed material's RenderQueue edition in default view.
+- Fixed banding issues within volumetric density buffer
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).

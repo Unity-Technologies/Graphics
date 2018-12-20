@@ -321,9 +321,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
             }
         }
 
-        // Use sRGB-like compressed encoding.
-        // TODO: better encoding? Dither?
-        _VBufferDensity[voxelCoord] = sqrt(float4(voxelScattering, voxelExtinction));
+        _VBufferDensity[voxelCoord] = float4(voxelScattering, voxelExtinction);
 
         t0 = t1;
     }

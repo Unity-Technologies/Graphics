@@ -79,10 +79,10 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-RW_TEXTURE3D(float4, _VBufferLightingIntegral); // RGB = radiance, A = optical depth
-RW_TEXTURE3D(float4, _VBufferLightingFeedback); // RGB = radiance, A = interval length
-TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = interval length
-TEXTURE3D(_VBufferDensity);                     // RGB = sqrt(scattering), A = sqrt(extinction)
+RW_TEXTURE3D(float4, _VBufferLightingIntegral);
+RW_TEXTURE3D(float4, _VBufferLightingFeedback);
+TEXTURE3D(_VBufferLightingHistory);
+TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
@@ -486,9 +486,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
         float4 density = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord);
 
-        // Use sRGB-like compressed encoding.
-        float3 scattering = Sq(density.rgb);
-        float  extinction = Sq(density.a);
+        float3 scattering = density.rgb;
+        float  extinction = density.a;
         float  anisotropy = _GlobalFogAnisotropy;
 
         // Prevent division by 0.
