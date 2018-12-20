@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename decal property label (based on doc team feedback)
 - Add command buffer parameter to all Bind() method of material
 - Lit shader mode now default to Deferred to reduce build time
+- Update UI of Emission parameters in shaders
 
 ## [5.2.0-preview] - 2018-11-27
 
