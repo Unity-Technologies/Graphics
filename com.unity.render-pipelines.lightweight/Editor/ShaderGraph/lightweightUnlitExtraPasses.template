@@ -60,7 +60,7 @@ ${VertexShaderDescriptionInputs}
 ${VertexShaderOutputs}
         
         float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
-        float3 normalWS = TransformObjectToWorldDir(v.normal);
+        float3 normalWS = TransformObjectToWorldNormal(v.normal);
 
         float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
 
