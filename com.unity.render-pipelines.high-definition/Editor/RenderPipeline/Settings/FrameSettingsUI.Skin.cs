@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent subsurfaceScatteringContent = EditorGUIUtility.TrTextContent("Subsurface Scattering");
         static readonly GUIContent transmissionContent = EditorGUIUtility.TrTextContent("Transmission");
         static readonly GUIContent atmosphericScatteringContent = EditorGUIUtility.TrTextContent("Atmospheric Scattering");
-        static readonly GUIContent volumetricContent = EditorGUIUtility.TrTextContent("Volumetric");
+        static readonly GUIContent volumetricContent = EditorGUIUtility.TrTextContent("Volumetrics");
         static readonly GUIContent reprojectionForVolumetricsContent = EditorGUIUtility.TrTextContent("Reprojection For Volumetrics");
         static readonly GUIContent lightLayerContent = EditorGUIUtility.TrTextContent("LightLayers");
 

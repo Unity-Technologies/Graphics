@@ -285,7 +285,7 @@ $features.modifyMesh:   $include("VertexAnimation.template.hlsl")
 
 $include("SharedCode.template.hlsl")
 
-    void BuildSurfaceData(FragInputs fragInputs, SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData)
+    void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData)
     {
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
