@@ -48,8 +48,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string detailText = "Detail Inputs";
             public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
             public static GUIContent detailFullMapText = new GUIContent("Detail Map", "Detail Map Albedo (R) Normal map Y (G) Smoothness (B) Normal map X (A) - Neutral value is (0.5, 0.5, 0.5, 0.5)");
-            public static GUIContent detailPartialMapText = new GUIContent("Detail Map A(R) S(B)", "Detail Map");
-            public static GUIContent detailNormalMapText = new GUIContent("Detail Normal Map (XYZ)", "Detail Normal Map");
+            public static GUIContent detailPartialMapText = new GUIContent("Detail Map", "Detail Map Albedo (R) Smoothness (B)");
+            public static GUIContent detailNormalMapText = new GUIContent("Detail Normal Map", "Detail Normal Map (XYZ)");
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
             public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
