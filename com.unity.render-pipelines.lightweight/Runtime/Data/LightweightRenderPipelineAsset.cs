@@ -2,8 +2,9 @@
 using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
+using UnityEngine.Experimental.Rendering.LWRP;
+
 #endif
-using UnityEngine;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -71,6 +72,7 @@ namespace UnityEngine.Rendering.LWRP
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
+        internal IRendererSetup m_RendererSetup;
 
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
@@ -211,7 +213,7 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
-        protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
+        protected override RenderPipeline CreatePipeline()
         {
             return new LightweightRenderPipeline(this);
         }
@@ -241,6 +243,12 @@ namespace UnityEngine.Rendering.LWRP
             return null;
 #endif
         }
+
+        public IRendererSetup rendererSetup
+        {
+            get { return m_RendererSetup; }
+        }
+
         public bool supportsCameraDepthTexture
         {
             get { return m_RequireDepthTexture; }
