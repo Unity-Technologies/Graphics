@@ -1533,7 +1533,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView)
+        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, bool stereoEnabled)
         {
             var bound      = new SFiniteLightBound();
             var volumeData = new LightVolumeData();
@@ -1568,6 +1568,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_lightList.bounds.Add(bound);
             m_lightList.lightVolumes.Add(volumeData);
+
+            // XRTODO: use rightEyeWorldToView here too?
+            if (stereoEnabled)
+            {
+                m_lightList.rightEyeBounds.Add(bound);
+                m_lightList.rightEyeLightVolumes.Add(volumeData);
+            }
         }
 
         public int GetCurrentShadowCount()
@@ -2002,6 +2009,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         m_lightList.bounds.Add(DecalSystem.m_Bounds[i]);
                         m_lightList.lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
+
+                        if (camera.stereoEnabled)
+                        {
+                            m_lightList.rightEyeBounds.Add(DecalSystem.m_Bounds[i]);
+                            m_lightList.rightEyeLightVolumes.Add(DecalSystem.m_LightVolumes[i]);
+                        }
                     }
                 }
 
@@ -2020,7 +2033,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Density volumes are not lights and therefore should not affect light classification.
                     LightFeatureFlags featureFlags = 0;
-                    AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR);
+                    AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, camera.stereoEnabled);
                 }
 
                 m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
