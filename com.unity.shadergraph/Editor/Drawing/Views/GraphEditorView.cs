@@ -9,7 +9,6 @@ using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
-using UnityEngine.UIElements.StyleSheets;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 
 
@@ -41,6 +40,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
+
+        public BlackboardProvider blackboardProvider
+        {
+            get { return m_BlackboardProvider; }
+        }
 
         const string k_ToggleSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         ToggleSettings m_ToggleSettings;
