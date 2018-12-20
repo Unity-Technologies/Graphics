@@ -241,10 +241,14 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 // eta = IOR_above / IOR_below
 // rayIntensity returns 0 in case of total internal reflection
 //
+// Walter et al. formula seems to have a typo in it: the b term below
+// needs to have eta^2 instead of eta.
+// Note also that our sign(c) term here effectively makes the refractive
+// surface dual sided.
 float3  Refract(float3 incoming, float3 normal, float eta, out float rayIntensity)
 {
     float   c = dot(incoming, normal);
-    float   b = 1.0 + eta * (c*c - 1.0);
+    float   b = 1.0 + Sq(eta) * (c*c - 1.0);
     if (b >= 0.0)
     {
         float   k = eta * c - sign(c) * sqrt(b);
@@ -263,7 +267,7 @@ float3  Refract(float3 incoming, float3 normal, float eta, out float rayIntensit
 float3  Refract(float3 incoming, float3 normal, float eta)
 {
     float   c = dot(incoming, normal);
-    float   b = 1.0 + eta * (c*c - 1.0);
+    float   b = 1.0 + Sq(eta) * (c*c - 1.0);
     float   k = eta * c - sign(c) * sqrt(b);
     float3  R = k * normal - eta * incoming;
     return normalize(R);
@@ -1301,8 +1305,8 @@ void BSDF(  float3 viewWS_UnderCoat, float3 lightWS_UnderCoat, float NdotL, floa
     float VdotH = LdotH;
     NdotL = dot(bsdfData.normalWS, lightWS_UnderCoat);
 
-    float   thetaH = acos(clamp(NdotH, -1, 1));
-    float   thetaD = acos(clamp(LdotH, -1, 1));
+    float   thetaH = acos(clamp(NdotH, 0, 1));
+    float   thetaD = acos(clamp(LdotH, 0, 1));
 
     // Simple lambert
     float3  diffuseTerm = Lambert();
@@ -1534,19 +1538,26 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
     ltcValue *= lightData.diffuseDimmer;
     lighting.diffuse = ltcValue; // no FGD, lambert gives 1
 
-    // Evaluate average BRDF response in diffuse direction
+    // Evaluate a BRDF color response in diffuse direction
     // We project the point onto the area light's plane using the light's forward direction and recompute the light direction from this position
+    // TODO_dir:
+#if 0
     float3  bestLightWS_Diffuse = ComputeBestLightDirection_Line(lightPositionRWS, -lightData.forward, lightData);
 
     // TODO_dir: refract light dir here for GetBRDFColor since it is a fresnel-like effect, but
     // compute LTC / env fetching using *non refracted dir*
+
     float3  H = normalize(preLightData.viewWS_UnderCoat + bestLightWS_Diffuse);
     float   NdotH = dot(bsdfData.normalWS, H);
     float   VdotH = dot(preLightData.viewWS_UnderCoat, H);
 
-    float   thetaH = acos(clamp(NdotH, -1, 1));
-    float   thetaD = acos(clamp(VdotH, -1, 1));
-
+    float   thetaH = acos(clamp(NdotH, 0, 1));
+    float   thetaD = acos(clamp(VdotH, 0, 1));
+#else
+    // Just use the same assumptions as for environments:
+    float   thetaH = 0;
+    float   thetaD = acos(clamp(preLightData.NdotV_UnderCoat, 0, 1));
+#endif
     lighting.diffuse *= GetBRDFColor(thetaH, thetaD);
 
 
@@ -1561,8 +1572,10 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
     }
     lighting.specular *= lightData.specularDimmer;
 
-    // Evaluate average BRDF response in specular direction
+    // Evaluate a BRDF color response in specular direction
     // We project the point onto the area light's plane using the reflected view direction and recompute the light direction from this position
+    // TODO_dir:
+#if 0
     float3  bestLightWS_Specular = ComputeBestLightDirection_Line(lightPositionRWS, preLightData.iblDominantDirectionWS_UnderCoat, lightData);
 
     // TODO_dir: refract light dir here for GetBRDFColor since it is a fresnel-like effect, but
@@ -1571,9 +1584,12 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
     NdotH = dot(bsdfData.normalWS, H);
     VdotH = dot(preLightData.viewWS_UnderCoat, H);
 
-    thetaH = acos(clamp(NdotH, -1, 1));
-    thetaD = acos(clamp(VdotH, -1, 1));
-
+    thetaH = acos(clamp(NdotH, 0, 1));
+    thetaD = acos(clamp(VdotH, 0, 1));
+#else
+    // Just use the same assumptions as for environments 
+    // (already calculated thetaH and thetaD above)
+#endif
     lighting.specular *= GetBRDFColor(thetaH, thetaD);
 
 
@@ -1731,8 +1747,10 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     ltcValue *= lightData.diffuseDimmer;
     lighting.diffuse = ltcValue;
 
-    // Evaluate average BRDF response in diffuse direction
+    // Evaluate a BRDF color response in diffuse direction
     // We project the point onto the area light's plane using the light's forward direction and recompute the light direction from this position
+    //TODO_dir:
+#if 0
     float3  bestLightWS_Diffuse = ComputeBestLightDirection_Rectangle(lightPositionRWS, -lightData.forward, lightData);
 
     // TODO_dir: refract light dir for GetBRDFColor here since it is a fresnel-like effect, but
@@ -1742,8 +1760,13 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     float   NdotH = dot(bsdfData.normalWS, H);
     float   VdotH = dot(preLightData.viewWS_UnderCoat, H);
 
-    float   thetaH = acos(clamp(NdotH, -1, 1));
-    float   thetaD = acos(clamp(VdotH, -1, 1));
+    float   thetaH = acos(clamp(NdotH, 0, 1));
+    float   thetaD = acos(clamp(VdotH, 0, 1));
+#else
+    // Just use the same assumptions as for environments:
+    float   thetaH = 0;
+    float   thetaD = acos(clamp(preLightData.NdotV_UnderCoat, 0, 1));
+#endif
 
     lighting.diffuse *= GetBRDFColor(thetaH, thetaD);
 
@@ -1759,8 +1782,10 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     }
     lighting.specular *= lightData.specularDimmer;
 
-    // Evaluate average BRDF response in specular direction
+    // Evaluate a BRDF color response in specular direction
     // We project the point onto the area light's plane using the reflected view direction and recompute the light direction from this position
+    // TODO_dir: 
+#if 0
     float3  bestLightWS_Specular = ComputeBestLightDirection_Rectangle(lightPositionRWS, preLightData.iblDominantDirectionWS_UnderCoat, lightData);
 
     // TODO_dir: refract light dir for GetBRDFColor here since it is a fresnel-like effect, but
@@ -1770,8 +1795,12 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     NdotH = dot(bsdfData.normalWS, H);
     VdotH = dot(preLightData.viewWS_UnderCoat, H);
 
-    thetaH = acos(clamp(NdotH, -1, 1));
-    thetaD = acos(clamp(VdotH, -1, 1));
+    thetaH = acos(clamp(NdotH, 0, 1));
+    thetaD = acos(clamp(VdotH, 0, 1));
+#else
+    // Just use the same assumptions as for environments 
+    // (already calculated thetaH and thetaD above)
+#endif
 
     lighting.specular *= GetBRDFColor(thetaH, thetaD);
 
@@ -1871,9 +1900,10 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
         // Like for environments, in that case, H is supposed N if we don't use
         // GetSpecularDominantDir. So NdotH = 1 and thetaH = 0.
         // V dot H is NdotV and we get thetaD from that.
-        // We will use preLightData.NdotV_UnderCoat == preLightData.NdotV_Clearcoat
+        // preLightData.NdotV_UnderCoat == preLightData.NdotV_Clearcoat since
+        // there's no clear coat.
         float   thetaH = 0;
-        float   thetaD = acos(clamp(preLightData.NdotV_UnderCoat, -1, 1));
+        float   thetaD = acos(clamp(preLightData.NdotV_UnderCoat, 0, 1));
 
         for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
         {
@@ -2004,12 +2034,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3  lightWS_UnderCoat = environmentSamplingDirectionWS_UnderCoat;
 
     float3  H = normalize(viewWS_UnderCoat + lightWS_UnderCoat);
-    float   NdotL = saturate(dot(bsdfData.normalWS, lightWS_UnderCoat));
     float   NdotH = dot(bsdfData.normalWS, H);
     float   VdotH = dot(viewWS_UnderCoat, H);
 
-    float   thetaH = acos(clamp(NdotH, -1, 1));
-    float   thetaD = acos(clamp(VdotH, -1, 1));
+    // TODO_dir: so this is just thetaH = 0, etc. CHECK and remove.
+    float   thetaH = acos(clamp(NdotH, 0, 1));
+    float   thetaD = acos(clamp(VdotH, 0, 1));
 
     //-----------------------------------------------------------------------------
 #if USE_COOK_TORRANCE_MULTI_LOBES
