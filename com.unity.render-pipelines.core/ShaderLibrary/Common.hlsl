@@ -184,6 +184,9 @@
 #ifndef SUPPORTS_WAVE_INTRINSICS
 #define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAllTrue)
 #define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAnyTrue)
+#define WaveGetLaneIndex ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneIndex)
+#define WaveIsFirstLane ERROR_ON_UNSUPPORTED_FUNCTION(WaveIsFirstLane)
+#define GetWaveID ERROR_ON_UNSUPPORTED_FUNCTION(GetWaveID)
 #define WaveActiveMin ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMin)
 #define WaveActiveMax ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMax)
 #define WaveActiveBallot ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBallot)
