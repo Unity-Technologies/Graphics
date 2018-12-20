@@ -823,9 +823,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 optionsChanged = true;
-            }
-
-            DoEmissionArea(material);
+            }            
 
             using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expandable.Advance, this))
             {

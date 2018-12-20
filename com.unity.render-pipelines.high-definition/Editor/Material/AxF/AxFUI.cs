@@ -441,7 +441,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override bool ShouldEmissionBeEnabled(Material _material)
         {
-            return false;//_material.GetFloat(kEmissiveIntensity) > 0.0f;
+            return false;
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material _material)
