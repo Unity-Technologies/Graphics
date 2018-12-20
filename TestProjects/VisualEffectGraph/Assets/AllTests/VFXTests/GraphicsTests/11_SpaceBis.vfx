@@ -1990,13 +1990,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 22
+      - op: 26
         valueIndex: 2
         data[0]: 0
         data[1]: 1
         data[2]: -1
         data[3]: 1
-      - op: 19
+      - op: 23
         valueIndex: 3
         data[0]: 2
         data[1]: -1
@@ -2008,13 +2008,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 5
         data[0]: 2
         data[1]: 3
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 6
         data[0]: 5
         data[1]: 4
@@ -2062,13 +2062,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 35
         data[0]: 12
         data[1]: 11
         data[2]: -1
         data[3]: 3
-      - op: 35
+      - op: 41
         valueIndex: 38
         data[0]: 10
         data[1]: 13
@@ -2080,25 +2080,25 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 44
         data[0]: 14
         data[1]: 15
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 47
         data[0]: 17
         data[1]: 16
         data[2]: -1
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 50
         data[0]: 18
         data[1]: 15
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 53
         data[0]: 19
         data[1]: 19
@@ -2128,13 +2128,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 60
         data[0]: 22
         data[1]: 21
         data[2]: -1
         data[3]: 1
-      - op: 22
+      - op: 26
         valueIndex: 61
         data[0]: 0
         data[1]: 24
@@ -2146,7 +2146,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 63
         data[0]: 25
         data[1]: 23
@@ -2158,19 +2158,19 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 19
+      - op: 23
         valueIndex: 65
         data[0]: 26
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 27
+      - op: 31
         valueIndex: 66
         data[0]: 28
         data[1]: 27
         data[2]: -1
         data[3]: 1
-      - op: 22
+      - op: 26
         valueIndex: 67
         data[0]: 29
         data[1]: 31
@@ -2182,7 +2182,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 69
         data[0]: 26
         data[1]: 30
@@ -2200,7 +2200,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 6
-      - op: 21
+      - op: 25
         valueIndex: 74
         data[0]: 34
         data[1]: 33
@@ -2212,7 +2212,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 78
         data[0]: 19
         data[1]: 35
@@ -2224,7 +2224,7 @@ VisualEffectResource:
         data[1]: 7
         data[2]: 37
         data[3]: -1
-      - op: 29
+      - op: 33
         valueIndex: 84
         data[0]: 13
         data[1]: 40
@@ -2254,7 +2254,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 119
         data[0]: 43
         data[1]: 44
@@ -2266,7 +2266,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 12
-      - op: 34
+      - op: 40
         valueIndex: 136
         data[0]: 41
         data[1]: 42
@@ -2284,7 +2284,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 29
+      - op: 33
         valueIndex: 156
         data[0]: 14
         data[1]: 13
@@ -2296,19 +2296,19 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: -1
-      - op: 34
+      - op: 40
         valueIndex: 188
         data[0]: 48
         data[1]: 47
         data[2]: -1
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 204
         data[0]: 45
         data[1]: 44
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 205
         data[0]: 7
         data[1]: 46
@@ -2320,19 +2320,19 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 13
-      - op: 36
+      - op: 42
         valueIndex: 207
         data[0]: 52
         data[1]: 15
         data[2]: -1
         data[3]: -1
-      - op: 34
+      - op: 40
         valueIndex: 210
         data[0]: 51
         data[1]: 53
         data[2]: -1
         data[3]: -1
-      - op: 29
+      - op: 33
         valueIndex: 226
         data[0]: 14
         data[1]: 13
@@ -2374,13 +2374,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 4
-      - op: 31
+      - op: 37
         valueIndex: 255
         data[0]: 58
         data[1]: -1
         data[2]: -1
         data[3]: -1
-      - op: 23
+      - op: 27
         valueIndex: 258
         data[0]: 18
         data[1]: 61
@@ -2392,7 +2392,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 2
-      - op: 35
+      - op: 41
         valueIndex: 263
         data[0]: 52
         data[1]: 14
@@ -2404,7 +2404,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 2
-      - op: 35
+      - op: 41
         valueIndex: 268
         data[0]: 52
         data[1]: 11
@@ -2452,13 +2452,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 6
-      - op: 34
+      - op: 40
         valueIndex: 300
         data[0]: 52
         data[1]: 59
         data[2]: -1
         data[3]: -1
-      - op: 34
+      - op: 40
         valueIndex: 316
         data[0]: 52
         data[1]: 58
@@ -2518,7 +2518,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 44
+      - op: 50
         valueIndex: 351
         data[0]: 56
         data[1]: -1
@@ -2548,13 +2548,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 35
+      - op: 41
         valueIndex: 368
         data[0]: 52
         data[1]: 18
         data[2]: -1
         data[3]: -1
-      - op: 36
+      - op: 42
         valueIndex: 371
         data[0]: 10
         data[1]: 57
@@ -2847,7 +2847,7 @@ VisualEffectResource:
       capacity: 1
       stride: 4
     - type: 1
-      size: 28
+      size: 53
       layout:
       - name: alive
         type: 17
@@ -2873,6 +2873,12 @@ VisualEffectResource:
           bucket: 20
           structure: 8
           element: 4
+      - name: spawnCount
+        type: 1
+        offset:
+          bucket: 52
+          structure: 1
+          element: 0
       capacity: 1
       stride: 4
     - type: 1
@@ -3139,7 +3145,7 @@ VisualEffectResource:
       capacity: 0
       stride: 8
     - type: 1
-      size: 52
+      size: 56
       layout:
       - name: alive
         type: 17
@@ -3165,6 +3171,12 @@ VisualEffectResource:
           bucket: 20
           structure: 8
           element: 4
+      - name: spawnCount
+        type: 1
+        offset:
+          bucket: 52
+          structure: 1
+          element: 0
       capacity: 4
       stride: 4
     - type: 1
@@ -3368,7 +3380,7 @@ VisualEffectResource:
     - name: OnStop
       playSystems: 
       stopSystems: 000000000100000002000000030000000400000005000000
-    m_RuntimeVersion: 7
+    m_RuntimeVersion: 8
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 0

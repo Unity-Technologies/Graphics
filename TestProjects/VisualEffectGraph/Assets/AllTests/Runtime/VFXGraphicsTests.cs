@@ -48,6 +48,14 @@ namespace UnityEngine.VFX.Test
             "05_MotionVectors", //possible GPU Hang on this, skip it temporally
         };
 
+        static readonly string[] UnstableMetalTests =
+        {
+            // Unstable results, could be Metal or more generic HLSLcc issue across multiple graphics targets
+            "06_LineOutput",
+            "08_Shadows",
+            "10_SortPriority",
+        };
+
         [UnityTest, Category("VisualEffect")]
         [PrebuildSetup("SetupGraphicsTestCases")]
         [UseGraphicsTestCases]
@@ -121,7 +129,8 @@ namespace UnityEngine.VFX.Test
                     RenderTexture.active = null;
                     actual.Apply();
 
-                    if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)))
+                    if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)) &&
+                        !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && UnstableMetalTests.Any(o => testCase.ScenePath.Contains(o))))
                     {
                         ImageAssert.AreEqual(testCase.ReferenceImage, actual, new ImageComparisonSettings() { AverageCorrectnessThreshold = 10e-5f });
                     }

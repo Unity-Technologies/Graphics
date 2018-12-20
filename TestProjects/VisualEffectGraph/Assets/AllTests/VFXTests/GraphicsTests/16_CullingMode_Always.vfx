@@ -3348,7 +3348,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 8
         data[0]: 3
         data[1]: 1
@@ -3360,7 +3360,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 22
+      - op: 26
         valueIndex: 10
         data[0]: 1
         data[1]: 2
@@ -3372,7 +3372,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 26
+      - op: 30
         valueIndex: 12
         data[0]: 8
         data[1]: 7
@@ -3390,7 +3390,7 @@ VisualEffectResource:
         data[1]: 9
         data[2]: 9
         data[3]: -1
-      - op: 25
+      - op: 29
         valueIndex: 19
         data[0]: 10
         data[1]: 5
@@ -3402,7 +3402,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 14
-      - op: 26
+      - op: 30
         valueIndex: 21
         data[0]: 1
         data[1]: 7
@@ -3414,13 +3414,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 13
-      - op: 25
+      - op: 29
         valueIndex: 23
         data[0]: 15
         data[1]: 2
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 24
         data[0]: 12
         data[1]: 11
@@ -3432,7 +3432,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 43
+      - op: 49
         valueIndex: 30
         data[0]: 14
         data[1]: 13
@@ -3468,7 +3468,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 42
+      - op: 48
         valueIndex: 39
         data[0]: 16
         data[1]: 17
@@ -3492,7 +3492,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: -1
-      - op: 35
+      - op: 41
         valueIndex: 60
         data[0]: 29
         data[1]: 28
@@ -3819,7 +3819,7 @@ VisualEffectResource:
     - name: OnStop
       playSystems: 
       stopSystems: 00000000
-    m_RuntimeVersion: 7
+    m_RuntimeVersion: 8
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 0

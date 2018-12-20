@@ -504,7 +504,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 6
-      - op: 50
+      - op: 56
         valueIndex: 2
         data[0]: 1
         data[1]: 0
@@ -534,13 +534,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 2
-      - op: 45
+      - op: 51
         valueIndex: 8
         data[0]: 5
         data[1]: -1
         data[2]: -1
         data[3]: 0
-      - op: 44
+      - op: 50
         valueIndex: 9
         data[0]: 4
         data[1]: -1
@@ -897,7 +897,7 @@ VisualEffectResource:
     - name: OnStop
       playSystems: 
       stopSystems: 00000000
-    m_RuntimeVersion: 7
+    m_RuntimeVersion: 8
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 0
