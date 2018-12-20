@@ -166,6 +166,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.PropertyField(serialized.invertFade, Styles.s_InvertFadeLabel);
+
+            // Distance fade.
+            {
+                EditorGUI.BeginChangeCheck();
+
+                float distanceFadeStart = EditorGUILayout.FloatField(Styles.s_DistanceFadeStartLabel, serialized.distanceFadeStart.floatValue);
+                float distanceFadeEnd   = EditorGUILayout.FloatField(Styles.s_DistanceFadeEndLabel,   serialized.distanceFadeEnd.floatValue);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    distanceFadeStart = Mathf.Max(0, distanceFadeStart);
+                    distanceFadeEnd   = Mathf.Max(distanceFadeStart, distanceFadeEnd);
+
+                    serialized.distanceFadeStart.floatValue = distanceFadeStart;
+                    serialized.distanceFadeEnd.floatValue   = distanceFadeEnd;
+                }
+            }
         }
 
         static void Drawer_DensityMaskTextureContent(SerializedDensityVolume serialized, Editor owner)

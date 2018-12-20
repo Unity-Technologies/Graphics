@@ -91,16 +91,19 @@ struct JitteredRay
     float3 yDirDerivWS;
 };
 
-float ComputeFadeFactor(float3 coordNDC, float3 rcpPosFade, float3 rcpNegFade, bool invertFade)
+float ComputeFadeFactor(float3 coordNDC, float dist,
+                        float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
+                        float rcpDistFadeLen, float endTimesRcpDistFadeLen)
 {
     // We have to account for handedness.
     coordNDC.z = 1 - coordNDC.z;
 
-    float3 posT = Remap10(coordNDC, rcpPosFade, rcpPosFade);
-    float3 negT = Remap01(coordNDC, rcpNegFade, 0);
-    float  fade = posT.x * posT.y * posT.z * negT.x * negT.y * negT.z;
+    float3 posF = Remap10(coordNDC, rcpPosFaceFade, rcpPosFaceFade);
+    float3 negF = Remap01(coordNDC, rcpNegFaceFade, 0);
+    float  dstF = Remap10(dist, rcpDistFadeLen, endTimesRcpDistFadeLen);
+    float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
 
-    return invertFade ? (1 - fade) : fade;
+    return dstF * (invertFade ? (1 - fade) : fade);
 }
 
 float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
@@ -272,6 +275,9 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                              0, 1,
                              tEntr, tExit);
 
+            // TODO: currently, soft voxelization does not account for the distance fade.
+            // Therefore, instead of a smooth transition, you may see a discrete pop between slices.
+            // How to make the distance fade affect the volume volume coverage?
             float overlapFraction = tExit - tEntr;
 
         #else  // SOFT_VOXELIZATION
@@ -288,9 +294,16 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 // the center of the voxel can be slightly outside the box.
                 float3 voxelCenterNDC = saturate(voxelCenterCS * 0.5 + 0.5);
 
-                overlapFraction *= ComputeFadeFactor(voxelCenterNDC, _VolumeData[volumeIndex].rcpPosFade,
-                                                                     _VolumeData[volumeIndex].rcpNegFade,
-                                                                     _VolumeData[volumeIndex].invertFade);
+                // Due to clamping above, 't' may not exactly correspond to the distance
+                // to the sample point. We ignore it for performance and simplicity.
+                float dist = t;
+
+                overlapFraction *= ComputeFadeFactor(voxelCenterNDC, dist,
+                                                     _VolumeData[volumeIndex].rcpPosFaceFade,
+                                                     _VolumeData[volumeIndex].rcpNegFaceFade,
+                                                     _VolumeData[volumeIndex].invertFade,
+                                                     _VolumeData[volumeIndex].rcpDistFadeLen,
+                                                     _VolumeData[volumeIndex].endTimesRcpDistFadeLen);
 
                 // Sample the volumeMask.
                 if (_VolumeData[volumeIndex].textureIndex != -1)

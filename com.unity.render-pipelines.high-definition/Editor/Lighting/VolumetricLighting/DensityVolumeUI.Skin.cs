@@ -26,6 +26,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent s_NormalModeContent = new GUIContent("Normal", "Normal parameters mode.");
             public static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Advanced parameters mode.");
 
+            public static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start");
+            public static readonly GUIContent s_DistanceFadeEndLabel   = new GUIContent("Distance Fade End");
+
             public static readonly Color k_GizmoColorBase = new Color(180 / 255f, 180 / 255f, 180 / 255f, 8 / 255f).gamma;
 
             public static readonly Color[] k_BaseHandlesColor = new Color[]
