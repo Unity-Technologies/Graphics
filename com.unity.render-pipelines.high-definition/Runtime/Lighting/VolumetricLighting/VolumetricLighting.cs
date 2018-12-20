@@ -16,10 +16,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int     textureIndex;
         public Vector3 textureScroll;
         public int     invertFade;    // bool...
-        public Vector3 rcpPosFade;
-        public float   pad1;
-        public Vector3 rcpNegFade;
-        public float   pad2;
+        public Vector3 rcpPosFaceFade;
+        public float   rcpDistFadeLen;
+        public Vector3 rcpNegFaceFade;
+        public float   endTimesRcpDistFadeLen;
 
         public static DensityVolumeEngineData GetNeutralValues()
         {
@@ -30,11 +30,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.textureIndex  = -1;
             data.textureTiling = Vector3.one;
             data.textureScroll = Vector3.zero;
-            data.rcpPosFade    = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-            data.rcpNegFade    = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            data.rcpPosFaceFade    = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            data.rcpNegFaceFade    = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
             data.invertFade    = 0;
-            data.pad1          = 0;
-            data.pad2          = 0;
+            data.rcpDistFadeLen         = 0;
+            data.endTimesRcpDistFadeLen = 1;
 
             return data;
         }
