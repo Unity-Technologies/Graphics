@@ -285,7 +285,7 @@ $features.modifyMesh:   $include("VertexAnimation.template.hlsl")
 
 $include("SharedCode.template.hlsl")
 
-    void BuildSurfaceData(FragInputs fragInputs, SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData)
+    void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData)
     {
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
@@ -415,7 +415,7 @@ $include("SharedCode.template.hlsl")
 
         float geometricVariance = 0.0;
         // Note SpecularAA: or GeometricSpecularAA: guarantees surfaceDescription has SpecularAAScreenSpaceVariance and SpecularAAThreshold.
-        $GeometricSpecularAA: geometricVariance = GeometricNormalVariance(input.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance);
+        $GeometricSpecularAA: geometricVariance = GeometricNormalVariance(fragInputs.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance);
 
         // TODO: Handle normal map filtering
         // Also handle texture normal filtering when we have the proper operator nodes and can thus have the variance port

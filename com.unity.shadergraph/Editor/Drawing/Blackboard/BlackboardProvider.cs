@@ -3,12 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
-
-
-
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
-using UnityEngine.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -24,6 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Label m_PathLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
+        List<MaterialNodeView> m_SelectedNodes = new List<MaterialNodeView>();
 
         //public Action onDragFinished
         //{
@@ -78,6 +75,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in graph.properties)
                 AddProperty(property);
             blackboard.Add(m_Section);
+        }
+
+        void OnDragUpdatedEvent(DragUpdatedEvent evt)
+        {
+            if (m_SelectedNodes.Any())
+            {
+                foreach (var node in m_SelectedNodes)
+                {
+                    node.RemoveFromClassList("hovered");
+                }
+                m_SelectedNodes.Clear();
+            }
         }
 
         void OnMouseDownEvent(MouseDownEvent evt)
@@ -240,9 +249,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 property.displayName = m_Graph.SanitizePropertyName(property.displayName);
 
             var icon = property.generatePropertyBlock ? exposedIcon : null;
-
             var field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
-            var row = new BlackboardRow(field, new BlackboardFieldPropertyView(field, m_Graph, property));
+
+            var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
+            var row = new BlackboardRow(field, propertyView);
+            var pill = row.Q<Pill>();
+            pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, property));
+            pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, property));
+            pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 
             row.userData = property;
             if (index < 0)
@@ -268,6 +282,38 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 node.OnEnable();
                 node.Dirty(ModificationScope.Node);
+            }
+        }
+
+        public BlackboardRow GetBlackboardRow(Guid guid)
+        {
+            return m_PropertyRows[guid];
+        }
+
+        void OnMouseHover(EventBase evt, IShaderProperty property)
+        {
+            var graphView = blackboard.GetFirstAncestorOfType<MaterialGraphView>();
+            if (evt.eventTypeId == MouseEnterEvent.TypeId())
+            {
+                foreach (var node in graphView.nodes.ToList().OfType<MaterialNodeView>())
+                {
+                    if (node.node is PropertyNode propertyNode)
+                    {
+                        if (propertyNode.propertyGuid == property.guid)
+                        {
+                            m_SelectedNodes.Add(node);
+                            node.AddToClassList("hovered");
+                        }
+                    }
+                }
+            }
+            else if (evt.eventTypeId == MouseLeaveEvent.TypeId() && m_SelectedNodes.Any())
+            {
+                foreach (var node in m_SelectedNodes)
+                {
+                    node.RemoveFromClassList("hovered");
+                }
+                m_SelectedNodes.Clear();
             }
         }
     }

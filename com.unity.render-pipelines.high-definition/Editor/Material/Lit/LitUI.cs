@@ -879,11 +879,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (header.expanded)
                 {
-                    // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
-                    //if (enableSpecularOcclusion.floatValue > 0.0f)
-                    {
-                        //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
-                    }
                     m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
 
                     if (material.GetTexture(kEmissiveColorMap))
@@ -910,6 +905,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
 
                     m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
+
+                    DoEmissionArea(material);
                 }
             }
         }
