@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent generalHeader = new GUIContent("General");
             public readonly GUIContent shapeHeader = new GUIContent("Shape");
             public readonly GUIContent emissionHeader = new GUIContent("Emission");
-            public readonly GUIContent volumetricHeader = new GUIContent("Volumetric");
+            public readonly GUIContent volumetricHeader = new GUIContent("Volumetrics");
             public readonly GUIContent shadowHeader = new GUIContent("Shadows");
             public readonly GUIContent shadowMapSubHeader = new GUIContent("Shadow Map");
             public readonly GUIContent contactShadowsSubHeader = new GUIContent("Contact Shadows");
