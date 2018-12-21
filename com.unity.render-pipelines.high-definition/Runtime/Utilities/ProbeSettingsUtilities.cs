@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal enum PositionMode
         {
             UseProbeTransform,
-            MirrorReferenceTransfromWithProbePlane
+            MirrorReferenceTransformWithProbePlane
         }
 
         // This is viable to use a static variable here because ApplySettings() must be called only on main thread.
@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (settings.type)
             {
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    positionMode = PositionMode.MirrorReferenceTransfromWithProbePlane;
+                    positionMode = PositionMode.MirrorReferenceTransformWithProbePlane;
                     useReferenceTransformAsNearClipPlane = true;
                     break;
                 case ProbeSettings.ProbeType.ReflectionProbe:
@@ -59,9 +59,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var proxyMatrix = Matrix4x4.TRS(probePosition.proxyPosition, probePosition.proxyRotation, Vector3.one);
                         cameraPosition.position = proxyMatrix.MultiplyPoint(settings.proxySettings.capturePositionProxySpace);
                         cameraPosition.rotation = proxyMatrix.rotation * settings.proxySettings.captureRotationProxySpace;
+
+                        
                         break;
                     }
-                case PositionMode.MirrorReferenceTransfromWithProbePlane:
+                case PositionMode.MirrorReferenceTransformWithProbePlane:
                     {
                         cameraPosition.mode = CameraPositionSettings.Mode.UseWorldToCameraMatrixField;
                         ApplyMirroredReferenceTransform(

@@ -36,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // HD Specific
             add.customRenderingSettings = settings.customRenderingSettings;
             add.flipYMode = settings.flipYMode;
+            add.invertFaceCulling = settings.invertFaceCulling;
 
             add.OnAfterDeserialize();
         }

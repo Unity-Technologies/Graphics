@@ -34,7 +34,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent gateFitContent = EditorGUIUtility.TrTextContent("Gate Fit", "TDetermines how the rendered area (resolution gate) fits into the sensor area (film gate).");
         static readonly GUIContent nearPlaneContent = EditorGUIUtility.TrTextContent("Near", "TThe closest point relative to the camera that drawing will occur.");
         static readonly GUIContent farPlaneContent = EditorGUIUtility.TrTextContent("Far", "TThe furthest point relative to the camera that drawing will occur.");
-
+        static readonly GUIContent probeLayerMaskContent = EditorGUIUtility.TrTextContent("Probe Layer Mask", "The layer mask to use to cull probe influences.");
+        
         static readonly GUIContent renderingPathContent = EditorGUIUtility.TrTextContent("Custom Frame Settings|Here, you must select which settings to override. If you do enable a specific override, the setting uses the pipeline default.");
 
         // TODO: Tooltips

@@ -93,6 +93,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Drawer_FieldCullingMask,
                 Drawer_FieldVolumeLayerMask,
                 Drawer_FieldVolumeAnchorOverride,
+                (p, owner) => EditorGUILayout.PropertyField(p.probeLayerMask, probeLayerMaskContent),
                 Drawer_FieldOcclusionCulling
                 ),
             CED.space,

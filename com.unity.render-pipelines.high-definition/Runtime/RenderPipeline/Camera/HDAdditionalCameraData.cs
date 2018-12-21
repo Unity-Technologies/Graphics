@@ -140,6 +140,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("This will allows to override default settings for this renderer")]
         public bool customRenderingSettings = false;
 
+        public bool invertFaceCulling = false;
+
+        public LayerMask probeLayerMask = ~0;
+
         // Event used to override HDRP rendering for this particular camera.
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         public bool hasCustomRender { get { return customRender != null; } }

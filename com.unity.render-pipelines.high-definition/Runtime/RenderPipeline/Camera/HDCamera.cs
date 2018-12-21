@@ -181,6 +181,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public HDPhysicalCamera physicalParameters => m_AdditionalCameraData?.physicalParameters;
 
+        public bool invertFaceCulling
+            => m_AdditionalCameraData != null ? m_AdditionalCameraData.invertFaceCulling : false;
+
+        public LayerMask probeLayerMask
+            => m_AdditionalCameraData != null
+            ? m_AdditionalCameraData.probeLayerMask
+            : (LayerMask)~0;
+
         static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
@@ -365,7 +373,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 isFirstFrame = false;
             }
 
-            // In stereo, this corresponds to the center eye position	
+            // In stereo, this corresponds to the center eye position
             worldSpaceCameraPos = camera.transform.position;
 
             taaFrameRotation = new Vector2(Mathf.Sin(taaFrameIndex * (0.5f * Mathf.PI)),

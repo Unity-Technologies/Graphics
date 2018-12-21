@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
@@ -89,7 +90,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 camera.ApplySettings(settings);
                 camera.ApplySettings(position);
 
-                GL.invertCulling = settings.invertFaceCulling;
                 switch (target.dimension)
                 {
                     case TextureDimension.Tex2D:
@@ -112,7 +112,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             break;
                         }
                 }
-                GL.invertCulling = false;
             }
             finally
             {
@@ -124,20 +123,69 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ProbeSettings settings,
             ProbeCapturePositionSettings position,
             Texture target,
-            bool forceFlipY = false
+            bool forceFlipY = false,
+            bool forceInvertBackfaceCulling = false
         )
         {
             Render(
                 settings, position, target,
                 out CameraSettings cameraSettings, out CameraPositionSettings cameraPosition,
-                forceFlipY: forceFlipY
+                forceFlipY: forceFlipY,
+                forceInvertBackfaceCulling: forceInvertBackfaceCulling
             );
+        }
+
+        static readonly Vector3[] s_GenerateRenderingSettingsFor_Rotations =
+        {
+            new Vector3(0, 90, 0),
+            new Vector3(0, 270, 0),
+            new Vector3(270, 0, 0),
+            new Vector3(90, 0, 0),
+            new Vector3(0, 0, 0),
+            new Vector3(0, 180, 0),
+        };
+        public static void GenerateRenderingSettingsFor(
+            ProbeSettings settings, ProbeCapturePositionSettings position,
+            List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions,
+            bool forceFlipY = false
+        )
+        {
+            // Copy settings
+            ComputeCameraSettingsFromProbeSettings(
+                settings, position,
+                out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
+            );
+
+            if (forceFlipY)
+                cameraSettings.flipYMode = HDAdditionalCameraData.FlipYMode.ForceFlipY;
+
+            switch (settings.type)
+            {
+                case ProbeSettings.ProbeType.PlanarProbe:
+                    {
+                        cameras.Add(cameraSettings);
+                        cameraPositions.Add(cameraPositionSettings);
+                        break;
+                    }
+                case ProbeSettings.ProbeType.ReflectionProbe:
+                    {
+                        for (int i = 0; i < 6; ++i)
+                        {
+                            var cameraPositionCopy = cameraPositionSettings;
+                            cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
+                                s_GenerateRenderingSettingsFor_Rotations[i]
+                            );
+                            cameras.Add(cameraSettings);
+                            cameraPositions.Add(cameraPositionCopy);
+                        }
+                        break;
+                    }
+            }
         }
 
         public static void ComputeCameraSettingsFromProbeSettings(
             ProbeSettings settings,
             ProbeCapturePositionSettings position,
-            Texture target,
             out CameraSettings cameraSettings,
             out CameraPositionSettings cameraPositionSettings
         )
@@ -159,17 +207,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Texture target,
             out CameraSettings cameraSettings,
             out CameraPositionSettings cameraPositionSettings,
-            bool forceFlipY = false
+            bool forceFlipY = false,
+            bool forceInvertBackfaceCulling = false
         )
         {
             // Copy settings
             ComputeCameraSettingsFromProbeSettings(
-                settings, position, target,
+                settings, position,
                 out cameraSettings, out cameraPositionSettings
             );
 
             if (forceFlipY)
                 cameraSettings.flipYMode = HDAdditionalCameraData.FlipYMode.ForceFlipY;
+            if (forceInvertBackfaceCulling)
+                cameraSettings.invertFaceCulling = true;
 
             // Perform rendering
             Render(cameraSettings, cameraPositionSettings, target);

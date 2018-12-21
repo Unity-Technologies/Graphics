@@ -34,6 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // This one is internal in UnityEditor for whatever reason...
         public SerializedProperty projectionMatrixMode;
 
+        public SerializedProperty probeLayerMask;
 
         public SerializedHDCamera(SerializedObject serializedObject)
         {
@@ -70,6 +71,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             volumeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeLayerMask);
             volumeAnchorOverride = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeAnchorOverride);
             frameSettings = new SerializedFrameSettings(serializedAdditionalDataObject.FindProperty("m_FrameSettings"));
+
+            probeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.probeLayerMask);
 
             baseCameraSettings = new CameraEditor.Settings(serializedObject);
             baseCameraSettings.OnEnable();

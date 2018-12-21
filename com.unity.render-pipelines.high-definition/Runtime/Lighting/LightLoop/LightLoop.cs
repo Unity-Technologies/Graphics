@@ -1370,11 +1370,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (probe)
             {
                 case PlanarReflectionProbe planarProbe:
-            {
-                if (!hdCamera.frameSettings.enableRealtimePlanarReflection)
-                    break;
+                    {
+                        if (!hdCamera.frameSettings.enableRealtimePlanarReflection)
+                            break;
                         var fetchIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
-                envIndex = (fetchIndex << 1) | (int)EnvCacheType.Texture2D;
+                        envIndex = (fetchIndex << 1) | (int)EnvCacheType.Texture2D;
 
                         var renderData = planarProbe.renderData;
                         var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
@@ -1389,18 +1389,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var gpuView = worldToCameraRHSMatrix;
 
                         var vp = gpuProj * gpuView;
-                m_Env2DCaptureVP[fetchIndex] = vp;
+                        m_Env2DCaptureVP[fetchIndex] = vp;
                         break;
-            }
+                    }
                 case HDAdditionalReflectionData cubeProbe:
-            {
+                    {
                         envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
-                envIndex = envIndex << 1 | (int)EnvCacheType.Cubemap;
+                        envIndex = envIndex << 1 | (int)EnvCacheType.Cubemap;
 
                         // Calculate settings to use for the probe
                         var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
                         HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
-                            probe.settings, probePositionSettings, probe.texture,
+                            probe.settings, probePositionSettings,
                             out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
                         );
                         capturePosition = cameraPositionSettings.position;
@@ -1623,7 +1623,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Return true if BakedShadowMask are enabled
         public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-            ReflectionProbeCullResults reflectionProbeCullResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings)
+            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
@@ -1900,7 +1900,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Debug.Assert(m_MaxEnvLightsOnScreen <= 256); //for key construction
                     int envLightCount = 0;
 
-                    var totalProbes = cullResults.visibleReflectionProbes.Length + reflectionProbeCullResults.visiblePlanarReflectionProbeCount;
+                    var totalProbes = cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count;
                     int probeCount = Math.Min(totalProbes, m_MaxEnvLightsOnScreen);
                     UpdateSortKeysArray(probeCount);
                     sortCount = 0;
@@ -1911,6 +1911,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             var probe = cullResults.visibleReflectionProbes[probeIndex];
                             if (probe.reflectionProbe == null || probe.reflectionProbe.Equals(null))
+                                continue;
+
+                            // Exclude env lights based on hdCamera.probeLayerMask
+                            if ((hdCamera.probeLayerMask.value & (1 << probe.reflectionProbe.gameObject.layer)) == 0)
                                 continue;
 
                             var additional = probe.reflectionProbe.GetComponent<HDAdditionalReflectionData>();
@@ -1942,10 +1946,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         else
                         {
                             var planarProbeIndex = probeIndex - cullResults.visibleReflectionProbes.Length;
-                            var probe = reflectionProbeCullResults.visiblePlanarReflectionProbes[planarProbeIndex];
+                            var probe = hdProbeCullingResults.visibleProbes[planarProbeIndex];
 
                             // probe.texture can be null when we are adding a reflection probe in the editor
                             if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
+                                continue;
+
+                            // Exclude env lights based on hdCamera.probeLayerMask
+                            if ((hdCamera.probeLayerMask.value & (1 << probe.gameObject.layer)) == 0)
                                 continue;
 
                             var lightVolumeType = LightVolumeType.Box;
@@ -1976,7 +1984,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (listType == 0)
                             probe = cullResults.visibleReflectionProbes[probeIndex];
                         else
-                            planarProbe = reflectionProbeCullResults.visiblePlanarReflectionProbes[probeIndex];
+                            planarProbe = (PlanarReflectionProbe)hdProbeCullingResults.visibleProbes[probeIndex];
 
                         var probeWrapper = SelectProbe(probe, planarProbe);
 
