@@ -22,8 +22,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTextureFormat         m_Format;
         string                      m_Name;
         int                         m_AtlasSizeShaderID;
+        RenderPipelineResources     m_RenderPipelineResources;
 
-        public HDShadowAtlas(int width, int height, int atlasSizeShaderID, Material clearMaterial, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+        // Moment shadow data
+        bool m_SupportMomentShadows;
+        RTHandleSystem.RTHandle m_AtlasMoments;
+        RTHandleSystem.RTHandle m_IntermediateSummedAreaTexture;
+        RTHandleSystem.RTHandle m_SummedAreaTexture;
+
+        public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasSizeShaderID, Material clearMaterial, bool supportMomentShadows, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
             this.width = width;
             this.height = height;
@@ -33,6 +40,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Name = name;
             m_AtlasSizeShaderID = atlasSizeShaderID;
             m_ClearMaterial = clearMaterial;
+            m_SupportMomentShadows = supportMomentShadows;
+            m_RenderPipelineResources = renderPipelineResources;
 
             AllocateRenderTexture();
         }
@@ -43,6 +52,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Atlas.Release();
             
             m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, sRGB: false, colorFormat: m_Format, name: m_Name);
+            if(m_SupportMomentShadows)
+            {
+                string momentShadowMapName = m_Name + "Moment";
+                m_AtlasMoments = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false, enableRandomWrite: true, name: momentShadowMapName);
+                string intermediateSummedAreaName = m_Name + "IntermediateSummedArea";
+                m_IntermediateSummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBInt, sRGB: false, enableRandomWrite: true, name: intermediateSummedAreaName);
+                string summedAreaName = m_Name + "SummedAreaFinal";
+                m_SummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBInt, sRGB: false, enableRandomWrite: true, name: summedAreaName);
+            }
             identifier = new RenderTargetIdentifier(m_Atlas);
         }
 
@@ -237,7 +255,61 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             cmd.SetGlobalFloat(HDShaderIDs._ZClip, 1.0f);   // Re-enable zclip globally
         }
-        
+
+        public void ComputeMomentShadows(CommandBuffer cmd, HDCamera hdCamera )
+        {
+            // If the target kernel is not available
+            ComputeShader momentCS = m_RenderPipelineResources.shaders.momentShadowsCS;
+            if (momentCS == null) return;
+
+            using (new ProfilingSample(cmd, "Render Moment Shadows", CustomSamplerId.RenderShadows.GetSampler()))
+            {
+                int computeMomentKernel = momentCS.FindKernel("ComputeMomentShadows");
+                int summedAreaHorizontalKernel = momentCS.FindKernel("MomentSummedAreaTableHorizontal");
+                int summedAreaVerticalKernel = momentCS.FindKernel("MomentSummedAreaTableVertical");
+
+                // First of all let's clear the moment shadow map
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_AtlasMoments, ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_IntermediateSummedAreaTexture, ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_SummedAreaTexture, ClearFlag.Color, Color.black);
+
+                // Alright, so the thing here is that for every sub-shadow map of the atlas, we need to generate the moment shadow map
+                foreach (var shadowRequest in m_ShadowRequests)
+                {
+                    // Let's bind the resources of this
+                    cmd.SetComputeTextureParam(momentCS, computeMomentKernel, HDShaderIDs._ShadowmapAtlas, m_Atlas);
+                    cmd.SetComputeTextureParam(momentCS, computeMomentKernel, HDShaderIDs._MomentShadowAtlas, m_AtlasMoments);
+                    cmd.SetComputeVectorParam(momentCS, HDShaderIDs._MomentShadowmapSlotST, new Vector4(shadowRequest.atlasViewport.width, shadowRequest.atlasViewport.height, shadowRequest.atlasViewport.min.x, shadowRequest.atlasViewport.min.y));
+
+                    // First of all we need to compute the moments
+                    int numTilesX = Math.Max((int)shadowRequest.atlasViewport.width / 8, 1);
+                    int numTilesY = Math.Max((int)shadowRequest.atlasViewport.height / 8, 1);
+                    cmd.DispatchCompute(momentCS, computeMomentKernel, numTilesX, numTilesY, 1);
+
+                    // Do the horizontal pass of the summed area table
+                    cmd.SetComputeTextureParam(momentCS, summedAreaHorizontalKernel, HDShaderIDs._SummedAreaTableInputFloat, m_AtlasMoments);
+                    cmd.SetComputeTextureParam(momentCS, summedAreaHorizontalKernel, HDShaderIDs._SummedAreaTableOutputInt, m_IntermediateSummedAreaTexture);
+                    cmd.SetComputeFloatParam(momentCS, HDShaderIDs._IMSKernelSize, shadowRequest.kernelSize);
+                    cmd.SetComputeVectorParam(momentCS, HDShaderIDs._MomentShadowmapSize, new Vector2((float)m_AtlasMoments.referenceSize.x, (float)m_AtlasMoments.referenceSize.y));
+
+                    int numLines = Math.Max((int)shadowRequest.atlasViewport.width / 64, 1);
+                    cmd.DispatchCompute(momentCS, summedAreaHorizontalKernel, numLines, 1, 1);
+
+                    // Do the horizontal pass of the summed area table
+                    cmd.SetComputeTextureParam(momentCS, summedAreaVerticalKernel, HDShaderIDs._SummedAreaTableInputInt, m_IntermediateSummedAreaTexture);
+                    cmd.SetComputeTextureParam(momentCS, summedAreaVerticalKernel, HDShaderIDs._SummedAreaTableOutputInt, m_SummedAreaTexture);
+                    cmd.SetComputeVectorParam(momentCS, HDShaderIDs._MomentShadowmapSize, new Vector2((float)m_AtlasMoments.referenceSize.x, (float)m_AtlasMoments.referenceSize.y));
+                    cmd.SetComputeFloatParam(momentCS, HDShaderIDs._IMSKernelSize, shadowRequest.kernelSize);
+
+                    int numColumns = Math.Max((int)shadowRequest.atlasViewport.height / 64, 1);
+                    cmd.DispatchCompute(momentCS, summedAreaVerticalKernel, numColumns, 1, 1);
+
+                    // Push the global texture
+                    cmd.SetGlobalTexture(HDShaderIDs._SummedAreaTableInputInt, m_SummedAreaTexture);
+                }
+            }
+        }
+
         public void DisplayAtlas(CommandBuffer cmd, Material debugMaterial, Rect atlasViewport, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
         {
             if (m_Atlas == null)
@@ -267,6 +339,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Atlas != null)
                 RTHandles.Release(m_Atlas);
+
+            if (m_AtlasMoments != null)
+            {
+                RTHandles.Release(m_AtlasMoments);
+                m_AtlasMoments = null;
+            }
+
+            if (m_IntermediateSummedAreaTexture != null)
+            {
+                RTHandles.Release(m_IntermediateSummedAreaTexture);
+                m_IntermediateSummedAreaTexture = null;
+
+            }
+            
+            if (m_SummedAreaTexture != null)
+            {
+                RTHandles.Release(m_SummedAreaTexture);
+                m_SummedAreaTexture = null;
+            }
         }
     }
 }
