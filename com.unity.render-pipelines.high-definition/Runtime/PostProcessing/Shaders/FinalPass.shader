@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/FinalPass"
+Shader "Hidden/HDRP/FinalPass"
 {
     HLSLINCLUDE
 

@@ -57,5 +57,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
         public HDShadowInitParameters   hdShadowInitParams = new HDShadowInitParameters();
         public GlobalDecalSettings      decalSettings = new GlobalDecalSettings();
+        public GlobalPostProcessSettings postProcessSettings = new GlobalPostProcessSettings();
     }
 }

@@ -17,5 +17,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return texture.value != null
                 && contribution.value > 0f;
         }
+
+        public bool ValidateTexture()
+        {
+            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            if (hdAsset == null || texture.value == null)
+                return false;
+
+            if (texture.value.width != hdAsset.renderPipelineSettings.postProcessSettings.lutSize)
+                return false;
+
+            bool valid = false;
+
+            switch (texture.value)
+            {
+                case Texture3D t:
+                    valid |= t.width == t.height
+                          && t.height == t.depth;
+                    break;
+                case RenderTexture rt:
+                    valid |= rt.dimension == TextureDimension.Tex3D
+                          && rt.width == rt.height
+                          && rt.height == rt.volumeDepth;
+                    break;
+            }
+
+            return valid;
+        }
     }
 }

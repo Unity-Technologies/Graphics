@@ -101,9 +101,9 @@ float3 ColorGrade(float3 colorLutSpace)
     // Split toning
     // TODO: make sure this doesn't mess up the LUT
     // As counter-intuitive as it is, to make split-toning work the same way it does in Adobe
-    // products we have to do all the maths in sRGB...
+    // products we have to do all the maths in gamma-space...
     float balance = _SplitShadows.w;
-    float3 colorGamma = FastLinearToSRGB(colorLinear);
+    float3 colorGamma = PositivePow(colorLinear, 1.0 / 2.2);
 
     float luma = saturate(GetLuminance(saturate(colorGamma)) + balance);
     float3 splitShadows = lerp((0.5).xxx, _SplitShadows.xyz, 1.0 - luma);
@@ -111,7 +111,7 @@ float3 ColorGrade(float3 colorLutSpace)
     colorGamma = SoftLight(colorGamma, splitShadows);
     colorGamma = SoftLight(colorGamma, splitHighlights);
 
-    colorLinear = FastSRGBToLinear(colorGamma);
+    colorLinear = PositivePow(colorGamma, 2.2);
 
     // Channel mixing (Adobe style)
     colorLinear = float3(
@@ -185,5 +185,5 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 gradedColor = ColorGrade(colorLutSpace);
     gradedColor = Tonemap(gradedColor);
 
-    _OutputTexture[dispatchThreadId] = float4(gradedColor, 1.0);
+    _OutputTexture[dispatchThreadId] = float4(max(gradedColor, 0.0), 1.0);
 }

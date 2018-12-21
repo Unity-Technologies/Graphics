@@ -49,10 +49,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     CED.Select(
                         (serialized, owner) => serialized.hdShadowInitParams,
                         HDShadowInitParametersUI.Inspector
-                    ),
+                        ),
                     CED.Select(
                         (serialized, owner) => serialized.decalSettings,
                         GlobalDecalSettingsUI.Inspector
+                        ),
+                    CED.Select(
+                        (serialized, owner) => serialized.postProcessSettings,
+                        GlobalPostProcessSettingsUI.Inspector
                         )
                     );
         }

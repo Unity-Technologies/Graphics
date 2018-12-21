@@ -35,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
         public SerializedGlobalDecalSettings decalSettings;
+        public SerializedGlobalPostProcessSettings postProcessSettings;
 
         public SerializedRenderPipelineSettings(SerializedProperty root)
         {
@@ -66,6 +67,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));
             decalSettings     = new SerializedGlobalDecalSettings(root.Find((RenderPipelineSettings s) => s.decalSettings));
+            postProcessSettings = new SerializedGlobalPostProcessSettings(root.Find((RenderPipelineSettings s) => s.postProcessSettings));
         }
     }
 }

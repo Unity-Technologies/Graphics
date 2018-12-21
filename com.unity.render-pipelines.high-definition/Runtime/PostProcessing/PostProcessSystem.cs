@@ -45,7 +45,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Texture2D m_InternalSpectralLut;
 
         // Color grading data
-        const int k_LogLutSize = 33;
+        readonly int m_LutSize;
+        readonly RenderTextureFormat m_LutFormat;
         RTHandle m_InternalLogLut; // ARGBHalf
         readonly HableCurve m_HableCurve;
 
@@ -92,6 +93,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             useSafePath = SystemInfo.graphicsDeviceVendor
                 .ToLowerInvariant().Contains("intel");
 
+            // Project-wise LUT size for all grading operations - meaning that internal LUTs and
+            // user-provided LUTs will have to be this size
+            var settings = hdAsset.renderPipelineSettings.postProcessSettings;
+            m_LutSize = settings.lutSize;
+            m_LutFormat = (RenderTextureFormat)settings.lutFormat;
+
             // Feature maps
             // Must be kept in sync with variants defined in UberPost.compute
             PushUberFeature(UberPostFeatureFlags.None);
@@ -108,11 +115,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_InternalLogLut = RTHandles.Alloc(
                 name: "Color Grading Log Lut",
                 dimension: TextureDimension.Tex3D,
-                width: k_LogLutSize,
-                height: k_LogLutSize,
-                slices: k_LogLutSize,
+                width: m_LutSize,
+                height: m_LutSize,
+                slices: m_LutSize,
                 depthBufferBits: DepthBits.None,
-                colorFormat: RenderTextureFormat.ARGBHalf,
+                colorFormat: m_LutFormat,
                 filterMode: FilterMode.Bilinear,
                 wrapMode: TextureWrapMode.Clamp,
                 anisoLevel: 0,
@@ -1542,7 +1549,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Fill-in constant buffers & textures
             cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._OutputTexture, m_InternalLogLut);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Size, new Vector4(k_LogLutSize, 1f / (k_LogLutSize - 1f), 0f, 0f));
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Size, new Vector4(m_LutSize, 1f / (m_LutSize - 1f), 0f, 0f));
             cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorBalance, lmsColorBalance);
             cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorFilter, m_ColorAdjustments.colorFilter.value.linear);
             cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerRed, channelMixerR);
@@ -1583,9 +1590,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // See the note about Metal & Intel in LutBuilder3D.compute
             builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
             cmd.DispatchCompute(builderCS, builderKernel,
-                (int)((k_LogLutSize + threadX - 1u) / threadX),
-                (int)((k_LogLutSize + threadY - 1u) / threadY),
-                (int)((k_LogLutSize + threadZ - 1u) / threadZ)
+                (int)((m_LutSize + threadX - 1u) / threadX),
+                (int)((m_LutSize + threadY - 1u) / threadY),
+                (int)((m_LutSize + threadZ - 1u) / threadZ)
             );
 
             // This should be EV100 instead of EV but given that EV100(0) isn't equal to 1, it means
@@ -1593,7 +1600,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure);
 
             // Setup the uber shader
-            var logLutSettings = new Vector4(1f / k_LogLutSize, k_LogLutSize - 1f, postExposureLinear, 0f);
+            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._LogLut3D, m_InternalLogLut);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._LogLut3D_Params, logLutSettings);
         }

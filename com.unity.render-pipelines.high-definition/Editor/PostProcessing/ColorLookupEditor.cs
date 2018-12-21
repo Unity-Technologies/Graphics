@@ -1,5 +1,4 @@
 using UnityEditor.Rendering;
-using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -23,26 +22,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_Texture);
 
             var lut = m_Texture.value.objectReferenceValue;
-            if (lut != null)
-            {
-                bool valid = false;
-
-                if (lut is Texture3D)
-                {
-                    var o = (Texture3D)lut;
-                    if (o.width == o.height && o.height == o.depth)
-                        valid = true;
-                }
-                else if (lut is RenderTexture)
-                {
-                    var o = (RenderTexture)lut;
-                    if (o.width == o.height && o.height == o.volumeDepth)
-                        valid = true;
-                }
-
-                if (!valid)
-                    EditorGUILayout.HelpBox("Custom LUTs have to be log-encoded 3D textures or 3D render textures.", MessageType.Warning);
-            }
+            if (lut != null && !((ColorLookup)target).ValidateTexture())
+                EditorGUILayout.HelpBox("Invalid lookup texture. It must be a 3D texture or render texture with the same size as set in the HDRP settings.", MessageType.Warning);
 
             PropertyField(m_Contribution);
         }
