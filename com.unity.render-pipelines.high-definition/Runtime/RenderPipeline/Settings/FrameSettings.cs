@@ -423,7 +423,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 },
                 new DebugUI.Foldout
                 {
-                    displayName = "Rendering Settings",
+                    displayName = "Rendering",
                     children =
                     {
                         new DebugUI.EnumField { displayName = "Lit Shader Mode", getter = () => (int)frameSettings.shaderLitMode, setter = value => frameSettings.shaderLitMode = (LitShaderMode)value, autoEnum = typeof(LitShaderMode), getIndex = () => frameSettings.m_LitShaderModeEnumIndex, setIndex = value => frameSettings.m_LitShaderModeEnumIndex = value },
@@ -436,7 +436,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 },
                 new DebugUI.Foldout
                 {
-                    displayName = "Lighting Settings",
+                    displayName = "Lighting",
                     children =
                     {
                         new DebugUI.BoolField { displayName = "Enable SSR", getter = () => frameSettings.enableSSR, setter = value => frameSettings.enableSSR = value },
@@ -454,7 +454,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 },
                 new DebugUI.Foldout
                 {
-                    displayName = "Async Compute Settings",
+                    displayName = "Async Compute",
                     children =
                     {
                         new DebugUI.BoolField { displayName = "Enable Async Compute", getter = () => frameSettings.enableAsyncCompute, setter = value => frameSettings.enableAsyncCompute = value },
