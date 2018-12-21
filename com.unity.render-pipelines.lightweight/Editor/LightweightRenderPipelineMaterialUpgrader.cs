@@ -129,6 +129,11 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             upgraders.Add(new ParticleUpgrader("Particles/Standard Surface"));
             upgraders.Add(new ParticleUpgrader("Particles/Standard Unlit"));
             upgraders.Add(new ParticleUpgrader("Particles/VertexLit Blended"));
+
+            ////////////////////////////////////
+            // Autodesk Interactive           //
+            ////////////////////////////////////
+            upgraders.Add(new AutodeskInteractiveUpgrader("Autodesk Interactive"));
         }
     }
 
@@ -342,6 +347,27 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesUnlit));
             else
                 RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesPhysicallyBased));
+        }
+    }
+
+    public class AutodeskInteractiveUpgrader : MaterialUpgrader
+    {
+        public AutodeskInteractiveUpgrader(string oldShaderName)
+        {
+            RenameShader(oldShaderName, "Lightweight Render Pipeline/Autodesk Interactive/Autodesk Interactive");
+        }
+
+        public override void Convert(Material srcMaterial, Material dstMaterial)
+        {
+            base.Convert(srcMaterial, dstMaterial);
+            dstMaterial.SetFloat("_UseColorMap", srcMaterial.GetTexture("_MainTex") ? 1.0f : .0f);
+            dstMaterial.SetFloat("_UseMetallicMap", srcMaterial.GetTexture("_MetallicGlossMap") ? 1.0f : .0f);
+            dstMaterial.SetFloat("_UseNormalMap", srcMaterial.GetTexture("_BumpMap") ? 1.0f : .0f);
+            dstMaterial.SetFloat("_UseRoughnessMap", srcMaterial.GetTexture("_SpecGlossMap") ? 1.0f : .0f);
+            dstMaterial.SetFloat("_UseEmissiveMap", srcMaterial.GetTexture("_EmissionMap") ? 1.0f : .0f);
+            dstMaterial.SetFloat("_UseAoMap", srcMaterial.GetTexture("_OcclusionMap") ? 1.0f : .0f);
+            dstMaterial.SetVector("_UvOffset", srcMaterial.GetTextureOffset("_MainTex"));
+            dstMaterial.SetVector("_UvTiling", srcMaterial.GetTextureScale("_MainTex"));
         }
     }
 }
