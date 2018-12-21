@@ -375,7 +375,7 @@ $include("SharedCode.template.hlsl")
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS);
 
         surfaceData.bentNormalWS = surfaceData.normalWS;
-        surfaceData.coatNormalWS = surfaceData.normalWS;
+        surfaceData.coatNormalWS = surfaceData.geomNormalWS;
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, surfaceData.bentNormalWS);
         $CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS);
 
