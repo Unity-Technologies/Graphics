@@ -23,9 +23,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Tangent", true)]
             public Vector3  tangentWS;
 
-            [SurfaceDataAttributes("BiTangent", true)]
-            public Vector3  biTangentWS;
-
             // SVBRDF Variables
             [SurfaceDataAttributes("Diffuse Color", false, true)]
             public Vector3  diffuseColor;
@@ -33,10 +30,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3  specularColor;
 
-            [SurfaceDataAttributes("Fresnel F0", false, true)]
+            [SurfaceDataAttributes("Fresnel F0")]
             public Vector3  fresnelF0;
 
-            [SurfaceDataAttributes("Specular Lobe", false, true)]
+            [SurfaceDataAttributes("Specular Lobe")]
             public Vector2  specularLobe;
 
             [SurfaceDataAttributes("Height")]
@@ -58,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Clearcoat Color")]
             public Vector3  clearcoatColor;
 
-            [SurfaceDataAttributes("Clearcoat Normal", true, true)]
+            [SurfaceDataAttributes("Clearcoat Normal", true)]
             public Vector3  clearcoatNormalWS;
 
             [SurfaceDataAttributes("Clearcoat IOR")]
@@ -77,7 +74,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3  normalWS;
+            [SurfaceDataAttributes("", true)]
             public Vector3  tangentWS;
+            [SurfaceDataAttributes("", true)]
             public Vector3  biTangentWS;
 
             // SVBRDF Variables
@@ -86,7 +85,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3  fresnelF0;
             public Vector2  roughness;
             public float    height_mm;
-            public float    anisotropyAngle;
 
             // Car Paint Variables
             [SurfaceDataAttributes("")]
@@ -99,6 +97,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Clearcoat
             public Vector3  clearcoatColor;
+            [SurfaceDataAttributes("", true)]
             public Vector3  clearcoatNormalWS;
             public float    clearcoatIOR;
 
