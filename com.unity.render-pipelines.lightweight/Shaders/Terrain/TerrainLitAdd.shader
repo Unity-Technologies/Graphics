@@ -65,6 +65,7 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
+            #pragma shader_feature _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _MASKMAP            
             #define TERRAIN_SPLAT_ADDPASS 1

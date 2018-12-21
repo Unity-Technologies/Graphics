@@ -14,6 +14,7 @@ half4 _MaskMapRemapScale0, _MaskMapRemapScale1, _MaskMapRemapScale2, _MaskMapRem
 
 float4 _Control_ST;
 half4 _Splat0_ST, _Splat1_ST, _Splat2_ST, _Splat3_ST;
+half _HeightTransition;
 CBUFFER_END
 
 TEXTURE2D(_Control);    SAMPLER(sampler_Control);

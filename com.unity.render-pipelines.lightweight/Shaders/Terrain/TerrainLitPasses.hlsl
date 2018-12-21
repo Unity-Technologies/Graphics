@@ -38,7 +38,7 @@ struct VertexOutput
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
     half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    half4 bitangent                  : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    half4 bitangent                 : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
 #else
     half3 normal                    : TEXCOORD3;
     half3 viewDir                   : TEXCOORD4;
@@ -257,6 +257,13 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     masks[2] = half4(1.0h, 1.0h, 0.0h, mixedDiffuse.a);
     masks[3] = half4(1.0h, 1.0h, 0.0h, mixedDiffuse.a);
 #endif
+
+#ifdef _TERRAIN_BLEND_HEIGHT
+    half4 defaultHeight = half4(masks[0].b, masks[1].b, masks[2].b, masks[3].b);
+    defaultHeight *= half4(_MaskMapRemapScale0.b, _MaskMapRemapScale1.b, _MaskMapRemapScale2.b, _MaskMapRemapScale3.b);
+    defaultHeight += half4(_MaskMapRemapOffset0.b, _MaskMapRemapOffset1.b, _MaskMapRemapOffset2.b, _MaskMapRemapOffset3.b);
+    half maxHeight = max(defaultHeight.r, max(defaultHeight.g, max(defaultHeight.b, defaultHeight.a)));
+#endif  
     
     half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
     defaultSmoothness *= half4(masks[0].a, masks[1].a, masks[2].a, masks[3].a);
@@ -268,7 +275,7 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     defaultMetallic *= half4(masks[0].r, masks[1].r, masks[2].r, masks[3].r);
     defaultMetallic *= half4(_MaskMapRemapScale0.r, _MaskMapRemapScale1.r, _MaskMapRemapScale3.r, _MaskMapRemapScale3.r);
     defaultMetallic += half4(_MaskMapRemapOffset0.r, _MaskMapRemapOffset1.r, _MaskMapRemapOffset2.r, _MaskMapRemapOffset3.r);
-    half metallic = dot(splatControl, defaultMetallic);
+    half metallic = dot(splatControl, defaultMetallic);  
     
     half4 defaultOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
     defaultOcclusion *= half4(_MaskMapRemapScale0.g, _MaskMapRemapScale1.g, _MaskMapRemapScale3.g, _MaskMapRemapScale3.g);
