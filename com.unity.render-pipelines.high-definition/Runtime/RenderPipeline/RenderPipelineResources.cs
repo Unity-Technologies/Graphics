@@ -83,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader shadowClearPS;
             public ComputeShader shadowBlurMomentsCS;
             public Shader debugHDShadowMapPS;
+            public ComputeShader momentShadowsCS;
 
             // Decal
             public Shader decalNormalBufferPS;
@@ -247,6 +248,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 shadowClearPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowClear.shader"),
                 shadowBlurMomentsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowBlurMoments.compute"),
                 debugHDShadowMapPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/DebugDisplayHDShadowMap.shader"),
+                momentShadowsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/MomentShadows.compute"),
 
                 // Decal
                 decalNormalBufferPS = Load<Shader>(HDRenderPipelinePath + "Material/Decal/DecalNormalBuffer.shader"),

@@ -1541,7 +1541,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "Render shadows", CustomSamplerId.RenderShadows.GetSampler()))
                 {
                     // This call overwrites camera properties passed to the shader system.
-                    m_LightLoop.RenderShadows(renderContext, cmd, cullingResults);
+					m_LightLoop.RenderShadows(renderContext, cmd, cullingResults, hdCamera);
 
                     // Overwrite camera properties set during the shadow pass with the original camera properties.
                     renderContext.SetupCameraProperties(camera, camera.stereoEnabled);

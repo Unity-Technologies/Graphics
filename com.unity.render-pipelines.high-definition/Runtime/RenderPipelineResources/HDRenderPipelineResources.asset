@@ -96,6 +96,7 @@ MonoBehaviour:
       type: 3}
     debugHDShadowMapPS: {fileID: 4800000, guid: 93d40cc9a6e13994f86f576a624efa18,
       type: 3}
+    momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a,
       type: 3}
     aoDownsample1CS: {fileID: 7200000, guid: 8a771b3139fdbca41a4767875d014786, type: 3}

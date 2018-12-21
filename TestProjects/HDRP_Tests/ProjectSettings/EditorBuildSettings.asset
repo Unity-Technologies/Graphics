@@ -174,6 +174,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2602_BakedSpotShape.unity
     guid: c034386e3fb58f44783743edf9b0f4a4
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2307_ShadowVeryHigh.unity
+    guid: c110cc3f909bb664b82eb554f0494597
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
     guid: 21522d96110c8dd41ab353d89fd740c3
   - enabled: 0

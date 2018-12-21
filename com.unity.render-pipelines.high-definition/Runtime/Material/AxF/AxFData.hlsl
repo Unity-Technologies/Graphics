@@ -59,11 +59,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularColor = SAMPLE_TEXTURE2D(_SVBRDF_SpecularColorMap, sampler_SVBRDF_SpecularColorMap, UV0).xyz;
     surfaceData.specularLobe = _SVBRDF_SpecularLobeMapScale * SAMPLE_TEXTURE2D(_SVBRDF_SpecularLobeMap, sampler_SVBRDF_SpecularLobeMap, UV0).xy;
 
+    // The AxF models include both a general coloring term that they call "specular color" while the f0 is actually another term,
+    // seemingly always scalar:
     surfaceData.fresnelF0 = SAMPLE_TEXTURE2D(_SVBRDF_FresnelMap, sampler_SVBRDF_FresnelMap, UV0).x;
     surfaceData.height_mm = SAMPLE_TEXTURE2D(_SVBRDF_HeightMap, sampler_SVBRDF_HeightMap, UV0).x * _SVBRDF_HeightMapMaxMM;
-    surfaceData.anisotropyAngle = PI * (2.0 * SAMPLE_TEXTURE2D(_SVBRDF_AnisoRotationMap, sampler_SVBRDF_AnisoRotationMap, UV0).x - 1.0);
+    // Our importer range remaps the [-HALF_PI, HALF_PI) range to [0,1). We map back here:
+    surfaceData.anisotropyAngle = HALF_PI * (2.0 * SAMPLE_TEXTURE2D(_SVBRDF_AnisoRotationMap, sampler_SVBRDF_AnisoRotationMap, UV0).x - 1.0);
     surfaceData.clearcoatColor = SAMPLE_TEXTURE2D(_SVBRDF_ClearcoatColorMap, sampler_SVBRDF_ClearcoatColorMap, UV0).xyz;
-
+    // The importer transforms the IOR to an f0, we map it back here as an IOR clamped under at 1.0
+    // TODO: if we're reusing float textures anyway, we shouldn't need the normalization that transforming to an f0 provides.
     float clearcoatF0 = SAMPLE_TEXTURE2D(_SVBRDF_ClearcoatIORMap, sampler_SVBRDF_ClearcoatIORMap, UV0).x;
     float sqrtF0 = sqrt(clearcoatF0);
     surfaceData.clearcoatIOR = max(1.0, (1.0 + sqrtF0) / (1.00001 - sqrtF0));    // We make sure it's working for F0=1
@@ -95,6 +99,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     surfaceData.flakesMipLevel = _CarPaint2_BTFFlakeMap.CalculateLevelOfDetail(sampler_CarPaint2_BTFFlakeMap, surfaceData.flakesUV);
 
+    // TODO_FLAKES: this isn't really tiling
     if ((int(surfaceData.flakesUV.y) & 1) == 0)
         surfaceData.flakesUV.x += 0.5;
     else if ((uint(1000.0 + surfaceData.flakesUV.x) % 3) == 0)
@@ -112,8 +117,23 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     // Finalize tangent space
-    surfaceData.tangentWS = Orthonormalize(input.worldToTangent[0], surfaceData.normalWS);
-    surfaceData.biTangentWS = Orthonormalize(input.worldToTangent[1], surfaceData.normalWS);
+    surfaceData.tangentWS = input.worldToTangent[0];
+    if (_Flags & 1) // IsAnisotropic
+    {
+        float3 tangentTS = float3(1, 0, 0);
+        // We will keep anisotropyAngle in surfaceData for now for debug info, register will be freed
+        // anyway by the compiler (never used again after this)
+        sincos(surfaceData.anisotropyAngle, tangentTS.y, tangentTS.x);
+        surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.worldToTangent);
+    }
+    surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+    // Instead of 
+    // surfaceData.biTangentWS = Orthonormalize(input.worldToTangent[1], surfaceData.normalWS),
+    // make AxF follow what we do in other HDRP shaders for consistency: use the
+    // cross product to finish building the TBN frame and thus get a frame matching
+    // the handedness of the world space (worldToTangent can be passed right handed while
+    // Unity's WS is left handed, so this makes a difference here).
 
     // Propagate the geometry normal
     surfaceData.geomNormalWS = input.worldToTangent[2];
