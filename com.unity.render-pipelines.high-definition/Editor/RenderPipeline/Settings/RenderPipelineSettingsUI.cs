@@ -101,13 +101,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (new EditorGUI.DisabledScope(!msaaAllowed))
             {
                 ++EditorGUI.indentLevel;
-                d.supportMSAA.boolValue = EditorGUILayout.Toggle(_.GetContent("Support Multi Sampling Anti-Aliasing|This feature only work when only ForwardOnly LitShaderMode is supported."), d.supportMSAA.boolValue && msaaAllowed);
-                using (new EditorGUI.DisabledScope(!d.supportMSAA.boolValue))
-                {
-                    ++EditorGUI.indentLevel;
-                    EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
-                    --EditorGUI.indentLevel;
-                }
+                EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Quality|This feature only work when only ForwardOnly LitShaderMode is supported. Allow to select the quality of MSAA."));
                 --EditorGUI.indentLevel;
             }
 

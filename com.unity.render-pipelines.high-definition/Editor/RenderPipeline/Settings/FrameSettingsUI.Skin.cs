@@ -7,10 +7,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     partial class FrameSettingsUI
     {
         const string renderingPassesHeaderContent = "Rendering Passes";
-        const string renderingSettingsHeaderContent = "Rendering Settings";
+        const string renderingSettingsHeaderContent = "Rendering";
         const string xrSettingsHeaderContent = "XR Settings";
-        const string lightSettingsHeaderContent = "Lighting Settings";
-        const string asyncComputeSettingsHeaderContent = "Async Compute Settings";
+        const string lightSettingsHeaderContent = "Lighting";
+        const string asyncComputeSettingsHeaderContent = "Async Compute";
         
         static readonly GUIContent transparentPrepassContent = CoreEditorUtils.GetContent("Transparent Prepass");
         static readonly GUIContent transparentPostpassContent = CoreEditorUtils.GetContent("Transparent Postpass");
@@ -47,6 +47,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent volumeVoxelizationAsyncContent = CoreEditorUtils.GetContent("Volumetrics Voxelization in Async");
 
 
-        static readonly GUIContent frameSettingsHeaderContent = CoreEditorUtils.GetContent("Frame Settings Override|Default FrameSettings are defined in HDRenderPipelineAsset.");
+        static readonly GUIContent frameSettingsHeaderContent = CoreEditorUtils.GetContent("Frame Settings Overrides|Default FrameSettings are defined in HDRenderPipelineAsset.");
     }
 }

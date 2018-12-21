@@ -14,9 +14,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent renderPipelineResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Resources|Set of resources that need to be loaded when creating stand alone");
         static readonly GUIContent renderPipelineEditorResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Editor Resources|Set of resources that need to be loaded for working in editor");
         static readonly GUIContent diffusionProfileSettingsContent = CoreEditorUtils.GetContent("Diffusion Profile List");
-        //static readonly GUIContent enableShaderVariantStrippingContent = CoreEditorUtils.GetContent("Enable Shader Variant Stripping");
-        static readonly GUIContent enableSRPBatcher = CoreEditorUtils.GetContent("Enable SRP Batcher (experimental)");
-        static readonly GUIContent enableVariantStrippingLog = CoreEditorUtils.GetContent("Enable Variant stripping logging");
+        //static readonly GUIContent enableShaderVariantStrippingContent = CoreEditorUtils.GetContent("Shader Variant Stripping");
+        static readonly GUIContent enableSRPBatcher = CoreEditorUtils.GetContent("SRP Batcher (experimental)");
+        static readonly GUIContent enableVariantStrippingLog = CoreEditorUtils.GetContent("Shader Variant Log");
 
         internal enum SelectedFrameSettings { Camera, BakedOrCustomReflection, RealtimeReflection };
         internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
