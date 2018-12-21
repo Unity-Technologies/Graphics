@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         static readonly string Standard = "Standard";
         static readonly string Standard_Spec = "Standard (Specular setup)";
-        static readonly string Standard_Rough = "Standard (Roughness setup)";
+        static readonly string Standard_Rough = "Autodesk Interactive";
 
         public StandardsToHDLitMaterialUpgrader(string sourceShaderName, string destShaderName, MaterialFinalizer finalizer = null)
         {
