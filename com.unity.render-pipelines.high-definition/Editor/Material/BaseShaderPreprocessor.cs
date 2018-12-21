@@ -21,6 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected ShaderKeyword m_ShadowLow;
         protected ShaderKeyword m_ShadowMedium;
         protected ShaderKeyword m_ShadowHigh;
+        protected ShaderKeyword m_ShadowVeryHigh;
         protected ShaderKeyword m_WriteNormalBuffer;
         protected ShaderKeyword m_WriteMSAADepth;
         protected ShaderKeyword m_SubsurfaceScattering;
@@ -46,6 +47,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ShadowLow = new ShaderKeyword("SHADOW_LOW");
             m_ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
             m_ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
+            m_ShadowVeryHigh = new ShaderKeyword("SHADOW_VERY_HIGH");
             m_WriteNormalBuffer = new ShaderKeyword("WRITE_NORMAL_BUFFER");
             m_WriteMSAADepth = new ShaderKeyword("WRITE_MSAA_DEPTH");
             m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
@@ -55,6 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {HDShadowQuality.Low, m_ShadowLow},
                 {HDShadowQuality.Medium, m_ShadowMedium},
                 {HDShadowQuality.High, m_ShadowHigh},
+                {HDShadowQuality.VeryHigh, m_ShadowVeryHigh},
             };
         }
 

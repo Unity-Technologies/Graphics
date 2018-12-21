@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowMapSubHeader = new GUIContent("Shadow Map");
             public readonly GUIContent contactShadowsSubHeader = new GUIContent("Contact Shadows");
             public readonly GUIContent bakedShadowsSubHeader = new GUIContent("Baked Shadows");
+            public readonly GUIContent veryHighShadowQualitySubHeader = new GUIContent("Very High Quality Settings");
             public readonly GUIContent highShadowQualitySubHeader = new GUIContent("High Quality Settings");
             public readonly GUIContent mediumShadowQualitySubHeader = new GUIContent("Medium Quality Settings");
             public readonly GUIContent lowShadowQualitySubHeader = new GUIContent("Low Quality Settings");
@@ -99,6 +100,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Sample count used to determine the size of the blocker");
             public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count");
             public readonly GUIContent minFilterSize = new GUIContent("Minimal size of the filter");
+
+            // Very high shadow settings
+            public readonly GUIContent lightAngle = new GUIContent("Light Angle");
+            public readonly GUIContent kernelSize = new GUIContent("Kernel size");
+            public readonly GUIContent maxDepthBias = new GUIContent("Max Depth Bias");
 
             // Settings
             public readonly GUIContent enableShadowMap = new GUIContent("Enable");

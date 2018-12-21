@@ -391,6 +391,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_ShadowInitParameters = hdAsset.GetRenderPipelineSettings().hdShadowInitParams;
             m_ShadowManager = new HDShadowManager(
+                hdAsset.renderPipelineResources,
                 m_ShadowInitParameters.shadowAtlasResolution,
                 m_ShadowInitParameters.shadowAtlasResolution,
                 m_ShadowInitParameters.maxShadowRequests,
@@ -401,8 +402,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void DeinitShadowSystem()
         {
-            m_ShadowManager.Dispose();
-            m_ShadowManager = null;
+            if(m_ShadowManager != null)
+            {
+                m_ShadowManager.Dispose();
+                m_ShadowManager = null;
+            }
         }
 
         int GetNumTileFtplY(HDCamera hdCamera)
@@ -578,7 +582,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Setup shadow algorithms
             var shadowParams = hdAsset.renderPipelineSettings.hdShadowInitParams;
-            var shadowKeywords = new[]{"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
+            var shadowKeywords = new[]{"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH", "SHADOW_VERY_HIGH"};
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
             Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowQuality]);
@@ -2468,10 +2472,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullingResults cullResults)
+        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullingResults cullResults, HDCamera hdCamera)
         {
             // kick off the shadow jobs here
-            m_ShadowManager.RenderShadows(renderContext, cmd, cullResults);
+            m_ShadowManager.RenderShadows(renderContext, cmd, cullResults, hdCamera);
         }
 
         public struct LightingPassOptions
