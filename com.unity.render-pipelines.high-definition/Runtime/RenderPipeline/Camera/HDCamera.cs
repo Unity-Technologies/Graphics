@@ -119,6 +119,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // View-projection matrix from the previous frame (non-jittered).
         public Matrix4x4 prevViewProjMatrix;
+        public Matrix4x4 prevViewProjMatrixNoCameraTrans;
 
         // The only way to reliably keep track of a frame change right now is to compare the frame
         // count Unity gives us. We need this as a single camera could be rendered several times per
@@ -368,6 +369,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     prevWorldSpaceCameraPos = worldSpaceCameraPos;
                     prevViewProjMatrix = nonJitteredViewProjMatrix;
+                    prevViewProjMatrixNoCameraTrans = prevViewProjMatrix;
                 }
 
                 isFirstFrame = false;
@@ -389,6 +391,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Matrix4x4 cameraDisplacement = Matrix4x4.Translate(worldSpaceCameraPos - prevWorldSpaceCameraPos);
                 prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
+            }
+            else
+            {
+                Matrix4x4 noTransViewMatrix = camera.worldToCameraMatrix;
+                noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
+                prevViewProjMatrixNoCameraTrans = nonJitteredProjMatrix * noTransViewMatrix;
             }
 
             float n = camera.nearClipPlane;

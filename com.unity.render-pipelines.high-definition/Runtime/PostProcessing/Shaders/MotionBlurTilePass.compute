@@ -1,0 +1,255 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
+
+#pragma kernel TileGenPass          GEN_PASS
+#pragma kernel TileNeighbourhood    NEIGHBOURHOOD_PASS
+#pragma kernel VelPrepAndTileMinMax PREP_AND_GEN VELOCITY_PREPPING GEN_PASS
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#define USE_WAVE_INTRINSICS   defined(SUPPORTS_WAVE_INTRINSICS) && PACKING && 0        // TODO_FCC Broken now, need to fixup
+
+#if USE_WAVE_INTRINSICS
+groupshared float gs_minVel[((TILE_SIZE * TILE_SIZE) / WAVE_SIZE) + 1];
+groupshared uint gs_maxVel[((TILE_SIZE * TILE_SIZE) / WAVE_SIZE) + 1];
+groupshared uint currWaveIndex;
+
+uint PackVel(float2 packedVel)
+{
+    // Most relevant bits contain the length of the velocity, so that we can sort directly on uint value.
+    return f32tof16(packedVel.y) | f32tof16(packedVel.x) << 16;
+}
+
+float2 UnpackVel(uint packedVel)
+{
+    float2 outVel;
+    outVel.x = f16tof32(packedVel >> 16);
+    outVel.y = f16tof32(packedVel);
+    return outVel;
+}
+
+#else
+groupshared float2 gs_minVel[((TILE_SIZE * TILE_SIZE))];
+groupshared float2 gs_maxVel[((TILE_SIZE * TILE_SIZE))];
+
+#endif
+
+
+// TODO_FCC: Do dispatch indirect for the fast pass ? That would prevent us from jittering, but worth testing out if it is worth the loss of quality (can be an option)
+// TODO_FCC: Fix the wave intrinisc bit, it is more like a proof of concept for now. 
+
+
+#ifdef PREP_AND_GEN
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+void VelPrepAndTileMinMax(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
+
+
+    // --------------------------------------
+    // Velocity Prepping
+
+    float depth = SampleCameraDepth(dispatchThreadId);
+    PositionInputs posInput = GetPositionInput_Stereo(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+
+    float2 velocity = ComputeVelocity(posInput, dispatchThreadId.xy);
+    float2 encodedVel = EncodeVelocity(velocity);
+
+
+    gs_minVel[threadIdx] = encodedVel;
+    gs_maxVel[threadIdx] = encodedVel;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // --------------------------------------
+    // Tile reduction
+
+    // Parallel reduction - find the max/min value for this tile
+    UNITY_UNROLL
+        for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
+        {
+            if (threadIdx < s)
+            {
+                gs_minVel[threadIdx] = MinVel(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
+                gs_maxVel[threadIdx] = MaxVel(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
+            }
+
+            GroupMemoryBarrierWithGroupSync();
+        }
+
+    float2 minVel = gs_minVel[0];
+    float2 maxVel = gs_maxVel[0];
+
+    // --------------------------------------
+    // Writing out targets
+
+    _VelocityAndDepth[dispatchThreadId.xy] = float4(encodedVel, posInput.linearDepth, 0.0f);
+    if (threadIdx == 0)
+    {
+        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, VelocityLengthFromEncoded(minVel));
+    }
+
+}
+
+#elif GEN_PASS
+
+[numthreads(TILE_SIZE, TILE_SIZE,1)]
+void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
+{
+    uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
+
+//    // This works only with multiple of 8 for TILE_SIZE. Also, not faster. TODO_FCC:  Verify if we can make it faster. Probably not.
+#if  (USE_WAVE_INTRINSICS)
+    uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE) + 1;
+
+	// This is a bit clunky and broken for now, TODO_FCC: Debug, it's is probably something stupid being wrong, come to it later. 
+
+	float2 vel = LOAD_TEXTURE2D(_VelocityAndDepth, id.xy).xy;
+    uint packedVel = PackVel(vel);
+    float waveMin = WaveActiveMin(VelocityLengthFromEncoded(vel));
+    uint waveMax = WaveActiveMax(packedVel);
+
+    uint waveIDInGroup = gid / WAVE_SIZE;
+    if (WaveIsFirstLane())
+    {
+        gs_minVel[waveIdx] = waveMin;
+        gs_maxVel[waveIdx] = waveMax;
+        InterlockedAdd(waveIdx, 1);
+    }
+
+    // We have values for all the waves, let's sync. 
+    GroupMemoryBarrierWithGroupSync();
+
+    // Find min and max across waves.
+    float minVelLen = 10.0f;
+    uint maxVel = 0;
+    for (int i = 1; i < waveCount; ++i)
+    {
+        minVelLen = min(minVelLen, gs_minVel[i]);
+        maxVel = max(maxVel, gs_maxVel[i]);
+    }
+
+    float2 unpackedMaxVel = UnpackVel(maxVel);
+    if (threadIdx == 0)
+    {
+        _TileMinMaxVel[groupID.xy] = float3(unpackedMaxVel.x, unpackedMaxVel.y, minVelLen);
+    }
+#else
+
+    float2 vel = LOAD_TEXTURE2D(_VelocityAndDepth, id.xy).xy;
+
+    gs_minVel[threadIdx] = vel;
+    gs_maxVel[threadIdx] = vel;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Parallel reduction - find the max/min value for this tile
+    UNITY_UNROLL
+    for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_minVel[threadIdx] = MinVel(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
+            gs_maxVel[threadIdx] = MaxVel(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    float2 minVel = gs_minVel[0];
+    float2 maxVel = gs_maxVel[0];
+
+    if (threadIdx == 0)
+    {
+        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, VelocityLengthFromEncoded(minVel));
+    }
+#endif
+
+}
+
+#elif NEIGHBOURHOOD_PASS 
+
+#define GUERTING2014 0
+
+// TODO_FCC: Clamp.
+
+[numthreads(8, 8, 1)]
+void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+
+#if GUERTING2014 
+    // We follow Guertin et al. 2014 here, when computing dominant direction we ignore velocities that
+    // are completely off the path of the central one. 
+    // We still compute the min velocity in a 1-ring neighbourhood
+
+    // Stored explicitly to leverage Min3. TODO_FCC: Check if this hamper perf.
+    float minVels[9] = {0.0f,   0.0f,  0.0f,
+                       0.0f,    0.0f,  0.0f,
+                       0.0f,    0.0f,  0.0f};
+
+    int i=0; 
+
+    float  maxVelLengthSq = -1;
+    float2 maxVel;
+    for(int y=-1; y<=1; ++y)
+    {
+        for(int x=-1; x<=1; ++x)
+        {
+            int2 offset = int2(x, y);
+            float3 minMaxSample = _TileMinMaxVel[id.xy + offset].xyz;
+            float2 currVel = minMaxSample.xy;
+            float currVelSq = dot(currVel, currVel);
+
+            if(maxVelLengthSq < currVelSq)
+            {
+                int2 relativeSigns = sign(currVel * offset);
+                int  relativeDist = abs(relativeSigns.x + relativeSigns.y);
+
+                // Sample velocity needs to either match or be complete opposite signs relative
+                // to their position in the 1-ring (i.e. relative to offset). 
+                int manhattanDist = abs(offset.x) + abs(offset.y);
+                if(manhattanDist == relativeDist)
+                {
+                    maxVel = currVel;
+                    maxVelLengthSq = currVelSq;
+                }
+            }
+
+            minVels[i++] = minMaxSample.z;
+        }
+    }
+
+
+    float minVel0 = Min3(minVels[0], minVels[1], minVels[2]);
+    float minVel1 = Min3(minVels[3], minVels[4], minVels[5]);
+    float minVel2 = Min3(minVels[6], minVels[7], minVels[8]);
+
+    _TileMaxNeighbourhood[id.xy] = float3(maxVel, Min3(minVel0, minVel1, minVel2)) ;
+#else
+    // Sample the 1-ring neighbourhood of tile texture
+    float3 centralSample = _TileMinMaxVel[id.xy + uint2( 0,  0)].xyz;
+    float3 v0       = _TileMinMaxVel[id.xy + int2(-1,  1)].xyz;
+    float3 v1       = _TileMinMaxVel[id.xy + int2( 0,  1)].xyz;
+    float3 v2       = _TileMinMaxVel[id.xy + int2( 1,  1)].xyz;
+
+    float3 v3       = _TileMinMaxVel[id.xy + int2(-1,  0)].xyz;
+    float3 v4       = centralSample.xyz;
+    float3 v5       = _TileMinMaxVel[id.xy + int2( 1,  0)].xyz;
+
+    float3 v6       = _TileMinMaxVel[id.xy + int2(-1, -1)].xyz;
+    float3 v7       = _TileMinMaxVel[id.xy + int2( 0, -1)].xyz;
+    float3 v8       = _TileMinMaxVel[id.xy + int2( 1, -1)].xyz;
+
+    float2 maxVel0 = MaxVel(v0.xy, MaxVel(v1.xy, v2.xy));
+    float2 maxVel1 = MaxVel(v3.xy, MaxVel(v4.xy, v5.xy));
+    float2 maxVel2 = MaxVel(v6.xy, MaxVel(v7.xy, v8.xy));
+
+    float minVel0 = Min3(v0.z, v1.z, v2.z);
+    float minVel1 = Min3(v3.z, v4.z, v5.z);
+    float minVel2 = Min3(v6.z, v7.z, v8.z);
+
+
+    _TileMaxNeighbourhood[id.xy] = float3(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2)) ;
+#endif
+}
+
+#endif

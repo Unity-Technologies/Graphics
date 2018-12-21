@@ -223,6 +223,7 @@ void Frag(  PackedVaryingsToPS packedInput
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
+
     if (forceNoMotion)
         outVelocity = float4(0.0, 0.0, 0.0, 0.0);
 

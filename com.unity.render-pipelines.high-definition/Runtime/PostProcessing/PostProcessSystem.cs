@@ -53,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Prefetched components (updated on every frame)
         Exposure m_Exposure;
         DepthOfField m_DepthOfField;
+        MotionBlur m_MotionBlur;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
         ChromaticAberration m_ChromaticAberration;
@@ -201,7 +202,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var stack = VolumeManager.instance.stack;
             m_Exposure                  = stack.GetComponent<Exposure>();
             m_DepthOfField              = stack.GetComponent<DepthOfField>();
-            m_PaniniProjection          = stack.GetComponent<PaniniProjection>();
+            m_MotionBlur                = stack.GetComponent<MotionBlur>();
+            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
             m_Bloom                     = stack.GetComponent<Bloom>();
             m_ChromaticAberration       = stack.GetComponent<ChromaticAberration>();
             m_LensDistortion            = stack.GetComponent<LensDistortion>();
@@ -290,7 +292,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
-                // TODO: Motion blur goes here
+                if (m_MotionBlur.IsActive() && camera.camera.cameraType == CameraType.Game)
+                {
+                    using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
+                    {
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        DoMotionBlur(cmd, camera, source, destination);
+                        PoolSource(ref source, destination);
+                    }
+                }
 
                 // Panini projection is done as a fullscreen pass after all depth-based effects are
                 // done and before bloom kicks in
@@ -1172,6 +1182,120 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void DoMotionBlur(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
         {
+            // -----------------------------------------------------------------------------
+            // Temporary targets prep
+
+            const int tileSize = 32;        // Must match define on MotionBlurCommon - TODO_FCC: Set define from C#
+            // TODO_FCC: Round up the scale
+            int tileTexWidth = Mathf.CeilToInt(camera.actualWidth / tileSize);
+            int tileTexHeight = Mathf.CeilToInt(camera.actualHeight / tileSize);
+            Vector2 tileTexScale = new Vector2((float)tileTexWidth / camera.actualWidth, (float)tileTexHeight / camera.actualHeight);
+            Vector4 tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
+
+            // Need to change these factors.
+            RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.RGB111110Float);
+            RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+            RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+
+            Vector4 motionBlurParams0 = new Vector4(
+                (new Vector2(camera.actualWidth, camera.actualHeight).magnitude),
+                m_MotionBlur.maxVelocity,
+                m_MotionBlur.minVelInPixels,
+                m_MotionBlur.tileMinMaxVelRatioForHighQuality
+            );
+
+            bool combinedPrepAndTile = (Application.platform == RuntimePlatform.XboxOne) && false;   // TODO_FCC: This only on scorpio actually... Also, it is quite messy. 
+
+            // -----------------------------------------------------------------------------
+            // Prep velocity
+
+            // - Move velocity to pixel space rather than world.
+            // - Pack normalized velocity and linear depth in R11G11B10
+            ComputeShader cs;
+            int kernel;
+            int threadGroupX;
+            int threadGroupY;
+            if (!combinedPrepAndTile)
+            {
+                cs = m_Resources.shaders.motionBlurVelocityPrepCS;
+                kernel = cs.FindKernel("VelPreppingCS");
+                threadGroupX = (camera.actualWidth + 7) / 8;
+                threadGroupY = (camera.actualHeight + 7) / 8;
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._MotionBlurIntensity, m_MotionBlur.intensity);
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
+
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
+
+
+            // -----------------------------------------------------------------------------
+            // Generate MinMax velocity tiles
+
+            // We store R11G11B10 with RG = Max vel and B = Min vel magnitude
+            if (!combinedPrepAndTile)
+            {
+                cs = m_Resources.shaders.motionBlurTileGenCS;
+                kernel = cs.FindKernel("TileGenPass");
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+                threadGroupX = (camera.actualWidth + (tileSize - 1)) / tileSize;
+                threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
+
+            // -----------------------------------------------------------------------------
+            // Prep and TileMinMax combined
+
+            if (combinedPrepAndTile)
+            {
+                cs = m_Resources.shaders.motionBlurTileGenCS;
+                kernel = cs.FindKernel("VelPrepAndTileMinMax");
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._MotionBlurIntensity, m_MotionBlur.intensity);
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
+                threadGroupX = (camera.actualWidth + (tileSize - 1)) / tileSize;
+                threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
+
+            // -----------------------------------------------------------------------------
+            // Generate max tiles neigbhourhood
+
+            cs = m_Resources.shaders.motionBlurTileGenCS;
+            kernel = cs.FindKernel("TileNeighbourhood");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
+            threadGroupX = (tileTexWidth + 7) / 8;
+            threadGroupY = (tileTexHeight + 7) / 8;
+            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+
+            // -----------------------------------------------------------------------------
+            // Blur kernel
+            cs = m_Resources.shaders.motionBlurCS;
+            kernel = cs.FindKernel("MotionBlurCS");
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+            cmd.SetComputeIntParam(cs, HDShaderIDs._MotionBlurSampleCount, m_MotionBlur.sampleCount);
+
+            threadGroupX = (camera.actualWidth + 7) / 8;
+            threadGroupY = (camera.actualHeight + 7) / 8;
+            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+
+            // -----------------------------------------------------------------------------
+            // Recycle RTs
+
+            m_Pool.Recycle(minMaxTileVel);
+            m_Pool.Recycle(maxTileNeigbourhood);
+            m_Pool.Recycle(preppedVelocity);
         }
 
         #endregion

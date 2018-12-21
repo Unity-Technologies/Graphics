@@ -130,6 +130,11 @@ MonoBehaviour:
       type: 3}
     paniniProjectionCS: {fileID: 7200000, guid: 0ddbf72c8fbb6e44b983f470c8384ef6,
       type: 3}
+	motionBlurVelocityPrepCS: {fileID: 7200000, guid: ed9438fa777911d48933402087203b15,
+      type: 3}
+    motionBlurTileGenCS: {fileID: 7200000, guid: 5ee43b1e23a3bf743b4def192d377762,
+      type: 3}
+    motionBlurCS: {fileID: 7200000, guid: 2af5c49c7865edb4b823826970ec176a, type: 3}
     bloomPrefilterCS: {fileID: 7200000, guid: 243b24008041aaa4a91800690f63c684, type: 3}
     bloomBlurCS: {fileID: 7200000, guid: 133a68380d324de4ea8d3ff8657b02d8, type: 3}
     bloomUpsampleCS: {fileID: 7200000, guid: 5dbb0ac12cb11f84084b7e5633481bd1, type: 3}
