@@ -119,19 +119,19 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2203_PlanarProbes.unity
     guid: b8fa5b1235e91884799163adaf34e5d6
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2204_ReflectionProbes_Lights.unity
     guid: 21d198bbbf9143d40b227ad2fe71706f
   - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2205_ReflectionProbes_influence.unity
     guid: 423802799a6e57644a5d581a894f4646
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2206_LightLoopCullWOblique.unity
     guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2206_PlanarReflectionVFace.unity
     guid: d4d352e2cbfbfac4686e77b69fe84ec0
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2207_ReflectionProbeVFace.unity
     guid: 4814073d6e6ec404bba1f26bec73307a
   - enabled: 0
