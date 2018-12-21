@@ -44,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ReflectionProbes
         }
 
+        Hash128[] m_StateHashes;
         HDProbeBakedState[] m_HDProbeBakedStates = new HDProbeBakedState[0];
         float m_DateSinceLastLegacyWarning = float.MinValue;
         Dictionary<UnityEngine.Rendering.RenderPipeline, float> m_DateSinceLastInvalidSRPWarning 
@@ -294,10 +295,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Update state hash
-                var allBakedhash = new Hash128();
+                Array.Resize(ref m_StateHashes, m_HDProbeBakedStates.Length);
                 for (int i = 0; i < m_HDProbeBakedStates.Length; ++i)
-                    HashUtilities.AppendHash(ref m_HDProbeBakedStates[i].probeBakedHash, ref allBakedhash);
-                stateHash = allBakedhash;
+                    m_StateHashes[i] = m_HDProbeBakedStates[i].probeBakedHash;
+                stateHashes = m_StateHashes;
             }
 
             handle.ExitStage((int)BakingStages.ReflectionProbes);
