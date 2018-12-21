@@ -33,7 +33,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportSSAO = true;
         public bool supportSubsurfaceScattering = true;
         public bool increaseSssSampleCount = false;
-        [FormerlySerializedAs("supportForwardOnly")]
         public bool supportVolumetrics = true;
         public bool increaseResolutionOfVolumetrics = false;
         public bool supportLightLayers = false;
@@ -44,11 +43,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SupportedLitShaderMode supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly;
 
         // Engine
-        [FormerlySerializedAs("supportDBuffer")]
         public bool supportDecals = true;
-        [SerializeField, FormerlySerializedAs("m_SupportMSAA")]
-        public bool supportMSAA = false;
+
         public MSAASamples msaaSampleCount = MSAASamples.None;
+        public bool supportMSAA
+        {
+            get
+            {
+                return this.msaaSampleCount != MSAASamples.None;
+            }
+
+        }
+
         public bool supportMotionVectors = true;
         public bool supportRuntimeDebugDisplay = true;
         public bool supportDitheringCrossFade = true;
