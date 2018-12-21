@@ -18,6 +18,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty advancedFade;
         public SerializedProperty invertFade;
 
+        public SerializedProperty distanceFadeStart;
+        public SerializedProperty distanceFadeEnd;
+
         SerializedObject m_SerializedObject;
 
         public SerializedDensityVolume(SerializedObject serializedObject)
@@ -40,6 +43,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             uniformFade = densityParams.FindPropertyRelative("m_UniformFade");
             advancedFade = densityParams.FindPropertyRelative("advancedFade");
             invertFade = densityParams.FindPropertyRelative("invertFade");
+
+            distanceFadeStart = densityParams.FindPropertyRelative("distanceFadeStart");
+            distanceFadeEnd   = densityParams.FindPropertyRelative("distanceFadeEnd");
         }
 
         public void Apply()

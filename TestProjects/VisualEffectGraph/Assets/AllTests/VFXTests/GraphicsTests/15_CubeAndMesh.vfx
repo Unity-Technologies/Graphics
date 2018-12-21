@@ -3714,19 +3714,19 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 2
         data[0]: 1
         data[1]: 0
         data[2]: -1
         data[3]: 1
-      - op: 19
+      - op: 23
         valueIndex: 3
         data[0]: 2
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 4
         data[0]: 2
         data[1]: 3
@@ -3744,7 +3744,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 26
+      - op: 30
         valueIndex: 7
         data[0]: 4
         data[1]: 5
@@ -3756,13 +3756,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 14
-      - op: 25
+      - op: 29
         valueIndex: 9
         data[0]: 7
         data[1]: 6
         data[2]: -1
         data[3]: 1
-      - op: 43
+      - op: 49
         valueIndex: 10
         data[0]: 8
         data[1]: 9
@@ -3774,7 +3774,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 15
         data[0]: 1
         data[1]: 11
@@ -3816,19 +3816,19 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 27
+      - op: 31
         valueIndex: 22
         data[0]: 13
         data[1]: 14
         data[2]: -1
         data[3]: 1
-      - op: 27
+      - op: 31
         valueIndex: 23
         data[0]: 15
         data[1]: 14
         data[2]: -1
         data[3]: 1
-      - op: 27
+      - op: 31
         valueIndex: 24
         data[0]: 17
         data[1]: 14
@@ -3840,7 +3840,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 3
         data[3]: 4
-      - op: 21
+      - op: 25
         valueIndex: 26
         data[0]: 16
         data[1]: 18
@@ -3870,7 +3870,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 13
-      - op: 44
+      - op: 50
         valueIndex: 37
         data[0]: 27
         data[1]: -1
@@ -3894,7 +3894,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 15
-      - op: 29
+      - op: 33
         valueIndex: 49
         data[0]: 24
         data[1]: 26
@@ -4214,7 +4214,7 @@ VisualEffectResource:
     - name: OnStop
       playSystems: 
       stopSystems: 00000000
-    m_RuntimeVersion: 7
+    m_RuntimeVersion: 8
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 0

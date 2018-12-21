@@ -28,8 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_VolumetricResolutionContent = EditorGUIUtility.TrTextContent("High quality", "Increase the resolution of volumetric lighting buffers. Warning: high performance cost, do not enable on consoles.");
         static readonly GUIContent k_SupportLightLayerContent = EditorGUIUtility.TrTextContent("LightLayers", "Enable light layers. In deferred this imply an extra render target in memory and extra cost.");
         static readonly GUIContent k_SupportLitShaderModeContent = EditorGUIUtility.TrTextContent("Supported Lit Shader Mode", "Remove all the memory and shader variant of GBuffer of non used mode. The renderer cannot be switch to non selected path anymore.");
-        static readonly GUIContent k_SupportMSAAContent = EditorGUIUtility.TrTextContent("Support Multi Sampling Anti-Aliasing", "This feature only work when only ForwardOnly LitShaderMode is supported.");
-        static readonly GUIContent k_MSAASampleCountContent = EditorGUIUtility.TrTextContent("MSAA Sample Count", "Allow to select the level of MSAA.");
+        static readonly GUIContent k_MSAASampleCountContent = EditorGUIUtility.TrTextContent("MSAA Quality", "Allow to select the level of MSAA.");
         static readonly GUIContent k_SupportDecalContent = EditorGUIUtility.TrTextContent("Decals", "Enable memory and variant for decals buffer and cluster decals.");
         static readonly GUIContent k_SupportMotionVectorContent = EditorGUIUtility.TrTextContent("Motion Vectors", "Motion vector are use for Motion Blur, TAA, temporal re-projection of various effect like SSR.");
         static readonly GUIContent k_SupportRuntimeDebugDisplayContent = EditorGUIUtility.TrTextContent("Runtime debug display", "Remove all debug display shader variant only in the player. Allow faster build.");
@@ -102,13 +101,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (new EditorGUI.DisabledScope(!msaaAllowed))
             {
                 ++EditorGUI.indentLevel;
-                d.supportMSAA.boolValue = EditorGUILayout.Toggle(k_SupportMSAAContent, d.supportMSAA.boolValue && msaaAllowed);
-                using (new EditorGUI.DisabledScope(!d.supportMSAA.boolValue))
-                {
-                    ++EditorGUI.indentLevel;
-                    EditorGUILayout.PropertyField(d.MSAASampleCount, k_MSAASampleCountContent);
-                    --EditorGUI.indentLevel;
-                }
+                EditorGUILayout.PropertyField(d.MSAASampleCount, k_MSAASampleCountContent);
                 --EditorGUI.indentLevel;
             }
             

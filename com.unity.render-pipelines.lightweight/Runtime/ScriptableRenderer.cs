@@ -321,11 +321,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
+            CameraClearFlags cameraClearFlags = camera.clearFlags;
+
+#if UNITY_EDITOR
+            // We need public API to tell if FrameDebugger is active and enabled. In that case
+            // we want to force a clear to see properly the drawcall stepping.
+            // For now, to fix FrameDebugger in Editor, we force a clear. 
+            cameraClearFlags = CameraClearFlags.SolidColor;
+#endif
+
             // LWRP doesn't support CameraClearFlags.DepthOnly.
             // In case of skybox we know all pixels will be rendered to screen so
             // we don't clear color. In Vulkan/Metal this becomes DontCare load action
-            if ((camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
-                 camera.clearFlags == CameraClearFlags.Nothing)
+            if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
+                cameraClearFlags == CameraClearFlags.Nothing)
                 return ClearFlag.Depth;
 
             // Otherwise we clear color + depth. This becomes either a clear load action or glInvalidateBuffer call
