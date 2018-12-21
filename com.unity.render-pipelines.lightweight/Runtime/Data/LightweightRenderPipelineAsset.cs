@@ -2,9 +2,9 @@
 using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
-using UnityEngine.Experimental.Rendering.LWRP;
-
 #endif
+
+using UnityEngine.Experimental.Rendering.LWRP;
 
 namespace UnityEngine.Rendering.LWRP
 {
