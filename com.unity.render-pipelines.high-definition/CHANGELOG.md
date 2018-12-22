@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue on XBoxOne Player throwing error due to ICharpCode.NRefactory.dll
 - Fixed slowdow when enabling Fabric convolution in HDRP asset
 - Fixed specularAA not compiling in StackLit Master node
+- Fixed coat normal to be the neutral (geometric one) when coat normal is enabled but port is disconnected in StackLit master node.
 
 ### Changed
 - Update several properties naming and caption based on feedback from documentation team
