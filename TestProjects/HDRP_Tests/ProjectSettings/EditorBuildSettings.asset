@@ -65,6 +65,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1303_SSS_Pre-Post.unity
     guid: 6f2bc3028f3daba46ab0447a3e25ebc6
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1401_StackLitSG.unity
+    guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 0
     path: Assets/GraphicTests/Scenes/1x_Materials/1501_Fabric.unity
     guid: ce2b258da0df8d245b659390b6c2ac51
@@ -174,6 +177,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2602_BakedSpotShape.unity
     guid: c034386e3fb58f44783743edf9b0f4a4
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2307_ShadowVeryHigh.unity
+    guid: c110cc3f909bb664b82eb554f0494597
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
     guid: 21522d96110c8dd41ab353d89fd740c3
   - enabled: 0
@@ -206,7 +212,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8104_Unlit.unity
     guid: 7529f10e11b78924b9c1ee1727b1405f
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8102_Transparent.unity
     guid: c2f6e1c5441279d42b05dbe99212bf2d
   - enabled: 0
@@ -248,7 +254,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GraphicTests/Scenes/9x_Other/9102_Density-volumes-shadows-low.unity
     guid: 9aea0106a8d9d4144b84c4b9330940c1
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9201_Camera-relative-rendering.unity
     guid: b15afca992049604dbb5071c393dd355
   - enabled: 1

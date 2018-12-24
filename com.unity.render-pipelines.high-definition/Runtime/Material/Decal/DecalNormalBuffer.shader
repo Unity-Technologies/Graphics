@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
+Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
 {
 
     Properties

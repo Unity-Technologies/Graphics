@@ -24,6 +24,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Following function can be use to initialize GPU resource (once or each frame) and bind them
         public virtual void RenderInit(CommandBuffer cmd) {}
-        public virtual void Bind() {}
+        public virtual void Bind(CommandBuffer cmd) {}
     }
 }

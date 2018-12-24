@@ -39,6 +39,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty sunDiskSize;
             public SerializedProperty sunHaloSize;
 
+            // Improved moment shadows data
+            public SerializedProperty lightAngle;
+            public SerializedProperty kernelSize;
+            public SerializedProperty maxDepthBias;
+
             // Editor stuff
             public SerializedProperty useOldInspector;
             public SerializedProperty showFeatures;
@@ -118,6 +123,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     minFilterSize = o.Find(x => x.minFilterSize),
                     sunDiskSize = o.Find(x => x.sunDiskSize),
                     sunHaloSize = o.Find(x => x.sunHaloSize),
+
+                    // Moment light
+                    lightAngle = o.Find(x => x.lightAngle),
+                    kernelSize = o.Find(x => x.kernelSize),
+                    maxDepthBias = o.Find(x => x.maxDepthBias),
 
                     // Editor stuff
                     useOldInspector = o.Find(x => x.useOldInspector),

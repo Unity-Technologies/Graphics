@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public Color     albedo;       // Single scattering albedo [0, 1]. Alpha is ignored
         public float     meanFreePath; // In meters [1, inf]. Should be chromatic - this is an optimization!
-        public float     asymmetry;    // Only used if (isLocal == false)
+        public float     asymmetry;    // [-1, 1]. Not currently available for density volumes
 
         public Texture3D volumeMask;
         public Vector3   textureScrollingSpeed;
@@ -24,6 +24,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3   size;
         public bool      advancedFade;
         public bool      invertFade;
+
+        public float     distanceFadeStart;
+        public float     distanceFadeEnd;
 
         public  int      textureIndex; // This shouldn't be public... Internal, maybe?
         private Vector3  volumeScrollingAmount;
@@ -82,9 +85,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_PositiveFade        = Vector3.zero;
             m_NegativeFade        = Vector3.zero;
-            m_UniformFade         = 0f;
+            m_UniformFade         = 0;
             advancedFade          = false;
             invertFade            = false;
+
+            distanceFadeStart     = 10000;
+            distanceFadeEnd       = 10000;
         }
 
         public void Update(bool animate, float time)
@@ -112,6 +118,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             asymmetry = Mathf.Clamp(asymmetry, -1.0f, 1.0f);
 
             volumeScrollingAmount = Vector3.zero;
+
+            distanceFadeStart = Mathf.Max(0, distanceFadeStart);
+            distanceFadeEnd   = Mathf.Max(distanceFadeStart, distanceFadeEnd);
         }
 
         public DensityVolumeEngineData ConvertToEngineData()
@@ -129,15 +138,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector3 positiveFade = this.positiveFade;
             Vector3 negativeFade = this.negativeFade;
 
-            data.rcpPosFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
-            data.rcpPosFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);
-            data.rcpPosFade.z = Mathf.Min(1.0f / positiveFade.z, float.MaxValue);
+            data.rcpPosFaceFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
+            data.rcpPosFaceFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);
+            data.rcpPosFaceFade.z = Mathf.Min(1.0f / positiveFade.z, float.MaxValue);
 
-            data.rcpNegFade.y = Mathf.Min(1.0f / negativeFade.y, float.MaxValue);
-            data.rcpNegFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
-            data.rcpNegFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
+            data.rcpNegFaceFade.y = Mathf.Min(1.0f / negativeFade.y, float.MaxValue);
+            data.rcpNegFaceFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
+            data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
 
             data.invertFade = invertFade ? 1 : 0;
+
+            float distFadeLen = Mathf.Max(distanceFadeEnd - distanceFadeStart, 0.00001526f);
+
+            data.rcpDistFadeLen         = 1.0f / distFadeLen;
+            data.endTimesRcpDistFadeLen = distanceFadeEnd * data.rcpDistFadeLen;
 
             return data;
         }

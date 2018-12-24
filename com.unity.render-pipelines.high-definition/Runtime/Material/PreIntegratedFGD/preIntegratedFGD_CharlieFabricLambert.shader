@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/preIntegratedFGD_CharlieFabricLambert"
+Shader "Hidden/HDRP/preIntegratedFGD_CharlieFabricLambert"
 {
     SubShader
     {

@@ -34,6 +34,7 @@ MonoBehaviour:
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 1
+  m_UseSRPBatcher: 0
   m_SupportsDynamicBatching: 1
   m_MixedLightingSupported: 1
   m_ShadowType: 0
@@ -43,4 +44,3 @@ MonoBehaviour:
   m_ShadowAtlasResolution: 2048
   m_ResourcesAsset: {fileID: 11400000, guid: aac5a08c32552a14c89394b703f1978a, type: 2}
   m_ShaderVariantLogLevel: 0
-  m_RendererSetup: {fileID: 0}

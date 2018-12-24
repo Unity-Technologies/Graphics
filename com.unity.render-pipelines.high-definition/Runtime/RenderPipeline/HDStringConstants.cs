@@ -77,6 +77,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CascadeShadowAtlasSize = Shader.PropertyToID("_CascadeShadowAtlasSize");
         public static readonly int _CascadeShadowCount = Shader.PropertyToID("_CascadeShadowCount");
 
+        // Moment shadow map data
+        public static readonly int _MomentShadowAtlas = Shader.PropertyToID("_MomentShadowAtlas");
+        public static readonly int _MomentShadowmapSlotST = Shader.PropertyToID("_MomentShadowmapSlotST");
+        public static readonly int _MomentShadowmapSize = Shader.PropertyToID("_MomentShadowmapSize");
+        public static readonly int _SummedAreaTableInputInt = Shader.PropertyToID("_SummedAreaTableInputInt");
+        public static readonly int _SummedAreaTableOutputInt = Shader.PropertyToID("_SummedAreaTableOutputInt");
+        public static readonly int _SummedAreaTableInputFloat = Shader.PropertyToID("_SummedAreaTableInputFloat");
+        public static readonly int _IMSKernelSize = Shader.PropertyToID("_IMSKernelSize");
+
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
         public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");
         public static readonly int _DensityVolumeIndexShift = Shader.PropertyToID("_DensityVolumeIndexShift");
