@@ -203,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Exposure                  = stack.GetComponent<Exposure>();
             m_DepthOfField              = stack.GetComponent<DepthOfField>();
             m_MotionBlur                = stack.GetComponent<MotionBlur>();
-            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
+            m_PaniniProjection          = stack.GetComponent<PaniniProjection>();
             m_Bloom                     = stack.GetComponent<Bloom>();
             m_ChromaticAberration       = stack.GetComponent<ChromaticAberration>();
             m_LensDistortion            = stack.GetComponent<LensDistortion>();
