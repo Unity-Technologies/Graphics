@@ -37,11 +37,11 @@ void ComputeMomentShadows(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
     currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _MomentShadowmapSlotST.x);
 
     // If this pixel is outside of the range of the current kernel, skip it
-    if(currentPixelCoordinate.x >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || currentPixelCoordinate.y >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
+    if(float(currentPixelCoordinate.x) >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || float(currentPixelCoordinate.y) >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
      	return;
 
     // Compute the different moments
-    float z = 1.0 - _ShadowmapAtlas[currentPixelCoordinate];
+    float z = 1.0 - _ShadowmapAtlas[currentPixelCoordinate].x;
 
     // Convert the depth to the linear interval [-1, 1]
     z = z * 2.0f - 1.0f;
@@ -105,7 +105,7 @@ void MomentSummedAreaTableHorizontal(uint groupThreadId : SV_GroupThreadID, uint
 
     // Evalaute the sum for this line
     uint4 cumulativeSum = uint4(0, 0, 0, 0);
-    for(uint i = 0; i < _MomentShadowmapSlotST.x; ++i)
+    for(uint i = 0; i < uint(_MomentShadowmapSlotST.x); ++i)
     {
         // Pixel coordinates of the current point to include
         uint2 currentPixel = uint2(_MomentShadowmapSlotST.z + i, _MomentShadowmapSlotST.w + currentLineIndex);
@@ -132,7 +132,7 @@ void MomentSummedAreaTableVertical(uint groupThreadId : SV_GroupThreadID, uint g
     float2 fixedPrecision = ComputeFixedPrecision(kernelSizeParameter, _MomentShadowmapSize.xy);
 
     uint4 cumulativeSum = uint4(0, 0, 0, 0);
-    for(uint i = 0; i < _MomentShadowmapSlotST.y; ++i)
+    for(uint i = 0; i < uint(_MomentShadowmapSlotST.y); ++i)
     {
         // Pixel coordinates of the current point to include
         uint2 currentPixel = uint2(_MomentShadowmapSlotST.z + currentColumnIndex, _MomentShadowmapSlotST.w + i);
