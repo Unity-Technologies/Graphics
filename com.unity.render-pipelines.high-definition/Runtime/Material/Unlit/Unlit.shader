@@ -73,15 +73,15 @@ Shader "HDRP/Unlit"
     // Variant
     //-------------------------------------------------------------------------------------
 
-    #pragma shader_feature _ALPHATEST_ON
-    // #pragma shader_feature _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
+    #pragma shader_feature_local _ALPHATEST_ON
+    // #pragma shader_feature_local _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
 
-    #pragma shader_feature _EMISSIVE_COLOR_MAP
+    #pragma shader_feature_local _EMISSIVE_COLOR_MAP
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     //enable GPU instancing support
     #pragma multi_compile_instancing

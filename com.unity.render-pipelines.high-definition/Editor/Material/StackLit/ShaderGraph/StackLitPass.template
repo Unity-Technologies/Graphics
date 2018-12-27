@@ -33,7 +33,7 @@ Pass
     // Variant Definitions
     //
     // (active field translations to some StackLit.shader defines that were switched into
-    // variants with shader_feature : some are no longer needed as were only used in 
+    // variants with shader_feature : some are no longer needed as were only used in
     // StackLitData.hlsl)
     //-------------------------------------------------------------------------------------
 

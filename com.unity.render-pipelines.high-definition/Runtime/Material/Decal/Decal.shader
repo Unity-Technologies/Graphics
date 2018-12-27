@@ -45,10 +45,10 @@ Shader "HDRP/Decal"
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
-    #pragma shader_feature _COLORMAP
-    #pragma shader_feature _NORMALMAP
-    #pragma shader_feature _MASKMAP
-	#pragma shader_feature _ALBEDOCONTRIBUTION
+    #pragma shader_feature_local _COLORMAP
+    #pragma shader_feature_local _NORMALMAP
+    #pragma shader_feature_local _MASKMAP
+	#pragma shader_feature_local _ALBEDOCONTRIBUTION
 
     #pragma multi_compile_instancing
     // No need to teset for DECALS_3RT we are in decal shader, so there is no OFF state

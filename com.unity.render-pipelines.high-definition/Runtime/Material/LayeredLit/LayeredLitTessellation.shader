@@ -361,80 +361,81 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma target 5.0
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-    #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DEPTHOFFSET_ON
-    #pragma shader_feature _DOUBLESIDED_ON
-    #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _PIXEL_DISPLACEMENT
-    #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
-    #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _VERTEX_WIND
-    #pragma shader_feature _TESSELLATION_PHONG
+    #pragma shader_feature_local _ALPHATEST_ON
+    #pragma shader_feature_local _DEPTHOFFSET_ON
+    #pragma shader_feature_local _DOUBLESIDED_ON
+    #pragma shader_feature_local _ _TESSELLATION_DISPLACEMENT _PIXEL_DISPLACEMENT
+    #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
+    #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local _VERTEX_WIND
+    #pragma shader_feature_local _TESSELLATION_PHONG
 
-    #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
-    #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE0
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE1
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
-    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
+    #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
+    #pragma shader_feature_local _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE0
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE1
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE2
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE3
+    #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
 
-    #pragma shader_feature _NORMALMAP0
-    #pragma shader_feature _NORMALMAP1
-    #pragma shader_feature _NORMALMAP2
-    #pragma shader_feature _NORMALMAP3
-    #pragma shader_feature _MASKMAP0
-    #pragma shader_feature _MASKMAP1
-    #pragma shader_feature _MASKMAP2
-    #pragma shader_feature _MASKMAP3
-    #pragma shader_feature _BENTNORMALMAP0
-    #pragma shader_feature _BENTNORMALMAP1
-    #pragma shader_feature _BENTNORMALMAP2
-    #pragma shader_feature _BENTNORMALMAP3
-    #pragma shader_feature _EMISSIVE_COLOR_MAP
-    #pragma shader_feature _ENABLESPECULAROCCLUSION
-    #pragma shader_feature _DETAIL_MAP0
-    #pragma shader_feature _DETAIL_MAP1
-    #pragma shader_feature _DETAIL_MAP2
-    #pragma shader_feature _DETAIL_MAP3
-    #pragma shader_feature _HEIGHTMAP0
-    #pragma shader_feature _HEIGHTMAP1
-    #pragma shader_feature _HEIGHTMAP2
-    #pragma shader_feature _HEIGHTMAP3
-    #pragma shader_feature _SUBSURFACE_MASK_MAP0
-    #pragma shader_feature _SUBSURFACE_MASK_MAP1
-    #pragma shader_feature _SUBSURFACE_MASK_MAP2
-    #pragma shader_feature _SUBSURFACE_MASK_MAP3
-    #pragma shader_feature _THICKNESSMAP0
-    #pragma shader_feature _THICKNESSMAP1
-    #pragma shader_feature _THICKNESSMAP2
-    #pragma shader_feature _THICKNESSMAP3
+    // We can only have 64 shader_feature_local
+    #pragma shader_feature _NORMALMAP0              // Non-local
+    #pragma shader_feature _NORMALMAP1              // Non-local
+    #pragma shader_feature _NORMALMAP2              // Non-local
+    #pragma shader_feature _NORMALMAP3              // Non-local
+    #pragma shader_feature _MASKMAP0                // Non-local
+    #pragma shader_feature _MASKMAP1                // Non-local
+    #pragma shader_feature _MASKMAP2                // Non-local
+    #pragma shader_feature _MASKMAP3                // Non-local
+    #pragma shader_feature _BENTNORMALMAP0          // Non-local
+    #pragma shader_feature _BENTNORMALMAP1          // Non-local
+    #pragma shader_feature _BENTNORMALMAP2          // Non-local
+    #pragma shader_feature _BENTNORMALMAP3          // Non-local
+    #pragma shader_feature _EMISSIVE_COLOR_MAP      // Non-local
+    #pragma shader_feature _ENABLESPECULAROCCLUSION // Non-local
+    #pragma shader_feature _DETAIL_MAP0             // Non-local
+    #pragma shader_feature _DETAIL_MAP1             // Non-local
+    #pragma shader_feature _DETAIL_MAP2             // Non-local
+    #pragma shader_feature _DETAIL_MAP3             // Non-local
+    #pragma shader_feature _HEIGHTMAP0              // Non-local
+    #pragma shader_feature _HEIGHTMAP1              // Non-local
+    #pragma shader_feature _HEIGHTMAP2              // Non-local
+    #pragma shader_feature _HEIGHTMAP3              // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP0    // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP1    // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP2    // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP3    // Non-local
+    #pragma shader_feature _THICKNESSMAP0           // Non-local
+    #pragma shader_feature _THICKNESSMAP1           // Non-local
+    #pragma shader_feature _THICKNESSMAP2           // Non-local
+    #pragma shader_feature _THICKNESSMAP3           // Non-local
 
-    #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
-    #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
-    #pragma shader_feature _INFLUENCEMASK_MAP
-    #pragma shader_feature _DENSITY_MODE
-    #pragma shader_feature _HEIGHT_BASED_BLEND
-    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+    #pragma shader_feature_local _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
+    #pragma shader_feature_local _MAIN_LAYER_INFLUENCE_MODE
+    #pragma shader_feature_local _INFLUENCEMASK_MAP
+    #pragma shader_feature_local _DENSITY_MODE
+    #pragma shader_feature_local _HEIGHT_BASED_BLEND
+    #pragma shader_feature_local _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
-    #pragma shader_feature _DISABLE_DECALS
-    #pragma shader_feature _DISABLE_SSR
-    #pragma shader_feature _ENABLE_GEOMETRIC_SPECULAR_AA
+    #pragma shader_feature_local _DISABLE_DECALS
+    #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
-    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
-    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
