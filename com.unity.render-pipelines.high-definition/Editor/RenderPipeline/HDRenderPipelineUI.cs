@@ -25,8 +25,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent renderPipelineEditorResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Editor Resources", "Set of resources that need to be loaded for working in editor");
         static readonly GUIContent diffusionProfileSettingsContent = EditorGUIUtility.TrTextContent("Diffusion Profile List");
         //static readonly GUIContent enableShaderVariantStrippingContent = EditorGUIUtility.TrTextContent("Shader Variant Stripping");
-        static readonly GUIContent enableSRPBatcher = EditorGUIUtility.TrTextContent("SRP Batcher");
-        static readonly GUIContent enableVariantStrippingLog = EditorGUIUtility.TrTextContent("Shader Variant Log");
+        static readonly GUIContent enableSRPBatcher = EditorGUIUtility.TrTextContent("SRP Batcher", "If enabled, the render pipeline uses the SRP batcher.");
+        static readonly GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
 
         internal enum SelectedFrameSettings { Camera, BakedOrCustomReflection, RealtimeReflection };
         internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
@@ -120,7 +120,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // EditorGUILayout.PropertyField(serialized.allowShaderVariantStripping, enableShaderVariantStrippingContent);
 
             EditorGUILayout.PropertyField(serialized.enableSRPBatcher, enableSRPBatcher);
-            EditorGUILayout.PropertyField(serialized.enableVariantStrippingLog, enableVariantStrippingLog);
+            EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, shaderVariantLogLevel);
         }
     }
 }
