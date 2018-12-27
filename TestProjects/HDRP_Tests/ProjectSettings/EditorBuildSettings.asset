@@ -164,7 +164,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2306_Contact_Shadow_SpotLight.unity
     guid: a8ecf1e3cee864a48bd6bca2c797fdb3
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
     guid: 3f6529c22f7d2ca46814b2e7afd04ef9
   - enabled: 1
