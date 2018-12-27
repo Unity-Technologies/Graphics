@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public bool allowShaderVariantStripping = true;
-        public bool enableSRPBatcher = false;
+        public bool enableSRPBatcher = true;
         public bool enableVariantStrippingLog = false;
 
         [SerializeField]
