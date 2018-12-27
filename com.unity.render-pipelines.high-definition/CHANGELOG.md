@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposure is now done as a pre-exposition pass, the whole system has been revamped
 - Added physical camera support where applicable
 - Added more color grading tools
+- Added changelog level for Shader Variant stripping
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -74,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add command buffer parameter to all Bind() method of material
 - Lit shader mode now default to Deferred to reduce build time
 - Update UI of Emission parameters in shaders
+- Enable SRP batcher by default
 
 ## [5.2.0-preview] - 2018-11-27
 
