@@ -56,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LightCountBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RFloat, sRGB: false, enableRandomWrite: false, useMipMap: false, name: "LightVolumeCount");
             m_ColorAccumulationBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: false, useMipMap: false, name: "LightVolumeColorAccumulation");
-            m_DebugLightVolumesTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: false, name: "LightVolumeColorAccumulation");
+            m_DebugLightVolumesTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: false, name: "LightVolumeDebugLightVolumesTexture");
             m_DepthBuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.None, colorFormat: RenderTextureFormat.R8, sRGB: false, filterMode: FilterMode.Point, name: "LightVolumeDepth");
             // Fill the render target array
             m_RTIDs[0] = m_LightCountBuffer;

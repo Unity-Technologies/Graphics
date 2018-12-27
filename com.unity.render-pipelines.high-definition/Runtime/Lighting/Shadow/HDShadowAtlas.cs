@@ -52,7 +52,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Atlas.Release();
             
             m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, sRGB: false, colorFormat: m_Format, name: m_Name);
-            if(m_SupportMomentShadows)
+
+            if (m_SupportMomentShadows)
             {
                 string momentShadowMapName = m_Name + "Moment";
                 m_AtlasMoments = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false, enableRandomWrite: true, name: momentShadowMapName);

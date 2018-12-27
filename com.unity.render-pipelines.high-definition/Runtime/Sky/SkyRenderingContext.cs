@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RebuildTextures(int resolution)
         {
-            bool updateNeeded = m_SkyboxCubemapRT == null || (m_SkyboxCubemapRT.rt.width != resolution);
+            bool updateNeeded = m_SkyboxCubemapRT == null || (m_SkyboxCubemapRT.rt.width != resolution); 
 
             // Cleanup first if needed
             if (updateNeeded)
@@ -41,24 +41,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RTHandles.Release(m_SkyboxCubemapRT);
                 m_SkyboxCubemapRT = null;
 
-                if(m_SupportsConvolution)
-                {
-                    RTHandles.Release(m_SkyboxBSDFCubemapIntermediate);
-                    if (m_SkyboxBSDFCubemapArray != null)
-                    {
-                        CoreUtils.Destroy(m_SkyboxBSDFCubemapArray);
-                        m_SkyboxBSDFCubemapArray = null;
-                    }
-                }
+                RTHandles.Release(m_SkyboxBSDFCubemapIntermediate);
+                m_SkyboxBSDFCubemapIntermediate = null;
 
-            }
+                CoreUtils.Destroy(m_SkyboxBSDFCubemapArray);
+                m_SkyboxBSDFCubemapArray = null;
 
-            if (!m_SupportsMIS && (m_SkyboxConditionalCdfRT != null))
-            {
                 RTHandles.Release(m_SkyboxConditionalCdfRT);
-                RTHandles.Release(m_SkyboxMarginalRowCdfRT);
-
                 m_SkyboxConditionalCdfRT = null;
+
+                RTHandles.Release(m_SkyboxMarginalRowCdfRT);
                 m_SkyboxMarginalRowCdfRT = null;
             }
 
@@ -66,33 +58,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_SkyboxCubemapRT == null)
             {
                 m_SkyboxCubemapRT = RTHandles.Alloc(resolution, resolution, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: "SkyboxCubemap");
-            }
 
-            if (m_SupportsConvolution)
-            {
-                m_SkyboxBSDFCubemapIntermediate = RTHandles.Alloc(resolution, resolution, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: "SkyboxBSDFIntermediate");
-                m_SkyboxBSDFCubemapArray = new CubemapArray(resolution, m_IBLFilterArray.Length, TextureFormat.RGBAHalf, true)
+                if (m_SupportsConvolution)
                 {
-                    hideFlags = HideFlags.HideAndDontSave,
-                    wrapMode = TextureWrapMode.Repeat,
-                    wrapModeV = TextureWrapMode.Clamp,
-                    filterMode = FilterMode.Trilinear,
-                    anisoLevel = 0,
-                    name = "SkyboxCubemapConvolution"
-                };
-            }
+                    m_SkyboxBSDFCubemapIntermediate = RTHandles.Alloc(resolution, resolution, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: "SkyboxBSDFIntermediate");
+                    m_SkyboxBSDFCubemapArray = new CubemapArray(resolution, m_IBLFilterArray.Length, TextureFormat.RGBAHalf, true)
+                    {
+                        hideFlags = HideFlags.HideAndDontSave,
+                        wrapMode = TextureWrapMode.Repeat,
+                        wrapModeV = TextureWrapMode.Clamp,
+                        filterMode = FilterMode.Trilinear,
+                        anisoLevel = 0,
+                        name = "SkyboxCubemapConvolution"
+                    };
+                }
 
-            if (m_SupportsMIS && (m_SkyboxConditionalCdfRT == null))
-            {
-                // Temporary, it should be dependent on the sky resolution
-                int width  = (int)LightSamplingParameters.TextureWidth;
-                int height = (int)LightSamplingParameters.TextureHeight;
+                if (m_SupportsMIS)
+                {
+                    // Temporary, it should be dependent on the sky resolution
+                    int width = (int)LightSamplingParameters.TextureWidth;
+                    int height = (int)LightSamplingParameters.TextureHeight;
 
-                // + 1 because we store the value of the integral of the cubemap at the end of the texture.
-                m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(height + 1, 1, colorFormat: RenderTextureFormat.RFloat, sRGB: false, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
+                    // + 1 because we store the value of the integral of the cubemap at the end of the texture.
+                    m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(height + 1, 1, colorFormat: RenderTextureFormat.RFloat, sRGB: false, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
 
-                // TODO: switch the format to R16 (once it's available) to save some bandwidth.
-                m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(width, height, colorFormat: RenderTextureFormat.RFloat, sRGB: false, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
+                    // TODO: switch the format to R16 (once it's available) to save some bandwidth.
+                    m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(width, height, colorFormat: RenderTextureFormat.RFloat, sRGB: false, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
+                }
             }
 
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);

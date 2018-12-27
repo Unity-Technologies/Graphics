@@ -139,26 +139,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // All of these are pre-allocated to 1x1 and will be automatically scaled properly by
             // the internal RTHandle system
-            Alloc(out m_LinearDepthTex, MipLevel.Original, fmtFP16, true);
+            Alloc(out m_LinearDepthTex, MipLevel.Original, fmtFP16, true, "AOLinearDepth");
 
-            Alloc(out m_LowDepth1Tex, MipLevel.L1, fmtFP32, true);
-            Alloc(out m_LowDepth2Tex, MipLevel.L2, fmtFP32, true);
-            Alloc(out m_LowDepth3Tex, MipLevel.L3, fmtFP32, true);
-            Alloc(out m_LowDepth4Tex, MipLevel.L4, fmtFP32, true);
+            Alloc(out m_LowDepth1Tex, MipLevel.L1, fmtFP32, true, "AOLowDepth1");
+            Alloc(out m_LowDepth2Tex, MipLevel.L2, fmtFP32, true, "AOLowDepth2");
+            Alloc(out m_LowDepth3Tex, MipLevel.L3, fmtFP32, true, "AOLowDepth3");
+            Alloc(out m_LowDepth4Tex, MipLevel.L4, fmtFP32, true, "AOLowDepth4");
 
-            AllocArray(out m_TiledDepth1Tex, MipLevel.L3, fmtFP16, true);
-            AllocArray(out m_TiledDepth2Tex, MipLevel.L4, fmtFP16, true);
-            AllocArray(out m_TiledDepth3Tex, MipLevel.L5, fmtFP16, true);
-            AllocArray(out m_TiledDepth4Tex, MipLevel.L6, fmtFP16, true);
+            AllocArray(out m_TiledDepth1Tex, MipLevel.L3, fmtFP16, true, "AOTiledDepth1");
+            AllocArray(out m_TiledDepth2Tex, MipLevel.L4, fmtFP16, true, "AOTiledDepth2");
+            AllocArray(out m_TiledDepth3Tex, MipLevel.L5, fmtFP16, true, "AOTiledDepth3");
+            AllocArray(out m_TiledDepth4Tex, MipLevel.L6, fmtFP16, true, "AOTiledDepth4");
 
-            Alloc(out m_Occlusion1Tex, MipLevel.L1, fmtFX8, true);
-            Alloc(out m_Occlusion2Tex, MipLevel.L2, fmtFX8, true);
-            Alloc(out m_Occlusion3Tex, MipLevel.L3, fmtFX8, true);
-            Alloc(out m_Occlusion4Tex, MipLevel.L4, fmtFX8, true);
+            Alloc(out m_Occlusion1Tex, MipLevel.L1, fmtFX8, true, "AOOcclusion1");
+            Alloc(out m_Occlusion2Tex, MipLevel.L2, fmtFX8, true, "AOOcclusion2");
+            Alloc(out m_Occlusion3Tex, MipLevel.L3, fmtFX8, true, "AOOcclusion3");
+            Alloc(out m_Occlusion4Tex, MipLevel.L4, fmtFX8, true, "AOOcclusion4");
 
-            Alloc(out m_Combined1Tex, MipLevel.L1, fmtFX8, true);
-            Alloc(out m_Combined2Tex, MipLevel.L2, fmtFX8, true);
-            Alloc(out m_Combined3Tex, MipLevel.L3, fmtFX8, true);
+            Alloc(out m_Combined1Tex, MipLevel.L1, fmtFX8, true, "AOCombined1");
+            Alloc(out m_Combined2Tex, MipLevel.L2, fmtFX8, true, "AOCombined2");
+            Alloc(out m_Combined3Tex, MipLevel.L3, fmtFX8, true, "AOCombined3");
         }
 
         public void Cleanup()
@@ -288,7 +288,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);
         }
 
-        void Alloc(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav)
+        void Alloc(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav, string name)
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
@@ -299,11 +299,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableMSAA: false,
                 enableRandomWrite: uav,
                 sRGB: false,
-                filterMode: FilterMode.Point
+                filterMode: FilterMode.Point,
+                name: name
             );
         }
 
-        void AllocArray(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav)
+        void AllocArray(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav, string name)
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
@@ -315,7 +316,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableMSAA: false,
                 enableRandomWrite: uav,
                 sRGB: false,
-                filterMode: FilterMode.Point
+                filterMode: FilterMode.Point,
+                name: name
             );
         }
 
