@@ -29,7 +29,7 @@ float4x4 _PrevVPMatrixNoTranslation;
 float4 _TileTargetSize;     // .xy size, .zw 1/size
 float4 _MotionBlurParams0;  // Unpacked below.
 float _MotionBlurIntensity;
-int    _SampleCount;
+uint    _SampleCount;
 CBUFFER_END
 
 #define _ScreenMagnitude _MotionBlurParams0.x

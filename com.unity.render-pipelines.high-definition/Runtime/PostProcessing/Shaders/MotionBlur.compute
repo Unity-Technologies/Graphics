@@ -230,7 +230,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         if (fastPath)
         {
-            for (int i = 0; i < _SampleCount / 2; ++i)
+            for (uint i = 0; i < _SampleCount / 2; ++i)
             {
                 colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, -1);
                 colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, 1);
@@ -257,7 +257,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             float  centralDepth = velocityAndDepth.z;
 
             float4 accumulation = 0.0f;
-            for (int i = 0; i < _SampleCount / 2; ++i)
+            for (uint i = 0; i < _SampleCount / 2; ++i)
             {
 #if GUERTIN2014_DOUBLE_DIR
                 dir = i % 2 == 0 ? centralDir : dir;
@@ -275,7 +275,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             }
             accumulation *= invSampleCount;
 
-            colorAccumulation = accumulation + (1.0f - accumulation.w) * centralColor;
+            colorAccumulation = accumulation.xyz + (1.0f - accumulation.w) * centralColor;
 
 #if DEBUG_VIEW == WEIGHT_VIS
             colorAccumulation = accumulation.w;

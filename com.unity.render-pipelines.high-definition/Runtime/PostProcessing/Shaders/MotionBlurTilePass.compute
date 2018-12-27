@@ -48,7 +48,7 @@ void VelPrepAndTileMinMax(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid
     // --------------------------------------
     // Velocity Prepping
 
-    float depth = SampleCameraDepth(dispatchThreadId);
+    float depth = SampleCameraDepth(dispatchThreadId.xy);
     PositionInputs posInput = GetPositionInput_Stereo(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
     float2 velocity = ComputeVelocity(posInput, dispatchThreadId.xy);
@@ -82,7 +82,7 @@ void VelPrepAndTileMinMax(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid
     // --------------------------------------
     // Writing out targets
 
-    _VelocityAndDepth[dispatchThreadId.xy] = float4(encodedVel, posInput.linearDepth, 0.0f);
+    _VelocityAndDepth[dispatchThreadId.xy] = float3(encodedVel, posInput.linearDepth);
     if (threadIdx == 0)
     {
         _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, VelocityLengthFromEncoded(minVel));

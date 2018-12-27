@@ -13,7 +13,7 @@ void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 velAndDepth = 0.0f;
     float2 velocity;
     DecodeVelocity(LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy), velocity);
-    float depth = SampleCameraDepth(dispatchThreadId);
+    float depth = SampleCameraDepth(dispatchThreadId.xy);
 
 #if SKIP_PREPPING_IF_NOT_NEEDED
     if (WaveActiveAnyTrue(any(velocity != 0.0f)))
