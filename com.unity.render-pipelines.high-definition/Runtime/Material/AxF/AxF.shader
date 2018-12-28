@@ -211,6 +211,8 @@ Shader "HDRP/AxF"
             HLSLPROGRAM
 
             #define WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_MSAA_DEPTH
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -241,6 +243,7 @@ Shader "HDRP/AxF"
             ZWrite On
 
             HLSLPROGRAM
+
             #define WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             
@@ -331,7 +334,6 @@ Shader "HDRP/AxF"
             HLSLPROGRAM
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            //NEWLITTODO
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
