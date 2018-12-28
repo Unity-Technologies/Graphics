@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed slowdow when enabling Fabric convolution in HDRP asset
 - Fixed specularAA not compiling in StackLit Master node
 - Fixed coat normal to be the neutral (geometric one) when coat normal is enabled but port is disconnected in StackLit master node.
+- Fixed missing multicompile for MSAA for AxF
 
 ### Changed
 - Update several properties naming and caption based on feedback from documentation team
@@ -39,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Lit shader mode now default to Deferred to reduce build time
 - Update UI of Emission parameters in shaders
 - Updated AxF shader
+- Improve shader variant stripping including shader graph variant
 
 ## [4.6.0-preview] - 2018-12-07
 
