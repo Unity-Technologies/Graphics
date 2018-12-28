@@ -172,7 +172,7 @@ void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positi
         float2 sampleMaskDdy = positionDSDdy.xz * decalData.maskScaleBias.xy;
         float lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution);
 
-        float albedoBlend = decalData.normalToWorld[0][3] * decalData.scalingMAB.y;
+        float albedoBlend = decalData.normalToWorld[0][3];
         float4 src = decalData.baseColor;
         int diffuseTextureBound = (decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0);
 

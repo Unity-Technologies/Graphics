@@ -59,7 +59,7 @@ void EncodeIntoDBuffer( DecalSurfaceData surfaceData
                         )
 {
     outDBuffer0 = surfaceData.baseColor;
-    outDBuffer1 = surfaceData.normalWS;
+    outDBuffer1 = float4(surfaceData.normalWS.xyz * 0.5 + 0.5, surfaceData.normalWS.w);
     outDBuffer2 = surfaceData.mask;
 #ifdef DECALS_4RT
 	outDBuffer3 = surfaceData.MAOSBlend;
