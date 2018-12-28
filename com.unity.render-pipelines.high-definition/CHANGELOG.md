@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Expose option to run SSR and SSAO on async compute
 - Added support of "_GlossMapScale" in upgrader
 - Added instruction for wave intrinsic (for AMD GCN)
+- Added decal master node for shader graph
 
 
 ### Fixed

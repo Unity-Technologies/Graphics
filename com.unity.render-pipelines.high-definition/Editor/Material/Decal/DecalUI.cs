@@ -11,21 +11,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [Flags]
         enum Expandable : uint
         {
-            Input = 1 << 0
+            Input = 1 << 0,
+            Sorting = 1 << 1
         }
         protected override uint defaultExpandedState { get { return (uint)Expandable.Input; } }
 
         protected static class Styles
         {
-            public static string InputsText = "Inputs";
+            public static string InputsText = "Surface Inputs";
+            public static string SortingText = "Sorting Inputs";
 
             public static GUIContent baseColorText = new GUIContent("BaseColor (RGB) and Opacity (A)", "BaseColor (RGB) and Opacity (A)");
             public static GUIContent baseColorText2 = new GUIContent("Opacity(A)", "Opacity (A)");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Whole decal Opacity");
-            public static GUIContent AlbedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
- 			public static GUIContent MeshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "prevents z-fighting");
-	 		public static GUIContent DrawOrderText = new GUIContent("Draw order", "Controls draw order of decal projectors");
+            public static GUIContent albedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
+ 			public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "Allow to adjust depth to prevents z-fighting with decal mesh");
+	 		public static GUIContent drawOrderText = new GUIContent("Draw order", "Controls draw order of decal projectors");
+            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
+            public static GUIContent metallicText = new GUIContent("Metallic Scale", "Metallic Scale");
+            public static GUIContent aoRemappingText = new GUIContent("AO Remapping", "AO remapping");
+            public static GUIContent maskMapBlueScaleText = new GUIContent("Scale Mask Map Blue Channel", "Scale the Mask Map Blue channel which can be used as Opacity depends on blend source chosen");
 
             public static GUIContent[] maskMapText =
             {
@@ -94,6 +100,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
         protected const string kDecalStencilRef = "_DecalStencilRef";
 
+        protected MaterialProperty AORemapMin = new MaterialProperty();
+        protected const string kAORemapMin = "_AORemapMin";
+
+        protected MaterialProperty AORemapMax = new MaterialProperty();
+        protected const string kAORemapMax = "_AORemapMax";
+
+        protected MaterialProperty smoothnessRemapMin = new MaterialProperty();
+        protected const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
+
+        protected MaterialProperty smoothnessRemapMax = new MaterialProperty();
+        protected const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
+
+        protected MaterialProperty metallicScale = new MaterialProperty();
+        protected const string kMetallicScale = "_MetallicScale";
+
+        protected MaterialProperty maskMapBlueScale = new MaterialProperty();
+        protected const string kMaskMapBlueScale = "_DecalMaskMapBlueScale";
+
         protected MaterialEditor m_MaterialEditor;
 
         void FindMaterialProperties(MaterialProperty[] props)
@@ -112,6 +136,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             maskmapSmoothness = FindProperty(kMaskmapSmoothness, props);            
             decalMeshDepthBias = FindProperty(kDecalMeshDepthBias, props);            
             drawOrder = FindProperty(kDrawOrder, props);
+            AORemapMin = FindProperty(kAORemapMin, props);
+            AORemapMax = FindProperty(kAORemapMax, props);
+            smoothnessRemapMin = FindProperty(kSmoothnessRemapMin, props);
+            smoothnessRemapMax = FindProperty(kSmoothnessRemapMax, props);
+            metallicScale = FindProperty(kMetallicScale, props);
+            maskMapBlueScale = FindProperty(kMaskMapBlueScale, props);
 
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
@@ -199,7 +229,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.indentLevel++;
                         m_MaterialEditor.ShaderProperty(albedoMode, Styles.AlbedoModeText);
                         EditorGUI.indentLevel--;
-
                         m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
                         if (material.GetTexture(kNormalMap))
                         {
@@ -212,17 +241,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (material.GetTexture(kMaskMap))
                         {
                             EditorGUI.indentLevel++;
-                            maskBlendSrcValue = EditorGUILayout.Popup("Mask Opacity channel", (int)maskBlendSrcValue, blendSourceNames);
+                            
+                            EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
                             if (perChannelMask)
                             {
-                                // Following condition force users to always have at least one attribute enabled
-                                m_MaterialEditor.ShaderProperty(maskmapMetal, "Affect Metal");
-                                if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
-                                    maskmapMetal.floatValue = 1.0f;
-                                m_MaterialEditor.ShaderProperty(maskmapAO, "Affect AO");
-                                if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
-                                    maskmapAO.floatValue = 1.0f;
-                                m_MaterialEditor.ShaderProperty(maskmapSmoothness, "Affect Smoothness");
+                                m_MaterialEditor.ShaderProperty(metallicScale, Styles.metallicText);
+                                EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
+                            }
+
+                            maskBlendSrcValue = EditorGUILayout.Popup("Mask Opacity channel", (int)maskBlendSrcValue, blendSourceNames);
+
+                            if (perChannelMask)
+                            {
+                                bool mustDisableScope = false;
+                                if (maskmapMetal.floatValue + maskmapAO.floatValue + maskmapSmoothness.floatValue == 1.0f)
+                                    mustDisableScope = true;
+
+                                using (new EditorGUI.DisabledScope(mustDisableScope && maskmapMetal.floatValue == 1.0f))
+                                {
+                                    m_MaterialEditor.ShaderProperty(maskmapMetal, "Affect Metal");
+                                }
+                                using (new EditorGUI.DisabledScope(mustDisableScope && maskmapAO.floatValue == 1.0f))
+                                {
+                                    m_MaterialEditor.ShaderProperty(maskmapAO, "Affect AO");
+                                }
+                                using (new EditorGUI.DisabledScope(mustDisableScope && maskmapSmoothness.floatValue == 1.0f))
+                                {
+                                    m_MaterialEditor.ShaderProperty(maskmapSmoothness, "Affect Smoothness");
+                                }
+
+                                // Sanity condition in case for whatever reasons all value are 0.0 but it should never happen
                                 if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
                                     maskmapSmoothness.floatValue = 1.0f;
 
@@ -239,11 +287,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             {
                                 maskBlendFlags = Decal.MaskBlendFlags.Smoothness;
                             }
+
                             EditorGUI.indentLevel--;
                         }
 
-                        m_MaterialEditor.ShaderProperty(drawOrder, Styles.DrawOrderText);
-                        m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.MeshDecalDepthBiasText);
+                        m_MaterialEditor.ShaderProperty(maskMapBlueScale, Styles.maskMapBlueScaleText);
                         m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
 
                         EditorGUI.indentLevel--;
@@ -263,6 +311,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
+
+            EditorGUI.indentLevel++;
+            using (var header = new HeaderScope(Styles.SortingText, (uint)Expandable.Sorting, this))
+            {
+                if (header.expanded)
+                {
+                    m_MaterialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
+                    m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.meshDecalDepthBiasText);                    
+                }
+            }
+            EditorGUI.indentLevel--;
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
