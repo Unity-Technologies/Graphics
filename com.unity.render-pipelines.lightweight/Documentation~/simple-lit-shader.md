@@ -2,7 +2,7 @@
 
 # Simple Lit shader 
 
-The Simple Lit shader is perfect for when performance is more important than photorealism. This shader uses a simple approximation for lighting. Because this shader [does not calculate for physical correctness and energy conservation](lighting_model.md#non-physically_based_shaders), it renders quickly.
+The Simple Lit shader is perfect for when performance is more important than photorealism. This shader uses a simple approximation for lighting. Because this shader [does not calculate for physical correctness and energy conservation](shading-model.md#Simple_shading), it renders quickly.
 
 
 ## Using the Simple Lit shader in the Editor 
