@@ -50,7 +50,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (shader.name.Contains("Debug"))
                 return true;
 
-            if (shader.name.Contains("HDRenderPipeline"))
+            if (shader.name.Contains("HDRP"))
                 return true;
 
             if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows) &&
