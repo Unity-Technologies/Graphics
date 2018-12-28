@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added icons for assets.
 - Added replace blending mode for distortion
 - Added basic distance fade for density volumes
+- Added decal master node for shader graph
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
