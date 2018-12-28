@@ -14,7 +14,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    [Title("Master", "Fabric")]
+    [Title("Master", "HDRP/Fabric")]
     [FormerName("UnityEditor.ShaderGraph.FabricMasterNode")]
     class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
