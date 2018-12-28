@@ -2,7 +2,7 @@
 
 ## Description
 
-When using `CodeFunctionNode` you are able to define [Ports](Port.md) with any **Bindings** that available in [Shader Graph](Shader-Graph.md). For a full list of available **Bindings** see [Port Bindings](Port-Bindings.md). When using `CodeFunctionNode` **Bindings** are defined using [SlotAttribute](SlotAttribute.md).
+When using `CodeFunctionNode` you are able to define [Ports](Port.md) with any **Bindings** that available in [Shader Graph](Shader-Graph.md). For a full list of available **Bindings** see [Port Bindings](Port-Bindings.md). When using `CodeFunctionNode` **Bindings** are defined using [SlotAttribute](CodeFunctionNode.SlotAttribute.md).
 
 For more information on how to create [Nodes](Node.md) using `CodeFunctionNode` see [Custom Nodes with CodeFunctionNode](Custom-Nodes-With-CodeFunctionNode.md).
 

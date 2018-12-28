@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added replace blending mode for distortion
 - Added basic distance fade for density volumes
 - Added decal master node for shader graph
+- Added HD unlit master node (Cross Pipeline one is name Unlit)
 - Added new Rendering Queue in materials.
 - Added post-processing features (work in progress)
 - Post-processing now uses the generic volume framework
@@ -61,10 +62,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material debug view with stereo rendering
 - Fixed material's RenderQueue edition in default view.
 - Fixed banding issues within volumetric density buffer
+- Fixed missing multicompile for MSAA for AxF
 - Fixed max number of keyword reach [256] issue. Several shader feature are now local
 
 ### Changed
-- Refactored render loop to render realtime probes visible per camera
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
 - Removing the simple lightloop used by the simple lit shader
 - Whole refactor of reflection system: Workflow and performance improvement.
@@ -76,6 +77,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add command buffer parameter to all Bind() method of material
 - Lit shader mode now default to Deferred to reduce build time
 - Update UI of Emission parameters in shaders
+- Improve shader variant stripping including shader graph variant
+- Refactored render loop to render realtime probes visible per camera
 - Enable SRP batcher by default
 
 ## [5.2.0-preview] - 2018-11-27
