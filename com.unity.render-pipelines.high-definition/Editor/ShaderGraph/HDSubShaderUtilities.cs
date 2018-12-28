@@ -910,5 +910,44 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             return materialOptions;
         }
+
+        // Comment set of define for Forward Opaque pass in HDRP
+        public static List<string> s_ExtraDefinesForwardOpaque = new List<string>()
+        {
+            "#pragma multi_compile _ DEBUG_DISPLAY",
+            "#pragma multi_compile _ LIGHTMAP_ON",
+            "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+            "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+            "#pragma multi_compile _ SHADOWS_SHADOWMASK",
+            "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
+            "#define LIGHTLOOP_TILE_PASS",
+            "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+        };
+
+        public static List<string> s_ExtraDefinesForwardTransparent = new List<string>()
+        {
+            "#pragma multi_compile _ DEBUG_DISPLAY",
+            "#pragma multi_compile _ LIGHTMAP_ON",
+            "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+            "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+            "#pragma multi_compile _ SHADOWS_SHADOWMASK",
+            "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
+            "#define LIGHTLOOP_TILE_PASS",
+            "#define USE_CLUSTERED_LIGHTLIST",
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+        };
+
+        public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
+        {
+            "#define WRITE_NORMAL_BUFFER",
+            "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+        };
+
+        public static List<string> s_ExtraDefinesDepthOrMotion = new List<string>()
+        {
+            "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
+            "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+        };
     }
 }
