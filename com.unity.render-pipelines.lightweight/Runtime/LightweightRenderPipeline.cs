@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.LWRP
             public static int _ScaledScreenParams;
         }
 
-        public const string k_ShaderTagName = "LightweightRenderPipeline";
+        public const string k_ShaderTagName = "LightweightPipeline";
 
         const string k_RenderCameraTag = "Render Camera";
 
