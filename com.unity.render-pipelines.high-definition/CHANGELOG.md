@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added icons for assets.
 - Added replace blending mode for distortion
 - Added basic distance fade for density volumes
+- Added decal master node for shader graph
 - Added new Rendering Queue in materials.
 - Added post-processing features (work in progress)
 - Post-processing now uses the generic volume framework
