@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static int _ScaledScreenParams;
         }
 
-        public const string k_ShaderTagName = "LightweightRenderPipeline";
+        public const string k_ShaderTagName = "LightweightPipeline";
 
         private static IRendererSetup s_DefaultRendererSetup;
         private static IRendererSetup defaultRendererSetup
