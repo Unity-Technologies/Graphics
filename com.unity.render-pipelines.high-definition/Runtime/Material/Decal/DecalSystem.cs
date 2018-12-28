@@ -179,7 +179,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BaseColor = m_Material.GetVector("_BaseColor");
                 m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));
                 m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
-                m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), m_Material.GetFloat("_DecalColorMapAlphaScale"), m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
+                m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
             }
 
             public DecalSet(Material material)
