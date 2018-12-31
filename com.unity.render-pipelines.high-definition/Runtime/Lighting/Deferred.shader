@@ -37,7 +37,7 @@ Shader "Hidden/HDRP/Deferred"
             #pragma fragment Frag
 
             // Chose supported lighting architecture in case of deferred rendering
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+            #pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING

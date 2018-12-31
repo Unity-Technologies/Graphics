@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public SerializedProperty root;
 
-        public SerializedProperty enableTileAndCluster;
+        public SerializedProperty enableDeferredTileAndCluster;
         public SerializedProperty enableComputeLightEvaluation;
         public SerializedProperty enableComputeLightVariants;
         public SerializedProperty enableComputeMaterialVariants;
@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             this.root = root;
 
-            enableTileAndCluster = root.Find((LightLoopSettings l) => l.enableTileAndCluster);
+            enableDeferredTileAndCluster = root.Find((LightLoopSettings l) => l.enableDeferredTileAndCluster);
             enableComputeLightEvaluation = root.Find((LightLoopSettings l) => l.enableComputeLightEvaluation);
             enableComputeLightVariants = root.Find((LightLoopSettings l) => l.enableComputeLightVariants);
             enableComputeMaterialVariants = root.Find((LightLoopSettings l) => l.enableComputeMaterialVariants);

@@ -200,6 +200,10 @@ MonoBehaviour:
   flipYMode: 0
   fullscreenPassthrough: 0
   customRenderingSettings: 0
+  invertFaceCulling: 0
+  probeLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   m_FrameSettings:
     overrides: 0
     enableShadow: 1
@@ -237,7 +241,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -368,6 +372,9 @@ MonoBehaviour:
   blockerSampleCount: 24
   filterSampleCount: 16
   minFilterSize: 0.00001
+  kernelSize: 5
+  lightAngle: 1
+  maxDepthBias: 0.001
 --- !u!114 &4443443444635452230
 MonoBehaviour:
   m_ObjectHideFlags: 0

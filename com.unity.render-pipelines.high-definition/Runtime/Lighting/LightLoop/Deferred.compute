@@ -67,7 +67,6 @@
 
 #define UNITY_SINGLE_PASS_STEREO 1
 
-#define LIGHTLOOP_TILE_PASS 1
 // deferred opaque always use FPTL
 #define USE_FPTL_LIGHTLIST 1
 

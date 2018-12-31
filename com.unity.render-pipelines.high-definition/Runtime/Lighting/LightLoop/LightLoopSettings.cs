@@ -26,13 +26,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {LightLoopSettingsOverrides.ComputeLightEvaluation, (a, b) => { a.enableComputeLightEvaluation = b.enableComputeLightEvaluation; } },
             {LightLoopSettingsOverrides.ComputeLightVariants, (a, b) => { a.enableComputeLightVariants = b.enableComputeLightVariants; } },
             {LightLoopSettingsOverrides.ComputeMaterialVariants, (a, b) => { a.enableComputeMaterialVariants = b.enableComputeMaterialVariants; } },
-            {LightLoopSettingsOverrides.TileAndCluster, (a, b) => { a.enableTileAndCluster = b.enableTileAndCluster; } },
+            {LightLoopSettingsOverrides.TileAndCluster, (a, b) => { a.enableDeferredTileAndCluster = b.enableDeferredTileAndCluster; } },
         };
 
         public LightLoopSettingsOverrides overrides;
 
         // Setup by the users
-        public bool enableTileAndCluster = true;
+        public bool enableDeferredTileAndCluster = true;
         public bool enableComputeLightEvaluation = true;
         public bool enableComputeLightVariants = true;
         public bool enableComputeMaterialVariants = true;
@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void CopyTo(LightLoopSettings lightLoopSettings)
         {
-            lightLoopSettings.enableTileAndCluster = this.enableTileAndCluster;
+            lightLoopSettings.enableDeferredTileAndCluster = this.enableDeferredTileAndCluster;
             lightLoopSettings.enableComputeLightEvaluation = this.enableComputeLightEvaluation;
             lightLoopSettings.enableComputeLightVariants = this.enableComputeLightVariants;
             lightLoopSettings.enableComputeMaterialVariants = this.enableComputeMaterialVariants;
@@ -91,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (aggregate == null)
                 aggregate = new LightLoopSettings();
 
-            aggregate.enableTileAndCluster = frameSettings.lightLoopSettings.enableTileAndCluster;
+            aggregate.enableDeferredTileAndCluster = frameSettings.lightLoopSettings.enableDeferredTileAndCluster;
             aggregate.enableComputeLightEvaluation = frameSettings.lightLoopSettings.enableComputeLightEvaluation;
             aggregate.enableComputeLightVariants = frameSettings.lightLoopSettings.enableComputeLightVariants;
             aggregate.enableComputeMaterialVariants = frameSettings.lightLoopSettings.enableComputeMaterialVariants;
@@ -119,8 +119,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     displayName = "Light Loop Settings",
                     children =
                     {
-                        // Uncomment if you re-enable LIGHTLOOP_SINGLE_PASS multi_compile in lit*.shader
-                        //new DebugUI.BoolField { displayName = "Enable Tile/Cluster", getter = () => lightLoopSettings.enableTileAndCluster, setter = value => lightLoopSettings.enableTileAndCluster = value },
+                        new DebugUI.BoolField { displayName = "Enable Deferred Tile/Cluster", getter = () => lightLoopSettings.enableDeferredTileAndCluster, setter = value => lightLoopSettings.enableDeferredTileAndCluster = value },
                         new DebugUI.BoolField { displayName = "Enable Fptl for Forward Opaque", getter = () => lightLoopSettings.enableFptlForForwardOpaque, setter = value => lightLoopSettings.enableFptlForForwardOpaque = value },
                         new DebugUI.BoolField { displayName = "Enable Big Tile", getter = () => lightLoopSettings.enableBigTilePrepass, setter = value => lightLoopSettings.enableBigTilePrepass = value },
                         new DebugUI.BoolField { displayName = "Enable Compute Lighting", getter = () => lightLoopSettings.enableComputeLightEvaluation, setter = value => lightLoopSettings.enableComputeLightEvaluation = value },
