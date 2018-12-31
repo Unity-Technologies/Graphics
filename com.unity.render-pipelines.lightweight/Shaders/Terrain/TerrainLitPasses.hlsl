@@ -241,29 +241,47 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     half4 mixedDiffuse;
     
     half4 masks[4];
-    //SplatmapMix(IN, splatControl, weight, mixedDiffuse, normalTS);
-    SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, normalTS);
-
-    half3 albedo = mixedDiffuse.rgb;
+    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, uvMainAndLM.xy);
     
 #ifdef _MASKMAP
     masks[0] = SAMPLE_TEXTURE2D(_Mask0, sampler_Mask0, IN.uvSplat01.xy);
     masks[1] = SAMPLE_TEXTURE2D(_Mask1, sampler_Mask0, IN.uvSplat01.zw);
     masks[2] = SAMPLE_TEXTURE2D(_Mask2, sampler_Mask0, IN.uvSplat23.xy);
     masks[3] = SAMPLE_TEXTURE2D(_Mask3, sampler_Mask0, IN.uvSplat23.zw);
-#else
-    masks[0] = half4(1.0h, 1.0h, 0.0h, mixedDiffuse.a);
-    masks[1] = half4(1.0h, 1.0h, 0.0h, mixedDiffuse.a);
-    masks[2] = half4(1.0h, 1.0h, 0.0h, mixedDiffuse.a);
-    masks[3] = half4(1.0h, 1.0h, 0.0h, mixedDiffuse.a);
-#endif
+
 
 #ifdef _TERRAIN_BLEND_HEIGHT
     half4 defaultHeight = half4(masks[0].b, masks[1].b, masks[2].b, masks[3].b);
     defaultHeight *= half4(_MaskMapRemapScale0.b, _MaskMapRemapScale1.b, _MaskMapRemapScale2.b, _MaskMapRemapScale3.b);
     defaultHeight += half4(_MaskMapRemapOffset0.b, _MaskMapRemapOffset1.b, _MaskMapRemapOffset2.b, _MaskMapRemapOffset3.b);
     half maxHeight = max(defaultHeight.r, max(defaultHeight.g, max(defaultHeight.b, defaultHeight.a)));
-#endif  
+
+    // Ensure that the transition height is not zero.
+    half transition = max(_HeightTransition, 1e-5);
+
+    // The goal here is to have all but the highest layer at negative heights,
+    // then we add the transition so that if the next highest layer is near transition it will have a positive value.
+    // Then we clamp this to zero and normalize everything so that highest layer has a value of 1.
+    half4 weightedHeights = { masks[0].z, masks[1].z, masks[2].z, masks[3].z };
+    weightedHeights = weightedHeights - maxHeight.xxxx;
+    // We need to add an epsilon here for active layers (hence the blendMask again) 
+    // so that at least a layer shows up if everything's too low.
+    weightedHeights = (max(0, weightedHeights + transition) + 1e-5) * splatControl;
+
+    // Normalize
+    float sumHeight = GetSumHeight(weightedHeights0, weightedHeights1);
+    splatControl = weightedHeights / sumHeight.xxxx;
+#endif
+
+#else
+    masks[0] = half4(1.0h, 1.0h, 0.0h, 1.0h);
+    masks[1] = half4(1.0h, 1.0h, 0.0h, 1.0h);
+    masks[2] = half4(1.0h, 1.0h, 0.0h, 1.0h);
+    masks[3] = half4(1.0h, 1.0h, 0.0h, 1.0h);
+#endif
+
+    SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, normalTS);
+    half3 albedo = mixedDiffuse.rgb;
     
     half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
     defaultSmoothness *= half4(masks[0].a, masks[1].a, masks[2].a, masks[3].a);
