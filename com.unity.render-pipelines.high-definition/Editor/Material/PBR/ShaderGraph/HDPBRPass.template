@@ -44,10 +44,6 @@ Pass
     #pragma vertex Vert
     #pragma fragment Frag
 
-    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
-    // this modifies the normal calculation
-    // #define SURFACE_GRADIENT
-
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
 

@@ -177,9 +177,6 @@ Pass
     #pragma vertex Vert
     #pragma fragment Frag
 
-    // This will be enabled in an upcoming change.
-    // #define SURFACE_GRADIENT
-
     // If we use subsurface scattering, enable output split lighting
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING

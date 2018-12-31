@@ -275,8 +275,6 @@ Shader "HDRP/Lit"
     // Define
     //-------------------------------------------------------------------------------------
 
-    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
-    #define SURFACE_GRADIENT
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
 

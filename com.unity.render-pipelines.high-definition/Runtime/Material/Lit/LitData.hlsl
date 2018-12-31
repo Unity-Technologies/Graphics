@@ -1,4 +1,11 @@
 //-------------------------------------------------------------------------------------
+// Defines
+//-------------------------------------------------------------------------------------
+
+// Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+#define SURFACE_GRADIENT
+
+//-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
