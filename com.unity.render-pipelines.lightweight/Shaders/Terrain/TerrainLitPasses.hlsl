@@ -92,9 +92,9 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 
 #ifndef TERRAIN_SPLAT_BASEPASS
 
-void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, out half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
+void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
 {
-    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, uvMainAndLM.xy);    
+    //splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, uvMainAndLM.xy);    
     half4 diffAlbedo[4];
     
     diffAlbedo[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, uvSplat01.xy);
@@ -102,11 +102,13 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, out hal
     diffAlbedo[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, uvSplat23.xy);
     diffAlbedo[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, uvSplat23.zw);
     
+#ifndef _TERRAIN_BLEND_HEIGHT
     // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
     half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splatControl)) * 20.0);
     opacityAsDensity += 0.001f * splatControl;		// if all weights are zero, default to what the blend mask says
     half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
-    splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);    
+    splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
+#endif
     
     // Now that splatControl has changed, we can compute the final weight and normalize
     weight = dot(splatControl, 1.0h);
@@ -135,6 +137,32 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, out hal
 #endif
 }
 
+#endif
+
+#ifdef _TERRAIN_BLEND_HEIGHT
+void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
+{
+    half4 defaultHeight = half4(masks[0].b, masks[1].b, masks[2].b, masks[3].b);
+    defaultHeight *= half4(_MaskMapRemapScale0.b, _MaskMapRemapScale1.b, _MaskMapRemapScale2.b, _MaskMapRemapScale3.b);
+    defaultHeight += half4(_MaskMapRemapOffset0.b, _MaskMapRemapOffset1.b, _MaskMapRemapOffset2.b, _MaskMapRemapOffset3.b);
+    half maxHeight = max(defaultHeight.r, max(defaultHeight.g, max(defaultHeight.b, defaultHeight.a)));
+
+    // Ensure that the transition height is not zero.
+    half transition = max(_HeightTransition, 1e-5);
+
+    // The goal here is to have all but the highest layer at negative heights,
+    // then we add the transition so that if the next highest layer is near transition it will have a positive value.
+    // Then we clamp this to zero and normalize everything so that highest layer has a value of 1.
+    half4 weightedHeights = { masks[0].z, masks[1].z, masks[2].z, masks[3].z };
+    weightedHeights = weightedHeights - maxHeight.xxxx;
+    // We need to add an epsilon here for active layers (hence the blendMask again) 
+    // so that at least a layer shows up if everything's too low.
+    weightedHeights = (max(0, weightedHeights + transition) + 1e-5) * splatControl;
+
+    // Normalize
+    float sumHeight = dot(weightedHeights, half4(1, 1, 1, 1));
+    splatControl = weightedHeights / sumHeight.xxxx;
+}
 #endif
 
 void SplatmapFinalColor(inout half4 color, half fogCoord)
@@ -249,29 +277,9 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     masks[2] = SAMPLE_TEXTURE2D(_Mask2, sampler_Mask0, IN.uvSplat23.xy);
     masks[3] = SAMPLE_TEXTURE2D(_Mask3, sampler_Mask0, IN.uvSplat23.zw);
 
-
-#ifdef _TERRAIN_BLEND_HEIGHT
-    half4 defaultHeight = half4(masks[0].b, masks[1].b, masks[2].b, masks[3].b);
-    defaultHeight *= half4(_MaskMapRemapScale0.b, _MaskMapRemapScale1.b, _MaskMapRemapScale2.b, _MaskMapRemapScale3.b);
-    defaultHeight += half4(_MaskMapRemapOffset0.b, _MaskMapRemapOffset1.b, _MaskMapRemapOffset2.b, _MaskMapRemapOffset3.b);
-    half maxHeight = max(defaultHeight.r, max(defaultHeight.g, max(defaultHeight.b, defaultHeight.a)));
-
-    // Ensure that the transition height is not zero.
-    half transition = max(_HeightTransition, 1e-5);
-
-    // The goal here is to have all but the highest layer at negative heights,
-    // then we add the transition so that if the next highest layer is near transition it will have a positive value.
-    // Then we clamp this to zero and normalize everything so that highest layer has a value of 1.
-    half4 weightedHeights = { masks[0].z, masks[1].z, masks[2].z, masks[3].z };
-    weightedHeights = weightedHeights - maxHeight.xxxx;
-    // We need to add an epsilon here for active layers (hence the blendMask again) 
-    // so that at least a layer shows up if everything's too low.
-    weightedHeights = (max(0, weightedHeights + transition) + 1e-5) * splatControl;
-
-    // Normalize
-    float sumHeight = GetSumHeight(weightedHeights0, weightedHeights1);
-    splatControl = weightedHeights / sumHeight.xxxx;
-#endif
+    #ifdef _TERRAIN_BLEND_HEIGHT
+    HeightBasedSplatModify(splatControl, masks);
+    #endif  
 
 #else
     masks[0] = half4(1.0h, 1.0h, 0.0h, 1.0h);
