@@ -219,17 +219,18 @@ namespace UnityEngine.Rendering.LWRP
  
         protected override RenderPipeline CreatePipeline()
         {
+            CreateRendererSetup();
             return new LightweightRenderPipeline(this);
         }
 
-        public IRendererSetup CreateRendererSetup()
+        void CreateRendererSetup()
         {
 #if UNITY_EDITOR
             if (m_RendererData == null)
                 LoadBuiltinRendererData();
 #endif
 
-            return m_RendererData.Create();
+            m_RendererSetup = m_RendererData.Create();
         }
 
         Material GetMaterial(DefaultMaterialType materialType)

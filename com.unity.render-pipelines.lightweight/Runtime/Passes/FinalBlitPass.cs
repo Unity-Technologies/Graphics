@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
-		private bool requiresSRGConversion { get; set; }
+        private bool requiresSRGConversion { get; set; }
         private bool killAlpha { get; set; }
         Material m_BlitMaterial;
 
@@ -43,7 +43,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (m_BlitMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_BlitMaterial, GetType().Name);
                 return;
+            }
 
             if (renderer == null)
                 throw new ArgumentNullException(nameof(renderer));

@@ -67,7 +67,6 @@ namespace UnityEngine.Rendering.LWRP
 
         public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
         {
-            asset.m_RendererSetup = asset.CreateRendererSetup();
             renderer = new ScriptableRenderer();
 
             SetSupportedRenderingFeatures();

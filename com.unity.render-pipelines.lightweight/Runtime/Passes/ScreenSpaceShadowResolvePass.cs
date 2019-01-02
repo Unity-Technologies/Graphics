@@ -37,7 +37,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (m_ScreenSpaceShadowsMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_ScreenSpaceShadowsMaterial, GetType().Name);
                 return;
+            }
 
             if (renderer == null)
                 throw new ArgumentNullException("renderer");
