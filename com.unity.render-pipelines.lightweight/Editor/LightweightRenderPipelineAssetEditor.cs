@@ -16,9 +16,9 @@ namespace UnityEngine.Rendering.LWRP
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
-            // Render Path
-            public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Renderer Type", "Renderer Type");
-            public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Renderer Data", "Required by a custom Renderer. If none assigned LWRP fallsback to Forward Renderer.");
+            // Renderer
+            public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Renderer Type", "Controls the default renderer LWRP uses for all cameras.");
+            public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Renderer Data", "Required when using a custom Renderer. If none is assigned LWRP uses the Forward Renderer as default.");
 
             // General
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
