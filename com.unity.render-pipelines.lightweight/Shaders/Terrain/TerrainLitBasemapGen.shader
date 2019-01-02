@@ -100,10 +100,10 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit_BasemapGen"
                 half3 normalTS = half3(0.0h, 0.0h, 1.0h);
                 half4 splatControl;
                 half weight;
-                half4 mixedDiffuse;
+                half4 mixedDiffuse = 0.0h;
     
                 half4 masks[4];
-                splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, uvMainAndLM.xy);
+                splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
                 
             #ifdef _MASKMAP
                 masks[0] = SAMPLE_TEXTURE2D(_Mask0, sampler_Mask0, IN.uvSplat01.xy);
@@ -178,7 +178,7 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit_BasemapGen"
                 half4 mixedDiffuse;
     
                 half4 masks[4];
-                splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, uvMainAndLM.xy);
+                splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
                 
             #ifdef _MASKMAP
                 masks[0] = SAMPLE_TEXTURE2D(_Mask0, sampler_Mask0, IN.uvSplat01.xy);

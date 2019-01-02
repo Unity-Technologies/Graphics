@@ -269,7 +269,7 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     half4 mixedDiffuse;
     
     half4 masks[4];
-    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, uvMainAndLM.xy);
+    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
     
 #ifdef _MASKMAP
     masks[0] = SAMPLE_TEXTURE2D(_Mask0, sampler_Mask0, IN.uvSplat01.xy);
