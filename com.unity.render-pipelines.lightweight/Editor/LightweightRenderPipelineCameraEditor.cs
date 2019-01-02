@@ -21,7 +21,6 @@ namespace UnityEditor.Rendering.LWRP
 
         internal class Styles
         {
-            public readonly GUIContent renderingPathLabel = EditorGUIUtility.TrTextContent("Rendering Path", "The Lightweight Render Pipeline only supports Forward rendering path.");
             public static GUIContent backgroundType = EditorGUIUtility.TrTextContent("Background Type", "Controls how to initialize the Camera's background.\n\nSkybox initializes camera with Skybox, defaulting to a background color if no skybox is found.\n\nSolid Color initializes background with the background color.\n\nDon't initialize have undefined values for camera background. Use this only if you are rendering all pixels in the Camera's view.");
             public static GUIContent renderingShadows = EditorGUIUtility.TrTextContent("Render Shadows", "Enable this to make this camera render shadows.");
             public static GUIContent requireDepthTexture = EditorGUIUtility.TrTextContent("Depth Texture", "On makes this camera create a _CameraDepthTexture, which is a copy of the rendered depth values.\nOff makes the camera not create a depth texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
@@ -173,7 +172,6 @@ namespace UnityEditor.Rendering.LWRP
 
             EditorGUILayout.Space();
             settings.DrawDepth();
-            DrawRenderingPath();
             DrawTargetTexture();
             settings.DrawOcclusionCulling();
             DrawHDR();
@@ -233,14 +231,6 @@ namespace UnityEditor.Rendering.LWRP
                 }
 
                 settings.clearFlags.intValue = (int) selectedClearFlags;
-            }
-        }
-
-        void DrawRenderingPath()
-        {
-            using (new EditorGUI.DisabledScope(true))
-            {
-                EditorGUILayout.IntPopup(s_Styles.renderingPathLabel, 0, s_Styles.renderingPathOptions, s_RenderingPathValues);
             }
         }
 
