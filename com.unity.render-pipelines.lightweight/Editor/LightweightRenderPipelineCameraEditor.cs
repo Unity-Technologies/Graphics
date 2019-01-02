@@ -321,7 +321,10 @@ namespace UnityEditor.Rendering.LWRP
             if (selectedRendererOption == RendererOverrideOption.Custom && m_AdditionalCameraDataSO != null)
             {
                 EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_AdditionalCameraDataRendererDataProp, Styles.rendererData);
+                if (EditorGUI.EndChangeCheck())
+                    hasChanged = true;
                 EditorGUI.indentLevel--;
             }
 

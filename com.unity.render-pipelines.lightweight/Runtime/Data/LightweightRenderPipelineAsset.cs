@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.LWRP
 
         public IRendererData rendererData
         {
-            get => (IRendererData)m_RendererData;
+            get => m_RendererData;
         }
         
 #if UNITY_EDITOR
