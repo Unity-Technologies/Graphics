@@ -78,9 +78,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(m_refCounting >= 0);
         }
 
-        public void Bind()
+        public void Bind(CommandBuffer cmd)
         {
-            Shader.SetGlobalTexture("_PivotData", m_PivotData);
+            cmd.SetGlobalTexture("_PivotData", m_PivotData);
         }
     }
 }

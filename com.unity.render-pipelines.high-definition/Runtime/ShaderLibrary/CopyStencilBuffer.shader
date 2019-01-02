@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
+Shader "Hidden/HDRP/CopyStencilBuffer"
 {
     Properties
     {

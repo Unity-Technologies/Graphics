@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.LWRP
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
-        ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
+        ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
         ShaderKeyword m_Lightmap = new ShaderKeyword("LIGHTMAP_ON");
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.LWRP
             if (shader.name.Contains("Debug"))
                 return true;
 
-            if (shader.name.Contains("HDRenderPipeline"))
+            if (shader.name.Contains("HDRP"))
                 return true;
 
             if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows) &&

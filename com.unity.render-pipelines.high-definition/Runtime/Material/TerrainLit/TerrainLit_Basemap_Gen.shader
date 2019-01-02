@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
+Shader "Hidden/HDRP/TerrainLit_Basemap_Gen"
 {
     Properties
     {

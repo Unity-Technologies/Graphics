@@ -567,7 +567,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     int sliceIndex = 0;
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
-        sliceIndex = 1;
+        sliceIndex = _EnvSliceSize - 1;
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel, sliceIndex);

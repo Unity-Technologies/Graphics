@@ -742,7 +742,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 2
         data[0]: 0
         data[1]: 1
@@ -754,7 +754,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 4
         data[0]: 2
         data[1]: 3
@@ -784,19 +784,19 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 9
         data[0]: 7
         data[1]: 1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 10
         data[0]: 5
         data[1]: 6
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 11
         data[0]: 7
         data[1]: 8
@@ -808,25 +808,25 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 22
+      - op: 26
         valueIndex: 13
         data[0]: 10
         data[1]: 12
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 14
         data[0]: 9
         data[1]: 11
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 15
         data[0]: 13
         data[1]: 14
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 16
         data[0]: 11
         data[1]: 15
@@ -844,7 +844,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 19
         data[0]: 16
         data[1]: 17
@@ -868,13 +868,13 @@ VisualEffectResource:
         data[1]: 18
         data[2]: 18
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 29
         data[0]: 20
         data[1]: 22
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 32
         data[0]: 20
         data[1]: 21
@@ -904,7 +904,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 2
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 39
         data[0]: 28
         data[1]: 27
@@ -916,7 +916,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 41
         data[0]: 26
         data[1]: 25
@@ -928,13 +928,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 43
         data[0]: 31
         data[1]: 32
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 44
         data[0]: 29
         data[1]: 30
@@ -952,25 +952,25 @@ VisualEffectResource:
         data[1]: 33
         data[2]: 33
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 51
         data[0]: 20
         data[1]: 35
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 54
         data[0]: 20
         data[1]: 36
         data[2]: -1
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 57
         data[0]: 22
         data[1]: 38
         data[2]: -1
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 60
         data[0]: 21
         data[1]: 37
@@ -994,7 +994,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 66
         data[0]: 18
         data[1]: 42
@@ -1012,7 +1012,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 69
         data[0]: 18
         data[1]: 41
@@ -1042,7 +1042,7 @@ VisualEffectResource:
         data[1]: 46
         data[2]: 46
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 78
         data[0]: 13
         data[1]: 48
@@ -1054,7 +1054,7 @@ VisualEffectResource:
         data[1]: 18
         data[2]: 45
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 82
         data[0]: 40
         data[1]: 49
@@ -1066,55 +1066,55 @@ VisualEffectResource:
         data[1]: 18
         data[2]: 50
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 88
         data[0]: 39
         data[1]: 49
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 91
         data[0]: 53
         data[1]: 51
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 94
         data[0]: 55
         data[1]: 51
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 97
         data[0]: 38
         data[1]: 56
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 100
         data[0]: 37
         data[1]: 54
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 103
         data[0]: 8
         data[1]: 52
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 104
         data[0]: 59
         data[1]: 58
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 107
         data[0]: 60
         data[1]: 57
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 110
         data[0]: 61
         data[1]: 17
@@ -1126,7 +1126,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 114
         data[0]: 65
         data[1]: 63
@@ -1144,19 +1144,19 @@ VisualEffectResource:
         data[1]: 18
         data[2]: 18
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 123
         data[0]: 65
         data[1]: 62
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 126
         data[0]: 20
         data[1]: 67
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 129
         data[0]: 20
         data[1]: 68
@@ -1192,7 +1192,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 137
         data[0]: 75
         data[1]: 73
@@ -1204,7 +1204,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 139
         data[0]: 72
         data[1]: 74
@@ -1240,13 +1240,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 145
         data[0]: 79
         data[1]: 80
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 146
         data[0]: 77
         data[1]: 81
@@ -1258,13 +1258,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 148
         data[0]: 82
         data[1]: 78
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 149
         data[0]: 83
         data[1]: 76
@@ -1276,7 +1276,7 @@ VisualEffectResource:
         data[1]: 85
         data[2]: 85
         data[3]: -1
-      - op: 23
+      - op: 27
         valueIndex: 153
         data[0]: 88
         data[1]: 84
@@ -1288,7 +1288,7 @@ VisualEffectResource:
         data[1]: 86
         data[2]: 86
         data[3]: -1
-      - op: 23
+      - op: 27
         valueIndex: 157
         data[0]: 89
         data[1]: 87
@@ -1306,25 +1306,25 @@ VisualEffectResource:
         data[1]: 93
         data[2]: 93
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 164
         data[0]: 65
         data[1]: 92
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 167
         data[0]: 65
         data[1]: 90
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 170
         data[0]: 20
         data[1]: 95
         data[2]: -1
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 173
         data[0]: 62
         data[1]: 97
@@ -1336,13 +1336,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 177
         data[0]: 63
         data[1]: 96
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 180
         data[0]: 20
         data[1]: 94
@@ -1360,7 +1360,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 2
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 185
         data[0]: 67
         data[1]: 102
@@ -1372,7 +1372,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 189
         data[0]: 100
         data[1]: 0
@@ -1402,7 +1402,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 194
         data[0]: 0
         data[1]: 103
@@ -1414,19 +1414,19 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 196
         data[0]: 68
         data[1]: 98
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 199
         data[0]: 106
         data[1]: 110
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 200
         data[0]: 109
         data[1]: 110
@@ -1438,25 +1438,25 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 202
         data[0]: 104
         data[1]: 110
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 203
         data[0]: 111
         data[1]: 110
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 204
         data[0]: 113
         data[1]: 110
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 205
         data[0]: 108
         data[1]: 110
@@ -1480,13 +1480,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 2
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 209
         data[0]: 118
         data[1]: 115
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 210
         data[0]: 119
         data[1]: 121
@@ -1498,7 +1498,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 212
         data[0]: 115
         data[1]: 116
@@ -1516,13 +1516,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 215
         data[0]: 121
         data[1]: 120
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 216
         data[0]: 18
         data[1]: 124
@@ -1534,7 +1534,7 @@ VisualEffectResource:
         data[1]: 117
         data[2]: 117
         data[3]: -1
-      - op: 24
+      - op: 28
         valueIndex: 220
         data[0]: 18
         data[1]: 123
@@ -1546,7 +1546,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 222
         data[0]: 120
         data[1]: 119
@@ -1558,19 +1558,19 @@ VisualEffectResource:
         data[1]: 122
         data[2]: 122
         data[3]: -1
-      - op: 24
+      - op: 28
         valueIndex: 226
         data[0]: 116
         data[1]: 118
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 227
         data[0]: 101
         data[1]: 133
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 230
         data[0]: 99
         data[1]: 133
@@ -1582,7 +1582,7 @@ VisualEffectResource:
         data[1]: 131
         data[2]: 136
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 236
         data[0]: 105
         data[1]: 137
@@ -1618,91 +1618,91 @@ VisualEffectResource:
         data[1]: 18
         data[2]: 130
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 254
         data[0]: 114
         data[1]: 137
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 257
         data[0]: 102
         data[1]: 142
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 260
         data[0]: 141
         data[1]: 143
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 263
         data[0]: 147
         data[1]: 144
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 266
         data[0]: 145
         data[1]: 143
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 269
         data[0]: 96
         data[1]: 139
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 272
         data[0]: 146
         data[1]: 144
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 275
         data[0]: 98
         data[1]: 148
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 278
         data[0]: 97
         data[1]: 140
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 281
         data[0]: 155
         data[1]: 154
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 284
         data[0]: 149
         data[1]: 151
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 287
         data[0]: 153
         data[1]: 150
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 290
         data[0]: 156
         data[1]: 152
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 293
         data[0]: 65
         data[1]: 158
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 296
         data[0]: 65
         data[1]: 157
@@ -1738,13 +1738,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 304
         data[0]: 164
         data[1]: 166
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 305
         data[0]: 165
         data[1]: 163
@@ -1756,13 +1756,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 307
         data[0]: 168
         data[1]: 170
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 308
         data[0]: 169
         data[1]: 167
@@ -1780,13 +1780,13 @@ VisualEffectResource:
         data[1]: 171
         data[2]: 171
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 315
         data[0]: 65
         data[1]: 173
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 318
         data[0]: 65
         data[1]: 174
@@ -1798,13 +1798,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 322
         data[0]: 158
         data[1]: 175
         data[2]: -1
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 325
         data[0]: 157
         data[1]: 176
@@ -1822,7 +1822,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 330
         data[0]: 107
         data[1]: 103
@@ -1852,25 +1852,25 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 0
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 335
         data[0]: 183
         data[1]: 110
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 336
         data[0]: 184
         data[1]: 110
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 337
         data[0]: 185
         data[1]: 110
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 338
         data[0]: 181
         data[1]: 110
@@ -1882,13 +1882,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 340
         data[0]: 180
         data[1]: 110
         data[2]: -1
         data[3]: 1
-      - op: 21
+      - op: 25
         valueIndex: 341
         data[0]: 186
         data[1]: 110
@@ -1900,7 +1900,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 343
         data[0]: 193
         data[1]: 192
@@ -1912,7 +1912,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 345
         data[0]: 189
         data[1]: 190
@@ -1930,25 +1930,25 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 348
         data[0]: 190
         data[1]: 188
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 349
         data[0]: 192
         data[1]: 187
         data[2]: -1
         data[3]: 1
-      - op: 22
+      - op: 26
         valueIndex: 350
         data[0]: 0
         data[1]: 191
         data[2]: -1
         data[3]: 1
-      - op: 24
+      - op: 28
         valueIndex: 351
         data[0]: 187
         data[1]: 193
@@ -1960,13 +1960,13 @@ VisualEffectResource:
         data[1]: 194
         data[2]: 194
         data[3]: -1
-      - op: 24
+      - op: 28
         valueIndex: 355
         data[0]: 188
         data[1]: 189
         data[2]: -1
         data[3]: 1
-      - op: 19
+      - op: 23
         valueIndex: 356
         data[0]: 202
         data[1]: -1
@@ -1984,7 +1984,7 @@ VisualEffectResource:
         data[1]: 199
         data[2]: 199
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 363
         data[0]: 178
         data[1]: 204
@@ -1996,7 +1996,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 369
         data[0]: 179
         data[1]: 204
@@ -2008,25 +2008,25 @@ VisualEffectResource:
         data[1]: 203
         data[2]: 195
         data[3]: -1
-      - op: 21
+      - op: 25
         valueIndex: 375
         data[0]: 207
         data[1]: 208
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 378
         data[0]: 176
         data[1]: 211
         data[2]: -1
         data[3]: 3
-      - op: 23
+      - op: 27
         valueIndex: 381
         data[0]: 175
         data[1]: 209
         data[2]: -1
         data[3]: 3
-      - op: 21
+      - op: 25
         valueIndex: 384
         data[0]: 212
         data[1]: 208
@@ -2050,13 +2050,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: -1
-      - op: 24
+      - op: 28
         valueIndex: 390
         data[0]: 202
         data[1]: 206
         data[2]: -1
         data[3]: 1
-      - op: 23
+      - op: 27
         valueIndex: 391
         data[0]: 214
         data[1]: 216
@@ -2068,7 +2068,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 6
-      - op: 42
+      - op: 48
         valueIndex: 395
         data[0]: 217
         data[1]: 220
@@ -2080,13 +2080,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 5
-      - op: 23
+      - op: 27
         valueIndex: 397
         data[0]: 215
         data[1]: 213
         data[2]: -1
         data[3]: 3
-      - op: 26
+      - op: 30
         valueIndex: 400
         data[0]: 221
         data[1]: 210
@@ -2098,19 +2098,19 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 26
+      - op: 30
         valueIndex: 406
         data[0]: 225
         data[1]: 210
         data[2]: -1
         data[3]: 3
-      - op: 25
+      - op: 29
         valueIndex: 409
         data[0]: 228
         data[1]: 227
         data[2]: -1
         data[3]: 3
-      - op: 25
+      - op: 29
         valueIndex: 412
         data[0]: 226
         data[1]: 227
@@ -2128,13 +2128,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 4
-      - op: 24
+      - op: 28
         valueIndex: 420
         data[0]: 230
         data[1]: 210
         data[2]: -1
         data[3]: 3
-      - op: 24
+      - op: 28
         valueIndex: 423
         data[0]: 229
         data[1]: 210
@@ -2146,7 +2146,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 13
-      - op: 59
+      - op: 65
         valueIndex: 427
         data[0]: 233
         data[1]: -1
@@ -2158,13 +2158,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 13
-      - op: 44
+      - op: 50
         valueIndex: 431
         data[0]: 235
         data[1]: -1
         data[2]: -1
         data[3]: 0
-      - op: 59
+      - op: 65
         valueIndex: 435
         data[0]: 234
         data[1]: -1
@@ -2212,7 +2212,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: 2
         data[3]: 3
-      - op: 44
+      - op: 50
         valueIndex: 445
         data[0]: 237
         data[1]: -1
@@ -2230,25 +2230,25 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 27
+      - op: 31
         valueIndex: 453
         data[0]: 245
         data[1]: 243
         data[2]: -1
         data[3]: 1
-      - op: 27
+      - op: 31
         valueIndex: 454
         data[0]: 244
         data[1]: 243
         data[2]: -1
         data[3]: 1
-      - op: 27
+      - op: 31
         valueIndex: 455
         data[0]: 246
         data[1]: 243
         data[2]: -1
         data[3]: 1
-      - op: 27
+      - op: 31
         valueIndex: 456
         data[0]: 242
         data[1]: 243
@@ -2260,13 +2260,13 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 3
-      - op: 27
+      - op: 31
         valueIndex: 460
         data[0]: 241
         data[1]: 243
         data[2]: -1
         data[3]: 1
-      - op: 27
+      - op: 31
         valueIndex: 461
         data[0]: 240
         data[1]: 243
@@ -2296,7 +2296,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 15
-      - op: 29
+      - op: 33
         valueIndex: 472
         data[0]: 225
         data[1]: 254
@@ -2320,7 +2320,7 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 6
-      - op: 29
+      - op: 33
         valueIndex: 494
         data[0]: 221
         data[1]: 254
@@ -2708,7 +2708,7 @@ VisualEffectResource:
     - name: OnStop
       playSystems: 
       stopSystems: 00000000
-    m_RuntimeVersion: 7
+    m_RuntimeVersion: 8
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 0

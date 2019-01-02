@@ -118,16 +118,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(m_refCounting[(int)index] >= 0);
         }
 
-        public void Bind(FGDIndex index)
+        public void Bind(CommandBuffer cmd, FGDIndex index)
         {
             switch (index)
             {
                 case FGDIndex.FGD_GGXAndDisneyDiffuse:
-                    Shader.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_GGXDisneyDiffuse, m_PreIntegratedFGD[(int)index]);
+                    cmd.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_GGXDisneyDiffuse, m_PreIntegratedFGD[(int)index]);
                     break;
 
                 case FGDIndex.FGD_CharlieAndFabricLambert:
-                    Shader.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_CharlieAndFabric, m_PreIntegratedFGD[(int)index]);
+                    cmd.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_CharlieAndFabric, m_PreIntegratedFGD[(int)index]);
                     break;
 
                 default:

@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DepthValues"
+Shader "Hidden/HDRP/DepthValues"
 {
     HLSLINCLUDE
         #pragma target 4.5
