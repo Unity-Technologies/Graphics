@@ -108,8 +108,8 @@ namespace UnityEngine.Rendering.LWRP
         {
             get
             {
-                if (rendererData == null)
-                    return null;
+                if (rendererType == RendererOverrideOption.UsePipelineSettings || rendererData == null)
+                    return LightweightRenderPipeline.asset.rendererSetup;
 
                 if (m_RendererSetup == null)
                     m_RendererSetup = rendererData.Create();

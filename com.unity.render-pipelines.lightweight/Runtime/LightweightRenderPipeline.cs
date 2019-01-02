@@ -171,12 +171,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 renderer.Clear();
 
-                IRendererSetup rendererSetup = settings.rendererSetup;
-                if (additionalCameraData != null &&
-                    additionalCameraData.rendererType == RendererOverrideOption.Custom &&
-                    additionalCameraData.rendererData != null)
-                    rendererSetup = additionalCameraData.rendererSetup;
-
+                IRendererSetup rendererSetup = (additionalCameraData != null) ? additionalCameraData.rendererSetup : settings.rendererSetup;
                 rendererSetup.Setup(renderer, ref renderingData);
                 renderer.Execute(context, ref renderingData);
             }

@@ -109,14 +109,21 @@ namespace UnityEngine.Rendering.LWRP
             serializedObject.Update();
 
             EditorGUILayout.Space();
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_RendererTypeProp, Styles.rendererTypeText);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (m_RendererTypeProp.intValue != (int) RendererType.Custom)
+                    m_RendererDataProp.objectReferenceValue = LightweightRenderPipeline.asset.LoadBuiltinRendererData();
+            }
+
             if (m_RendererTypeProp.intValue == (int) RendererType.Custom)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_RendererDataProp, Styles.rendererDataText);
                 EditorGUI.indentLevel--;
             }
-
+            
             EditorGUILayout.Space();
             EditorGUILayout.Space();
 

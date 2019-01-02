@@ -148,12 +148,12 @@ namespace UnityEngine.Rendering.LWRP
         {
             var instance = CreateInstance<LightweightRenderPipelineAsset>();
 
-            instance.LoadRendererData();
+            instance.LoadBuiltinRendererData();
             instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
             return instance;
         }
 
-        void LoadRendererData()
+        public IRendererData LoadBuiltinRendererData()
         {
             switch (m_RendererType)
             {
@@ -162,6 +162,8 @@ namespace UnityEngine.Rendering.LWRP
                     m_RendererData = LoadResourceFile<ForwardRendererData>();
                     break;
             }
+
+            return m_RendererData;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
@@ -229,7 +231,7 @@ namespace UnityEngine.Rendering.LWRP
         {
 #if UNITY_EDITOR
             if (m_RendererData == null)
-                LoadRendererData();
+                LoadBuiltinRendererData();
 #endif
 
             return m_RendererData.Create();
