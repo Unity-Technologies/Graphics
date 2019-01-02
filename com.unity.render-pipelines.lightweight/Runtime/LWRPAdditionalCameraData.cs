@@ -100,19 +100,15 @@ namespace UnityEngine.Rendering.LWRP
             set { m_RequiresOpaqueTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
         }
 
-        public RendererOverrideOption rendererType => m_RendererOverrideOption;
-
-        public IRendererData rendererData => m_RendererData;
-
         public IRendererSetup rendererSetup
         {
             get
             {
-                if (rendererType == RendererOverrideOption.UsePipelineSettings || rendererData == null)
+                if (m_RendererOverrideOption == RendererOverrideOption.UsePipelineSettings || m_RendererData == null)
                     return LightweightRenderPipeline.asset.rendererSetup;
 
                 if (m_RendererSetup == null)
-                    m_RendererSetup = rendererData.Create();
+                    m_RendererSetup = m_RendererData.Create();
 
                 return m_RendererSetup;
             }
