@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField] RendererOverrideOption m_RendererOverrideOption = RendererOverrideOption.UsePipelineSettings;
         [SerializeField] IRendererData m_RendererData = null;
+        IRendererSetup m_RendererSetup = null;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -101,8 +102,22 @@ namespace UnityEngine.Rendering.LWRP
 
         public RendererOverrideOption rendererType => m_RendererOverrideOption;
 
-        public IRendererData rendererData => (IRendererData)m_RendererData;
-        
+        public IRendererData rendererData => m_RendererData;
+
+        public IRendererSetup rendererSetup
+        {
+            get
+            {
+                if (rendererData == null)
+                    return null;
+
+                if (m_RendererSetup == null)
+                    m_RendererSetup = rendererData.Create();
+
+                return m_RendererSetup;
+            }
+        }
+
         public void OnBeforeSerialize()
         {
         }

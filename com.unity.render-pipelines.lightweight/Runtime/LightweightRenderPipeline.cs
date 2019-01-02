@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -37,7 +36,6 @@ namespace UnityEngine.Rendering.LWRP
         const string k_RenderCameraTag = "Render Camera";
 
         public ScriptableRenderer renderer { get; private set; }
-        Dictionary<IRendererData, IRendererSetup> m_PerCameraRenderGraphs = new Dictionary<IRendererData, IRendererSetup>();
 
         public static float maxShadowBias
         {
@@ -104,8 +102,6 @@ namespace UnityEngine.Rendering.LWRP
 #endif
 
             renderer.Dispose();
-
-            m_PerCameraRenderGraphs.Clear();
 
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
@@ -176,13 +172,10 @@ namespace UnityEngine.Rendering.LWRP
                 renderer.Clear();
 
                 IRendererSetup rendererSetup = settings.rendererSetup;
-                if (additionalCameraData != null && additionalCameraData.rendererType == RendererOverrideOption.Custom && additionalCameraData.rendererData != null)
-                {
-                    if (pipelineInstance.m_PerCameraRenderGraphs.ContainsKey(additionalCameraData.rendererData))
-                        rendererSetup = pipelineInstance.m_PerCameraRenderGraphs[additionalCameraData.rendererData];
-                    else
-                        rendererSetup = additionalCameraData.rendererData.Create();
-                }
+                if (additionalCameraData != null &&
+                    additionalCameraData.rendererType == RendererOverrideOption.Custom &&
+                    additionalCameraData.rendererData != null)
+                    rendererSetup = additionalCameraData.rendererSetup;
 
                 rendererSetup.Setup(renderer, ref renderingData);
                 renderer.Execute(context, ref renderingData);
