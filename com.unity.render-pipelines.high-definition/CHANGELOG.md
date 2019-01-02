@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added icons for assets.
 - Added replace blending mode for distortion
 - Added basic distance fade for density volumes
+- Added decal master node for shader graph
+- Added HD unlit master node (Cross Pipeline one is name Unlit)
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -52,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material debug view with stereo rendering
 - Fixed material's RenderQueue edition in default view.
 - Fixed banding issues within volumetric density buffer
+- Fixed missing multicompile for MSAA for AxF
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
@@ -65,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add command buffer parameter to all Bind() method of material
 - Lit shader mode now default to Deferred to reduce build time
 - Update UI of Emission parameters in shaders
+- Improve shader variant stripping including shader graph variant
 
 ## [5.2.0-preview] - 2018-11-27
 

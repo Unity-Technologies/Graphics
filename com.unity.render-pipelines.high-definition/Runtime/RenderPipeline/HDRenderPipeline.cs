@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipeline : UnityEngine.Rendering.RenderPipeline
     {
+        public const string k_ShaderTagName = "HDRenderPipeline";
         const string k_OldQualityShadowKey = "HDRP:oldQualityShadows";
 
         enum ForwardPass
@@ -1867,6 +1868,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     drawSettings.SetShaderPassName(4, HDShaderPassNames.s_MeshDecalsMSName);
                     drawSettings.SetShaderPassName(5, HDShaderPassNames.s_MeshDecalsAOSName);
                     drawSettings.SetShaderPassName(6, HDShaderPassNames.s_MeshDecalsMAOSName);
+                    drawSettings.SetShaderPassName(7, HDShaderPassNames.s_ShaderGraphMeshDecalsName);
                 }
                 else
                 {

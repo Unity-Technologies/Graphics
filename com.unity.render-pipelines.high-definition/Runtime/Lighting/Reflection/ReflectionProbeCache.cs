@@ -62,18 +62,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeTemp", mips: true);
                 m_TempRenderTexture.Create();
 
-            }
-
-            m_ConvolutionTargetTextureArray = new RenderTexture[m_IBLFilterBSDF.Length];
-            for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
-            {
-                m_ConvolutionTargetTextureArray[bsdfIdx] = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
-                m_ConvolutionTargetTextureArray[bsdfIdx].hideFlags = HideFlags.HideAndDontSave;
-                m_ConvolutionTargetTextureArray[bsdfIdx].dimension = TextureDimension.Cube;
-                m_ConvolutionTargetTextureArray[bsdfIdx].useMipMap = true;
-                m_ConvolutionTargetTextureArray[bsdfIdx].autoGenerateMips = false;
-                m_ConvolutionTargetTextureArray[bsdfIdx].name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeConvolution_" + bsdfIdx.ToString(), mips: true);
-                m_ConvolutionTargetTextureArray[bsdfIdx].Create();
+                m_ConvolutionTargetTextureArray = new RenderTexture[m_IBLFilterBSDF.Length];
+                for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
+                {
+                    m_ConvolutionTargetTextureArray[bsdfIdx] = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
+                    m_ConvolutionTargetTextureArray[bsdfIdx].hideFlags = HideFlags.HideAndDontSave;
+                    m_ConvolutionTargetTextureArray[bsdfIdx].dimension = TextureDimension.Cube;
+                    m_ConvolutionTargetTextureArray[bsdfIdx].useMipMap = true;
+                    m_ConvolutionTargetTextureArray[bsdfIdx].autoGenerateMips = false;
+                    m_ConvolutionTargetTextureArray[bsdfIdx].name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeConvolution_" + bsdfIdx.ToString(), mips: true);
+                    m_ConvolutionTargetTextureArray[bsdfIdx].Create();
+                }
             }
 
             InitializeProbeBakingStates();
