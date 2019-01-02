@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
 - You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
+- You can now implement a custom renderer for LWRP. To do so implement an `IRendererData` that contains all resources used in rendering and `IRendererSetup` that creates and enqueue `ScriptableRenderPass`. Change the renderer type either in the Pipeline Asset or in the Camera inspector.
 
 ### Changed
 - You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Initialize.
