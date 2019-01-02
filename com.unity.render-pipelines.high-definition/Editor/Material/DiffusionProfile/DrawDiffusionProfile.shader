@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DrawDiffusionProfile"
+Shader "Hidden/HDRP/DrawDiffusionProfile"
 {
     SubShader
     {

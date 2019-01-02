@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.Operator
             if (!s_ExpressionCountPerType.TryGetValue(type, out count))
             {
                 var tempInstance = VFXSlot.Create(new VFXPropertyWithValue(new VFXProperty(type, "temp")), VFXSlot.Direction.kInput);
-                count = tempInstance.GetVFXValueTypeSlots().Count();
+                count = tempInstance.GetExpressionSlots().Count();
                 s_ExpressionCountPerType.Add(type, count);
             }
             return count;

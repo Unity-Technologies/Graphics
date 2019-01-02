@@ -16,11 +16,8 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 	surfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);	
 	bsdfData = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);
 
-#if HDRP_MATERIAL_TYPE_SIMPLE
-	preLightData = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
-#else
 	preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
-#endif
+	
 	preLightData.diffuseFGD = 1.0f;
     //TODO: investigate why this is needed
     preLightData.coatPartLambdaV = 0;

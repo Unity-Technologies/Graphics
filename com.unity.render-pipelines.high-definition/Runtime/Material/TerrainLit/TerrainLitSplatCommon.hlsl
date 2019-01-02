@@ -262,13 +262,22 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
         #else
             // Denser layers are more visible.
             float4 opacityAsDensity0 = saturate((float4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks0)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
+            opacityAsDensity0 += 0.001f * blendMasks0;		// if all weights are zero, default to what the blend mask says
             float4 useOpacityAsDensityParam0 = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
             blendMasks0 = lerp(opacityAsDensity0, blendMasks0, useOpacityAsDensityParam0);
             #ifdef _TERRAIN_8_LAYERS
                 float4 opacityAsDensity1 = saturate((float4(albedo[4].a, albedo[5].a, albedo[6].a, albedo[7].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks1)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
+                opacityAsDensity1 += 0.001f * blendMasks1;	// if all weights are zero, default to what the blend mask says
                 float4 useOpacityAsDensityParam1 = { _DiffuseRemapScale4.w, _DiffuseRemapScale5.w, _DiffuseRemapScale6.w, _DiffuseRemapScale7.w };
                 blendMasks1 = lerp(opacityAsDensity1, blendMasks1, useOpacityAsDensityParam1);
             #endif
+
+            // Normalize
+            float sumHeight = GetSumHeight(blendMasks0, blendMasks1);
+            blendMasks0 = blendMasks0 / sumHeight.xxxx;
+#ifdef _TERRAIN_8_LAYERS
+            blendMasks1 = blendMasks1 / sumHeight.xxxx;
+#endif
         #endif // if _TERRAIN_BLEND_HEIGHT
     #endif // if _MASKMAP
 
@@ -281,27 +290,6 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
         weights[5] = blendMasks1.y;
         weights[6] = blendMasks1.z;
         weights[7] = blendMasks1.w;
-    #endif
-
-    #if defined(_MASKMAP) && !defined(_TERRAIN_BLEND_HEIGHT)
-        bool densityBlendEnabled = any(useOpacityAsDensityParam0 < 1);
-        #ifdef _TERRAIN_8_LAYERS
-            densityBlendEnabled = densityBlendEnabled || any(useOpacityAsDensityParam1 < 1);
-        #endif
-        // calculate weight of each layers
-        // Algorithm is like this:
-        // Top layer have priority on others layers
-        // If a top layer doesn't use the full weight, the remaining can be use by the following layer.
-        float weightsSum = 0.0;
-
-        if (densityBlendEnabled)
-        {
-            UNITY_UNROLL for (int i = _LAYER_COUNT - 1; i >= 0; --i)
-            {
-                weights[i] = min(weights[i], (1.0 - weightsSum));
-                weightsSum = saturate(weightsSum + weights[i]);
-            }
-        }
     #endif
 
     outAlbedo = 0;

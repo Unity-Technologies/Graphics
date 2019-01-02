@@ -50,6 +50,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             float opaqueScaler = m_OpaqueScalerValues[(int)downsampling];
 
             RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData, opaqueScaler);
+            opaqueDesc.msaaSamples = 1;
+            opaqueDesc.depthBufferBits = 0;
+
             RenderTargetIdentifier colorRT = source.Identifier();
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 

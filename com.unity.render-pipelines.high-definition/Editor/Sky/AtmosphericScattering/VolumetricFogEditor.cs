@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static GUIContent s_MeanHeightLabel             = new GUIContent("Mean Height", "Controls the rate of falloff of the height fog. Higher values stretch the fog vertically.");
         static GUIContent s_AnisotropyLabel             = new GUIContent("Global Anisotropy", "Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, -1 is backward scattering.");
         static GUIContent s_GlobalLightProbeDimmerLabel = new GUIContent("Global Light Probe Dimmer", "Reduces the intensity of the global light probe.");
-        static GUIContent s_EnableDistantFog            = new GUIContent("Enable Distant Fog", "Activates the fog with precomputed lighting behind the volumetrically-lit frustum.");
+        static GUIContent s_EnableDistantFog            = new GUIContent("Distant Fog", "Activates the fog with precomputed lighting behind the volumetrically-lit frustum.");
 
         public override void OnEnable()
         {

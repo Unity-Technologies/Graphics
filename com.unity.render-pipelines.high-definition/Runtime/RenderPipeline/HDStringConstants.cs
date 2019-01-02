@@ -28,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_MeshDecalsAOSStr = "DBufferMesh_AOS";
         public static readonly string s_MeshDecalsMAOSStr = "DBufferMesh_MAOS";
         public static readonly string s_MeshDecals3RTStr = "DBufferMesh_3RT";
+        public static readonly string s_ShaderGraphMeshDecals = "ShaderGraph_DBufferMesh";
 
         // ShaderPass name
         public static readonly ShaderTagId s_EmptyName = new ShaderTagId(s_EmptyStr);
@@ -51,6 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly ShaderTagId s_MeshDecalsAOSName = new ShaderTagId(s_MeshDecalsAOSStr);
         public static readonly ShaderTagId s_MeshDecalsMAOSName = new ShaderTagId(s_MeshDecalsMAOSStr);
         public static readonly ShaderTagId s_MeshDecals3RTName = new ShaderTagId(s_MeshDecals3RTStr);
+        public static readonly ShaderTagId s_ShaderGraphMeshDecalsName = new ShaderTagId(s_ShaderGraphMeshDecals);
 
         // Legacy name
         public static readonly ShaderTagId s_AlwaysName = new ShaderTagId("Always");
@@ -76,6 +78,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ShadowAtlasSize = Shader.PropertyToID("_ShadowAtlasSize");
         public static readonly int _CascadeShadowAtlasSize = Shader.PropertyToID("_CascadeShadowAtlasSize");
         public static readonly int _CascadeShadowCount = Shader.PropertyToID("_CascadeShadowCount");
+
+        // Moment shadow map data
+        public static readonly int _MomentShadowAtlas = Shader.PropertyToID("_MomentShadowAtlas");
+        public static readonly int _MomentShadowmapSlotST = Shader.PropertyToID("_MomentShadowmapSlotST");
+        public static readonly int _MomentShadowmapSize = Shader.PropertyToID("_MomentShadowmapSize");
+        public static readonly int _SummedAreaTableInputInt = Shader.PropertyToID("_SummedAreaTableInputInt");
+        public static readonly int _SummedAreaTableOutputInt = Shader.PropertyToID("_SummedAreaTableOutputInt");
+        public static readonly int _SummedAreaTableInputFloat = Shader.PropertyToID("_SummedAreaTableInputFloat");
+        public static readonly int _IMSKernelSize = Shader.PropertyToID("_IMSKernelSize");
 
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
         public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");

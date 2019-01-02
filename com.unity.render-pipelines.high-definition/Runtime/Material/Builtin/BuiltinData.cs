@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // and are independent from the BSDF parametrization.
         // Note: These parameters can be store in GBuffer or not depends on storage available
         //-----------------------------------------------------------------------------
-        [GenerateHLSL(PackingRules.Exact, false, true, 100)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 100)]
         public struct BuiltinData
         {
             [SurfaceDataAttributes("Opacity")]

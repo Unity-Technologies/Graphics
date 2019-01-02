@@ -1,48 +1,50 @@
 using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using _ = CoreEditorUtils;
-    using CED = CoreEditorDrawer<GlobalDecalSettingsUI, SerializedGlobalDecalSettings>;
-
-    class GlobalDecalSettingsUI : BaseUI<SerializedGlobalDecalSettings>
+    using CED = CoreEditorDrawer<SerializedGlobalDecalSettings>;
+    
+    static class GlobalDecalSettingsUI
     {
+        enum Expandable
+        {
+            DecalSettings = 1 << 0
+        }
+
+        readonly static ExpandedState<Expandable, GlobalDecalSettings> k_ExpandedState = new ExpandedState<Expandable, GlobalDecalSettings>(Expandable.DecalSettings, "HDRP");
+
+        static readonly GUIContent k_HeaderContent = CoreEditorUtils.GetContent("Decals");
+
+        static readonly GUIContent k_DrawDistanceContent = CoreEditorUtils.GetContent("Draw Distance");
+        static readonly GUIContent k_AtlasWidthContent = CoreEditorUtils.GetContent("Atlas Width");
+        static readonly GUIContent k_AtlasHeightContent = CoreEditorUtils.GetContent("Atlas Height");
+        static readonly GUIContent k_MetalAndAOContent = CoreEditorUtils.GetContent("Metal and AO properties");
+
         static GlobalDecalSettingsUI()
         {
-            Inspector = CED.Group(SectionDecalSettings);
+            Inspector = CED.FoldoutGroup(
+                k_HeaderContent,
+                Expandable.DecalSettings,
+                k_ExpandedState,
+                Drawer_SectionDecalSettings
+                );
         }
-
-#pragma warning disable 618 //CED
+        
         public static readonly CED.IDrawer Inspector;
-
-        public static readonly CED.IDrawer SectionDecalSettings = CED.FoldoutGroup(
-#pragma warning disable 618
-            "Decals",
-            (s, d, o) => s.isSectionExpendedDecalSettings,
-            FoldoutOption.None,
-            CED.Action(Drawer_SectionDecalSettings)
-            );
-
-        AnimatedValues.AnimBool isSectionExpendedDecalSettings { get { return m_AnimBools[0]; } }
-
-        public GlobalDecalSettingsUI()
-            : base(1)
+        
+        static void Drawer_SectionDecalSettings(SerializedGlobalDecalSettings serialized, Editor owner)
         {
-            isSectionExpendedDecalSettings.value = true;
-        }
-
-        static void Drawer_SectionDecalSettings(GlobalDecalSettingsUI s, SerializedGlobalDecalSettings d, Editor o)
-        {
-            EditorGUILayout.PropertyField(d.drawDistance, _.GetContent("Draw Distance"));
-            EditorGUILayout.DelayedIntField(d.atlasWidth, _.GetContent("Atlas Width"));
-            EditorGUILayout.DelayedIntField(d.atlasHeight, _.GetContent("Atlas Height"));
-            EditorGUILayout.PropertyField(d.perChannelMask, _.GetContent("Enable Metal and AO properties"));
+            EditorGUILayout.PropertyField(serialized.drawDistance, k_DrawDistanceContent);
+            EditorGUILayout.DelayedIntField(serialized.atlasWidth, k_AtlasWidthContent);
+            EditorGUILayout.DelayedIntField(serialized.atlasHeight, k_AtlasHeightContent);
+            EditorGUILayout.PropertyField(serialized.perChannelMask, k_MetalAndAOContent);
 
             // Clamp input values
-            d.drawDistance.intValue = Mathf.Max(d.drawDistance.intValue, 0);
-            d.atlasWidth.intValue = Mathf.Max(d.atlasWidth.intValue, 0);
-            d.atlasHeight.intValue = Mathf.Max(d.atlasHeight.intValue, 0);
+            serialized.drawDistance.intValue = Mathf.Max(serialized.drawDistance.intValue, 0);
+            serialized.atlasWidth.intValue = Mathf.Max(serialized.atlasWidth.intValue, 0);
+            serialized.atlasHeight.intValue = Mathf.Max(serialized.atlasHeight.intValue, 0);
         }
     }
 }

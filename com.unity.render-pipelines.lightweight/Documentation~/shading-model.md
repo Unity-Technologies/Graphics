@@ -39,7 +39,7 @@ These LWRP shaders use Physically Based Shading:
 
 To read more about Physically Based Rendering, see [this walkthrough by Joe Wilson on Marmoset](https://marmoset.co/posts/physically-based-rendering-and-you-can-too/). 
 
-## ## Simple shading
+## Simple shading
 
 This shading model is suitable for stylized games or for games that run on less powerful platforms. With this shading model, objects do not appear truly photorealistic. The shaders are not energy-conserving. This shading model is based on [Blinn-Phong](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_shading_model) model. 
 
@@ -52,7 +52,7 @@ These LWRP shaders use Simple Shading:
 - [Simple Lit](simple-lit-shader.md)
 - Particles Simple Lit
 
-## ## Baked Lit shading 
+## Baked Lit shading
 
 The Baked Lit shading model doesn’t have real-time lighting. Objects can receive [baked lighting](https://docs.unity3d.com/Manual/LightMode-Baked.html) from either [Lightmaps](https://docs.unity3d.com/Manual/Lightmapping.html) or [Light Probes](<https://docs.unity3d.com/Manual/LightProbes.html>). This adds some depth to your Scenes at a small performance cost. Games with this shading model can run on less powerful platforms. 
 

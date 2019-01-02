@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 10
+    serializedVersion: 12
     m_Resolution: 2
     m_BakeResolution: 40
     m_AtlasSize: 1024
@@ -62,6 +62,7 @@ LightmapSettings:
     m_AOMaxDistance: 1
     m_CompAOExponent: 1
     m_CompAOExponentDirect: 0
+    m_ExtractAmbientOcclusion: 0
     m_Padding: 2
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
@@ -76,10 +77,16 @@ LightmapSettings:
     m_PVRDirectSampleCount: 32
     m_PVRSampleCount: 500
     m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 500
+    m_PVREnvironmentReferencePointCount: 2048
+    m_PVRFilteringMode: 2
+    m_PVRDenoiserTypeDirect: 0
+    m_PVRDenoiserTypeIndirect: 0
+    m_PVRDenoiserTypeAO: 0
     m_PVRFilterTypeDirect: 0
     m_PVRFilterTypeIndirect: 0
     m_PVRFilterTypeAO: 0
-    m_PVRFilteringMode: 1
+    m_PVREnvironmentMIS: 0
     m_PVRCulling: 1
     m_PVRFilteringGaussRadiusDirect: 1
     m_PVRFilteringGaussRadiusIndirect: 5
@@ -594,6 +601,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 0
+  luxAtDistance: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   m_VolumetricDimmer: 1
@@ -623,6 +631,7 @@ MonoBehaviour:
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
 --- !u!108 &479927044
 Light:
   m_ObjectHideFlags: 0
@@ -852,6 +861,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 0
+  luxAtDistance: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   m_VolumetricDimmer: 1
@@ -881,6 +891,7 @@ MonoBehaviour:
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
 --- !u!108 &759672933
 Light:
   m_ObjectHideFlags: 0
@@ -1176,11 +1187,220 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0ef8dc2c2eabfa4e8cb77be57a837c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_ProbeSettings:
+    type: 0
+    mode: 2
+    realtimeMode: 0
+    lighting:
+      multiplier: 1
+      weight: 1
+      lightLayer: 1
+    influence:
+      m_Shape: 0
+      m_BoxSize: {x: 6.73, y: 3.3, z: 2.77}
+      m_BoxBlendDistancePositive: {x: 0, y: 0, z: 0}
+      m_BoxBlendDistanceNegative: {x: 0, y: 0, z: 0}
+      m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
+      m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
+      m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
+      m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
+      m_SphereRadius: 3
+      m_SphereBlendDistance: 0
+      m_SphereBlendNormalDistance: 0
+      m_EditorAdvancedModeBlendDistancePositive: {x: 0, y: 0, z: 0}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 0, y: 0, z: 0}
+      m_EditorSimplifiedModeBlendDistance: 0
+      m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
+      m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
+      m_EditorSimplifiedModeBlendNormalDistance: 0
+      m_EditorAdvancedModeEnabled: 0
+      m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
+      m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
+      m_Version: 1
+      m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
+      m_ObsoleteOffset: {x: 0, y: 0, z: 0}
+    proxy:
+      m_Shape: 0
+      m_BoxSize: {x: 1, y: 1, z: 1}
+      m_SphereRadius: 1
+      m_CSVersion: 1
+      m_ObsoleteSphereInfiniteProjection: 0
+      m_ObsoleteBoxInfiniteProjection: 0
+    proxySettings:
+      useInfluenceVolumeAsProxyVolume: 0
+      capturePositionProxySpace: {x: 0, y: 0, z: 0}
+      captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
+      mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
+      mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    camera:
+      renderingPath: 0
+      frameSettings:
+        overrides: 0
+        enableShadow: 1
+        enableContactShadows: 1
+        enableShadowMask: 1
+        enableSSR: 0
+        enableSSAO: 1
+        enableSubsurfaceScattering: 1
+        enableTransmission: 1
+        enableAtmosphericScattering: 1
+        enableVolumetrics: 1
+        enableReprojectionForVolumetrics: 1
+        enableLightLayers: 1
+        diffuseGlobalDimmer: 1
+        specularGlobalDimmer: 1
+        shaderLitMode: 1
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 1
+        enableMotionVectors: 1
+        enableObjectMotionVectors: 1
+        enableDecals: 1
+        enableRoughRefraction: 1
+        enableTransparentPostpass: 1
+        enableDistortion: 1
+        enablePostprocess: 1
+        enableOpaqueObjects: 1
+        enableTransparentObjects: 1
+        enableRealtimePlanarReflection: 1
+        enableMSAA: 0
+        enableAsyncCompute: 1
+        runLightListAsync: 1
+        runSSRAsync: 1
+        runSSAOAsync: 1
+        runContactShadowsAsync: 1
+        runVolumeVoxelizationAsync: 1
+        lightLoopSettings:
+          overrides: 0
+          enableTileAndCluster: 1
+          enableComputeLightEvaluation: 1
+          enableComputeLightVariants: 1
+          enableComputeMaterialVariants: 1
+          enableFptlForForwardOpaque: 1
+          enableBigTilePrepass: 1
+          isFptlEnabled: 1
+      postProcessLayer: {fileID: 0}
+      bufferClearing:
+        clearColorMode: 0
+        backgroundColorHDR: {r: 0, g: 12.984292, b: 15.999998, a: 0}
+        clearDepth: 1
+      volumes:
+        layerMask:
+          serializedVersion: 2
+          m_Bits: 4294967295
+        anchorOverride: {fileID: 0}
+      frustum:
+        mode: 0
+        aspect: 1
+        farClipPlane: 1000
+        nearClipPlane: 0.3
+        fieldOfView: 90
+        projectionMatrix:
+          e00: 1
+          e01: 0
+          e02: 0
+          e03: 0
+          e10: 0
+          e11: 1
+          e12: 0
+          e13: 0
+          e20: 0
+          e21: 0
+          e22: 1
+          e23: 0
+          e30: 0
+          e31: 0
+          e32: 0
+          e33: 1
+      culling:
+        useOcclusionCulling: 1
+        cullingMask:
+          serializedVersion: 2
+          m_Bits: 4294967295
+      invertFaceCulling: 0
+      flipYMode: 0
+  m_ProbeSettingsOverride:
+    probe: 0
+    camera:
+      camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_InfiniteProjection: 1
-  m_InfluenceVolume:
+  m_BakedTexture: {fileID: 0}
+  m_CustomTexture: {fileID: 8900000, guid: bcd1d60980af623478368e9455ea5689, type: 3}
+  m_BakedRenderData:
+    worldToCameraRHS:
+      e00: 0
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 0
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 0
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 0
+    projectionMatrix:
+      e00: 0
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 0
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 0
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 0
+    capturePosition: {x: 0, y: 0, z: 0}
+  m_CustomRenderData:
+    worldToCameraRHS:
+      e00: 0
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 0
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 0
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 0
+    projectionMatrix:
+      e00: 0
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 0
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 0
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 0
+    capturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 1
+  m_ObsoleteInfiniteProjection: 1
+  m_ObsoleteInfluenceVolume:
     m_Shape: 0
-    m_Offset: {x: 0, y: 0, z: 0}
     m_BoxSize: {x: 6.73, y: 3.3, z: 2.77}
     m_BoxBlendDistancePositive: {x: 0, y: 0, z: 0}
     m_BoxBlendDistanceNegative: {x: 0, y: 0, z: 0}
@@ -1188,6 +1408,9 @@ MonoBehaviour:
     m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
     m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
     m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
+    m_SphereRadius: 3
+    m_SphereBlendDistance: 0
+    m_SphereBlendNormalDistance: 0
     m_EditorAdvancedModeBlendDistancePositive: {x: 0, y: 0, z: 0}
     m_EditorAdvancedModeBlendDistanceNegative: {x: 0, y: 0, z: 0}
     m_EditorSimplifiedModeBlendDistance: 0
@@ -1197,12 +1420,10 @@ MonoBehaviour:
     m_EditorAdvancedModeEnabled: 0
     m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
     m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-    m_SphereRadius: 3
-    m_SphereBlendDistance: 0
-    m_SphereBlendNormalDistance: 0
     m_Version: 1
     m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
-  m_FrameSettings:
+    m_ObsoleteOffset: {x: 0, y: 0, z: 0}
+  m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 1
     enableContactShadows: 1
@@ -1246,7 +1467,11 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 1
       enableBigTilePrepass: 1
       isFptlEnabled: 1
-  m_CaptureSettings:
+  m_ObsoleteMultiplier: 1
+  m_ObsoleteWeight: 1
+  m_ObsoleteMode: 2
+  m_ObsoleteLightLayers: 1
+  m_ObsoleteCaptureSettings:
     overrides: 0
     clearColorMode: 0
     backgroundColorHDR: {r: 0, g: 12.984292, b: 15.999998, a: 0}
@@ -1266,15 +1491,7 @@ MonoBehaviour:
     orthographicSize: 5
     renderingPath: 0
     shadowDistance: 100
-  m_Multiplier: 1
-  m_Weight: 1
-  m_Mode: 2
-  m_RefreshMode: 1
-  m_CustomTexture: {fileID: 0}
-  m_BakedTexture: {fileID: 0}
-  m_RenderDynamicObjects: 0
-  lightLayers: 1
-  m_ReflectionProbeVersion: 6
+  m_ReflectionProbeVersion: 7
   m_ObsoleteInfluenceShape: 0
   m_ObsoleteInfluenceSphereRadius: 3
   m_ObsoleteBlendDistancePositive: {x: 0, y: 0, z: 0}
@@ -1293,7 +1510,7 @@ ReflectionProbe:
   m_Enabled: 1
   serializedVersion: 2
   m_Type: 0
-  m_Mode: 2
+  m_Mode: 1
   m_RefreshMode: 1
   m_TimeSlicingMode: 0
   m_Resolution: 128
@@ -1535,6 +1752,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
+  luxAtDistance: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   m_VolumetricDimmer: 1
@@ -1564,6 +1782,7 @@ MonoBehaviour:
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
 --- !u!108 &1299318950
 Light:
   m_ObjectHideFlags: 0
@@ -1726,6 +1945,7 @@ MonoBehaviour:
   aperture: 8
   shutterSpeed: 0.005
   iso: 400
+  flipYMode: 0
   m_FrameSettings:
     overrides: 0
     enableShadow: 1
@@ -1854,6 +2074,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
+  luxAtDistance: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   m_VolumetricDimmer: 1
@@ -1883,6 +2104,7 @@ MonoBehaviour:
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
 --- !u!108 &1513443419
 Light:
   m_ObjectHideFlags: 0
@@ -2292,6 +2514,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 0
+  luxAtDistance: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   m_VolumetricDimmer: 1
@@ -2321,6 +2544,7 @@ MonoBehaviour:
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
 --- !u!108 &1722869853
 Light:
   m_ObjectHideFlags: 0
@@ -2511,6 +2735,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 0
+  luxAtDistance: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   m_VolumetricDimmer: 1
@@ -2540,6 +2765,7 @@ MonoBehaviour:
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
 --- !u!1 &1778717241
 GameObject:
   m_ObjectHideFlags: 0
@@ -2932,6 +3158,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
+  luxAtDistance: 1
   m_InnerSpotPercent: 0
   lightDimmer: 1
   m_VolumetricDimmer: 1
@@ -2961,6 +3188,7 @@ MonoBehaviour:
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
 --- !u!108 &1920237758
 Light:
   m_ObjectHideFlags: 0

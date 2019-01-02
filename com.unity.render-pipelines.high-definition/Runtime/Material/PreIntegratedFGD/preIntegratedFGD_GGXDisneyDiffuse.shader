@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/preIntegratedFGD_GGXDisneyDiffuse"
+Shader "Hidden/HDRP/preIntegratedFGD_GGXDisneyDiffuse"
 {
     SubShader
     {

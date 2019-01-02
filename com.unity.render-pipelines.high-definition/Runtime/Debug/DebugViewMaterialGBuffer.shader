@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
+Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
 {
     SubShader
     {
@@ -69,7 +69,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo
                 else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
                 {
-                    result = builtinData.bakeDiffuseLighting;;
+                    result = builtinData.bakeDiffuseLighting;
                     result *= exp2(_DebugExposure);
                     needLinearToSRGB = true;
                 }

@@ -18,7 +18,7 @@
 
 float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L)
 {
-    return EvalShadow_CascadedDepth_Blend(shadowContext, _ShadowmapCascadeAtlas, sampler_ShadowmapCascadeAtlas, positionSS, positionWS, normalWS, shadowDataIndex, L);
+    return EvalShadow_CascadedDepth_Blend(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L);
 }
 
 float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 positionSS)
@@ -39,7 +39,7 @@ float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positio
         sd.atlasOffset = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].atlasOffset;
     }
 
-    return EvalShadow_PunctualDepth(sd, _ShadowmapAtlas, sampler_ShadowmapAtlas, positionSS, positionWS, normalWS, L, L_dist, perspecive);
+    return EvalShadow_PunctualDepth(sd, _ShadowmapAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, L, L_dist, perspecive);
 }
 
 float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist, float2 positionSS, bool pointLight, bool perspecive)

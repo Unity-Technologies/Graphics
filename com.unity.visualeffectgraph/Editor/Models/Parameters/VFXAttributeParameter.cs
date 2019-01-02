@@ -119,9 +119,13 @@ namespace UnityEditor.VFX
             {
                 string result = string.Format("Get Attribute: {0} ({1})", attribute, location);
 
-                var attrib = VFXAttribute.Find(this.attribute);
-                if (attrib.variadic == VFXVariadic.True)
-                    result += "." + mask;
+                try
+                {
+                    var attrib = VFXAttribute.Find(this.attribute);
+                    if (attrib.variadic == VFXVariadic.True)
+                        result += "." + mask;
+                }
+                catch {} // Must not throw in name getter
 
                 return result;
             }
@@ -129,6 +133,13 @@ namespace UnityEditor.VFX
 
         public override void Sanitize(int version)
         {
+            if (!VFXAttribute.Exist(attribute))
+            {
+                Debug.LogWarningFormat("Attribute parameter was removed because attribute {0} does not exist", attribute);
+                RemoveModel(this, false);
+                return; // Dont sanitize further, model was removed
+            }
+
             UnityEditor.VFX.Block.VFXBlockUtility.SanitizeAttribute(ref attribute, ref mask, version);
             base.Sanitize(version);
         }

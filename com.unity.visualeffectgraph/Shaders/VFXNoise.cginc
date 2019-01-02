@@ -82,11 +82,6 @@ float4 Interpolation_C2_InterpAndDeriv(float2 x) { return x.xyxy * x.xyxy * (x.x
 float2 Interpolation_C2_InterpAndDeriv(float x) { return x * x * (x * (x * (x * float2(6.0f, 0.0f) + float2(-15.0f, 30.0f)) + float2(10.0f, -60.0f)) + float2(0.0f, 30.0f)); }
 float3 Interpolation_C2_Deriv(float3 x) { return x * x * (x * (x * 30.0f - 60.0f) + 30.0f); }
 
-// Fast inverse square root
-float2 TaylorInvSqrt(float2 r) { return 1.79284291400159f - 0.85373472095314f * r; }
-float3 TaylorInvSqrt(float3 r) { return 1.79284291400159f - 0.85373472095314f * r; }
-float4 TaylorInvSqrt(float4 r) { return 1.79284291400159f - 0.85373472095314f * r; }
-
 // Hash functions
 
 // Generates a random number for each of the 2 cell corners
@@ -265,7 +260,7 @@ float2 GeneratePerlinNoise1D(float coordinate)
     // calculate the gradient results
     float4 grad_x = hash_x - 0.49999f;
     float4 grad_y = hash_y - 0.49999f;
-    float4 norm = TaylorInvSqrt(grad_x * grad_x + grad_y * grad_y);
+    float4 norm = rsqrt(grad_x * grad_x + grad_y * grad_y);
     grad_x *= norm;
     grad_y *= norm;
     float4 dotval = (grad_x * f_fmin1.xzxz + grad_y * f_fmin1.yyww);
@@ -291,7 +286,7 @@ float2 GeneratePerlinNoise1D(float coordinate)
 
     results.y += blend.z * (k0_gk0.x + blend.y * k2_gk2.x);
 
-    return results * 1.4142135623730950488016887242097f;  // scale to -1.0 -> 1.0 range  *= 1.0/sqrt(0.5)
+    return results * 2.0f;  // scale to -1.0 -> 1.0 range  *= 1.0/sqrt(0.25)
 }
 
 float3 GeneratePerlinNoise2D(float2 coordinate)
@@ -307,7 +302,7 @@ float3 GeneratePerlinNoise2D(float2 coordinate)
     // calculate the gradient results
     float4 grad_x = hash_x - 0.49999f;
     float4 grad_y = hash_y - 0.49999f;
-    float4 norm = TaylorInvSqrt(grad_x * grad_x + grad_y * grad_y);
+    float4 norm = rsqrt(grad_x * grad_x + grad_y * grad_y);
     grad_x *= norm;
     grad_y *= norm;
     float4 dotval = (grad_x * f_fmin1.xzxz + grad_y * f_fmin1.yyww);
@@ -354,8 +349,8 @@ float4 GeneratePerlinNoise3D(float3 coordinate)
     float4 grad_x1 = hashx1 - 0.49999f;
     float4 grad_y1 = hashy1 - 0.49999f;
     float4 grad_z1 = hashz1 - 0.49999f;
-    float4 norm_0 = TaylorInvSqrt(grad_x0 * grad_x0 + grad_y0 * grad_y0 + grad_z0 * grad_z0);
-    float4 norm_1 = TaylorInvSqrt(grad_x1 * grad_x1 + grad_y1 * grad_y1 + grad_z1 * grad_z1);
+    float4 norm_0 = rsqrt(grad_x0 * grad_x0 + grad_y0 * grad_y0 + grad_z0 * grad_z0);
+    float4 norm_1 = rsqrt(grad_x1 * grad_x1 + grad_y1 * grad_y1 + grad_z1 * grad_z1);
     grad_x0 *= norm_0;
     grad_y0 *= norm_0;
     grad_z0 *= norm_0;

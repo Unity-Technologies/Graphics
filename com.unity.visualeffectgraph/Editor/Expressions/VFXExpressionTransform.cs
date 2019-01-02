@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.InverseTRS;
+                return VFXExpressionOperation.InverseMatrix;
             }
         }
 
@@ -185,7 +185,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("mul({0}, {1}).xyz", parents[0], parents[1]);
+            return string.Format("mul({0}, {1})", parents[0], parents[1]);
         }
     }
 

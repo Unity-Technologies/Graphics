@@ -301,12 +301,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
             }
-            desc.colorFormat = cameraData.isHdrEnabled ? RenderTextureFormat.DefaultHDR :
-                RenderTextureFormat.Default;
-            desc.enableRandomWrite = false;
-            desc.sRGB = true;
+            
+            bool useRGB10A2 = Application.isMobilePlatform &&
+             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010);
+            RenderTextureFormat hdrFormat = (useRGB10A2) ? RenderTextureFormat.ARGB2101010 : RenderTextureFormat.DefaultHDR;
+            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : RenderTextureFormat.Default;
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
+            desc.enableRandomWrite = false;
+            desc.sRGB = true;
+            desc.msaaSamples = cameraData.msaaSamples;
+            desc.depthBufferBits = 32;
+            desc.bindMS = false;
             return desc;
         }
 
@@ -315,16 +321,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-            ClearFlag clearFlag = ClearFlag.None;
             CameraClearFlags cameraClearFlags = camera.clearFlags;
-            if (cameraClearFlags != CameraClearFlags.Nothing)
-            {
-                clearFlag |= ClearFlag.Depth;
-                if (cameraClearFlags == CameraClearFlags.Color || cameraClearFlags == CameraClearFlags.Skybox)
-                    clearFlag |= ClearFlag.Color;
-            }
 
-            return clearFlag;
+#if UNITY_EDITOR
+            // We need public API to tell if FrameDebugger is active and enabled. In that case
+            // we want to force a clear to see properly the drawcall stepping.
+            // For now, to fix FrameDebugger in Editor, we force a clear. 
+            cameraClearFlags = CameraClearFlags.SolidColor;
+#endif
+
+            // LWRP doesn't support CameraClearFlags.DepthOnly.
+            // In case of skybox we know all pixels will be rendered to screen so
+            // we don't clear color. In Vulkan/Metal this becomes DontCare load action
+            if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
+                cameraClearFlags == CameraClearFlags.Nothing)
+                return ClearFlag.Depth;
+
+            // Otherwise we clear color + depth. This becomes either a clear load action or glInvalidateBuffer call
+            // on mobile devices. On PC/Desktop a clear is performed by blitting a full screen quad.
+            return ClearFlag.All;
         }
 
         public static PerObjectData GetPerObjectLightFlags(int mainLightIndex, int additionalLightsCount)

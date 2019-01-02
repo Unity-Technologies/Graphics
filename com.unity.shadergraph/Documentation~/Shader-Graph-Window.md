@@ -2,7 +2,7 @@
 
 ## Description
 
-The **Shader Graph Window** contains the workspace for creating shaders using the **Shader Graph** system. To open the **Shader Graph Window** you must first create a [Shader Graph Asset](Home.md). For more information see the [Getting Started](Getting-Started.md) section.
+The **Shader Graph Window** contains the workspace for creating shaders using the **Shader Graph** system. To open the **Shader Graph Window** you must first create a [Shader Graph Asset](index.md). For more information see the [Getting Started](Getting-Started.md) section.
 
 The **Shader Graph** window contains various individual elements such as the [Blackboard](Blackboard.md) and [Master Preview](Master-Preview.md). These elements can be moved inside the workspace. They will automatically anchor to the nearest corner when scaling the **Shader Graph Window**.
 
@@ -12,8 +12,8 @@ The title bar at the top of the **Shader Graph Window** contains actions that ca
 
 | Item        | Description |
 |:------------|:------------|
-| Save Asset | Saves the graph to update the [Shader Graph Asset](Home.md) |
-| Show In Project | Hightlights the [Shader Graph Asset](Home.md) in the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html) |
+| Save Asset | Saves the graph to update the [Shader Graph Asset](index.md) |
+| Show In Project | Hightlights the [Shader Graph Asset](index.md) in the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html) |
 
 ## Workspace
 
