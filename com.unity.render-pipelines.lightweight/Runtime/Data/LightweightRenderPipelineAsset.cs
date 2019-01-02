@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] int k_AssetVersion = 4;
 
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
-        [SerializeField] IRendererData m_RendererData = null;
+        [SerializeField] internal IRendererData m_RendererData = null;
         
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.LWRP
 
 #if UNITY_EDITOR
         [NonSerialized]
-        LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
+        internal LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
 
         static readonly string s_SearchPathProject = "Assets";
         static readonly string s_SearchPathPackage = "Packages/com.unity.render-pipelines.lightweight";
@@ -261,7 +261,13 @@ namespace UnityEngine.Rendering.LWRP
 
         public IRendererSetup rendererSetup
         {
-            get { return m_RendererSetup; }
+            get
+            {
+                if (m_RendererSetup == null && m_RendererData != null)
+                    m_RendererSetup = m_RendererData.Create();
+
+                return m_RendererSetup;
+            }
         }
 
         public bool supportsCameraDepthTexture
