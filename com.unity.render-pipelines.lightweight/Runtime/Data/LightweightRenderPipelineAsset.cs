@@ -132,11 +132,6 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
-        public IRendererData rendererData
-        {
-            get => m_RendererData;
-        }
-        
 #if UNITY_EDITOR
         [NonSerialized]
         LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
