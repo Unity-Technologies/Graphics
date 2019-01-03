@@ -411,6 +411,8 @@ namespace UnityEditor.VFX.UI
             if (view == null || m_Controller == null)
                 return;
             contexts = controller.contexts.Select(t => view.GetGroupNodeElement(t) as VFXContextUI).ToArray();
+
+            title = controller.title;
         }
         public void OnControllerChanged(ref ControllerChangedEvent e)
         {

@@ -887,7 +887,7 @@ namespace UnityEditor.VFX.UI
 
             for (int i = index; i < m_StickyNoteControllers.Count; ++i)
             {
-                m_StickyNoteControllers[i].index = index;
+                m_StickyNoteControllers[i].index = i;
             }
 
             //Patch group nodes, removing this sticky note and fixing ids that are bigger than index

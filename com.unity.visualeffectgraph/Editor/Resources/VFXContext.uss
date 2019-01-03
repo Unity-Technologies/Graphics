@@ -311,3 +311,8 @@ VFXContextUI.inputTypeparticle #user-label
     height : 4;
     min-height:0;
 }
+
+VFXContextUI > #node-border > #inside > #contents
+{
+    background-color: rgba(45,45,45,0.8);
+}
