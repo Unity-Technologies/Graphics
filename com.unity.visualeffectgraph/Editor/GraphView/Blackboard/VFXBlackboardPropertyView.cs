@@ -1,11 +1,9 @@
 using System;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.UIElements;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.Experimental.UIElements;
-
-using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
@@ -188,7 +186,7 @@ namespace  UnityEditor.VFX.UI
             }
             else
             {
-                insertIndex += 1 + m_SubProperties.Count;
+                insertIndex += 1 + m_SubProperties.Count + 1; //main property + subproperties + tooltip
             }
 
             if (controller.canHaveRange)

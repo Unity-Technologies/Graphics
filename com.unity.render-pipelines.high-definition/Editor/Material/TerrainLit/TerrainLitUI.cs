@@ -1,15 +1,11 @@
-using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-
-using System.Linq;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class TerrainLitGUI : LitGUI, ITerrainLayerCustomUI
     {
-        protected override uint defaultExpendedState { get { return 0u; } }
+        protected override uint defaultExpandedState { get { return 0u; } }
 
         private class StylesLayer
         {
@@ -112,7 +108,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor = materialEditor;
 
             // We should always register the key used to keep collapsable state
-            InitExpendableState(materialEditor);
+            InitExpandableState(materialEditor);
 
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
@@ -146,9 +142,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool enablePerPixelNormalChanged = false;
 
 
-            using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expendable.Advance, this))
+            using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expandable.Advance, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
                     m_MaterialEditor.EnableInstancingField();

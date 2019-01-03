@@ -46,7 +46,7 @@ Pass
 #endif
 				
 	${VFXBegin:VFXVertexAdditionalProcess}
-float4x4 viewToDecal = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);
+float4x4 viewToDecal = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
 #if VFX_LOCAL_SPACE
 viewToDecal = mul(viewToDecal, VFXGetWorldToObjectMatrix());
 #endif

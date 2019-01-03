@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class PreviewSceneResources : IDisposable
+    class PreviewSceneResources : IDisposable
     {
         readonly Scene m_Scene;
         Camera m_Camera;

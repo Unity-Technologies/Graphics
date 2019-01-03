@@ -14,9 +14,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Normal", true)]
             public Vector4 normalWS;
             [SurfaceDataAttributes("Mask", true)]
-            public Vector4 mask;
+            public Vector4 mask; // Metal, AmbientOcclusion, Smoothness, smoothness opacity
             [SurfaceDataAttributes("AOSBlend", true)]
-            public Vector2 MAOSBlend;
+            public Vector2 MAOSBlend; // Metal opacity and Ambient occlusion opacity
             [SurfaceDataAttributes("HTileMask")]
             public uint HTileMask;
         };
@@ -79,6 +79,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 normalScaleBias;
         public Vector4 maskScaleBias;
         public Vector4 baseColor;
+        public Vector4 remappingAOS;
+        public Vector4 scalingMAB; // metalness, alpha basemap, blue mask map
         public Vector3 blendParams; // x normal blend source, y mask blend source, z mask blend mode
     };
 }

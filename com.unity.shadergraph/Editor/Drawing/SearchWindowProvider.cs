@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
+using System.Text;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -79,11 +80,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
-                    var path = asset.subGraph.path ?? "";
-                    var title = path.Split('/').ToList();
-                    title.Add(asset.name);
                     var node = new SubGraphNode { subGraphAsset = asset };
-                    AddEntries(node, title.ToArray(), nodeEntries);
+
+                    if (string.IsNullOrEmpty(asset.subGraph.path))
+                    {
+                        AddEntries(node, new string[1] { asset.name }, nodeEntries);
+                    }
+                    else
+                    {
+                        var title = asset.subGraph.path.Split('/').ToList();
+                        title.Add(asset.name);
+                        AddEntries(node, title.ToArray(), nodeEntries);
+                    }
                 }
             }
 
@@ -238,7 +246,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             var node = nodeEntry.node;
 
             var drawState = node.drawState;
-            var windowMousePosition = m_EditorWindow.GetRootVisualContainer().ChangeCoordinatesTo(m_EditorWindow.GetRootVisualContainer().parent, context.screenMousePosition - m_EditorWindow.position.position);
+
+
+            var windowRoot = m_EditorWindow.rootVisualElement;
+            var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, context.screenMousePosition - m_EditorWindow.position.position);
             var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
             drawState.position = new Rect(graphMousePosition, Vector2.zero);
             node.drawState = drawState;

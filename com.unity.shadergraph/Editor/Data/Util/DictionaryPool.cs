@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Graphing
 {
-    public static class DictionaryPool<TKey, TValue>
+    static class DictionaryPool<TKey, TValue>
     {
         // Object pool to avoid allocations.
         static readonly ObjectPool<Dictionary<TKey, TValue>> k_Pool = new ObjectPool<Dictionary<TKey, TValue>>(null, l => l.Clear());

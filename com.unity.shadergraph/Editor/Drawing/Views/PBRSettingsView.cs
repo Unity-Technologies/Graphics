@@ -1,15 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class PBRSettingsView : VisualElement
+    class PBRSettingsView : VisualElement
     {
         PBRMasterNode m_Node;
         public PBRSettingsView(PBRMasterNode node)
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     row.Add(new EnumField(PBRMasterNode.Model.Metallic), (field) =>
                     {
                         field.value = m_Node.model;
-                        field.OnValueChanged(ChangeWorkFlow);
+                        field.RegisterValueChangedCallback(ChangeWorkFlow);
                     });
                 });
 
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     row.Add(new EnumField(SurfaceType.Opaque), (field) =>
                     {
                         field.value = m_Node.surfaceType;
-                        field.OnValueChanged(ChangeSurface);
+                        field.RegisterValueChangedCallback(ChangeSurface);
                     });
                 });
 
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     row.Add(new EnumField(AlphaMode.Additive), (field) =>
                     {
                         field.value = m_Node.alphaMode;
-                        field.OnValueChanged(ChangeAlphaMode);
+                        field.RegisterValueChangedCallback(ChangeAlphaMode);
                     });
                 });
 

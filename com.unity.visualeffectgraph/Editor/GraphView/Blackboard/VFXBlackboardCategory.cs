@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.UIElements;
+using UnityEditor.Experimental.GraphView;
+
+using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
@@ -59,7 +60,7 @@ namespace UnityEditor.VFX.UI
         {
             var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXBlackboardSection");
 
-            m_MainContainer = tpl.CloneTree(null);
+            m_MainContainer = tpl.CloneTree();
             m_MainContainer.AddToClassList("mainContainer");
 
             m_Header = m_MainContainer.Q<VisualElement>("sectionHeader");
@@ -69,15 +70,15 @@ namespace UnityEditor.VFX.UI
             m_ExpandButton = m_Header.Q<Button>("expandButton");
             m_ExpandButton.clickable.clicked += ToggleExpand;
 
-            shadow.Add(m_MainContainer);
-            shadow.Add(m_MainContainer);
+            hierarchy.Add(m_MainContainer);
+            hierarchy.Add(m_MainContainer);
 
 
             m_DragIndicator = new VisualElement();
 
             m_DragIndicator.name = "dragIndicator";
-            m_DragIndicator.style.positionType = PositionType.Absolute;
-            shadow.Add(m_DragIndicator);
+            m_DragIndicator.style.position = PositionType.Absolute;
+            hierarchy.Add(m_DragIndicator);
 
             ClearClassList();
             AddToClassList("blackboardSection");
@@ -126,9 +127,9 @@ namespace UnityEditor.VFX.UI
         public void SetSelectable()
         {
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable;
-            AddStyleSheetPath("Selectable");
+            styleSheets.Add(Resources.Load<StyleSheet>("Selectable"));
             AddToClassList("selectable");
-            shadow.Add(new VisualElement() {name = "selection-border", pickingMode = PickingMode.Ignore});
+            hierarchy.Add(new VisualElement() {name = "selection-border", pickingMode = PickingMode.Ignore});
 
             //RegisterCallback<MouseDownEvent>(OnHeaderClicked);
             pickingMode = PickingMode.Position;
@@ -138,8 +139,8 @@ namespace UnityEditor.VFX.UI
             m_NameField = new TextField() {name = "name-field"};
             m_Header.Add(m_NameField);
             m_Header.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
-            m_NameField.RegisterCallback<FocusOutEvent>(e => { OnEditTextSucceded(); });
-            m_NameField.RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed);
+            m_NameField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditTextSucceded(); });
+            m_NameField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed);
             m_Header.pickingMode = PickingMode.Position;
 
             m_NameField.visible = false;
@@ -204,12 +205,12 @@ namespace UnityEditor.VFX.UI
         {
             if (visible && (m_DragIndicator.parent == null))
             {
-                shadow.Add(m_DragIndicator);
+                hierarchy.Add(m_DragIndicator);
                 m_DragIndicator.visible = true;
             }
             else if ((visible == false) && (m_DragIndicator.parent != null))
             {
-                shadow.Remove(m_DragIndicator);
+                hierarchy.Remove(m_DragIndicator);
             }
         }
 
@@ -243,7 +244,7 @@ namespace UnityEditor.VFX.UI
                     {
                         VisualElement lastChild = this[childCount - 1];
 
-                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.style.marginBottom)).y;
+                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
                     }
                     else
                     {
@@ -254,12 +255,15 @@ namespace UnityEditor.VFX.UI
                 {
                     VisualElement childAtInsertIndex = this[m_InsertIndex];
 
-                    indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.style.marginTop)).y;
+                    indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
                 }
 
                 SetDragIndicatorVisible(true);
 
-                m_DragIndicator.layout = new Rect(0, indicatorY - m_DragIndicator.layout.height / 2, layout.width, m_DragIndicator.layout.height);
+                Rect dragLayout = m_DragIndicator.layout;
+                m_DragIndicator.style.left = 0f;
+                m_DragIndicator.style.top = indicatorY - dragLayout.height / 2;
+
             }
             else
             {
@@ -286,13 +290,14 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
+            if (selection.OfType< VFXBlackboardCategory>().Any())
+                return;
+
             if (m_InsertIndex != -1)
             {
                 var parent = GetFirstAncestorOfType<VFXBlackboard>();
                 if (parent != null)
-                {
-                    parent.OnMoveParameter(selection.Cast<VisualElement>().Select(t => t.GetFirstOfType<VFXBlackboardRow>()), this, m_InsertIndex);
-                }
+                    parent.OnMoveParameter(selection.OfType<VisualElement>().Select(t => t.GetFirstOfType<VFXBlackboardRow>()).Where(t=> t!= null), this, m_InsertIndex);
                 SetDragIndicatorVisible(false);
                 evt.StopPropagation();
                 m_InsertIndex = -1;
@@ -327,7 +332,7 @@ namespace UnityEditor.VFX.UI
         {
             m_NameField.value = title;
             m_NameField.visible = true;
-            m_NameField.Focus();
+            m_NameField.Q("unity-text-input").Focus();
             m_NameField.SelectAll();
         }
 
@@ -335,9 +340,9 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.target == this)
             {
-                evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
 
-                evt.menu.AppendAction("Delete", (a) => GetFirstAncestorOfType<VFXView>().controller.RemoveCategory(m_TitleLabel.text), DropdownMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendAction("Delete", (a) => GetFirstAncestorOfType<VFXView>().controller.RemoveCategory(m_TitleLabel.text), DropdownMenuAction.AlwaysEnabled);
             }
         }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 [RequireComponent(typeof(Light))]
-public class SpotAngleDistance : MonoBehaviour 
+public class SpotAngleDistance : MonoBehaviour
 {
 	public float targetRadius = 1f;
 	public float referenceIntensity = 600f;
@@ -16,13 +16,13 @@ public class SpotAngleDistance : MonoBehaviour
 	public float distance = 3f;
 	public float angle = 60f;
 
-	[SerializeField, HideInInspector] new private Light light;
+	[SerializeField, HideInInspector] private Light targetLight;
 	[SerializeField, HideInInspector] private HDAdditionalLightData hdLightData;
 
 	void OnValidate()
 	{
-		if (light == null) light = GetComponent<Light>();
-		if (light == null) return;
+		if (targetLight == null) targetLight = GetComponent<Light>();
+		if (targetLight == null) return;
 		if (hdLightData == null) hdLightData = GetComponent<HDAdditionalLightData>();
 		if (hdLightData == null) return;
 
@@ -39,8 +39,8 @@ public class SpotAngleDistance : MonoBehaviour
 
 		float sphereRadius = targetRadius / Mathf.Sin( Mathf.Deg2Rad * angle * 0.5f );
 
-		light.spotAngle = angle;
-		light.range = sphereRadius + additionalRange;
+		targetLight.spotAngle = angle;
+		targetLight.range = sphereRadius + additionalRange;
 		transform.localPosition = -sphereRadius * Vector3.forward;
 
 		hdLightData.intensity = referenceIntensity * Mathf.Pow( sphereRadius / referenceDistance , 2f );

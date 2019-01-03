@@ -1,7 +1,6 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     public struct ShadowSliceData
     {
@@ -24,7 +23,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public static class ShadowUtils
     {
-        public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
+        private static readonly RenderTextureFormat m_ShadowmapFormat;
+        private static readonly bool m_ForceShadowPointSampling;
+
+        static ShadowUtils()
+        {
+            m_ShadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+                ? RenderTextureFormat.Shadowmap
+                : RenderTextureFormat.Depth;
+            m_ForceShadowPointSampling = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal &&
+                GraphicsSettings.HasShaderDefine(Graphics.activeTier, BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
+        }
+
+        public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
         {
             ShadowSplitData splitData;
             bool success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
@@ -42,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // If we have shadow cascades baked into the atlas we bake cascade transform
             // in each shadow matrix to save shader ALU and L/S
             if (shadowData.mainLightShadowCascadesCount > 1)
-                ApplySliceTransform(ref shadowSliceData, shadowData.mainLightShadowmapWidth, shadowData.mainLightShadowmapHeight);
+                ApplySliceTransform(ref shadowSliceData, shadowmapWidth, shadowmapHeight);
 
             return success;
         }
@@ -154,45 +165,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
         }
 
-        [Obsolete("SetupShadowCasterConstants is deprecated, use SetupShadowCasterConstantBuffer instead")]
-        public static void SetupShadowCasterConstants(CommandBuffer cmd, ref VisibleLight visibleLight, Matrix4x4 proj, float cascadeResolution)
+        public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
         {
-            Light light = visibleLight.light;
-            float bias = 0.0f;
-            float normalBias = 0.0f;
+            var shadowTexture = RenderTexture.GetTemporary(width, height, bits, m_ShadowmapFormat);
+            shadowTexture.filterMode = m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear;
+            shadowTexture.wrapMode = TextureWrapMode.Clamp;
 
-            if (visibleLight.lightType == LightType.Directional)
-            {
-                // Currently only square POT cascades resolutions are used.
-                // We scale normalBias
-                double frustumWidth = 2.0 / (double)proj.m00;
-                double frustumHeight = 2.0 / (double)proj.m11;
-                float texelSizeX = (float)(frustumWidth / (double)cascadeResolution);
-                float texelSizeY = (float)(frustumHeight / (double)cascadeResolution);
-                float texelSize = Mathf.Max(texelSizeX, texelSizeY);
-
-                // Depth Bias - bias shadow is specified in terms of shadowmap pixels.
-                // bias = 1 means the shadowmap is offseted 1 texel world space size in the direciton of the light
-                bias = -light.shadowBias * texelSize;
-
-                // Since we are applying normal bias on caster side we want an inset normal offset
-                // thus we use a negative normal bias.
-                normalBias = -light.shadowNormalBias * texelSize * 3.65f;
-            }
-            else if (visibleLight.lightType == LightType.Spot)
-            {
-                float sign = (SystemInfo.usesReversedZBuffer) ? -1.0f : 1.0f;
-                bias = light.shadowBias * sign;
-                normalBias = 0.0f;
-            }
-            else
-            {
-                Debug.LogWarning("Only spot and directional shadow casters are supported in lightweight pipeline");
-            }
-
-            Vector3 lightDirection = -visibleLight.localToWorldMatrix.GetColumn(2);
-            cmd.SetGlobalVector("_ShadowBias", new Vector4(bias, normalBias, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+            return shadowTexture;
         }
 
         static Matrix4x4 GetShadowTransform(Matrix4x4 proj, Matrix4x4 view)

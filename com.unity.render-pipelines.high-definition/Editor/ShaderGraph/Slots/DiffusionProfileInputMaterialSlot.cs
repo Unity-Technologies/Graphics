@@ -1,25 +1,27 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Experimental.Rendering.HDPipeline.Drawing.Slots;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Slots;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public class DiffusionProfileInputMaterialSlot : Vector1MaterialSlot
+    [FormerName("UnityEditor.ShaderGraph.DiffusionProfileInputMaterialSlot")]
+    class DiffusionProfileInputMaterialSlot : Vector1MaterialSlot
     {
         [SerializeField]
         PopupList m_DiffusionProfile = new PopupList();
 
         public PopupList diffusionProfile
         {
-            get 
-            { 
-                return m_DiffusionProfile; 
+            get
+            {
+                return m_DiffusionProfile;
             }
             set
             {

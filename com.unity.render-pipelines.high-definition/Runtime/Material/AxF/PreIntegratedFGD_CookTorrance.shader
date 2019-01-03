@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_CookTorrance"
+Shader "Hidden/HDRP/PreIntegratedFGD_CookTorrance"
 {
     SubShader
     {
@@ -32,14 +32,16 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_CookTorrance"
                                     out real    VdotH )
             {
                 // Cook-Torrance NDF sampling
-                real    cosTheta = rsqrt(1 - Sq(roughness) * log(max(1e-6, u.x )));
-                real    phi      = TWO_PI * u.y;
+                real cosTheta = sqrt(SafeDiv(1.0, 1.0 - (roughness * roughness) * log(1.0 - u.x)));
+                real phi = TWO_PI * u.y;
 
-                real3   localH = SphericalToCartesian(phi, cosTheta);
+                real3 localH = SphericalToCartesian(phi, cosTheta);
 
                 NdotH = cosTheta;
 
-                real3   localV = mul(V, transpose(localToWorld));
+                real3 localV;
+
+                localV = mul(V, transpose(localToWorld));
                 VdotH  = saturate(dot(localV, localH));
 
                 // Compute { localL = reflect(-localV, localH) }
@@ -65,12 +67,18 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_CookTorrance"
 
                 // Importance sampling weight for each sample
                 // pdf = D(H) * (N.H) / (4 * (L.H))
-                // fr = F(H) * G(V, L) * D(H) / (4 * (N.L) * (N.V))
+                //   Note: the first N.H converts D() to a true PDF, but the PDF is wrt to solid
+                //   angle dH. Since we integrate over dL, we change the PDF to one over the
+                //   solid angle measure dL with the Jacobian dH/dL = 1/(4*L.H)
+                // weight = fr * (N.L) with fr = F(H) * G(V, L) * D(H) / (4 * (N.L) * (N.V))
                 // weight over pdf is:
-                // weightOverPdf = fr * (N.V) / pdf
                 // weightOverPdf = F(H) * G(V, L) * (L.H) / ((N.H) * (N.V))
-                // F(H) is applied outside the function
-                weightOverPdf = G_CookTorrance(NdotH, NdotV, NdotL, VdotH) * VdotH / (NdotH * NdotV); // TODO: Check this
+                // weightOverPdf = F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H) 
+                //   with V(V, L) = G(V, L) / (4 * (N.L) * (N.V))
+                // Reminder: (L.H) == (V.H)
+                // F is applied outside the function
+
+                weightOverPdf = G_CookTorrance(NdotH, NdotV, NdotL, VdotH) * VdotH / (NdotH * NdotV);
             }
 
             float4  IntegrateCookTorranceFGD(float3 V, float3 N, float roughness, uint sampleCount = 8192)
@@ -78,7 +86,7 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_CookTorrance"
                 float   NdotV    = ClampNdotV( dot(N, V) );
                 float4  acc      = float4(0.0, 0.0, 0.0, 0.0);
 
-                float3x3    localToWorld = GetLocalFrame(N);
+                float3x3    localToWorld = GetLocalFrame(N); //TODO: N not needed, we use a frame aligned to N, should use k_identity3x3
 
                 for (uint i = 0; i < sampleCount; ++i)
                 {

@@ -1,3 +1,4 @@
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -8,7 +9,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedProperty root;
 
         internal SerializedProperty shape;
-        internal SerializedProperty offset;
         internal SerializedProperty boxSize;
         internal SerializedProperty boxBlendDistancePositive;
         internal SerializedProperty boxBlendDistanceNegative;
@@ -35,7 +35,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             this.root = root;
 
             shape = root.Find((InfluenceVolume i) => i.shape);
-            offset = root.Find((InfluenceVolume i) => i.offset);
             boxSize = root.Find((InfluenceVolume i) => i.boxSize);
             boxBlendDistancePositive = root.Find((InfluenceVolume i) => i.boxBlendDistancePositive);
             boxBlendDistanceNegative = root.Find((InfluenceVolume i) => i.boxBlendDistanceNegative);

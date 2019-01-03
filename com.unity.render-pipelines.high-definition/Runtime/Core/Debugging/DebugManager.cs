@@ -7,6 +7,13 @@ namespace UnityEngine.Experimental.Rendering
 {
     using UnityObject = UnityEngine.Object;
 
+    public interface IDebugData
+    {
+        Action GetReset();
+        //Action GetLoad();
+        //Action GetSave();
+    }
+
     public sealed partial class DebugManager
     {
         static readonly DebugManager s_Instance = new DebugManager();
@@ -31,6 +38,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public event Action<bool> onDisplayRuntimeUIChanged = delegate {};
         public event Action onSetDirty = delegate {};
+
+        event Action resetData;
 
         public bool refreshEditorRequested;
 
@@ -102,9 +111,19 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Reset()
         {
-            if (m_Panels != null)
-                m_Panels.Clear();
+            resetData?.Invoke();
+            ReDrawOnScreenDebug();
         }
+
+        public void ReDrawOnScreenDebug()
+        {
+            if (displayRuntimeUI)
+                m_RootUICanvas?.ResetAllHierarchy();
+        }
+        
+        public void RegisterData(IDebugData data) => resetData += data.GetReset();
+
+        public void UnregisterData(IDebugData data) => resetData -= data.GetReset();
 
         public int GetState()
         {

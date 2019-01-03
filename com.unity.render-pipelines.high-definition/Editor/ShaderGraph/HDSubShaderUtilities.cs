@@ -8,7 +8,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    internal static class HDRPShaderStructs
+    static class HDRPShaderStructs
     {
         internal struct AttributesMesh
         {
@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Semantic("TEXCOORD2")][Optional]       Vector4 uv2;
             [Semantic("TEXCOORD3")][Optional]       Vector4 uv3;
             [Semantic("COLOR")][Optional]           Vector4 color;
-            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("INSTANCING_ON")] uint instanceID;
+            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
         };
 
         [InterpolatorPack]
@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional]                                                              Vector4 texCoord2;
             [Optional]                                                              Vector4 texCoord3;
             [Optional]                                                              Vector4 color;
-            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("INSTANCING_ON")]     uint instanceID;
+            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")]     uint instanceID;
             [Optional][Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("SHADER_STAGE_FRAGMENT")] bool cullFace;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
@@ -76,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional]      Vector4 texCoord2;
             [Optional]      Vector4 texCoord3;
             [Optional]      Vector4 color;
-            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("INSTANCING_ON")] uint instanceID;
+            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
             {
@@ -456,8 +456,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
     };
 
-    public delegate void OnGeneratePassDelegate(IMasterNode masterNode, ref Pass pass);
-    public struct Pass
+    delegate void OnGeneratePassDelegate(IMasterNode masterNode, ref Pass pass);
+    struct Pass
     {
         public string Name;
         public string LightMode;
@@ -476,7 +476,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public string ColorMaskOverride;
         public List<string> StencilOverride;
         public List<string> RequiredFields;         // feeds into the dependency analysis
-        public ShaderGraphRequirements requirements;
         public bool UseInPreview;
 
         // All these lists could probably be hashed to aid lookups.
@@ -498,7 +497,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public OnGeneratePassDelegate OnGeneratePassImpl;
     }
 
-    public static class HDSubShaderUtilities
+    static class HDSubShaderUtilities
     {
         public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths, bool vertexActive)
         {
@@ -911,5 +910,44 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             return materialOptions;
         }
+
+        // Comment set of define for Forward Opaque pass in HDRP
+        public static List<string> s_ExtraDefinesForwardOpaque = new List<string>()
+        {
+            "#pragma multi_compile _ DEBUG_DISPLAY",
+            "#pragma multi_compile _ LIGHTMAP_ON",
+            "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+            "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+            "#pragma multi_compile _ SHADOWS_SHADOWMASK",
+            "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
+            "#define LIGHTLOOP_TILE_PASS",
+            "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+        };
+
+        public static List<string> s_ExtraDefinesForwardTransparent = new List<string>()
+        {
+            "#pragma multi_compile _ DEBUG_DISPLAY",
+            "#pragma multi_compile _ LIGHTMAP_ON",
+            "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+            "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+            "#pragma multi_compile _ SHADOWS_SHADOWMASK",
+            "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
+            "#define LIGHTLOOP_TILE_PASS",
+            "#define USE_CLUSTERED_LIGHTLIST",
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+        };
+
+        public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
+        {
+            "#define WRITE_NORMAL_BUFFER",
+            "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+        };
+
+        public static List<string> s_ExtraDefinesDepthOrMotion = new List<string>()
+        {
+            "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
+            "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+        };
     }
 }

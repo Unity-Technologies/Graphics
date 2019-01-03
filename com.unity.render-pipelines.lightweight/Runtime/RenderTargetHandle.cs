@@ -1,6 +1,7 @@
+
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public struct RenderTargetHandle
     {

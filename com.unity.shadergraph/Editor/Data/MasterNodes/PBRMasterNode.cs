@@ -5,13 +5,13 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "PBR")]
-    public class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequirePosition, IMayRequireNormal
+    class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequirePosition, IMayRequireNormal
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";

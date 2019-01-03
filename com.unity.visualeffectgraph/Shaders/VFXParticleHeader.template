@@ -12,9 +12,6 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
-#define IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)
-
-${VFXGlobalDefines}
 
 ByteAddressBuffer attributeBuffer;	
 

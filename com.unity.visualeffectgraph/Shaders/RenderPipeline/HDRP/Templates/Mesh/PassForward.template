@@ -1,6 +1,6 @@
 Pass
 {		
-	Tags { "LightMode"="Forward" }
+	Tags { "LightMode"="${VFXHDRPForwardPassName}"}
 			
 	HLSLPROGRAM
 	#pragma target 4.5
@@ -9,8 +9,7 @@ Pass
 	#define LIGHTLOOP_TILE_PASS
 	${VFXHDRPForwardDefines}
 	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-	#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
-	#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
+	#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 	#pragma multi_compile _ DEBUG_DISPLAY
 	//#pragma enable_d3d11_debug_symbols
 	

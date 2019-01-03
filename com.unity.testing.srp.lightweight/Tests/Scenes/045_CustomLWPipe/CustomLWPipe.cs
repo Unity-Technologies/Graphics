@@ -1,37 +1,29 @@
 using System;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.ProjectWindowCallback;
+#endif
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering;
-
-
-public class CustomLWPipe : MonoBehaviour, IRendererSetup
-{
+using UnityEngine.Rendering.LWRP;
+public class CustomLWPipe : IRendererSetup
+{  
     private SetupForwardRenderingPass m_SetupForwardRenderingPass;
     private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
     private SetupLightweightConstanstPass m_SetupLightweightConstants;
     private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
 
-    [NonSerialized]
-    private bool m_Initialized = false;
-
-    private void Init()
+    public CustomLWPipe(CustomRenderGraphData data)
     {
-        if (m_Initialized)
-            return;
-
         m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
         m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
         m_SetupLightweightConstants = new SetupLightweightConstanstPass();
         m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
-
-        m_Initialized = true;
     }
 
-    public void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
+    public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        Init();
-
         renderer.SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
         RenderTextureDescriptor baseDescriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;
@@ -47,12 +39,12 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
         renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
 
         Camera camera = renderingData.cameraData.camera;
-        var rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
+        var perObjectFlags = ScriptableRenderer.GetPerObjectLightFlags(renderingData.lightData.mainLightIndex, renderingData.lightData.additionalLightsCount);
 
         m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
         renderer.EnqueuePass(m_SetupLightweightConstants);
 
-        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, rendererConfiguration);
+        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, perObjectFlags);
         renderer.EnqueuePass(m_RenderOpaqueForwardPass);
     }
 }

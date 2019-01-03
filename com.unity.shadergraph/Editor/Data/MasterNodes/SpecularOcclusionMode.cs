@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum SpecularOcclusionMode
+    enum SpecularOcclusionMode
     {
         Off,
         FromAO,

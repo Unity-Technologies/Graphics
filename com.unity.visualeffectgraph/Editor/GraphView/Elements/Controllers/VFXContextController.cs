@@ -1,5 +1,5 @@
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
 using UnityEngine;
 using UnityEditor.Experimental.VFX;
 using System.Collections.Generic;
@@ -33,6 +33,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_FlowOutputAnchors.AsReadOnly(); }
         }
+        public char letter { get { return model.letter; } set { model.letter = value; } }
 
         public override void OnDisable()
         {
@@ -152,17 +153,7 @@ namespace UnityEditor.VFX.UI
         public void RemoveBlock(VFXBlock block)
         {
             model.RemoveChild(block);
-
-            VFXSlot slotToClean = null;
-            do
-            {
-                slotToClean = block.inputSlots.Concat(block.outputSlots).FirstOrDefault(o => o.HasLink(true));
-                if (slotToClean)
-                {
-                    slotToClean.UnlinkAll(true, true);
-                }
-            }
-            while (slotToClean != null);
+            VFXModel.UnlinkModel(model);
         }
 
         public int FindBlockIndexOf(VFXBlockController controller)

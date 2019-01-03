@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "Saturation")]
-    public class SaturationNode : CodeFunctionNode
+    class SaturationNode : CodeFunctionNode
     {
         public SaturationNode()
         {

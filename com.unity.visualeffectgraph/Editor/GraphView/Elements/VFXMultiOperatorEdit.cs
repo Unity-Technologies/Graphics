@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.UIElements;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
 
@@ -312,8 +310,8 @@ namespace UnityEditor.VFX.UI
             public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnified op, int index) : base(owner, op, index)
             {
                 field = new TextField();
-                field.RegisterCallback<BlurEvent>(OnChangeValue);
-                field.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                field.Q("unity-text-input").RegisterCallback<BlurEvent>(OnChangeValue);
+                field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
 
                 Insert(0, field);
             }

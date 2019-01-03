@@ -44,8 +44,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Material == null)
             {
-                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
 #if UNITY_EDITOR
+                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
@@ -100,15 +100,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else // no material change, just update whatever else changed
                 {
                     DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle);
-                }
-            }
-
-            if (m_Material != null)
-            {
-                Shader shader = m_Material.shader;
-                if ((shader != null) &&  (shader.name != "HDRenderPipeline/Decal"))
-                {
-                    Debug.LogWarning("Decal projector component material is not using HDRenderPipeline/Decal shader.", this);
                 }
             }
         }

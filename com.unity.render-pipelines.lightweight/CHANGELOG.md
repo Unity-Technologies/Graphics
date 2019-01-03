@@ -4,7 +4,57 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.1.0-preview] - 2018-10-18
+## [5.3.0] - 2018-11-xx
+### Added
+- LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
+- You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
+- You can now implement a custom renderer for LWRP. To do so implement an `IRendererData` that contains all resources used in rendering and `IRendererSetup` that creates and enqueue `ScriptableRenderPass`. Change the renderer type either in the Pipeline Asset or in the Camera inspector.
+
+### Changed
+- You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Initialize.
+- LWRP now uses non-square shadowmap textures when it renders directional shadows with 2 shadow cascades. 
+- LWRP now uses ARGB2101010 as the HDR format on mobile devices, when this format is supported.
+- Removed `IAfterDepthPrePass` interface.
+
+### Fixed
+- Several tweaks to reduce bandwidth consumption on mobile devices.
+- The foldouts in the Lightweight Asset inspector UI now remember their state.
+- Added missing meta file for GizmosRenderingPass.cs.
+- Fixed artifacts when using multiple or Depth Only cameras. [Case 1072615](https://issuetracker.unity3d.com/issues/ios-using-multiple-cameras-in-the-scene-in-lightweight-render-pipeline-gives-corrupted-image-in-ios-device)
+- Fixed a typo in ERROR_ON_UNSUPPORTED_FUNCTION() that was causing the shader compiler to run out of memory in GLES2. [Case 1104271](https://issuetracker.unity3d.com/issues/mobile-os-restarts-because-of-high-memory-usage-when-compiling-shaders-for-opengles2)
+- LWRP now renders shadows on scaled objects correctly. [Case 1109017](https://issuetracker.unity3d.com/issues/scaled-objects-render-shadows-and-specularity-incorrectly-in-the-lwrp-on-device)
+- LWRP now allows some Asset settings to be changed at runtime. [Case 1105552](https://issuetracker.unity3d.com/issues/lwrp-changing-render-scale-in-runtime-has-no-effect-since-lwrp-3-dot-3-0)
+- Realtime shadows now work in GLES2. [Case 1087251](https://issuetracker.unity3d.com/issues/android-lwrp-no-real-time-light-and-shadows-using-gles2)
+- Framedebugger now renders correctly when stepping through drawcalls.
+- Cameras that request MSAA and Opaque Textures now use less frame bandwidth when they render.
+
+## [5.2.0] - 2018-11-27
+### Added
+- LWRP now handles blits that are required by the device when rendering to the backbuffer.
+- You can now enable the SRP Batcher. To do so, go to the `Pipeline Asset`. Under `Advanced`, toggle `SRP Batcher`.
+
+### Changed
+- Renamed shader variable `unity_LightIndicesOffsetAndCount` to `unity_PerObjectLightData`.
+- Shader variables `unity_4LightIndices0` and `unity_4LightIndices1` are now declared as `unity_PerObjectLightIndices` array.
+
+## [5.1.0] - 2018-11-19
+### Added
+- The user documentation for LWRP is now in this GitHub repo, instead of in the separate GitHub wiki. You can find the most up-to-date pages in the [TableOfContents.md](TableOfCotents.md) file. Pages not listed in that file are still in progress.
+
+### Changed
+- The LWRP package is no longer in preview.
+- LWRP built-in render passes are now internal.
+- Changed namespace from `UnityEngine.Experimental.Rendering.LightweightPipeline` to `UnityEngine.Rendering.LWRP`.
+- Changed namespace from `UnityEditor.Experimental.Rendering.LightweightPipeline` to `UnityEditor.Rendering.LWRP`.
+
+### Fixed
+- LWRP now respects the iOS Player setting **Force hard shadows**. When you enable this setting, hardware filtering of shadows is disabled.
+- Scene view mode now renders baked lightmaps correctly. [Case 1092227](https://issuetracker.unity3d.com/issues/lwrp-scene-view-modes-render-objects-black)
+- Shadow bias calculations are now correct for both Shader Graph and Terrain shaders.
+- Blit shader now ignores culling.
+- When you select __Per Vertex__ option for __Additional Lights__, the __Per Object Limit__ option is not greyed out anymore.
+- When you change camera viewport height to values above 1.0, the Unity Editor doesn't freeze anymore. [Case 1097497](https://issuetracker.unity3d.com/issues/macos-lwrp-editor-freezes-after-changing-cameras-viewport-rect-values)
+- When you use AR with LWRP, the following error message is not displayed in the console anymore: "The camera list passed to the render pipeline is either null or empty."
 
 ## [5.0.0-preview] - 2018-09-28
 ### Added
@@ -15,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed the `supportedShaderFeatures` property from LWRP core. The shader stripper now figures out which variants to strip based on the current assigned pipeline Asset in the Graphics settings.
 ### Fixed
+- The following error does not appear in console anymore: ("Begin/End Profiler section mismatch")
 - When you select a material with the Lit shader, this no longer causes the following error in the console: ("Material doesn't have..."). [case 1092354](https://fogbugz.unity3d.com/f/cases/1092354/)
 - In the Simple Lit shader, per-vertex additional lights are now shaded properly.
 - Shader variant stripping now works when you're building a Project with Cloud Build. This greatly reduces build times from Cloud Build.

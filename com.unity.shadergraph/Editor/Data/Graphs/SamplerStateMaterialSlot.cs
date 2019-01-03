@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SamplerStateMaterialSlot : MaterialSlot
+    class SamplerStateMaterialSlot : MaterialSlot
     {
         public SamplerStateMaterialSlot()
         {

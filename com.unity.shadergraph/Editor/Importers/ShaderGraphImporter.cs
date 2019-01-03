@@ -9,7 +9,7 @@ using UnityEditor.Experimental.AssetImporters;
 namespace UnityEditor.ShaderGraph
 {
     [ScriptedImporter(20, Extension)]
-    public class ShaderGraphImporter : ScriptedImporter
+    class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
 
@@ -59,7 +59,7 @@ Shader ""Hidden/GraphErrorShader2""
         {
             var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
             if (oldShader != null)
-                ShaderUtil.ClearShaderErrors(oldShader);
+                ShaderUtil.ClearShaderMessages(oldShader);
 
             List<PropertyCollector.TextureInfo> configuredTextures;
             string path = ctx.assetPath;

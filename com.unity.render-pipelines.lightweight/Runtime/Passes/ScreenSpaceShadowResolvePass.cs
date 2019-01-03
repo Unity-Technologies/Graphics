@@ -1,18 +1,22 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
+    internal class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         const string k_CollectShadowsTag = "Collect Shadows";
         RenderTextureFormat m_ColorFormat;
+        Material m_ScreenSpaceShadowsMaterial;
 
-        public ScreenSpaceShadowResolvePass()
+        public ScreenSpaceShadowResolvePass(Material screenspaceShadowsMaterial)
         {
             m_ColorFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
                 ? RenderTextureFormat.R8
                 : RenderTextureFormat.ARGB32;
+
+            m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
         }
 
         private RenderTargetHandle colorAttachmentHandle { get; set; }
@@ -32,6 +36,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (m_ScreenSpaceShadowsMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_ScreenSpaceShadowsMaterial, GetType().Name);
+                return;
+            }
+
             if (renderer == null)
                 throw new ArgumentNullException("renderer");
             
@@ -50,7 +60,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTargetIdentifier screenSpaceOcclusionTexture = colorAttachmentHandle.Identifier();
             SetRenderTarget(cmd, screenSpaceOcclusionTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 ClearFlag.Color | ClearFlag.Depth, Color.white, descriptor.dimension);
-            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, renderer.GetMaterial(MaterialHandle.ScreenSpaceShadow));
+
+            // This blit is troublesome. When MSAA is enabled it will render a fullscreen quad + store resolved MSAA + extra blit
+            // This consumes about 10MB of extra unnecessary bandwidth on boat attack.
+            // In order to avoid it we can do a cmd.DrawMesh instead, however because LWRP doesn't setup camera matrices itself,
+            // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
+            // We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP. 
+            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
 
             if (renderingData.cameraData.isStereoEnabled)
             {

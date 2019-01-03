@@ -8,13 +8,14 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_Fabric
-  m_Shader: {fileID: 4800000, guid: 6a6a4e0a7fa7acb4db5434242d16a50f, type: 3}
+  m_Shader: {fileID: 4800000, guid: 9fa8750eedf71fc46a72a9330d155885, type: 3}
   m_ShaderKeywords: _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2000
-  stringTagMap: {}
+  m_CustomRenderQueue: -1
+  stringTagMap:
+    MotionVector: User
   disabledShaderPasses:
   - DistortionVectors
   - TransparentDepthPrepass
@@ -57,6 +58,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FuzzDetailMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FuzzMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -109,7 +114,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ThreadMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 0864a2ad592505446b25b8dfa63ffd80, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TransmittanceColorMap:
@@ -171,6 +176,8 @@ Material:
     - _FabricType: 0
     - _FuzzDetailScale: 0
     - _FuzzDetailUVScale: 0.25
+    - _FuzzMapUVScale: 0.1
+    - _FuzzStrength: 1
     - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
@@ -190,6 +197,7 @@ Material:
     - _MaterialID: 1
     - _Metallic: 0
     - _NormalMapSpace: 0
+    - _NormalMapStrength: 1
     - _NormalScale: 1
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
@@ -202,6 +210,8 @@ Material:
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 1
+    - _SmoothnessMax: 1
+    - _SmoothnessMin: 0
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SpecularAAScreenSpaceVariance: 0.1
@@ -220,7 +230,9 @@ Material:
     - _Thickness: 1
     - _ThicknessMultiplier: 1
     - _ThreadAOScale: 0.5
+    - _ThreadAOStrength01: 0.5
     - _ThreadNormalScale: 1
+    - _ThreadNormalStrength: 0.5
     - _ThreadSmoothnessScale: 1
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
@@ -235,6 +247,7 @@ Material:
     - _ZTestGBuffer: 4
     - _ZTestModeDistortion: 4
     - _ZWrite: 1
+    - _useThreadMap: 0
     m_Colors:
     - _BaseColor: {r: 0, g: 1, b: 0.033422947, a: 1}
     - _Color: {r: 0, g: 1, b: 0.033422947, a: 1}
@@ -250,3 +263,7 @@ Material:
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskThread: {r: 1, g: 0, b: 0, a: 0}
+    - _uvBaseMask: {r: 1, g: 0, b: 0, a: 0}
+    - _uvBaseST: {r: 1, g: 1, b: 0, a: 0}
+    - _uvThreadMask: {r: 1, g: 0, b: 0, a: 0}
+    - _uvThreadST: {r: 1, g: 1, b: 0, a: 0}

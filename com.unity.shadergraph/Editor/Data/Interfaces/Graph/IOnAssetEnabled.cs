@@ -1,6 +1,6 @@
 namespace UnityEditor.Graphing
 {
-    public interface IOnAssetEnabled
+    interface IOnAssetEnabled
     {
         void OnEnable();
     }

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "All")]
-    public class AllNode : CodeFunctionNode
+    class AllNode : CodeFunctionNode
     {
         public AllNode()
         {

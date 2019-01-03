@@ -5,13 +5,13 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     [Serializable]
+    [FormerName("UnityEngine.Experimental.Rendering.LightweightPipeline.LightWeightUnlitSubShader")]
     [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
-    public class LightWeightUnlitSubShader : IUnlitSubShader
+    class LightWeightUnlitSubShader : IUnlitSubShader
     {
         static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;
 
@@ -68,6 +68,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+
+                var shaderFiles = Directory.GetFiles(
+                    Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/ShaderLibrary"));
+                sourceAssetDependencyPaths.AddRange(shaderFiles);
             }
 
             string forwardTemplate = File.ReadAllText(templatePath);
@@ -79,11 +83,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
             {
-                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
-
                 var materialTags = ShaderGenerator.BuildMaterialTags(unlitMasterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
-                materialTags.GetTags(tagsBuilder);
+                materialTags.GetTags(tagsBuilder, LightweightRenderPipeline.k_ShaderTagName);
                 subShader.AppendLines(tagsBuilder.ToString());
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(unlitMasterNode.surfaceType, unlitMasterNode.alphaMode, unlitMasterNode.twoSided.isOn);

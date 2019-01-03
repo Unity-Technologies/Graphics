@@ -1,16 +1,26 @@
 using System;
 using System.Reflection;
+using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using CED = CoreEditorDrawer<HDCameraUI, SerializedHDCamera>;
+    using CED = CoreEditorDrawer<SerializedHDCamera>;
 
     partial class HDCameraUI
     {
+        enum Expandable
+        {
+            General = 1 << 0,
+            Physical = 1 << 1,
+            Output = 1 << 2,
+            Orthographic = 1 << 3,
+            RenderLoop = 1 << 4,
+            XR = 1 << 5
+        }
+
+        readonly static ExpandedState<Expandable, Camera> k_ExpandedState = new ExpandedState<Expandable, Camera>(Expandable.General, "HDRP");
 
         static HDCameraUI()
         {
@@ -29,117 +39,116 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer[] Inspector = null;
 
         public static readonly CED.IDrawer SectionGeneralSettings = CED.FoldoutGroup(
-                generalSettingsHeaderContent,
-                (s, p, o) => s.isSectionExpandedGeneralSettings,
-                FoldoutOption.Indent,
-                CED.Action(Drawer_FieldClear),
-                CED.Action(Drawer_FieldCullingMask),
-                CED.Action(Drawer_FieldVolumeLayerMask),
-                CED.Action(Drawer_FieldVolumeAnchorOverride),
-                CED.Action(Drawer_FieldOcclusionCulling),
-                CED.space,
-                CED.Action(Drawer_Projection),
-                CED.Action(Drawer_FieldClippingPlanes),
-                CED.space,
-                CED.Action(Drawer_CameraWarnings),
-                CED.Action(Drawer_FieldRenderingPath)
-                //no space as FrameSettings is drawn just under
-                );
+            generalSettingsHeaderContent,
+            Expandable.General,
+            k_ExpandedState,
+            FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, //no space as FrameSettings is drawn just under
+            CED.Group(
+                Drawer_FieldClear,
+                Drawer_FieldCullingMask,
+                Drawer_FieldVolumeLayerMask,
+                Drawer_FieldVolumeAnchorOverride,
+                Drawer_FieldOcclusionCulling
+                ),
+            CED.space,
+            CED.Group(
+                Drawer_Projection,
+                Drawer_FieldClippingPlanes
+                ),
+            CED.space,
+            CED.Group(
+                Drawer_CameraWarnings,
+                Drawer_FieldRenderingPath
+                )
+            );
 
         public static readonly CED.IDrawer SectionPhysicalSettings = CED.FoldoutGroup(
-                physicalSettingsHeaderContent,
-                (s, p, o) => s.isSectionExpandedPhysicalSettings,
-                FoldoutOption.Indent,
-                CED.Action(Drawer_FieldAperture),
-                CED.Action(Drawer_FieldShutterSpeed),
-                CED.Action(Drawer_FieldIso),
-                CED.space);
+            physicalSettingsHeaderContent,
+            Expandable.Physical,
+            k_ExpandedState,
+            CED.Group(
+                Drawer_FieldAperture,
+                Drawer_FieldShutterSpeed,
+                Drawer_FieldIso
+                )
+            );
 
         public static readonly CED.IDrawer SectionOutputSettings = CED.FoldoutGroup(
-                outputSettingsHeaderContent,
-                (s, p, o) => s.isSectionExpandedOutputSettings,
-                FoldoutOption.Indent,
+            outputSettingsHeaderContent,
+            Expandable.Output,
+            k_ExpandedState,
+            CED.Group(
 #if ENABLE_MULTIPLE_DISPLAYS
-                CED.Action(Drawer_SectionMultiDisplay),
+                Drawer_SectionMultiDisplay,
 #endif
-                CED.Action(Drawer_FieldRenderTarget),
-                CED.Action(Drawer_FieldDepth),
-                CED.Action(Drawer_FieldNormalizedViewPort),
-                CED.space);
+                Drawer_FieldRenderTarget,
+                Drawer_FieldDepth,
+                Drawer_FieldNormalizedViewPort
+                )
+            );
 
-        public static readonly CED.IDrawer SectionXRSettings = CED.FadeGroup(
-                (s, d, o, i) => s.isSectionAvailableXRSettings,
-                FadeOption.None,
-                CED.FoldoutGroup(
-                    xrSettingsHeaderContent,
-                    (s, p, o) => s.isSectionExpandedXRSettings,
-                    FoldoutOption.Indent,
-                    CED.Action(Drawer_FieldVR),
-                    CED.Action(Drawer_FieldTargetEye)));
-        
-        public static readonly CED.IDrawer SectionFrameSettings = CED.Action((s, d, o) =>
-        {
-            if (s.isSectionExpandedGeneralSettings.target)
-            {
-                if (s.isSectionAvailableRenderLoopSettings.target)
-                    FrameSettingsUI.Inspector().Draw(s.frameSettingsUI, d.frameSettings, o);
+        public static readonly CED.IDrawer SectionXRSettings = CED.Conditional(
+            (serialized, owner) => PlayerSettings.virtualRealitySupported,
+            CED.FoldoutGroup(
+                xrSettingsHeaderContent,
+                Expandable.XR,
+                k_ExpandedState,
+                CED.Group(
+                    Drawer_FieldVR,
+                    Drawer_FieldTargetEye
+                    )
+                )
+            );
+
+        public static readonly CED.IDrawer SectionFrameSettings = CED.Conditional(
+            (serialized, owner) => k_ExpandedState[Expandable.General],
+            CED.Group((serialized, owner) =>
+            { 
+                if (!serialized.passThrough.boolValue && serialized.customRenderingSettings.boolValue)
+                    FrameSettingsUI.Inspector().Draw(serialized.frameSettings, owner);
                 else
                     EditorGUILayout.Space();
-            }
-        });
+            })
+        );
 
-        static void Drawer_FieldBackgroundColorHDR(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldBackgroundColorHDR(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.backgroundColorHDR, backgroundColorContent);
         }
 
-        static void Drawer_FieldVolumeLayerMask(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldVolumeLayerMask(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.volumeLayerMask, volumeLayerMaskContent);
         }
-        static void Drawer_FieldVolumeAnchorOverride(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldVolumeAnchorOverride(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.volumeAnchorOverride, volumeAnchorOverrideContent);
         }
 
-        static void Drawer_FieldCullingMask(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldCullingMask(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.cullingMask, cullingMaskContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.cullingMask, cullingMaskContent);
         }
 
-        static void Drawer_Projection(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_Projection(SerializedHDCamera p, Editor owner)
         {
-            CameraProjection projection = p.orthographic.boolValue ? CameraProjection.Orthographic : CameraProjection.Perspective;
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = p.orthographic.hasMultipleDifferentValues;
-            projection = (CameraProjection)EditorGUILayout.EnumPopup(projectionContent, projection);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-                p.orthographic.boolValue = (projection == CameraProjection.Orthographic);
-
-            if (!p.orthographic.hasMultipleDifferentValues)
-            {
-                if (projection == CameraProjection.Orthographic)
-                    EditorGUILayout.PropertyField(p.orthographicSize, sizeContent);
-                else
-                    EditorGUILayout.Slider(p.fieldOfView, 1f, 179f, fieldOfViewContent);
-            }
+            p.baseCameraSettings.DrawProjection();
         }
 
-        static void Drawer_FieldClippingPlanes(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldClippingPlanes(SerializedHDCamera p, Editor owner)
         {
             CoreEditorUtils.DrawMultipleFields(
                 clippingPlaneMultiFieldTitle,
-                new[] { p.nearClippingPlane, p.farClippingPlane },
+                new[] { p.baseCameraSettings.nearClippingPlane, p.baseCameraSettings.farClippingPlane },
                 new[] { nearPlaneContent, farPlaneContent });
         }
 
-        static void Drawer_FieldAperture(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldAperture(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.aperture, apertureContent);
         }
 
-        static void Drawer_FieldShutterSpeed(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldShutterSpeed(SerializedHDCamera p, Editor owner)
         {
             float shutterSpeed = 1f / p.shutterSpeed.floatValue;
             EditorGUI.BeginChangeCheck();
@@ -151,22 +160,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void Drawer_FieldIso(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldIso(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.iso, isoContent);
         }
 
-        static void Drawer_FieldNormalizedViewPort(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldNormalizedViewPort(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.normalizedViewPortRect, viewportContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.normalizedViewPortRect, viewportContent);
         }
 
-        static void Drawer_FieldDepth(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldDepth(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.depth, depthContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.depth, depthContent);
         }
 
-        static void Drawer_FieldClear(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldClear(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.clearColorMode, clearModeContent);
             //if(p.clearColorMode.enumValueIndex == (int)HDAdditionalCameraData.ClearColorMode.BackgroundColor) or no sky in scene
@@ -174,20 +183,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(p.clearDepth, clearDepthContent);
         }
 
-        static void Drawer_FieldRenderingPath(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldRenderingPath(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.renderingPath, renderingPathContent);
+            EditorGUILayout.PropertyField(p.passThrough);
+            using (new EditorGUI.DisabledScope(p.passThrough.boolValue))
+                EditorGUILayout.PropertyField(p.customRenderingSettings, renderingPathContent);
         }
 
-        static void Drawer_FieldRenderTarget(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldRenderTarget(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.targetTexture);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.targetTexture);
 
             // show warning if we have deferred but manual MSAA set
             // only do this if the m_TargetTexture has the same values across all target cameras
-            if (!p.targetTexture.hasMultipleDifferentValues)
+            if (!p.baseCameraSettings.targetTexture.hasMultipleDifferentValues)
             {
-                var targetTexture = p.targetTexture.objectReferenceValue as RenderTexture;
+                var targetTexture = p.baseCameraSettings.targetTexture.objectReferenceValue as RenderTexture;
                 if (targetTexture
                     && targetTexture.antiAliasing > 1
                     && p.frameSettings.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred)
@@ -197,12 +208,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void Drawer_FieldOcclusionCulling(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldOcclusionCulling(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.occlusionCulling, occlusionCullingContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.occlusionCulling, occlusionCullingContent);
         }
 
-        static void Drawer_CameraWarnings(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_CameraWarnings(SerializedHDCamera p, Editor owner)
         {
             foreach (Camera camera in p.serializedObject.targetObjects)
             {
@@ -212,20 +223,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void Drawer_FieldVR(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldVR(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.stereoSeparation, stereoSeparationContent);
-            EditorGUILayout.PropertyField(p.stereoConvergence, stereoConvergenceContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.stereoSeparation, stereoSeparationContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.stereoConvergence, stereoConvergenceContent);
         }
 
 #if ENABLE_MULTIPLE_DISPLAYS
-        static void Drawer_SectionMultiDisplay(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_SectionMultiDisplay(SerializedHDCamera p, Editor owner)
         {
             if (ModuleManager_ShouldShowMultiDisplayOption())
             {
-                var prevDisplay = p.targetDisplay.intValue;
-                EditorGUILayout.IntPopup(p.targetDisplay, DisplayUtility_GetDisplayNames(), DisplayUtility_GetDisplayIndices(), targetDisplayContent);
-                if (prevDisplay != p.targetDisplay.intValue)
+                var prevDisplay = p.baseCameraSettings.targetDisplay.intValue;
+                EditorGUILayout.IntPopup(p.baseCameraSettings.targetDisplay, DisplayUtility_GetDisplayNames(), DisplayUtility_GetDisplayIndices(), targetDisplayContent);
+                if (prevDisplay != p.baseCameraSettings.targetDisplay.intValue)
                     UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
         }
@@ -234,9 +245,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly int[] k_TargetEyeValues = { (int)StereoTargetEyeMask.Both, (int)StereoTargetEyeMask.Left, (int)StereoTargetEyeMask.Right, (int)StereoTargetEyeMask.None };
 
-        static void Drawer_FieldTargetEye(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        static void Drawer_FieldTargetEye(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.IntPopup(p.targetEye, k_TargetEyes, k_TargetEyeValues, targetEyeContent);
+            EditorGUILayout.IntPopup(p.baseCameraSettings.targetEye, k_TargetEyes, k_TargetEyeValues, targetEyeContent);
         }
 
         static MethodInfo k_DisplayUtility_GetDisplayIndices = Type.GetType("UnityEditor.DisplayUtility,UnityEditor")

@@ -3,20 +3,20 @@ using System;
 namespace UnityEditor.ShaderGraph
 {
     [Flags]
-    public enum ShaderStageCapability
+    enum ShaderStageCapability
     {
         Vertex = 1 << 0,
         Fragment = 1 << 1,
         All = Vertex | Fragment
     }
 
-    public enum ShaderStage
+    enum ShaderStage
     {
         Vertex,
         Fragment
     }
 
-    public static class ShaderStageExtensions
+    static class ShaderStageExtensions
     {
         /// <summary>
         /// Tries to convert a ShaderStageCapability into a ShaderStage. The conversion is only successful if the given ShaderStageCapability <paramref name="capability"/> refers to exactly 1 shader stage.

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Sphere Mask")]
-    public class SphereMaskNode : CodeFunctionNode
+    class SphereMaskNode : CodeFunctionNode
     {
         public SphereMaskNode()
         {

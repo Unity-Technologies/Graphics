@@ -1,10 +1,10 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Scene Depth")]
-    public sealed class SceneDepthNode : CodeFunctionNode, IMayRequireDepthTexture
+    sealed class SceneDepthNode : CodeFunctionNode, IMayRequireDepthTexture
     {
         const string kScreenPositionSlotName = "UV";
         const string kOutputSlotName = "Out";
@@ -31,10 +31,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_SceneDepth(
-            [Slot(0, Binding.ScreenPosition)] Vector3 UV,
-            [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector3 Out)
+            [Slot(0, Binding.ScreenPosition)] Vector4 UV,
+            [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
-            Out = Vector3.one;
             return
                 @"
 {

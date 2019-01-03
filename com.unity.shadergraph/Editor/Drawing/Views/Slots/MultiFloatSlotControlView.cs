@@ -1,13 +1,13 @@
 using System;
 using System.Globalization;
-using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
-    public class MultiFloatSlotControlView : VisualElement
+    class MultiFloatSlotControlView : VisualElement
     {
         readonly INode m_Node;
         readonly Func<Vector4> m_Get;
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public MultiFloatSlotControlView(INode node, string[] labels, Func<Vector4> get, Action<Vector4> set)
         {
-            AddStyleSheetPath("Styles/Controls/MultiFloatSlotControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/MultiFloatSlotControlView"));
             m_Node = node;
             m_Get = get;
             m_Set = set;
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             var field = new FloatField { userData = index, value = initialValue[index] };
             var dragger = new FieldMouseDragger<double>(field);
             dragger.SetDragZone(label);
-            field.OnValueChanged(evt =>
+            field.RegisterValueChangedCallback(evt =>
                 {
                     var value = m_Get();
                     value[index] = (float)evt.newValue;
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                     m_Node.Dirty(ModificationScope.Node);
                     m_UndoGroup = -1;
                 });
-            field.RegisterCallback<InputEvent>(evt =>
+            field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
                 {
                     if (m_UndoGroup == -1)
                     {
@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                         m_Node.Dirty(ModificationScope.Node);
                     }
                 });
-            field.RegisterCallback<KeyDownEvent>(evt =>
+            field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
                 {
                     if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
                     {

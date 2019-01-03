@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleSheets;
-using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.UIElements;
 using System.Reflection;
 using System.Linq;
 using UnityEngine.Profiling;
+
+using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.UI
         public VFXBlockUI()
         {
             Profiler.BeginSample("VFXBlockUI.VFXBlockUI");
-            AddStyleSheetPath("VFXBlock");
+            this.AddStyleSheetPath("VFXBlock");
             pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle();
             m_EnableToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleEnable);
@@ -53,13 +53,13 @@ namespace UnityEditor.VFX.UI
             //this.AddManipulator(new TrickleClickSelector());
 
             Profiler.EndSample();
-            style.positionType = PositionType.Relative;
+            style.position = PositionType.Relative;
         }
 
         // On purpose -- until we support Drag&Drop I suppose
         public override void SetPosition(Rect newPos)
         {
-            style.positionType = PositionType.Relative;
+            style.position = PositionType.Relative;
         }
 
         void OnToggleEnable(ChangeEvent<bool> e)

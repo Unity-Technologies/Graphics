@@ -19,6 +19,8 @@
 #define VFX_FLT_MIN 1.175494351e-38
 #define VFX_EPSILON 1e-5
 
+#pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
+
 struct VFXSampler2D
 {
     Texture2D t;
@@ -361,6 +363,17 @@ float3x3 GetEulerMatrix(float3 angles)
     return float3x3(c.y * c.z + s.x * s.y * s.z,    c.z * s.x * s.y - c.y * s.z,    c.x * s.y,
                     c.x * s.z,                      c.x * c.z,                      -s.x,
                     -c.z * s.y + c.y * s.x * s.z,   c.y * c.z * s.x + s.y * s.z,    c.x * c.y);
+}
+
+float4x4 GetTRSMatrix(float3 pos, float3 angles, float3 scale)
+{
+	float3x3 rotAndScale = GetEulerMatrix(radians(angles));
+	rotAndScale = mul(rotAndScale,GetScaleMatrix(scale));
+    return float4x4(
+        float4(rotAndScale[0],pos.x),
+        float4(rotAndScale[1],pos.y),
+        float4(rotAndScale[2],pos.z),
+        float4(0,0,0,1));
 }
 
 float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3x3 rot,float3 pivot,float3 size,float3 pos)

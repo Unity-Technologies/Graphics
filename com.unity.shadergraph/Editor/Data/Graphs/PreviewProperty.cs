@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public struct PreviewProperty
+    struct PreviewProperty
     {
         public string name { get; set; }
         public PropertyType propType { get; private set; }
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public static class PreviewPropertyExtensions
+    static class PreviewPropertyExtensions
     {
         public static void SetPreviewProperty(this MaterialPropertyBlock block, PreviewProperty previewProperty)
         {

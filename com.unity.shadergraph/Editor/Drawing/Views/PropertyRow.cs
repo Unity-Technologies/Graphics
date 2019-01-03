@@ -1,9 +1,10 @@
 using System.Linq;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class PropertyRow : VisualElement
+    class PropertyRow : VisualElement
     {
         VisualElement m_ContentContainer;
         VisualElement m_LabelContainer;
@@ -15,19 +16,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public VisualElement label
         {
-            get { return m_LabelContainer.FirstOrDefault(); }
+            get { return (m_LabelContainer.childCount > 0)?m_LabelContainer[0]:null; }
             set
             {
-                var first = m_LabelContainer.FirstOrDefault();
-                if (first != null)
-                    first.RemoveFromHierarchy();
+                if(m_LabelContainer.childCount > 0)
+                {
+                    m_LabelContainer.Clear();
+                }
                 m_LabelContainer.Add(value);
             }
         }
 
         public PropertyRow(VisualElement label = null)
         {
-            AddStyleSheetPath("Styles/PropertyRow");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
             VisualElement container = new VisualElement {name = "container"};
             m_ContentContainer = new VisualElement { name = "content"  };
             m_LabelContainer = new VisualElement {name = "label" };
@@ -36,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             container.Add(m_LabelContainer);
             container.Add(m_ContentContainer);
 
-            shadow.Add(container);
+            hierarchy.Add(container);
         }
     }
 }

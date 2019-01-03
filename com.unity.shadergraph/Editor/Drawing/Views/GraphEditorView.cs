@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEngine.Experimental.UIElements.StyleSheets;
-using UnityEngine.Rendering;
-using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Object = UnityEngine.Object;
+
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
+using Edge = UnityEditor.Experimental.GraphView.Edge;
+
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -22,16 +22,32 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Vector2 masterPreviewSize = new Vector2(400, 400);
     }
 
-    public class GraphEditorView : VisualElement, IDisposable
+    [Serializable]
+    class ToggleSettings
+    {
+        public bool isBlackboardVisible = true;
+        public bool isPreviewVisible = true;
+    }
+
+    class GraphEditorView : VisualElement, IDisposable
     {
         MaterialGraphView m_GraphView;
         MasterPreviewView m_MasterPreviewView;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
+        MessageManager m_MessageManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
+
+        public BlackboardProvider blackboardProvider
+        {
+            get { return m_BlackboardProvider; }
+        }
+
+        const string k_ToggleSettings = "UnityEditor.ShaderGraph.ToggleSettings";
+        ToggleSettings m_ToggleSettings;
 
         const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout";
         FloatingWindowsLayout m_FloatingWindowsLayout;
@@ -63,15 +79,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             set
             {
                 m_BlackboardProvider.assetName = value;
-                m_MasterPreviewView.assetName = value;
             }
         }
 
-        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph)
+        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, MessageManager messageManager)
         {
             m_Graph = graph;
-            AddStyleSheetPath("Styles/GraphEditorView");
-            previewManager = new PreviewManager(graph);
+            m_MessageManager = messageManager;
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
+            previewManager = new PreviewManager(graph, messageManager);
+
+            string serializedToggle = EditorUserSettings.GetConfigValue(k_ToggleSettings);
+            if (!string.IsNullOrEmpty(serializedToggle))
+            {
+                m_ToggleSettings = JsonUtility.FromJson<ToggleSettings>(serializedToggle);
+            }
 
             string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
             if (!string.IsNullOrEmpty(serializedWindowLayout))
@@ -82,7 +104,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
-
             var toolbar = new IMGUIContainer(() =>
                 {
                     GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -97,20 +118,38 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (showInProjectRequested != null)
                             showInProjectRequested();
                     }
+
                     GUILayout.FlexibleSpace();
+
+                    EditorGUI.BeginChangeCheck();
+                    m_ToggleSettings.isBlackboardVisible = GUILayout.Toggle(m_ToggleSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
+
+                    GUILayout.Space(6);
+
+                    m_ToggleSettings.isPreviewVisible = GUILayout.Toggle(m_ToggleSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_MasterPreviewView.visible = m_ToggleSettings.isPreviewVisible;
+                        m_BlackboardProvider.blackboard.visible = m_ToggleSettings.isBlackboardVisible;
+                        string serializedToggleables = JsonUtility.ToJson(m_ToggleSettings);
+                        EditorUserSettings.SetConfigValue(k_ToggleSettings, serializedToggleables);
+                    }
                     GUILayout.EndHorizontal();
                 });
             Add(toolbar);
 
             var content = new VisualElement { name = "content" };
             {
-                m_GraphView = new MaterialGraphView(graph) { name = "GraphView", persistenceKey = "MaterialGraphView" };
+                m_GraphView = new MaterialGraphView(graph) { name = "GraphView", viewDataKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
+                m_GraphView.groupTitleChanged = OnGroupTitleChanged;
+                m_GraphView.elementsAddedToGroup = OnElementsAddedToGroup;
+                m_GraphView.elementsRemovedFromGroup = OnElementsRemovedFromGroup;
                 content.Add(m_GraphView);
 
                 m_BlackboardProvider = new BlackboardProvider(graph);
@@ -118,7 +157,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Rect blackboardLayout = m_BlackboardProvider.blackboard.layout;
                 blackboardLayout.x = 10f;
                 blackboardLayout.y = 10f;
-                m_BlackboardProvider.blackboard.layout = blackboardLayout;
+                m_BlackboardProvider.blackboard.SetPosition(blackboardLayout);
+
+                // Initialize toggle settings if it doesnt exist.
+                if (m_ToggleSettings == null)
+                {
+                    m_ToggleSettings = new ToggleSettings();
+                }
+                m_BlackboardProvider.blackboard.visible = m_ToggleSettings.isBlackboardVisible;
 
                 m_MasterPreviewView = new MasterPreviewView(previewManager, graph) { name = "masterPreview" };
 
@@ -130,6 +176,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 //m_BlackboardProvider.onResizeFinished += UpdateSerializedWindowLayout;
                 masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
                 m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+                m_MasterPreviewView.visible = m_ToggleSettings.isPreviewVisible;
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
@@ -145,6 +192,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 };
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider);
+
+            foreach (var graphGroup in graph.groups)
+            {
+                AddGroup(graphGroup);
+            }
 
             foreach (var node in graph.GetNodes<INode>())
                 AddNode(node);
@@ -187,6 +239,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (graphViewChange.movedElements != null)
             {
+                m_Graph.owner.RegisterCompleteObjectUndo("Move Elements");
+
+                List<GraphElement> nodesInsideGroup = new List<GraphElement>();
+                foreach (var element in graphViewChange.movedElements)
+                {
+                    var groupNode = element as ShaderGroup;
+                    if (groupNode == null)
+                        continue;
+
+                    foreach (GraphElement graphElement in groupNode.containedElements)
+                    {
+                        nodesInsideGroup.Add(graphElement);
+                    }
+                }
+
+                if(nodesInsideGroup.Any())
+                    graphViewChange.movedElements.AddRange(nodesInsideGroup);
+
                 foreach (var element in graphViewChange.movedElements)
                 {
                     var node = element.userData as INode;
@@ -194,7 +264,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
 
                     var drawState = node.drawState;
-                    drawState.position = element.GetPosition();
+                    drawState.position = element.parent.ChangeCoordinatesTo(m_GraphView.contentViewContainer, element.GetPosition());
                     node.drawState = drawState;
                 }
             }
@@ -206,7 +276,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Remove Elements");
                 m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<MaterialNodeView>().Select(v => (INode)v.node),
-                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge)e.userData));
+                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge)e.userData),
+                    graphViewChange.elementsToRemove.OfType<ShaderGroup>().Select(g => (GroupData)g.userData));
                 foreach (var edge in graphViewChange.elementsToRemove.OfType<Edge>())
                 {
                     if (edge.input != null)
@@ -232,6 +303,70 @@ namespace UnityEditor.ShaderGraph.Drawing
             return graphViewChange;
         }
 
+        void OnGroupTitleChanged(Group graphGroup, string title)
+        {
+            var groupData = graphGroup.userData as GroupData;
+            if (groupData != null)
+            {
+                groupData.title = graphGroup.title;
+            }
+        }
+
+        void OnElementsAddedToGroup(Group graphGroup, IEnumerable<GraphElement> element)
+        {
+            var groupData = graphGroup.userData as GroupData;
+            if (groupData != null)
+            {
+                var anyChanged = false;
+                foreach (var materialNodeView in element.Select(e => e).OfType<MaterialNodeView>())
+                {
+                    if (materialNodeView.node.groupGuid != groupData.guid)
+                    {
+                        anyChanged = true;
+                        break;
+                    }
+                }
+
+                if (!anyChanged)
+                    return;
+
+                m_Graph.owner.RegisterCompleteObjectUndo(groupData.title);
+
+                foreach (var materialNodeView in element.Select(e => e).OfType<MaterialNodeView>())
+                {
+                    m_Graph.SetNodeGroup(materialNodeView.node, groupData);
+                }
+            }
+        }
+
+        void OnElementsRemovedFromGroup(Group graphGroup, IEnumerable<GraphElement> element)
+        {
+            var groupData = graphGroup.userData as GroupData;
+            if (groupData != null)
+            {
+                var anyChanged = false;
+                foreach (var materialNodeView in element.Select(e => e).OfType<MaterialNodeView>())
+                {
+                    if (materialNodeView.userData != null && materialNodeView.node.groupGuid == groupData.guid)
+                    {
+                        anyChanged = true;
+                        break;
+                    }
+                }
+
+                if (!anyChanged)
+                    return;
+
+                m_Graph.owner.RegisterCompleteObjectUndo("Ungroup Node(s)");
+
+                foreach (var materialNodeView in element.Select(e => e).OfType<MaterialNodeView>())
+                {
+                    if (materialNodeView.node != null)
+                        m_Graph.SetNodeGroup(materialNodeView.node, null);
+                }
+            }
+        }
+
         void OnNodeChanged(INode inNode, ModificationScope scope)
         {
             if (m_GraphView == null)
@@ -250,22 +385,38 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         HashSet<MaterialNodeView> m_NodeViewHashSet = new HashSet<MaterialNodeView>();
 
+        public void UpdatePreviewShaders()
+        {
+            previewManager.ForceShaderUpdate();
+        }
+        
         public void HandleGraphChanges()
         {
             previewManager.HandleGraphChanges();
             previewManager.RenderPreviews();
             m_BlackboardProvider.HandleGraphChanges();
 
+            foreach (GroupData groupData in m_Graph.removedGroups)
+            {
+                var group = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().ToList().First(g => g.userData == groupData);
+                m_GraphView.RemoveElement(group);
+            }
+
             foreach (var node in m_Graph.removedNodes)
             {
                 node.UnregisterCallback(OnNodeChanged);
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
-                    nodeView.userData = null;
                     m_GraphView.RemoveElement(nodeView);
                 }
+            }
+
+            foreach (var groupData in m_Graph.addedGroups)
+            {
+                AddGroup(groupData);
             }
 
             foreach (var node in m_Graph.addedNodes)
@@ -273,9 +424,36 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddNode(node);
             }
 
+            foreach (var groupChange in m_Graph.nodeGroupChanges)
+            {
+                var nodeView = (MaterialNodeView)m_GraphView.GetNodeByGuid(groupChange.nodeGuid.ToString());
+                if (nodeView != null)
+                {
+                    var groupView = nodeView.GetContainingScope() as ShaderGroup;
+                    if (groupView?.userData.guid != groupChange.newGroupGuid)
+                    {
+                        groupView?.RemoveElement(nodeView);
+                        if (groupChange.newGroupGuid != Guid.Empty)
+                        {
+                            var newGroupView = m_GraphView.graphElements.ToList()
+                                .OfType<ShaderGroup>()
+                                .First(x => x.userData.guid == groupChange.newGroupGuid);
+                            newGroupView.AddElement(nodeView);
+                        }
+                    }
+                }
+            }
+
+            foreach (var groupData in m_Graph.pastedGroups)
+            {
+                var group = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().ToList().First(g => g.userData == groupData);
+                m_GraphView.AddToSelection(group);
+            }
+
             foreach (var node in m_Graph.pastedNodes)
             {
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 m_GraphView.AddToSelection(nodeView);
             }
 
@@ -284,7 +462,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var edge in m_Graph.removedEdges)
             {
-                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && Equals((IEdge)p.userData, edge));
+                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>()
+                    .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge) p.userData, edge));
                 if (edgeView != null)
                 {
                     var nodeView = edgeView.input.node as MaterialNodeView;
@@ -292,6 +471,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         nodesToUpdate.Add(nodeView);
                     }
+
                     edgeView.output.Disconnect(edgeView);
                     edgeView.input.Disconnect(edgeView);
 
@@ -313,20 +493,52 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.UpdatePortInputVisibilities();
 
             UpdateEdgeColors(nodesToUpdate);
+
+            UpdateBadges();
         }
+
+        void UpdateBadges()
+        {
+            if (!m_MessageManager.nodeMessagesChanged)
+                return;
+            
+            foreach (var messageData in m_MessageManager.GetNodeMessages())
+            {
+                var node = m_Graph.GetNodeFromTempId(messageData.Key);
+
+                if (!(m_GraphView.GetNodeByGuid(node.guid.ToString()) is MaterialNodeView nodeView))
+                    continue;
+
+                if (messageData.Value.Count == 0)
+                {
+                    var badge = nodeView.Q<IconBadge>();
+                    badge?.Detach();
+                    badge?.RemoveFromHierarchy();
+                }
+                else
+                {
+                    nodeView.AttachError(messageData.Value.First().message);
+                }
+            }
+        }
+
+        List<GraphElement> m_AddNodeGraphElements = new List<GraphElement>();
 
         void AddNode(INode node)
         {
             var nodeView = new MaterialNodeView { userData = node };
+
             m_GraphView.AddElement(nodeView);
-            nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager, m_EdgeConnectorListener);
+            var materialNode = (AbstractMaterialNode)node;
+            nodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener);
             node.RegisterCallback(OnNodeChanged);
+
             nodeView.MarkDirtyRepaint();
 
             if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
             {
                 m_SearchWindowProvider.nodeNeedsRepositioning = false;
-                foreach (var element in nodeView.inputContainer.Union(nodeView.outputContainer))
+                foreach (var element in nodeView.inputContainer.Children().Union(nodeView.outputContainer.Children()))
                 {
                     var port = element as ShaderPort;
                     if (port == null)
@@ -338,6 +550,30 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+
+            m_AddNodeGraphElements.Clear();
+            m_GraphView.graphElements.ToList(m_AddNodeGraphElements);
+
+            if (materialNode.groupGuid != Guid.Empty)
+            {
+                foreach (var element in m_AddNodeGraphElements)
+                {
+                    if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
+                    {
+                        groupView.AddElement(nodeView);
+                    }
+                }
+            }
+        }
+
+        void AddGroup(GroupData groupData)
+        {
+            ShaderGroup graphGroup = new ShaderGroup();
+
+            graphGroup.userData = groupData;
+            graphGroup.title = groupData.title;
+
+            m_GraphView.AddElement(graphGroup);
         }
 
         static void RepositionNode(GeometryChangedEvent evt)
@@ -454,7 +690,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void HandleEditorViewChanged(GeometryChangedEvent evt)
         {
-            m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(m_GraphView.layout);
+            m_BlackboardProvider.blackboard.SetPosition(m_FloatingWindowsLayout.blackboardLayout.GetLayout(m_GraphView.layout));
         }
 
         void StoreBlackboardLayoutOnGeometryChanged(GeometryChangedEvent evt)
@@ -470,8 +706,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // Restore master preview layout
                 m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
-                m_MasterPreviewView.previewTextureView.style.width = StyleValue<float>.Create(m_FloatingWindowsLayout.masterPreviewSize.x);
-                m_MasterPreviewView.previewTextureView.style.height = StyleValue<float>.Create(m_FloatingWindowsLayout.masterPreviewSize.y);
+                m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
+                m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
 
                 // Restore blackboard layout, and make sure that it remains in the view.
                 Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
@@ -485,7 +721,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.height - blackboardRect.height - blackboardRect.height));
 
                 // Set the processed blackboard layout.
-                m_BlackboardProvider.blackboard.layout = blackboardRect;
+                m_BlackboardProvider.blackboard.SetPosition(blackboardRect);
 
                 previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
             }

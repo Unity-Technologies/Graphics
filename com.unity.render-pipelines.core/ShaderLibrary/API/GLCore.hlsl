@@ -15,10 +15,12 @@
 #define FRONT_FACE_TYPE float
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL > 0.0) ? (FRONT) : (BACK))
 
-#define ERROR_ON_UNSUPPORTED_FUNCTION(funcName) #error ##funcName is not supported on GLCORE
+#define ERROR_ON_UNSUPPORTED_FUNCTION(funcName) #error #funcName is not supported on GLCORE
 
 #define CBUFFER_START(name)
 #define CBUFFER_END
+
+#define PLATFORM_SUPPORTS_EXPLICIT_BINDING 1
 
 // flow control attributes
 #define UNITY_BRANCH        [branch]
@@ -118,6 +120,7 @@
 #define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias)textureName.SampleBias(samplerName, float4(coord3, index), bias)
 #endif
 #define SAMPLE_TEXTURE3D(textureName, samplerName, coord3)                          textureName.Sample(samplerName, coord3)
+#define SAMPLE_TEXTURE3D_LOD(textureName, samplerName, coord3, lod)                 textureName.SampleLevel(samplerName, coord3, lod)
 
 #define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3)                   textureName.SampleCmpLevelZero(samplerName, (coord3).xy, (coord3).z)
 #define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index)      textureName.SampleCmpLevelZero(samplerName, float3((coord3).xy, index), (coord3).z)

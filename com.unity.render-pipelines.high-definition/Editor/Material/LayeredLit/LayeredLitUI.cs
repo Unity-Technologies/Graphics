@@ -1,17 +1,16 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-
 using System.Linq;
+using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class LayeredLitGUI : LitGUI
     {
-        //Be sure to start after last BaseUnlitGUI.Expendable
+        //Be sure to start after last BaseUnlitGUI.Expandable
         [Flags]
-        protected enum LayerExpendable : uint
+        protected enum LayerExpandable : uint
         {
             LayeringOptionMain = 1 << 15,
             ShowLayer1 = 1 << 16,
@@ -31,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LayeringOption3 = 1 << 30
         }
 
-        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.VertexAnimation | Expendable.Detail | Expendable.Emissive | Expendable.Transparency | Expendable.Other | Expendable.Tesselation) + (uint)(LayerExpendable.MaterialReferences | LayerExpendable.MainInput | LayerExpendable.MainDetail); } }
+        protected override uint defaultExpandedState { get { return (uint)(Expandable.Base | Expandable.Input | Expandable.VertexAnimation | Expandable.Detail | Expandable.Emissive | Expandable.Transparency | Expandable.Other | Expandable.Tesselation) + (uint)(LayerExpandable.MaterialReferences | LayerExpandable.MainInput | LayerExpandable.MainDetail); } }
         
         public enum VertexColorMode
         {
@@ -70,7 +69,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent materialToCopyHeader = CoreEditorUtils.GetContent("Material to copy");
             public readonly GUIContent uvHeader = CoreEditorUtils.GetContent("UV|Also copy UV when doing the copy.");
             public readonly GUIContent copyButtonIcon = EditorGUIUtility.IconContent("d_UnityEditor.ConsoleWindow", "|Copy parameters of material to layer. If UV is disabled, UV will not be copied.");
-            public readonly GUIContent layersText = new GUIContent("Inputs");
+            public readonly GUIContent layersText = new GUIContent("Surface Inputs");
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
             public readonly GUIContent layerInfluenceMapMaskText = new GUIContent("Layer Influence Mask", "Layer mask");
@@ -212,13 +211,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (layerNumber == 4)
             {
-                SetExpendedAreas((uint)LayerExpendable.ShowLayer3, true);
+                SetExpandedAreas((uint)LayerExpandable.ShowLayer3, true);
             }
             if (layerNumber >= 3)
             {
-                SetExpendedAreas((uint)LayerExpendable.ShowLayer2, true);
+                SetExpandedAreas((uint)LayerExpandable.ShowLayer2, true);
             }
-            SetExpendedAreas((uint)LayerExpendable.ShowLayer1, true);
+            SetExpandedAreas((uint)LayerExpandable.ShowLayer1, true);
         }
 
         int numLayer
@@ -352,13 +351,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool result = false;
 
             int paramIndex = -1;
-            Array values = Enum.GetValues(typeof(LayerExpendable));
+            Array values = Enum.GetValues(typeof(LayerExpandable));
             if (layerIndex > 0)
             {
                 paramIndex = layerIndex - 1;
 
-                int startShowVal = Array.IndexOf(values, LayerExpendable.ShowLayer1);
-                if (!GetExpendedAreas((uint)values.GetValue(startShowVal + paramIndex)))
+                int startShowVal = Array.IndexOf(values, LayerExpandable.ShowLayer1);
+                if (!GetExpandedAreas((uint)values.GetValue(startShowVal + paramIndex)))
                 {
                     return false;
                 }
@@ -373,10 +372,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Main layer does not have any options but height base blend.
             if (layerIndex > 0)
             {
-                int startLayeringOptionValue = Array.IndexOf(values, LayerExpendable.LayeringOption1);
+                int startLayeringOptionValue = Array.IndexOf(values, LayerExpandable.LayeringOption1);
                 using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)values.GetValue(startLayeringOptionValue + paramIndex), this, colorDot: s_Styles.layerColors[layerIndex]))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                     {
                         m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
 
@@ -394,15 +393,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
             {
-                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)LayerExpendable.LayeringOptionMain, this, colorDot: s_Styles.layerColors[layerIndex]))
+                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)LayerExpandable.LayeringOptionMain, this, colorDot: s_Styles.layerColors[layerIndex]))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                         m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
                 }
             }
 
-            int startInputValue = Array.IndexOf(values, LayerExpendable.Layer1Input);
-            int startDetailValue = Array.IndexOf(values, LayerExpendable.Layer1Detail);
+            int startInputValue = Array.IndexOf(values, LayerExpandable.Layer1Input);
+            int startDetailValue = Array.IndexOf(values, LayerExpandable.Layer1Detail);
             DoLayerGUI(material, layerIndex, true, m_UseHeightBasedBlend, s_Styles.layerLabels[layerIndex].text + " ", (uint)values.GetValue(startInputValue + paramIndex), (uint)values.GetValue(startDetailValue + paramIndex), colorDot: s_Styles.layerColors[layerIndex]);
 
             return result;
@@ -410,9 +409,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void DoLayeringInputGUI()
         {
-            using (var header = new HeaderScope(styles.layersText.text, (uint)Expendable.Input, this))
+            using (var header = new HeaderScope(styles.layersText.text, (uint)Expandable.Input, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     EditorGUI.showMixedValue = layerCount.hasMixedValue;
                     EditorGUI.BeginChangeCheck();
@@ -480,9 +479,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             bool layersChanged = false;
 
-            using (var header = new HeaderScope(styles.materialReferencesText.text, (uint)LayerExpendable.MaterialReferences, this))
+            using (var header = new HeaderScope(styles.materialReferencesText.text, (uint)LayerExpandable.MaterialReferences, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     var width = EditorGUIUtility.labelWidth;
                     EditorGUIUtility.labelWidth = 90;
@@ -491,9 +490,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     Color originalContentColor = GUI.contentColor;
 
-                    Rect headerLabelRect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight, GUILayout.Width(90));
-                    Rect headerMaterialDropRect = new Rect(headerLabelRect.x + headerLabelRect.width, headerLabelRect.y, Screen.width - 150, headerLabelRect.height);
-                    Rect headerUVRect = new Rect(headerMaterialDropRect.x + headerMaterialDropRect.width - 12, headerLabelRect.y, 35, headerLabelRect.height);
+                    float indentOffset = EditorGUI.indentLevel * 15f;
+                    float colorWidth = 14;
+                    float UVWidth = 30;
+                    float copyButtonWidth = EditorGUIUtility.singleLineHeight;
+                    float endOffset = 5f;
+
+                    Rect headerLineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+                    Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset, headerLineRect.height);
+                    Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - 48 - endOffset, headerLineRect.y, UVWidth + 5, headerLineRect.height);
+                    Rect headerMaterialDropRect = new Rect(headerLineRect.x + headerLabelRect.width, headerLineRect.y, headerLineRect.width - headerLabelRect.width - headerUVRect.width, headerLineRect.height);
 
                     EditorGUI.LabelField(headerLabelRect, styles.layerNameHeader, EditorStyles.centeredGreyMiniLabel);
                     EditorGUI.LabelField(headerMaterialDropRect, styles.materialToCopyHeader, EditorStyles.centeredGreyMiniLabel);
@@ -505,10 +511,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         {
                             EditorGUI.BeginChangeCheck();
 
-                            Rect colorRect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight, GUILayout.Width(14));
-                            Rect materialRect = new Rect(colorRect.x + colorRect.width, colorRect.y, Screen.width-69, colorRect.height);
-                            Rect uvRect = new Rect(materialRect.x + materialRect.width - 14, colorRect.y, 30, colorRect.height);
-                            Rect copyRect = new Rect(uvRect.x + uvRect.width, colorRect.y, colorRect.height, colorRect.height + 1);
+                            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+                            Rect colorRect = new Rect(lineRect.x, lineRect.y, colorWidth, lineRect.height);
+                            Rect materialRect = new Rect(lineRect.x + colorRect.width, lineRect.y, lineRect.width - UVWidth - colorWidth - copyButtonWidth + endOffset, lineRect.height);
+                            Rect uvRect = new Rect(lineRect.x + lineRect.width - copyButtonWidth - UVWidth - endOffset, lineRect.y, UVWidth, lineRect.height);
+                            Rect copyRect = new Rect(lineRect.x + lineRect.width - copyButtonWidth - endOffset, lineRect.y, copyButtonWidth, lineRect.height);
 
                             m_MaterialLayers[layerIndex] = EditorGUI.ObjectField(materialRect, styles.layerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
                             if (EditorGUI.EndChangeCheck())
@@ -741,7 +748,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor = materialEditor;
 
             // We should always register the key used to keep collapsable state
-            InitExpendableState(materialEditor);
+            InitExpandableState(materialEditor);
 
             // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
@@ -754,9 +761,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
             {
-                using (var header = new HeaderScope(StylesBaseUnlit.optionText, (uint)Expendable.Base, this))
+                using (var header = new HeaderScope(StylesBaseUnlit.optionText, (uint)Expandable.Base, this))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                         BaseMaterialPropertiesGUI();
                 }
                 MaterialTesselationPropertiesGUI();
@@ -815,13 +822,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 optionsChanged = true;
-            }
+            }            
 
-            DoEmissionArea(material);
-
-            using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expendable.Advance, this))
+            using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expandable.Advance, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
                     m_MaterialEditor.EnableInstancingField();

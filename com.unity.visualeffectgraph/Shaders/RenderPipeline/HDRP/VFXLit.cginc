@@ -8,11 +8,38 @@
 #error SHADERPASS must be defined (at) this point
 #endif
 
-#if (SHADERPASS != SHADERPASS_FORWARD)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-#else
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-#endif
+
+#if (SHADERPASS == SHADERPASS_FORWARD)
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
+    // The light loop (or lighting architecture) is in charge to:
+    // - Define light list
+    // - Define the light loop
+    // - Setup the constant/data
+    // - Do the reflection hierarchy
+    // - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
+
+    #define HAS_LIGHTLOOP
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+
+    #ifdef HDRP_MATERIAL_TYPE_SIMPLE
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
+        #define _DISABLE_SSR
+    #else
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+    #endif
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+
+#else // (SHADERPASS == SHADERPASS_FORWARD)
+
+    #ifdef HDRP_MATERIAL_TYPE_SIMPLE
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
+    #else
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+    #endif
+#endif // (SHADERPASS == SHADERPASS_FORWARD)
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 

@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class AdditionalLightsShadowCasterPass : ScriptableRenderPass
+    internal class AdditionalLightsShadowCasterPass : ScriptableRenderPass
     {
         private static class AdditionalShadowsConstantBuffer
         {
@@ -20,7 +21,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         const int k_ShadowmapBufferBits = 16;
         RenderTexture m_AdditionalLightsShadowmapTexture;
-        RenderTextureFormat m_AdditionalShadowmapFormat;
 
         Matrix4x4[] m_AdditionalLightShadowMatrices;
         ShadowSliceData[] m_AdditionalLightSlices;
@@ -46,10 +46,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset2 = Shader.PropertyToID("_AdditionalShadowOffset2");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset3 = Shader.PropertyToID("_AdditionalShadowOffset3");
             AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
-
-            m_AdditionalShadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
-                ? RenderTextureFormat.Shadowmap
-                : RenderTextureFormat.Depth;
         }
 
         public bool Setup(RenderTargetHandle destination, ref RenderingData renderingData, int maxVisibleAdditinalLights)
@@ -174,10 +170,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 int shadowmapWidth = shadowData.additionalLightsShadowmapWidth;
                 int shadowmapHeight = shadowData.additionalLightsShadowmapHeight;
 
-                m_AdditionalLightsShadowmapTexture = RenderTexture.GetTemporary(shadowmapWidth, shadowmapHeight,
-                    k_ShadowmapBufferBits, m_AdditionalShadowmapFormat);
-                m_AdditionalLightsShadowmapTexture.filterMode = FilterMode.Bilinear;
-                m_AdditionalLightsShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
+                m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(shadowmapWidth, shadowmapHeight, k_ShadowmapBufferBits);
 
                 SetRenderTarget(cmd, m_AdditionalLightsShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                     ClearFlag.Depth, Color.black, TextureDimension.Tex2D);

@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Configure the shader constants needed by the render pipeline
@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// For example, you can execute this pass before you render opaque
     /// objects, to make sure that lights are configured correctly.
     /// </summary>
-    public class SetupLightweightConstanstPass : ScriptableRenderPass
+    internal class SetupLightweightConstanstPass : ScriptableRenderPass
     {
         static class LightConstantBuffer
         {
@@ -100,12 +100,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (lightData.lightType == LightType.Directional)
             {
                 Vector4 dir = -lightData.localToWorldMatrix.GetColumn(2);
-                lightPos = new Vector4(dir.x, dir.y, dir.z, k_DefaultLightAttenuation.w);
+                lightPos = new Vector4(dir.x, dir.y, dir.z, 1.0f);
             }
             else
             {
                 Vector4 pos = lightData.localToWorldMatrix.GetColumn(3);
-                lightPos = new Vector4(pos.x, pos.y, pos.z, k_DefaultLightAttenuation.w);
+                lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
             }
 
             // VisibleLight.finalColor already returns color in active color space
@@ -175,12 +175,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_MixedLightingSetup == MixedLightingSetup.None && lightData.light.shadows != LightShadows.None)
                 {
                     m_MixedLightingSetup = MixedLightingSetup.Subtractive;
-
-                    // In subtractive light mode, main light direct contribution is baked on lightmap
-                    // In this case we setup light position w component as 0.0f so we can remove it's contribution
-                    // from realtime light computation
-                    if (lightData.lightType == LightType.Directional)
-                        lightPos.w = 0.0f;
                 }
             }
         }

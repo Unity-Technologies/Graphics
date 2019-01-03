@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Texture3DMaterialSlot : MaterialSlot
+    class Texture3DMaterialSlot : MaterialSlot
     {
         public Texture3DMaterialSlot()
         {}

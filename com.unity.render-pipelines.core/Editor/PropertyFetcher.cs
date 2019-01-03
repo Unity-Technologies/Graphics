@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using UnityEngine.Assertions;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     public sealed class PropertyFetcher<T> : IDisposable
     {
@@ -18,7 +18,12 @@ namespace UnityEditor.Experimental.Rendering
         {
             return obj.FindProperty(str);
         }
-
+        
+        /// <summary>
+        /// To use with extreme caution. It not really get the property but try to find a field with similar name
+        /// Hence inheritance override of property is not supported.
+        /// Also variable rename will silently break the search.
+        /// </summary>
         public SerializedProperty Find<TValue>(Expression<Func<T, TValue>> expr)
         {
             string path = CoreEditorUtils.FindProperty(expr);
@@ -46,6 +51,11 @@ namespace UnityEditor.Experimental.Rendering
             return obj.FindPropertyRelative(str);
         }
 
+        /// <summary>
+        /// To use with extreme caution. It not really get the property but try to find a field with similar name
+        /// Hence inheritance override of property is not supported.
+        /// Also variable rename will silently break the search.
+        /// </summary>
         public SerializedProperty Find<TValue>(Expression<Func<T, TValue>> expr)
         {
             string path = CoreEditorUtils.FindProperty(expr);
@@ -60,12 +70,22 @@ namespace UnityEditor.Experimental.Rendering
 
     public static class PropertyFetcherExtensions
     {
+        /// <summary>
+        /// To use with extreme caution. It not really get the property but try to find a field with similar name
+        /// Hence inheritance override of property is not supported.
+        /// Also variable rename will silently break the search.
+        /// </summary>
         public static SerializedProperty Find<TSource, TValue>(this SerializedObject obj, Expression<Func<TSource, TValue>> expr)
         {
             var path = CoreEditorUtils.FindProperty(expr);
             return obj.FindProperty(path);
         }
 
+        /// <summary>
+        /// To use with extreme caution. It not really get the property but try to find a field with similar name
+        /// Hence inheritance override of property is not supported.
+        /// Also variable rename will silently break the search.
+        /// </summary>
         public static SerializedProperty Find<TSource, TValue>(this SerializedProperty obj, Expression<Func<TSource, TValue>> expr)
         {
             var path = CoreEditorUtils.FindProperty(expr);

@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {    
     [Title("Input", "Texture", "Sample Texture 2D LOD")]
-    public class SampleTexture2DLODNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class SampleTexture2DLODNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotRGBAId = 0;
         public const int OutputSlotRId = 5;

@@ -8,7 +8,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Channel", "Swizzle")]
-    public class SwizzleNode : AbstractMaterialNode, IGeneratesBodyCode
+    class SwizzleNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public SwizzleNode()
         {

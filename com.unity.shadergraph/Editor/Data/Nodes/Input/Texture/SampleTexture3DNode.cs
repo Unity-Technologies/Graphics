@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Sample Texture 3D")]
-    public class SampleTexture3DNode : AbstractMaterialNode, IGeneratesBodyCode
+    class SampleTexture3DNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public const int OutputSlotId = 0;
         public const int TextureInputId = 1;

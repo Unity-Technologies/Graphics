@@ -4,7 +4,168 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.1.0-preview] - 2018-10-18
+## [5.3.0-preview] - 2018-11-xx
+
+### Added
+- Added new API to perform a camera rendering
+- Add suport for hair master node (Double kajiya kay - Lambert)
+- Added Reset behaviour in DebugMenu (ingame mapping is right joystick + B)
+- Added default HD scene at new scene creation while in HDRP.
+- Added Wizard helping to configure HDRP project.
+- Added new UI for decal material to allow remapping and scaling of some properties
+- Added cascade shadow visualisation toggle in HD shadow settings
+- Added icons for assets.
+- Added replace blending mode for distortion
+- Added basic distance fade for density volumes
+- Added decal master node for shader graph
+- Added HD unlit master node (Cross Pipeline one is name Unlit)
+
+### Fixed
+- Fixed logic to disable FPTL with stereo rendering
+- Fixed stacklit transmission and sun highlight
+- Fixed decals with stereo rendering
+- Fixed sky with stereo rendering
+- Fixed flip logic for postprocessing + VR
+- Fixed copyStencilBuffer pass for Switch
+- Fixed point light shadow map culling that wasn't taking into account far plane
+- Fixed usage of SSR with transparent on all master node
+- Fixed SSR and microshadowing on fabric material
+- Fixed blit pass for stereo rendering
+- Fixed lightlist bounds for stereo rendering
+- Fixed windows and in-game DebugMenu sync.
+- Fixed FrameSettings' LitShaderMode sync when opening DebugMenu.
+- Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader
+- Fixed an issue with flipped depth buffer during postprocessing
+- Fixed normal map use for shadow bias with forward lit - now use geometric normal
+- Fixed transparent depth prepass and postpass access so they can be use without alpha clipping for lit shader
+- Fixed support of alpha clip shadow for lit master node
+- Fixed unlit master node not compiling
+- Fixed issue with debug display of reflection probe
+- Fixed issue with phong tessellations not working with lit shader
+- Fixed issue with vertex displacement being affected by heightmap setting even if not heightmap where assign
+- Fixed issue with density mode on Lit terrain producing NaN
+- Fixed issue when going back and forth from Lit to LitTesselation for displacement mode
+- Fixed issue with ambient occlusion incorrectly applied to emissiveColor with light layers in deferred
+- Fixed issue with fabric convolution not using the correct convolved texture when fabric convolution is enabled
+- Fixed issue with Thick mode for Transmission that was disabling transmission with directional light
+- Fixed shutdown edge cases with HDRP tests
+- Fixed slowdow when enabling Fabric convolution in HDRP asset
+- Fixed specularAA not compiling in StackLit Master node
+- Fixed material debug view with stereo rendering
+- Fixed material's RenderQueue edition in default view.
+- Fixed banding issues within volumetric density buffer
+- Fixed missing multicompile for MSAA for AxF
+
+### Changed
+- ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
+- Removing the simple lightloop used by the simple lit shader
+- Whole refactor of reflection system: Workflow and performance improvement.
+- Separated Passthrough from other RenderingPath
+- Update several properties naming and caption based on feedback from documentation team
+- Remove tile shader variant for transparent backface pass of lit shader
+- Rename all HDRenderPipeline to HDRP folder for shaders
+- Rename decal property label (based on doc team feedback)
+- Add command buffer parameter to all Bind() method of material
+- Lit shader mode now default to Deferred to reduce build time
+- Update UI of Emission parameters in shaders
+- Improve shader variant stripping including shader graph variant
+
+## [5.2.0-preview] - 2018-11-27
+
+### Added
+- Added option to run Contact Shadows and Volumetrics Voxelization stage in Async Compute
+- Added camera freeze debug mode - Allow to visually see culling result for a camera
+- Added support of Gizmo rendering before and after postprocess in Editor
+- Added support of LuxAtDistance for punctual lights
+
+### Fixed
+- Fixed Debug.DrawLine and Debug.Ray call to work in game view
+- Fixed DebugMenu's enum resetted on change
+- Fixed divide by 0 in refraction causing NaN
+- Fixed disable rough refraction support
+- Fixed refraction, SSS and atmospheric scattering for VR
+- Fixed forward clustered lighting for VR (double-wide).
+- Fixed Light's UX to not allow negative intensity
+- Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
+- Fixed forward clustered lighting for VR (double-wide).
+- Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
+- Fixed Decals and SSR diable flags for all shader graph master node (Lit, Fabric, StackLit, PBR)
+- Fixed Distortion blend mode for shader graph master node (Lit, StackLit)
+- Fixed bent Normal for Fabric master node in shader graph
+- Fixed PBR master node lightlayers
+- Fixed shader stripping for built-in lit shaders.
+
+### Changed
+- Rename "Regular" in Diffusion profile UI "Thick Object"
+- Changed VBuffer depth parametrization for volumetric from distanceRange to depthExtent - Require update of volumetric settings - Fog start at near plan
+- SpotLight with box shape use Lux unit only
+
+## [5.1.0-preview] - 2018-11-19
+
+### Added
+
+- Added a separate Editor resources file for resources Unity does not take when it builds a Player.
+- You can now disable SSR on Materials in Shader Graph.
+- Added support for MSAA when the Supported Lit Shader Mode is set to Both. Previously HDRP only supported MSAA for Forward mode.
+- You can now override the emissive color of a Material when in debug mode.
+- Exposed max light for Light Loop Settings in HDRP asset UI.
+- HDRP no longer performs a NormalDBuffer pass update if there are no decals in the Scene.
+- Added distant (fall-back) volumetric fog and improved the fog evaluation precision.
+- Added an option to reflect sky in SSR.
+- Added a y-axis offset for the PlanarReflectionProbe and offset tool.
+- Exposed the option to run SSR and SSAO on async compute.
+- Added support for the _GlossMapScale parameter in the Legacy to HDRP Material converter.
+- Added wave intrinsic instructions for use in Shaders (for AMD GCN).
+
+
+### Fixed
+- Fixed sphere shaped influence handles clamping in Reflection Probes.
+- Fixed Reflection Probe data migration for projects created before using HDRP.
+- Fixed UI of Layered Material where Unity previously rendered the scrollbar above the Copy button.
+- Fixed Material tessellations parameters Start fade distance and End fade distance. Originally, Unity clamped these values when you modified them.
+- Fixed various distortion and refraction issues - handle a better fall-back.
+- Fixed SSR for multiple views.
+- Fixed SSR issues related to self-intersections.
+- Fixed shape density volume handle speed.
+- Fixed density volume shape handle moving too fast.
+- Fixed the Camera velocity pass that we removed by mistake.
+- Fixed some null pointer exceptions when disabling motion vectors support.
+- Fixed viewports for both the Subsurface Scattering combine pass and the transparent depth prepass.
+- Fixed the blend mode pop-up in the UI. It previously did not appear when you enabled pre-refraction.
+- Fixed some null pointer exceptions that previously occurred when you disabled motion vectors support.
+- Fixed Layered Lit UI issue with scrollbar.
+- Fixed cubemap assignation on custom ReflectionProbe.
+- Fixed Reflection Probes’ capture settings' shadow distance.
+- Fixed an issue with the SRP batcher and Shader variables declaration.
+- Fixed thickness and subsurface slots for fabric Shader master node that wasn't appearing with the right combination of flags.
+- Fixed d3d debug layer warning.
+- Fixed PCSS sampling quality.
+- Fixed the Subsurface and transmission Material feature enabling for fabric Shader.
+- Fixed the Shader Graph UV node’s dimensions when using it in a vertex Shader.
+- Fixed the planar reflection mirror gizmo's rotation.
+- Fixed HDRenderPipelineAsset's FrameSettings not showing the selected enum in the Inspector drop-down.
+- Fixed an error with async compute.
+- MSAA now supports transparency.
+- The HDRP Material upgrader tool now converts metallic values correctly.
+- Volumetrics now render in Reflection Probes.
+- Fixed a crash that occurred whenever you set a viewport size to 0.
+- Fixed the Camera physic parameter that the UI previously did not display.
+- Fixed issue in pyramid shaped spotlight handles manipulation
+
+### Changed
+
+- Renamed Line shaped Lights to Tube Lights.
+- HDRP now uses mean height fog parametrization.
+- Shadow quality settings are set to All when you use HDRP (This setting is not visible in the UI when using SRP). This avoids Legacy Graphics Quality Settings disabling the shadows and give SRP full control over the Shadows instead.
+- HDRP now internally uses premultiplied alpha for all fog.
+- Updated default FrameSettings used for realtime Reflection Probes when you create a new HDRenderPipelineAsset.
+- Remove multi-camera support. LWRP and HDRP will not support multi-camera layered rendering.
+- Updated Shader Graph subshaders to use the new instancing define.
+- Changed fog distance calculation from distance to plane to distance to sphere.
+- Optimized forward rendering using AMD GCN by scalarizing the light loop.
+- Changed the UI of the Light Editor.
+- Change ordering of includes in HDRP Materials in order to reduce iteration time for faster compilation.
+- Added a StackLit master node replacing the InspectorUI version. IMPORTANT: All previously authored StackLit Materials will be lost. You need to recreate them with the master node.
 
 ## [5.0.0-preview] - 2018-09-28
 
@@ -29,7 +190,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added translaction's scale invariance on DensityVolume
 - Added multiple supported LitShadermode and per renderer choice in case of both Forward and Deferred supported
 - Added custom specular occlusion mode to Lit Shader Graph Master node
-- Added separate editor resources file for those resources to not be taken in player builds.
 
 ### Fixed
 - Fixed a normal bias issue with Stacklit (Was causing light leaking)
@@ -49,13 +209,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow filter width in deferred rendering not matching shader config
 - Fixed stereo sampling of depth texture in MSAA DepthValues.shader
 - Fixed box light UI which allowed negative and zero sizes, thus causing NaNs
-- Fixed stereo rendering in HDRISky.shader 
+- Fixed stereo rendering in HDRISky.shader (VR)
 - Fixed normal blend and blend sphere influence for reflection probe
 - Fixed distortion filtering (was point filtering, now trilinear)
 - Fixed contact shadow for large distance
 - Fixed depth pyramid debug view mode
 - Fixed sphere shaped influence handles clamping in reflection probes
 - Fixed reflection probes data migration for project created before using hdrp
+- Fixed ambient occlusion for Lit Master Node when slot is connected
 
 ### Changed
 - Use samplerunity_ShadowMask instead of samplerunity_samplerLightmap for shadow mask
@@ -412,7 +573,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed RTHandle to RTHandleSystem.RTHandle
 - Move code for PreIntegratedFDG (Lit.shader) into its dedicated folder to be share with other material
 - Move code for LTCArea (Lit.shader) into its dedicated folder to be share with other material
- 
+
 ### Removed
 - Removed Planar Probe mirror plane position and normal fields in inspector, always display mirror plane and normal gizmos
 

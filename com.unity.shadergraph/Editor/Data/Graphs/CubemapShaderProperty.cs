@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class CubemapShaderProperty : AbstractShaderProperty<SerializableCubemap>
+    class CubemapShaderProperty : AbstractShaderProperty<SerializableCubemap>
     {
         [SerializeField]
         private bool m_Modifiable = true;

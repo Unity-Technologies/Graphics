@@ -125,6 +125,10 @@ namespace UnityEditor.VFX
 
     class VFXGraph : VFXModel
     {
+        // Please add increment reason for each version below
+        // size refactor
+        public static readonly int CurrentVersion = 1;
+
         public VisualEffectResource visualEffectResource
         {
             get
@@ -280,7 +284,7 @@ namespace UnityEditor.VFX
             foreach (var model in objs.OfType<VFXModel>())
                 try
                 {
-                    model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
+                    model.Sanitize(m_GraphVersion); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
                 }
                 catch (Exception e)
                 {
@@ -298,6 +302,7 @@ namespace UnityEditor.VFX
                 }
 
             m_GraphSanitized = true;
+            m_GraphVersion = CurrentVersion;
         }
 
         public void ClearCompileData()
@@ -379,6 +384,19 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void SetForceShaderValidation(bool forceShaderValidation)
+        {
+            if (m_ForceShaderValidation != forceShaderValidation)
+            {
+                m_ForceShaderValidation = forceShaderValidation;
+                if (m_ForceShaderValidation)
+                {
+                    SetExpressionGraphDirty();
+                    RecompileIfNeeded();
+                }
+            }
+        }
+
         public void SetExpressionGraphDirty()
         {
             m_ExpressionGraphDirty = true;
@@ -396,7 +414,7 @@ namespace UnityEditor.VFX
             bool considerGraphDirty = m_ExpressionGraphDirty && !preventRecompilation;
             if (considerGraphDirty)
             {
-                compiledData.Compile(m_CompilationMode);
+                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
             }
             else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
             {
@@ -417,6 +435,10 @@ namespace UnityEditor.VFX
                 return m_CompiledData;
             }
         }
+        public int version { get { return m_GraphVersion; } }
+
+        [SerializeField]
+        private int m_GraphVersion = 0;
 
         [NonSerialized]
         private bool m_GraphSanitized = false;
@@ -428,6 +450,7 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private VFXGraphCompiledData m_CompiledData;
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
+        private bool m_ForceShaderValidation = false;
 
         [SerializeField]
         protected bool m_saved = false;

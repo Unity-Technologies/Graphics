@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Screen")]
-    public sealed class ScreenNode : AbstractMaterialNode
+    sealed class ScreenNode : AbstractMaterialNode
     {
         const string kOutputSlotName = "Width";
         const string kOutputSlot1Name = "Height";

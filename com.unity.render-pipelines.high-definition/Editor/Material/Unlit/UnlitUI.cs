@@ -1,20 +1,20 @@
-using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class UnlitGUI : BaseUnlitGUI
     {
-        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Input | Expendable.Transparency); }  }
+        protected override uint defaultExpandedState { get { return (uint)(Expandable.Base | Expandable.Input | Expandable.Transparency); }  }
 
         protected static class Styles
         {
-            public static string InputsText = "Inputs";
+            public static string InputsText = "Surface Inputs";
 
             public static GUIContent colorText = new GUIContent("Color", "Color");
 
-            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
+            public static string emissiveLabelText = "Emission Inputs";
+            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");            
         }
 
         protected MaterialProperty color = null;
@@ -37,26 +37,34 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void MaterialPropertiesGUI(Material material)
         {
-            using (var header = new HeaderScope(Styles.InputsText, (uint)Expendable.Input, this))
+            using (var header = new HeaderScope(Styles.InputsText, (uint)Expandable.Input, this))
             {
-                if (header.expended)
+                if (header.expanded)
                 {
                     m_MaterialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
                     m_MaterialEditor.TextureScaleOffsetProperty(colorMap);
-
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-                    m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
                 }
             }
+
             var surfaceTypeValue = (SurfaceType)surfaceType.floatValue;
             if (surfaceTypeValue == SurfaceType.Transparent)
             {
-                using (var header = new HeaderScope(StylesBaseUnlit.TransparencyInputsText, (uint)Expendable.Transparency, this))
+                using (var header = new HeaderScope(StylesBaseUnlit.TransparencyInputsText, (uint)Expandable.Transparency, this))
                 {
-                    if (header.expended)
+                    if (header.expanded)
                     {
                         DoDistortionInputsGUI();
                     }
+                }
+            }
+
+            using (var header = new HeaderScope(Styles.emissiveLabelText, (uint)Expandable.Emissive, this))
+            {
+                if (header.expanded)
+                {
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+                    m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+                    DoEmissionArea(material);
                 }
             }
         }

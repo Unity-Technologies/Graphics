@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class BooleanShaderProperty : AbstractShaderProperty<bool>
+    class BooleanShaderProperty : AbstractShaderProperty<bool>
     {
         public BooleanShaderProperty()
         {

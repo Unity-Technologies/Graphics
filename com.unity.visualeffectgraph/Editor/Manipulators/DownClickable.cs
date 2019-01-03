@@ -1,4 +1,6 @@
-namespace UnityEngine.Experimental.UIElements
+using UnityEngine.UIElements;
+
+namespace UnityEditor.VFX.UI
 {
     public class DownClickable : MouseManipulator
     {

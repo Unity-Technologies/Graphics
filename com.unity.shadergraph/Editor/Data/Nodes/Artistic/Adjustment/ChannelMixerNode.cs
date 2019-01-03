@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "Channel Mixer")]
-    public class ChannelMixerNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class ChannelMixerNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public ChannelMixerNode()
         {

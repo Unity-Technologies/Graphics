@@ -41,6 +41,7 @@
 #define USE_LEFT_HAND_CAMERA_SPACE (1)
 #define TILE_SIZE_FPTL (16)
 #define TILE_SIZE_CLUSTERED (32)
+#define TILE_SIZE_BIG_TILE (64)
 #define NUM_FEATURE_VARIANTS (27)
 #define LIGHT_FEATURE_MASK_FLAGS (16773120)
 #define LIGHT_FEATURE_MASK_FLAGS_OPAQUE (16642048)
@@ -104,7 +105,6 @@ float GetRadius(SFiniteLightBound value)
 {
     return value.radius;
 }
-
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.LightVolumeData
 //
@@ -156,6 +156,5 @@ float GetUnused2(LightVolumeData value)
 {
     return value.unused2;
 }
-
 
 #endif

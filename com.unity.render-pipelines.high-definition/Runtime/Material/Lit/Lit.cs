@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
 
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, false, true, 1000)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1000)]
         public struct SurfaceData
         {
             [SurfaceDataAttributes("MaterialFeatures")]
@@ -82,6 +82,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float iridescenceMask;
 
             // Forward property only
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            public Vector3 geomNormalWS;
 
             // Transparency
             // Reuse thickness from SSS
@@ -100,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, true, 1050)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1050)]
         public struct BSDFData
         {
             public uint materialFeatures;
@@ -149,6 +151,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float coatRoughness; // Automatically fill
 
             // Forward property only
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            public Vector3 geomNormalWS;
 
             // Transparency
             public float ior;
@@ -256,10 +260,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse, cmd);
         }
 
-        public override void Bind()
+        public override void Bind(CommandBuffer cmd)
         {
-            PreIntegratedFGD.instance.Bind(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
-            LTCAreaLight.instance.Bind();
+            PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
+            LTCAreaLight.instance.Bind(cmd);
         }
     }
 }

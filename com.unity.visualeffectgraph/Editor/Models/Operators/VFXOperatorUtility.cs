@@ -33,20 +33,6 @@ namespace UnityEditor.VFX
         public static readonly Dictionary<VFXValueType, VFXExpression> E_NapierConstantExpression = GenerateExpressionConstant(Mathf.Exp(1));
         public static readonly Dictionary<VFXValueType, VFXExpression> EpsilonExpression = GenerateExpressionConstant(1e-5f);
 
-        // unified binary op
-        static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1)
-        {
-            var unifiedExp = UpcastAllFloatN(new VFXExpression[2] {e0, e1}).ToArray();
-            return f(unifiedExp[0], unifiedExp[1]);
-        }
-
-        // unified ternary op
-        static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1, VFXExpression e2)
-        {
-            var unifiedExp = UpcastAllFloatN(new VFXExpression[3] {e0, e1, e2}).ToArray();
-            return f(unifiedExp[0], unifiedExp[1], unifiedExp[2]);
-        }
-
         static public VFXExpression Negate(VFXExpression input)
         {
             var minusOne = MinusOneExpression[input.valueType];
@@ -457,23 +443,6 @@ namespace UnityEditor.VFX
             return components;
         }
 
-        static public VFXValueType FindMaxFloatNValueType(IEnumerable<VFXExpression> inputExpression)
-        {
-            return inputExpression.Select(o => o.valueType).OrderBy(t => VFXExpression.IsFloatValueType(t) ? VFXExpression.TypeToSize(t) : 0).Last();
-        }
-
-        static public IEnumerable<VFXExpression> UpcastAllFloatN(IEnumerable<VFXExpression> inputExpression, float defaultValue = 0.0f)
-        {
-            if (inputExpression.Count() <= 1)
-            {
-                return inputExpression;
-            }
-
-            var maxValueType = FindMaxFloatNValueType(inputExpression);
-            var newVFXExpression = inputExpression.Select(o => VFXExpression.IsFloatValueType(o.valueType) ? CastFloat(o, maxValueType, defaultValue) : o);
-            return newVFXExpression.ToArray();
-        }
-
         static public VFXExpression CastFloat(VFXExpression from, VFXValueType toValueType, float defaultValue = 0.0f)
         {
             if (!VFXExpressionNumericOperation.IsFloatValueType(from.valueType) || !VFXExpressionNumericOperation.IsFloatValueType(toValueType))
@@ -545,7 +514,9 @@ namespace UnityEditor.VFX
         static public VFXExpression SequentialLine(VFXExpression start, VFXExpression end, VFXExpression index, VFXExpression count)
         {
             VFXExpression dt = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index, count));
-            dt = dt / new VFXExpressionCastUintToFloat(count);
+            var size = new VFXExpressionCastUintToFloat(count) - VFXOperatorUtility.OneExpression[VFXValueType.Float];
+            size = new VFXExpressionMax(size, VFXOperatorUtility.OneExpression[VFXValueType.Float]);
+            dt = dt / size ;
             dt = new VFXExpressionCombine(dt, dt, dt);
             return VFXOperatorUtility.Lerp(start, end, dt);
         }

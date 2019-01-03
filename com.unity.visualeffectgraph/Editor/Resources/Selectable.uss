@@ -1,10 +1,10 @@
 .selectable > #selection-border
 {
-    position-type: absolute;
-    position-left:0;
-    position-right:0;
-    position-top:0;
-    position-bottom:0;
+    position: absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
 }
 
 .selectable:hover  > #selection-border{
@@ -13,10 +13,6 @@
     border-left-width:1;
     border-right-width:1;
     border-bottom-width:1;
-    border-top: 1;
-    border-left: 1;
-    border-right: 1;
-    border-bottom: 1;
 }
 
 .selectable:selected  > #selection-border

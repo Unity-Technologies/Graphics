@@ -3,7 +3,7 @@
 //-----------------------------------------------------------------------------
 
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
-#include "Lit.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
@@ -105,6 +105,9 @@ TEXTURE2D(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to kno
 #define CLEAR_COAT_PERCEPTUAL_SMOOTHNESS RoughnessToPerceptualSmoothness(CLEAR_COAT_ROUGHNESS)
 #define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
 
+// It is safe to include this file after the G-Buffer macros above.
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialGBufferMacros.hlsl"
+
 //-----------------------------------------------------------------------------
 // Light and material classification for the deferred rendering path
 // Configure what kind of combination is supported
@@ -197,15 +200,16 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
-// SSReflection
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
-
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Refraction.hlsl"
 
 #if HAS_REFRACTION
+    // Note that this option is referred as "Box" in the UI, we are keeping _REFRACTION_PLANE as shader define to avoid complication with already created materials.  
     #if defined(_REFRACTION_PLANE)
-    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #elif defined(_REFRACTION_SPHERE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #endif
@@ -333,7 +337,12 @@ void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout BSDFData bsdfData)
 
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
+    // In forward we can used geometric normal for shadow bias which improve quality
+#if (SHADERPASS == SHADERPASS_FORWARD)
+    return bsdfData.geomNormalWS;
+#else
     return bsdfData.normalWS;
+#endif    
 }
 
 void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
@@ -374,6 +383,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.ambientOcclusion    = surfaceData.ambientOcclusion;
     bsdfData.specularOcclusion   = surfaceData.specularOcclusion;
     bsdfData.normalWS            = surfaceData.normalWS;
+    bsdfData.geomNormalWS        = surfaceData.geomNormalWS;
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     // Check if we read value of normal and roughness from buffer. This is a tradeoff
@@ -431,8 +441,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
-    FillMaterialTransparencyData( surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance,
-                                    surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
+    FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance,
+        surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
 #endif
 
     ApplyDebugToBSDFData(bsdfData);
@@ -596,13 +606,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
     // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
-    // Also if we don't have the room to store AO, then we apply it at this time on bakeDiffuseLighting which will cause a double occlusion with SSAO
-#ifdef LIGHT_LAYERS
-    outGBuffer3 = float4(builtinData.bakeDiffuseLighting + builtinData.emissiveColor, 0.0);
-    // If we have light layers, take the opportunity to save AO and avoid double occlusion with SSAO
-    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, surfaceData.ambientOcclusion, builtinData.renderingLayers / 255.0);
-#else
     outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
+#ifdef LIGHT_LAYERS
+    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, builtinData.renderingLayers / 255.0);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
@@ -635,17 +641,18 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // BuiltinData
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
+    // In deferred ambient occlusion isn't available and is already apply on bakeDiffuseLighting for the GI part.
+    // Caution: even if we store it in the GBuffer we need to apply it on GI and not on emissive color, so AO must be 1.0 in deferred
+    bsdfData.ambientOcclusion = 1.0;
+
     // Avoid to introduce a new variant for light layer as it is already long to compile
     if (_EnableLightLayers)
     {
-        float4 inGBuffer4 = LOAD_TEXTURE2D(_LightLayersTexture, positionSS);
-        // If we have light layers, take the opportunity to save AO and avoid double occlusion with SSAO
-        bsdfData.ambientOcclusion = inGBuffer4.z;
+        float4 inGBuffer4 = LOAD_TEXTURE2D(_LightLayersTexture, positionSS);        
         builtinData.renderingLayers = uint(inGBuffer4.w * 255.5);
     }
     else
     {
-        bsdfData.ambientOcclusion = 1.0; // No value available, just settings 1.0. This mean double occlusion with SSAO.
         builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
     }
 
@@ -716,6 +723,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     NormalData normalData;
     DecodeFromNormalBuffer(inGBuffer1, positionSS, normalData);
     bsdfData.normalWS = normalData.normalWS;
+    bsdfData.geomNormalWS = bsdfData.normalWS; // No geometric normal in deferred, use normal map
     bsdfData.perceptualRoughness = normalData.perceptualRoughness;
 
     // Decompress feature-specific data from the G-Buffer.
@@ -859,6 +867,9 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES:
         result = (surfaceData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
         break;
+    case DEBUGVIEW_LIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+        result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+        break;
     case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION:
         result = saturate((surfaceData.ior - 1.0) / 1.5).xxx;
         break;
@@ -878,6 +889,9 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         break;
     case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
         result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+        break;
+    case DEBUGVIEW_LIT_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+        result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
         break;
     case DEBUGVIEW_LIT_BSDFDATA_IOR:
         result = saturate((bsdfData.ior - 1.0) / 1.5).xxx;
@@ -1239,7 +1253,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                  bsdfData, bsdfData.normalWS, V);
 }
 
-#include "LitReference.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitReference.hlsl"
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Line - Approximation with Linearly Transformed Cosines
@@ -1513,7 +1527,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     PreLightData preLightData, LightData lightData,
     BSDFData bsdfData, BuiltinData builtinData)
 {
-    if (lightData.lightType == GPULIGHTTYPE_LINE)
+    if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {
         return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
     }
@@ -1556,7 +1570,6 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
 #if HAS_REFRACTION
-
     // Refraction process:
     //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
     //  2. We calculate the screen space position of the refracted point
@@ -1584,21 +1597,15 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     // Resolve weight and color
 
     // Fade pixels near the texture buffers' borders
-    float2  weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * _SSRefractionInvScreenWeightDistance, 0, 1);
-            weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
-    // TODO: Fade pixels with normal non facing the ray direction
-    // TODO: Fade pixels marked as foreground in stencil
-    float weight = weightNDC.x * weightNDC.y * hitWeight;
+    float weight = EdgeOfScreenFade(hit.positionNDC, _SSRefractionInvScreenWeightDistance) * hitWeight;
 
     // Exit if texel is discarded
     if (weight == 0)
         // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return lighting;
 
-    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
+    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, TexCoordStereoOffset(hit.positionSS), 0).r;
     float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
-
-    float2 samplingPositionNDC = hit.positionNDC;
 
     // This is an empirically set hack/modifier to reduce haloes of objects visible in the refraction.
     float refractionOffsetMultiplier = max(0.0f, 1.0f - preLightData.transparentSSMipLevel * 0.08f);
@@ -1607,9 +1614,16 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     // This is equivalent of setting samplingPositionNDC = posInput.positionNDC when hitLinearDepth <= posInput.linearDepth
     refractionOffsetMultiplier *= (hitLinearDepth > posInput.linearDepth);
 
+    float2 samplingPositionNDC = lerp(posInput.positionNDC, hit.positionNDC, refractionOffsetMultiplier);
+
+#ifdef UNITY_SINGLE_PASS_STEREO
+    samplingPositionNDC.x = 0.5f * (samplingPositionNDC.x + unity_StereoEyeIndex);
+#endif
+
     float3 preLD = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler,
                                         // Offset by half a texel to properly interpolate between this pixel and its mips
-                                        lerp(posInput.positionNDC, samplingPositionNDC, refractionOffsetMultiplier) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5, preLightData.transparentSSMipLevel).rgb;
+                                        samplingPositionNDC * _ColorPyramidScale.xy, preLightData.transparentSSMipLevel).rgb;
+
 
     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness)
     float3 F = preLightData.specularFGD;
@@ -1793,7 +1807,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // since we know it won't be further processed: it is called at the end of the LightLoop(), but doing this
     // enables opacity to affect it (in ApplyBlendMode()) while the rest of specularLighting escapes it.
 #if HAS_REFRACTION
-    diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask);
+    diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask * _EnableSSRefraction);
 #endif
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;

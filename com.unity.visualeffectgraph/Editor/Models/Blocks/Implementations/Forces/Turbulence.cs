@@ -12,18 +12,16 @@ namespace UnityEditor.VFX.Block
         {
             [Tooltip("The position, rotation and scale of the turbulence field")]
             public Transform FieldTransform = Transform.defaultValue;
-
             [Tooltip("Number of Octaves of the noise (Max 10)")]
             public uint NumOctaves = 3;
-
             [Range(0.0f, 1.0f), Tooltip("The roughness of the turbulence")]
             public float Roughness = 0.5f;
-
             [Tooltip("Intensity of the motion vectors")]
             public float Intensity = 1.0f;
-            [Tooltip("The drag coefficient used to drive particles")]
-            public float DragCoefficient = 1.0f;
         }
+
+        [VFXSetting, SerializeField]
+        ForceMode Mode = ForceMode.Relative;
 
         public override string name { get { return "Turbulence"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
@@ -38,6 +36,17 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                var properties = base.inputProperties;
+                if (Mode == ForceMode.Relative)
+                    properties = properties.Concat(PropertiesFromType(typeof(ForceHelper.DragProperties)));
+                return properties;
+            }
+        }
+
         public override IEnumerable<VFXNamedExpression> parameters
         {
             get
@@ -45,17 +54,15 @@ namespace UnityEditor.VFX.Block
                 foreach (var input in GetExpressionsFromSlots(this))
                 {
                     if (input.name == "NumOctaves") continue;
-                    if (input.name == "DragCoefficient") continue;
 
                     if (input.name == "FieldTransform")
                         yield return new VFXNamedExpression(new VFXExpressionInverseMatrix(input.exp), "InvFieldTransform");
                     yield return input;
                 }
 
-                // Clamp (1..10) for octaves
+                // Clamp (1..10) for octaves (TODO: Add a Range attribute that works with int instead of doing that
                 yield return new VFXNamedExpression(new VFXExpressionCastFloatToUint(VFXOperatorUtility.Clamp(new VFXExpressionCastUintToFloat(inputSlots[1].GetExpression()), VFXValue.Constant(1.0f), VFXValue.Constant(10.0f))), "octaves");
-
-                yield return new VFXNamedExpression(inputSlots[4].GetExpression() * VFXBuiltInExpression.DeltaTime, "deltaDragCoefficient");
+                yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
             }
         }
 
@@ -63,14 +70,13 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return @"
-float3 vectorFieldCoord = mul(InvFieldTransform, float4(position,1.0f)).xyz;
+                return string.Format(
+ @"float3 vectorFieldCoord = mul(InvFieldTransform, float4(position,1.0f)).xyz;
 
 float3 value = Noise3D(vectorFieldCoord + 0.5f, octaves, Roughness);
 value = mul(FieldTransform,float4(value,0.0f)).xyz * Intensity;
-float3 relativeForce = value - velocity;
-velocity += relativeForce * min(1.0, deltaDragCoefficient / mass);
-";
+
+velocity += {0};", ForceHelper.ApplyForceString(Mode, "value"));
             }
         }
     }

@@ -4,7 +4,61 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.1.0-preview] - 2018-10-18
+## [5.3.0] - 2018-11-xx
+### Added
+- When you hover your cursor over a property in the blackboard, this now highlights the corresponding property elements in your Shader Graph. Similarly, if you hover over a property in the Shader Graph itself, this highlights the corresponding property in the blackboard.
+
+### Changed
+- Errors in the compiled shader are now displayed as badges on the appropriate node.
+
+### Fixed
+- When you convert an inline node to a `Property` node, this no longer allows duplicate property names.
+- When you move a node, you'll now be asked to save the Graph file.
+- You can now Undo edits to Property parameters on the Blackboard.
+- You can now Undo conversions between `Property` nodes and inline nodes.
+- You can now Undo moving a node.
+- You can no longer select the `Texture2D` Property type `Mode`, if the Property is not exposed.
+- The `Vector1` Property type now handles default values more intuitively when switching `Mode` dropdown.
+- The `Color` node control is now a consistent width.
+- Function declarations no longer contain double delimiters.
+- The `Slider` node control now functions correctly.
+
+## [5.2.0] - 2018-11-27
+### Added
+- Shader Graph now has __Group Node__, where you can group together several nodes. You can use this to keep your Graphs organized and nice.
+
+## [5.1.0] - 2018-11-19
+### Added
+- You can now show and hide the Main Preview and the Blackboard from the toolbar.
+
+### Changed
+- The Shader Graph package is no longer in preview.
+- Moved `NormalBlendRNM` node to a dropdown option on `Normal Blend` node.
+- `Sample Cubemap` node now has a `SamplerState` slot.
+- New Sub Graph assets now default to the "Sub Graphs" path in the Create Node menu.
+- New Shader Graph assets now default to the "Shader Graphs" path in the Shader menu.
+- The `Light Probe` node is now a `Baked GI` node. When you use LWRP with lightmaps, this node now returns the correct lightmap data. This node is supported in HDRP.
+- `Reflection Probe` nodes now only work with LWRP. This solves compilation errors in HDRP.
+- `Ambient` nodes now only work with LWRP. This solves compilation errors in HDRP.
+- `Fog` nodes now only work with LWRP. This solves compilation errors in HDRP.
+- In HDRP, the `Position` port for the `Object` node now returns the absolute world position.
+- The `Baked GI`, `Reflection Probe`, and `Ambient` nodes are now in the `Input/Lighting` category.
+- The master node no longer has its own preview, because it was redundant. You can see the results for the master node in the Main Preview.
+
+### Fixed
+- Shadow projection is now correct when using the `Unlit` master node with HD Render Pipeline.
+- Removed all direct references to matrices
+- `Matrix Construction` nodes with different `Mode` values now evaluate correctly.
+- `Is Front Face` node now works correctly when connected to `Alpha` and `AlphaThreshold` slots on the `PBR` master node.
+- Corrected some instances of incorrect port dimensions on several nodes.
+- `Scene Depth` and `Scene Color` nodes now work in single pass stereo in Lightweight Render Pipeline.
+- `Channel Mask` node controls are now aligned correctly.
+- In Lightweight Render Pipeline, Pre-multiply surface type now matches the Lit shader. 
+- Non-exposed properties in the blackboard no longer have a green dot next to them.
+- Default reference name for shader properties are now serialized. You cannot change them after initial creation.
+- When you save Shader Graph and Sub Graph files, they're now automatically checked out on version control.
+- Shader Graph no longer throws an exception when you double-click a folder in the Project window.
+- Gradient Node no longer throws an error when you undo a deletion.
 
 ## [5.0.0-preview] - 2018-09-28
 
@@ -88,4 +142,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Both PBR subshaders can now generate indirect light from emission.
 - Shader graphs now support the SRP batcher.
 - Fixed an issue where floatfield would be parsed according to OS locale settings with .NET 4.6
-

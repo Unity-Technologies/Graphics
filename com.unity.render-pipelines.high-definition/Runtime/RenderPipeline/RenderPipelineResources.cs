@@ -27,6 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Lighting
             public Shader deferredPS;
             public ComputeShader colorPyramidCS;
+            public Shader colorPyramidPS;
             public ComputeShader depthPyramidCS;
             public ComputeShader copyChannelCS;
             public ComputeShader applyDistortionCS;
@@ -82,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader shadowClearPS;
             public ComputeShader shadowBlurMomentsCS;
             public Shader debugHDShadowMapPS;
+            public ComputeShader momentShadowsCS;
 
             // Decal
             public Shader decalNormalBufferPS;
@@ -150,6 +152,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Lighting
                 deferredPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Deferred.Shader"),
                 colorPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/ColorPyramid.compute"),
+                colorPyramidPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/ColorPyramidPS.Shader"),
                 depthPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/DepthPyramid.compute"),
                 copyChannelCS = Load<ComputeShader>(CorePath + "CoreResources/GPUCopy.compute"),
                 applyDistortionCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/Distortion/ApplyDistorsion.compute"),
@@ -208,6 +211,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 shadowClearPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowClear.shader"),
                 shadowBlurMomentsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowBlurMoments.compute"),
                 debugHDShadowMapPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/DebugDisplayHDShadowMap.shader"),
+                momentShadowsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/MomentShadows.compute"),
 
                 // Decal
                 decalNormalBufferPS = Load<Shader>(HDRenderPipelinePath + "Material/Decal/DecalNormalBuffer.shader"),

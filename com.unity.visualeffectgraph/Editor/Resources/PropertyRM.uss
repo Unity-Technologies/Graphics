@@ -6,9 +6,35 @@
 
 .propertyrm #icon
 {
-    margin-top:6;
-    width:6;
-    height:6;
+    width:13;
+    height:13;
+}
+
+.propertyrm.icon-expandable #icon
+{
+    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout.png");
+}
+.propertyrm.icon-expandable #icon:hover
+{
+    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout focus.png");
+}
+.propertyrm.icon-expandable #icon:hover:active
+{
+    background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout act.png");
+}
+
+
+.propertyrm.icon-expandable.icon-expanded #icon
+{
+    background-image:resource("IN foldout on.png");
+}
+.propertyrm.icon-expandable.icon-expanded #icon:hover
+{
+    background-image:resource("IN foldout focus on.png");
+}
+.propertyrm.icon-expandable.icon-expanded #icon:active
+{
+    background-image:resource("IN foldout act on.png");
 }
 
 .propertyrm #spacebutton
@@ -19,7 +45,7 @@
     margin-left:4;
     margin-right:8;
 }
-.propertyrm Button
+.propertyrm .unity-button
 {
     margin-top:1;
     margin-bottom:1;
@@ -29,11 +55,22 @@
 
 .propertyrm #label
 {
-    text-color: rgb(153,153,153);
+    color: rgb(153,153,153);
     height:16;
     margin-left:0;
     padding-left:1;
+    margin-bottom:0;
+    padding-bottom:0;
+    -unity-text-align:middle-left;
 }
+
+.propertyrm > VFXLabeledField.fieldContainer,.propertyrm > VFXEnumField.fieldContainer
+{
+    padding-top:1;
+    padding-bottom:1;
+    height:18;
+}
+
 
 .propertyrm VFXMatrix4x4Field.fieldContainer
 {
@@ -54,9 +91,9 @@
     background-image:resource("vfx/spaceworld");
 }
 
-.propertyrm > FloatField
+.propertyrm .unity-base-text-field *
 {
-    margin-bottom:3;
+    -unity-text-align: middle-left;
 }
 
 .propertyrm .fieldContainer > *
@@ -65,15 +102,14 @@
 }
 .propertyrm .textfield::disabled
 {
-    text-color:#666;
+    color:#666;
 }
 
 .propertyrm .label
 {
-    text-color:#888;
+    color:#888;
     flex:0 0 auto;
-    padding-left:2;
-    text-alignment:middle-center;
+    -unity-text-align:middle-center;
     margin-left:0;
     padding-left:4;
     margin-right:2;
@@ -85,7 +121,7 @@
     padding-left:0;
 }
 
-.propertyrm .fieldContainer, .propertyrm FloatField
+.propertyrm .fieldContainer, .propertyrm .unity-float-field
 {
     -align-items: center;
     flex-direction:row;
@@ -98,7 +134,7 @@
     height:16;
 }
 
-BoolPropertyRM > Toggle
+BoolPropertyRM > .unity-toggle
 {
     padding-top:0;
     padding-bottom:0;
@@ -135,10 +171,6 @@ ColorPropertyRM .colorcontainer, Vector3PropertyRM .colorcontainer
     border-right-width:1;
     border-top-width:1;
     border-bottom-width:1;
-    border-top:1;
-    border-bottom:1;
-    border-left:1;
-    border-right:1;
     border-color:#000;
     margin-top:2;
     margin-bottom:2;
@@ -149,28 +181,18 @@ ColorPropertyRM > .maincontainer > .fieldContainer
     flex:0 0 auto;
 }
 
-ColorPropertyRM FloatField
+ColorPropertyRM .unity-float-field
 {
     flex:1 0 auto;
 }
 
-FloatPropertyRM FloatField
-{
-    align-self:flex-end;
-    flex:1 0 auto;
-}
-
-IntPropertyRM IntegerField
+FloatPropertyRM .unity-float-field
 {
     align-self:flex-end;
-    margin-left:0;
-    margin-right:0;
-    margin-top:0;
-    margin-bottom:0;
     flex:1 0 auto;
 }
 
-UintPropertyRM LongField
+IntPropertyRM .unity-integer-field
 {
     align-self:flex-end;
     margin-left:0;
@@ -180,7 +202,17 @@ UintPropertyRM LongField
     flex:1 0 auto;
 }
 
-CurvePropertyRM CurveField
+UintPropertyRM .unity-long-field
+{
+    align-self:flex-end;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+    flex:1 0 auto;
+}
+
+CurvePropertyRM .unity-curve-field
 {
     flex:1 0 auto;
 }
@@ -191,7 +223,7 @@ CurvePropertyRM
     min-width:100;
 }
 
-StringPropertyRM VFXStringField TextField
+StringPropertyRM VFXStringField .unity-text-field
 {
     margin-left:0;
     margin-right:0;
@@ -208,58 +240,19 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
 .propertyrm #indeterminate
 {
     flex:1 1 auto;
-    slice-left: 3;
-    slice-top: 3;
-    slice-right: 3;
-    slice-bottom: 3;
+    -unity-slice-left: 3;
+    -unity-slice-top: 3;
+    -unity-slice-right: 3;
+    -unity-slice-bottom: 3;
     margin-top:0;
     margin-bottom:0;
     margin-left:0;
     margin-right:0;
+    padding-left: 16;
+    -unity-text-align: middle-left;
 }
 
 .propertyrm .sliderField #indeterminate
 {
     flex:0 0 auto;
-}
-
-/** Temporary copy of CurveField styles for VFXCurveField**/
-
-VFXCurveField {
-    min-height: 18;
-    margin-left: 4;
-    margin-top: 2;
-    margin-right: 4;
-    margin-bottom: 2;
-    background-color:rgb(86,86,86);
-    curve-color: #00ff00;
-}
-
-VFXCurveField > CurveFieldContent{
-    position:absolute;
-    left:1;
-    right:1;
-    bottom:1;
-    top:1;
-    overflow:hidden;
-}
-
-VFXCurveField > #border
-{
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:0;
-    top:0;
-    -unity-slice-left: 3;
-    -unity-slice-top: 3;
-    -unity-slice-right: 3;
-    -unity-slice-bottom: 3;
-
-    background-image: resource("Builtin Skins/Processed/Images/colorpickerbox.png");
-}
-
-VFXCurveField:focus > #border
-{
-    background-image: resource("Builtin Skins/Processed/Images/colorpickerboxfocused.png");
 }

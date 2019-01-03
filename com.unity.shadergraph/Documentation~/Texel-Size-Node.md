@@ -19,6 +19,6 @@ Returns the **Width** and **Height** of the texel size of **Texture 2D** input. 
 The following example code represents one possible outcome of this node.
 
 ```
-float2 _TexelSize_Width = Texture_TexelSize.z; 
-float2 _TexelSize_Height = Texture_TexelSize.w; 
+float _TexelSize_Width = Texture_TexelSize.z; 
+float _TexelSize_Height = Texture_TexelSize.w; 
 ```

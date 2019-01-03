@@ -1,0 +1,7 @@
+{
+    "disableBatchMode": true,
+    "disabledOnPlatforms" : ["Darwin"],
+    "allowedGraphicsTarget": {
+        "metal": ["amd"]
+    }
+}

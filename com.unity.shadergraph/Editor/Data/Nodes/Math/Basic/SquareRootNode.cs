@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Basic", "Square Root")]
-    public class SquareRootNode : CodeFunctionNode
+    class SquareRootNode : CodeFunctionNode
     {
         public SquareRootNode()
         {

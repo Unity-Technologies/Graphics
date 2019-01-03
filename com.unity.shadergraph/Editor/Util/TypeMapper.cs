@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.Graphing.Util
 {
-    public class TypeMapper : IEnumerable<TypeMapping>
+    class TypeMapper : IEnumerable<TypeMapping>
     {
         readonly Type m_FromBaseType;
         readonly Type m_ToBaseType;

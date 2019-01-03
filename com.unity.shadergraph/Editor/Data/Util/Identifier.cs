@@ -1,6 +1,6 @@
 namespace UnityEditor.ShaderGraph
 {
-    public struct Identifier
+    struct Identifier
     {
         uint m_Version;
         int m_Index;

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Texture3DShaderProperty : AbstractShaderProperty<SerializableTexture>
+    class Texture3DShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
         [SerializeField]
         private bool m_Modifiable = true;

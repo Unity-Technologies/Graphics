@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public sealed class ScriptableRenderer
     {
@@ -110,22 +111,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         };
 
         const string k_ReleaseResourcesTag = "Release Resources";
-        readonly Material[] m_Materials;
+        Material m_ErrorMaterial = null;
 
-        public ScriptableRenderer(LightweightRenderPipelineAsset pipelineAsset)
+        public ScriptableRenderer()
         {
-            if (pipelineAsset == null)
-                throw new ArgumentNullException("pipelineAsset");
-
-            m_Materials = new[]
-            {
-                CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader"),
-                CoreUtils.CreateEngineMaterial(pipelineAsset.copyDepthShader),
-                CoreUtils.CreateEngineMaterial(pipelineAsset.samplingShader),
-                CoreUtils.CreateEngineMaterial(pipelineAsset.blitShader),
-                CoreUtils.CreateEngineMaterial(pipelineAsset.screenSpaceShadowShader),
-            };
-
+            m_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
             postProcessingContext = new PostProcessRenderContext();
         }
 
@@ -136,9 +126,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 perObjectLightIndices.Release();
                 perObjectLightIndices = null;
             }
-
-            for (int i = 0; i < m_Materials.Length; ++i)
-                CoreUtils.Destroy(m_Materials[i]);
         }
 
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -159,19 +146,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_ActiveRenderPassQueue[i].Execute(this, context, ref renderingData);
 
             DisposePasses(ref context);
-        }
-
-        public Material GetMaterial(MaterialHandle handle)
-        {
-            int handleID = (int)handle;
-            if (handleID >= m_Materials.Length)
-            {
-                Debug.LogError(string.Format("Material {0} is not registered.",
-                    Enum.GetName(typeof(MaterialHandle), handleID)));
-                return null;
-            }
-
-            return m_Materials[handleID];
         }
 
         public void Clear()
@@ -269,14 +243,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
         {
-            Material errorMaterial = GetMaterial(MaterialHandle.Error);
-            if (errorMaterial != null)
+            if (m_ErrorMaterial != null)
             {
                 SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
                 DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
                 {
                     perObjectData = PerObjectData.None,
-                    overrideMaterial = errorMaterial,
+                    overrideMaterial = m_ErrorMaterial,
                     overrideMaterialPassIndex = 0
                 };
                 for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
@@ -300,12 +273,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
             }
-            desc.colorFormat = cameraData.isHdrEnabled ? RenderTextureFormat.DefaultHDR :
-                RenderTextureFormat.Default;
-            desc.enableRandomWrite = false;
-            desc.sRGB = true;
+            
+            bool useRGB10A2 = Application.isMobilePlatform &&
+             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010);
+            RenderTextureFormat hdrFormat = (useRGB10A2) ? RenderTextureFormat.ARGB2101010 : RenderTextureFormat.DefaultHDR;
+            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : RenderTextureFormat.Default;
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
+            desc.enableRandomWrite = false;
+            desc.sRGB = true;
+            desc.msaaSamples = cameraData.msaaSamples;
+            desc.depthBufferBits = 32;
+            desc.bindMS = false;
             return desc;
         }
 
@@ -314,27 +293,33 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-            ClearFlag clearFlag = ClearFlag.None;
             CameraClearFlags cameraClearFlags = camera.clearFlags;
-            if (cameraClearFlags != CameraClearFlags.Nothing)
-            {
-                clearFlag |= ClearFlag.Depth;
-                if (cameraClearFlags == CameraClearFlags.Color || cameraClearFlags == CameraClearFlags.Skybox)
-                    clearFlag |= ClearFlag.Color;
-            }
 
-            return clearFlag;
+#if UNITY_EDITOR
+            // We need public API to tell if FrameDebugger is active and enabled. In that case
+            // we want to force a clear to see properly the drawcall stepping.
+            // For now, to fix FrameDebugger in Editor, we force a clear. 
+            cameraClearFlags = CameraClearFlags.SolidColor;
+#endif
+
+            // LWRP doesn't support CameraClearFlags.DepthOnly.
+            // In case of skybox we know all pixels will be rendered to screen so
+            // we don't clear color. In Vulkan/Metal this becomes DontCare load action
+            if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
+                cameraClearFlags == CameraClearFlags.Nothing)
+                return ClearFlag.Depth;
+
+            // Otherwise we clear color + depth. This becomes either a clear load action or glInvalidateBuffer call
+            // on mobile devices. On PC/Desktop a clear is performed by blitting a full screen quad.
+            return ClearFlag.All;
         }
 
-        public static PerObjectData GetRendererConfiguration(int additionalLightsCount)
+        public static PerObjectData GetPerObjectLightFlags(int mainLightIndex, int additionalLightsCount)
         {
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe;
-            if (additionalLightsCount > 0)
+            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData;
+            if (additionalLightsCount > 0 && !useStructuredBufferForLights)
             {
-                if (useStructuredBufferForLights)
-                    configuration |= PerObjectData.LightIndices;
-                else
-                    configuration |= PerObjectData.LightIndices8;
+                configuration |= PerObjectData.LightIndices;
             }
 
             return configuration;

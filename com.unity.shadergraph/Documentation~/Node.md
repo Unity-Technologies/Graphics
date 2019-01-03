@@ -2,9 +2,9 @@
 
 ## Description
 
-A **Node** defines an input, output or operation on the [Shader Graph](Shader-Graph.md), depending on its available [Ports](Port.md). A **Node** may have any number of input and/or output [Ports](Port.md). You create a [Shader Graph](Shader-Graph.md) by connecting these [Ports](Port.md) with [Edges](Edge.md). A **Node** might also have any number of **Controls**, these are controls on the **Node** that do not have [Ports](Por.mdt).
+A **Node** defines an input, output or operation on the [Shader Graph](Shader-Graph.md), depending on its available [Ports](Port.md). A **Node** may have any number of input and/or output [Ports](Port.md). You create a [Shader Graph](Shader-Graph.md) by connecting these [Ports](Port.md) with [Edges](Edge.md). A **Node** might also have any number of **Controls**, these are controls on the **Node** that do not have [Ports](Port.md).
 
-You can collapse a **Node** by clicking the **Collapse** button in the top-right corner of the **Node**. This will hide all unconnected [Ports](Por.mdt).
+You can collapse a **Node** by clicking the **Collapse** button in the top-right corner of the **Node**. This will hide all unconnected [Ports](Port.md).
 
 For components of a **Node** see:
 * [Port](Port.md)
@@ -30,6 +30,6 @@ Right clicking on a **Node** will open a context menu. This menu contains many o
 | Delete | Deletes selected **Node(s)** |
 | Duplicate | Duplicates selected **Node(s)** |
 | Convert To Sub-graph | Creates a new [Sub-graph Asset](Sub-graph-Asset.md) with the selected **Node(s)** included |
-| Convert To Inline Node | Converts a [Property Node](Property-Node.md) into a regular node of the appropriate [Data Type](Data-Types.md) |
+| Convert To Inline Node | Converts a [Property Node](Property-Types.md) into a regular node of the appropriate [Data Type](Data-Types.md) |
 | Convert To Property | Converts a **Node** into a new **Property** on the [Blackboard](Blackboard.md) of the appropriate [Property Type](Property-Types.md) |
 | Open Documentation | Opens a new web browser to the selected **Nodes** documentation page in the [Node Library](Node-Library.md) |

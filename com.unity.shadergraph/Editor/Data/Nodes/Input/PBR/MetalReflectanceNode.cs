@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum MetalMaterialType
+    enum MetalMaterialType
     {
         Iron,
         Silver,
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input", "PBR", "Metal Reflectance")]
-    public class MetalReflectanceNode : AbstractMaterialNode, IGeneratesBodyCode
+    class MetalReflectanceNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public MetalReflectanceNode()
         {

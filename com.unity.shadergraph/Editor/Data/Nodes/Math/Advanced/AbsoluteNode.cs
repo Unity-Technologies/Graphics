@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Advanced", "Absolute")]
-    public class AbsoluteNode : CodeFunctionNode
+    class AbsoluteNode : CodeFunctionNode
     {
         public AbsoluteNode()
         {

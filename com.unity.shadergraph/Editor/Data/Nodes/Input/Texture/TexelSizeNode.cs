@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
 {
     
     [Title("Input", "Texture", "Texel Size")]
-    public class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotWId = 0;
         public const int OutputSlotHId = 2;
@@ -40,8 +40,8 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
-			visitor.AddShaderChunk(string.Format("{0}2 {1} = {2}_TexelSize.z;", precision, GetVariableNameForSlot(OutputSlotWId), GetSlotValue(TextureInputId, generationMode)), true);
-			visitor.AddShaderChunk(string.Format("{0}2 {1} = {2}_TexelSize.w;", precision, GetVariableNameForSlot(OutputSlotHId), GetSlotValue(TextureInputId, generationMode)), true);
+			visitor.AddShaderChunk(string.Format("{0} {1} = {2}_TexelSize.z;", precision, GetVariableNameForSlot(OutputSlotWId), GetSlotValue(TextureInputId, generationMode)), true);
+			visitor.AddShaderChunk(string.Format("{0} {1} = {2}_TexelSize.w;", precision, GetVariableNameForSlot(OutputSlotHId), GetSlotValue(TextureInputId, generationMode)), true);
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

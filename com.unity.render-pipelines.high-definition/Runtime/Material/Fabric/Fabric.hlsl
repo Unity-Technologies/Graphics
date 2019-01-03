@@ -2,7 +2,7 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in Fabric.cs which generates Fabric.cs.hlsl
-#include "Fabric.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
@@ -44,7 +44,7 @@ void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 
 float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 {
-    return 1; // TODO
+    return ComputeMicroShadowing(bsdfData.ambientOcclusion, NdotL, _MicroShadowOpacity);
 }
 
 bool MaterialSupportsTransmission(BSDFData bsdfData)
@@ -133,7 +133,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
-    // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
+    // IMPORTANT: All enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures = surfaceData.materialFeatures;
 
     bsdfData.diffuseColor = surfaceData.baseColor;
@@ -189,12 +189,36 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+    case DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL_VIEW_SPACE:
+        // Convert to view space
+        result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
+        break;
+    case DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+        result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+        break;
+    }
 }
 
 // This function call the generated debug function and allow to override the debug output if needed
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+    case DEBUGVIEW_FABRIC_BSDFDATA_NORMAL_VIEW_SPACE:
+        // Convert to view space
+        result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+        break;
+    case DEBUGVIEW_FABRIC_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+        result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
+        break;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -391,7 +415,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                     bsdfData, bsdfData.normalWS, V);
 }
 
-#include "FabricReference.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricReference.hlsl"
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
@@ -441,7 +465,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     PreLightData preLightData, LightData lightData,
     BSDFData bsdfData, BuiltinData builtinData)
 {
-    if (lightData.lightType == GPULIGHTTYPE_LINE)
+    if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {
         return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
     }
@@ -463,7 +487,13 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
-    // TODO
+    // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
+    float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
+
+    // Note: RGB is already premultiplied by A.
+    // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
+    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * preLightData.specularFGD;
+    reflectionHierarchyWeight = ssrLighting.a;
 
     return lighting;
 }
@@ -537,7 +567,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     int sliceIndex = 0;
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
-        sliceIndex = 1;
+        sliceIndex = _EnvSliceSize - 1;
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel, sliceIndex);

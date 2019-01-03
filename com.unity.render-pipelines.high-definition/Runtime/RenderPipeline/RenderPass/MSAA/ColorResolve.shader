@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/ColorResolve"
+Shader "Hidden/HDRP/ColorResolve"
 {
     HLSLINCLUDE
         #pragma target 4.5

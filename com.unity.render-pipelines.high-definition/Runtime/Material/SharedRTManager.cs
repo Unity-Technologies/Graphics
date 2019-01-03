@@ -82,13 +82,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // We need to allocate this texture as long as msaa is supported because on both mode, one of the cameras can be forward only using the framesettings
                 m_NormalMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableMSAA: true, bindTextureMS: true, name: "NormalBufferMSAA");
-                
+
                 // Create the required resolve materials
                 m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
                 m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
             }
 
-            // If we are in the forward only mode 
+            // If we are in the forward only mode
             if (!m_ReuseGBufferMemory)
             {
                 // In case of full forward we must allocate the render target for normal buffer (or reuse one already existing)
@@ -165,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Request the velocity buffer (MSAA or not)
         public RTHandleSystem.RTHandle GetVelocityBuffer(bool isMSAA = false)
         {
-            Debug.Assert(m_VelocitySupport  );
+            Debug.Assert(m_VelocitySupport);
             if (isMSAA)
             {
                 Debug.Assert(m_MSAASupported);

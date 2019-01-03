@@ -1,19 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardProvider
     {
         readonly AbstractMaterialGraph m_Graph;
-        readonly Texture2D m_ExposedIcon;
+        public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
         readonly Dictionary<Guid, BlackboardRow> m_PropertyRows;
         readonly BlackboardSection m_Section;
         //WindowDraggable m_WindowDraggable;
@@ -22,6 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Label m_PathLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
+        List<MaterialNodeView> m_SelectedNodes = new List<MaterialNodeView>();
 
         //public Action onDragFinished
         //{
@@ -47,7 +46,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardProvider(AbstractMaterialGraph graph)
         {
             m_Graph = graph;
-            m_ExposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
             m_PropertyRows = new Dictionary<Guid, BlackboardRow>();
 
             blackboard = new Blackboard()
@@ -59,13 +57,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 moveItemRequested = MoveItemRequested
             };
 
-            m_PathLabel = blackboard.shadow.ElementAt(0).Q<Label>("subTitleLabel");
+            m_PathLabel = blackboard.hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
 
             m_PathLabelTextField = new TextField { visible = false };
-            m_PathLabelTextField.RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
-            m_PathLabelTextField.RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
-            blackboard.shadow.Add(m_PathLabelTextField);
+            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
+            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
+            blackboard.hierarchy.Add(m_PathLabelTextField);
 
             // m_WindowDraggable = new WindowDraggable(blackboard.shadow.Children().First().Q("header"));
             // blackboard.AddManipulator(m_WindowDraggable);
@@ -77,6 +75,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in graph.properties)
                 AddProperty(property);
             blackboard.Add(m_Section);
+        }
+
+        void OnDragUpdatedEvent(DragUpdatedEvent evt)
+        {
+            if (m_SelectedNodes.Any())
+            {
+                foreach (var node in m_SelectedNodes)
+                {
+                    node.RemoveFromClassList("hovered");
+                }
+                m_SelectedNodes.Clear();
+            }
         }
 
         void OnMouseDownEvent(MouseDownEvent evt)
@@ -93,10 +103,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabelTextField.visible = true;
 
             m_PathLabelTextField.value = m_PathLabel.text;
-            m_PathLabelTextField.style.positionType = PositionType.Absolute;
+            m_PathLabelTextField.style.position = Position.Absolute;
             var rect = m_PathLabel.ChangeCoordinatesTo(blackboard, new Rect(Vector2.zero, m_PathLabel.layout.size));
-            m_PathLabelTextField.style.positionLeft = rect.xMin;
-            m_PathLabelTextField.style.positionTop = rect.yMin;
+            m_PathLabelTextField.style.left = rect.xMin;
+            m_PathLabelTextField.style.top = rect.yMin;
             m_PathLabelTextField.style.width = rect.width;
             m_PathLabelTextField.style.fontSize = 11;
             m_PathLabelTextField.style.marginLeft = 0;
@@ -106,7 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_PathLabel.visible = false;
 
-            m_PathLabelTextField.Focus();
+            m_PathLabelTextField.Q("unity-text-input").Focus();
             m_PathLabelTextField.SelectAll();
         }
 
@@ -116,11 +126,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case KeyCode.Escape:
                     m_EditPathCancelled = true;
-                    m_PathLabelTextField.Blur();
+                    m_PathLabelTextField.Q("unity-text-input").Blur();
                     break;
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
-                    m_PathLabelTextField.Blur();
+                    m_PathLabelTextField.Q("unity-text-input").Blur();
                     break;
                 default:
                     break;
@@ -238,8 +248,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (create)
                 property.displayName = m_Graph.SanitizePropertyName(property.displayName);
 
-            var field = new BlackboardField(m_ExposedIcon, property.displayName, property.propertyType.ToString()) { userData = property };
-            var row = new BlackboardRow(field, new BlackboardFieldPropertyView(m_Graph, property));
+            var icon = property.generatePropertyBlock ? exposedIcon : null;
+            var field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
+
+            var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
+            var row = new BlackboardRow(field, propertyView);
+            var pill = row.Q<Pill>();
+            pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, property));
+            pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, property));
+            pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+
             row.userData = property;
             if (index < 0)
                 index = m_PropertyRows.Count;
@@ -264,6 +282,38 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 node.OnEnable();
                 node.Dirty(ModificationScope.Node);
+            }
+        }
+
+        public BlackboardRow GetBlackboardRow(Guid guid)
+        {
+            return m_PropertyRows[guid];
+        }
+
+        void OnMouseHover(EventBase evt, IShaderProperty property)
+        {
+            var graphView = blackboard.GetFirstAncestorOfType<MaterialGraphView>();
+            if (evt.eventTypeId == MouseEnterEvent.TypeId())
+            {
+                foreach (var node in graphView.nodes.ToList().OfType<MaterialNodeView>())
+                {
+                    if (node.node is PropertyNode propertyNode)
+                    {
+                        if (propertyNode.propertyGuid == property.guid)
+                        {
+                            m_SelectedNodes.Add(node);
+                            node.AddToClassList("hovered");
+                        }
+                    }
+                }
+            }
+            else if (evt.eventTypeId == MouseLeaveEvent.TypeId() && m_SelectedNodes.Any())
+            {
+                foreach (var node in m_SelectedNodes)
+                {
+                    node.RemoveFromClassList("hovered");
+                }
+                m_SelectedNodes.Clear();
             }
         }
     }

@@ -1,13 +1,13 @@
 using System;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class Texture3DControlAttribute : Attribute, IControlAttribute
+    class Texture3DControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class Texture3DControlView : VisualElement
+    class Texture3DControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 Add(new Label(label));
 
             var textureField = new ObjectField { value = (Texture3D)m_PropertyInfo.GetValue(m_Node, null), objectType = typeof(Texture3D) };
-            textureField.OnValueChanged(OnChange);
+            textureField.RegisterValueChangedCallback(OnChange);
             Add(textureField);
         }
 

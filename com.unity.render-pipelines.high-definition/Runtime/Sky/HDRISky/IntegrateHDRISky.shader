@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
+Shader "Hidden/HDRP/IntegrateHDRI"
 {
     Properties
     {

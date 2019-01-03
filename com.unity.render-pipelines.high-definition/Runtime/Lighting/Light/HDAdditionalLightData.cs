@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         Punctual, // Fallback on LightShape type
         Rectangle,
-        Line,
+        Tube,
         // Sphere,
         // Disc,
     };
@@ -50,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     struct TimelineWorkaround
     {
         public float oldDisplayLightIntensity;
+        public float oldLuxAtDistance;
         public float oldSpotAngle;
         public bool oldEnableSpotReflector;
         public Color oldLightColor;
@@ -98,6 +99,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Only for Spotlight, should be hide for other light
         public bool enableSpotReflector = false;
+        // Lux unity for all light except directional require a distance
+        public float luxAtDistance = 1.0f;
 
         [Range(0.0f, 100.0f)]
         public float m_InnerSpotPercent; // To display this field in the UI this need to be public
@@ -110,8 +113,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(0.0f, 1.0f)]
         public float lightDimmer = 1.0f;
 
-        [Range(0.0f, 1.0f)]
-        public float volumetricDimmer = 1.0f;
+        [Range(0.0f, 1.0f), SerializeField, FormerlySerializedAs("volumetricDimmer")]
+        private float m_VolumetricDimmer = 1.0f;
+        
+        public float volumetricDimmer
+        {
+            get { return useVolumetric ? m_VolumetricDimmer : 0f; }
+            set {  m_VolumetricDimmer = value; }
+        }
 
         // Used internally to convert any light unit input into light intensity
         public LightUnit lightUnit = LightUnit.Lumen;
@@ -156,8 +165,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // This is specific for the LightEditor GUI and not use at runtime
         public bool useOldInspector = false;
+        public bool useVolumetric = true;
         public bool featuresFoldout = true;
-        public bool showAdditionalSettings = false;
+        public byte showAdditionalSettings = 0;
         public float displayLightIntensity;
 
         // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
@@ -184,7 +194,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(1, 64)]
         public int      blockerSampleCount = 24;
         [Range(1, 64)]
-        public int      filterSampleCount = 32;
+        public int      filterSampleCount = 16;
+        [Range(0, 0.001f)]
+        public float minFilterSize = 0.00001f;
+
+        // Improved Moment Shadows settings
+        [Range(1, 32)]
+        public int kernelSize = 5;
+        [Range(0.0f, 9.0f)]
+        public float lightAngle = 1.0f;
+        [Range(0.0001f, 0.01f)]
+        public float maxDepthBias = 0.001f;
 
         HDShadowRequest[]   shadowRequests;
         bool                m_WillRenderShadows;
@@ -393,11 +413,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             shadowRequest.lightIndex = lightIndex;
             // We don't allow shadow resize for directional cascade shadow
             shadowRequest.allowResize = m_Light.type != LightType.Directional;
+            shadowRequest.lightType = (int) m_Light.type;
 
             // Shadow algorithm parameters
             shadowRequest.shadowSoftness = shadowSoftness / 100f;
             shadowRequest.blockerSampleCount = blockerSampleCount;
             shadowRequest.filterSampleCount = filterSampleCount;
+            shadowRequest.minFilterSize = minFilterSize;
+
+            shadowRequest.kernelSize = (uint)kernelSize;
+            shadowRequest.lightAngle = (lightAngle * Mathf.PI / 180.0f);
+            shadowRequest.maxDepthBias = maxDepthBias;
         }
 
 #if UNITY_EDITOR
@@ -436,6 +462,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else if (lightUnit == LightUnit.Ev100)
             {
                 m_Light.intensity = LightUtils.ConvertEvToLuminance(intensity);
+            }
+            else if ((m_Light.type == LightType.Spot || m_Light.type == LightType.Point) && lightUnit == LightUnit.Lux)
+            {
+                // Box are local directional light with lux unity without at distance
+                if ((m_Light.type == LightType.Spot) && (spotLightShape == SpotLightShape.Box))
+                    m_Light.intensity = intensity;
+                else
+                    m_Light.intensity = LightUtils.ConvertLuxToCandela(intensity, luxAtDistance);
             }
             else
                 m_Light.intensity = intensity;
@@ -526,7 +560,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector3 shape = new Vector3(shapeWidth, shapeHeight, shapeRadius);
 
             // Check if the intensity have been changed by the inspector or an animator
-            if (timelineWorkaround.oldDisplayLightIntensity != displayLightIntensity
+            if (displayLightIntensity != timelineWorkaround.oldDisplayLightIntensity
+                || luxAtDistance != timelineWorkaround.oldLuxAtDistance
                 || lightTypeExtent != timelineWorkaround.oldLightTypeExtent
                 || transform.localScale != timelineWorkaround.oldLocalScale
                 || shape != timelineWorkaround.oldShape
@@ -535,6 +570,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RefreshLightIntensity();
                 UpdateAreaLightEmissiveMesh();
                 timelineWorkaround.oldDisplayLightIntensity = displayLightIntensity;
+                timelineWorkaround.oldLuxAtDistance = luxAtDistance;
                 timelineWorkaround.oldLocalScale = transform.localScale;
                 timelineWorkaround.oldLightTypeExtent = lightTypeExtent;
                 timelineWorkaround.oldLightColorTemperature = m_Light.colorTemperature;
@@ -587,7 +623,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
             MeshFilter emissiveMeshFilter = GetComponent<MeshFilter>();
 
-            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && lightTypeExtent != LightTypeExtent.Line && displayAreaLightEmissiveMesh;
+            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && lightTypeExtent != LightTypeExtent.Tube && displayAreaLightEmissiveMesh;
 
             // Ensure that the emissive mesh components are here
             if (displayEmissiveMesh)
@@ -615,7 +651,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (timelineWorkaround.oldLocalScale != transform.localScale)
                 lightSize = transform.localScale;
             else
-                lightSize = new Vector3(shapeWidth, shapeHeight, 0);
+                lightSize = new Vector3(shapeWidth, shapeHeight, transform.localScale.z);
 
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
             m_Light.transform.localScale = lightSize;
@@ -632,7 +668,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             if (emissiveMeshRenderer.sharedMaterial == null)
-                emissiveMeshRenderer.material = new Material(Shader.Find("HDRenderPipeline/Unlit"));
+                emissiveMeshRenderer.material = new Material(Shader.Find("HDRP/Unlit"));
 
             // Update Mesh emissive properties
             emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
@@ -661,6 +697,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.areaIntensity = areaIntensity;
 #pragma warning restore 618
             data.enableSpotReflector = enableSpotReflector;
+            data.luxAtDistance = luxAtDistance;
             data.m_InnerSpotPercent = m_InnerSpotPercent;
             data.lightDimmer = lightDimmer;
             data.volumetricDimmer = volumetricDimmer;
@@ -773,7 +810,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 break;
                         }
                         break;
-                    case LightTypeExtent.Line:
+                    case LightTypeExtent.Tube:
                     case LightTypeExtent.Rectangle:
                         lightUnit = LightUnit.Lumen;
                         intensity = areaIntensity;

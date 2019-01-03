@@ -83,6 +83,9 @@ namespace UnityEditor.Experimental.Rendering
     [Serializable, DebugState(typeof(DebugUI.IntField), typeof(DebugUI.EnumField))]
     public sealed class DebugStateInt : DebugState<int> {}
 
+    [Serializable, DebugState(typeof(DebugUI.BitField))]
+    public sealed class DebugStateFlags : DebugState<Enum> { }
+
     [Serializable, DebugState(typeof(DebugUI.UIntField))]
     public sealed class DebugStateUInt : DebugState<uint> {}
 

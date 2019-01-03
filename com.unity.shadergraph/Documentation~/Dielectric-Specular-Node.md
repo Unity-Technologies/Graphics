@@ -12,7 +12,7 @@ You can use **Custom** material type to define your own physically based materia
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Vector 3 | None | Output value |
+| Out | Output      |    Vector 1 | None | Output value |
 
 ## Controls
 
@@ -29,31 +29,31 @@ The following example code represents one possible outcome of this node per **Ma
 **Common**
 ```
 float _DielectricSpecular_Range = 0.5;
-float3 _DielectricSpecular_Out = lerp(0.034, 0.048, _DielectricSpecular_Range);
+float _DielectricSpecular_Out = lerp(0.034, 0.048, _DielectricSpecular_Range);
 ```
 
 **RustedMetal**
 ```
-float3 _DielectricSpecular_Out = float3(0.030, 0.030, 0.030);
+float _DielectricSpecular_Out = 0.030;
 ```
 
 **Water**
 ```
-float3 _DielectricSpecular_Out = float3(0.020, 0.020, 0.020);
+float _DielectricSpecular_Out = 0.020;
 ```
 
 **Ice**
 ```
-float3 _DielectricSpecular_Out = float3(0.018, 0.018, 0.018);
+float _DielectricSpecular_Out = 0.018;
 ```
 
 **Glass**
 ```
-float3 _DielectricSpecular_Out = float3(0.040, 0.040, 0.040);
+float _DielectricSpecular_Out = 0.040;
 ```
 
 **Custom**
 ```
-float3 _DielectricSpecular_IOR = 1;
-float3 _DielectricSpecular_Out = pow(_Node_IOR - 1, 2) / pow(_DielectricSpecular_IOR + 1, 2);
+float _DielectricSpecular_IOR = 1;
+float _DielectricSpecular_Out = pow(_Node_IOR - 1, 2) / pow(_DielectricSpecular_IOR + 1, 2);
 ```

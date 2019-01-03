@@ -280,8 +280,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Strictly speaking, this should not be necessary, but it helps avoiding inconsistent behavior in the editor
                 // where the GI system sometimes update the ambient probe and sometime does not...
                 DynamicGI.UpdateEnvironment();
-
-                m_NeedUpdateBakingSky = false;
             }
 
             if (m_NeedUpdateRealtimeEnv)
@@ -314,11 +312,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, cmd);
         }
 
-        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, bool isMSAA)
+        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer,
+                                                      Matrix4x4 pixelCoordToViewDirWS, bool isMSAA)
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
             {
-                HDUtils.DrawFullScreen(cmd, hdCamera, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, null, isMSAA? 1 : 0);
+                var propertyBlock = new MaterialPropertyBlock();
+                propertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDirWS);
+                HDUtils.DrawFullScreen(cmd, hdCamera, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
             }
         }
 

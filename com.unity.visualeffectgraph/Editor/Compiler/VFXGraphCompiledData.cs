@@ -482,8 +482,12 @@ namespace UnityEditor.VFX
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
                     var generated = generatedCodeData[i];
-                    var fileName = string.Format("Temp_{1}_{0}_{2}_{3}.{1}",  VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+                    var fileName = generated.context.fileName;
 
+                    if( ! generated.computeShader)
+                    {
+                        generated.content.Insert(0,"Shader \""+generated.context.shaderName + "\"\n") ;
+                    }
                     descs[i].source = generated.content.ToString();
                     descs[i].name = fileName;
                     descs[i].compute = generated.computeShader;
@@ -574,8 +578,22 @@ namespace UnityEditor.VFX
             }
         }
 
+        static public Action<VisualEffectResource, bool> k_FnVFXResource_SetCompileInitialVariants = Find_FnVFXResource_SetCompileInitialVariants();
 
-        public void Compile(VFXCompilationMode compilationMode)
+        static Action<VisualEffectResource, bool> Find_FnVFXResource_SetCompileInitialVariants()
+        {
+            var property = typeof(VisualEffectResource).GetProperty("compileInitialVariants");
+            if (property != null)
+            {
+                return delegate (VisualEffectResource rsc, bool value)
+                {
+                    property.SetValue(rsc, value, null);
+                };
+            }
+            return null;
+        }
+
+        public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
             // Prevent doing anything ( and especially showing progesses ) in an empty graph.
             if (m_Graph.children.Count() < 1)
@@ -620,9 +638,9 @@ namespace UnityEditor.VFX
                 foreach (var data in compilableData)
                     data.CollectAttributes();
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Computing layers", 2 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Process dependencies", 2 / nbSteps);
                 foreach (var data in compilableData)
-                    data.ComputeLayer();
+                    data.ProcessDependencies();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Compiling expression Graph", 3 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();
@@ -714,6 +732,11 @@ namespace UnityEditor.VFX
 
                 m_Graph.visualEffectResource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = expressionSheet.values;
+
+                if (k_FnVFXResource_SetCompileInitialVariants != null)
+                {
+                    k_FnVFXResource_SetCompileInitialVariants(m_Graph.visualEffectResource, forceShaderValidation);
+                }
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Importing VFX", 11 / nbSteps);
                 Profiler.BeginSample("VFXEditor.CompileAsset:ImportAsset");

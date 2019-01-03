@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
             public Vector2 period = new Vector2(0, 1);
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             var newBlock = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
             newBlock.SetSettingValue("repeat", VFXSpawnerBurst.RepeatMode.Periodic);
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
             VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(1), GetInputSlot(1), true);
 
             ReplaceModel(newBlock, this);
-            base.Sanitize();
+            base.Sanitize(version);
         }
     }
 }

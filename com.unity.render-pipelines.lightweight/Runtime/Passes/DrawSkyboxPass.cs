@@ -1,27 +1,33 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Draw the skybox into the given color buffer using the given depth buffer for depth testing.
     ///
     /// This pass renders the standard Unity skybox.
     /// </summary>
-    public class DrawSkyboxPass : ScriptableRenderPass
+    internal class DrawSkyboxPass : ScriptableRenderPass
     {
-        private RenderTargetHandle colorAttachmentHandle { get; set; }
-        private RenderTargetHandle depthAttachmentHandle { get; set; }
+        RenderTargetHandle colorAttachmentHandle { get; set; }
+        RenderTargetHandle depthAttachmentHandle { get; set; }
+        RenderTextureDescriptor descriptor { get; set; }
+
+        bool m_CombineWithRenderOpaquesPass = false;
 
         /// <summary>
         /// Configure the color and depth passes to use when rendering the skybox
         /// </summary>
         /// <param name="colorHandle">Color buffer to use</param>
         /// <param name="depthHandle">Depth buffer to use</param>
-        public void Setup(RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthHandle, bool combineWithRenderOpaquesPass)
         {
+            descriptor = baseDescriptor;
             this.colorAttachmentHandle = colorHandle;
             this.depthAttachmentHandle = depthHandle;
+            this.m_CombineWithRenderOpaquesPass = combineWithRenderOpaquesPass;
         }
 
         /// <inheritdoc/>
@@ -29,19 +35,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             if (renderer == null)
                 throw new ArgumentNullException("renderer");
-            
-            CommandBuffer cmd = CommandBufferPool.Get("Draw Skybox (Set RT's)");
-            if (renderingData.cameraData.isStereoEnabled && XRGraphics.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
-            {
-                cmd.SetRenderTarget(colorAttachmentHandle.Identifier(), depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1);
-            }
-            else
-            {
-                cmd.SetRenderTarget(colorAttachmentHandle.Identifier(), depthAttachmentHandle.Identifier());
-            }
 
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            // For now, we can't combine Skybox and Opaques into a single render pass if there's a custom render pass injected
+            // between them.
+            if (!m_CombineWithRenderOpaquesPass)
+            {
+                CommandBuffer cmd = CommandBufferPool.Get("Draw Skybox (Set RT's)");
+
+                RenderBufferLoadAction loadOp = RenderBufferLoadAction.Load;
+                RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;
+
+                SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), loadOp, storeOp,
+                    depthAttachmentHandle.Identifier(), loadOp, storeOp, ClearFlag.None, Color.black, descriptor.dimension);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
 
             context.DrawSkybox(renderingData.cameraData.camera);
         }

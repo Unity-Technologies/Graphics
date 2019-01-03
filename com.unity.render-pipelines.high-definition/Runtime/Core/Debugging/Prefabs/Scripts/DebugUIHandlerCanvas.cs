@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.UI
 {
@@ -41,10 +42,7 @@ namespace UnityEngine.Experimental.Rendering.UI
             int state = DebugManager.instance.GetState();
             if (m_DebugTreeState != state)
             {
-                foreach (Transform t in transform)
-                    CoreUtils.Destroy(t.gameObject);
-
-                Rebuild();
+                ResetAllHierarchy();
             }
 
             HandleInput();
@@ -52,6 +50,14 @@ namespace UnityEngine.Experimental.Rendering.UI
             // Update scroll position in the panel
             if (m_UIPanels != null && m_SelectedPanel < m_UIPanels.Count && m_UIPanels[m_SelectedPanel] != null)
                 m_UIPanels[m_SelectedPanel].ScrollTo(m_SelectedWidget);
+        }
+
+        internal void ResetAllHierarchy()
+        {
+            foreach (Transform t in transform)
+                CoreUtils.Destroy(t.gameObject);
+
+            Rebuild();
         }
 
         void Rebuild()
