@@ -676,7 +676,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = m_Light.color.linear * m_Light.intensity;
             if (useColorTemperature)
-                value *= LightUtils.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature);
+                value *= Mathf.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature);
             value.r = Mathf.Clamp01(value.r);
             value.g = Mathf.Clamp01(value.g);
             value.b = Mathf.Clamp01(value.b);
