@@ -18,12 +18,7 @@ EnumControlView {
 
 EnumControlView > Label {
     width: 94;
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+    text-alignment: middle-left;
     margin-left: 8;
     margin-right: 8;
-    margin-top: 4;
-    margin-bottom: 4;
 }
