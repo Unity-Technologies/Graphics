@@ -162,6 +162,7 @@ namespace UnityEngine.Rendering.LWRP
                 if (cameraData.isSceneViewCamera)
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
+
                 var cullResults = context.Cull(ref cullingParameters);
 
                 InitializeRenderingData(settings, ref cameraData, ref cullResults,
