@@ -542,7 +542,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
+#if !UNITY_2019_2_OR_NEWER
                     buildTarget == UnityEditor.BuildTarget.StandaloneLinuxUniversal ||
+#endif
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
