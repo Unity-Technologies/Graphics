@@ -49,25 +49,39 @@ namespace UnityEngine.TestTools.Graphics
             int height = settings.TargetHeight;
             var format = expected != null ? expected.format : TextureFormat.ARGB32;
 
+            // Some HDRP test fail with HDRP batcher because shaders variant are compiled "on the fly" in editor mode.
+            // Persistent PerMaterial CBUFFER is build during culling, but some nodes could use new variants and CBUFFER will be up to date next frame.
+            // ( this is editor specific, standalone player has no frame delay issue because all variants are ready at init stage )
+            // This PR adds a dummy rendered frame before doing the real rendering and compare images ( test already has frame delay, but there is no rendering )
+            int dummyRenderedFrameCount = 1;
+
             var rt = RenderTexture.GetTemporary(width, height, 24);
             Texture2D actual = null;
             try
             {
-                foreach (var camera in cameras)
+                for (int i=0;i< dummyRenderedFrameCount+1;i++)        // x frame delay + the last one is the one really tested ( ie 5 frames delay means 6 frames are rendered )
                 {
-                    camera.targetTexture = rt;
-                    camera.Render();
-                    camera.targetTexture = null;
+                    foreach (var camera in cameras)
+                    {
+                        camera.targetTexture = rt;
+                        camera.Render();
+                        camera.targetTexture = null;
+                    }
+
+					// only proceed the test on the last renderered frame
+					if (dummyRenderedFrameCount == i)
+					{
+						actual = new Texture2D(width, height, format, false);
+						RenderTexture.active = rt;
+						actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+						RenderTexture.active = null;
+
+						actual.Apply();
+
+						AreEqual(expected, actual, settings);
+					}
                 }
 
-                actual = new Texture2D(width, height, format, false);
-                RenderTexture.active = rt;
-                actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-                RenderTexture.active = null;
-
-                actual.Apply();
-
-                AreEqual(expected, actual, settings);
             }
             finally
             {

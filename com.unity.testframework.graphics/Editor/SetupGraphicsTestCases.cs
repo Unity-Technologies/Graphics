@@ -93,7 +93,7 @@ namespace UnityEditor.TestTools.Graphics
                 }
             }
 
-            
+
             // For each scene in the build settings, force build of the lightmaps if it has "DoLightmap" label.
             // Note that in the PreBuildSetup stage, TestRunner has already created a new scene with its testing monobehaviours
 
@@ -101,6 +101,8 @@ namespace UnityEditor.TestTools.Graphics
 
             foreach( EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
             {
+                if (!scene.enabled) continue;
+
                 SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scene.path);
                 var labels = new System.Collections.Generic.List<string>(AssetDatabase.GetLabels(sceneAsset));
                 if ( labels.Contains(bakeLabel) )
@@ -111,11 +113,11 @@ namespace UnityEditor.TestTools.Graphics
                     Scene currentScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(1);
 
                     EditorSceneManagement.EditorSceneManager.SetActiveScene(currentScene);
-                    
+
                     Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
 
                     Lightmapping.Bake();
-    
+
                     EditorSceneManagement.EditorSceneManager.SaveScene( currentScene );
 
                     EditorSceneManagement.EditorSceneManager.SetActiveScene(trScene);

@@ -38,12 +38,12 @@ namespace UnityEngine.Experimental.Rendering
                 RectInt dispatch8Rect = RectInt.zero;
 
                 if (TileLayoutUtils.TryLayoutByTiles(
-                        rect,
-                        8,
-                        out main,
-                        out topRow,
-                        out rightCol,
-                        out topRight))
+                    rect,
+                    8,
+                    out main,
+                    out topRow,
+                    out rightCol,
+                    out topRight))
                 {
                     if (topRow.width > 0 && topRow.height > 0)
                     {
@@ -90,10 +90,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
         }
-
         public void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, RectInt rect)
-        {
-            SampleCopyChannel(cmd, rect, _Source4, source, _Result1, target, k_SampleKernel_xyzw2x_8, k_SampleKernel_xyzw2x_1);
-        }
+          {
+                 SampleCopyChannel(cmd, rect, _Source4, source, _Result1, target, k_SampleKernel_xyzw2x_8, k_SampleKernel_xyzw2x_1);
+          }
+
     }
 }

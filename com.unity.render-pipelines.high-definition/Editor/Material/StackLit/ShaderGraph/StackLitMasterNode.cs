@@ -15,7 +15,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    [Title("Master", "StackLit")]
+    [Title("Master", "HDRP/StackLit")]
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
     class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
@@ -154,7 +154,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public enum AlphaModeLit
         {
             Alpha,
-            PremultipliedAlpha,
+            Premultiply,
             Additive,
         }
 
@@ -750,14 +750,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 AddSlot(new Vector1MaterialSlot(SubsurfaceMaskSlotId, SubsurfaceMaskSlotName, SubsurfaceMaskSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(SubsurfaceMaskSlotId);
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileSlotId, DiffusionProfileSlotName, DiffusionProfileSlotName, ShaderStageCapability.Fragment));
-                validSlots.Add(DiffusionProfileSlotId);
             }
 
             if (transmission.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(ThicknessSlotId, ThicknessSlotName, ThicknessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(ThicknessSlotId);
+            }
+
+            if (subsurfaceScattering.isOn || transmission.isOn)
+            {
+                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileSlotId, DiffusionProfileSlotName, DiffusionProfileSlotName, ShaderStageCapability.Fragment));
+                validSlots.Add(DiffusionProfileSlotId);
             }
 
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
@@ -774,7 +778,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (HasDistortion())
             {
-                AddSlot(new Vector2MaterialSlot(DistortionSlotId, DistortionSlotName, DistortionSlotName, SlotType.Input, new Vector2(2.0f, -1.0f), ShaderStageCapability.Fragment));
+                AddSlot(new Vector2MaterialSlot(DistortionSlotId, DistortionSlotName, DistortionSlotName, SlotType.Input, new Vector2(0.0f, 0.0f), ShaderStageCapability.Fragment));
                 validSlots.Add(DistortionSlotId);
 
                 AddSlot(new Vector1MaterialSlot(DistortionBlurSlotId, DistortionBlurSlotName, DistortionBlurSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));

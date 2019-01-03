@@ -76,6 +76,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     GetNormalWS(input, normalTS, surfaceData.normalWS);
+
+    surfaceData.geomNormalWS = input.worldToTangent[2];
+
     float3 bentNormalWS = surfaceData.normalWS;
 
     if (surfaceData.ambientOcclusion != 1.0f)

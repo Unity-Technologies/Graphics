@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class HDReflectionProbeEditor
+    sealed partial class HDReflectionProbeEditor
     {
         HDCubemapInspector m_CubemapEditor;
 
@@ -67,18 +67,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static Texture GetTexture(HDReflectionProbeEditor e, Object target)
         {
-            HDProbe additional = e.GetTarget(target);
-            if (additional != null && additional.mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
-            {
-                return additional.realtimeTexture;
-            }
-            else
-            {
-                var p = target as ReflectionProbe;
-                if (p != null)
-                    return p.texture;
-            }
-            return null;
+            HDProbe probe = e.GetTarget(target);
+            return probe.texture;
         }
 
         private void OnDestroy()

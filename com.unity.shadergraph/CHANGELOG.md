@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.3.0] - 2018-11-xx
+### Added
+- When you hover your cursor over a property in the blackboard, this now highlights the corresponding property elements in your Shader Graph. Similarly, if you hover over a property in the Shader Graph itself, this highlights the corresponding property in the blackboard.
+
 ### Changed
 - Errors in the compiled shader are now displayed as badges on the appropriate node.
 
@@ -19,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `Color` node control is now a consistent width.
 - Function declarations no longer contain double delimiters.
 - The `Slider` node control now functions correctly.
+- Reverted the visual styling of various graph elements to their previous correct states.
 
 ## [5.2.0] - 2018-11-27
 ### Added
@@ -55,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Default reference name for shader properties are now serialized. You cannot change them after initial creation.
 - When you save Shader Graph and Sub Graph files, they're now automatically checked out on version control.
 - Shader Graph no longer throws an exception when you double-click a folder in the Project window.
+- Gradient Node no longer throws an error when you undo a deletion.
 
 ## [5.0.0-preview] - 2018-09-28
 

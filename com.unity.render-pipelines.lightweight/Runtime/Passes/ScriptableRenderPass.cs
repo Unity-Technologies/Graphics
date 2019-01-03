@@ -69,16 +69,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RenderTargetIdentifier depthAttachment,
             RenderBufferLoadAction depthLoadAction,
             RenderBufferStoreAction depthStoreAction,
-            ClearFlag clearFlag,
+            ClearFlag clearFlags,
             Color clearColor,
             TextureDimension dimension)
         {
-            if (dimension == TextureDimension.Tex2DArray)
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment,
-                    clearFlag, clearColor, 0, CubemapFace.Unknown, -1);
+            if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
+            {
+                SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor,
+                    dimension);
+            }
             else
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
-                    depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
+            {
+                if (dimension == TextureDimension.Tex2DArray)
+                    CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment,
+                        clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
+                else
+                    CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                        depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
+            }
         }
     }
 }

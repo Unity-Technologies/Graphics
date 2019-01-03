@@ -14,10 +14,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected static class StylesBaseLit
         {
             public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal Mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal");
-            public static GUIContent depthOffsetEnableText = new GUIContent("Enable Depth Offset", "EnableDepthOffset on this shader (Use with heightmap)");
+            public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "Enable DepthOffset on this shader (Use with heightmap)");
 
             // Displacement mapping (POM, tessellation, per vertex)
-            //public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "");
+            //public static GUIContent enablePerPixelDisplacementText = new GUIContent("Per Pixel Displacement", "");
 
             public static GUIContent displacementModeText = new GUIContent("Displacement Mode", "Apply heightmap displacement to the selected element: Vertex, pixel or tessellated vertex. Pixel displacement must be use with flat surfaces, it is an expensive features and typical usage is paved road.");
             public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale", "Displacement mapping will take the absolute value of the scale of the object into account.");
@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material Type", "Select a material feature to enable on top of regular material");
-            public static GUIContent transmissionEnableText = new GUIContent("Enable Transmission", "Enable Transmission for getting  back lighting");
+            public static GUIContent transmissionEnableText = new GUIContent("Transmission", "Transmission for getting  back lighting");
 
             // Per pixel displacement
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
@@ -44,27 +44,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End fade distance", "Maximum distance (in unity unit) to the camera where triangle are tessellated");
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle (in pixel). Smaller value mean smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
-            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
+            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is disabled for tessellation, higher number mean more aggressive culling and better performance");
 
             // Vertex animation
             public static string vertexAnimation = "Vertex Animation";
 
             // Wind
-            public static GUIContent windText = new GUIContent("Enable Wind");
+            public static GUIContent windText = new GUIContent("Wind");
             public static GUIContent windInitialBendText = new GUIContent("Initial Bend");
             public static GUIContent windStiffnessText = new GUIContent("Stiffness");
             public static GUIContent windDragText = new GUIContent("Drag");
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
             public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
 
-            public static GUIContent supportDecalsText = new GUIContent("Enable Decal", "Allow to specify if the material can receive decal or not");
+            public static GUIContent supportDecalsText = new GUIContent("Receive Decals", "Allow material to receive decals or not");
 
-            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Enable geometric specular AA", "This reduce specular aliasing on highly dense mesh (Particularly useful when they don't use normal map)");
+            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "This reduce specular aliasing on highly dense mesh (Particularly useful when they don't use normal map)");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Allow to control the strength of the specular AA reduction. Higher mean more blurry result and less aliasing");
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Allow to limit the effect of specular AA reduction. 0 mean don't apply reduction, higher value mean allow higher reduction");
 
             // SSR
-            public static GUIContent receivesSSRText = new GUIContent("Receives SSR", "Allow to specify if the material can receive SSR or not");
+            public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "Allow to specify if the material can receive SSR or not");
 
         }
 
@@ -285,7 +285,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (supportDecals != null)
             {
                 m_MaterialEditor.ShaderProperty(supportDecals, StylesBaseLit.supportDecalsText);
-            }            
+            }
+
+            if (receivesSSR != null)
+            {
+                m_MaterialEditor.ShaderProperty(receivesSSR, StylesBaseLit.receivesSSRText);
+            }
 
             if (enableGeometricSpecularAA != null)
             {
@@ -300,14 +305,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if(receivesSSR != null)
-            {
-                m_MaterialEditor.ShaderProperty(receivesSSR, StylesBaseLit.receivesSSRText);
-            }
-
             if (displacementMode != null)
             {
                 EditorGUI.BeginChangeCheck();
+                FilterDisplacementMode();
                 m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -338,6 +339,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
                     EditorGUI.indentLevel--;
                 }
+            }
+        }
+
+        protected void FilterDisplacementMode()
+        {
+            if(tessellationMode == null)
+            {
+                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Tessellation)
+                    displacementMode.floatValue = (float)DisplacementMode.None;
+            }
+            else
+            {
+                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel || (DisplacementMode)displacementMode.floatValue == DisplacementMode.Vertex)
+                    displacementMode.floatValue = (float)DisplacementMode.None;
             }
         }
 
@@ -398,7 +413,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 MaterialTesselationPropertiesGUI();
                 VertexAnimationPropertiesGUI();
                 MaterialPropertiesGUI(material);
-                DoEmissionArea(material);
                 using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expandable.Advance, this))
                 {
                     if (header.expanded)

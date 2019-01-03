@@ -52,14 +52,18 @@ void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, fl
 // decalBlend is decal blend with distance fade to be able to construct normal and mask blend if they come from mask map blue channel
 // normalBlend is calculated in this function and used later to blend the normal
 // blendParams are material settings to determing blend source and mode for normal and mask map
-void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout int matMask, float2 texCoords, int mapMask, float albedoBlend, float lod, float decalBlend, inout float normalBlend, float3 blendParams) // too many blends!!!
+void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout int matMask, float2 texCoords, int mapMask, float albedoBlend, float lod, float decalBlend, inout float normalBlend, float3 blendParams, float4 scalingMAB, float4 remappingAOS) // too many blends!!!
 {
     float4 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
+    src.x = scalingMAB.x * src.x;
+    src.y = lerp(remappingAOS.x, remappingAOS.y, src.y);
+    src.z = scalingMAB.z * src.z;
+    src.w = lerp(remappingAOS.z, remappingAOS.w, src.w);
     float maskBlend;
     if (blendParams.x == 1.0f)	// normal blend source is mask blue channel
         normalBlend = src.z * decalBlend;
     else
-        normalBlend = albedoBlend; // normal blend source is albedo alpha
+        normalBlend = albedoBlend; // normal blend source is albedo alpha     
 
     if (blendParams.y == 1.0f)	// mask blend source is mask blue channel
         maskBlend = src.z * decalBlend;
@@ -184,7 +188,7 @@ void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positi
         float normalBlend = albedoBlend;
         if ((decalData.maskScaleBias.x > 0) && (decalData.maskScaleBias.y > 0))
         {
-            ApplyBlendMask(DBuffer2, DBuffer3, mask, sampleMask, DBUFFERHTILEBIT_MASK, albedoBlend, lodMask, decalData.normalToWorld[0][3], normalBlend, decalData.blendParams);
+            ApplyBlendMask(DBuffer2, DBuffer3, mask, sampleMask, DBUFFERHTILEBIT_MASK, albedoBlend, lodMask, decalData.normalToWorld[0][3], normalBlend, decalData.blendParams, decalData.scalingMAB, decalData.remappingAOS);
         }
 
         if ((decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0))

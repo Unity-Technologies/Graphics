@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering
         MoveVertical,
         MoveHorizontal,
         Multiplier,
+        ResetAll,
         DebugActionCount
     }
 
@@ -32,6 +33,7 @@ namespace UnityEngine.Experimental.Rendering
         const string kDPadVertical     = "Debug Vertical";
         const string kDPadHorizontal   = "Debug Horizontal";
         const string kMultiplierBtn    = "Debug Multiplier";
+        const string kResetBtn         = "Debug Reset";
 
         DebugActionDesc[] m_DebugActions;
         DebugActionState[] m_DebugActionStates;
@@ -46,6 +48,12 @@ namespace UnityEngine.Experimental.Rendering
             enableDebugMenu.keyTriggerList.Add(new[] { KeyCode.LeftControl, KeyCode.Backspace });
             enableDebugMenu.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.EnableDebugMenu, enableDebugMenu);
+
+            var resetDebugMenu = new DebugActionDesc();
+            resetDebugMenu.buttonTriggerList.Add(new[] { kResetBtn, kEnableDebugBtn2 });
+            resetDebugMenu.keyTriggerList.Add(new[] { KeyCode.LeftAlt, KeyCode.Backspace });
+            resetDebugMenu.repeatMode = DebugActionRepeatMode.Never;
+            AddAction(DebugAction.ResetAll, resetDebugMenu);
 
             var nextDebugPanel = new DebugActionDesc();
             nextDebugPanel.buttonTriggerList.Add(new[] { kDebugNextBtn });
@@ -173,6 +181,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 new InputManagerEntry { name = kEnableDebugBtn1,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left ctrl",   altBtnPositive = "joystick button 8" },
                 new InputManagerEntry { name = kEnableDebugBtn2,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "backspace",   altBtnPositive = "joystick button 9" },
+                new InputManagerEntry { name = kResetBtn,         kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left alt",    altBtnPositive = "joystick button 1" },
                 new InputManagerEntry { name = kDebugNextBtn,     kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page down",   altBtnPositive = "joystick button 5" },
                 new InputManagerEntry { name = kDebugPreviousBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page up",     altBtnPositive = "joystick button 4" },
                 new InputManagerEntry { name = kValidateBtn,      kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "return",      altBtnPositive = "joystick button 0" },

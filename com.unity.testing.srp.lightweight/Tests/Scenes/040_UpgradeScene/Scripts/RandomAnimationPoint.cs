@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class RandomAnimationPoint : MonoBehaviour {
 
     public int seed;

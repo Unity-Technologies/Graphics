@@ -102,15 +102,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle);
                 }
             }
-
-            if (m_Material != null)
-            {
-                Shader shader = m_Material.shader;
-                if ((shader != null) &&  (shader.name != "HDRenderPipeline/Decal"))
-                {
-                    Debug.LogWarning("Decal projector component material is not using HDRenderPipeline/Decal shader.", this);
-                }
-            }
         }
 
         public void LateUpdate()

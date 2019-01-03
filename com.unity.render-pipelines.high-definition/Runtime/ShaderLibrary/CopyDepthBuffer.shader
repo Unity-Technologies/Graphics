@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/CopyDepthBuffer"
+Shader "Hidden/HDRP/CopyDepthBuffer"
 {
 
     Properties{

@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class HDProbeUI
+    static partial class HDProbeUI
     {
         [MenuItem("GameObject/3D Object/Mirror", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateMirrorGameObject(MenuCommand menuCommand)

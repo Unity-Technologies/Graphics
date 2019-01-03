@@ -38,7 +38,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/014_CameraMulti_MiniMap.unity
     guid: 9225c2f5b8cf84f6bbe7cd83a8c22426
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/015_CameraMulti_FPSCam.unity
     guid: 9d2d9ca35103040838283b3c356c0250
   - enabled: 1

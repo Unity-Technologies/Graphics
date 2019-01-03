@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/GGXConvolve"
+Shader "Hidden/HDRP/GGXConvolve"
 {
     SubShader
     {

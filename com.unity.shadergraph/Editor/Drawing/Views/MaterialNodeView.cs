@@ -141,6 +141,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
             }
 
+            if (node is PropertyNode)
+            {
+                RegisterCallback<MouseEnterEvent>(OnMouseHover);
+                RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            }
+
             var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
@@ -208,6 +214,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 badge.Detach();
                 badge.RemoveFromHierarchy();
+            }
+        }
+
+        void OnMouseHover(EventBase evt)
+        {
+            var graphView = GetFirstAncestorOfType<GraphEditorView>();
+            if (graphView == null)
+                return;
+
+            var blackboardProvider = graphView.blackboardProvider;
+            if (blackboardProvider == null)
+                return;
+
+            var propNode = (PropertyNode)node;
+
+            var propRow = blackboardProvider.GetBlackboardRow(propNode.propertyGuid);
+            if (propRow != null)
+            {
+                if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                {
+                    propRow.AddToClassList("hovered");
+                }
+                else
+                {
+                    propRow.RemoveFromClassList("hovered");
+                }
             }
         }
 

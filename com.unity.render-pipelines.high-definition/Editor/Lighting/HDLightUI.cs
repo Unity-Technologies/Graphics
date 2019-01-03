@@ -138,6 +138,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             CED.Conditional((serialized, owner) => GetAdvanced(Advanceable.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
                                 CED.Group(GroupOption.Indent, DrawShadowMapAdvancedContent)),
                             CED.space,
+                            // Very High setting
+                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.VeryHigh, serialized, owner),
+                                CED.FoldoutGroup(s_Styles.veryHighShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawVeryHighShadowSettingsContent)),
+                            // High setting
                             CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.High, serialized, owner),
                                 CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                             CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.Medium, serialized, owner),
@@ -723,6 +727,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(serialized.serializedLightData.blockerSampleCount, s_Styles.blockerSampleCount);
             EditorGUILayout.PropertyField(serialized.serializedLightData.filterSampleCount, s_Styles.filterSampleCount);
             EditorGUILayout.PropertyField(serialized.serializedLightData.minFilterSize, s_Styles.minFilterSize);
+        }
+
+        static void DrawVeryHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.serializedLightData.kernelSize, s_Styles.kernelSize);
+            EditorGUILayout.PropertyField(serialized.serializedLightData.lightAngle, s_Styles.lightAngle);
+            EditorGUILayout.PropertyField(serialized.serializedLightData.maxDepthBias, s_Styles.maxDepthBias);
         }
     }
 }

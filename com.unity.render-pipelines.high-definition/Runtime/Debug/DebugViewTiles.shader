@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DebugViewTiles"
+Shader "Hidden/HDRP/DebugViewTiles"
 {
     SubShader
     {

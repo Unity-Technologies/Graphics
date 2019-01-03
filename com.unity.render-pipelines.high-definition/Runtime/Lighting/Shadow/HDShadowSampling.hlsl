@@ -282,3 +282,7 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     //3) Filter
     return PCSS(tcs, filterSize, scale, offset, sampleBias, sampleJitter, tex, compSamp, filterSampleCount);
 }
+
+#ifdef SHADOW_VERY_HIGH
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDIMS.hlsl"
+#endif

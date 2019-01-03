@@ -163,6 +163,7 @@ real D_GGX(real NdotH, real roughness)
 }
 
 // Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 19, 29.
+// p. 84 (37/60)
 real G_MaskingSmithGGX(real NdotV, real roughness)
 {
     // G1(V, H)    = HeavisideStep(VdotH) / (1 + Λ(V)).
@@ -333,6 +334,25 @@ real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH,
     return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV,
                                  TdotL, BdotL, NdotL,
                                  roughnessT, roughnessB, partLambdaV);
+}
+
+// Get projected roughness for a certain normalized direction V in tangent space 
+// and an anisotropic roughness
+// Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, Heitz 2014, pp. 86, 88 - 39/60, 41/60
+float GetProjectedRoughness(float TdotV, float BdotV, float NdotV, float roughnessT, float roughnessB)
+{
+    float2 roughness = float2(roughnessT, roughnessB);
+    float sinTheta2 = max((1 - Sq(NdotV)), FLT_MIN);
+    // if sinTheta^2 = 0, NdotV = 1, TdotV = BdotV = 0 and roughness is arbitrary, no real azimuth
+    // as there's a breakdown of the spherical parameterization, so we clamp under by FLT_MIN in any case
+    // for safe division
+    // Note:
+    //       sin(thetaV)^2 * cos(phiV)^2 = (TdotV)^2
+    //       sin(thetaV)^2 * sin(phiV)^2 = (BdotV)^2
+    float2 vProj2 = Sq(float2(TdotV, BdotV)) * rcp(sinTheta2);
+    //       vProj2 = (cos^2(phi), sin^2(phi))
+    float projRoughness = sqrt(dot(vProj2, roughness*roughness));
+    return projRoughness;
 }
 
 //-----------------------------------------------------------------------------

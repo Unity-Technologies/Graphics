@@ -79,7 +79,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected bool m_IgnoreNotification;
 
-        public abstract bool HasFocus();
+        public abstract bool hasFocus { get; }
         public void OnValueChanged(EventCallback<ChangeEvent<T>> callback)
         {
             RegisterCallback(callback);
@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.UIElements
         {
             m_IgnoreNotification = true;
             m_Value = newValue;
-            if (!(m_Field as VisualElement).HasFocus())
+            if (!hasFocus)
                 m_Field.value = newValue;
             m_Slider.value = ValueToFloat(value);
             m_IgnoreNotification = false;
@@ -148,9 +148,9 @@ namespace UnityEditor.VFX.UIElements
         VisualElement m_IndeterminateLabel;
         FloatField m_FloatField;
 
-        public override bool HasFocus()
+        public override bool hasFocus
         {
-            return (m_Field as FloatField).HasFocus();
+            get { return (m_Field as FloatField).HasFocus(); }
         }
 
         protected override float ValueToFloat(float value)
@@ -205,9 +205,9 @@ namespace UnityEditor.VFX.UIElements
             RegisterCallBack();
         }
 
-        public override bool HasFocus()
+        public override bool hasFocus
         {
-            return (m_Field as IntegerField).HasFocus();
+            get {return (m_Field as IntegerField).HasFocus(); }
         }
 
         protected override float ValueToFloat(int value)
@@ -238,9 +238,9 @@ namespace UnityEditor.VFX.UIElements
             RegisterCallBack();
         }
 
-        public override bool HasFocus()
+        public override bool hasFocus
         {
-            return (m_Field as LongField).HasFocus();
+            get { return (m_Field as LongField).HasFocus(); }
         }
 
         protected override float ValueToFloat(long value)

@@ -268,17 +268,17 @@ VisualEffectResource:
         m_Array:
         - m_ExpressionIndex: 1
           m_Value:
-            e00: 0
+            e00: 1
             e01: 0
             e02: 0
             e03: 0
             e10: 0
-            e11: 0
+            e11: 1
             e12: 0
             e13: 0
             e20: 0
             e21: 0
-            e22: 0
+            e22: 1
             e23: 0
             e30: 0
             e31: 0
@@ -317,7 +317,7 @@ VisualEffectResource:
     - name: OnStop
       playSystems: 
       stopSystems: 
-    m_RuntimeVersion: 7
+    m_RuntimeVersion: 8
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 0
@@ -373,7 +373,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614533}
   - {fileID: 8926484042661614537}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 8926484042661614528}
   m_MasterData:
@@ -382,7 +382,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.Transform, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: 
+      m_SerializableObject: '{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}'
     m_Space: 0
   m_Property:
     name: transform

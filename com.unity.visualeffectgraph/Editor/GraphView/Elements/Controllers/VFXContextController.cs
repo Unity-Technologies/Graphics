@@ -153,17 +153,7 @@ namespace UnityEditor.VFX.UI
         public void RemoveBlock(VFXBlock block)
         {
             model.RemoveChild(block);
-
-            VFXSlot slotToClean = null;
-            do
-            {
-                slotToClean = block.inputSlots.Concat(block.outputSlots).FirstOrDefault(o => o.HasLink(true));
-                if (slotToClean)
-                {
-                    slotToClean.UnlinkAll(true, true);
-                }
-            }
-            while (slotToClean != null);
+            VFXModel.UnlinkModel(model);
         }
 
         public int FindBlockIndexOf(VFXBlockController controller)

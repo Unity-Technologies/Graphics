@@ -73,9 +73,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ConvolutionTargetTextureArray[bsdfIdx].name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeConvolution_" + bsdfIdx.ToString(), mips: true);
                     m_ConvolutionTargetTextureArray[bsdfIdx].Create();
                 }
-
-                InitializeProbeBakingStates();
             }
+
+            InitializeProbeBakingStates();
         }
 
         void InitializeProbeBakingStates()
@@ -89,10 +89,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_TextureCache.Release();
             CoreUtils.Destroy(m_TempRenderTexture);
-            for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
+
+            if(m_ConvolutionTargetTextureArray != null)
             {
-                CoreUtils.Destroy(m_ConvolutionTargetTextureArray[bsdfIdx]);
+                for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
+                {
+                    if (m_ConvolutionTargetTextureArray[bsdfIdx] != null)
+                    {
+                        CoreUtils.Destroy(m_ConvolutionTargetTextureArray[bsdfIdx]);
+                        m_ConvolutionTargetTextureArray[bsdfIdx] = null;
+                    }
+                }
             }
+
             m_ProbeBakingState = null;
 
             CoreUtils.Destroy(m_ConvertTextureMaterial);
