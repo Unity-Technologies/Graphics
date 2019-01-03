@@ -118,19 +118,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             shadowDescriptor.dimension = TextureDimension.Tex2D;
 
             bool mainLightShadows = false;
-            //if (renderingData.shadowData.supportsMainLightShadows)
-            //{
-            //    mainLightShadows = m_MainLightShadowCasterPass.Setup(m_MainLightShadowmap, ref renderingData);
-            //    if (mainLightShadows)
-            //        renderer.EnqueuePass(m_MainLightShadowCasterPass);
-            //}
+            if (renderingData.shadowData.supportsMainLightShadows)
+            {
+                mainLightShadows = m_MainLightShadowCasterPass.Setup(m_MainLightShadowmap, ref renderingData);
+                if (mainLightShadows)
+                    renderer.EnqueuePass(m_MainLightShadowCasterPass);
+            }
 
-            //if (renderingData.shadowData.supportsAdditionalLightShadows)
-            //{
-            //    bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(m_AdditionalLightsShadowmap, ref renderingData, renderer.maxVisibleAdditionalLights);
-            //    if (additionalLightShadows)
-            //        renderer.EnqueuePass(m_AdditionalLightsShadowCasterPass);
-            //}
+            if (renderingData.shadowData.supportsAdditionalLightShadows)
+            {
+                bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(m_AdditionalLightsShadowmap, ref renderingData, renderer.maxVisibleAdditionalLights);
+                if (additionalLightShadows)
+                    renderer.EnqueuePass(m_AdditionalLightsShadowCasterPass);
+            }
 
             bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
             bool requiresDepthPrepass = resolveShadowsInScreenSpace || renderingData.cameraData.isSceneViewCamera ||
@@ -141,151 +141,151 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             renderer.EnqueuePass(m_SetupForwardRenderingPass);
 
-            //camera.GetComponents(m_AfterDepthpasses);
-            //camera.GetComponents(m_AfterOpaquePasses);
-            //camera.GetComponents(m_AfterOpaquePostProcessPasses);
-            //camera.GetComponents(m_AfterSkyboxPasses);
-            //camera.GetComponents(m_AfterTransparentPasses);
-            //camera.GetComponents(m_AfterRenderPasses);
+            camera.GetComponents(m_AfterDepthpasses);
+            camera.GetComponents(m_AfterOpaquePasses);
+            camera.GetComponents(m_AfterOpaquePostProcessPasses);
+            camera.GetComponents(m_AfterSkyboxPasses);
+            camera.GetComponents(m_AfterTransparentPasses);
+            camera.GetComponents(m_AfterRenderPasses);
 
-            //if (requiresDepthPrepass)
-            //{
-            //    m_DepthOnlyPass.Setup(baseDescriptor, m_DepthTexture, SampleCount.One);
-            //    renderer.EnqueuePass(m_DepthOnlyPass);
+            if (requiresDepthPrepass)
+            {
+                m_DepthOnlyPass.Setup(baseDescriptor, m_DepthTexture, SampleCount.One);
+                renderer.EnqueuePass(m_DepthOnlyPass);
 
-            //    foreach (var pass in m_AfterDepthpasses)
-            //        renderer.EnqueuePass(pass.GetPassToEnqueue(m_DepthOnlyPass.descriptor, m_DepthTexture));
-            //}
+                foreach (var pass in m_AfterDepthpasses)
+                    renderer.EnqueuePass(pass.GetPassToEnqueue(m_DepthOnlyPass.descriptor, m_DepthTexture));
+            }
 
-            //if (resolveShadowsInScreenSpace)
-            //{
-            //    m_ScreenSpaceShadowResolvePass.Setup(baseDescriptor, m_ScreenSpaceShadowmap);
-            //    renderer.EnqueuePass(m_ScreenSpaceShadowResolvePass);
-            //}
+            if (resolveShadowsInScreenSpace)
+            {
+                m_ScreenSpaceShadowResolvePass.Setup(baseDescriptor, m_ScreenSpaceShadowmap);
+                renderer.EnqueuePass(m_ScreenSpaceShadowResolvePass);
+            }
 
-            //bool requiresRenderToTexture = RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor)
-            //        || m_AfterDepthpasses.Count != 0
-            //        || m_AfterOpaquePasses.Count != 0
-            //        || m_AfterOpaquePostProcessPasses.Count != 0
-            //        || m_AfterSkyboxPasses.Count != 0
-            //        || m_AfterTransparentPasses.Count != 0
-            //        || m_AfterRenderPasses.Count != 0;
+            bool requiresRenderToTexture = RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor)
+                    || m_AfterDepthpasses.Count != 0
+                    || m_AfterOpaquePasses.Count != 0
+                    || m_AfterOpaquePostProcessPasses.Count != 0
+                    || m_AfterSkyboxPasses.Count != 0
+                    || m_AfterTransparentPasses.Count != 0
+                    || m_AfterRenderPasses.Count != 0;
 
-            //RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
-            //RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
+            RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
+            RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
 
 
-            //var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
-            //if (requiresRenderToTexture)
-            //{
-            //    colorHandle = m_ColorAttachment;
-            //    depthHandle = m_DepthAttachment;
+            var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
+            if (requiresRenderToTexture)
+            {
+                colorHandle = m_ColorAttachment;
+                depthHandle = m_DepthAttachment;
 
-            //    m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
-            //    renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
-            //}
+                m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
+                renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
+            }
 
-            //if (renderingData.cameraData.isStereoEnabled)
-            //    renderer.EnqueuePass(m_BeginXrRenderingPass);
+            if (renderingData.cameraData.isStereoEnabled)
+                renderer.EnqueuePass(m_BeginXrRenderingPass);
 
-            //var rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
+            var rendererConfiguration = ScriptableRenderer.GetRendererConfiguration(renderingData.lightData.additionalLightsCount);
 
-            //m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
-            //renderer.EnqueuePass(m_SetupLightweightConstants);
+            m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
+            renderer.EnqueuePass(m_SetupLightweightConstants);
 
-            //m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, rendererConfiguration);
-            //renderer.EnqueuePass(m_RenderOpaqueForwardPass);
-            //foreach (var pass in m_AfterOpaquePasses)
-            //    renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
+            m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, rendererConfiguration);
+            renderer.EnqueuePass(m_RenderOpaqueForwardPass);
+            foreach (var pass in m_AfterOpaquePasses)
+                renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
 
-            //if (renderingData.cameraData.postProcessEnabled &&
-            //    renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessingContext))
-            //{
-            //    m_CreatePostOpaqueColorPass.Setup(baseDescriptor, m_ColorAttachmentAfterOpaquePost, sampleCount);
-            //    renderer.EnqueuePass(m_CreatePostOpaqueColorPass);
-            //    m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle, m_ColorAttachmentAfterOpaquePost, true, false);
-            //    renderer.EnqueuePass(m_OpaquePostProcessPass);
+            if (renderingData.cameraData.postProcessEnabled &&
+                renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessingContext))
+            {
+                m_CreatePostOpaqueColorPass.Setup(baseDescriptor, m_ColorAttachmentAfterOpaquePost, sampleCount);
+                renderer.EnqueuePass(m_CreatePostOpaqueColorPass);
+                m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle, m_ColorAttachmentAfterOpaquePost, true, false);
+                renderer.EnqueuePass(m_OpaquePostProcessPass);
 
-            //    colorHandle = m_ColorAttachmentAfterOpaquePost;
+                colorHandle = m_ColorAttachmentAfterOpaquePost;
 
-            //    foreach (var pass in m_AfterOpaquePostProcessPasses)
-            //        renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
-            //}
+                foreach (var pass in m_AfterOpaquePostProcessPasses)
+                    renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
+            }
 
-            //if (camera.clearFlags == CameraClearFlags.Skybox)
-            //{
-            //    m_DrawSkyboxPass.Setup(colorHandle, depthHandle);
-            //    renderer.EnqueuePass(m_DrawSkyboxPass);
-            //}
+            if (camera.clearFlags == CameraClearFlags.Skybox)
+            {
+                m_DrawSkyboxPass.Setup(colorHandle, depthHandle);
+                renderer.EnqueuePass(m_DrawSkyboxPass);
+            }
 
-            //foreach (var pass in m_AfterSkyboxPasses)
-            //    renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
+            foreach (var pass in m_AfterSkyboxPasses)
+                renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
 
-            //if (renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass)
-            //{
-            //    m_CopyDepthPass.Setup(depthHandle, m_DepthTexture);
-            //    renderer.EnqueuePass(m_CopyDepthPass);
-            //}
+            if (renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass)
+            {
+                m_CopyDepthPass.Setup(depthHandle, m_DepthTexture);
+                renderer.EnqueuePass(m_CopyDepthPass);
+            }
 
-            //if (renderingData.cameraData.requiresOpaqueTexture)
-            //{
-            //    m_CopyColorPass.Setup(colorHandle, m_OpaqueColor);
-            //    renderer.EnqueuePass(m_CopyColorPass);
-            //}
+            if (renderingData.cameraData.requiresOpaqueTexture)
+            {
+                m_CopyColorPass.Setup(colorHandle, m_OpaqueColor);
+                renderer.EnqueuePass(m_CopyColorPass);
+            }
 
-            //m_RenderTransparentForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, rendererConfiguration);
-            //renderer.EnqueuePass(m_RenderTransparentForwardPass);
+            m_RenderTransparentForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, rendererConfiguration);
+            renderer.EnqueuePass(m_RenderTransparentForwardPass);
 
-            //foreach (var pass in m_AfterTransparentPasses)
-            //    renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
+            foreach (var pass in m_AfterTransparentPasses)
+                renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
 
-            //bool afterRenderExists = m_AfterRenderPasses.Count != 0;
+            bool afterRenderExists = m_AfterRenderPasses.Count != 0;
 
-            //// if we have additional filters
-            //// we need to stay in a RT
-            //if (afterRenderExists)
-            //{
-            //    // perform post with src / dest the same
-            //    if (!renderingData.cameraData.isStereoEnabled && renderingData.cameraData.postProcessEnabled)
-            //    {
-            //        m_CreatePostTransparentColorPass.Setup(baseDescriptor, m_ColorAttachmentAfterTransparentPost, sampleCount);
-            //        renderer.EnqueuePass(m_CreatePostTransparentColorPass);
+            // if we have additional filters
+            // we need to stay in a RT
+            if (afterRenderExists)
+            {
+                // perform post with src / dest the same
+                if (!renderingData.cameraData.isStereoEnabled && renderingData.cameraData.postProcessEnabled)
+                {
+                    m_CreatePostTransparentColorPass.Setup(baseDescriptor, m_ColorAttachmentAfterTransparentPost, sampleCount);
+                    renderer.EnqueuePass(m_CreatePostTransparentColorPass);
 
-            //        m_PostProcessPass.Setup(baseDescriptor, colorHandle, m_ColorAttachmentAfterTransparentPost, false, false);
-            //        renderer.EnqueuePass(m_PostProcessPass);
+                    m_PostProcessPass.Setup(baseDescriptor, colorHandle, m_ColorAttachmentAfterTransparentPost, false, false);
+                    renderer.EnqueuePass(m_PostProcessPass);
 
-            //        colorHandle = m_ColorAttachmentAfterTransparentPost;
-            //    }
+                    colorHandle = m_ColorAttachmentAfterTransparentPost;
+                }
 
-            //    //execute after passes
-            //    foreach (var pass in m_AfterRenderPasses)
-            //        renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
+                //execute after passes
+                foreach (var pass in m_AfterRenderPasses)
+                    renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
 
-            //    //now blit into the final target
-            //    if (colorHandle != RenderTargetHandle.CameraTarget)
-            //    {
-            //        m_FinalBlitPass.Setup(baseDescriptor, colorHandle);
-            //        renderer.EnqueuePass(m_FinalBlitPass);
-            //    }
-            //}
-            //else
-            //{
-            //    if (!renderingData.cameraData.isStereoEnabled && renderingData.cameraData.postProcessEnabled)
-            //    {
-            //        m_PostProcessPass.Setup(baseDescriptor, colorHandle, RenderTargetHandle.CameraTarget, false, (!renderingData.cameraData.isStereoEnabled && renderingData.cameraData.camera.targetTexture == null));
-            //        renderer.EnqueuePass(m_PostProcessPass);
-            //    }
-            //    else if (colorHandle != RenderTargetHandle.CameraTarget)
-            //    {
-            //        m_FinalBlitPass.Setup(baseDescriptor, colorHandle);
-            //        renderer.EnqueuePass(m_FinalBlitPass);
-            //    }
-            //}
+                //now blit into the final target
+                if (colorHandle != RenderTargetHandle.CameraTarget)
+                {
+                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle);
+                    renderer.EnqueuePass(m_FinalBlitPass);
+                }
+            }
+            else
+            {
+                if (!renderingData.cameraData.isStereoEnabled && renderingData.cameraData.postProcessEnabled)
+                {
+                    m_PostProcessPass.Setup(baseDescriptor, colorHandle, RenderTargetHandle.CameraTarget, false, (!renderingData.cameraData.isStereoEnabled && renderingData.cameraData.camera.targetTexture == null));
+                    renderer.EnqueuePass(m_PostProcessPass);
+                }
+                else if (colorHandle != RenderTargetHandle.CameraTarget)
+                {
+                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle);
+                    renderer.EnqueuePass(m_FinalBlitPass);
+                }
+            }
 
-            //if (renderingData.cameraData.isStereoEnabled)
-            //{
-            //    renderer.EnqueuePass(m_EndXrRenderingPass);
-            //}
+            if (renderingData.cameraData.isStereoEnabled)
+            {
+                renderer.EnqueuePass(m_EndXrRenderingPass);
+            }
 
 #if UNITY_EDITOR
             if (renderingData.cameraData.isSceneViewCamera)
