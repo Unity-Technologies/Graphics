@@ -16,32 +16,31 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [Tooltip("If enabled opaque color texture will render for this camera and bound as _CameraOpaqueTexture.")]
         [FormerlySerializedAs("requiresColorTexture"), SerializeField] bool m_RequiresColorTexture = false;
 
-        [SerializeField] private LightweightRendererSetup m_RendererSetup = null;
-
         [HideInInspector]
         [SerializeField]
         float m_Version = 1;
 
-        public float version => m_Version;
+        public float version
+        {
+            get { return m_Version; }
+        }
 
         public bool renderShadows
         {
-            get => m_RenderShadows;
-            set => m_RenderShadows = value;
+            get { return m_RenderShadows; }
+            set { m_RenderShadows = value; }
         }
 
         public bool requiresDepthTexture
         {
-            get => m_RequiresDepthTexture;
-            set => m_RequiresDepthTexture = value;
+            get { return m_RequiresDepthTexture; }
+            set { m_RequiresDepthTexture = value; }
         }
 
         public bool requiresColorTexture
         {
-            get => m_RequiresColorTexture;
-            set => m_RequiresColorTexture = value;
+            get { return m_RequiresColorTexture; }
+            set { m_RequiresColorTexture = value; }
         }
-
-        public IRendererSetup rendererSetup => m_RendererSetup;
     }
 }

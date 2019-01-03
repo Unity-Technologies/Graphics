@@ -35,11 +35,14 @@ MonoBehaviour:
   m_SoftShadowsSupported: 1
   m_SupportsDynamicBatching: 1
   m_MixedLightingSupported: 1
+  m_SavedXRConfig:
+    renderScale: 1
+    viewportScale: 1
+    useOcclusionMesh: 1
+    occlusionMeshScale: 1
   m_ShadowType: 0
   m_LocalShadowsSupported: 1
   m_LocalShadowsAtlasResolution: 512
   m_MaxPixelLights: 4
   m_ShadowAtlasResolution: 2048
   m_ResourcesAsset: {fileID: 11400000, guid: aac5a08c32552a14c89394b703f1978a, type: 2}
-  m_ShaderVariantLogLevel: 0
-  m_RendererSetup: {fileID: 0}
