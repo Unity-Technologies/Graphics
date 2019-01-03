@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [SerializeField]
         private BlendingModes m_ShapeLightBlending = BlendingModes.Additive;
-        private BlendingModes m_PreviousShapeLightBlending = BlendingModes.Additive;
+        //private BlendingModes m_PreviousShapeLightBlending = BlendingModes.Additive;
 
         public float LightVolumeOpacity
         {

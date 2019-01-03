@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering.LWRP;
+using UnityEngine.Experimental.Rendering.LWRP;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
