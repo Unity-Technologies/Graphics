@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static class Styles
         {
-            public static string InputsText = "Inputs";
+            public static string InputsText = "Surface Inputs";
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // SVBRDF Parameters
@@ -492,7 +492,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override bool ShouldEmissionBeEnabled(Material _material)
         {
-            return false;//_material.GetFloat(kEmissiveIntensity) > 0.0f;
+            return false;
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material _material)

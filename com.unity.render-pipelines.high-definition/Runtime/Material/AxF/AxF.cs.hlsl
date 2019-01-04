@@ -22,6 +22,7 @@
 #define DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_NORMAL (1212)
 #define DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_IOR (1213)
 #define DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL (1214)
+#define DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1215)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.AxF+BSDFData:  static fields
@@ -40,7 +41,8 @@
 #define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_COLOR (1261)
 #define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_NORMAL_WS (1262)
 #define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_IOR (1263)
-#define DEBUGVIEW_AXF_BSDFDATA_GEOM_NORMAL_WS (1264)
+#define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL (1264)
+#define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1265)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.AxF+SurfaceData
 // PackingRules = Exact
@@ -136,6 +138,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL:
             result = surfacedata.geomNormalWS * 0.5 + 0.5;
             break;
+        case DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = surfacedata.geomNormalWS * 0.5 + 0.5;
+            break;
     }
 }
 
@@ -188,8 +193,11 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_IOR:
             result = bsdfdata.clearcoatIOR.xxx;
             break;
-        case DEBUGVIEW_AXF_BSDFDATA_GEOM_NORMAL_WS:
-            result = bsdfdata.geomNormalWS;
+        case DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL:
+            result = bsdfdata.geomNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = bsdfdata.geomNormalWS * 0.5 + 0.5;
             break;
     }
 }
