@@ -309,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
             desc.enableRandomWrite = false;
-            desc.sRGB = true;
+            desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             desc.msaaSamples = cameraData.msaaSamples;
             desc.depthBufferBits = 32;
             desc.bindMS = false;

@@ -9,7 +9,7 @@ MultiFloatControlView {
 MultiFloatControlView > #dummy > Label {
     margin-left: 0;
     margin-right: 0;
-    cursor: slide-arrow;
+    text-alignment: middle-left;
 }
 
 
@@ -18,9 +18,16 @@ MultiFloatControlView > #dummy > Label {
     flex-grow: 1;
     margin-top: 1;
     margin-bottom: 1;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .unity-base-field__input{
     margin-left: 0;
     margin-right: 0;
+    text-alignment: middle-left;
 }
