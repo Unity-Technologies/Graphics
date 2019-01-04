@@ -96,6 +96,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bakingSky.bakingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
         }
 
+#if ENABLE_RAYTRACING
+        [MenuItem("GameObject/Rendering/Raytracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
+        static void CreateRaytracingEnvironmentGameObject(MenuCommand menuCommand)
+        {
+            var parent = menuCommand.context as GameObject;
+            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Raytracing Environment");
+            raytracingEnvGameObject.AddComponent<HDRaytracingEnvironment>();
+        }
+#endif
+
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
         {
             public override void Action(int instanceId, string pathName, string resourceFile)

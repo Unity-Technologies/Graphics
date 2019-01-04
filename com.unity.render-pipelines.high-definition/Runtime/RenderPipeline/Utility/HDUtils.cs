@@ -585,5 +585,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return true;
         }
+
+        public static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
+        {
+            // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
+            float distanceFadeNear = 0.9f * fadeDistance;
+            scale = 1.0f / (fadeDistance - distanceFadeNear);
+            bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
+        }
+        public static float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
+        {
+            float scale;
+            float bias;
+            GetScaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
+
+            return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
+        }
     }
 }

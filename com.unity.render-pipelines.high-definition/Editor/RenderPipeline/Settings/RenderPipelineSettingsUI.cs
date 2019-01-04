@@ -37,6 +37,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_SupportTransparentBackface = EditorGUIUtility.TrTextContent("Transparent Backface", "Remove all Transparent backface shader variants only in the player. Allow faster build.");
         static readonly GUIContent k_SupportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "Remove all Transparent Depth Prepass shader variants only in the player. Allow faster build.");
         static readonly GUIContent k_SupportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "Remove all Transparent Depth Postpass shader variants only in the player. Allow faster build.");
+        static readonly GUIContent k_SupportRaytracing = EditorGUIUtility.TrTextContent("Support Realtime Raytracing");
+        static readonly GUIContent k_EditorRaytracingFilterLayerMask = EditorGUIUtility.TrTextContent("Raytracing Filter Layer Mask for SceneView and Preview");
 
         static RenderPipelineSettingsUI()
         {
@@ -118,7 +120,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 #if REALTIME_RAYTRACING_SUPPORT
             if(UnityEngine.SystemInfo.supportsRayTracing)
             {
-                EditorGUILayout.PropertyField(d.supportRayTracing, _.GetContent("Support Realtime Raytracing."));
+                EditorGUILayout.PropertyField(d.supportRayTracing, k_SupportRaytracing);
+                using (new EditorGUI.DisabledScope(!d.supportRayTracing.boolValue))
+                {
+                    ++EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(d.editorRaytracingFilterLayerMask, k_EditorRaytracingFilterLayerMask);
+                    --EditorGUI.indentLevel;
+                }
             }
             else
 #endif

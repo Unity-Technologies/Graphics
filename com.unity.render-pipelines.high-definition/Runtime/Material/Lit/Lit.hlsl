@@ -1517,6 +1517,15 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     }
 
+#ifdef ENABLE_RAYTRACING
+    if(_RaytracedAreaShadow == 1 && lightData.shadowIndex != -1)
+    {
+        float4 areaShadow = LOAD_TEXTURE2D_ARRAY(_AreaShadowTexture, posInput.positionSS, lightData.shadowIndex);
+        lighting.diffuse *= areaShadow.xyz;
+        lighting.specular *= areaShadow.xyz;
+    }
+#endif
+
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
     return lighting;

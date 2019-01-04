@@ -72,6 +72,8 @@
 
 //#pragma enable_d3d11_debug_symbols
 
+//#define ENABLE_RAYTRACING
+
 //-------------------------------------------------------------------------------------
 // Include
 //-------------------------------------------------------------------------------------
@@ -118,6 +120,10 @@ RWTexture2D<float4> specularLightingUAV;
 
 CBUFFER_START(UnityDeferredCompute)
     uint g_TileListOffset;
+    #ifdef ENABLE_RAYTRACING
+    // Uniform variables that defines if we shall be using the shadow area texture or not
+    int _RaytracedAreaShadow;
+    #endif
 CBUFFER_END
 
 #ifdef USE_INDIRECT

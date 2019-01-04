@@ -1,0 +1,86 @@
+#pragma kernel AreaBillateralShadow
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition\Runtime\ShaderLibrary\ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+// Tile size of this compute
+#define AREA_BILLATERAL_TILE_SIZE 8
+
+// Input integration textures
+RWTexture2D<float4>     _SNTextureUAV;
+RWTexture2D<float4>     _UNTextureUAV;
+
+// ScreenSpace buffers
+Texture2D<float>						_DepthTexture;
+
+// Filter parameters
+int                 _DenoiseRadius;
+float               _GaussianSigma;
+
+// Output texture data
+int                             _ShadowSlot;
+RWTexture2DArray<float4>        _DSNDUNUAV;
+
+float square(float value)
+{
+	return value * value;
+}
+
+float3 ReadNormalValue(uint2 positionSS)
+{
+    NormalData normalData;
+    float4 normalBuffer  = _NormalBufferTexture[positionSS];
+    DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
+    return normalData.normalWS;
+}
+
+float ReadDepthValue(uint2 positionSS)
+{
+    float hitDeviceDepth = LOAD_TEXTURE2D(_DepthTexture, positionSS).r;
+    return LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
+}
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaBillateralShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+	// Fetch the current pixel coordinate
+	uint2 currentPixelCoordinate = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    // Read the central pixel values
+    float depthValue  = ReadDepthValue(currentPixelCoordinate);
+	float3 normalValue  = ReadNormalValue(currentPixelCoordinate);
+
+    float3 denoisedSN = float3(0.0f, 0.0f, 0.0f);
+    float3 denoisedUN = float3(0.0f, 0.0f, 0.0f);
+    int totalWeight = 0;
+
+    for(int i = -_DenoiseRadius; i < _DenoiseRadius; ++i)
+    {
+    	for(int j = -_DenoiseRadius; j < _DenoiseRadius; ++j)
+    	{
+            // Compute the pixel coordinate candidate position
+    		uint2 pixelpos = uint2(currentPixelCoordinate.x + i, currentPixelCoordinate.y + j);
+
+            // Sample values for the current pixel
+    		float sampleDepth = ReadDepthValue(pixelpos);
+            float3 sampleNormal = ReadNormalValue(pixelpos);
+
+
+            // Evaluate the validity of the pixel
+            bool sampleValid  = abs(sampleDepth - depthValue) < 0.1f && dot(normalValue, sampleNormal) > 0.99;
+
+            if(sampleValid)
+            {
+                float actualRadius = sqrt(float(i * i + j * j));
+                float gaussian = sampleValid ? exp(-square(actualRadius / _GaussianSigma)) : 0.0f;
+                denoisedSN += _SNTextureUAV[pixelpos].xyz * gaussian;
+                denoisedUN += _UNTextureUAV[pixelpos].xyz * gaussian;
+            }
+    	}
+    }
+
+    // Return the right color
+    _DSNDUNUAV[uint3(currentPixelCoordinate, _ShadowSlot)] = float4(clamp(denoisedSN / denoisedUN, 0.0, 1.0), 1.0f);
+}

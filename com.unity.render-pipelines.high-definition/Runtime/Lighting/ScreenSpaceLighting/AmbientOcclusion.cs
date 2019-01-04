@@ -194,8 +194,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager)
         {
-            Dispatch(cmd, camera, sharedRTManager);
-            PostDispatchWork(cmd, camera, sharedRTManager);
+
+#if ENABLE_RAYTRACING
+            HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
+            if (m_Asset.renderPipelineSettings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedAO)
+            {
+                if (!IsActive(camera, settings))
+                {
+                    // No AO applied - neutral is black, see the comment in the shaders
+                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, Texture2D.blackTexture);
+                    cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
+                    return;
+                }
+
+                m_RaytracingAmbientOcclusion.RenderAO(hdCamera, cmd, m_AmbientOcclusionBuffer, renderContext);
+                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionBuffer);
+                cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
+
+                // TODO: All the pushdebug stuff should be centralized somewhere
+                (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_AmbientOcclusionBuffer, FullScreenDebugMode.SSAO);
+            }
+            else
+#endif
+            {
+                Dispatch(cmd, camera, sharedRTManager);
+                PostDispatchWork(cmd, camera, sharedRTManager);
+            }
         }
 
         public void Dispatch(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager)

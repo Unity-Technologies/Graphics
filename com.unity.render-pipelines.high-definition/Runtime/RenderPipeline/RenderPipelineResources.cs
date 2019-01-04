@@ -122,6 +122,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader bloomBlurCS;
             public ComputeShader bloomUpsampleCS;
             public Shader finalPassPS;
+
+#if ENABLE_RAYTRACING
+            // Raytracing shaders
+            public RaytracingShader aoRaytracing;
+            public RaytracingShader reflectionRaytracing;
+            public RaytracingShader shadowsRaytracing;
+            public ComputeShader areaBillateralFilterCS;
+            public ComputeShader reflectionBilateralFilterCS;
+            public ComputeShader lightClusterBuildCS;
+            public ComputeShader lightClusterDebugCS;
+#endif
         }
 
         [Serializable]
@@ -147,6 +158,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Post-processing
             public Texture2D[] filmGrainTex;
+            
+#if ENABLE_RAYTRACING
+            // Raytracing noise
+            public Texture2D rgNoiseTex0;
+            public Texture2D rgNoiseTex1;
+            public Texture2D rgNoiseTex2;
+            public Texture2D rgNoiseTex3;
+            public Texture2D rgNoiseTex4;
+            public Texture2D rgNoiseTex5;
+            public Texture2D rgNoiseTex6;
+            public Texture2D rgNoiseTex7;
+#endif
         }
 
         [Serializable]

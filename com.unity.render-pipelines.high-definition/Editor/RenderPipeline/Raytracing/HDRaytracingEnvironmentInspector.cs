@@ -1,0 +1,187 @@
+using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
+
+namespace UnityEditor.Experimental.Rendering.HDPipeline
+{
+    using CED = CoreEditorDrawer<SerializedHDRaytracingEnvironment>;
+
+    [CustomEditor(typeof(HDRaytracingEnvironment))]
+    public class HDRaytracingEnvironmentInspector : Editor
+    {
+#if ENABLE_RAYTRACING
+        protected static class Styles
+        {
+            // Generic 
+            public static readonly GUIContent genericSectionText = EditorGUIUtility.TrTextContent("Generic Attributes");
+            public static readonly GUIContent rayBiasText = EditorGUIUtility.TrTextContent("Ray Bias");
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////
+            // Ambient Occlusion
+            public static readonly GUIContent aoSectionText = EditorGUIUtility.TrTextContent("Ray-traced Ambient Occlusion");
+            public static readonly GUIContent aoEnableText = EditorGUIUtility.TrTextContent("Enable");
+            public static readonly GUIContent aoRayLengthText = EditorGUIUtility.TrTextContent("Max AO Ray Length");
+            public static readonly GUIContent aoNumSamplesText = EditorGUIUtility.TrTextContent("AO Num Samples");
+            public static readonly GUIContent aoFilterModeText = EditorGUIUtility.TrTextContent("AO Filter Mode");
+
+            // AO Bilateral Filter Data
+            public static GUIContent aoBilateralRadius = new GUIContent("AO Bilateral Radius");
+            public static GUIContent aoBilateralSigma = new GUIContent("AO Bilateral Sigma");
+
+            // Nvidia Filter Data
+            public static GUIContent aoNvidiaMaxFilterWidth = new GUIContent("AO Nvidia Max Filter Width");
+            public static GUIContent aoNvidiaFilterRadius = new GUIContent("AO Nvidia Filter Radius");
+            public static GUIContent aoNvidiaNormalSharpness = new GUIContent("AO Nvidia Normal Sharpness");
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////
+            // Reflections
+            public static GUIContent reflSectionText = new GUIContent("Ray-traced Reflections");
+            public static GUIContent reflEnableText = new GUIContent("Enable");
+            public static GUIContent reflRayLengthText = new GUIContent("Max Reflections Ray Length");
+            public static GUIContent reflNumSamplesText = new GUIContent("Reflections Num Samples");
+            public static GUIContent reflFilterModeText = new GUIContent("Reflections Filter Mode");
+
+            // Reflections Bilateral Filter Data
+            public static GUIContent reflBilateralRadius = new GUIContent("Reflections Bilateral Radius");
+            public static GUIContent reflBilateralSigma = new GUIContent("Reflections Bilateral Sigma");
+            /////////////////////////////////////////////////////////////////////////////////////////////////
+            // Area Light Shadow
+            public static GUIContent shadowSectionText = new GUIContent("Ray-traced Shadows");
+            public static GUIContent shadowBilateralRadius = new GUIContent("Shadows Bilateral Radius");
+            public static GUIContent shadowNumSamplesText = new GUIContent("Shadows Num Samples");
+
+            // Shadow Bilateral Filter Data
+            public static GUIContent numAreaLightShadows = new GUIContent("Max Num Shadows");
+            public static GUIContent shadowBilateralSigma = new GUIContent("Shadows Bilateral Sigma");
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////
+            // Light Cluster
+            public static readonly GUIContent lightClusterSectionText = EditorGUIUtility.TrTextContent("Light Cluster");
+            public static GUIContent maxNumLightsText = new GUIContent("Cluster Cell Max Lights");
+            public static GUIContent cameraClusterRangeText = new GUIContent("Cluster Range");
+        }
+
+        SerializedHDRaytracingEnvironment m_SerializedHDRaytracingEnvironment;
+
+        static readonly CED.IDrawer Inspector;
+
+        enum Expandable
+        {
+            Generic = 1 << 0,
+            AmbientOcclusion = 1 << 1,
+            Reflection = 1 << 2,
+            LightCluster = 1 << 3,
+            AreaShadow = 1 << 4
+        }
+        static ExpandedState<Expandable, HDRaytracingEnvironment> k_ExpandedState;
+
+        static HDRaytracingEnvironmentInspector()
+        {
+            Inspector = CED.Group(CED.FoldoutGroup(Styles.genericSectionText, Expandable.Generic, k_ExpandedState, GenericSubMenu),
+                        CED.FoldoutGroup(Styles.aoSectionText, Expandable.AmbientOcclusion, k_ExpandedState, AmbientOcclusionSubMenu),
+                        CED.FoldoutGroup(Styles.reflSectionText, Expandable.Reflection, k_ExpandedState, ReflectionsSubMenu),
+                        CED.FoldoutGroup(Styles.shadowSectionText, Expandable.AreaShadow, k_ExpandedState, AreaShadowSubMenu),
+                        CED.FoldoutGroup(Styles.lightClusterSectionText, Expandable.LightCluster, k_ExpandedState, LightClusterSubMenu));
+        }
+        static void GenericSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
+        {
+            // AO Specific fields
+            EditorGUILayout.PropertyField(rtEnv.rayBias, Styles.rayBiasText);
+        }
+
+        static void AmbientOcclusionSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
+        {
+            // AO Specific fields
+            EditorGUILayout.PropertyField(rtEnv.raytracedAO, Styles.aoEnableText);
+
+            if(rtEnv.raytracedAO.boolValue)
+            {
+                EditorGUI.indentLevel++;
+
+                EditorGUILayout.IntSlider(rtEnv.aoNumSamples, 1, 32, Styles.aoNumSamplesText);
+                EditorGUILayout.PropertyField(rtEnv.aoRayLength, Styles.aoRayLengthText);
+                EditorGUILayout.PropertyField(rtEnv.aoFilterMode, Styles.aoFilterModeText);
+
+                EditorGUI.indentLevel++;
+                switch ((HDRaytracingEnvironment.AOFilterMode)rtEnv.aoFilterMode.enumValueIndex)
+                {
+                    case HDRaytracingEnvironment.AOFilterMode.Bilateral:
+                        {
+                            EditorGUILayout.PropertyField(rtEnv.aoBilateralRadius, Styles.aoBilateralRadius);
+                            EditorGUILayout.PropertyField(rtEnv.aoBilateralSigma, Styles.aoBilateralSigma);
+                        }
+                        break;
+                    case HDRaytracingEnvironment.AOFilterMode.Nvidia:
+                        {
+                            EditorGUILayout.PropertyField(rtEnv.maxFilterWidthInPixels, Styles.aoNvidiaMaxFilterWidth);
+                            EditorGUILayout.PropertyField(rtEnv.filterRadiusInMeters, Styles.aoNvidiaFilterRadius);
+                            EditorGUILayout.PropertyField(rtEnv.normalSharpness, Styles.aoNvidiaNormalSharpness);
+                        }
+                        break;
+                }
+                EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        static void ReflectionsSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
+        {
+            // AO Specific fields
+            EditorGUILayout.PropertyField(rtEnv.raytracedReflections, Styles.reflEnableText);
+
+            if (rtEnv.raytracedReflections.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(rtEnv.reflFilterMode, Styles.reflFilterModeText);
+
+                EditorGUILayout.PropertyField(rtEnv.reflRayLength, Styles.reflRayLengthText);
+                EditorGUILayout.PropertyField(rtEnv.reflNumMaxSamples, Styles.reflNumSamplesText);
+
+                EditorGUI.indentLevel++;
+                switch ((HDRaytracingEnvironment.ReflectionsFilterMode)rtEnv.reflFilterMode.enumValueIndex)
+                {
+                    case HDRaytracingEnvironment.ReflectionsFilterMode.Bilateral:
+                        {
+                            EditorGUILayout.PropertyField(rtEnv.reflBilateralRadius, Styles.reflBilateralRadius);
+                            EditorGUILayout.PropertyField(rtEnv.reflBilateralSigma, Styles.reflBilateralSigma);
+                        }
+                        break;
+                }
+                EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        static void LightClusterSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
+        {
+            EditorGUILayout.PropertyField(rtEnv.maxNumLightsPercell, Styles.maxNumLightsText);
+            EditorGUILayout.PropertyField(rtEnv.cameraClusterRange, Styles.reflBilateralSigma);
+        }
+
+        static void AreaShadowSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
+        {
+            EditorGUILayout.PropertyField(rtEnv.shadowNumSamples, Styles.shadowNumSamplesText);
+            EditorGUILayout.PropertyField(rtEnv.numAreaLightShadows, Styles.numAreaLightShadows);
+            EditorGUILayout.PropertyField(rtEnv.shadowFilterRadius, Styles.shadowBilateralRadius);
+            EditorGUILayout.PropertyField(rtEnv.shadowFilterSigma, Styles.shadowBilateralSigma);
+        }
+
+        protected void OnEnable()
+        {
+            HDRaytracingEnvironment rtEnv = (HDRaytracingEnvironment)target;
+
+            // Get & automatically add additional HD data if not present
+            m_SerializedHDRaytracingEnvironment = new SerializedHDRaytracingEnvironment(rtEnv);
+
+            k_ExpandedState = new ExpandedState<Expandable, HDRaytracingEnvironment>(~(-1), "HDRP");
+
+        }
+
+        public override void OnInspectorGUI()
+        {
+            m_SerializedHDRaytracingEnvironment.Update();
+            Inspector.Draw(m_SerializedHDRaytracingEnvironment, this);
+            m_SerializedHDRaytracingEnvironment.Apply();
+        }
+#endif
+    }
+}

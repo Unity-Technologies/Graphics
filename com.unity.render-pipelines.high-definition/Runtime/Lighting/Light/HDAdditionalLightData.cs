@@ -210,6 +210,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool                m_WillRenderShadows;
         int[]               m_ShadowRequestIndices;
 
+
+        #if ENABLE_RAYTRACING
+        // Temporary index that stores the current shadow index for the light
+        public int shadowIndex;
+        #endif
+
         [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;
         HDShadowSettings    m_ShadowSettings
         {
@@ -242,7 +248,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Bounds bounds;
             float cameraDistance = Vector3.Distance(camera.transform.position, transform.position);
 
+            #if ENABLE_RAYTRACING
+            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.enableShadow && lightTypeExtent == LightTypeExtent.Punctual;
+            #else
             m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.enableShadow;
+            #endif
             m_WillRenderShadows &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadows &= m_ShadowData != null && m_ShadowData.shadowDimmer > 0;

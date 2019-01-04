@@ -83,6 +83,14 @@ Shader "Hidden/HDRP/Deferred"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
+            //#define ENABLE_RAYTRACING
+            #ifdef ENABLE_RAYTRACING
+            CBUFFER_START(UnityDeferred)
+                // Uniform variables that defines if we shall be using the shadow area texture or not
+                int _RaytracedAreaShadow;
+            CBUFFER_END
+            #endif
+
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
