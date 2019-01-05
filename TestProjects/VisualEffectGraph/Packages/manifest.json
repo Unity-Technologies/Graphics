@@ -4,7 +4,7 @@
     "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
-    "com.unity.timeline": "0.0.0-builtin",
+    "com.unity.timeline": "1.0.0",
     "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",
