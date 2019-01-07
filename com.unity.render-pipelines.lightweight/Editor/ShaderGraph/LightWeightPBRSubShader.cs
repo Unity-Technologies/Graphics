@@ -97,8 +97,9 @@ namespace UnityEditor.Rendering.LWRP
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
 
-                var shaderFiles = Directory.GetFiles(
-                    Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/ShaderLibrary"));
+                var relativePath = "Packages/com.unity.render-pipelines.lightweight/";
+                var fullPath = Path.GetFullPath(relativePath);
+                var shaderFiles = Directory.GetFiles(Path.Combine(fullPath, "ShaderLibrary")).Select(x => Path.Combine(relativePath, x.Substring(fullPath.Length)));
                 sourceAssetDependencyPaths.AddRange(shaderFiles);
             }
 
@@ -143,7 +144,7 @@ namespace UnityEditor.Rendering.LWRP
 
         static string GetTemplatePath(string templateName)
         {
-            var basePath = Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/Editor/ShaderGraph");
+            var basePath = "Packages/com.unity.render-pipelines.lightweight/Editor/ShaderGraph/";
             string templatePath = Path.Combine(basePath, templateName);
 
             if (File.Exists(templatePath))
