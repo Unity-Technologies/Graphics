@@ -7,7 +7,7 @@ Shader "Hidden/HDRP/FinalPass"
 
         #pragma multi_compile _ FXAA
         #pragma multi_compile _ GRAIN
-        
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -37,12 +37,14 @@ Shader "Hidden/HDRP/FinalPass"
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
+            float2 texcoord   : TEXCOORD0;
         };
 
         Varyings Vert(Attributes input)
         {
             Varyings output;
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+            output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
             return output;
         }
 
@@ -57,29 +59,30 @@ Shader "Hidden/HDRP/FinalPass"
             return LOAD_TEXTURE2D(_InputTexture, min(icoords + int2(idx, idy), _ScreenSize.xy - 1.0)).xyz;
         }
 
-        float3 GetColor(Varyings input, out PositionInputs posInputs)
+        float3 GetColor(Varyings input, out uint2 positionSS)
         {
-            posInputs = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+            float2 positionNDC = input.texcoord;
+            positionSS = input.texcoord * _ScreenSize.xy;
 
         #if UNITY_SINGLE_PASS_STEREO
             // TODO: This is wrong, fix me
-            posInputs.positionNDC.x = posInputs.positionNDC.x / 2.0 + unity_StereoEyeIndex * 0.5;
-            posInputs.positionSS.x = posInputs.positionSS.x / 2;
+            positionNDC.x = positionNDC.x / 2.0 + unity_StereoEyeIndex * 0.5;
+            positionSS.x = positionSS.x / 2;
         #endif
 
             // Flip logic
-            posInputs.positionSS = posInputs.positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
-            posInputs.positionNDC = posInputs.positionNDC * _UVTransform.xy + _UVTransform.zw;
+            positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
+            positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
 
-            float3 outColor = Load(posInputs.positionSS, 0, 0);
+            float3 outColor = Load(positionSS, 0, 0);
 
             #if FXAA
             {
                 // Edge detection
-                float3 rgbNW = Load(posInputs.positionSS, -1, -1);
-                float3 rgbNE = Load(posInputs.positionSS,  1, -1);
-                float3 rgbSW = Load(posInputs.positionSS, -1,  1);
-                float3 rgbSE = Load(posInputs.positionSS,  1,  1);
+                float3 rgbNW = Load(positionSS, -1, -1);
+                float3 rgbNE = Load(positionSS,  1, -1);
+                float3 rgbSW = Load(positionSS, -1,  1);
+                float3 rgbSE = Load(positionSS,  1,  1);
 
                 #if !FXAA_HDR_MAPUNMAP
                 rgbNW = saturate(rgbNW);
@@ -106,10 +109,10 @@ Shader "Hidden/HDRP/FinalPass"
                 dir = min((FXAA_SPAN_MAX).xx, max((-FXAA_SPAN_MAX).xx, dir * rcpDirMin)) * _ScreenSize.zw;
 
                 // Blur
-                float3 rgb03 = Fetch(posInputs.positionNDC, dir * (0.0 / 3.0 - 0.5));
-                float3 rgb13 = Fetch(posInputs.positionNDC, dir * (1.0 / 3.0 - 0.5));
-                float3 rgb23 = Fetch(posInputs.positionNDC, dir * (2.0 / 3.0 - 0.5));
-                float3 rgb33 = Fetch(posInputs.positionNDC, dir * (3.0 / 3.0 - 0.5));
+                float3 rgb03 = Fetch(positionNDC, dir * (0.0 / 3.0 - 0.5));
+                float3 rgb13 = Fetch(positionNDC, dir * (1.0 / 3.0 - 0.5));
+                float3 rgb23 = Fetch(positionNDC, dir * (2.0 / 3.0 - 0.5));
+                float3 rgb33 = Fetch(positionNDC, dir * (3.0 / 3.0 - 0.5));
 
                 #if FXAA_HDR_MAPUNMAP
                 rgb03 = FastTonemap(rgb03);
@@ -146,7 +149,7 @@ Shader "Hidden/HDRP/FinalPass"
             #if GRAIN
             {
                 // Grain in range [0;1] with neutral at 0.5
-                int2 icoords = (posInputs.positionSS + int2(_GrainTextureParams.zw)) % int2(_GrainTextureParams.xy);
+                int2 icoords = (positionSS + int2(_GrainTextureParams.zw)) % int2(_GrainTextureParams.xy);
                 float grain = LOAD_TEXTURE2D(_GrainTexture, icoords).w;
 
                 // Remap [-1;1]
@@ -165,19 +168,19 @@ Shader "Hidden/HDRP/FinalPass"
 
         float4 FragNoDither(Varyings input) : SV_Target0
         {
-            PositionInputs posInputs;
-            return float4(GetColor(input, posInputs), 1.0);
+            uint2 positionSS;
+            return float4(GetColor(input, positionSS), 1.0);
         }
 
         float4 FragDither(Varyings input) : SV_Target0
         {
-            PositionInputs posInputs;
-            float3 outColor = GetColor(input, posInputs);
+            uint2 positionSS;
+            float3 outColor = GetColor(input, positionSS);
 
             // sRGB 8-bit dithering
             {
                 int3 ditherParams = int3(_DitherParams);
-                int2 icoords = posInputs.positionSS % ditherParams.xy;
+                int2 icoords = positionSS % ditherParams.xy;
 
                 // Symmetric triangular distribution on [-1,1] with maximal density at 0
                 float noise = LOAD_TEXTURE2D_ARRAY(_BlueNoiseTexture, icoords, ditherParams.z).a * 2.0 - 1.0;

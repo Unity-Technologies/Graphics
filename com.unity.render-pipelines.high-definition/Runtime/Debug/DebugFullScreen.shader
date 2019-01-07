@@ -188,9 +188,14 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float cols = kGrid;
                     float2 size = _ScreenSize.xy / float2(cols, rows);
                     float body = min(size.x, size.y) / sqrt(2.0);
-                    float2 texcoord = input.positionCS.xy;
-                    float2 center = (floor(texcoord / size) + 0.5) * size;
-                    texcoord -= center;
+                    float2 positionSS = input.texcoord.xy / _ScreenToTargetScale.xy;
+                    if (ShouldFlipDebugTexture())
+                    {
+                        positionSS.y = 1.0 - positionSS.y;
+                    }
+                    positionSS *= _ScreenSize.xy;
+                    float2 center = (floor(positionSS / size) + 0.5) * size;
+                    positionSS -= center;
 
                     // Sample the center of the cell to get the current arrow vector
                     float2 arrow_coord = center * _ScreenSize.zw;
@@ -215,9 +220,9 @@ Shader "Hidden/HDRP/DebugFullScreen"
                         // Rotate the arrow according to the direction
                         mv_arrow = normalize(mv_arrow);
                         float2x2 rot = float2x2(mv_arrow.x, -mv_arrow.y, mv_arrow.y, mv_arrow.x);
-                        texcoord = mul(rot, texcoord);
+                        positionSS = mul(rot, positionSS);
 
-                        d = DrawArrow(texcoord, body, 0.25 * body, 0.5, 2.0, 1.0);
+                        d = DrawArrow(positionSS, body, 0.25 * body, 0.5, 2.0, 1.0);
                         d = 1.0 - saturate(d);
                     }
 

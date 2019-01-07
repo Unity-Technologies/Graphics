@@ -299,4 +299,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9401_MSAAForwardBoth.unity
     guid: 3355ad2efd7c699418d5a0db666d2d01
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9501_MultiViewport.unity
+    guid: ee1bdf0fe4a145549a0172f292129c20
   m_configObjects: {}

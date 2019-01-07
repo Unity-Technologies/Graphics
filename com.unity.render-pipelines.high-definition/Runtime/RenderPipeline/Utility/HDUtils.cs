@@ -108,14 +108,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Helper to help to display debug info on screen
         static float s_OverlayLineHeight = -1.0f;
-        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, float width)
+        public static void ResetOverlay()
+        {
+            s_OverlayLineHeight = -1.0f;
+        }
+
+        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
         {
             x += overlayWidth;
             s_OverlayLineHeight = Mathf.Max(overlayHeight, s_OverlayLineHeight);
             // Go to next line if it goes outside the screen.
-            if (x + overlayWidth > width)
+            if ( (x + overlayWidth - hdCamera.viewport.x) > hdCamera.actualWidth)
             {
-                x = 0;
+                x = hdCamera.viewport.x;
                 y -= s_OverlayLineHeight;
                 s_OverlayLineHeight = -1.0f;
             }
@@ -127,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // V = -(X, Y, Z), s.t. Z = 1,
             // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
             // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
-            
+
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
             float aspectRatio = screenSize.x * screenSize.w;
 
@@ -295,6 +300,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             BlitTexture(cmd, source, destination, camera.viewportScale, mipLevel, bilinear);
         }
 
+
         // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
         public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
         {
@@ -311,16 +317,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // This particular case is for blitting a camera-scaled texture into a non scaling texture. So we setup the full viewport (implicit in cmd.Blit) but have to scale the input UVs.
-        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination, bool flip = false)
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination, bool flip)
         {
-            var scale = new Vector2(camera.viewportScale.x, camera.viewportScale.y);
+            var scaleBias = new Vector4(camera.viewportScale.x, camera.viewportScale.y, 0.0f, 0.0f);
             var offset = Vector2.zero;
+
             if (flip)
             {
-                offset.y = scale.y;
-                scale.y *= -1;
+                scaleBias.w = scaleBias.y;
+                scaleBias.y *= -1;
             }
-            cmd.Blit(source, destination, scale, offset);
+
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+            DrawFullScreen(cmd, camera.viewport, GetBlitMaterial(), destination, s_PropertyBlock, 0);
         }
 
         // This particular case is for blitting a non-scaled texture into a scaled texture. So we setup the partial viewport but don't scale the input UVs.
@@ -383,6 +394,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
             commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            CoreUtils.SetRenderTarget(commandBuffer, destination);
+            commandBuffer.SetViewport(viewport);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 

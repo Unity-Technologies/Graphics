@@ -28,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4   screenParams;
         public int       volumeLayerMask;
         public Transform volumeAnchor;
+        public Rect      viewport;
 
         public bool colorPyramidHistoryIsValid = false;
         public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
@@ -116,6 +117,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     );
             }
         }
+
+        public bool isMainGameView { get { return camera.cameraType == CameraType.Game && camera.targetTexture == null; } }
 
         // View-projection matrix from the previous frame (non-jittered).
         public Matrix4x4 prevViewProjMatrix;
@@ -511,6 +514,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
+            viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, actualWidth, actualHeight);
+
             if (vlSys != null)
             {
                 vlSys.UpdatePerCameraData(this);
@@ -630,7 +635,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 float vertical = camera.orthographicSize;
                 float horizontal = vertical * camera.aspect;
-                
+
                 var offset = taaJitter;
                 offset.x *= horizontal / (0.5f * camera.pixelWidth);
                 offset.y *= vertical / (0.5f * camera.pixelHeight);
