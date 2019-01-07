@@ -112,7 +112,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #if IS_OPAQUE_PARTICLE
     opacity = 1.0f;
     #else
-    opacity = color.a;
+    opacity = saturate(color.a);
     #endif
 
     #if HDRP_MATERIAL_TYPE_STANDARD
