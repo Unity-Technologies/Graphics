@@ -102,8 +102,8 @@ namespace  UnityEditor.VFX.UI
 
             resizer.RemoveFromHierarchy();
 
-
-            s_LayoutManual.SetValue(this, false);
+            if(s_LayoutManual != null)
+                s_LayoutManual.SetValue(this, false);
         }
 
         static System.Reflection.PropertyInfo s_LayoutManual = typeof(VisualElement).GetProperty("isLayoutManual",System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);

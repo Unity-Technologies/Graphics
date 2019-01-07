@@ -14,6 +14,7 @@ TextureArraySlotControlView {
     margin-bottom: 0;
     margin-left: 0;
     margin-right: 0;
+    text-alignment: middle-left;
 }
 
 .unity-object-field__object{

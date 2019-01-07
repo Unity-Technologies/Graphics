@@ -6,9 +6,8 @@ IntegerControlView {
     padding-bottom: 4;
 }
 
-
 .unity-base-field {
-    min-width: 30;
+    width: 100;
     flex-grow: 1;
     margin-top: 1;
     margin-bottom: 1;
@@ -17,5 +16,6 @@ IntegerControlView {
 .unity-base-field__input{
     margin-left: 0;
     margin-right: 0;
+    text-alignment: middle-left;
 }
 
