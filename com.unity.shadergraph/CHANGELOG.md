@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `Color` node control is now a consistent width.
 - Function declarations no longer contain double delimiters.
 - The `Slider` node control now functions correctly.
+- Fixed an issue where the Editor automatically re-imported Shader Graphs when there were changes to the asset database.
 - Reverted the visual styling of various graph elements to their previous correct states.
 - Previews now repaint correctly when Unity does not have focus.
 - Code generation now works correctly for exposed Vector1 shader properties where the decimal separator is not a dot.
