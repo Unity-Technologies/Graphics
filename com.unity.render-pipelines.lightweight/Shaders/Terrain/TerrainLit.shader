@@ -33,8 +33,6 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
         [HideInInspector] _Color("Main Color", Color) = (1,1,1,1)
 
         [ToggleUI] _EnableInstancedPerPixelNormal("Enable Instanced per-pixel normal", Float) = 1.0
-        // TODO: Implement ShaderGUI for the shader and display the checkbox only when instancing is enabled.
-        // [Toggle(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)] _TERRAIN_INSTANCED_PERPIXEL_NORMAL("Enable Instanced Per-pixel Normal", Float) = 0
     }
 
     SubShader
@@ -137,7 +135,6 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
         UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
         UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
-    Dependency "AddPassShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Add Pass)"
     Dependency "BaseMapShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
     Dependency "BaseMapGenShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit_BasemapGen"
     
