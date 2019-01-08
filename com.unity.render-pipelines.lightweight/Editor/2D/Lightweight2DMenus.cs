@@ -1,9 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
+using UnityEngine.Experimental.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEditor.Experimental.Rendering.LWRP
 {
     public class Lightweight2DMenus : MonoBehaviour
     {

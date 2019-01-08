@@ -5,7 +5,7 @@ using UnityEngine.Profiling;
 using UnityEngine.Rendering.LWRP;
 using UnityEngine.Experimental.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public class Render2DLightingPass : ScriptableRenderPass
     {

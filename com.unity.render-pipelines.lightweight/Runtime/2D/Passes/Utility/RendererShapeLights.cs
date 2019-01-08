@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering;
 using System;
 using System.Linq;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     // Consider getting negative lights working
     public class RendererShapeLights

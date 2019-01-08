@@ -6,7 +6,7 @@ using UnityEngine.Rendering.LWRP;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     internal class Default2DRendererSetup : IRendererSetup
     {

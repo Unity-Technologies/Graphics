@@ -13,7 +13,7 @@ using UnityEditor;
 #endif
 
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     // TODO: 
     //     Fix parametric mesh code so that the vertices, triangle, and color arrays are only recreated when number of sides change

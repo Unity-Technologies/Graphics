@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     [Serializable]
     public class Light2DRTInfo

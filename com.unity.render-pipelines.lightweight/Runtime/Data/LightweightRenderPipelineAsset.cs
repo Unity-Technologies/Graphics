@@ -270,6 +270,11 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
+        public IRendererData rendererData
+        {
+            get => m_RendererData;
+        }
+
         public bool supportsCameraDepthTexture
         {
             get { return m_RequireDepthTexture; }

@@ -15,7 +15,7 @@ using System.Linq;
 // Light pass - render this using the normal map pass as input.
 
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
 
     public class RendererPointLights

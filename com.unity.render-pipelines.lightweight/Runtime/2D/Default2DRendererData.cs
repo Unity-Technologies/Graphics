@@ -4,7 +4,7 @@ using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public class Default2DRendererData : IRendererData
     {
@@ -22,6 +22,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         internal Light2DRTInfo m_PointLightColorRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
         [SerializeField]
         private float m_LightIntensityScale = 1;
+
+        [SerializeField]
+        private _2DShapeLightTypeDescription[] m_ShapeLightTypes = new _2DShapeLightTypeDescription[3];
+
+        public _2DShapeLightTypeDescription[] shapeLightTypes
+        {
+            get => m_ShapeLightTypes;
+        }
 
         public float LightIntensityScale
         {
@@ -48,7 +56,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Default2DRendererData asset = ScriptableObject.CreateInstance<Default2DRendererData>();
             asset.name = "2D Renderer Data";
 
-            AssetDatabase.CreateAsset(asset, "Assets/New 2D Renderer Data.asset");
+            asset.m_ShapeLightTypes[0].enabled = true;
+            asset.m_ShapeLightTypes[0].name = "Additive Light";
+            asset.m_ShapeLightTypes[0].blendMode = _2DShapeLightTypeDescription.BlendMode.Additive;
+            asset.m_ShapeLightTypes[0].renderTextureScale = 1.0f;
+            asset.m_ShapeLightTypes[1].enabled = true;
+            asset.m_ShapeLightTypes[1].name = "Modulate Light";
+            asset.m_ShapeLightTypes[1].blendMode = _2DShapeLightTypeDescription.BlendMode.Modulate;
+            asset.m_ShapeLightTypes[1].renderTextureScale = 1.0f;
+
+            AssetDatabase.CreateAsset(asset, "Assets/New 2D Renderer Data " + Random.Range(0, 100000) + ".asset");
             AssetDatabase.SaveAssets();
 
             EditorUtility.FocusProjectWindow();

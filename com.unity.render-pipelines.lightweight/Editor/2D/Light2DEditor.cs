@@ -1,20 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.U2D;
-using UnityEngine.U2D.Shape;
-using UnityEditor;
-using UnityEditor.U2D;
 using UnityEditor.U2D.Shape;
 using UnityEditorInternal;
 using System.Reflection;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
 using UnityEditor.Experimental.U2D.Common;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.Rendering.LWRP;
+using UnityEngine.Rendering.LWRP;
+using System.Linq;
+using System.Collections.Generic;
 
-
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEditor.Experimental.Rendering.LWRP
 {
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]
@@ -65,6 +59,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         SplineSceneEditor m_SplineSceneEditor;
 
         bool m_ModifiedMesh = false;
+
+        int[] m_ShapeLightTypeIndices;
+        string[] m_ShapeLightTypeNames;
+        bool m_AnyShapeLightTypeEnabled = false;
 
         private Light2D lightObject { get { return target as Light2D; } }
 
@@ -120,6 +118,38 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_SplineEditor = new SplineEditor(this);
             m_SplineSceneEditor = new SplineSceneEditor(light.spline, this, light);
             //m_SplineSceneEditor.SplineEditMode = SplineSceneEditor.SplineEditModes.Buttonless;
+
+            m_AnyShapeLightTypeEnabled = false;
+            var shapeLightTypeIndices = new List<int>();
+            var shapeLightTypeNames = new List<string>();
+
+            var pipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+            var rendererData = pipelineAsset != null ? pipelineAsset.rendererData as Default2DRendererData : null;
+            if (rendererData != null)
+            {
+                for (int i = 0; i < rendererData.shapeLightTypes.Length; ++i)
+                {
+                    var shapeLightType = rendererData.shapeLightTypes[i];
+                    if (shapeLightType.enabled)
+                    {
+                        shapeLightTypeIndices.Add(i);
+                        shapeLightTypeNames.Add(shapeLightType.name);
+                    }
+                }
+
+                m_AnyShapeLightTypeEnabled = shapeLightTypeIndices.Count != 0;
+            }
+            else
+            {
+                for (int i = 0; i < 4; ++i)
+                {
+                    shapeLightTypeIndices.Add(i);
+                    shapeLightTypeNames.Add("Type" + i);
+                }
+            }
+
+            m_ShapeLightTypeIndices = shapeLightTypeIndices.ToArray();
+            m_ShapeLightTypeNames = shapeLightTypeNames.ToArray();
         }
 
         private void OnDestroy()
@@ -166,6 +196,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private bool OnShapeLight(SerializedObject serializedObject)
         {
+            if (!m_AnyShapeLightTypeEnabled)
+                // TODO: show a warning box here.
+                return false;
+
             bool updateMesh = false;
 
             SerializedProperty shapeLightStyle = serializedObject.FindProperty("m_ShapeLightStyle");
@@ -181,7 +215,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int prevShapeLightStyle = shapeLightStyle.intValue;
 
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(shapeLightType, EditorGUIUtility.TrTextContent("Type", "Specify the shape light type"));
+            //EditorGUILayout.PropertyField(shapeLightType, EditorGUIUtility.TrTextContent("Type", "Specify the shape light type"));
+            shapeLightType.intValue = EditorGUILayout.IntPopup("Type", shapeLightType.intValue, m_ShapeLightTypeNames, m_ShapeLightTypeIndices);
+
             EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
             EditorGUILayout.PropertyField(shapeLightBlending, EditorGUIUtility.TrTextContent("Blending Mode", "Specify the lights blending mode"));
 
