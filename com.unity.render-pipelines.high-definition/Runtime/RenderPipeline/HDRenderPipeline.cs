@@ -869,7 +869,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
             m_RayTracingManager.UpdateAccelerationStructures();
 #endif
- 
+
             // We first update the state of asset frame settings as they can be use by various camera
             // but we keep the dirty state to correctly reset other camera that use RenderingPath.Default.
             bool assetFrameSettingsIsDirty = m_Asset.frameSettingsIsDirty;
@@ -1657,6 +1657,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderColorPyramid(hdCamera, cmd, true);
                 }
+
+                // Bind current color pyramid for shader graph SceneColorNode on transparent objects
+                var currentColorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, currentColorPyramid);
 
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
