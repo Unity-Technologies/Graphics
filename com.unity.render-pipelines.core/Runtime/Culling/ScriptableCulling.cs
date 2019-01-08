@@ -93,6 +93,11 @@ namespace UnityEngine.Experimental.Rendering
             parameters.cullingTestParameters.sceneMask = 0xFFFFFFFFFFFFFFFF;
             parameters.cullingTestParameters.accurateOcclusionThreshold = -1.0f;
             parameters.cullingTestParameters.occlusionCullingJobCount = 6;
+            for (int i = 0; i < CullingTestParameters.layerCount; ++i)
+            {
+                parameters.cullingTestParameters.SetLayerCullingDistance(i, camera.layerCullDistances[i]);
+            }
+
 
             unsafe
             {

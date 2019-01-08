@@ -45,7 +45,8 @@ public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
             m_CullingParameters.enableJobs = m_CullingDebug.enableJobs;
             m_CullingParameters.extractLightProbes = true;
             m_CullingParameters.gatherStatistics = m_CullingDebug.gatherStats;
-            m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.LODMask | CullingTestMask.FlagMaskNot;// | CullingTest.SceneMask;
+            m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.SceneMask | CullingTestMask.LODMask | CullingTestMask.FlagMaskNot;
+            m_CullingParameters.cullingTestParameters.testMask |= (camera.layerCullSpherical ? CullingTestMask.DistanceSpherical : CullingTestMask.DistancePlanar);
             m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
             m_CullingParameters.cullingTestParameters.cullingFlagsMaskNot = CullingFlags.CastShadowsOnly;
 
@@ -70,10 +71,10 @@ public class TestRenderPipeline : UnityEngine.Rendering.RenderPipeline
             {
                 m_Culler.CullRenderers(m_CullingParameters, m_Result);
 
-                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.ComputeScreenRect;
+                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.SceneMask | CullingTestMask.ComputeScreenRect;
                 m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
                 m_Culler.CullLights(m_CullingParameters, m_LightResult);
-                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask;
+                m_CullingParameters.cullingTestParameters.testMask = CullingTestMask.Occlusion | CullingTestMask.Frustum | CullingTestMask.CullingMask | CullingTestMask.SceneMask;
                 m_CullingParameters.cullingTestParameters.testMask &= ~m_CullingDebug.disabledTests;
                 m_Culler.CullReflectionProbes(m_CullingParameters, m_ProbeResult);
 
