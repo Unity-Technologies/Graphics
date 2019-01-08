@@ -649,6 +649,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 if (graphRequirements.requiresDepthTexture)
                     defines.AddShaderChunk("#define REQUIRE_DEPTH_TEXTURE");
+                if (graphRequirements.requiresCameraOpaqueTexture)
+                    defines.AddShaderChunk("#define REQUIRE_OPAQUE_TEXTURE");
                 defines.AddGenerator(interpolatorDefines);
             }
 

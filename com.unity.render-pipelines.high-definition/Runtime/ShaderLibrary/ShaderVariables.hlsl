@@ -158,6 +158,9 @@ SAMPLER_CMP(s_linear_clamp_compare_sampler);
 TEXTURE2D(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
+// Color pyramid (width, height, lodcount, Unused)
+TEXTURE2D(_ColorPyramidTexture);
+
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
@@ -339,6 +342,11 @@ float SampleCameraDepth(uint2 pixelCoords)
 float SampleCameraDepth(float2 uv)
 {
     return SampleCameraDepth(uint2(uv * _ScreenSize.xy));
+}
+
+float3 SampleCameraColor(float2 uv, float lod)
+{
+    return SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, lod).rgb;
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
