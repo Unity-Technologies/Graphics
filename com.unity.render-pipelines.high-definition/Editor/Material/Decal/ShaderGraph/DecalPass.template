@@ -31,6 +31,8 @@ Pass
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
+    $Material.AffectsAlbedo:     #define _MATERIAL_AFFECTS_ALBEDO 1
+    $Material.AffectsNormal:     #define _MATERIAL_AFFECTS_NORMAL 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -113,7 +115,10 @@ $include("SharedCode.template.hlsl")
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 
         // copy across graph values, if defined
+#if _MATERIAL_AFFECTS_ALBEDO
         $SurfaceDescription.Albedo:                     surfaceData.baseColor.xyz = surfaceDescription.Albedo;
+#endif
+#if _MATERIAL_AFFECTS_NORMAL
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
         $SurfaceDescription.Normal:                     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(matrix, _NormalToWorld);
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
@@ -121,14 +126,19 @@ $include("SharedCode.template.hlsl")
         // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.worldToTangent));
 #endif
+#endif
 
         $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;
 #ifdef DECALS_4RT
         $SurfaceDescription.Metallic:                   surfaceData.mask.x = surfaceDescription.Metallic;
         $SurfaceDescription.Occlusion:                  surfaceData.mask.y = surfaceDescription.Occlusion;
 #endif
+#if _MATERIAL_AFFECTS_ALBEDO
         $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo;
+#endif
+#if _MATERIAL_AFFECTS_NORMAL
         $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal;
+#endif
         $SurfaceDescription.MAOSOpacity:                surfaceData.mask.w = surfaceDescription.MAOSOpacity;
 #ifdef DECALS_4RT
         $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.x = surfaceDescription.MAOSOpacity;
