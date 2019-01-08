@@ -165,6 +165,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private List<TextureScaleBias> m_TextureList = new List<TextureScaleBias>();
 
+        static public bool IsHDRenderPipelineDecal(string name)
+        {
+            return name == "HDRP/Decal";
+        }
+
 
         private class DecalSet
         {
@@ -172,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_Material == null)
                     return;
-                m_IsHDRenderPipelineDecal = (m_Material.shader.name == "HDRP/Decal");
+                m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material.shader.name);
 
                 if (m_IsHDRenderPipelineDecal)
                 {
@@ -495,12 +500,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 if (m_NumResults == 0)
                     return;
-                int batchIndex = 0;
-                int totalToDraw = m_NumResults;
                 HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
-                int shaderPass = perChannelMask ? MaskBlendMode : (int)Decal.MaskBlendFlags.Smoothness; // relies on the order shader passes are declared in decal.shader and decalUI.cs
 
+                int batchIndex = 0;
+                int totalToDraw = m_NumResults;
+                int shaderPass = 0;
+                if (m_IsHDRenderPipelineDecal)
+                {
+                    shaderPass = perChannelMask ? MaskBlendMode : (int)Decal.MaskBlendFlags.Smoothness; // relies on the order shader passes are declared in decal.shader and decalUI.cs
+                }
+                else
+                {
+                    shaderPass = perChannelMask ? 1 : 0; // relies on the order shader passes are declared in DecalSubShader.cs
+                }
+                                      
                 for (; batchIndex < m_NumResults / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
@@ -557,13 +571,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        // TODO
                         return 0;
                     }
                 }
             }
-
-
 
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
             private List<Matrix4x4[]> m_NormalToWorld = new List<Matrix4x4[]>();
