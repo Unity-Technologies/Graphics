@@ -36,20 +36,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Sprite = 2,
         }
 
-        private const int NUM_LIGHT_TYPES = 4;  // Right now its point, ambient, specular, and rim
-        private enum Light2DTypes
+        private enum Light2DType
         {
-            Specular = 0,
-            LocalAmbient,
-            Rim,
-            Point
+            ShapeType0 = 0,
+            ShapeType1,
+            ShapeType2,
+            Point,
+            Count
         }
 
-        public enum ShapeLightTypes
+        public enum ShapeLightType
         {
-            Specular,
-            LocalAmbient,
-            Rim
+            Type0 = 0,
+            Type1 = 1,
+            Type2 = 2
         }
 
         public enum ParametricShapes
@@ -87,8 +87,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public CookieStyles m_ShapeLightStyle = CookieStyles.Parametric;
 
         [SerializeField]
-        private ShapeLightTypes m_ShapeLightType = ShapeLightTypes.Specular;
-        private ShapeLightTypes m_PreviousShapeLightType = ShapeLightTypes.Specular;
+        private ShapeLightType m_ShapeLightType = ShapeLightType.Type0;
+        private ShapeLightType m_PreviousShapeLightType = ShapeLightType.Type0;
 
         public ParametricShapes m_ParametricShape = ParametricShapes.Circle; // This should be removed and fixed in the inspector
 
@@ -140,8 +140,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         
         static public List<Light2D>[] SetupLightArray()
         {
-            List<Light2D>[] retArray = new List<Light2D>[NUM_LIGHT_TYPES];
-            for (int i = 0; i < NUM_LIGHT_TYPES; i++)
+            int numLightTypes = (int)Light2DType.Count;
+            List<Light2D>[] retArray = new List<Light2D>[numLightTypes];
+            for (int i = 0; i < numLightTypes; i++)
                 retArray[i] = new List<Light2D>();
 
             return retArray;
@@ -171,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public void InsertLight(Light2D light)
         {
-            int lightType = (int)Light2DTypes.Point;
+            int lightType = (int)Light2DType.Point;
             int index = 0;
 
             if (m_LightProjectionType == LightProjectionTypes.Shape)
@@ -184,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_Lights[lightType].Insert(index, this);
         }
 
-        public void UpdateShapeLightType(ShapeLightTypes type)
+        public void UpdateShapeLightType(ShapeLightType type)
         {
             if (m_LightProjectionType == LightProjectionTypes.Shape)
             {
@@ -203,14 +204,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (type != m_PreviousLightProjectionType)
             {
                 // Remove the old value
-                int index = (int)Light2DTypes.Point;
+                int index = (int)Light2DType.Point;
                 if (m_PreviousLightProjectionType == LightProjectionTypes.Shape)
                     index = (int)m_ShapeLightType;
                 if (m_Lights[index].Contains(this))
                     m_Lights[index].Remove(this);
 
                 // Add the new value
-                index = (int)Light2DTypes.Point;
+                index = (int)Light2DType.Point;
                 if (type == LightProjectionTypes.Shape)
                     index = (int)m_ShapeLightType;
                 if (!m_Lights[index].Contains(this))
@@ -221,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        public ShapeLightTypes ShapeLightType
+        public ShapeLightType shapeLightType
         {
             get { return m_ShapeLightType; }
             set { UpdateShapeLightType(value); }
@@ -732,29 +733,29 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public static List<Light2D> GetPointLights()
         {
-            return m_Lights[(int)Light2DTypes.Point];
+            return m_Lights[(int)Light2DType.Point];
         }
 
         public static List<Light2D> GetSpecularLights()
         {
-            return m_Lights[(int)Light2DTypes.Specular];
+            return m_Lights[(int)Light2DType.ShapeType0];
         }
 
         public static List<Light2D> GetAmbientLights()
         {
-            return m_Lights[(int)Light2DTypes.LocalAmbient];
+            return m_Lights[(int)Light2DType.ShapeType1];
         }
 
         public static List<Light2D> GetRimLights()
         {
-            return m_Lights[(int)Light2DTypes.Rim];
+            return m_Lights[(int)Light2DType.ShapeType2];
         }
 
         void RegisterLight()
         {
             if (m_Lights != null)
             {
-                int index = (int)Light2DTypes.Point;
+                int index = (int)Light2DType.Point;
                 if (m_LightProjectionType == LightProjectionTypes.Shape)
                     index = (int)m_ShapeLightType;
 

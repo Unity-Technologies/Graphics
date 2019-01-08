@@ -61,7 +61,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         bool m_ModifiedMesh = false;
 
         int[] m_ShapeLightTypeIndices;
-        string[] m_ShapeLightTypeNames;
+        GUIContent[] m_ShapeLightTypeNames;
         bool m_AnyShapeLightTypeEnabled = false;
 
         private Light2D lightObject { get { return target as Light2D; } }
@@ -149,7 +149,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             m_ShapeLightTypeIndices = shapeLightTypeIndices.ToArray();
-            m_ShapeLightTypeNames = shapeLightTypeNames.ToArray();
+            m_ShapeLightTypeNames = shapeLightTypeNames.Select(x => EditorGUIUtility.TrTextContent(x)).ToArray();
         }
 
         private void OnDestroy()
@@ -197,8 +197,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         private bool OnShapeLight(SerializedObject serializedObject)
         {
             if (!m_AnyShapeLightTypeEnabled)
-                // TODO: show a warning box here.
+            {
+                EditorGUILayout.HelpBox("No valid Shape Light type is defined.", MessageType.Error);
                 return false;
+            }
 
             bool updateMesh = false;
 
@@ -215,8 +217,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             int prevShapeLightStyle = shapeLightStyle.intValue;
 
             EditorGUI.indentLevel++;
-            //EditorGUILayout.PropertyField(shapeLightType, EditorGUIUtility.TrTextContent("Type", "Specify the shape light type"));
-            shapeLightType.intValue = EditorGUILayout.IntPopup("Type", shapeLightType.intValue, m_ShapeLightTypeNames, m_ShapeLightTypeIndices);
+            EditorGUILayout.IntPopup(shapeLightType, m_ShapeLightTypeNames, m_ShapeLightTypeIndices, EditorGUIUtility.TrTextContent("Type", "Specify the shape light type"));
 
             EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
             EditorGUILayout.PropertyField(shapeLightBlending, EditorGUIUtility.TrTextContent("Blending Mode", "Specify the lights blending mode"));

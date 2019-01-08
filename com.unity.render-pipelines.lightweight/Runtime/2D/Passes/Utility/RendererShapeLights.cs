@@ -1,10 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
-using System;
-using System.Linq;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
@@ -85,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
 
-        static private void RenderLightSet(Camera camera, Light2D.ShapeLightTypes type, CommandBuffer cmdBuffer, int layerToRender, RenderTexture renderTexture, Color fillColor, string shaderKeyword, List<Light2D> lights)
+        static private void RenderLightSet(Camera camera, Light2D.ShapeLightType type, CommandBuffer cmdBuffer, int layerToRender, RenderTexture renderTexture, Color fillColor, string shaderKeyword, List<Light2D> lights)
         {
             cmdBuffer.DisableShaderKeyword(shaderKeyword);
             if (renderTexture != null)
@@ -97,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     {
                         Light2D light = lights[i];
 
-                        if (light != null && light.isActiveAndEnabled && light.ShapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                        if (light != null && light.isActiveAndEnabled && light.shapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
                             Material shapeLightMaterial = light.GetMaterial();
                             if (shapeLightMaterial != null)
@@ -123,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
 
-        static private void RenderLightVolumeSet(Camera camera, Light2D.ShapeLightTypes type, CommandBuffer cmdBuffer, int layerToRender, RenderTexture renderTexture, Color fillColor, string shaderKeyword, List<Light2D> lights)
+        static private void RenderLightVolumeSet(Camera camera, Light2D.ShapeLightType type, CommandBuffer cmdBuffer, int layerToRender, RenderTexture renderTexture, Color fillColor, string shaderKeyword, List<Light2D> lights)
         {
             if (renderTexture != null)
             {
@@ -133,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     {
                         Light2D light = lights[i];
 
-                        if (light != null && light.isActiveAndEnabled && light.LightVolumeOpacity > 0.0f && light.ShapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                        if (light != null && light.isActiveAndEnabled && light.LightVolumeOpacity > 0.0f && light.shapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
                             Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
                             if (shapeLightVolumeMaterial != null)
@@ -167,17 +162,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             cmdBuffer.BeginSample("2D Shape Lights - Specular Lights");
             List<Light2D> specularLights = Light2D.GetSpecularLights();
-            RenderLightSet(camera, Light2D.ShapeLightTypes.Specular, cmdBuffer, layerToRender, m_FullScreenSpecularLightTexture, m_DefaultSpecularColor, k_UseSpecularTexture, specularLights);
+            RenderLightSet(camera, Light2D.ShapeLightType.Type0, cmdBuffer, layerToRender, m_FullScreenSpecularLightTexture, m_DefaultSpecularColor, k_UseSpecularTexture, specularLights);
             cmdBuffer.EndSample("2D Shape Lights - Specular Lights");
 
             cmdBuffer.BeginSample("2D Shape Lights - Ambient Lights");
             List<Light2D> ambientLights = Light2D.GetAmbientLights();
-            RenderLightSet(camera, Light2D.ShapeLightTypes.LocalAmbient, cmdBuffer, layerToRender, m_FullScreenAmbientLightTexture, m_DefaultAmbientColor, k_UseAmbientTexture, ambientLights);
+            RenderLightSet(camera, Light2D.ShapeLightType.Type1, cmdBuffer, layerToRender, m_FullScreenAmbientLightTexture, m_DefaultAmbientColor, k_UseAmbientTexture, ambientLights);
             cmdBuffer.EndSample("2D Shape Lights - Ambient Lights");
 
             cmdBuffer.BeginSample("2D Shape Lights - Rim Lights");
             List<Light2D> rimLights = Light2D.GetRimLights();
-            RenderLightSet(camera, Light2D.ShapeLightTypes.Rim, cmdBuffer, layerToRender, m_FullScreenRimLightTexture, m_DefaultRimColor, k_UseRimTexture, rimLights);
+            RenderLightSet(camera, Light2D.ShapeLightType.Type2, cmdBuffer, layerToRender, m_FullScreenRimLightTexture, m_DefaultRimColor, k_UseRimTexture, rimLights);
             cmdBuffer.EndSample("2D Shape Lights - Rim Lights");
         }
 
@@ -185,17 +180,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             cmdBuffer.BeginSample("2D Shape Lights - Specular Lights");
             List<Light2D> specularLights = Light2D.GetSpecularLights();
-            RenderLightVolumeSet(camera, Light2D.ShapeLightTypes.Specular, cmdBuffer, layerToRender, m_FullScreenSpecularLightTexture, m_DefaultSpecularColor, k_UseSpecularTexture, specularLights);
+            RenderLightVolumeSet(camera, Light2D.ShapeLightType.Type0, cmdBuffer, layerToRender, m_FullScreenSpecularLightTexture, m_DefaultSpecularColor, k_UseSpecularTexture, specularLights);
             cmdBuffer.EndSample("2D Shape Lights - Specular Lights");
 
             cmdBuffer.BeginSample("2D Shape Lights - Ambient Lights");
             List<Light2D> ambientLights = Light2D.GetAmbientLights();
-            RenderLightVolumeSet(camera, Light2D.ShapeLightTypes.LocalAmbient, cmdBuffer, layerToRender, m_FullScreenAmbientLightTexture, m_DefaultAmbientColor, k_UseAmbientTexture, ambientLights);
+            RenderLightVolumeSet(camera, Light2D.ShapeLightType.Type1, cmdBuffer, layerToRender, m_FullScreenAmbientLightTexture, m_DefaultAmbientColor, k_UseAmbientTexture, ambientLights);
             cmdBuffer.EndSample("2D Shape Lights - Ambient Lights");
 
             cmdBuffer.BeginSample("2D Shape Lights - Rim Lights");
             List<Light2D> rimLights = Light2D.GetRimLights();
-            RenderLightVolumeSet(camera, Light2D.ShapeLightTypes.Rim, cmdBuffer, layerToRender, m_FullScreenRimLightTexture, m_DefaultRimColor, k_UseRimTexture, rimLights);
+            RenderLightVolumeSet(camera, Light2D.ShapeLightType.Type2, cmdBuffer, layerToRender, m_FullScreenRimLightTexture, m_DefaultRimColor, k_UseRimTexture, rimLights);
             cmdBuffer.EndSample("2D Shape Lights - Rim Lights");
         }
     }
