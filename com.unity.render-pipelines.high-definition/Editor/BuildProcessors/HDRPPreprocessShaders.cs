@@ -87,8 +87,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // "DBufferProjector_M" "DBufferProjector_AO" "DBufferProjector_MAO" "DBufferProjector_S" "DBufferProjector_MS" "DBufferProjector_AOS" "DBufferProjector_MAOS"
                 // "DBufferMesh_M" "DBufferMesh_AO" "DBufferMesh_MAO" "DBufferMesh_S" "DBufferMesh_MS" "DBufferMesh_AOS""DBufferMesh_MAOS"
 
-                isDecal3RTPass = snippet.passName.Contains("3RT");
-                isDecal4RTPass = !isDecal3RTPass;
+                // Caution: As mention in Decal.shader DBufferProjector_S is also DBufferProjector_3RT so this pass is both 4RT and 3RT
+                // there is a multi-compile to handle this pass, so it will be correctly removed by testing m_Decals3RT or m_Decals4RT
+                if (snippet.passName != "DBufferProjector_S")
+                {
+                    isDecal3RTPass = snippet.passName.Contains("3RT");
+                    isDecal4RTPass = !isDecal3RTPass;
+                }
             }
 
             // If decal support, remove unused variant
