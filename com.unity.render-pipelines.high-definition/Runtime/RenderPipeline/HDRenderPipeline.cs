@@ -1397,6 +1397,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             RenderColorPyramid(hdCamera, cmd, true);
                         }
 
+                        // Bind current color pyramid for shader graph SceneColorNode on transparent objects
+                        var currentColorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                        cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, currentColorPyramid);
+
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
