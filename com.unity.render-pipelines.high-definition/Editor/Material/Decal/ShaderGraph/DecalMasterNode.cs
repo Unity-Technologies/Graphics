@@ -285,6 +285,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
+        bool m_AffectsAlbedo = true;
+
+        public ToggleData affectsAlbedo
+        {
+            get { return new ToggleData(m_AffectsAlbedo); }
+            set
+            {
+                if (m_AffectsAlbedo == value.isOn)
+                    return;
+                m_AffectsAlbedo = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_AffectsNormal = true;
+
+        public ToggleData affectsNormal
+        {
+            get { return new ToggleData(m_AffectsNormal); }
+            set
+            {
+                if (m_AffectsNormal == value.isOn)
+                    return;
+                m_AffectsNormal = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         int m_DrawOrder;
 
         public int drawOrder
