@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add spawnTime & spawnCount operator
 - Add seed slot to constant random mode of Attribute from curve and map
+
 ### Fixed
 - Some fixes in noise library
 - Some fixes in the Visual Effect inspector
@@ -16,12 +17,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix in sequential line to include the end point
 - Fix a bug with attributes in Attribute from curve
 - Fix source attributes not being taken into account for attribute storage
+- Fix legacy render path shader compilation issues
 
 ## [5.2.0-preview] - 2018-11-27
 ### Added
 - Prewarm mechanism
+
 ### Fixed
 - Handle data loss of overriden parameters better
+
 ### Optimized
 - Improved iteration times by not compiling initial shader variant
 

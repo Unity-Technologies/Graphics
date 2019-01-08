@@ -1,6 +1,6 @@
 #include "UnityCG.cginc"
 
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+Texture2D _CameraDepthTexture;
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
