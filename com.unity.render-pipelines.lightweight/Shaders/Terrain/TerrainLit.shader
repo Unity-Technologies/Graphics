@@ -136,7 +136,7 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
         UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
     Dependency "BaseMapShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
-    Dependency "BaseMapGenShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit_BasemapGen"
+    Dependency "BaseMapGenShader" = "Hidden/Lightweight Render Pipeline/Terrain/Lit (Basemap Gen)"
     
     CustomEditor "UnityEditor.Rendering.LWRP.TerrainLitShaderGUI"
 
