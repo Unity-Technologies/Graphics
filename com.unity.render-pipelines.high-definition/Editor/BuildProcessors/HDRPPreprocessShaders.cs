@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
             bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
             bool isTransparentBackface = snippet.passName == "TransparentBackface";
-            bool isDistortionPass = snippet.passName == "DistortionVectors"; 
+            bool isDistortionPass = snippet.passName == "DistortionVectors";
 
             if (isMotionPass && !hdrpAsset.renderPipelineSettings.supportMotionVectors)
                 return true;
@@ -80,6 +80,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (snippet.passName.Contains("DBufferMesh") || snippet.passName.Contains("DBufferProjector"))
             {
+                isDecalPass = true;
+
                 // All decal pass name:
                 // "ShaderGraph_DBufferMesh3RT" "ShaderGraph_DBufferProjector3RT" "DBufferMesh_3RT"
                 // "DBufferProjector_M" "DBufferProjector_AO" "DBufferProjector_MAO" "DBufferProjector_S" "DBufferProjector_MS" "DBufferProjector_AOS" "DBufferProjector_MAOS"
