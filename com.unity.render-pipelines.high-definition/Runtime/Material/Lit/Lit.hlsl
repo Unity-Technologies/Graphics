@@ -607,6 +607,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
     // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
     outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
+
+    // Pre-expose lighting buffer
+    outGBuffer3 *= GetCurrentExposureMultiplier();
+
 #ifdef LIGHT_LAYERS
     OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, builtinData.renderingLayers / 255.0);
 #endif
@@ -640,6 +644,10 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     // BuiltinData
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
+
+    // Inverse pre-exposure
+    float exposure = GetCurrentExposureMultiplier();
+    builtinData.bakeDiffuseLighting /= exposure + (exposure == 0.0); // zero-div guard
 
     // In deferred ambient occlusion isn't available and is already apply on bakeDiffuseLighting for the GI part.
     // Caution: even if we store it in the GBuffer we need to apply it on GI and not on emissive color, so AO must be 1.0 in deferred

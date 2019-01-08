@@ -48,7 +48,6 @@ Pass
     #pragma raytracing test      
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
 
     // define FragInputs structure
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
