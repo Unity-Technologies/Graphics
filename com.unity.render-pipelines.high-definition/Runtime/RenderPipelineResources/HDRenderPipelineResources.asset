@@ -214,6 +214,15 @@ MonoBehaviour:
     - {fileID: 2800000, guid: 7641a2b116fafd64d9c3d6459fdfe801, type: 3}
     - {fileID: 2800000, guid: c6a5e40e6746fef4fa486e8f620ee8d4, type: 3}
     - {fileID: 2800000, guid: fd4189357c6dfb94fa2d36afbce72086, type: 3}
+    coherentRGNoise128:
+    - {fileID: 2800000, guid: 5fb5a79c1155ae84fa1632dd1f1901f9, type: 3}
+    - {fileID: 2800000, guid: 285d8cf883f533c459dc8b18092689b1, type: 3}
+    - {fileID: 2800000, guid: 962df42d66c41c047bb6e90d99696cfa, type: 3}
+    - {fileID: 2800000, guid: f0600ce4f66469b418065a1657b3f631, type: 3}
+    - {fileID: 2800000, guid: 51e96850e2079014ba1e6cff236df874, type: 3}
+    - {fileID: 2800000, guid: ed17bcb607e01fd4ca4ece9a3b4baf3d, type: 3}
+    - {fileID: 2800000, guid: eefe2c3957d0d1c40a6d46c566254f56, type: 3}
+    - {fileID: 2800000, guid: c41231daef6e35d4095f1af8631f65c5, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}

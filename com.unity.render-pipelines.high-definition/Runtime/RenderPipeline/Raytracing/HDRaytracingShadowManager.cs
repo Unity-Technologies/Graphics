@@ -137,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // If this is not a rectangular area light or it won't have shadows, skip it
                 if(m_LightLoop.m_lightList.lights[lightIdx].lightType != GPULightType.Rectangle || m_LightLoop.m_lightList.lights[lightIdx].shadowIndex == -1) continue;
-                using (new ProfilingSample(cmd, "Raytrace Area Shadow", CustomSamplerId.Raytracing.GetSampler()))
+                using (new ProfilingSample(cmd, "Raytrace Area Shadow", CustomSamplerId.RaytracingShadowIntegration.GetSampler()))
                 {
                     // Inject the light data
                     cmd.SetRaytracingBufferParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._LightDatas, m_LightLoop.lightDatas);
@@ -161,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.DispatchRays(shadowsShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
                 }
 
-                using (new ProfilingSample(cmd, "Combine Area Shadow", CustomSamplerId.Raytracing.GetSampler()))
+                using (new ProfilingSample(cmd, "Combine Area Shadow", CustomSamplerId.RaytracingShadowCombination.GetSampler()))
                 {
                     // Inject all the parameters for the compute
                     cmd.SetComputeTextureParam(bilateralFilter, m_KernelFilter, _SNBuffer, m_SNBuffer);

@@ -56,7 +56,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         GizmosPrePostprocess,
         Gizmos,
         
-        Raytracing,
+        RaytracingBuildCluster,
+        RaytracingCullLights,
+        RaytracingIntegrateReflection,
+        RaytracingFilterReflection,
+        RaytracingAmbientOcclusion,
+        RaytracingShadowIntegration,
+        RaytracingShadowCombination,
 
         // Profile sampler for tile pass
         TPPrepareLightsForGPU,

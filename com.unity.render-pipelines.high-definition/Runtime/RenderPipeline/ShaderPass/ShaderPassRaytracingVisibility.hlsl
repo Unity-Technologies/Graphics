@@ -7,17 +7,17 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 {
 	// The first thing that we should do is grab the intersection vertice
     IntersectionVertice currentvertex;
-    CurrentIntersectionVertice(attributeData, currentvertex);
+    GetCurrentIntersectionVertice(attributeData, currentvertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, fragInput);
+    BuildFragInputsFromIntersection(currentvertex, rayIntersection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
 
     // Compute the distance of the ray
-    float travelDistance = length(fragInput.positionRWS + _WorldSpaceCameraPos - rayIntersection.origin);
+    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
     rayIntersection.t = travelDistance;
 
     PositionInputs posInput;
@@ -27,10 +27,10 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
+    bool isVisible = GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
 
     // If this fella is not opaque, then we ignore this hit
-    if(builtinData.opacity < _AlphaCutoff)
+    if(!isVisible)
     {
         IgnoreHit();
     }

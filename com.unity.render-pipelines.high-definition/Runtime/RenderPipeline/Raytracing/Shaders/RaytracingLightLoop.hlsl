@@ -68,8 +68,25 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     LightLoopContext context;
     context.contactShadow    = 1.0f;
     context.shadowContext    = InitShadowContext();
-    context.shadowValue      = GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionWS, bsdfData.normalWS, 0, -_DirectionalLightDatas[0].forward, uint2(0,0));
+    context.shadowValue      = 1.0f;
     context.sampleReflection = 0;
+
+    // Evaluate sun shadows.
+    if (_DirectionalShadowIndex >= 0)
+    {
+        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+
+        // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
+        // Also, the light direction is not consistent with the sun disk highlight hack, which modifies the light vector.
+        float  NdotL            = dot(bsdfData.normalWS, -light.forward);
+        float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
+        bool   evaluateShadows  = (NdotL > 0);
+
+        if (evaluateShadows)
+        {
+            context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
+        }
+    }
 
     AggregateLighting aggregateLighting;
     ZERO_INITIALIZE(AggregateLighting, aggregateLighting); // LightLoop is in charge of initializing the structure
@@ -88,7 +105,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // The light cluster is in actual world space coordinates, 
     #ifdef USE_LIGHT_CLUSTER
     // Get the actual world space position
-    float3 actualWSPos = posInput.positionWS + _WorldSpaceCameraPos;
+    float3 actualWSPos = GetAbsolutePositionWS(posInput.positionWS);
     #endif
 
     #ifdef USE_LIGHT_CLUSTER

@@ -79,7 +79,7 @@ void FetchIntersectionVertex(uint vertexIndex, out IntersectionVertice outVertex
     outVertex.vertexColor    		= UnityRaytracingFetchVertexAttribute4(vertexIndex, kVertexAttributeColor);
 }
 
-void CurrentIntersectionVertice(AttributeData attributeData, out IntersectionVertice outVertex)
+void GetCurrentIntersectionVertice(AttributeData attributeData, out IntersectionVertice outVertex)
 {
 	// Fetch the indices of the currentr triangle
 	uint3 triangleIndices = UnityRaytracingFetchTriangleIndices(PrimitiveIndex());
@@ -106,7 +106,7 @@ void CurrentIntersectionVertice(AttributeData attributeData, out IntersectionVer
 	// Compute the lambda value
 	outVertex.triangleArea = length(cross(v1.positionOS - v0.positionOS, v2.positionOS - v0.positionOS));
 	outVertex.texCoord0Area = abs((v1.texCoord0.x - v0.texCoord0.x) * (v2.texCoord0.y - v0.texCoord0.y) - (v2.texCoord0.x - v0.texCoord0.x) * (v1.texCoord0.y - v0.texCoord0.y));
-	outVertex.texCoord1Area = length(cross(float3(v1.texCoord1, 0.0f) - float3(v0.texCoord1, 0.0f), float3(v2.texCoord1, 0.0f) - float3(v0.texCoord1, 0.0f)));
-	outVertex.texCoord2Area = length(cross(float3(v1.texCoord2, 0.0f) - float3(v0.texCoord2, 0.0f), float3(v2.texCoord2, 0.0f) - float3(v0.texCoord2, 0.0f)));
-	outVertex.texCoord3Area = length(cross(float3(v1.texCoord3, 0.0f) - float3(v0.texCoord3, 0.0f), float3(v2.texCoord3, 0.0f) - float3(v0.texCoord3, 0.0f)));
+	outVertex.texCoord1Area = abs((v1.texCoord1.x - v0.texCoord1.x) * (v2.texCoord1.y - v0.texCoord1.y) - (v2.texCoord1.x - v0.texCoord1.x) * (v1.texCoord1.y - v0.texCoord1.y));
+	outVertex.texCoord2Area = abs((v1.texCoord2.x - v0.texCoord2.x) * (v2.texCoord2.y - v0.texCoord2.y) - (v2.texCoord2.x - v0.texCoord2.x) * (v1.texCoord2.y - v0.texCoord2.y));
+	outVertex.texCoord3Area = abs((v1.texCoord3.x - v0.texCoord3.x) * (v2.texCoord3.y - v0.texCoord3.y) - (v2.texCoord3.x - v0.texCoord3.x) * (v1.texCoord3.y - v0.texCoord3.y));
 }

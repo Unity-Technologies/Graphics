@@ -6,17 +6,17 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 {
 	// The first thing that we should do is grab the intersection vertice
     IntersectionVertice currentvertex;
-    CurrentIntersectionVertice(attributeData, currentvertex);
+    GetCurrentIntersectionVertice(attributeData, currentvertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, fragInput);
+    BuildFragInputsFromIntersection(currentvertex, rayIntersection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
 
     // Make sure to add the additional travel distance
-    float travelDistance = length(fragInput.positionRWS + _WorldSpaceCameraPos - rayIntersection.origin);
+    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
     rayIntersection.t = travelDistance;
     rayIntersection.cone.width += travelDistance * rayIntersection.cone.spreadAngle;
     
@@ -46,4 +46,39 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 #else
     rayIntersection.color = bsdfData.color;
 #endif
+}
+
+// Generic function that handles the reflection code
+[shader("anyhit")]
+void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+{
+    // The first thing that we should do is grab the intersection vertice
+    IntersectionVertice currentvertex;
+    GetCurrentIntersectionVertice(attributeData, currentvertex);
+
+    // Build the Frag inputs from the intersection vertice
+    FragInputs fragInput;
+    BuildFragInputsFromIntersection(currentvertex, rayIntersection, fragInput);
+
+    // Compute the view vector
+    float3 viewWS = -rayIntersection.incidentDirection;
+
+    // Compute the distance of the ray
+    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
+    rayIntersection.t = travelDistance;
+
+    PositionInputs posInput;
+    posInput.positionWS = fragInput.positionRWS;
+    posInput.positionSS = uint2(0, 0);
+
+    // Build the surfacedata and builtindata
+    SurfaceData surfaceData;
+    BuiltinData builtinData;
+    bool isVisible = GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
+
+    // If this fella should be culled, then we cull it
+    if(!isVisible)
+    {
+        IgnoreHit();
+    }
 }

@@ -1,8 +1,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingBuiltinData.hlsl"
 
-void GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+
     // Initial value of the material features
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
@@ -41,6 +43,14 @@ void GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     #else
     surfaceData.baseColor = SAMPLE_TEXTURE2D_LOD(_BaseColorMap, sampler_BaseColorMap, uvBase, 0).rgb * _BaseColor.rgb;
     #endif
+
+    // Transparency Data
+    float alpha = SAMPLE_TEXTURE2D_LOD(_BaseColorMap, sampler_BaseColorMap, uvBase, 0).a * _BaseColor.a;
+
+#ifdef _ALPHATEST_ON
+    if(alpha < _AlphaCutoff)
+        return false;
+#endif
 
     // Specular Color
     surfaceData.specularColor = _SpecularColor.rgb;
@@ -134,9 +144,8 @@ void GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    // Transparency Data
-    float alpha = SAMPLE_TEXTURE2D_LOD(_BaseColorMap, sampler_BaseColorMap, uvBase, 0).a * _BaseColor.a;
-
     InitBuiltinData(alpha, surfaceData.normalWS, -input.worldToTangent[2], input.positionRWS, input.texCoord1, builtinData);
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
+    return true;
 }

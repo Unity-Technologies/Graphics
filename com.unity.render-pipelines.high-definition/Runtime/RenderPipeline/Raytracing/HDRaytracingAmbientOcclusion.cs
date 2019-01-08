@@ -8,7 +8,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDRaytracingAmbientOcclusion
     {
         // External structures
-        HDRenderPipelineAsset m_PipelineAsset = null;
+        RenderPipelineResources m_PipelineResources = null;
+        RenderPipelineSettings m_PipelineSettings = null;
         HDRaytracingManager m_RaytracingManager = null;
         SharedRTManager m_SharedRTManager = null;
 
@@ -33,10 +34,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
         }
 
-        public void Init(HDRenderPipelineAsset asset, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
+        public void Init(RenderPipelineResources pipelineResources, RenderPipelineSettings pipelineSettings, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
         {
             // Keep track of the pipeline asset
-            m_PipelineAsset = asset;
+            m_PipelineResources = pipelineResources;
+            m_PipelineSettings = pipelineSettings;
 
             // keep track of the ray tracing manager
             m_RaytracingManager = raytracingManager;
@@ -66,15 +68,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
             Texture2DArray noiseTexture = m_RaytracingManager.m_RGNoiseTexture;
-            ComputeShader bilateralFilter = m_PipelineAsset.renderPipelineResources.shaders.reflectionBilateralFilterCS;
-            RaytracingShader aoShader = m_PipelineAsset.renderPipelineResources.shaders.aoRaytracing;
+            ComputeShader bilateralFilter = m_PipelineResources.shaders.reflectionBilateralFilterCS;
+            RaytracingShader aoShader = m_PipelineResources.shaders.aoRaytracing;
             if (rtEnvironement == null || noiseTexture == null || bilateralFilter == null || aoShader == null)
             {
                 return;
             }
 
             // If no reflection shader is available, just skip right away
-            if (m_PipelineAsset.renderPipelineResources.shaders.reflectionRaytracing == null) return;
+            if (m_PipelineResources.shaders.reflectionRaytracing == null) return;
             m_KernelFilter = bilateralFilter.FindKernel("GaussianBilateralFilter");
 
             // Try to grab the acceleration structure for the target camera
@@ -87,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else if (hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview)
             {
                 // For the scene view, we want to use the default acceleration structure
-                accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(m_PipelineAsset.renderPipelineSettings.editorRaytracingFilterLayerMask);
+                accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(m_PipelineSettings.editorRaytracingFilterLayerMask);
             }
 
             // If no acceleration structure available, end it now
@@ -112,14 +114,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set the data for the ray generation
             cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._RaytracingHitDistanceTexture, m_HitDistanceBuffer);
             cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._RaytracingVSNormalTexture, m_ViewSpaceNormalBuffer);
-            cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._AmbientOcclusionTexture, m_IntermediateBuffer);
+            cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._AmbientOcclusionTextureRW, m_IntermediateBuffer);
             cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
 
             // Run the calculus
             cmd.DispatchRays(aoShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
 
-            using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.Raytracing.GetSampler()))
+            using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingAmbientOcclusion.GetSampler()))
             {
                 switch(rtEnvironement.aoFilterMode)
                 {

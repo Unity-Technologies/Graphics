@@ -1,13 +1,14 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingBuiltinData.hlsl"
 
-void GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     float2 unlitColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _UnlitColorMap);
     surfaceData.color = SAMPLE_TEXTURE2D_LOD(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv, 0).rgb * _UnlitColor.rgb;
     float alpha = SAMPLE_TEXTURE2D_LOD(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv, 0).a * _UnlitColor.a;
 
 #ifdef _ALPHATEST_ON
-    DoAlphaTest(alpha, _AlphaCutoff);
+    if(alpha < _AlphaCutoff)
+        return false;
 #endif
 
     // Builtin Data
@@ -33,4 +34,5 @@ void GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
         surfaceData.color = GetTextureDataDebug(_DebugMipMapMode, unlitColorMapUv, _UnlitColorMap, _UnlitColorMap_TexelSize, _UnlitColorMap_MipInfo, surfaceData.color);
     }
 #endif
+return true;
 }

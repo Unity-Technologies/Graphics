@@ -75,7 +75,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
         readonly HDRaytracingReflections m_RaytracingReflections = new HDRaytracingReflections();
         readonly HDRaytracingShadowManager m_RaytracingShadows = new HDRaytracingShadowManager();
-        readonly HDRaytracingAmbientOcclusion m_RaytracingAmbientOcclusion = new HDRaytracingAmbientOcclusion();
 #endif
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
@@ -354,11 +353,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
 #if ENABLE_RAYTRACING
-            m_RayTracingManager.Init(m_Asset.renderPipelineSettings, m_Asset.renderPipelineResources);
-            m_RaytracingAmbientOcclusion.Init(m_Asset, m_RayTracingManager, m_SharedRTManager);
+            m_RayTracingManager.Init(m_Asset.renderPipelineSettings, m_Asset.renderPipelineResources, m_BlueNoise);
             m_RaytracingReflections.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager);
             m_RaytracingShadows.Init(m_Asset, m_RayTracingManager, m_SharedRTManager, m_LightLoop, m_GbufferManager);
             m_LightLoop.InitRaytracing(m_RayTracingManager);
+            m_AmbientOcclusionSystem.InitRaytracing(m_RayTracingManager, m_SharedRTManager);
 #endif
         }
 
@@ -610,7 +609,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if ENABLE_RAYTRACING
             m_RaytracingShadows.Release();
-            m_RaytracingAmbientOcclusion.Release();
             m_RaytracingReflections.Release();
             m_RayTracingManager.Release();
 #endif
@@ -724,11 +722,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
                 else
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, HDUtils.clearTexture);
-#if ENABLE_RAYTRACING
-                // Push the preintergrated textures
-                PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
-                PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_CharlieAndFabricLambert);
-#endif
             }
         }
 
@@ -1427,7 +1420,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 StartStereoRendering(cmd, renderContext, camera);
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
-                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, m_SharedRTManager);
+                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, m_SharedRTManager, renderContext);
 
                 // Clear and copy the stencil texture needs to be moved to before we invoke the async light list build,
                 // otherwise the async compute queue can end up using that texture before the graphics queue is done with it.
@@ -1476,14 +1469,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
                 }
-
-
-                if (!hdCamera.frameSettings.SSRRunsAsync())
-                {
-                    // Needs the depth pyramid and motion vectors, as well as the render of the previous frame.
-                    RenderSSR(hdCamera, cmd, renderContext);
-                }
-
 
                 // When debug is enabled we need to clear otherwise we may see non-shadows areas with stale values.
                 if (hdCamera.frameSettings.enableContactShadows && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows)
@@ -1569,6 +1554,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Overwrite camera properties set during the shadow pass with the original camera properties.
                     renderContext.SetupCameraProperties(camera, camera.stereoEnabled);
                     hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
+                }
+
+                if (!hdCamera.frameSettings.SSRRunsAsync())
+                {
+                    // Needs the depth pyramid and motion vectors, as well as the render of the previous frame.
+                    RenderSSR(hdCamera, cmd, renderContext);
                 }
 
 
@@ -2631,9 +2622,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Asset.renderPipelineSettings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedReflections)
             {
                 m_RaytracingReflections.RenderReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext);
-                PushFullScreenDebugTexture(hdCamera, cmd, m_SsrLightingTexture, FullScreenDebugMode.ScreenSpaceReflections);
-                PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingReflections.m_LightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
 
+                PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingReflections.m_LightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
             }
             else
 #endif

@@ -26,7 +26,7 @@ struct SphericalRectangle
 	float totalSolidAngle;
 };
 
-bool intersect_plane(float3 ray_origin, float3 ray_dir, float3 normal, float3 pos, out float t)
+bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 normal, float3 pos, out float t)
 {
 	float denom = dot(normal, ray_dir); 
 	if (abs(denom) > 1e-6)
@@ -204,7 +204,7 @@ bool SampleSphericalRectangle(SphericalRectangle sr, float2 rands, out float3 ou
     float3 vecL = sr.rectWSPos - sr.smpWSPos;
     float num = dot(vecL, sr.smpWSNormal);
     float t = 0.0f;
-    if (!intersect_plane(sr.smpWSPos, outDir, sr.rectWSDir, sr.rectWSPos, t))
+    if (!IntersectPlane(sr.smpWSPos, outDir, sr.rectWSDir, sr.rectWSPos, t))
     {
       return false;
     }

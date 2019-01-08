@@ -134,34 +134,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void CheckNoiseTexture()
-        {
-            if (m_Resources.textures.rgNoiseTex0 != null && m_Resources.textures.rgNoiseTex1 != null && m_Resources.textures.rgNoiseTex2 != null && m_Resources.textures.rgNoiseTex3 != null && 
-                m_Resources.textures.rgNoiseTex4 != null && m_Resources.textures.rgNoiseTex5 != null && m_Resources.textures.rgNoiseTex6 != null && m_Resources.textures.rgNoiseTex7 != null)
-            {
-                int textureResolution = m_Resources.textures.rgNoiseTex0.width;
-                // Texture
-                m_RGNoiseTexture = new Texture2DArray(textureResolution, textureResolution, 8, m_Resources.textures.rgNoiseTex0.format, false, true);
-
-                Graphics.CopyTexture(m_Resources.textures.rgNoiseTex0, 0, 0, m_RGNoiseTexture, 0, 0);
-                Graphics.CopyTexture(m_Resources.textures.rgNoiseTex1, 0, 0, m_RGNoiseTexture, 1, 0);
-                Graphics.CopyTexture(m_Resources.textures.rgNoiseTex2, 0, 0, m_RGNoiseTexture, 2, 0);
-                Graphics.CopyTexture(m_Resources.textures.rgNoiseTex3, 0, 0, m_RGNoiseTexture, 3, 0);
-                Graphics.CopyTexture(m_Resources.textures.rgNoiseTex4, 0, 0, m_RGNoiseTexture, 4, 0);
-                Graphics.CopyTexture(m_Resources.textures.rgNoiseTex5, 0, 0, m_RGNoiseTexture, 5, 0);
-                Graphics.CopyTexture(m_Resources.textures.rgNoiseTex6, 0, 0, m_RGNoiseTexture, 6, 0);
-                Graphics.CopyTexture(m_Resources.textures.rgNoiseTex7, 0, 0, m_RGNoiseTexture, 7, 0);
-            }
-        }
-
-
-        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources)
+        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise)
         {
             // Keep track of the resources
             m_Resources = resources;
-
-            // Try create the noise texture
-            CheckNoiseTexture();
 
             // Create the list of environments
             m_Environments = new List<HDRaytracingEnvironment>();
@@ -196,6 +172,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 RegisterFilter(filterArray[filterIdx]);
             }
+
+            // Keep track of the noise texture to use
+            m_RGNoiseTexture = blueNoise.textureArray128RGCoherent;
         }
 
         public void Release()
@@ -219,11 +198,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public void UpdateAccelerationStructures()
         {
-            if(m_RGNoiseTexture == null)
-            {
-                CheckNoiseTexture();
-            }
-
             // Here there is two options, either the full things needs to be rebuilded or we should only rebuild the ones that have been flagged obsolete
             if(m_DirtyEnvironment)
             {
@@ -360,6 +334,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
+                int maxNumSubMeshes = 1;
+
                 // Grab all the renderers from the scene
                 var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
                 for (var i = 0; i < rendererArray.Length; i++)
@@ -392,18 +368,48 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Add this fella to the renderer list
                         subScene.targetRenderers.Add(currentRenderer);
                     }
+
+                    // Also, we need to contribute to the maximal number of submeshes
+                    MeshFilter currentFilter = currentRenderer.GetComponent<MeshFilter>();
+                    maxNumSubMeshes = Mathf.Max(maxNumSubMeshes, currentFilter.sharedMesh.subMeshCount);
                 }
+
+                bool[] subMeshFlagArray = new bool[maxNumSubMeshes];
+                bool[] subMeshCutoffArray = new bool[maxNumSubMeshes];
 
                 // If any object build the acceleration structure
                 if (subScene.targetRenderers.Count != 0)
                 {
+                    // For all the renderers that we need to push in the acceleration structure
                     for (var i = 0; i < subScene.targetRenderers.Count; i++)
                     {
+                        // Grab the current renderer
                         Renderer currentRenderer = subScene.targetRenderers[i];
-                        if(currentRenderer.sharedMaterial != null && !currentRenderer.sharedMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT") )
+                        bool singleSided = false;
+                        if (currentRenderer.sharedMaterials != null)
                         {
+                            // For every sub-mesh/sub-material let's build the right flags
+                            int numSubMeshes = currentRenderer.sharedMaterials.Length;
+
+                            for(int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
+                            {
+                                Material currentMaterial = currentRenderer.sharedMaterials[meshIdx];
+                                if(currentMaterial != null)
+                                {
+                                    subMeshFlagArray[meshIdx] = !currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT");
+                                    subMeshCutoffArray[meshIdx] = currentMaterial.IsKeywordEnabled("_ALPHATEST_ON");
+                                    singleSided |= !currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
+                                }
+                                else
+                                {
+                                    singleSided = true;
+                                    subMeshCutoffArray[meshIdx] = false;
+                                    subMeshFlagArray[meshIdx] = false;
+                                }
+                            }
+
                             // Add it to the acceleration structure
-                            subScene.accelerationStructure.AddInstance(currentRenderer);
+                            subScene.accelerationStructure.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided);
                         }
                     }
                 }

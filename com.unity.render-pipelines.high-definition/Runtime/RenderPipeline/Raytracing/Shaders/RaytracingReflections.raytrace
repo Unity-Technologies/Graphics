@@ -2,10 +2,12 @@
 #pragma max_recursion_depth 1
 
 // HDRP include
-#include "UnityShaderVariables.cginc"
+#define SHADER_TARGET 50
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
@@ -15,14 +17,8 @@
 Texture2D<float>			          	_StencilTexture;
 Texture2D<float>						_DepthTexture;
 
-// Ray data used for the intersections
-float4x4 								_ViewMatrix;
-float4x4 								_InvViewProjMatrix;
-
 // Flag value that defines if a given pixel recieves reflections or not
 // int   									_SsrStencilExclusionValue;
-TextureCube 							_SkyTexture;
-SamplerState 							s_trilinear_clamp_sampler;
 int 									_RaytracingNumSamples;
 
 // Output structure of the reflection raytrace shader
@@ -31,7 +27,7 @@ RWTexture2D<float4> 					_SsrLightingTextureRW;
 [shader("miss")]
 void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload)
 {
-	rayIntersection.color = SAMPLE_TEXTURECUBE_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0);
+	rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0);
 }
 
 [shader("raygeneration")]
@@ -63,8 +59,8 @@ void RayGenReflections()
 
 	// Convert this to a world space position
 	PositionInputs posInput = GetPositionInput(currentPixelCoord, 1.0/LaunchDim.xy, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
-	float depth = length(posInput.positionWS);
-	posInput.positionWS += _WorldSpaceCameraPos;
+	float distanceToCamera = length(posInput.positionWS);
+	posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
 	// Compute the incident vector on the surfaces
 	float3 incidentWS = normalize(posInput.positionWS - _WorldSpaceCameraPos);
@@ -117,10 +113,10 @@ void RayGenReflections()
 
 		// In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
 		rayIntersection.cone.spreadAngle = _PixelSpreadAngle;
-		rayIntersection.cone.width = depth * _PixelSpreadAngle;
+		rayIntersection.cone.width = distanceToCamera * _PixelSpreadAngle;
 		
 		// Evaluate the ray intersection
-		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayIntersection);
+		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayIntersection);
 		
 		// Accumulate this value
 		finalColor += rayIntersection.color;
@@ -135,6 +131,7 @@ void RayGenReflections()
 
 [shader("closesthit")]
 void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{    
+{   
+	// When we do not hit any known closest hit, that means that no shader was specified for the target object meaning either it has nothing to do in the acceleration structure or we need to add raytracing subshaders to it
 	rayIntersection.color = float3(1.0, 0.0, 0.5);
 }

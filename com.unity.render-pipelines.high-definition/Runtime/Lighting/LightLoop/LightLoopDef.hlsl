@@ -227,6 +227,12 @@ uint FetchIndex(uint lightStart, uint lightOffset)
     return g_vBigTileLightList[lightStart + lightOffset];
 }
 
+#else
+// Fallback case (mainly for raytracing right now)
+uint FetchIndex(uint lightStart, uint lightOffset)
+{
+    return 0;
+}
 #endif // USE_FPTL_LIGHTLIST
 
 #else

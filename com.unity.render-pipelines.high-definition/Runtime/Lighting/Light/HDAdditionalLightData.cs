@@ -213,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         #if ENABLE_RAYTRACING
         // Temporary index that stores the current shadow index for the light
-        public int shadowIndex;
+        [System.NonSerialized] public int shadowIndex;
         #endif
 
         [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;

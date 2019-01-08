@@ -2,10 +2,12 @@
 #pragma max_recursion_depth 2
 
 // HDRP include
-#include "UnityShaderVariables.cginc"
+#define SHADER_TARGET 50
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
@@ -15,18 +17,12 @@
 Texture2D<float>			          	_StencilTexture;
 Texture2D<float>						_DepthTexture;
 
-// Ray data used for the intersections
-float4x4 								_ViewMatrix;
-float4x4 								_InvViewProjMatrix;
-
 // Flag value that defines if a given pixel recieves reflections or not
 // int   									_SsrStencilExclusionValue;
-TextureCube 							_SkyTexture;
-SamplerState 							s_trilinear_clamp_sampler;
 int 									_RaytracingNumSamples;
 
 // Output structure of the reflection raytrace shader
-RWTexture2D<float4> 					_AmbientOcclusionTexture;
+RWTexture2D<float4> 					_AmbientOcclusionTextureRW;
 RWTexture2D<float> 						_RaytracingHitDistanceTexture;
 RWTexture2D<float4> 					_RaytracingVSNormalTexture;
 
@@ -39,12 +35,12 @@ void MissShaderAmbientOcclusion(inout RayIntersection rayIntersection : SV_RayPa
 [shader("raygeneration")]
 void RayGenAmbientOcclusion()
 {
-	uint2 LaunchIndex = DispatchRaysIndex();
-    uint2 LaunchDim = DispatchRaysDimensions();
+	uint2 LaunchIndex = DispatchRaysIndex().xy;
+    uint2 LaunchDim = DispatchRaysDimensions().xy;
 
 	// Pixel coordinate of the current pixel
     uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
-    _AmbientOcclusionTexture[currentPixelCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    _AmbientOcclusionTextureRW[currentPixelCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	
     /*
     // Read the stencil value of the pixel
@@ -65,8 +61,7 @@ void RayGenAmbientOcclusion()
 
 	// Convert this to a world space position
 	PositionInputs posInput = GetPositionInput(currentPixelCoord, 1.0/LaunchDim.xy, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
-	float depth = length(posInput.positionWS);
-	posInput.positionWS += _WorldSpaceCameraPos;
+	posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
 	// Compute the incident vector on the surfaces
 	float3 incidentWS = normalize(posInput.positionWS - _WorldSpaceCameraPos);
@@ -110,7 +105,7 @@ void RayGenAmbientOcclusion()
 		// Evaluate the ray intersection
 		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayIntersection);
 		
-		// combinate
+		// combine
 		if(rayIntersection.t > 0.0f)
 		{
 			minDistance = min(minDistance, rayIntersection.t);
@@ -123,8 +118,9 @@ void RayGenAmbientOcclusion()
 	// Normalize the radiance
 	completeColor /= (float)numSamples;
 
-	// Alright we are done :D
-    _AmbientOcclusionTexture[currentPixelCoord] = float4(1.0f - completeColor, 1.0f);
+	// Alright we are done
+    _AmbientOcclusionTextureRW[currentPixelCoord] = float4(1.0f - completeColor, 1.0f);
     _RaytracingHitDistanceTexture[currentPixelCoord] = minDistance;
-    _RaytracingVSNormalTexture[currentPixelCoord] = mul(unity_MatrixInvV, normalData.normalWS);
+    float3 normalWS = mul(unity_MatrixInvV, float4(normalData.normalWS, 0.0f)).xyz;
+    _RaytracingVSNormalTexture[currentPixelCoord] = float4(normalWS, 1.0f);
 }

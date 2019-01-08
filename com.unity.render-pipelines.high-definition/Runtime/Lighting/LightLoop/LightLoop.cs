@@ -954,7 +954,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData,
             int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings
 #if ENABLE_RAYTRACING
-            , int maxAreaLightShadows, ref int areaShadowIndex, 
+            , int maxAreaLightShadows, ref int areaShadowIndex
 #endif
             )
         {
@@ -1886,7 +1886,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Punctual, area, projector lights - the rendering side.
                         if (GetLightData(cmd, hdShadowSettings, camera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings
                         #if ENABLE_RAYTRACING
-                            maxAreaLightShadows, ref areaLightShadowIndex
+                            , maxAreaLightShadows, ref areaLightShadowIndex
                         #endif
                         ))
                         {

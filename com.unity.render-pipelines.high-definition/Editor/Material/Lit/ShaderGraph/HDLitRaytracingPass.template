@@ -214,7 +214,7 @@ Pass
 
     }
 
-    void GetSurfaceDataFromIntersection(FragInputs fragInputs, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+    bool GetSurfaceDataFromIntersection(FragInputs fragInputs, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
         // This applies the double sided tangent space correction
         // Must match /Runtime/Material/MaterialUtilities.hlsl:ApplyDoubleSidedFlipOrMirror()
@@ -229,10 +229,8 @@ Pass
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
-        // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
-        $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-        $AlphaTestPrepass:  DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
-        $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
+        if(surfaceDescription.Alpha < surfaceDescription.AlphaClipThreshold)
+            return false;
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, intersectionVertice, rayCone, surfaceData, bentNormalWS);
@@ -249,6 +247,9 @@ Pass
         builtinData.distortion = float2(0.0, 0.0);
         builtinData.distortionBlur = 0.0;
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
+        // The surface should not be culled
+        return true;
     }
 
     //-------------------------------------------------------------------------------------

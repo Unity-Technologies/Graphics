@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Run the calculus
             cmd.DispatchRays(reflectionShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
 
-            using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.Raytracing.GetSampler()))
+            using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingFilterReflection.GetSampler()))
             {
                 switch (rtEnvironement.reflFilterMode)
                 {

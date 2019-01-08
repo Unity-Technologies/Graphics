@@ -155,21 +155,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Pre-baked noise
             public Texture2D[] blueNoise16LTex;
             public Texture2D[] blueNoise16RGBTex;
+            public Texture2D[] coherentRGNoise128;
 
             // Post-processing
             public Texture2D[] filmGrainTex;
-            
-#if ENABLE_RAYTRACING
-            // Raytracing noise
-            public Texture2D rgNoiseTex0;
-            public Texture2D rgNoiseTex1;
-            public Texture2D rgNoiseTex2;
-            public Texture2D rgNoiseTex3;
-            public Texture2D rgNoiseTex4;
-            public Texture2D rgNoiseTex5;
-            public Texture2D rgNoiseTex6;
-            public Texture2D rgNoiseTex7;
-#endif
         }
 
         [Serializable]
@@ -340,7 +329,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 },
 
                 blueNoise16LTex = new Texture2D[32],
-                blueNoise16RGBTex = new Texture2D[32]
+                blueNoise16RGBTex = new Texture2D[32],
+                coherentRGNoise128 = new Texture2D[16]
             };
 
             // ShaderGraphs
@@ -353,6 +343,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 textures.blueNoise16LTex[i] = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/BlueNoise16/L/LDR_LLL1_" + i + ".png");
                 textures.blueNoise16RGBTex[i] = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/BlueNoise16/RGB/LDR_RGB1_" + i + ".png");
+            }
+
+            // Fill-in coherent noise textures
+            for (int i = 0; i < 8; i++)
+            {
+                textures.coherentRGNoise128[i] = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/CoherentNoise128/sample_" + i + "_xy.bmp");
             }
         }
 #endif

@@ -28,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         enum MipLevel { Original, L1, L2, L3, L4, L5, L6, Count }
 
         RenderPipelineResources m_Resources;
+        RenderPipelineSettings m_Settings;
 
         // The arrays below are reused between frames to reduce GC allocation.
         readonly float[] m_SampleThickness =
@@ -84,8 +85,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly MaterialPropertyBlock m_ResolvePropertyBlock;
         readonly Material m_ResolveMaterial;
 
+#if ENABLE_RAYTRACING
+        public HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
+        readonly HDRaytracingAmbientOcclusion m_RaytracingAmbientOcclusion = new HDRaytracingAmbientOcclusion();
+#endif
+
         public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset)
         {
+            m_Settings = hdAsset.renderPipelineSettings;
             m_Resources = hdAsset.renderPipelineResources;
 
             if (!hdAsset.renderPipelineSettings.supportSSAO)
@@ -163,6 +170,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Cleanup()
         {
+#if ENABLE_RAYTRACING
+            m_RaytracingAmbientOcclusion.Release();
+#endif
+
             CoreUtils.Destroy(m_ResolveMaterial);
 
             RTHandles.Release(m_AmbientOcclusionTex);
@@ -190,29 +201,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_Combined3Tex);
         }
 
+#if ENABLE_RAYTRACING
+        public void InitRaytracing(HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
+        {
+            m_RayTracingManager = raytracingManager;
+            m_RaytracingAmbientOcclusion.Init(m_Resources, m_Settings, m_RayTracingManager, sharedRTManager);
+        }
+#endif
+
         public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.enableSSAO && settings.intensity.value > 0f;
 
-        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager)
+        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext)
         {
+            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
 #if ENABLE_RAYTRACING
             HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-            if (m_Asset.renderPipelineSettings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedAO)
+            if (m_Settings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedAO)
             {
-                if (!IsActive(camera, settings))
-                {
-                    // No AO applied - neutral is black, see the comment in the shaders
-                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, Texture2D.blackTexture);
-                    cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
-                    return;
-                }
-
-                m_RaytracingAmbientOcclusion.RenderAO(hdCamera, cmd, m_AmbientOcclusionBuffer, renderContext);
-                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionBuffer);
+                m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext);
+                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionTex);
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
 
-                // TODO: All the pushdebug stuff should be centralized somewhere
-                (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_AmbientOcclusionBuffer, FullScreenDebugMode.SSAO);
+                // TODO: All the push-debug stuff should be centralized somewhere
+                (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);
             }
             else
 #endif

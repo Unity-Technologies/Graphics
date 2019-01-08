@@ -228,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void CullLights(CommandBuffer cmd, ComputeShader lightClusterCS, int numLights)
         {
-            using (new ProfilingSample(cmd, "Cull Light Cluster", CustomSamplerId.Raytracing.GetSampler()))
+            using (new ProfilingSample(cmd, "Cull Light Cluster", CustomSamplerId.RaytracingCullLights.GetSampler()))
             {
                 // Make sure the culling buffer has the right size
                 if (m_LightCullResult == null || m_LightCullResult.count != numLights)
@@ -255,7 +255,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void BuildLightCluster(CommandBuffer cmd, ComputeShader lightClusterCS, HDRaytracingEnvironment currentEnv, int numLights)
         {
-            using (new ProfilingSample(cmd, "Build Light Cluster", CustomSamplerId.Raytracing.GetSampler()))
+            using (new ProfilingSample(cmd, "Build Light Cluster", CustomSamplerId.RaytracingBuildCluster.GetSampler()))
             {
                 // Make sure the Cluster buffer has the right size
                 int bufferSize = 64 * 64 * 32 * (currentEnv.maxNumLightsPercell + 3);
@@ -546,30 +546,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Grab the kernel
             int m_LightClusterDebugKernel = lightClusterDebugCS.FindKernel("DebugLightCluster");
 
-            using (new ProfilingSample(cmd, "Debug Light Cluster", CustomSamplerId.Raytracing.GetSampler()))
-            {
-                // Inject all the parameters to the debug compute
-                cmd.SetComputeBufferParam(lightClusterDebugCS, m_LightClusterDebugKernel, _RaytracingLightCluster, m_LightCluster);
-                cmd.SetComputeVectorParam(lightClusterDebugCS, _MinClusterPos, minClusterPos);
-                cmd.SetComputeVectorParam(lightClusterDebugCS, _MaxClusterPos, maxClusterPos);
-                cmd.SetComputeVectorParam(lightClusterDebugCS, _ClusterCellSize, clusterCellSize);
-                cmd.SetComputeFloatParam(lightClusterDebugCS, _LightPerCellCount, HDShadowUtils.Asfloat(currentEnv.maxNumLightsPercell));
-                cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, _DebugColorGradientTexture, gradientTexture);
+            // Inject all the parameters to the debug compute
+            cmd.SetComputeBufferParam(lightClusterDebugCS, m_LightClusterDebugKernel, _RaytracingLightCluster, m_LightCluster);
+            cmd.SetComputeVectorParam(lightClusterDebugCS, _MinClusterPos, minClusterPos);
+            cmd.SetComputeVectorParam(lightClusterDebugCS, _MaxClusterPos, maxClusterPos);
+            cmd.SetComputeVectorParam(lightClusterDebugCS, _ClusterCellSize, clusterCellSize);
+            cmd.SetComputeFloatParam(lightClusterDebugCS, _LightPerCellCount, HDShadowUtils.Asfloat(currentEnv.maxNumLightsPercell));
+            cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, _DebugColorGradientTexture, gradientTexture);
 
-                // Target output texture
-                cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, _DebutLightClusterTexture, m_DebugLightClusterTexture);
+            // Target output texture
+            cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, _DebutLightClusterTexture, m_DebugLightClusterTexture);
 
-                // Texture dimensions
-                int texWidth = m_DebugLightClusterTexture.rt.width;
-                int texHeight = m_DebugLightClusterTexture.rt.width;
+            // Texture dimensions
+            int texWidth = m_DebugLightClusterTexture.rt.width;
+            int texHeight = m_DebugLightClusterTexture.rt.width;
 
-                // Dispatch the compute
-                int lightVolumesTileSize = 8;
-                int numTilesX = (texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
-                int numTilesY = (texHeight + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
+            // Dispatch the compute
+            int lightVolumesTileSize = 8;
+            int numTilesX = (texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
+            int numTilesY = (texHeight + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
 
-                cmd.DispatchCompute(lightClusterDebugCS, m_LightClusterDebugKernel, numTilesX, numTilesY, 1);
-            }
+            cmd.DispatchCompute(lightClusterDebugCS, m_LightClusterDebugKernel, numTilesX, numTilesY, 1);
         }
 
         public ComputeBuffer GetCluster()
