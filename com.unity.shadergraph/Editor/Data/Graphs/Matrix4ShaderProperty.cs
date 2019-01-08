@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Matrix4ShaderProperty : MatrixShaderProperty
+    class Matrix4ShaderProperty : MatrixShaderProperty
     {
         public Matrix4ShaderProperty()
         {

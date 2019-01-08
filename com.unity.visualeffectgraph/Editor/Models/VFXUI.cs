@@ -85,8 +85,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        [System.Serializable]
+        public class SystemInfo : UIInfo
+        {
+            public VFXContext[] contexts;
+        }
+
         public GroupInfo[] groupInfos;
         public StickyNoteInfo[] stickyNoteInfos;
+        public List<SystemInfo> systemInfos;
 
         [Serializable]
         public struct CategoryInfo
@@ -99,8 +106,61 @@ namespace UnityEditor.VFX
 
         public Rect uiBounds;
 
+        public string GetNameOfSystem(IEnumerable<VFXContext> contexts)
+        {
+            if(systemInfos != null)
+            {
+                foreach(var context in contexts)
+                {
+                    var system = systemInfos.Find(t => t.contexts.Contains(context));
+                    if (system != null)
+                        return system.title;
+                }
+            }
+            return string.Empty;
+        }
 
-        internal void Sanitize(VFXGraph graph)
+        public void SetNameOfSystem(IEnumerable<VFXContext> contexts, string name)
+        {
+            if( systemInfos == null)
+            {
+                systemInfos = new List<SystemInfo>();
+            }
+            foreach (var context in contexts)
+            {
+                var system = systemInfos.Find(t => t.contexts.Contains(context));
+                if (system != null)
+                {
+                    system.contexts = contexts.ToArray();
+                    system.title = name;
+
+                    // we found a matching system, clean all other of these contexts
+                    foreach( var s in systemInfos)
+                    {
+                        if( s != system)
+                        {
+                            if( s.contexts.Intersect(contexts) != null)
+                            {
+                                s.contexts = s.contexts.Except(contexts).ToArray();
+                            }
+                        }
+                    }
+
+                    if( string.IsNullOrEmpty(name))
+                    {
+                        systemInfos.Remove(system);
+                    }
+                    return;
+                }
+            }
+            if( ! string.IsNullOrEmpty(name) )
+            {
+                // no system contains any of the contexts. Add a new one.
+                systemInfos.Add(new SystemInfo() { contexts = contexts.ToArray(), title = name });
+            }
+        }
+
+        public void Sanitize(VFXGraph graph)
         {
             if (groupInfos != null)
                 foreach (var groupInfo in groupInfos)

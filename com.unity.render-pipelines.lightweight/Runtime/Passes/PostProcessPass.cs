@@ -1,7 +1,9 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Perform post-processing using the given color attachment
@@ -10,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// You can use this pass to apply post-processing to the given color
     /// buffer. The pass uses the currently configured post-process stack.
     /// </summary>
-    public class PostProcessPass : ScriptableRenderPass
+    internal class PostProcessPass : ScriptableRenderPass
     {
         const string k_PostProcessingTag = "Render PostProcess Effects";
         private RenderTargetHandle source { get; set; }
@@ -18,6 +20,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetHandle destination { get; set; }
         private bool flip { get; set; }
         bool opaquePost { get; set; }
+
+        bool m_ReleaseTemporaryRenderTexture;
+
+        RenderTargetHandle m_TemporaryColorTexture;
 
         /// <summary>
         /// Setup the pass
@@ -32,14 +38,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool opaquePost,
             bool flip)
         {
-            if (sourceHandle == destinationHandle)
-                throw new InvalidOperationException($"{nameof(sourceHandle)} should not be the same as {nameof(destinationHandle)}");
-
             source = sourceHandle;
             destination = destinationHandle;
             descriptor = baseDescriptor;
             this.flip = flip;
             this.opaquePost = opaquePost;
+            m_TemporaryColorTexture.Init("_TemporaryColorTexture");
+            m_ReleaseTemporaryRenderTexture = false;
         }
 
         /// <inheritdoc/>
@@ -47,11 +52,47 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             if (renderer == null)
                 throw new ArgumentNullException(nameof(renderer));
-            
+
             CommandBuffer cmd = CommandBufferPool.Get(k_PostProcessingTag);
-            renderer.RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), destination.Identifier(), opaquePost, flip);
+
+            var layer = renderingData.cameraData.postProcessLayer;
+            int effectsCount;
+            if (opaquePost)
+            {
+                effectsCount = layer.sortedBundles[PostProcessEvent.BeforeTransparent].Count;
+            }
+            else
+            {
+                effectsCount = layer.sortedBundles[PostProcessEvent.BeforeStack].Count +
+                               layer.sortedBundles[PostProcessEvent.AfterStack].Count;
+            }
+
+            // If there's only one effect in the stack and soure is same as dest we
+            // create an intermediate blit rendertarget to handle it.
+            // Otherwise, PostProcessing system will create the intermediate blit targets itself.
+            if (effectsCount == 1 && source.id == destination.id)
+            {
+                m_ReleaseTemporaryRenderTexture = true;
+                cmd.GetTemporaryRT(m_TemporaryColorTexture.id, descriptor, FilterMode.Point);
+                renderer.RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), m_TemporaryColorTexture.Identifier(), opaquePost, flip);
+                cmd.Blit(m_TemporaryColorTexture.Identifier(), source.Identifier());
+            }
+            else
+            {
+                renderer.RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), destination.Identifier(), opaquePost, flip);
+            }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        public override void FrameCleanup(CommandBuffer cmd)
+        {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+
+            if (m_ReleaseTemporaryRenderTexture)
+                cmd.ReleaseTemporaryRT(m_TemporaryColorTexture.id);
         }
     }
 }

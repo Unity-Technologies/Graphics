@@ -74,9 +74,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/20_SpawnerChaining.unity
     guid: e0c50bd7286de7b4b9c97f3f962b0933
-  - enabled: 1
+  - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/21_DepthModules.unity
     guid: 810f6e5fbd289164eb3fe0ba8eb32588
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/22_Prewarm.unity
+    guid: fce7db23c3ae2184aaff7992d0bcdbee
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/HDRP.unity
     guid: 27665c3c3e33fc2469ff1206248887a0
@@ -95,7 +98,19 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/HDRPFog.unity
     guid: 0379b72b85eee8045afdaec3b1362957
+  - enabled: 0
+    path: Assets/AllTests/VFXTests/GraphicsTests/HDRPFogVolumetric.unity
+    guid: 2744a8931e888734bae7f74874fefdf5
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Timeline.unity
     guid: 9949ad9004662574ca9d59c2e372bdef
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/SimpleLit.unity
+    guid: 61f447f894ffdd741aa7a64ced0311cf
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/AngularVelocity.unity
+    guid: da2063a2a525cb849a6fbdb716cc5b43
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Noise.unity
+    guid: 2ede8f56c35c42741a3d56ef5355b552
   m_configObjects: {}

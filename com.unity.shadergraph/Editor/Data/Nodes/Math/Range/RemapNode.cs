@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Remap")]
-    public class RemapNode : CodeFunctionNode
+    class RemapNode : CodeFunctionNode
     {
         public RemapNode()
         {

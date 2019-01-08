@@ -1,6 +1,6 @@
 namespace UnityEditor.ShaderGraph
 {
-    public interface IGenerateProperties
+    interface IGenerateProperties
     {
         void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode);
     }

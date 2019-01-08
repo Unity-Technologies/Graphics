@@ -1,3 +1,4 @@
+using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -25,6 +26,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty supportRuntimeDebugDisplay;
         public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportRayTracing;
+        public SerializedProperty supportDistortion;
+        public SerializedProperty supportTransparentBackface;
+        public SerializedProperty supportTransparentDepthPrepass;
+        public SerializedProperty supportTransparentDepthPostpass;
+
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
@@ -50,8 +56,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
-            
-            supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
+            supportDistortion               = root.Find((RenderPipelineSettings s) => s.supportDistortion);
+            supportTransparentBackface      = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
+            supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
+            supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
+
+            supportRayTracing = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));

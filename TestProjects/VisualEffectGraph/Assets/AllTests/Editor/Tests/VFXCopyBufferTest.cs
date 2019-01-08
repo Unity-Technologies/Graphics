@@ -1,4 +1,4 @@
-#if !UNITY_EDITOR_OSX
+﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using NUnit.Framework;
 
 namespace UnityEditor.VFX.Test

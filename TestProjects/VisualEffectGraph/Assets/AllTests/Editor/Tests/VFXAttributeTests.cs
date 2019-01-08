@@ -1,4 +1,4 @@
-#if !UNITY_EDITOR_OSX
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -87,6 +87,43 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(VFXAttributeMode.ReadWrite, data.GetAttributeMode(Attrib2));
                     Assert.AreEqual(VFXAttributeMode.Read,      data.GetAttributeMode(Attrib3));
                 });
+        }
+
+        private class BlockTest : VFXBlock
+        {
+            public override VFXContextType compatibleContexts { get { return VFXContextType.kNone; } }
+            public override VFXDataType compatibleData { get { return VFXDataType.kNone; } }
+
+            public override IEnumerable<VFXAttributeInfo> attributes
+            {
+                get
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Write);
+
+                    yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
+
+                    yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.ReadWrite);
+                }
+            }
+        }
+
+
+        [Test]
+        public void TestMergedAttributes()
+        {
+            var block = ScriptableObject.CreateInstance<BlockTest>();
+            List<VFXAttributeInfo> blockAttributes = block.mergedAttributes.ToList();
+
+            Assert.AreEqual(3, blockAttributes.Count);
+
+            Assert.IsFalse(blockAttributes.Exists(a => a.Equals(new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read))));
+            Assert.IsFalse(blockAttributes.Exists(a => a.Equals(new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Write))));
+
+            Assert.IsTrue(blockAttributes.Exists(a => a.Equals(new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.ReadWrite))));
+            Assert.IsTrue(blockAttributes.Exists(a => a.Equals(new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read))));
+            Assert.IsTrue(blockAttributes.Exists(a => a.Equals(new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.ReadWrite))));
         }
     }
 }

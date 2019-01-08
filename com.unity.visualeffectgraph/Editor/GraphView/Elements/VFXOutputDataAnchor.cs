@@ -1,8 +1,7 @@
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;
 
@@ -20,8 +19,6 @@ namespace UnityEditor.VFX.UI
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
         }
-
-        Texture2D[] m_Icons;
         VisualElement m_Icon;
 
         protected VFXOutputDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
@@ -31,9 +28,9 @@ namespace UnityEditor.VFX.UI
                 name = "icon"
             };
 
-            Add(new VisualElement() { name = "lineSpacer" });
+            //Add(new VisualElement() { name = "lineSpacer" });
             AddToClassList("VFXOutputDataAnchor");
-            Insert(0, m_Icon); //insert at first ( right since reversed)
+            Add(m_Icon); //insert at first ( right since reversed)
         }
 
         void OnToggleExpanded()
@@ -50,6 +47,9 @@ namespace UnityEditor.VFX.UI
 
         VisualElement[] m_Lines;
 
+
+        Clickable m_ExpandClickable;
+
         public override void SelfChange(int change)
         {
             base.SelfChange(change);
@@ -63,10 +63,10 @@ namespace UnityEditor.VFX.UI
                     var line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft = 0.5f * PropertyRM.depthOffset;
-                    line.style.marginRight = PropertyRM.depthOffset * 0.5f;
+                    line.style.marginLeft = PropertyRM.depthOffset-2;
+                    line.style.marginRight = 0;
 
-                    Insert(2, line);
+                    Insert(3, line);
                     m_Lines[i] = line;
                 }
             }
@@ -74,20 +74,30 @@ namespace UnityEditor.VFX.UI
 
             if (controller.expandable)
             {
-                if (m_Icons == null)
-                    m_Icons = new Texture2D[]
-                    {
-                        Resources.Load<Texture2D>("VFX/plus"),
-                        Resources.Load<Texture2D>("VFX/minus")
-                    };
+                if( controller.expandedSelf)
+                {
+                    AddToClassList("icon-expanded");
+                }
+                else
+                {
+                    RemoveFromClassList("icon-expanded");
+                }
+                AddToClassList("icon-expandable");
 
-                m_Icon.style.backgroundImage = controller.expandedSelf ? m_Icons[1] : m_Icons[0];
-
-                m_Icon.AddManipulator(new Clickable(OnToggleExpanded));
+                if (m_ExpandClickable == null)
+                {
+                    m_ExpandClickable = new Clickable(OnToggleExpanded);
+                    m_Icon.AddManipulator(m_ExpandClickable);
+                }
             }
             else
             {
                 m_Icon.style.backgroundImage = null;
+                if( m_ExpandClickable != null)
+                {
+                    m_Icon.RemoveManipulator(m_ExpandClickable);
+                    m_ExpandClickable = null;
+                }
             }
 
 

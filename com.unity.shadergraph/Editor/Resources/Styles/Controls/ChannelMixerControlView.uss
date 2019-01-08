@@ -9,6 +9,7 @@ ChannelMixerControlView > Label {
     margin-left: 0;
     margin-right: 0;
     cursor: slide-arrow;
+    text-alignment : middle-left;
 }
 
 ChannelMixerControlView > #buttonPanel {
@@ -26,14 +27,7 @@ ChannelMixerControlView > #buttonPanel > Button {
 
 ChannelMixerControlView > #buttonPanel > Button > Label {
     flex-grow: 1;
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+    text-alignment : middle-left;
 }
 
 ChannelMixerControlView > #sliderPanel {
@@ -42,20 +36,24 @@ ChannelMixerControlView > #sliderPanel {
 }
 
 ChannelMixerControlView > #sliderPanel > Label {
-    margin-left: 0;
-    margin-right: 0;
+    text-alignment : middle-left;
     min-width: 20;
 }
 
 ChannelMixerControlView > #sliderPanel > Slider {
     flex-grow: 1;
-    margin-left: 0;
-    margin-right: 0;
+    overflow:visible;
+}
+
+ChannelMixerControlView > #sliderPanel > Slider > .unity-base-field__input {
 }
 
 ChannelMixerControlView > #sliderPanel > FloatField {
-    margin-left: 4;
-    margin-right: 2;
-    min-width: 30;
-    max-width: 30;
+    margin-right: 0;
+    padding-right: 0;
+    width: 40;
+}
+
+ChannelMixerControlView > #sliderPanel > FloatField > .unity-base-field__input {
+    text-alignment : middle-left;
 }

@@ -20,10 +20,10 @@ namespace UnityEditor.VFX.Block
         public ColorApplicationMode mode = ColorApplicationMode.ColorAndAlpha;
         [Tooltip("How the new computed color is composed with its previous value")]
         [VFXSetting]
-        public AttributeCompositionMode ColorComposition = AttributeCompositionMode.Scale;
+        public AttributeCompositionMode ColorComposition = AttributeCompositionMode.Multiply;
         [Tooltip("How the new computed alpha is composed with its previous value")]
         [VFXSetting]
-        public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Scale;
+        public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Multiply;
 
 
         public override string name { get { return "Color / Alpha over Life"; } }
@@ -100,7 +100,7 @@ float4 sampledColor = SampleGradient(gradient, age/lifetime);
         }
 
         // TODO - requires santizing Gradient -> Curve for Alpha. Needs fixing.
-        /*public override void Sanitize()
+        /*public override void Sanitize(int version)
         {
             Debug.Log("Sanitizing Graph: Automatically replace ColorOverLife with AttributeOverLife");
 

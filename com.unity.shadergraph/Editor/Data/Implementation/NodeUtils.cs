@@ -7,14 +7,14 @@ using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
-    public class SlotConfigurationException : Exception
+    class SlotConfigurationException : Exception
     {
         public SlotConfigurationException(string message)
             : base(message)
         {}
     }
 
-    public static class NodeUtils
+    static class NodeUtils
     {
         public static void SlotConfigurationExceptionIfBadConfiguration(INode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
         {

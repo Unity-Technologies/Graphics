@@ -3,7 +3,7 @@ using UnityEditor.ProjectWindowCallback;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class CreatePBRShaderGraph : EndNameEditAction
+    class CreatePBRShaderGraph : EndNameEditAction
     {
         [MenuItem("Assets/Create/Shader/PBR Graph", false, 208)]
         public static void CreateMaterialGraph()

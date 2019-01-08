@@ -7,14 +7,14 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
 
-    public enum OutputSpace
+    enum OutputSpace
     {
         Tangent,
         World
     };
 
     [Title("Artistic", "Normal", "Normal From Height")]
-    public class NormalFromHeightNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal, IMayRequirePosition
+    class NormalFromHeightNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal, IMayRequirePosition
     {
         public NormalFromHeightNode()
         {

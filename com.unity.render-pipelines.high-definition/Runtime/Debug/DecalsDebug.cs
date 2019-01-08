@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class DecalsDebugSettings
     {
-        public bool m_DisplayAtlas = false;
-        public UInt32 m_MipLevel = 0;
+        public bool displayAtlas = false;
+        public UInt32 mipLevel = 0;
     }
 }

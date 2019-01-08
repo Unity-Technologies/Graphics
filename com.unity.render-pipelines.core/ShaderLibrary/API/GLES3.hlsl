@@ -15,7 +15,7 @@
 #define FRONT_FACE_TYPE float
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL > 0.0) ? (FRONT) : (BACK))
 
-#define ERROR_ON_UNSUPPORTED_FUNCTION(funcName) #error ##funcName is not supported on GLES 3.0
+#define ERROR_ON_UNSUPPORTED_FUNCTION(funcName) #error #funcName is not supported on GLES 3.0
 
 #define CBUFFER_START(name)
 #define CBUFFER_END

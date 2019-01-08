@@ -1,7 +1,6 @@
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     public enum CameraOverrideOption
     {
@@ -36,15 +35,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [HideInInspector] [SerializeField] float m_Version = 2;
 
-        public float version
-        {
-            get { return m_Version; }
-        }
+        public float version => m_Version;
 
         public bool renderShadows
         {
-            get { return m_RenderShadows; }
-            set { m_RenderShadows = value; }
+            get => m_RenderShadows;
+            set => m_RenderShadows = value;
         }
 
         public CameraOverrideOption requiresDepthOption

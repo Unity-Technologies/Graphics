@@ -1,4 +1,4 @@
-#if !UNITY_EDITOR_OSX
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Text;
 using System.Linq;
@@ -139,7 +139,7 @@ namespace UnityEditor.VFX.Test
             }
 
             [VFXSetting]
-            public bool switchSourceCode;
+            public bool switchSourceCode = false;
 
             public static string[] sourceCodeVariant = { "/*rlbtmxcxbitlahdw*/", "/*qxrkittomkkiouqf*/" };
 

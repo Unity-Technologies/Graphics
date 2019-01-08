@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     public static class VolumeProfileFactory
     {
@@ -64,6 +64,7 @@ namespace UnityEditor.Experimental.Rendering
             where T : VolumeComponent
         {
             var comp = profile.Add<T>(overrides);
+            comp.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
             AssetDatabase.AddObjectToAsset(comp, profile);
 
             if (saveAsset)

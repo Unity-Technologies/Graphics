@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Cross Product")]
-    public class CrossProductNode : CodeFunctionNode
+    class CrossProductNode : CodeFunctionNode
     {
         public CrossProductNode()
         {

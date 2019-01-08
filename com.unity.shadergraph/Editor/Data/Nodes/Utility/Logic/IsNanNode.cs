@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Is NaN")]
-    public class IsNanNode : CodeFunctionNode
+    class IsNanNode : CodeFunctionNode
     {
         public IsNanNode()
         {

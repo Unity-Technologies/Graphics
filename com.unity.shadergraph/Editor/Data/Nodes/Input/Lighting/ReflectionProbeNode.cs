@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Lighting", "Reflection Probe")]
-    public class ReflectionProbeNode : CodeFunctionNode
+    class ReflectionProbeNode : CodeFunctionNode
     {
         public ReflectionProbeNode()
         {

@@ -1,6 +1,6 @@
 namespace UnityEditor.ShaderGraph
 {
-    public enum ScreenSpaceType
+    enum ScreenSpaceType
     {
         Default,
         Raw,
@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
         Tiled
     };
 
-    public static class ScreenSpaceTypeExtensions
+    static class ScreenSpaceTypeExtensions
     {
         public static string ToValueAsVariable(this ScreenSpaceType screenSpaceType)
         {

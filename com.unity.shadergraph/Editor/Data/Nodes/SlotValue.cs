@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public enum SlotValueType
+    enum SlotValueType
     {
         SamplerState,
         DynamicMatrix,
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         Boolean
     }
 
-    public enum ConcreteSlotValueType
+    enum ConcreteSlotValueType
     {
         SamplerState,
         Matrix4,
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
         Boolean
     }
 
-    public static class SlotValueHelper
+    static class SlotValueHelper
     {
         public static int GetChannelCount(this ConcreteSlotValueType type)
         {

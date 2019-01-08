@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
+Shader "Hidden/HDRP/DrawTransmittanceGraph"
 {
     SubShader
     {

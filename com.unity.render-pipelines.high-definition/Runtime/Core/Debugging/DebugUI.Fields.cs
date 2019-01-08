@@ -116,6 +116,12 @@ namespace UnityEngine.Experimental.Rendering
             public GUIContent[] enumNames;
             public int[] enumValues;
             public int[] quickSeparators;
+            public int[] indexes;
+            
+            public Func<int> getIndex { get; set; }
+            public Action<int> setIndex { get; set; }
+
+            public int currentIndex { get { return getIndex(); } set { setIndex(value); } }
 
             public Type autoEnum
             {
@@ -131,6 +137,7 @@ namespace UnityEngine.Experimental.Rendering
                     for (int i = 0; i < values.Length; i++)
                         enumValues[i] = (int)values.GetValue(i);
 
+                    InitIndexes();
                     InitQuickSeparators();
                 }
             }
@@ -156,6 +163,15 @@ namespace UnityEngine.Experimental.Rendering
                     }
                     lastPrefix = currentTestedPrefix;
                     quickSeparators[i] = wholeNameIndex++;
+                }
+            }
+            
+            public void InitIndexes()
+            {
+                indexes = new int[enumNames.Length];
+                for (int i = 0; i < enumNames.Length; i++)
+                {
+                    indexes[i] = i;
                 }
             }
         }
@@ -184,7 +200,7 @@ namespace UnityEngine.Experimental.Rendering
                     m_EnumType = value;
                 }
 
-                get => m_EnumType;
+                get { return m_EnumType; }
             }
         }
 

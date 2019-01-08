@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
-    public class GraphObject : ScriptableObject, IGraphObject, ISerializationCallbackReceiver
+    class GraphObject : ScriptableObject, IGraphObject, ISerializationCallbackReceiver
     {
         [SerializeField]
         SerializationHelper.JSONSerializedElement m_SerializedGraph;

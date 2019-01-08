@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.Experimental.Rendering;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -32,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_FogDistance);
             PropertyField(m_FogBaseHeight);
             PropertyField(m_FogHeightAttenuation);
+            PropertyField(m_MaxFogDistance);
             base.OnInspectorGUI(); // Color
         }
     }

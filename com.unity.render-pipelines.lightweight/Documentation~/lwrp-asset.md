@@ -1,7 +1,7 @@
-**Note:** While LWRP is in preview, this documentation might not reflect the end-result 100%, and is therefore subject to change.
+**Note:** This page is subject to change during the 2019.1 beta cycle.
 
 # Lightweight Render Pipeline Asset
-To use the Lightweight Render Pipeline (LWRP), you have to [create a LWRP Asset and assign the asset in the Graphics settings](Configuring-LWRP-for-use.md). 
+To use the Lightweight Render Pipeline (LWRP), you have to [create a LWRP Asset and assign the asset in the Graphics settings](configuring-lwrp-for-use.md). 
 
 The LWRP Asset controls several graphical features and quality settings for the Lightweight Render Pipeline.  It is a scriptable object that inherits from ‘RenderPipelineAsset’. When you assign the asset in the Graphics settings, Unity switches from the built-in render pipeline to the LWRP. You can then adjust the corresponding settings directly in the LWRP, instead of looking for them elsewhere.
 

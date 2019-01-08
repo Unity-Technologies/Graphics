@@ -1,14 +1,15 @@
 using System.Collections.Generic;
-using System.Globalization;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Title("Input", "High Definition Render Pipeline", "Diffusion Profile")]
-    public class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode
+    [FormerName("UnityEditor.ShaderGraph.DiffusionProfileNode")]
+    class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public DiffusionProfileNode()
         {

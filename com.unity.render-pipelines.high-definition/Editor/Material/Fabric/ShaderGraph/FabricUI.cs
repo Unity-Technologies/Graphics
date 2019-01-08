@@ -1,8 +1,7 @@
-using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class FabricGUI : ShaderGUI
     {
@@ -33,7 +32,7 @@ namespace UnityEditor.ShaderGraph
                 // If using multi-select, apply toggled material to all materials.
                 bool enabled = ((Material)materialEditor.target).GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
                 EditorGUI.BeginChangeCheck();
-                enabled = EditorGUILayout.Toggle("Enable Motion Vector For Vertex Animation", enabled);
+                enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
                 if (EditorGUI.EndChangeCheck())
                 {
                     foreach (var obj in materialEditor.targets)

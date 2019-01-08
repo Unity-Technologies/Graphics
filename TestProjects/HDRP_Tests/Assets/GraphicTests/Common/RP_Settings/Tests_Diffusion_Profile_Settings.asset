@@ -9,6 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: b2686e09ec7aef44bad2843e4416f057, type: 3}
   m_Name: Tests_Diffusion_Profile_Settings
   m_EditorClassIdentifier: 
@@ -18,7 +19,7 @@ MonoBehaviour:
     transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
     texturingMode: 0
     transmissionMode: 0
-    thicknessRemap: {x: 0, y: 8.152544}
+    thicknessRemap: {x: 0, y: 20}
     worldScale: 1
     ior: 1.4
   - name: Foliage
@@ -34,7 +35,7 @@ MonoBehaviour:
     transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
     texturingMode: 1
     transmissionMode: 0
-    thicknessRemap: {x: 0, y: 8.152548}
+    thicknessRemap: {x: 0, y: 20}
     worldScale: 1
     ior: 1.4
   - name: Fabric
@@ -42,7 +43,7 @@ MonoBehaviour:
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
     transmissionMode: 1
-    thicknessRemap: {x: 0, y: 1}
+    thicknessRemap: {x: 1, y: 50}
     worldScale: 1
     ior: 1.4
   - name: Transmission-Regular

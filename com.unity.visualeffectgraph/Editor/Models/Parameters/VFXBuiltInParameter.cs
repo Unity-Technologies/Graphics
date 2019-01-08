@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
 
         override public string name { get { return m_expressionOp.ToString(); } }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             if (VFXBuiltInExpression.Find(m_expressionOp) == null)
             {
@@ -51,7 +51,7 @@ namespace UnityEditor.VFX
             if (outputSlots.Count > 0 && outputSlots[0].GetType() == typeof(Matrix4x4))
                 outputSlots[0].Detach(); // In order not to have a bad conversion
 
-            base.Sanitize(); // Will call ResyncSlots
+            base.Sanitize(version); // Will call ResyncSlots
         }
 
         private Type GetOutputType()

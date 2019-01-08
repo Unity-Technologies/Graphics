@@ -1,8 +1,10 @@
 using NUnit.Framework;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine;
+using UnityEngine.Rendering.LWRP;
 
 class EditorTests
 {
+    // When creating LWRP all required resources should be initialized.
     [Test]
     public void ValidateNewAssetResources()
     {
@@ -18,8 +20,10 @@ class EditorTests
         Assert.AreEqual(asset.defaultUIOverdrawMaterial, null);
         Assert.AreEqual(asset.defaultUIETC1SupportedMaterial, null);
         Assert.AreEqual(asset.default2DMaterial, null);
+        ScriptableObject.DestroyImmediate(asset);
     }
 
+    // When changing LWRP settings, all settings should be valid.
     [Test]
     public void ValidateAssetSettings()
     {
@@ -54,5 +58,6 @@ class EditorTests
             asset.maxAdditionalLightsCount = 32;
             Assert.LessOrEqual(asset.maxAdditionalLightsCount, LightweightRenderPipeline.maxPerObjectLightCount);
         }
+        ScriptableObject.DestroyImmediate(asset);
     }
 }

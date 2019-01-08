@@ -1,6 +1,6 @@
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEditor.Experimental.Rendering.LightweightPipeline
+namespace UnityEditor.Rendering.LWRP
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(LWRPAdditionalLightData))]

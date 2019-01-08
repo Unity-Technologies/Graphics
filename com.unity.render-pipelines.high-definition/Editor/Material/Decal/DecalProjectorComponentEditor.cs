@@ -1,9 +1,6 @@
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -128,7 +125,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Slider(m_FadeScaleProperty, 0.0f, 1.0f, new GUIContent("Fade scale"));
             EditorGUILayout.PropertyField(m_UVScaleProperty);
             EditorGUILayout.PropertyField(m_UVBiasProperty);
-            EditorGUILayout.PropertyField(m_AffectsTransparencyProperty);
+
+            // only display the affects transparent property if material is HDRP/decal
+            if (DecalSystem.IsHDRenderPipelineDecal(m_DecalProjectorComponent.Mat.shader.name))
+            {
+                EditorGUILayout.PropertyField(m_AffectsTransparencyProperty);
+            }
 
             if (EditorGUI.EndChangeCheck())
             {

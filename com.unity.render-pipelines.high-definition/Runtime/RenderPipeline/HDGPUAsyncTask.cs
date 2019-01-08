@@ -66,13 +66,17 @@ namespace UnityEngine.Rendering
             CommandBuffer asyncCmd = CommandBufferPool.Get(m_TaskName);
 #if UNITY_2019_1_OR_NEWER
             asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
+#endif
+
             if (pushStartFence)
             {
+#if UNITY_2019_1_OR_NEWER
                 asyncCmd.WaitOnAsyncGraphicsFence(m_StartFence);
-            }
 #else
-            asyncCmd.WaitOnGPUFence(m_StartFence);
+                asyncCmd.WaitOnGPUFence(m_StartFence);
 #endif
+            }
+
             asyncTask(asyncCmd);
 
 #if UNITY_2019_1_OR_NEWER

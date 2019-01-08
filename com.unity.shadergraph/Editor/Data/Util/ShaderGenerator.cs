@@ -9,7 +9,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class ShaderGenerator
+    class ShaderGenerator
     {
         private struct ShaderChunk
         {
@@ -738,7 +738,7 @@ namespace UnityEditor.ShaderGraph
             }
             return "error";
         }
-        
+
         private static string DimensionToSwizzle(Dimension d)
         {
             switch (d)
@@ -949,7 +949,7 @@ SubShader
         float4 frag (GraphVertexOutput IN ${FaceSign}) : SV_Target
         {
     ${LocalPixelShader}
-            SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;;
+            SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;
     ${SurfaceInputs}
             SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
     ${SurfaceOutputRemap}

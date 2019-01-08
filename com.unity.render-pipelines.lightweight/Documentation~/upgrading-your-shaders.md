@@ -1,4 +1,4 @@
-**Note:** While LWRP is in preview, this documentation might not reflect the end-result 100%, and is therefore subject to change.
+**Note:** This page is subject to change during the 2019.1 beta cycle.
 
 # Upgrading your shaders
 

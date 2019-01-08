@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Round", "Step")]
-    public class StepNode : CodeFunctionNode
+    class StepNode : CodeFunctionNode
     {
         public StepNode()
         {

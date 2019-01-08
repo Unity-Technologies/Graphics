@@ -1,6 +1,9 @@
+using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
+
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class HDReflectionProbeEditor
+    sealed partial class HDReflectionProbeEditor
     {
         void InitializeTargetProbe()
         {
@@ -10,6 +13,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             serializedObject.Update();
             serializedObject.FindProperty("m_Type").intValue = 0;
             serializedObject.ApplyModifiedProperties();
+
+            foreach (var target in serializedObject.targetObjects)
+            {
+                var probeTarget = (ReflectionProbe)target;
+                var addTarget = probeTarget.GetComponent<HDAdditionalReflectionData>();
+                // unhide previously hidden components if any
+                addTarget.hideFlags = HideFlags.None;
+            }
         }
     }
 }

@@ -1,10 +1,10 @@
 ResizableElement
 {
-    position-type:absolute;
-    position-top: 0;
-    position-bottom: 0;
-    position-right: 0;
-    position-left: 0;
+    position:absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
     flex-direction: row;
     align-items: stretch;
 }

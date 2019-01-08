@@ -3,19 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEditor.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
-using UnityEngine.Experimental.UIElements.StyleSheets;
 using Object = UnityEngine.Object;
-#if UNITY_2018_3_OR_NEWER
-using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
-#endif
+
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
+using UnityEngine.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
-    public class MasterPreviewView : VisualElement
+    class MasterPreviewView : VisualElement
     {
         PreviewManager m_PreviewManager;
         AbstractMaterialGraph m_Graph;
@@ -63,7 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         List<string> m_DoNotShowPrimitives = new List<string>(new string[] {PrimitiveType.Plane.ToString()});
 
-        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
+        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
 
         public string assetName
@@ -74,11 +72,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public MasterPreviewView(PreviewManager previewManager, AbstractMaterialGraph graph)
         {
-            this.clippingOptions = ClippingOptions.ClipAndCacheContents;
+            cacheAsBitmap = true;
+            style.overflow = Overflow.Hidden;
             m_PreviewManager = previewManager;
             m_Graph = graph;
 
-            AddStyleSheetPath("Styles/MasterPreviewView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/MasterPreviewView"));
 
             m_PreviewRenderHandle = previewManager.masterRenderData;
 
@@ -116,7 +115,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         Image CreatePreview(Texture texture)
         {
-            var image = new Image { name = "preview", image = StyleValue<Texture>.Create(m_PreviewRenderHandle.texture ?? texture) };
+            var image = new Image { name = "preview", image = m_PreviewRenderHandle.texture ?? texture };
             image.AddManipulator(new Draggable(OnMouseDragPreviewMesh, true));
             image.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
             return image;
@@ -128,10 +127,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 if (m_DoNotShowPrimitives.Contains(primitiveTypeName))
                     continue;
-                evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh(primitiveTypeName), ContextualMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh(primitiveTypeName), DropdownMenuAction.AlwaysEnabled);
             }
 
-            evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), ContextualMenu.MenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), DropdownMenuAction.AlwaysEnabled);
         }
 
         IMasterNode masterNode
@@ -156,7 +155,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnPreviewChanged()
         {
-            m_PreviewTextureView.image = StyleValue<Texture>.Create(m_PreviewRenderHandle.texture ?? Texture2D.blackTexture);
+            m_PreviewTextureView.image = m_PreviewRenderHandle.texture ?? Texture2D.blackTexture;
             m_PreviewTextureView.MarkDirtyRepaint();
         }
 

@@ -2,20 +2,20 @@ using System;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class NodeSettingsView : VisualElement
+    class NodeSettingsView : VisualElement
     {
         VisualElement m_ContentContainer;
 
         public NodeSettingsView()
         {
             pickingMode = PickingMode.Ignore;
-            AddStyleSheetPath("Styles/NodeSettings");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/NodeSettings"));
             var uxml = Resources.Load<VisualTreeAsset>("UXML/NodeSettings");
-            uxml.CloneTree(this, null);
+            uxml.CloneTree(this);
             // Get the element we want to use as content container
             m_ContentContainer = this.Q("contentContainer");
             RegisterCallback<MouseDownEvent>(OnMouseDown);

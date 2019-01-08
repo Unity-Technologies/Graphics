@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine.Assertions;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     public sealed class SerializedDataParameter
     {

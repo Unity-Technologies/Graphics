@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class AdditionalLightsShadowCasterPass : ScriptableRenderPass
+    internal class AdditionalLightsShadowCasterPass : ScriptableRenderPass
     {
         private static class AdditionalShadowsConstantBuffer
         {

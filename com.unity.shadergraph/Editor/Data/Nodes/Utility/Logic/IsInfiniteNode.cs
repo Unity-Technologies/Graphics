@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Is Infinite")]
-    public class IsInfiniteNode : CodeFunctionNode
+    class IsInfiniteNode : CodeFunctionNode
     {
         public IsInfiniteNode()
         {

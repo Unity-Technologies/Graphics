@@ -3,7 +3,7 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Advanced", "Reciprocal Square Root")]
-    public class ReciprocalSquareRootNode : CodeFunctionNode
+    class ReciprocalSquareRootNode : CodeFunctionNode
     {
         public ReciprocalSquareRootNode()
         {

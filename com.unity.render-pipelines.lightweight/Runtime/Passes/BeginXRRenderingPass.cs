@@ -1,7 +1,8 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Start rendering that supports XR.
@@ -13,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// pass is issued without a matching EndXRRenderingPass
     /// it will lead to undefined rendering results. 
     /// </summary>
-    public class BeginXRRenderingPass : ScriptableRenderPass
+    internal class BeginXRRenderingPass : ScriptableRenderPass
     {
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)

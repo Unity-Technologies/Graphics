@@ -1,16 +1,16 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.Experimental.UIElements;
+using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.ShaderGraph.Drawing
+namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 {
-    public class FabricSettingsView : VisualElement
+    class FabricSettingsView : VisualElement
     {
         FabricMasterNode m_Node;
 
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 row.Add(new EnumField(SurfaceType.Opaque), (field) =>
                 {
                     field.value = m_Node.surfaceType;
-                    field.OnValueChanged(ChangeSurfaceType);
+                    field.RegisterValueChangedCallback(ChangeSurfaceType);
                 });
             });
 
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     row.Add(m_SortPiorityField, (field) =>
                     {
                         field.value = m_Node.sortPriority;
-                        field.OnValueChanged(ChangeSortPriority);
+                        field.RegisterValueChangedCallback(ChangeSortPriority);
                     });
                 });
                 --indentLevel;
@@ -116,12 +116,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 --indentLevel;
             }
 
-            ps.Add(new PropertyRow(CreateLabel("Double Sided", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
             {
                 row.Add(new EnumField(DoubleSidedMode.Disabled), (field) =>
                 {
                     field.value = m_Node.doubleSidedMode;
-                    field.OnValueChanged(ChangeDoubleSidedMode);
+                    field.RegisterValueChangedCallback(ChangeDoubleSidedMode);
                 });
             });
 
@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 row.Add(new EnumField(FabricMasterNode.MaterialType.CottonWool), (field) =>
                 {
                     field.value = m_Node.materialType;
-                    field.OnValueChanged(ChangeMaterialType);
+                    field.RegisterValueChangedCallback(ChangeMaterialType);
                 });
             });
 
@@ -153,18 +153,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
 
 
-            ps.Add(new PropertyRow(CreateLabel("Subsurface Scattering", indentLevel)), (row) =>
+            if (m_Node.surfaceType != SurfaceType.Transparent)
             {
-                row.Add(new Toggle(), (toggle) =>
+                ps.Add(new PropertyRow(CreateLabel("Subsurface Scattering", indentLevel)), (row) =>
                 {
-                    toggle.value = m_Node.subsurfaceScattering.isOn;
-                    toggle.OnToggleChanged(ChangeSubsurfaceScattering);
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.subsurfaceScattering.isOn;
+                        toggle.OnToggleChanged(ChangeSubsurfaceScattering);
+                    });
                 });
-            });
+            }
 
-                
 
-            ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
+
+           ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -173,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Receives SSR", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -187,7 +190,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 row.Add(new EnumField(SpecularOcclusionMode.Off), (field) =>
                 {
                     field.value = m_Node.specularOcclusionMode;
-                    field.OnValueChanged(ChangeSpecularOcclusionMode);
+                    field.RegisterValueChangedCallback(ChangeSpecularOcclusionMode);
                 });
             });
 
@@ -208,7 +211,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (Equals(m_Node.doubleSidedMode, evt.newValue))
                 return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Double Sided Mode Change");
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
             m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
         }
 
@@ -347,7 +350,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case FabricMasterNode.AlphaModeFabric.Alpha:
                     return AlphaMode.Alpha;
-                case FabricMasterNode.AlphaModeFabric.PremultipliedAlpha:
+                case FabricMasterNode.AlphaModeFabric.Premultiply:
                     return AlphaMode.Premultiply;
                 case FabricMasterNode.AlphaModeFabric.Additive:
                     return AlphaMode.Additive;
@@ -356,7 +359,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         Debug.LogWarning("Not supported: " + alphaModeLit);
                         return AlphaMode.Alpha;
                     }
-                    
+
             }
         }
 
@@ -367,14 +370,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AlphaMode.Alpha:
                     return FabricMasterNode.AlphaModeFabric.Alpha;
                 case AlphaMode.Premultiply:
-                    return FabricMasterNode.AlphaModeFabric.PremultipliedAlpha;
+                    return FabricMasterNode.AlphaModeFabric.Premultiply;
                 case AlphaMode.Additive:
                     return FabricMasterNode.AlphaModeFabric.Additive;
                 default:
                     {
                         Debug.LogWarning("Not supported: " + alphaMode);
                         return FabricMasterNode.AlphaModeFabric.Alpha;
-                    }                    
+                    }
             }
         }
     }

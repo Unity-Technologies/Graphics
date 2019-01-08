@@ -119,31 +119,29 @@ namespace UnityEditor.VFX
             {
                 string result = string.Format("Get Attribute: {0} ({1})", attribute, location);
 
-                var attrib = VFXAttribute.Find(this.attribute);
-                if (attrib.variadic == VFXVariadic.True)
-                    result += "." + mask;
+                try
+                {
+                    var attrib = VFXAttribute.Find(this.attribute);
+                    if (attrib.variadic == VFXVariadic.True)
+                        result += "." + mask;
+                }
+                catch {} // Must not throw in name getter
 
                 return result;
             }
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
-            if (attribute == "phase") // Replace old phase attribute with random operator
+            if (!VFXAttribute.Exist(attribute))
             {
-                Debug.Log("Sanitizing Graph: Automatically replace Phase Attribute Parameter with a Fixed Random Operator");
-
-                var randOp = ScriptableObject.CreateInstance<Operator.Random>();
-                randOp.constant = true;
-                randOp.seed = Operator.Random.SeedMode.PerParticle;
-
-                VFXSlot.CopyLinksAndValue(randOp.GetOutputSlot(0), GetOutputSlot(0), true);
-                ReplaceModel(randOp, this);
+                Debug.LogWarningFormat("Attribute parameter was removed because attribute {0} does not exist", attribute);
+                RemoveModel(this, false);
+                return; // Dont sanitize further, model was removed
             }
-            else
-            {
-                base.Sanitize();
-            }
+
+            UnityEditor.VFX.Block.VFXBlockUtility.SanitizeAttribute(ref attribute, ref mask, version);
+            base.Sanitize(version);
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

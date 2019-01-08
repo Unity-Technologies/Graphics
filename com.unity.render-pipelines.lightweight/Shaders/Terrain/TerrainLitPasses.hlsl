@@ -247,7 +247,6 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
 // Shadow pass
 
 // x: global clip space bias, y: normal world space bias
-float4 _ShadowBias;
 float3 _LightDirection;
 
 struct VertexInputLean
@@ -264,17 +263,9 @@ float4 ShadowPassVertex(VertexInputLean v) : SV_POSITION
     TerrainInstancing(v.position, v.normal);
 
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
-    float3 normalWS = TransformObjectToWorldDir(v.normal);
+    float3 normalWS = TransformObjectToWorldNormal(v.normal);
 
-    float invNdotL = 1.0 - saturate(dot(_LightDirection, normalWS));
-    float scale = invNdotL * _ShadowBias.y;
-
-    // normal bias is negative since we want to apply an inset normal offset
-    positionWS = normalWS * scale.xxx + positionWS;
-    float4 clipPos = TransformWorldToHClip(positionWS);
-
-    // _ShadowBias.x sign depens on if platform has reversed z buffer
-    clipPos.z += _ShadowBias.x;
+    float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
 
 #if UNITY_REVERSED_Z
     clipPos.z = min(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);

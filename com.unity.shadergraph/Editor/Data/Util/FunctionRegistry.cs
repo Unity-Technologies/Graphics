@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class FunctionRegistry
+    class FunctionRegistry
     {
         Dictionary<string, string> m_Sources = new Dictionary<string, string>();
         bool m_Validate = false;

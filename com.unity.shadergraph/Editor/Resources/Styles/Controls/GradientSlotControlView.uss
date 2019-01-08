@@ -3,8 +3,13 @@ GradientSlotControlView {
     align-items: center;
 }
 
-GradientSlotControlView > GradientField {
+.unity-base-field {
+    width: 41;
+    margin-top: 1;
+    margin-bottom: 1;
+}
+
+.unity-base-field__input{
     margin-left: 0;
     margin-right: 0;
-    width: 41;
 }

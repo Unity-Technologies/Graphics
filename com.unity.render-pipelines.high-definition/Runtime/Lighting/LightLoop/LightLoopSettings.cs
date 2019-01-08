@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -64,27 +65,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightLoopSettings.overrides = this.overrides;
         }
 
-        public LightLoopSettings Override(LightLoopSettings overridedFrameSettings)
+        public void ApplyOverrideOn(LightLoopSettings overridedFrameSettings)
         {
             if (overrides == 0)
-            {
-                //nothing to override
-                return overridedFrameSettings;
-            }
+                return;
 
-            LightLoopSettings result = new LightLoopSettings(overridedFrameSettings);
             Array values = Enum.GetValues(typeof(LightLoopSettingsOverrides));
             foreach (LightLoopSettingsOverrides val in values)
             {
                 if ((val & overrides) > 0)
                 {
-                    s_Overrides[val](result, this);
+                    s_Overrides[val](overridedFrameSettings, this);
                 }
             }
 
             //propagate override to be chained
-            result.overrides = overrides | overridedFrameSettings.overrides;
-            return result;
+            overridedFrameSettings.overrides = overrides | overridedFrameSettings.overrides;
         }
 
         // aggregateFrameSettings already contain the aggregation of RenderPipelineSettings and FrameSettings (regular and/or debug)
@@ -108,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && !aggregateFrameSettings.enableMSAA;
 
             // disable FPTL for stereo for now
-            aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && XRGraphics.enabled;
+            aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && !XRGraphics.enabled;
 
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
             aggregate.isFptlEnabled = aggregateFrameSettings.shaderLitMode == LitShaderMode.Deferred || aggregate.enableFptlForForwardOpaque;

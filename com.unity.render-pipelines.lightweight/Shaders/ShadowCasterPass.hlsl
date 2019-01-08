@@ -2,8 +2,8 @@
 #define LIGHTWEIGHT_SHADOW_CASTER_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
 
-float4 _ShadowBias; // x: depth bias, y: normal bias
 float3 _LightDirection;
 
 struct Attributes
@@ -23,15 +23,9 @@ struct Varyings
 float4 GetShadowPositionHClip(Attributes input)
 {
     float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-    float3 normalWS = TransformObjectToWorldDir(input.normalOS);
+    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 
-    float invNdotL = 1.0 - saturate(dot(_LightDirection, normalWS));
-    float scale = invNdotL * _ShadowBias.y;
-
-    // normal bias is negative since we want to apply an inset normal offset
-    positionWS = _LightDirection * _ShadowBias.xxx + positionWS;
-    positionWS = normalWS * scale.xxx + positionWS;
-    float4 positionCS = TransformWorldToHClip(positionWS);
+    float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
 
 #if UNITY_REVERSED_Z
     positionCS.z = min(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);

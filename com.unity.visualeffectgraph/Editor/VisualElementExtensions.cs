@@ -1,8 +1,10 @@
-using UnityEngine;
-using UnityEditor;
-using UnityEngine.Experimental.UIElements;
+using System.Linq;
 using System.Reflection;
 
+using UnityEngine;
+using UnityEngine.UIElements;
+
+using UnityEditor;
 
 static class VisualElementExtensions
 {
@@ -26,10 +28,24 @@ static class VisualElementExtensions
         return (GUIView)m_OwnerPropertyInfo.GetValue(panel, new object[] {});
     }
 
+    // HasFocus on textField should really see if the child TextInput hasFocus
+    public static bool HasFocus<T>(this TextInputBaseField<T> texInput)
+    {
+        return ((VisualElement)texInput.Query(TextInputBaseField<T>.textInputUssName)).HasFocus();
+    }
+
     public static bool HasFocus(this VisualElement visualElement)
     {
         if (visualElement.panel == null) return false;
+
         return visualElement.panel.focusController.focusedElement == visualElement;
+    }
+
+    public static void AddStyleSheetPath(this VisualElement visualElement, string path)
+    {
+        var sheet = Resources.Load<StyleSheet>(path);
+        if (sheet != null)
+            visualElement.styleSheets.Add(sheet);
     }
 
     public static void AddStyleSheetPathWithSkinVariant(this VisualElement visualElement, string path)
@@ -43,6 +59,23 @@ static class VisualElementExtensions
         {
             visualElement.AddStyleSheetPath(path + "Light");
         }*/
+    }
+
+    public static void ResetPositionProperties(this VisualElement visualElement)
+    {
+        var style = visualElement.style;
+        style.position = StyleKeyword.Null;
+        style.marginLeft = StyleKeyword.Null;
+        style.marginRight = StyleKeyword.Null;
+        style.marginBottom = StyleKeyword.Null;
+        style.marginTop = StyleKeyword.Null;
+        style.left = StyleKeyword.Null;
+        style.top = StyleKeyword.Null;
+        style.right = StyleKeyword.Null;
+        style.bottom = StyleKeyword.Null;
+        style.width = StyleKeyword.Null;
+        style.height = StyleKeyword.Null;
+
     }
 
     public static Vector2 GlobalToBound(this VisualElement visualElement, Vector2 position)

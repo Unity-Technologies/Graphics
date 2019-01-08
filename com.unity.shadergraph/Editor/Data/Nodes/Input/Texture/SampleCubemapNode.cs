@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEditor.ShaderGraph.CubemapNode")]
     [Title("Input", "Texture", "Sample Cubemap")]
-    public class SampleCubemapNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
+    class SampleCubemapNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
     {
         public const int OutputSlotId = 0;
         public const int CubemapInputId = 1;

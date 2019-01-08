@@ -14,19 +14,18 @@
 // Warning: clamping to border may not work as expected with the quadratic filter due to its extent.
 float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      float2 positionNDC,
-                     float  linearDepth,
+                     float  linearDistance,
                      float4 VBufferResolution,
-                     float2 VBufferSliceCount,
                      float2 VBufferUvScale,
                      float2 VBufferUvLimit,
-                     float4 VBufferDepthEncodingParams,
-                     float4 VBufferDepthDecodingParams,
+                     float4 VBufferDistanceEncodingParams,
+                     float4 VBufferDistanceDecodingParams,
                      bool   quadraticFilterXY,
                      bool   clampToBorder)
 {
     // These are the viewport coordinates.
     float2 uv = positionNDC;
-    float  w  = EncodeLogarithmicDepthGeneralized(linearDepth, VBufferDepthEncodingParams);
+    float  w  = EncodeLogarithmicDepthGeneralized(linearDistance, VBufferDistanceEncodingParams);
 
     bool coordIsInsideFrustum = true;
 
@@ -74,28 +73,27 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
 
 float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      float3   positionWS,
+                     float3   cameraPositionWS,
                      float4x4 viewProjMatrix,
                      float4   VBufferResolution,
-                     float2   VBufferSliceCount,
                      float2   VBufferUvScale,
                      float2   VBufferUvLimit,
-                     float4   VBufferDepthEncodingParams,
-                     float4   VBufferDepthDecodingParams,
+                     float4   VBufferDistanceEncodingParams,
+                     float4   VBufferDistanceDecodingParams,
                      bool     quadraticFilterXY,
                      bool     clampToBorder)
 {
     float2 positionNDC = ComputeNormalizedDeviceCoordinates(positionWS, viewProjMatrix);
-    float  linearDepth = mul(viewProjMatrix, float4(positionWS, 1)).w;
+    float  linearDistance = distance(positionWS, cameraPositionWS);
 
     return SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                          positionNDC,
-                         linearDepth,
+                         linearDistance,
                          VBufferResolution,
-                         VBufferSliceCount,
                          VBufferUvScale,
                          VBufferUvLimit,
-                         VBufferDepthEncodingParams,
-                         VBufferDepthDecodingParams,
+                         VBufferDistanceEncodingParams,
+                         VBufferDistanceDecodingParams,
                          quadraticFilterXY,
                          clampToBorder);
 }

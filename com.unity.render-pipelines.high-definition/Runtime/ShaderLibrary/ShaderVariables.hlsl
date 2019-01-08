@@ -25,6 +25,7 @@
     #define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
     #define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
     #define _WorldSpaceCameraPos _WorldSpaceCameraPosStereo[unity_StereoEyeIndex].xyz
+    #define _PrevCamPosRWS _PrevCamPosRWSStereo[unity_StereoEyeIndex].xyz
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
@@ -150,6 +151,7 @@ SAMPLER(s_linear_clamp_sampler);
 SAMPLER(s_linear_repeat_sampler);
 SAMPLER(s_trilinear_clamp_sampler);
 SAMPLER(s_trilinear_repeat_sampler);
+SAMPLER_CMP(s_linear_clamp_compare_sampler);
 
 // ----------------------------------------------------------------------------
 
@@ -213,10 +215,11 @@ CBUFFER_START(UnityGlobal)
 
     // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
     // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
-#if defined(USING_STEREO_MATRICES)
-    float3 _Align16;
-#else
+#ifndef USING_STEREO_MATRICES
     float3 _WorldSpaceCameraPos;
+    float  _Pad0;
+    float3 _PrevCamPosRWS;
+    float  _Pad1;
 #endif
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
     float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
@@ -270,26 +273,26 @@ CBUFFER_START(UnityGlobal)
     float3 _HeightFogBaseScattering;
     float  _HeightFogBaseExtinction;
 
-    float2 _HeightFogExponents;         // {a, 1/a}
+    float2 _HeightFogExponents;         // { 1/H, H }
     float  _HeightFogBaseHeight;
     float  _GlobalFogAnisotropy;
 
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
-    float4 _VBufferSliceCount;          // { count, 1/count, 0, 0 }
+    uint   _VBufferSliceCount;
+    float  _VBufferRcpSliceCount;
+    float  _Pad2;
+    float  _Pad3;
     float4 _VBufferUvScaleAndLimit;     // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
-    float4 _VBufferDepthEncodingParams; // See the call site for description
-    float4 _VBufferDepthDecodingParams; // See the call site for description
+    float4 _VBufferDistanceEncodingParams; // See the call site for description
+    float4 _VBufferDistanceDecodingParams; // See the call site for description
 
     // TODO: these are only used for reprojection.
     // Once reprojection is performed in a separate pass, we should probably
     // move these to a dedicated CBuffer to avoid polluting the global one.
     float4 _VBufferPrevResolution;
-    float4 _VBufferPrevSliceCount;
     float4 _VBufferPrevUvScaleAndLimit;
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
-    float  _VBufferMaxLinearDepth;      // The Z coordinate of the middle of the last slice
-    int    _EnableDistantFog;           // bool...
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"
@@ -299,6 +302,8 @@ CBUFFER_START(UnityGlobal)
 
     #define DEFAULT_LIGHT_LAYERS 0xFF
     uint _EnableLightLayers;
+
+    uint _EnableSSRefraction;
 
 CBUFFER_END
 
@@ -313,7 +318,8 @@ float4x4 _InvViewMatrixStereo[2];
 float4x4 _InvProjMatrixStereo[2];
 float4x4 _InvViewProjMatrixStereo[2];
 float4x4 _PrevViewProjMatrixStereo[2];
-float4   _WorldSpaceCameraPosStereo[2];
+float3   _WorldSpaceCameraPosStereo[2];
+float3  _PrevCamPosRWSStereo[2];
 #if SHADER_STAGE_COMPUTE
 // Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
 // Instead, we manually update _ComputeEyeIndex in SRP code. 

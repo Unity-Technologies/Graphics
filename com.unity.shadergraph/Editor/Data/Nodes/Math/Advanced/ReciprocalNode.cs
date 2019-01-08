@@ -5,14 +5,14 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ReciprocalMethod
+    enum ReciprocalMethod
     {
         Default,
         Fast
     };
 
     [Title("Math", "Advanced", "Reciprocal")]
-    public class ReciprocalNode : CodeFunctionNode
+    class ReciprocalNode : CodeFunctionNode
     {
         public ReciprocalNode()
         {

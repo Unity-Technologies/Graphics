@@ -1,7 +1,8 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Set up camera properties for the current pass.
@@ -15,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// * Setup HDR keyword
     /// * Setup global time properties (_Time, _SinTime, _CosTime)
     /// </summary>
-    public class SetupForwardRenderingPass : ScriptableRenderPass
+    internal class SetupForwardRenderingPass : ScriptableRenderPass
     {
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)

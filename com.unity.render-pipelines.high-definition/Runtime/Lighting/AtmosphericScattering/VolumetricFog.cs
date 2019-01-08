@@ -34,11 +34,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 crBaseHeight -= hdCamera.camera.transform.position.y;
             }
 
-            // FogExponent = 1 / MeanHeight
-            cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents,  new Vector2(1.0f / meanHeight, meanHeight));
+            float relativeMeanHeight = Mathf.Max(0.01f, meanHeight - baseHeight);
+
+            // FogExponent = 1 / BaseRelative(MeanHeight)
+            cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents,  new Vector2(1.0f / relativeMeanHeight, relativeMeanHeight));
             cmd.SetGlobalFloat( HDShaderIDs._HeightFogBaseHeight, crBaseHeight);
             cmd.SetGlobalFloat( HDShaderIDs._GlobalFogAnisotropy, anisotropy);
             cmd.SetGlobalInt(   HDShaderIDs._EnableDistantFog,    enableDistantFog ? 1 : 0);
+        }
+
+        public static void PushNeutralShaderParameters(CommandBuffer cmd)
+        {
+            cmd.SetGlobalVector(HDShaderIDs._HeightFogBaseScattering, Vector3.zero);
+            cmd.SetGlobalFloat( HDShaderIDs._HeightFogBaseExtinction, 0.0f);
+
+            cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents,  Vector2.one);
+            cmd.SetGlobalFloat( HDShaderIDs._HeightFogBaseHeight, 0.0f);
+            cmd.SetGlobalFloat( HDShaderIDs._GlobalFogAnisotropy, 0.0f);
+            cmd.SetGlobalInt(   HDShaderIDs._EnableDistantFog,    0);
         }
     }
 }

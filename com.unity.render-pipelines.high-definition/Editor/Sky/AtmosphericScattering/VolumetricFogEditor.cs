@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.Experimental.Rendering;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -21,10 +18,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static GUIContent s_AlbedoLabel                 = new GUIContent("Single Scattering Albedo", "Hue and saturation control the color of the fog (the wavelength of in-scattered light). Value controls scattering (0 = max absorption & no scattering, 1 = no absorption & max scattering).");
         static GUIContent s_MeanFreePathLabel           = new GUIContent("Base Fog Distance", "Controls the density, which determines how far you can see through the fog. A.k.a. \"mean free path length\". At this distance, 63% of background light is lost in the fog (due to absorption and out-scattering).");
         static GUIContent s_BaseHeightLabel             = new GUIContent("Base Height", "Height at which the exponential density falloff starts.");
-        static GUIContent s_MeanHeightLabel             = new GUIContent("Mean Height", "Controls the rate of falloff of height fog. Higher values stretch the fog vertically, making it thinner.");
+        static GUIContent s_MeanHeightLabel             = new GUIContent("Mean Height", "Controls the rate of falloff of the height fog. Higher values stretch the fog vertically.");
         static GUIContent s_AnisotropyLabel             = new GUIContent("Global Anisotropy", "Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, -1 is backward scattering.");
         static GUIContent s_GlobalLightProbeDimmerLabel = new GUIContent("Global Light Probe Dimmer", "Reduces the intensity of the global light probe.");
-        static GUIContent s_EnableDistantFog            = new GUIContent("Enable Distant Fog", "Activates constant-lit fog behind the volumetrically-lit frustum.");
+        static GUIContent s_EnableDistantFog            = new GUIContent("Distant Fog", "Activates the fog with precomputed lighting behind the volumetrically-lit frustum.");
 
         public override void OnEnable()
         {
@@ -48,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_MeanHeight,             s_MeanHeightLabel);
             PropertyField(m_Anisotropy,             s_AnisotropyLabel);
             PropertyField(m_GlobalLightProbeDimmer, s_GlobalLightProbeDimmerLabel);
+            PropertyField(m_MaxFogDistance);
             PropertyField(m_EnableDistantFog,       s_EnableDistantFog);
 
             if (m_EnableDistantFog.value.boolValue)

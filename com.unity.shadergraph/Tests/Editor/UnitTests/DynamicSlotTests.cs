@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
-    public class DynamicSlotTests
+    class DynamicSlotTests
     {
         private ShaderGraph.MaterialGraph m_Graph;
         private DynamicNode m_DynamicNode;

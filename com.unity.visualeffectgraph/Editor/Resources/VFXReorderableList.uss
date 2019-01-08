@@ -1,9 +1,9 @@
 .ReorderableList
 {
-    position-type:Absolute;
-    position-left:0;
-    position-right:0;
-    position-top:0;
+    position:Absolute;
+    left:0;
+    right:0;
+    top:0;
     background-color:#282828;
 }
 

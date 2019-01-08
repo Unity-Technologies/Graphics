@@ -2,34 +2,55 @@ using UnityEngine.TestTools;
 using NUnit.Framework;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
 
 class RuntimeTests
 {
+    // When LWRP pipeline is active, lightsUseLinearIntensity must match active color space.
     [UnityTest]
-    public IEnumerator PipelineHasCorrectRenderingSettings()
+    public IEnumerator PipelineHasCorrectColorSpace()
     {
-        yield return null;
+        GameObject go = new GameObject();
+        Camera camera = go.AddComponent<Camera>();
+        RenderPipelineAsset prevAsset = GraphicsSettings.renderPipelineAsset;
 
-        LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
-        Assert.AreNotEqual(asset, null, "LWRP asset is not assigned in the GraphicsSettings.");
-        Assert.AreEqual(Shader.globalRenderPipeline, "LightweightPipeline", "Wrong render pipeline shader tag.");
-        Assert.AreEqual(GraphicsSettings.lightsUseLinearIntensity, true, "LWRP must use linear light intensities.");
+        LightweightRenderPipelineAsset asset = ScriptableObject.CreateInstance<LightweightRenderPipelineAsset>();
+        GraphicsSettings.renderPipelineAsset = asset;
+        camera.Render();
+        yield return null;
+        
+        Assert.AreEqual(GraphicsSettings.lightsUseLinearIntensity, QualitySettings.activeColorSpace == ColorSpace.Linear,
+            "GraphicsSettings.lightsUseLinearIntensity must match active color space.");
+
+        GraphicsSettings.renderPipelineAsset = prevAsset;
+        ScriptableObject.DestroyImmediate(asset);
+        GameObject.DestroyImmediate(go);
     }
 
+    // When switching to LWRP it sets "LightweightPipeline" as global shader tag.
+    // When switching to Built-in it sets "" as global shader tag.
     [UnityTest]
-    public IEnumerator PipelineRestoreCorrectSettingsWhenSwitchingToBuiltinPipeline()
+    public IEnumerator PipelineSetsAndRestoreGlobalShaderTagCorrectly()
     {
+        GameObject go = new GameObject();
+        Camera camera = go.AddComponent<Camera>();
+        RenderPipelineAsset prevAsset = GraphicsSettings.renderPipelineAsset;
+        LightweightRenderPipelineAsset asset = ScriptableObject.CreateInstance<LightweightRenderPipelineAsset>();
+        GraphicsSettings.renderPipelineAsset = asset;
+        camera.Render();
         yield return null;
 
-        LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
-        Assert.AreNotEqual(asset, null, "LWRP asset is not assigned in the GraphicsSettings.");
-        GraphicsSettings.renderPipelineAsset = null;
+        Assert.AreEqual(Shader.globalRenderPipeline, "LightweightPipeline", "Wrong render pipeline shader tag.");
 
+        GraphicsSettings.renderPipelineAsset = null;
+        camera.Render();
         yield return null;
 
         Assert.AreEqual(Shader.globalRenderPipeline, "", "Render Pipeline shader tag is not restored.");
-        GraphicsSettings.renderPipelineAsset = asset;
+        GraphicsSettings.renderPipelineAsset = prevAsset;
+
+        ScriptableObject.DestroyImmediate(asset);
+        GameObject.DestroyImmediate(go);
     }
 }

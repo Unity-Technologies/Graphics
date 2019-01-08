@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
-    public class MaterialGraphTests
+    class MaterialGraphTests
     {
         [OneTimeSetUp]
         public void RunBeforeAnyTests()

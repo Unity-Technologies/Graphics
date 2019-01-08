@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEditor.ShaderGraph.LightProbeNode")]
     [Title("Input", "Lighting", "Baked GI")]
-    public class BakedGINode : CodeFunctionNode
+    class BakedGINode : CodeFunctionNode
     {
         public override bool hasPreview { get { return false; } }
 

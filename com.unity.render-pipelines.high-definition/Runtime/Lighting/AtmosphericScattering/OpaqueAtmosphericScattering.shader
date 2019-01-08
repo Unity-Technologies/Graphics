@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
+Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
 {
     HLSLINCLUDE
         #pragma target 4.5
@@ -16,6 +16,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
         struct Attributes
         {
@@ -43,10 +44,9 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
                 // When a pixel is at far plane, the world space coordinate reconstruction is not reliable.
                 // So in order to have a valid position (for example for height fog) we just consider that the sky is a sphere centered on camera with a radius of 5km (arbitrarily chosen value!)
                 // And recompute the position on the sphere with the current camera direction.
-                float3 viewDirection = -V * 5000.0f;
-                posInput.positionWS = GetCurrentViewPosition() + viewDirection;
+                posInput.positionWS = GetCurrentViewPosition() - V * _MaxFogDistance;
 
-                // Warning: we do not modify 'posInput.linearDepth'. It may still be imprecise!
+                // Warning: we do not modify depth values. Do not use them!
             }
 
             return EvaluateAtmosphericScattering(posInput, V); // Premultiplied alpha
@@ -55,7 +55,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
         float4 Frag(Varyings input) : SV_Target
         {
             float2 positionSS = input.positionCS.xy;
-            float3 V          = normalize(mul(float3(positionSS, 1.0), (float3x3)_PixelCoordToViewDirWS));
+            float3 V          = GetSkyViewDirWS(positionSS, (float3x3)_PixelCoordToViewDirWS);
             float  depth      = LOAD_TEXTURE2D(_CameraDepthTexture, (int2)positionSS).x;
 
             return AtmosphericScatteringCompute(input, V, depth);
@@ -64,7 +64,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
         float4 FragMSAA(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
         {
             float2 positionSS = input.positionCS.xy;
-            float3 V          = normalize(mul(float3(positionSS, 1.0), (float3x3)_PixelCoordToViewDirWS));
+            float3 V          = GetSkyViewDirWS(positionSS, (float3x3)_PixelCoordToViewDirWS);
             float  depth      = _DepthTextureMS.Load((int2)positionSS, sampleIndex).x;
 
             return AtmosphericScatteringCompute(input, V, depth);

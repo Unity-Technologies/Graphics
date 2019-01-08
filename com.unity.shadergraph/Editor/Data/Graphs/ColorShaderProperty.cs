@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class ColorShaderProperty : AbstractShaderProperty<Color>
+    class ColorShaderProperty : AbstractShaderProperty<Color>
     {
         [SerializeField]
         private ColorMode m_ColorMode;

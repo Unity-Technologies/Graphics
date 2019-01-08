@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Mask", "Color Mask")]
-    public class ColorMaskNode : CodeFunctionNode
+    class ColorMaskNode : CodeFunctionNode
     {
         public ColorMaskNode()
         {

@@ -4,15 +4,15 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
 using UnityEngine.Rendering;
-
-namespace UnityEditor.Experimental.Rendering.LightweightPipeline
+using UnityEngine.Rendering.LWRP;
+    
+namespace UnityEditor.Rendering.LWRP
 {
     [Serializable]
+    [FormerName("UnityEditor.Experimental.Rendering.LightweightPipeline.LightWeightPBRSubShader")]
     [FormerName("UnityEditor.ShaderGraph.LightWeightPBRSubShader")]
-    public class LightWeightPBRSubShader : IPBRSubShader
+    class LightWeightPBRSubShader : IPBRSubShader
     {
         static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;
 
@@ -96,6 +96,11 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             {
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+
+                var relativePath = "Packages/com.unity.render-pipelines.lightweight/";
+                var fullPath = Path.GetFullPath(relativePath);
+                var shaderFiles = Directory.GetFiles(Path.Combine(fullPath, "ShaderLibrary")).Select(x => Path.Combine(relativePath, x.Substring(fullPath.Length)));
+                sourceAssetDependencyPaths.AddRange(shaderFiles);
             }
 
             string forwardTemplate = File.ReadAllText(templatePath);
@@ -107,11 +112,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
             {
-                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}");
-
                 var materialTags = ShaderGenerator.BuildMaterialTags(pbrMasterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
-                materialTags.GetTags(tagsBuilder);
+                materialTags.GetTags(tagsBuilder, LightweightRenderPipeline.k_ShaderTagName);
                 subShader.AppendLines(tagsBuilder.ToString());
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(pbrMasterNode.surfaceType, pbrMasterNode.alphaMode, pbrMasterNode.twoSided.isOn);
@@ -141,9 +144,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         static string GetTemplatePath(string templateName)
         {
-            var basePath = Path.GetFullPath("Packages/com.unity.render-pipelines.lightweight/Editor/ShaderGraph");
+            var basePath = "Packages/com.unity.render-pipelines.lightweight/Editor/ShaderGraph/";
             string templatePath = Path.Combine(basePath, templateName);
-            
+
             if (File.Exists(templatePath))
                 return templatePath;
 

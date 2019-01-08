@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Fog")]
-    public class FogNode : CodeFunctionNode
+    class FogNode : CodeFunctionNode
     {
         public FogNode()
         {

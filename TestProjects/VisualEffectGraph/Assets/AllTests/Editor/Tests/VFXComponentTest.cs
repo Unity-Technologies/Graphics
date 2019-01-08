@@ -1,4 +1,4 @@
-#if !UNITY_EDITOR_OSX
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -677,7 +677,7 @@ namespace UnityEditor.VFX.Test
                 return left.colorKeys.Length == right.colorKeys.Length;
             };
 
-            //Check default Value_A & change to Value_B
+            //Check default Value_A & change to Value_B (At this stage, it's useless to access with SerializedProperty)
             foreach (var parameter in VFXLibrary.GetParameters())
             {
                 VFXValueType type = types.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
@@ -687,8 +687,8 @@ namespace UnityEditor.VFX.Test
                 var baseValue = GetValue_A_Type(parameter.model.type);
                 var newValue = GetValue_B_Type(parameter.model.type);
 
-                Assert.IsTrue(fnHas(type, vfxComponent, currentName));
-                var currentValue = fnGet(type, vfxComponent, currentName);
+                Assert.IsTrue(fnHas_UsingBindings(type, vfxComponent, currentName));
+                var currentValue = fnGet_UsingBindings(type, vfxComponent, currentName);
                 if (type == VFXValueType.ColorGradient)
                 {
                     Assert.IsTrue(fnCompareGradient((Gradient)baseValue, (Gradient)currentValue));
@@ -706,7 +706,7 @@ namespace UnityEditor.VFX.Test
                 {
                     Assert.AreEqual(baseValue, currentValue);
                 }
-                fnSet(type, vfxComponent, currentName, newValue);
+                fnSet_UsingBindings(type, vfxComponent, currentName, newValue);
 
                 yield return null;
             }

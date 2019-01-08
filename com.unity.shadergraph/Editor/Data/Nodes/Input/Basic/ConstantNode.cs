@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ConstantType
+    enum ConstantType
     {
         PI,
         TAU,
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input", "Basic", "Constant")]
-    public class ConstantNode : AbstractMaterialNode, IGeneratesBodyCode
+    class ConstantNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         static Dictionary<ConstantType, float> m_constantList = new Dictionary<ConstantType, float>
         {

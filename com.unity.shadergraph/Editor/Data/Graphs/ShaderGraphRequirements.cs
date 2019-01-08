@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public struct ShaderGraphRequirements
+    struct ShaderGraphRequirements
     {
         public NeededCoordinateSpace requiresNormal;
         public NeededCoordinateSpace requiresBitangent;

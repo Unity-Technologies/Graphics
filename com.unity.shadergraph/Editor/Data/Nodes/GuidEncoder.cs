@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-    public static class GuidEncoder
+    static class GuidEncoder
     {
         public static string Encode(Guid guid)
         {

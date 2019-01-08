@@ -1,9 +1,10 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
+    internal class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         const string k_CollectShadowsTag = "Collect Shadows";
         RenderTextureFormat m_ColorFormat;
@@ -50,6 +51,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTargetIdentifier screenSpaceOcclusionTexture = colorAttachmentHandle.Identifier();
             SetRenderTarget(cmd, screenSpaceOcclusionTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 ClearFlag.Color | ClearFlag.Depth, Color.white, descriptor.dimension);
+
+            // This blit is troublesome. When MSAA is enabled it will render a fullscreen quad + store resolved MSAA + extra blit
+            // This consumes about 10MB of extra unnecessary bandwidth on boat attack.
+            // In order to avoid it we can do a cmd.DrawMesh instead, however because LWRP doesn't setup camera matrices itself,
+            // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
+            // We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP. 
             cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, renderer.GetMaterial(MaterialHandle.ScreenSpaceShadow));
 
             if (renderingData.cameraData.isStereoEnabled)

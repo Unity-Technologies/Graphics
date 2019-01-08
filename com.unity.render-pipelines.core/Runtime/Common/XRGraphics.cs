@@ -8,7 +8,7 @@ using UnityEngine.VR;
 using XRSettings = UnityEngine.VR.VRSettings;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [Serializable]
     public class XRGraphics
@@ -43,10 +43,10 @@ namespace UnityEngine.Experimental.Rendering
                     return XRSettings.renderViewportScale;
             }
         }
-                
+
 #if UNITY_EDITOR
         public static bool tryEnable
-        { // TryEnable gets updated before "play" is pressed- we use this for updating GUI only. 
+        { // TryEnable gets updated before "play" is pressed- we use this for updating GUI only.
             get { return PlayerSettings.virtualRealitySupported; }
         }
 #endif

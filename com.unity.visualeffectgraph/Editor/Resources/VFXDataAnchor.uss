@@ -10,11 +10,11 @@
 {
     flex-direction: row;
     align-items: center;
-    font-style: normal;
-    text-color: #BBB;
+    -unity-font-style: normal;
+    color: #BBB;
     font-size:11;
     padding-bottom:0;
-    min-height:17;
+    min-height:16;
     height:-1;
     margin-bottom:0;
     margin-right:4;
@@ -35,6 +35,8 @@
 {
     margin-left:0;
     margin-right:0;
+    padding-bottom:0;
+    margin-bottom:0;
 }
 
 
@@ -45,19 +47,19 @@
 
 .VFXDataAnchor #connector #hole
 {
-    position-type:absolute;
-    position-right:0;
-    position-left:0;
-    position-top:0;
-    position-bottom:0;
+    position:absolute;
+    right:0;
+    left:0;
+    top:0;
+    bottom:0;
 }
 .VFXDataAnchor #connector #hole #cap
 {
-    position-type:absolute;
-    position-right:0;
-    position-left:0;
-    position-top:0;
-    position-bottom:0;
+    position:absolute;
+    right:0;
+    left:0;
+    top:0;
+    bottom:0;
     width:-1;
     height:-1;
 }
@@ -82,20 +84,20 @@
 }
 
 .node #right > #output {
-    position-right:0;
+    right:0;
 }
 
 .VFXDataAnchor.Output
 {
-    position-right:0;
+    right:0;
     padding-right:0;
     margin-left:0;
 }
 
 VFXDataAnchor.Output #type
 {
-    text-color: rgb(153,153,153);
-    text-alignment:middle-right;
+    color: rgb(153,153,153);
+    -unity-text-align:middle-right;
     flex:1 0 auto;
 }
 .VFXDataAnchor .propertyrm
@@ -117,20 +119,46 @@ VFXDataAnchor.Output #type
     padding-bottom:2;
     margin-right:10;
     border-color: rgb(153,153,153);
-    text-color: rgb(153,153,153);
-    text-alignment: middle-center;
+    color: rgb(153,153,153);
+    -unity-text-align: middle-center;
 }
 
 .VFXOutputDataAnchor #icon
 {
-    margin-top:6;
-    width:6;
-    height:6;
+    width:13;
+    height:13;
 }
+.VFXOutputDataAnchor.icon-expandable #icon
+{
+    background-image:resource("IN foldout@2x.png");
+}
+.VFXOutputDataAnchor.icon-expandable #icon:hover
+{
+    background-image:resource("IN foldout focus@2x.png");
+}
+.VFXOutputDataAnchor.icon-expandable #icon:hover:active
+{
+    background-image:resource("IN foldout act@2x.png");
+}
+
+.VFXOutputDataAnchor.icon-expandable.icon-expanded #icon
+{
+    background-image:resource("IN foldout on@2x.png");
+}
+.VFXOutputDataAnchor.icon-expandable.icon-expanded #icon:hover
+{
+    background-image:resource("IN foldout focus on@2x.png");
+}
+.VFXOutputDataAnchor.icon-expandable.icon-expanded #icon:hover:active
+{
+    background-image:resource("IN foldout act on@2x.png");
+}
+
 .VFXOutputDataAnchor #type
 {
-    text-color:#c4c4c4;
+    color:#c4c4c4;
     margin-right:12;
+    flex-grow:1;
 }
 
 /*Default*/

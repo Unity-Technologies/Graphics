@@ -1,4 +1,4 @@
-<UXML xmlns:ui="UnityEngine.Experimental.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
   <vfx:VFXContextBorder name="node-border" pickingMode="Ignore" >
     <ui:VisualElement name="inside" pickingMode="Ignore" >
         <ui:VisualElement name="title" pickingMode="Ignore" class="extremity">
@@ -6,7 +6,10 @@
           <ui:Label name="title-label" text="" />
           <ui:Image name="header-space" text=""/>
         </ui:VisualElement>
-
+        <ui:VisualElement name="user-title" pickingMode="Ignore">
+            <ui:Label name="user-label" text="Coucou" />
+            <ui:TextField name="user-title-textfield" multiline="true"/>
+        </ui:VisualElement>
         <ui:VisualElement name="contents" pickingMode="Ignore">
           <ui:VisualElement name="settings"/>
           <ui:VisualElement name="divider" class="horizontal"/>

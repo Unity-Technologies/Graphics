@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
 {
     
     [Title("Input", "Texture", "Texel Size")]
-    public class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotWId = 0;
         public const int OutputSlotHId = 2;

@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-    public struct MatrixNames
+    struct MatrixNames
     {
         public const string Model = "UNITY_MATRIX_M";
         public const string ModelInverse = "UNITY_MATRIX_I_M";

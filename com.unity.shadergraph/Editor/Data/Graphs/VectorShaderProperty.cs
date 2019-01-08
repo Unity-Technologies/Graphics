@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class VectorShaderProperty : AbstractShaderProperty<Vector4>
+    abstract class VectorShaderProperty : AbstractShaderProperty<Vector4>
     {
         public override string GetPropertyBlockString()
         {

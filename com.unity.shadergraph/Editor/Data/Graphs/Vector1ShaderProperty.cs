@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum FloatType
+    enum FloatType
     {
         Default,
         Slider,
@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
-    public class Vector1ShaderProperty : AbstractShaderProperty<float>
+    class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
         public Vector1ShaderProperty()
         {
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
             {
                 case FloatType.Slider:
                     result.Append("\", Range(");
-                    result.Append(m_RangeValues.x + ", " + m_RangeValues.y);
+                    result.Append(NodeUtils.FloatToShaderValue(m_RangeValues.x) + ", " + NodeUtils.FloatToShaderValue(m_RangeValues.y));
                     result.Append(")) = ");
                     break;
                 case FloatType.Integer:

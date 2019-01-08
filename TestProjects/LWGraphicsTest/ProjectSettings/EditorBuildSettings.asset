@@ -17,7 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/004_Camera_TargetTexture.unity
     guid: c678e78e9c06d44789d69ac8df08d375
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/005_LitBakedEmission.unity
     guid: e23c793ace3c4a146a73360af1600fbd
   - enabled: 1
@@ -38,7 +38,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/014_CameraMulti_MiniMap.unity
     guid: 9225c2f5b8cf84f6bbe7cd83a8c22426
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/015_CameraMulti_FPSCam.unity
     guid: 9d2d9ca35103040838283b3c356c0250
   - enabled: 1
@@ -74,7 +74,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/027_PostProcessing.unity
     guid: 3ca3376bc2cd549fa9a8b28d5f8acc97
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/028_PostProcessing_Custom.unity
     guid: e563e287471b641a88f8cfdb13746b1a
   - enabled: 1
@@ -101,7 +101,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/037_Particles_Standard.unity
     guid: 67bc76c89479b264aa4a5c176433ec3a
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/040_UpgradeScene.unity
     guid: 5b50bbd7a4d4f4f49b5a50ebed1ba42c
   - enabled: 1
@@ -134,7 +134,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/050_Shader_Graphs.unity
     guid: 6e7a83866a1e446b3becf7972371c5d0
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/052_LWCallbacks.unity
     guid: 58d22e8497ba91141b3ae7abd7b0bb41
   - enabled: 0

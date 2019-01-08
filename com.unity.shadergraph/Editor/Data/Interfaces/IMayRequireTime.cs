@@ -2,13 +2,13 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireTime
+    interface IMayRequireTime
     {
         bool RequiresTime();
     }
 
 
-    public static class MayRequireTimeExtensions
+    static class MayRequireTimeExtensions
     {
         public static bool RequiresTime(this INode node)
         {

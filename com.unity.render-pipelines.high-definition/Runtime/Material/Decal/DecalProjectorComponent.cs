@@ -91,6 +91,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_Handle = DecalSystem.instance.AddDecal(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material);
                     m_OldMaterial = m_Material;
 
+                    if(!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader.name)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
+                    {
+                        m_AffectsTransparency = false;
+                    }
+
                     // notify the editor that material has changed so it can update the shader foldout
                     if (OnMaterialChange != null)
                     {
@@ -100,15 +105,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else // no material change, just update whatever else changed
                 {
                     DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle);
-                }
-            }
-
-            if (m_Material != null)
-            {
-                Shader shader = m_Material.shader;
-                if ((shader != null) &&  (shader.name != "HDRenderPipeline/Decal"))
-                {
-                    Debug.LogWarning("Decal projector component material is not using HDRenderPipeline/Decal shader.", this);
                 }
             }
         }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -20,7 +21,7 @@ public class HDRP_TestSettings_Editor : Editor
     override public void OnInspectorGUI()
     {
         DrawDefaultInspector();
-        
+
         liveViewSize = GUILayout.Toggle(liveViewSize, "Auto update game view.");
 
         if ( GUILayout.Button( "Set Game View Size") || liveViewSize && ( prevWidth != typedTarget.ImageComparisonSettings.TargetWidth || prevHeight != typedTarget.ImageComparisonSettings.TargetHeight ) )
@@ -42,7 +43,7 @@ public class HDRP_TestSettings_Editor : Editor
 			UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
 		}
     }
-    
+
     static string testGameViewSize = "Graphic Test";
     void SetGameViewSize()
 	{
@@ -94,8 +95,9 @@ public class HDRP_TestSettings_Editor : Editor
 			var group = GetGroup(sizeGroupType);
 			var addCustomSize = getGroup.ReturnType.GetMethod("AddCustomSize"); // or group.GetType().
 			var gvsType = typeof(Editor).Assembly.GetType("UnityEditor.GameViewSize");
-			var ctor = gvsType.GetConstructor(new System.Type[] { typeof(int), typeof(int), typeof(int), typeof(string) });
-			var newSize = ctor.Invoke(new object[] { (int)viewSizeType, width, height, text });
+		    Type gvstType = typeof(Editor).Assembly.GetType("UnityEditor.GameViewSizeType");
+		    var ctor = gvsType.GetConstructor(new System.Type[] { gvstType, typeof(int), typeof(int), typeof(string) });
+			var newSize = ctor.Invoke(new object[] { (int)viewSizeType , width, height, text });
 			addCustomSize.Invoke(group, new object[] { newSize });
 		}
 

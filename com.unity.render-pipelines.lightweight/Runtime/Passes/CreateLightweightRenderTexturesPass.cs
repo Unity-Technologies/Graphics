@@ -1,7 +1,8 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// Generate rendering attachments that can be used for rendering.
@@ -11,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// when you render a frame, the LWRP renders into a valid color and
     /// depth buffer.
     /// </summary>
-    public class CreateLightweightRenderTexturesPass : ScriptableRenderPass
+    internal class CreateLightweightRenderTexturesPass : ScriptableRenderPass
     {
         const string k_CreateRenderTexturesTag = "Create Render Textures";
         const int k_DepthStencilBufferBits = 32;
@@ -44,10 +45,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get(k_CreateRenderTexturesTag);
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
+                bool useDepthRenderBuffer = depthAttachmentHandle == RenderTargetHandle.CameraTarget;
                 var colorDescriptor = descriptor;
-                colorDescriptor.depthBufferBits = 0;
-                colorDescriptor.sRGB = true;
-                colorDescriptor.msaaSamples = (int)samples;
+                colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
                 cmd.GetTemporaryRT(colorAttachmentHandle.id, colorDescriptor, FilterMode.Bilinear);
             }
 
@@ -56,7 +56,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 var depthDescriptor = descriptor;
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                 depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
-                depthDescriptor.msaaSamples = (int)samples;
                 depthDescriptor.bindMS = (int)samples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures!=0);
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, depthDescriptor, FilterMode.Point);
             }

@@ -148,11 +148,11 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
     GetCountAndStartTile(posInput, lightCategory, start, lightCount);
 }
 
-uint FetchIndex(uint tileOffset, uint lightIndex)
+uint FetchIndex(uint tileOffset, uint lightOffset)
 {
-    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
+    const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
     // Light index are store on 16bit
-    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1)] >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
+    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
 }
 
 #elif defined(USE_CLUSTERED_LIGHTLIST)
@@ -215,9 +215,16 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
     GetCountAndStartCluster(posInput, lightCategory, start, lightCount);
 }
 
-uint FetchIndex(uint tileOffset, uint lightIndex)
+uint FetchIndex(uint lightStart, uint lightOffset)
 {
-    return g_vLightListGlobal[tileOffset + lightIndex];
+    return g_vLightListGlobal[lightStart + lightOffset];
+}
+
+#elif defined(USE_BIG_TILE_LIGHTLIST)
+
+uint FetchIndex(uint lightStart, uint lightOffset)
+{
+    return g_vBigTileLightList[lightStart + lightOffset];
 }
 
 #endif // USE_FPTL_LIGHTLIST
@@ -229,9 +236,9 @@ uint GetTileSize()
     return 1;
 }
 
-uint FetchIndex(uint globalOffset, uint lightIndex)
+uint FetchIndex(uint lightStart, uint lightOffset)
 {
-    return globalOffset + lightIndex;
+    return lightStart + lightOffset;
 }
 
 #endif // LIGHTLOOP_TILE_PASS
@@ -255,11 +262,22 @@ LightData FetchLight(uint start, uint i)
     return _LightDatas[j];
 }
 
+LightData FetchLight(uint index)
+{
+    return _LightDatas[index];
+}
+
+
 EnvLightData FetchEnvLight(uint start, uint i)
 {
     int j = FetchIndex(start, i);
 
     return _EnvLightDatas[j];
+}
+
+EnvLightData FetchEnvLight(uint index)
+{
+    return _EnvLightDatas[index];
 }
 
 // We always fetch the screen space shadow texture to reduce the number of shader variant, overhead is negligible,

@@ -1,12 +1,12 @@
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;
 using System.Linq;
 using UnityEngine.Profiling;
+
+using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
@@ -46,17 +46,17 @@ namespace UnityEditor.VFX.UI
         protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
         {
             Profiler.BeginSample("VFXDataAnchor.VFXDataAnchor");
-            AddStyleSheetPath("VFXDataAnchor");
+            this.AddStyleSheetPath("VFXDataAnchor");
             AddToClassList("VFXDataAnchor");
-            AddStyleSheetPath("VFXTypeColor");
+            this.AddStyleSheetPath("VFXTypeColor");
 
             m_ConnectorHighlight = new VisualElement();
 
-            m_ConnectorHighlight.style.positionType = PositionType.Absolute;
-            m_ConnectorHighlight.style.positionTop = 0;
-            m_ConnectorHighlight.style.positionLeft = 0;
-            m_ConnectorHighlight.style.positionBottom = 0;
-            m_ConnectorHighlight.style.positionRight = 0;
+            m_ConnectorHighlight.style.position = PositionType.Absolute;
+            m_ConnectorHighlight.style.top = 0f;
+            m_ConnectorHighlight.style.left = 0f;
+            m_ConnectorHighlight.style.bottom = 0f;
+            m_ConnectorHighlight.style.right = 0f;
             m_ConnectorHighlight.pickingMode = PickingMode.Ignore;
 
             VisualElement connector = m_ConnectorBox as VisualElement;
@@ -77,10 +77,10 @@ namespace UnityEditor.VFX.UI
             var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnified;
 
             if (op != null)
-                evt.menu.AppendAction("Remove Slot", OnRemove, e => op.operandCount > 2 ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Disabled);
+                evt.menu.AppendAction("Remove Slot", OnRemove, e => op.operandCount > 2 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
         }
 
-        void OnRemove(DropdownMenu.MenuAction e)
+        void OnRemove(DropdownMenuAction e)
         {
             var op = controller.sourceNode as VFXCascadedOperatorController;
 
@@ -95,13 +95,6 @@ namespace UnityEditor.VFX.UI
 
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
-        }
-
-        public enum IconType
-        {
-            plus,
-            minus,
-            simple
         }
 
         bool m_EdgeDragging;
@@ -132,34 +125,6 @@ namespace UnityEditor.VFX.UI
         public override bool collapsed
         {
             get { return !controller.expandedInHierachy; }
-        }
-
-        public static Texture2D GetTypeIcon(Type type, IconType iconType)
-        {
-            string suffix = "";
-            switch (iconType)
-            {
-                case IconType.plus:
-                    suffix = "_plus";
-                    break;
-                case IconType.minus:
-                    suffix = "_minus";
-                    break;
-            }
-
-            Texture2D result = Resources.Load<Texture2D>("VFX/" + type.Name + suffix);
-            if (result == null)
-                return Resources.Load<Texture2D>("VFX/Default" + suffix);
-            return result;
-        }
-
-        const string AnchorColorProperty = "anchor-color";
-        StyleValue<Color> m_AnchorColor;
-
-
-        protected override void OnStyleResolved(ICustomStyle styles)
-        {
-            base.OnStyleResolved(styles);
         }
 
         IEnumerable<VFXDataEdge> GetAllEdges()
@@ -322,27 +287,15 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
         }
 
         bool ProviderFilter(VFXNodeProvider.Descriptor d)
         {
             var mySlot = controller.model;
-
-            IEnumerable<Type> validTypes = null;
-
-            if (mySlot == null)
-            {
-                var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnified;
-                if (op != null)
-                {
-                    validTypes = op.validTypes;
-                }
-            }
             var parameterDescriptor = d.modelDescriptor as VFXParameterController;
             IVFXSlotContainer container = null;
-
             if (parameterDescriptor != null)
             {
                 container = parameterDescriptor.model;
@@ -355,39 +308,34 @@ namespace UnityEditor.VFX.UI
 
                 container = desc.model as IVFXSlotContainer;
                 if (container == null)
-                {
                     return false;
-                }
+
+                if (    direction == Direction.Output
+                    &&  mySlot != null
+                    && container is VFXOperatorDynamicOperand
+                    && (container as VFXOperatorDynamicOperand).validTypes.Contains(mySlot.property.type))
+                        return true;
+            }
+
+            IEnumerable<Type> validTypes = null;
+            if (mySlot == null)
+            {
+                var op = controller.sourceNode.model as VFXOperatorDynamicOperand;
+                if (op != null)
+                    validTypes = op.validTypes;
             }
 
             var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)container.GetOutputSlot : (System.Func<int, VFXSlot>)container.GetInputSlot;
-
             int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
-
-            bool oneFound = false;
             for (int i = 0; i < count; ++i)
             {
-                VFXSlot slot = getSlots(i);
-
-                if (mySlot != null)
-                {
-                    if (slot.CanLink(mySlot))
-                    {
-                        oneFound = true;
-                        break;
-                    }
-                }
-                else if (validTypes != null)
-                {
-                    if (validTypes.Contains(slot.property.type))
-                    {
-                        oneFound = true;
-                        break;
-                    }
-                }
+                var slot = getSlots(i);
+                if (mySlot != null && slot.CanLink(mySlot))
+                    return true;
+                else if (validTypes != null && validTypes.Contains(slot.property.type))
+                    return true;
             }
-
-            return oneFound;
+            return false;
         }
 
         void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
@@ -411,13 +359,34 @@ namespace UnityEditor.VFX.UI
                 validTypes = op.validTypes;
             }
 
-            var ports = direction == Direction.Input ? newNodeController.outputPorts : newNodeController.inputPorts;
+            // If linking to a new parameter, copy the slot value and space
+            if (direction == Direction.Input && controller.model != null) //model will be null for upcomming which won't have a value
+            {
+                if (newNodeController is VFXOperatorController)
+                {
+                    var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
+                    if (inlineOperator != null)
+                    {
+                        var value = controller.model.value;
+                        object convertedValue = null;
+                        if (VFXConverter.TryConvertTo(value, inlineOperator.type, out convertedValue))
+                        {
+                            inlineOperator.inputSlots[0].value = convertedValue;
+                        }
 
+                        if (inlineOperator.inputSlots[0].spaceable && controller.model.spaceable)
+                        {
+                            inlineOperator.inputSlots[0].space = controller.model.space;
+                        }
+                    }
+                }
+            }
+
+            var ports = direction == Direction.Input ? newNodeController.outputPorts : newNodeController.inputPorts;
             int count = ports.Count();
             for (int i = 0; i < count; ++i)
             {
                 var port = ports[i];
-
                 if (mySlot != null)
                 {
                     if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
@@ -432,24 +401,6 @@ namespace UnityEditor.VFX.UI
                         if (viewController.CreateLink(controller, port))
                         {
                             break;
-                        }
-                    }
-                }
-            }
-
-            // If linking to a new parameter, copy the slot value
-            if (direction == Direction.Input && controller.model != null) //model will be null for upcomming which won't have a value
-            {
-                if (newNodeController is VFXOperatorController)
-                {
-                    var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
-                    if (inlineOperator != null)
-                    {
-                        var value = controller.model.value;
-                        object convertedValue = null;
-                        if (VFXConverter.TryConvertTo(value, inlineOperator.type, out convertedValue))
-                        {
-                            inlineOperator.inputSlots[0].value = convertedValue;
                         }
                     }
                 }

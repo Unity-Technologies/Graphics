@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Matrix", "Matrix Transpose")]
-    public class MatrixTransposeNode : CodeFunctionNode
+    class MatrixTransposeNode : CodeFunctionNode
     {
         public MatrixTransposeNode()
         {

@@ -1,7 +1,8 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
     /// End XR rendering
@@ -10,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// If this pass is issued without a matching BeginXRRenderingPass it will lead to
     /// undefined rendering results. 
     /// </summary>
-    public class EndXRRenderingPass : ScriptableRenderPass
+    internal class EndXRRenderingPass : ScriptableRenderPass
     {
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)

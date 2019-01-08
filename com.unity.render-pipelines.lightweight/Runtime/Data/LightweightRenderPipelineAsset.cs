@@ -3,10 +3,10 @@ using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
-using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+using UnityEngine.Experimental.Rendering.LWRP;
+
+namespace UnityEngine.Rendering.LWRP
 {
     public enum ShadowCascadesOption
     {
@@ -72,6 +72,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
+        internal IRendererSetup m_RendererSetup;
 
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
@@ -108,6 +109,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_SoftShadowsSupported = false;
 
         // Advanced settings
+        [SerializeField] bool m_UseSRPBatcher = false;
         [SerializeField] bool m_SupportsDynamicBatching = true;
         [SerializeField] bool m_MixedLightingSupported = true;
         // TODO: Render Pipeline Batcher
@@ -121,6 +123,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [SerializeField] LightweightRenderPipelineResources m_ResourcesAsset;
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+
 #if UNITY_EDITOR
         [NonSerialized]
         LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
@@ -210,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
+        protected override RenderPipeline CreatePipeline()
         {
             return new LightweightRenderPipeline(this);
         }
@@ -240,6 +243,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return null;
 #endif
         }
+
+        public IRendererSetup rendererSetup
+        {
+            get { return m_RendererSetup; }
+        }
+
         public bool supportsCameraDepthTexture
         {
             get { return m_RequireDepthTexture; }
@@ -368,6 +377,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             set { m_ShaderVariantLogLevel = value; }
         }
         
+        public bool useSRPBatcher
+        {
+            get { return m_UseSRPBatcher; }
+            set { m_UseSRPBatcher = value; }
+        }
+
         public override Material defaultMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Standard); }
@@ -454,7 +469,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get { return resources != null ? resources.samplingShader : null; }
         }
-        
+
+
         public void OnBeforeSerialize()
         {
         }

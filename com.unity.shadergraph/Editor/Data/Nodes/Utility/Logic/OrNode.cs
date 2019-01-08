@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Or")]
-    public class OrNode : CodeFunctionNode
+    class OrNode : CodeFunctionNode
     {
         public OrNode()
         {

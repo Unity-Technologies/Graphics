@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Scene Depth")]
-    public sealed class SceneDepthNode : CodeFunctionNode, IMayRequireDepthTexture
+    sealed class SceneDepthNode : CodeFunctionNode, IMayRequireDepthTexture
     {
         const string kScreenPositionSlotName = "UV";
         const string kOutputSlotName = "Out";

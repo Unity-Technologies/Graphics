@@ -3,7 +3,7 @@ using UnityEditor.ProjectWindowCallback;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class CreateUnlitShaderGraph : EndNameEditAction
+    class CreateUnlitShaderGraph : EndNameEditAction
     {
         [MenuItem("Assets/Create/Shader/Unlit Graph", false, 208)]
         public static void CreateMaterialGraph()

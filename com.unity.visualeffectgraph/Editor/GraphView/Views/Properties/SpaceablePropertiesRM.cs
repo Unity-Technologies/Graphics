@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 using UnityEditor.VFX.UIElements;
 using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
 
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
 
         private float spaceButtonWidth
         {
-            get { return m_Button != null ? m_Button.layout.width + m_Button.style.marginLeft +  +m_Button.style.marginRight : 28; }
+            get { return m_Button != null ? m_Button.layout.width + m_Button.resolvedStyle.marginLeft + m_Button.resolvedStyle.marginRight : 28; }
         }
 
         public override float effectiveLabelWidth

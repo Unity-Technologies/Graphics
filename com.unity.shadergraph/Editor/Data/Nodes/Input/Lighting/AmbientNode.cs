@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Lighting", "Ambient")]
-    public class AmbientNode : AbstractMaterialNode
+    class AmbientNode : AbstractMaterialNode
     {
         const string kOutputSlotName = "Color/Sky";
         const string kOutputSlot1Name = "Equator";

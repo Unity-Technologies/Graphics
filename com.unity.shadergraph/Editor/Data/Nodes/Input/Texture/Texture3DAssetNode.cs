@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Texture 3D Asset")]
-    public class Texture3DAssetNode : AbstractMaterialNode, IPropertyFromNode
+    class Texture3DAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
 

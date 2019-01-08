@@ -165,19 +165,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private List<TextureScaleBias> m_TextureList = new List<TextureScaleBias>();
 
+        static public bool IsHDRenderPipelineDecal(string name)
+        {
+            return name == "HDRP/Decal";
+        }
+
+
         private class DecalSet
         {
             public void InitializeMaterialValues()
             {
                 if (m_Material == null)
                     return;
-                m_Diffuse.Initialize(m_Material.GetTexture("_BaseColorMap"), Vector4.zero); 
-                m_Normal.Initialize(m_Material.GetTexture("_NormalMap"), Vector4.zero); 
-                m_Mask.Initialize(m_Material.GetTexture("_MaskMap"), Vector4.zero);
-                m_Blend = m_Material.GetFloat("_DecalBlend");
-                m_AlbedoContribution = m_Material.GetFloat("_AlbedoMode");
-                m_BaseColor = m_Material.GetVector("_BaseColor");
-                m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));                
+                m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material.shader.name);
+
+                if (m_IsHDRenderPipelineDecal)
+                {
+                    m_Diffuse.Initialize(m_Material.GetTexture("_BaseColorMap"), Vector4.zero);
+                    m_Normal.Initialize(m_Material.GetTexture("_NormalMap"), Vector4.zero);
+                    m_Mask.Initialize(m_Material.GetTexture("_MaskMap"), Vector4.zero);
+                    m_Blend = m_Material.GetFloat("_DecalBlend");
+                    m_AlbedoContribution = m_Material.GetFloat("_AlbedoMode");
+                    m_BaseColor = m_Material.GetVector("_BaseColor");
+                    m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));
+                    m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
+                    m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
+                }
             }
 
             public DecalSet(Material material)
@@ -410,13 +423,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         normalToWorldBatch[instanceCount].SetRow(3, m_CachedUVScaleBias[decalIndex]);
 
                         // clustered forward data
-                        if(m_CachedAffectsTransparency[decalIndex])
+                        if (m_CachedAffectsTransparency[decalIndex])
                         { 
                             m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
                             m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
                             m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                             m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
-                            if(!perChannelMask)
+                            m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
+                            m_DecalDatas[m_DecalDatasCount].scalingMAB = m_ScalingMAB;
+                            if (!perChannelMask)
                             {
                                 m_DecalDatas[m_DecalDatasCount].blendParams.z = (float)Decal.MaskBlendFlags.Smoothness; 
                             }
@@ -442,7 +457,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // only add if any projectors in this decal set affect transparency, doesn't actually allocate textures in the atlas yet, this is because we want all the textures in the list so we can optimize the packing
-                if( anyAffectTransparency)
+                if (anyAffectTransparency)
                 { 
                     AddToTextureList(ref instance.m_TextureList);
                 }
@@ -485,12 +500,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 if (m_NumResults == 0)
                     return;
-                int batchIndex = 0;
-                int totalToDraw = m_NumResults;
                 HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
-                int shaderPass = perChannelMask ? (int)m_Material.GetFloat("_MaskBlendMode") : (int)Decal.MaskBlendFlags.Smoothness; // relies on the order shader passes are declared in decal.shader and decalUI.cs
-              
+
+                int batchIndex = 0;
+                int totalToDraw = m_NumResults;
+                int shaderPass = 0;
+                if (m_IsHDRenderPipelineDecal)
+                {
+                    shaderPass = perChannelMask ? MaskBlendMode : (int)Decal.MaskBlendFlags.Smoothness; // relies on the order shader passes are declared in decal.shader and decalUI.cs
+                }
+                else
+                {
+                    shaderPass = perChannelMask ? 1 : 0; // relies on the order shader passes are declared in DecalSubShader.cs
+                }
+                                      
                 for (; batchIndex < m_NumResults / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
@@ -507,7 +531,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void Cleanup()
             {
-                if(m_CullingGroup != null)
+                if (m_CullingGroup != null)
                 {
                     CullingGroupManager.instance.Free(m_CullingGroup);
                 }
@@ -537,6 +561,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
+            public int MaskBlendMode
+            {
+                get
+                {
+                    if (m_IsHDRenderPipelineDecal)
+                    {
+                        return (int)this.m_Material.GetFloat("_MaskBlendMode");
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+            }
+
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
             private List<Matrix4x4[]> m_NormalToWorld = new List<Matrix4x4[]>();
 
@@ -555,8 +594,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private float m_Blend = 0;
             private float m_AlbedoContribution = 0;
             private Vector4 m_BaseColor;
+            private Vector4 m_RemappingAOS;
+            private Vector4 m_ScalingMAB; // metal, base color alpha, mask map blue
             private Vector3 m_BlendParams;
-            
+
+            private bool m_IsHDRenderPipelineDecal;
+
             TextureScaleBias m_Diffuse = new TextureScaleBias();
             TextureScaleBias m_Normal = new TextureScaleBias();
             TextureScaleBias m_Mask = new TextureScaleBias();
@@ -786,12 +829,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
         {
-            if (debugDisplaySettings.decalsDebugSettings.m_DisplayAtlas)
+            if (debugDisplaySettings.data.decalsDebugSettings.displayAtlas)
             {
                 using (new ProfilingSample(cmd, "Display Decal Atlas", CustomSamplerId.DisplayDebugDecalsAtlas.GetSampler()))
                 {
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0 , 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.decalsDebugSettings.m_MipLevel, true);
+                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0 , 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel, true);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
             }

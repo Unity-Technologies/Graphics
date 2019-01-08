@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Preview")]
-    public class PreviewNode : CodeFunctionNode
+    class PreviewNode : CodeFunctionNode
     {
         public override bool hasPreview { get { return true; } }
 

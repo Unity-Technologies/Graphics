@@ -11,6 +11,7 @@ using System.IO;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.VFX;
+using System.Reflection;
 #endif
 using NUnit.Framework;
 using Object = UnityEngine.Object;
@@ -45,7 +46,14 @@ namespace UnityEngine.VFX.Test
             "ConformAndSDF", // Turbulence is not deterministic
             "13_Decals", //doesn't render TODO investigate why <= this one is in world space
             "05_MotionVectors", //possible GPU Hang on this, skip it temporally
-            "SimpleLit", // Due to an HDRP error ("Recursive rendering is not supported in SRP"), temporarily excluded
+        };
+
+        static readonly string[] UnstableMetalTests =
+        {
+            // Unstable results, could be Metal or more generic HLSLcc issue across multiple graphics targets
+            "06_LineOutput",
+            "08_Shadows",
+            "10_SortPriority",
         };
 
         [UnityTest, Category("VisualEffect")]
@@ -73,7 +81,15 @@ namespace UnityEngine.VFX.Test
                 var vfxAssets = vfxComponents.Select(o => o.visualEffectAsset).Where(o => o != null).Distinct();
                 foreach (var vfx in vfxAssets)
                 {
-                    var graph = vfx.GetResource().GetOrCreateGraph();
+                    //Use Reflection as workaround of the access issue in .net 4 (TODO : Clean this as soon as possible)
+                    //var graph = vfx.GetResource().GetOrCreateGraph(); is possible with .net 3.5 but compilation fail with 4.0
+                    var visualEffectAssetExt = AppDomain.CurrentDomain.GetAssemblies()  .Select(o => o.GetType("UnityEditor.VFX.VisualEffectAssetExtensions"))
+                                                                                        .Where(o => o != null)
+                                                                                        .FirstOrDefault();
+                    var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
+                    var resource = fnGetResource.Invoke(null, new object[] { vfx });
+                    var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
+                    var graph = fnGetOrCreate.Invoke(null, new object[] { resource }) as VFXGraph;
                     graph.RecompileIfNeeded();
                 }
 #endif
@@ -85,6 +101,15 @@ namespace UnityEngine.VFX.Test
                 {
                     component.Reinit();
                 }
+
+#if UNITY_EDITOR
+                //When we change the graph, if animator was already enable, we should reinitialize animator to force all BindValues
+                var animators = Resources.FindObjectsOfTypeAll<Animator>();
+                foreach (var animator in animators)
+                {
+                    animator.Rebind();
+                }
+#endif
 
                 int waitFrameCount = (int)(simulateTime / frequency);
                 int startFrameIndex = Time.frameCount;
@@ -104,7 +129,8 @@ namespace UnityEngine.VFX.Test
                     RenderTexture.active = null;
                     actual.Apply();
 
-                    if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)))
+                    if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)) &&
+                        !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && UnstableMetalTests.Any(o => testCase.ScenePath.Contains(o))))
                     {
                         ImageAssert.AreEqual(testCase.ReferenceImage, actual, new ImageComparisonSettings() { AverageCorrectnessThreshold = 10e-5f });
                     }

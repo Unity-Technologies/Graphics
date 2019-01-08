@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum Colorspace
+    enum Colorspace
     {
         RGB,
         Linear,
@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Serializable]
-    public struct ColorspaceConversion : IEnumConversion
+    struct ColorspaceConversion : IEnumConversion
     {
         public Colorspace from;
         public Colorspace to;
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Artistic", "Utility", "Colorspace Conversion")]
-    public class ColorspaceConversionNode : CodeFunctionNode
+    class ColorspaceConversionNode : CodeFunctionNode
     {
         public ColorspaceConversionNode()
         {
@@ -104,8 +104,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}3 linearRGBLo = In / 12.92;;
-    {precision}3 linearRGBHi = pow(max(abs((In + 0.055) / 1.055), 1.192092896e-07), {precision}3(2.4, 2.4, 2.4));;
+    {precision}3 linearRGBLo = In / 12.92;
+    {precision}3 linearRGBHi = pow(max(abs((In + 0.055) / 1.055), 1.192092896e-07), {precision}3(2.4, 2.4, 2.4));
     Out = {precision}3(In <= 0.04045) ? linearRGBLo : linearRGBHi;
 }
 ";
@@ -204,8 +204,8 @@ namespace UnityEditor.ShaderGraph
     {precision}4 K = {precision}4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     {precision}3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
     {precision}3 RGB = In.z * lerp(K.xxx, saturate(P - K.xxx), In.y);
-    {precision}3 linearRGBLo = RGB / 12.92;;
-    {precision}3 linearRGBHi = pow(max(abs((RGB + 0.055) / 1.055), 1.192092896e-07), {precision}3(2.4, 2.4, 2.4));;
+    {precision}3 linearRGBLo = RGB / 12.92;
+    {precision}3 linearRGBHi = pow(max(abs((RGB + 0.055) / 1.055), 1.192092896e-07), {precision}3(2.4, 2.4, 2.4));
     Out = {precision}3(RGB <= 0.04045) ? linearRGBLo : linearRGBHi;
 }
 ";

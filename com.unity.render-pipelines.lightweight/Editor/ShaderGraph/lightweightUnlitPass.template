@@ -77,6 +77,7 @@ ${VertexShaderOutputs}
     half4 frag (GraphVertexOutput IN ${FaceSign}) : SV_Target
     {
         UNITY_SETUP_INSTANCE_ID(IN);
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
 
         // Pixel transformations performed by graph
 ${PixelShader}

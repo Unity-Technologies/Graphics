@@ -22,10 +22,19 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - Texture2D_E0553823:
-        m_Texture: {fileID: 2800000, guid: b282de7a2385d804b83dcf8d63ecc34a, type: 3}
+        m_Texture: {fileID: 2800000, guid: 781b53755515c7444ac0525951409d6b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AlphaTexture:
+        m_Texture: {fileID: 2800000, guid: 781b53755515c7444ac0525951409d6b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AmbientOcclusion:
+        m_Texture: {fileID: 2800000, guid: 1e2066dc70dcdee45a412223aef3e444, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - Vector1_3C23F346: 0.5
+    - _AlphaClipTexture: 0.5
     m_Colors:
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

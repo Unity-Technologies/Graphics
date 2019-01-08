@@ -16,3 +16,14 @@
 .sgblackboardFieldPropertyView > .rowView > .rowViewControl {
     flex: 1;
 }
+
+.unity-object-field-display__icon {
+    margin-top: 0;
+    margin-bottom: 0;
+    max-width: 20px;
+    max-height: 16px;
+}
+.unity-object-field-display__label {
+    margin-top: 0;
+    margin-bottom: 0;
+}
