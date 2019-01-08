@@ -194,7 +194,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             foreach (var pass in camera.GetComponents<IAfterTransparentPass>())
                 renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
 
-            if (!renderingData.cameraData.isStereoEnabled && renderingData.cameraData.postProcessEnabled)
+            if (renderingData.cameraData.postProcessEnabled)
             {
                 m_TransparentPostProcessPass.Setup(baseDescriptor, colorHandle, BuiltinRenderTextureType.CameraTarget);
                 renderer.EnqueuePass(m_TransparentPostProcessPass);
