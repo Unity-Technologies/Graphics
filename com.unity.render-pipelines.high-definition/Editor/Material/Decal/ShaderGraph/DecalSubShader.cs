@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class DecalSubShader : IDecalSubShader
     {
-
+        // CAUTION: Render code in RenderIntoDBuffer() in DecalSystem relies on the order in which the passes are declared, any change will need to be reflected.
         Pass m_PassProjector3RT = new Pass()
         {
             Name = "ShaderGraph_DBufferProjector3RT",
@@ -21,6 +21,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZTestOverride = "ZTest Greater",
             ZWriteOverride = "ZWrite Off",
             BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
+
+            ExtraDefines = new List<string>()
+            {
+                "#define DECALS_3RT",
+            },
 
             Includes = new List<string>()
             {
@@ -80,6 +85,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZTestOverride = "ZTest Greater",
             ZWriteOverride = "ZWrite Off",
             BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor",
+
+            ExtraDefines = new List<string>()
+            {
+                "#define DECALS_4RT",
+            },
 
             Includes = new List<string>()
             {
@@ -141,6 +151,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZTestOverride = "ZTest LEqual",
             ZWriteOverride = "ZWrite Off",
             BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
+
+            ExtraDefines = new List<string>()
+            {
+                "#define DECALS_3RT",
+            },
 
             Includes = new List<string>()
             {
@@ -207,6 +222,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZTestOverride = "ZTest LEqual",
             ZWriteOverride = "ZWrite Off",
             BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor",
+
+            ExtraDefines = new List<string>()
+            {
+                "#define DECALS_4RT",
+            },
 
             Includes = new List<string>()
             {
