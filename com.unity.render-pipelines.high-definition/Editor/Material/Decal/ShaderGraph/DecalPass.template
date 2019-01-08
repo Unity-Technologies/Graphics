@@ -25,8 +25,6 @@ Pass
     //#pragma enable_d3d11_debug_symbols
 
     #pragma multi_compile_instancing
-    // No need to teset for DECALS_3RT we are in decal shader, so there is no OFF state
-	#pragma multi_compile _ DECALS_4RT
 
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
@@ -42,7 +40,6 @@ Pass
     #pragma fragment Frag
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
