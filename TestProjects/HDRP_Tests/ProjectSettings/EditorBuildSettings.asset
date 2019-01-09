@@ -231,6 +231,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8204_CustomSpecOcclusion.unity
     guid: ea4b63b16805d5d40a81ed8842d96847
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8205_SceneDepthColorNodes.unity
+    guid: 17a399a27d6d4504cb53093dcadfe715
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9001_Decals.unity
     guid: a27cb5a638892574f99eb333bb3c7722
   - enabled: 1
