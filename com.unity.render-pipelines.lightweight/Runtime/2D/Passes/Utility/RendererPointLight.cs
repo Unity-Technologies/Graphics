@@ -26,9 +26,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //static Material m_HardShadowMaterial;
         //static Material m_SoftShadowMaterial;
         //static Material m_DefaultLightMaterial;
-        static Color m_DefaultAmbientColor;
-        static Color m_DefaultRimColor;
-        static Color m_DefaultSpecularColor;
         static Texture m_LightLookupTexture = GetLightLookupTexture();
 
         const int k_NormalsRenderingPassIndex = 1;

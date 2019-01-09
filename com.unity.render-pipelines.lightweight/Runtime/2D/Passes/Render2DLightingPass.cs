@@ -1,25 +1,16 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.LWRP;
-using UnityEngine.Experimental.Rendering.LWRP;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public class Render2DLightingPass : ScriptableRenderPass
     {
-        private Light2DRTInfo m_AmbientRenderTextureInfo;
-        private Light2DRTInfo m_SpecularRenderTextureInfo;
-        private Light2DRTInfo m_RimRenderTextureInfo;
         private Light2DRTInfo m_PointLightNormalRenderTextureInfo;
         private Light2DRTInfo m_PointLightColorRenderTextureInfo;
 
         public RenderTexture m_NormalMapRT;
         public RenderTexture m_PointLightingRT;
-
-        public Color m_DefaultRimColor = Color.clear;
-        public Color m_DefaultSpecularColor = Color.clear;
 
         static CommandBuffer m_CommandBuffer;
         static SortingLayer[] m_SortingLayers;
@@ -36,11 +27,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RendererPointLights.Initialize();
         }
 
-        public void Setup(Color ambientColor, Light2DRTInfo ambientRTInfo, Light2DRTInfo specularRTInfo, Light2DRTInfo rimRTInfo, Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo, float lightIntensityScale)
+        public void Setup(Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo, float lightIntensityScale, _2DShapeLightTypeDescription[] shapeLightTypes, Camera camera)
         {
-            m_AmbientRenderTextureInfo = ambientRTInfo;
-            m_SpecularRenderTextureInfo = specularRTInfo;
-            m_RimRenderTextureInfo = rimRTInfo;
             m_PointLightNormalRenderTextureInfo = pointLightNormalRTInfo;
             m_PointLightColorRenderTextureInfo = pointLightColorRTInfo;
 
@@ -49,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Shader.SetGlobalFloat("_LightIntensityScale", lightIntensityScale);
             Shader.SetGlobalFloat("_InverseLightIntensityScale", inverseLightIntensityScale);
 
-            RendererShapeLights.Setup(inverseLightIntensityScale * ambientColor, inverseLightIntensityScale * m_DefaultSpecularColor, inverseLightIntensityScale * m_DefaultRimColor);
+            RendererShapeLights.Setup(shapeLightTypes, camera);
         }
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
@@ -75,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Profiler.EndSample();
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
-            RendererShapeLights.CreateRenderTextures(m_AmbientRenderTextureInfo, m_SpecularRenderTextureInfo, m_RimRenderTextureInfo);
+            RendererShapeLights.CreateRenderTextures(context);
             RendererPointLights.CreateRenderTextures(m_PointLightNormalRenderTextureInfo, m_PointLightColorRenderTextureInfo);
             Profiler.EndSample();
 
@@ -139,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
             RendererPointLights.ReleaseRenderTextures();
-            RendererShapeLights.ReleaseRenderTextures();
+            RendererShapeLights.ReleaseRenderTextures(context);
             Profiler.EndSample();
         }
     }

@@ -736,19 +736,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return m_Lights[(int)Light2DType.Point];
         }
 
-        public static List<Light2D> GetSpecularLights()
+        public static List<Light2D> GetShapeLights(ShapeLightType shapeLightType)
         {
-            return m_Lights[(int)Light2DType.ShapeType0];
-        }
-
-        public static List<Light2D> GetAmbientLights()
-        {
-            return m_Lights[(int)Light2DType.ShapeType1];
-        }
-
-        public static List<Light2D> GetRimLights()
-        {
-            return m_Lights[(int)Light2DType.ShapeType2];
+            return m_Lights[(int)shapeLightType];
         }
 
         void RegisterLight()
@@ -830,7 +820,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if(CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && this.m_LightProjectionType == LightProjectionTypes.Shape)
             {
                 //m_ShapeLightStyle = CookieStyles.Parametric;
-                //m_ShapLight = ShapeLightTypes.LocalAmbient
                 m_Lights[(int)m_ShapeLightType].Remove(this);
                 InsertLight(this);
             }

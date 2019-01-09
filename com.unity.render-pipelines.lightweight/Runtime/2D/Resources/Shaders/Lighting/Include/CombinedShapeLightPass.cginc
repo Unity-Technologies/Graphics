@@ -1,4 +1,4 @@
-﻿#if !defined(COMBINED_SHAPE_LIGHT_PASS)
+#if !defined(COMBINED_SHAPE_LIGHT_PASS)
 #define COMBINED_SHAPE_LIGHT_PASS
 
 #include "UnityCG.cginc"
@@ -30,15 +30,14 @@ uniform fixed4 _MaskTex_ST;
 uniform sampler2D _NormalMap;
 uniform fixed4 _NormalMap_ST;
 
-uniform sampler2D _SpecularLightingTex;
-uniform sampler2D _AmbientLightingTex;
-uniform sampler2D _RimLightingTex;
+uniform sampler2D _ShapeLightTexture0;
+uniform sampler2D _ShapeLightTexture1;
+uniform sampler2D _ShapeLightTexture2;
+
 uniform sampler2D _PointLightingTex;
 uniform sampler2D _PointLightCookieTex;
 uniform sampler2D _MainTex;
 uniform fixed4 _MainTex_ST;
-
-uniform fixed4 _AmbientColor;
 
 uniform float4 _PointLightPosition;
 uniform float4 _PointLightColor;
@@ -60,6 +59,7 @@ v2f CombinedShapeLightVertex(appdata v)
 	o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 	float4 clipVertex = o.vertex / o.vertex.w;
 	o.lightingUV = ComputeScreenPos(clipVertex);
+    o.lightingUV.y = 1.0 - o.lightingUV.y;
 
 	float4 worldVertex = mul(unity_ObjectToWorld, v.vertex);
 	o.pixelScreenPos = ComputeScreenPos(worldVertex);
@@ -82,29 +82,31 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 	fixed4 mask = tex2D(_MaskTex, i.uv);									// Mask Order (For RGBA) - Specular, Rim, Ambient Occlusion
 
 	fixed4 specular = 0;
-	#if USE_SPECULAR_TEXTURE
-		specular = tex2D(_SpecularLightingTex, i.lightingUV) * _LightIntensityScale;
+	#if USE_SHAPE_LIGHT_TYPE_0
+		specular = tex2D(_ShapeLightTexture0, i.lightingUV) * _LightIntensityScale;
 	#else
 		specular = 0;
 	#endif
 
 	fixed4 ambientColor;
-	#if USE_AMBIENT_TEXTURE
-		ambientColor = tex2D(_AmbientLightingTex, i.lightingUV) * mask.b * _LightIntensityScale;  // mask.b is the ambient occlusion channel
+	#if USE_SHAPE_LIGHT_TYPE_1
+		ambientColor = tex2D(_ShapeLightTexture1, i.lightingUV) * mask.b * _LightIntensityScale;  // mask.b is the ambient occlusion channel
 	#else
-		ambientColor = _AmbientColor * _LightIntensityScale;
+		ambientColor = 0;
 	#endif
 	
 	fixed4 rimColor;
-	#if USE_RIM_TEXTURE
-		rimColor = tex2D(_RimLightingTex, i.lightingUV) * _LightIntensityScale;
+	#if USE_SHAPE_LIGHT_TYPE_2
+		rimColor = tex2D(_ShapeLightTexture2, i.lightingUV) * _LightIntensityScale;
 	#else
 		rimColor = 0;
 	#endif
 
 	fixed3 pointLightColor;
 	#if USE_POINT_LIGHTS
-		pointLightColor = tex2D(_PointLightingTex, i.lightingUV) *  _LightIntensityScale;
+        float2 lightingUV = i.lightingUV;
+        lightingUV.y = 1.0 - lightingUV.y;
+		pointLightColor = tex2D(_PointLightingTex, lightingUV) *  _LightIntensityScale;
 	#else
 		pointLightColor = 0;
 	#endif
@@ -114,7 +116,7 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 
 	// Specular calculation
 	fixed3 appliedSpecularColor;
-	#if USE_SPECULAR_TEXTURE
+	#if USE_SHAPE_LIGHT_TYPE_0
 		appliedSpecularColor = (mask.r * (specular.rgb + pointLightColor)) + diffuseColor.rgb;  // mask.r is the specular channel
 	#else
 		#if USE_POINT_LIGHTS
@@ -126,7 +128,7 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 
 	// Rim calculation
 	fixed3 appliedRimColor;
-	#if USE_RIM_TEXTURE
+	#if USE_SHAPE_LIGHT_TYPE_2
 		appliedRimColor = mask.g * rimColor.rgb + appliedSpecularColor;  // mask.g is the rim channel
 	#else
 		appliedRimColor = appliedSpecularColor;

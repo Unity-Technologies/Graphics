@@ -1,13 +1,8 @@
-﻿Shader "Lightweight Render Pipeline/2D/Sprite-Unlit"
+Shader "Lightweight Render Pipeline/2D/Sprite-Unlit"
 {
 	Properties
 	{
 		_MainTex ("Diffuse", 2D) = "white" {}
-		_MaskTex("Mask", 2D) = "black" {}
-		_NormalMap("Normal Map", 2D) = "black" {}
-		_SpecularMultiplier("Specular Multiplier", Float) = 1
-		_RimMultiplier("Rim Multiplier", Float) = 1
-		_AmbientMultiplier("Ambient Multiplier", Float) = 1
 	}
 	SubShader
 	{

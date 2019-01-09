@@ -1,5 +1,3 @@
-using UnityEngine.Experimental.Rendering.LWRP;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -9,17 +7,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     public class Default2DRendererData : IRendererData
     {
         [SerializeField]
-        internal Light2DRTInfo m_AmbientRenderTextureInfo = new Light2DRTInfo(true, 64, 64, FilterMode.Bilinear);
-        [SerializeField]
-        internal Light2DRTInfo m_SpecularRenderTextureInfo = new Light2DRTInfo(true, 1024, 512, FilterMode.Bilinear);
-        [SerializeField]
-        internal Light2DRTInfo m_RimRenderTextureInfo = new Light2DRTInfo(false, 64, 64, FilterMode.Bilinear);
-        //[SerializeField]
-        //internal Light2DRTInfo m_ShadowRenderTextureInfo = new Light2DRTInfo(true, 1024, 512, FilterMode.Bilinear);
-        [SerializeField]
         internal Light2DRTInfo m_PointLightNormalRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
+
         [SerializeField]
         internal Light2DRTInfo m_PointLightColorRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
+
         [SerializeField]
         private float m_LightIntensityScale = 1;
 
@@ -33,15 +25,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public float LightIntensityScale
         {
-            set
-            {
-                m_LightIntensityScale = value;
-            }
-
-            get
-            {
-                return m_LightIntensityScale;
-            }
+            get => m_LightIntensityScale;
+            set => m_LightIntensityScale = value;
         }
 
         public override IRendererSetup Create()
@@ -56,14 +41,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Default2DRendererData asset = ScriptableObject.CreateInstance<Default2DRendererData>();
             asset.name = "2D Renderer Data";
 
-            asset.m_ShapeLightTypes[0].enabled = true;
-            asset.m_ShapeLightTypes[0].name = "Additive Light";
-            asset.m_ShapeLightTypes[0].blendMode = _2DShapeLightTypeDescription.BlendMode.Additive;
-            asset.m_ShapeLightTypes[0].renderTextureScale = 1.0f;
-            asset.m_ShapeLightTypes[1].enabled = true;
-            asset.m_ShapeLightTypes[1].name = "Modulate Light";
-            asset.m_ShapeLightTypes[1].blendMode = _2DShapeLightTypeDescription.BlendMode.Modulate;
-            asset.m_ShapeLightTypes[1].renderTextureScale = 1.0f;
+            var shapeLightType0 = new _2DShapeLightTypeDescription();
+            shapeLightType0.enabled = true;
+            shapeLightType0.name = "Additive Light";
+            shapeLightType0.blendMode = _2DShapeLightTypeDescription.BlendMode.Additive;
+            shapeLightType0.renderTextureScale = 1.0f;
+            shapeLightType0.globalColor = Color.black;
+            asset.m_ShapeLightTypes[0] = shapeLightType0;
+
+            var shapeLightType1 = new _2DShapeLightTypeDescription();
+            shapeLightType1.enabled = true;
+            shapeLightType1.name = "Modulate Light";
+            shapeLightType1.blendMode = _2DShapeLightTypeDescription.BlendMode.Modulate;
+            shapeLightType1.renderTextureScale = 1.0f;
+            shapeLightType1.globalColor = Color.gray;
+            asset.m_ShapeLightTypes[1] = shapeLightType1;
 
             AssetDatabase.CreateAsset(asset, "Assets/New 2D Renderer Data " + Random.Range(0, 100000) + ".asset");
             AssetDatabase.SaveAssets();

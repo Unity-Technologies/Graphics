@@ -28,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public bool enabled;
         public string name;
+        [SerializeField] internal Color globalColor;
         [SerializeField] internal TextureChannel maskTextureChannel;
         [SerializeField] internal BlendMode blendMode;
         [SerializeField] internal BlendFactors customBlendFactors;

@@ -48,13 +48,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             renderer.EnqueuePass(m_SetupForwardRenderingPass);
 
             m_Render2DLightingPass.Setup(
-                RenderSettings.ambientLight,
-                m_RendererData.m_AmbientRenderTextureInfo,
-                m_RendererData.m_SpecularRenderTextureInfo,
-                m_RendererData.m_RimRenderTextureInfo,
                 m_RendererData.m_PointLightNormalRenderTextureInfo,
                 m_RendererData.m_PointLightColorRenderTextureInfo,
-                m_RendererData.LightIntensityScale
+                m_RendererData.LightIntensityScale,
+                m_RendererData.shapeLightTypes,
+                renderingData.cameraData.camera
             );
 
             renderer.EnqueuePass(m_Render2DLightingPass);
