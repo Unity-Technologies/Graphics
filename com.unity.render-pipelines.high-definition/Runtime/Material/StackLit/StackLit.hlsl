@@ -151,7 +151,7 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
     // When vlayered and iridescence is on, iridescence is also automatically recomputed per light too,
     // so the following gives the recompute option for iridescence when NOT vlayered:
 #ifdef VLAYERED_RECOMPUTE_PERLIGHT
-#    if _MATERIAL_FEATURE_IRIDESCENCE
+#    ifdef _MATERIAL_FEATURE_IRIDESCENCE
 #    define IRIDESCENCE_RECOMPUTE_PERLIGHT
 #    endif
 #endif
