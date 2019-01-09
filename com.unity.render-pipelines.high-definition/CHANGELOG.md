@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing multicompile for MSAA for AxF
 - Fixed max number of keyword reach [256] issue. Several shader feature are now local
 - Fixed Scene Color and Depth nodes
+- Fixed SSR in forward
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
