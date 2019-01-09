@@ -90,6 +90,10 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
         }
         case FOGTYPE_VOLUMETRIC:
         {
+            bool correctLinearInterpolation = true;
+            bool quadraticFilterXY = false;
+            bool cubicFilterXY = true;
+
             float4 volFog = SampleVolumetricLighting(TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
                                                      posInput.positionNDC,
                                                      posInput.linearDepth,
@@ -99,7 +103,9 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
                                                      _VBufferUvScaleAndLimit.zw,
                                                      _VBufferDepthEncodingParams,
                                                      _VBufferDepthDecodingParams,
-                                                     true, true);
+                                                     correctLinearInterpolation,
+                                                     quadraticFilterXY,
+                                                     cubicFilterXY);
 
             fogFactor = 1 - volFog.a;                              // Opacity from transmittance
             fogColor  = volFog.rgb * min(rcp(fogFactor), FLT_MAX); // Un-premultiply, clamp to avoid (0 * INF = NaN)
