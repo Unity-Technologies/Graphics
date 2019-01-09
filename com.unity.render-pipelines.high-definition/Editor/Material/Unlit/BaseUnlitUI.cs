@@ -679,7 +679,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (m_MaterialEditor.EmissionEnabledProperty())
                 {
                     // change the GI flag and fix it up with emissive as black if necessary
-                    m_MaterialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
+                    m_MaterialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
                 }
             }
         }

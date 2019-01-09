@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed max number of keyword reach [256] issue. Several shader feature are now local
 - Fixed Scene Color and Depth nodes
 - Fixed SSR in forward
+- Fixed custom editor of Unlit, HD Unlit and PBR shader graph master node
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
