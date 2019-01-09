@@ -25,32 +25,35 @@ struct v2f
 	#endif
 };
 
+uniform sampler2D _MainTex;
+uniform fixed4 _MainTex_ST;
 uniform sampler2D _MaskTex;
 uniform fixed4 _MaskTex_ST;
 uniform sampler2D _NormalMap;
 uniform fixed4 _NormalMap_ST;
 
-uniform sampler2D _ShapeLightTexture0;
-uniform sampler2D _ShapeLightTexture1;
-uniform sampler2D _ShapeLightTexture2;
-
 uniform sampler2D _PointLightingTex;
 uniform sampler2D _PointLightCookieTex;
-uniform sampler2D _MainTex;
-uniform fixed4 _MainTex_ST;
-
 uniform float4 _PointLightPosition;
-uniform float4 _PointLightColor;
 uniform fixed  _PointLightOuterRadius;
-uniform fixed  _PointLightInnerRadius;
-uniform fixed4 _PointLightUp;
 
-uniform float  _PointLightInnerAngle;
-uniform float  _PointLightOuterAngle;
-uniform float4 _PointLightForward;
-uniform float4 _PointLightOrigin;
+#if USE_SHAPE_LIGHT_TYPE_0
+    uniform sampler2D _ShapeLightTexture0;
+    uniform float2 _ShapeLightBlendFactors0;
+    uniform float4 _ShapeLightMaskFilter0;
+#endif
 
-uniform float  _LightIntensityScale;
+#if USE_SHAPE_LIGHT_TYPE_1
+    uniform sampler2D _ShapeLightTexture1;
+    uniform float2 _ShapeLightBlendFactors1;
+    uniform float4 _ShapeLightMaskFilter1;
+#endif
+
+#if USE_SHAPE_LIGHT_TYPE_2
+    uniform sampler2D _ShapeLightTexture2;
+    uniform float2 _ShapeLightBlendFactors2;
+    uniform float4 _ShapeLightMaskFilter2;
+#endif
 
 v2f CombinedShapeLightVertex(appdata v)
 {
@@ -78,66 +81,66 @@ v2f CombinedShapeLightVertex(appdata v)
 
 fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 {
-	fixed4 main = i.color * tex2D(_MainTex, i.uv);
-	fixed4 mask = tex2D(_MaskTex, i.uv);									// Mask Order (For RGBA) - Specular, Rim, Ambient Occlusion
+    fixed4 main = i.color * tex2D(_MainTex, i.uv);
+    fixed4 mask = tex2D(_MaskTex, i.uv);
 
-	fixed4 specular = 0;
-	#if USE_SHAPE_LIGHT_TYPE_0
-		specular = tex2D(_ShapeLightTexture0, i.lightingUV) * _LightIntensityScale;
-	#else
-		specular = 0;
-	#endif
+#if USE_SHAPE_LIGHT_TYPE_0
+    fixed4 shapeLight0 = tex2D(_ShapeLightTexture0, i.lightingUV);
 
-	fixed4 ambientColor;
-	#if USE_SHAPE_LIGHT_TYPE_1
-		ambientColor = tex2D(_ShapeLightTexture1, i.lightingUV) * mask.b * _LightIntensityScale;  // mask.b is the ambient occlusion channel
-	#else
-		ambientColor = 0;
-	#endif
-	
-	fixed4 rimColor;
-	#if USE_SHAPE_LIGHT_TYPE_2
-		rimColor = tex2D(_ShapeLightTexture2, i.lightingUV) * _LightIntensityScale;
-	#else
-		rimColor = 0;
-	#endif
+    if (any(_ShapeLightMaskFilter0))
+        shapeLight0 *= dot(mask, _ShapeLightMaskFilter0);
 
-	fixed3 pointLightColor;
-	#if USE_POINT_LIGHTS
-        float2 lightingUV = i.lightingUV;
-        lightingUV.y = 1.0 - lightingUV.y;
-		pointLightColor = tex2D(_PointLightingTex, lightingUV) *  _LightIntensityScale;
-	#else
-		pointLightColor = 0;
-	#endif
+    fixed4 shapeLight0Modulate = shapeLight0 * _ShapeLightBlendFactors0.x;
+    fixed4 shapeLight0Additive = shapeLight0 * _ShapeLightBlendFactors0.y;
+#else
+    fixed4 shapeLight0 = 0;
+    fixed4 shapeLight0Modulate = 0;
+    fixed4 shapeLight0Additive = 0;
+#endif
 
-	// Diffuse calculation
-	fixed3 diffuseColor = main.rgb * (specular.rgb + pointLightColor + ambientColor.rgb);
+#if USE_SHAPE_LIGHT_TYPE_1
+    fixed4 shapeLight1 = tex2D(_ShapeLightTexture1, i.lightingUV);
 
-	// Specular calculation
-	fixed3 appliedSpecularColor;
-	#if USE_SHAPE_LIGHT_TYPE_0
-		appliedSpecularColor = (mask.r * (specular.rgb + pointLightColor)) + diffuseColor.rgb;  // mask.r is the specular channel
-	#else
-		#if USE_POINT_LIGHTS
-			appliedSpecularColor = (mask.r * pointLightColor) + diffuseColor.rgb;
-		#else
-			appliedSpecularColor = diffuseColor.rgb;
-		#endif
-	#endif
+    if (any(_ShapeLightMaskFilter1))
+        shapeLight1 *= dot(mask, _ShapeLightMaskFilter1);
 
-	// Rim calculation
-	fixed3 appliedRimColor;
-	#if USE_SHAPE_LIGHT_TYPE_2
-		appliedRimColor = mask.g * rimColor.rgb + appliedSpecularColor;  // mask.g is the rim channel
-	#else
-		appliedRimColor = appliedSpecularColor;
-	#endif
+    fixed4 shapeLight1Modulate = shapeLight1 * _ShapeLightBlendFactors1.x;
+    fixed4 shapeLight1Additive = shapeLight1 * _ShapeLightBlendFactors1.y;
+#else
+    fixed4 shapeLight1 = 0;
+    fixed4 shapeLight1Modulate = 0;
+    fixed4 shapeLight1Additive = 0;
+#endif
 
-	fixed4 finalOutput;
-	finalOutput.rgb = appliedRimColor;
-	finalOutput.a = main.a;
-	return finalOutput;
+#if USE_SHAPE_LIGHT_TYPE_2
+    fixed4 shapeLight2 = tex2D(_ShapeLightTexture2, i.lightingUV);
+
+    if (any(_ShapeLightMaskFilter2))
+        shapeLight2 *= dot(mask, _ShapeLightMaskFilter2);
+
+    fixed4 shapeLight2Modulate = shapeLight2 * _ShapeLightBlendFactors2.x;
+    fixed4 shapeLight2Additive = shapeLight2 * _ShapeLightBlendFactors2.y;
+#else
+    fixed4 shapeLight2 = 0;
+    fixed4 shapeLight2Modulate = 0;
+    fixed4 shapeLight2Additive = 0;
+#endif
+
+#if USE_POINT_LIGHTS
+    float2 lightingUV = i.lightingUV;
+    lightingUV.y = 1.0 - lightingUV.y;
+    fixed4 pointLight = tex2D(_PointLightingTex, lightingUV);
+#else
+    fixed4 pointLight = 0;
+#endif
+
+    fixed4 finalOutput;
+    fixed4 finalModulate = shapeLight0Modulate + shapeLight1Modulate + shapeLight2Modulate + pointLight;
+    fixed4 finalAdditve = shapeLight0Additive + shapeLight1Additive + shapeLight2Additive;
+    finalOutput = main * finalModulate + finalAdditve;
+
+    finalOutput.a = main.a;
+    return finalOutput;
 }
 
 #endif

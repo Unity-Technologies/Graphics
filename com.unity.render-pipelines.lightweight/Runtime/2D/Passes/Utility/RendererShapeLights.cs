@@ -138,6 +138,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static public void SetShaderGlobals(CommandBuffer cmdBuffer)
         {
             cmdBuffer.SetGlobalTexture("_ShadowTex", m_FullScreenShadowTexture);
+
+            for (int i = 0; i < m_LightTypes.Length; ++i)
+            {
+                cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, m_LightTypes[i].blendFactors);
+                cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, m_LightTypes[i].maskTextureChannelFilter);
+            }
         }
 
         static public void RenderLights(Camera camera, CommandBuffer cmdBuffer, int layerToRender)
