@@ -74,6 +74,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static event Action<HDCamera, CommandBuffer, LightLoop>OnPrepareLightsForGPU;
         public static event Action<HDCamera, CommandBuffer> OnPushGlobalParameters;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnCameraPostRenderGBuffer;
+        public static event Action<HDCamera, CommandBuffer, ComputeShader, int> OnCameraPreRenderVolumetrics;
 
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier> OnCameraPostRenderDeferredLighting;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPostRenderForward;
@@ -88,6 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             OnPrepareLightsForGPU = null;
             OnPushGlobalParameters = null;
             OnCameraPostRenderGBuffer = null;
+            OnCameraPreRenderVolumetrics = null;
             OnCameraPostRenderDeferredLighting = null;
             OnCameraPostRenderForward = null;
             OnCameraPreRenderPostProcess = null;
@@ -1153,6 +1155,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             visualEnv.PushFogShaderParameters(hdCamera, cmd);
                         }
 
+                        if (OnCameraPreRenderVolumetrics != null)
+                        {
+                            m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
+                            OnCameraPreRenderVolumetrics(hdCamera, cmd, m_VolumetricLightingSystem.GetVolumeVoxelizationCS(), m_VolumetricLightingSystem.GetVolumeVoxelizationKernel(true, true));
+                        }
+                        
                         // Perform the voxelization step which fills the density 3D texture.
                         // Requires the clustered lighting data structure to be built, and can run async.
                         m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes);
@@ -1191,9 +1199,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Render All forward error
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd);
 
-                        m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
+                        
                         if (OnCameraPostRenderForward != null)
+                        {
+                            m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
                             OnCameraPostRenderForward(renderContext, hdCamera, cmd, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
+                        }
 
                         // Fill depth buffer to reduce artifact for transparent object during postprocess
                         RenderTransparentDepthPostpass(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);

@@ -506,6 +506,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public ComputeShader GetVolumeVoxelizationCS()
+        {
+            return m_VolumeVoxelizationCS;
+        }
+
+        public int GetVolumeVoxelizationKernel(bool highQuality, bool enableClustered)
+        {
+            int kernel;
+            if (highQuality)
+            {
+                kernel = m_VolumeVoxelizationCS.FindKernel(enableClustered ? "VolumeVoxelizationClusteredHQ"
+                                                                            : "VolumeVoxelizationBruteforceHQ");
+            }
+            else
+            {
+                kernel = m_VolumeVoxelizationCS.FindKernel(enableClustered ? "VolumeVoxelizationClusteredMQ"
+                                                                            : "VolumeVoxelizationBruteforceMQ");
+            }
+
+            return kernel;
+        }
+
         public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes)
         {
             if (!hdCamera.frameSettings.enableVolumetrics)
@@ -521,19 +543,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 bool highQuality     = preset == VolumetricLightingPreset.High;
                 bool enableClustered = hdCamera.frameSettings.lightLoopSettings.enableTileAndCluster;
-
-                int kernel;
-
-                if (highQuality)
-                {
-                    kernel = m_VolumeVoxelizationCS.FindKernel(enableClustered ? "VolumeVoxelizationClusteredHQ"
-                                                                               : "VolumeVoxelizationBruteforceHQ");
-                }
-                else
-                {
-                    kernel = m_VolumeVoxelizationCS.FindKernel(enableClustered ? "VolumeVoxelizationClusteredMQ"
-                                                                               : "VolumeVoxelizationBruteforceMQ");
-                }
+                int kernel = GetVolumeVoxelizationKernel(highQuality, enableClustered);
 
                 var     frameParams = hdCamera.vBufferParams[0];
                 Vector4 resolution  = frameParams.resolution;

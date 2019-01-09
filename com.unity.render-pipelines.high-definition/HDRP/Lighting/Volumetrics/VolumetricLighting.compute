@@ -497,7 +497,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                            _VBufferPrevUvScaleAndLimit.zw,
                                            _VBufferPrevDepthEncodingParams,
                                            _VBufferPrevDepthDecodingParams,
-                                           false, false, true);
+                                           false, false, false, true);
 
         // Compute the exponential moving average over 'n' frames:
         // X = (1 - a) * ValueAtFrame[n] + a * AverageOverPreviousFrames.
