@@ -226,8 +226,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 camera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
             }
 
-            // Handle fixed exposure
-            if (IsExposureFixed())
+            // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
+            if (!camera.frameSettings.enableExposureControl)
+            {
+                using (new ProfilingSample(cmd, "Zero Fixed Exposure", CustomSamplerId.Exposure.GetSampler()))
+                {
+                    // TODO: No need to do that on every frame, should only do it once and keep the result around
+                    DoZeroExposure(cmd, camera);
+                }
+            }
+            else if (IsExposureFixed())
             {
                 using (new ProfilingSample(cmd, "Fixed Exposure", CustomSamplerId.Exposure.GetSampler()))
                 {
@@ -256,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: Do we want user effects before post?
 
                 // Start with exposure - will be applied in the next frame
-                if (!IsExposureFixed())
+                if (!IsExposureFixed() && camera.frameSettings.enableExposureControl)
                 {
                     using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
                     {
@@ -440,6 +448,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // See GetExposureTexture
             var rt = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
             return rt ?? m_EmptyExposureTexture;
+        }
+
+        void DoZeroExposure(CommandBuffer cmd, HDCamera camera)
+        {
+            GrabExposureHistoryTextures(camera, out var prevExposure, out _);
+
+            var cs = m_Resources.shaders.exposureCS;
+            int kernel = cs.FindKernel("KFixedExposure");
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(ColorUtils.ConvertExposureToEV100(1f), 0f, 0f, 0f));
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
+            cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }
 
         void DoFixedExposure(CommandBuffer cmd, HDCamera camera)

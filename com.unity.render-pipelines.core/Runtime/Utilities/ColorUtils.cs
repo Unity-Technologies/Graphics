@@ -55,6 +55,24 @@ namespace UnityEngine.Rendering
             return 1f / maxLuminance;
         }
 
+        public static float ConvertExposureToEV100(float exposure)
+        {
+            const float k = 1f / 1.2f;
+            return -Mathf.Log(exposure / k, 2f);
+        }
+
+        public static float ComputeEV100FromAvgLuminance(float avgLuminance)
+        {
+            // We later use the middle gray at 12.7% in order to have
+            // a middle gray at 18% with a sqrt(2) room for specular highlights
+            // But here we deal with the spot meter measuring the middle gray
+            // which is fixed at 12.5 for matching standard camera
+            // constructor settings (i.e. calibration constant K = 12.5)
+            // Reference: http://en.wikipedia.org/wiki/Film_speed
+            const float K = 12.5f; // Reflected-light meter calibration constant
+            return Mathf.Log(avgLuminance * 100f / K, 2f);
+        }
+
         // Compute the required ISO to reach the target EV100
         public static float ComputeISO(float aperture, float shutterSpeed, float targetEV100) => ((aperture * aperture) * 100f) / (shutterSpeed * Mathf.Pow(2f, targetEV100));
     }

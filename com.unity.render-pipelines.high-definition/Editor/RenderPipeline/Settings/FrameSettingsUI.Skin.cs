@@ -36,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent volumetricContent = EditorGUIUtility.TrTextContent("Volumetrics");
         static readonly GUIContent reprojectionForVolumetricsContent = EditorGUIUtility.TrTextContent("Reprojection For Volumetrics");
         static readonly GUIContent lightLayerContent = EditorGUIUtility.TrTextContent("LightLayers");
+        static readonly GUIContent exposureControlContent = EditorGUIUtility.TrTextContent("Exposure Control");
 
         // Async compute
         static readonly GUIContent asyncComputeContent = EditorGUIUtility.TrTextContent("Async Compute", "This will have an effect only if target platform supports async compute.");

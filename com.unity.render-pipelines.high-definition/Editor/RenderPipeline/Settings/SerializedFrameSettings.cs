@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty enableVolumetrics;
         public SerializedProperty enableReprojectionForVolumetrics;
         public SerializedProperty enableLightLayers;
+        public SerializedProperty enableExposureControl;
 
         public SerializedProperty diffuseGlobalDimmer;
         public SerializedProperty specularGlobalDimmer;
@@ -170,6 +171,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     overrides.intValue |= (int)FrameSettingsOverrides.LightLayers;
                 else
                     overrides.intValue &= ~(int)FrameSettingsOverrides.LightLayers;
+            }
+        }
+        public bool overridesExposureControl
+        {
+            get { return (overrides.intValue & (int)FrameSettingsOverrides.ExposureControl) > 0; }
+            set
+            {
+                if (value)
+                    overrides.intValue |= (int)FrameSettingsOverrides.ExposureControl;
+                else
+                    overrides.intValue &= ~(int)FrameSettingsOverrides.ExposureControl;
             }
         }
         public bool overridesTransparentPrepass
@@ -415,6 +427,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             enableVolumetrics = root.Find((FrameSettings d) => d.enableVolumetrics);
             enableReprojectionForVolumetrics = root.Find((FrameSettings d) => d.enableReprojectionForVolumetrics);
             enableLightLayers = root.Find((FrameSettings d) => d.enableLightLayers);
+            enableExposureControl = root.Find((FrameSettings d) => d.enableExposureControl);
             diffuseGlobalDimmer = root.Find((FrameSettings d) => d.diffuseGlobalDimmer);
             specularGlobalDimmer = root.Find((FrameSettings d) => d.specularGlobalDimmer);
             litShaderMode = root.Find((FrameSettings d) => d.shaderLitMode);

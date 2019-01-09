@@ -82,7 +82,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             enableContactShadows = false,
             enableShadowMask = false,
             enableSSAO = false,
-            enableAtmosphericScattering = false
+            enableAtmosphericScattering = false,
+            enableExposureControl = false
         };
         
         bool m_frameSettingsIsDirty = true;

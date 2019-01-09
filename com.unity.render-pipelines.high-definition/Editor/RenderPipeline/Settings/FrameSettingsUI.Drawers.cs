@@ -209,6 +209,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             area.Add(serialized.enableVolumetrics, volumetricContent, () => serialized.overridesVolumetrics, a => serialized.overridesVolumetrics = a, () => hdrpSettings.supportVolumetrics && serialized.enableAtmosphericScattering.boolValue, defaultValue: defaultFrameSettings.enableAtmosphericScattering, indent: 1);
             area.Add(serialized.enableReprojectionForVolumetrics, reprojectionForVolumetricsContent, () => serialized.overridesProjectionForVolumetrics, a => serialized.overridesProjectionForVolumetrics = a, () => hdrpSettings.supportVolumetrics && serialized.enableAtmosphericScattering.boolValue, defaultValue: defaultFrameSettings.enableVolumetrics, indent: 1);
             area.Add(serialized.enableLightLayers, lightLayerContent, () => serialized.overridesLightLayers, a => serialized.overridesLightLayers = a, () => hdrpSettings.supportLightLayers, defaultValue: defaultFrameSettings.enableLightLayers);
+            area.Add(serialized.enableExposureControl, exposureControlContent, () => serialized.overridesExposureControl, a => serialized.overridesExposureControl = a, defaultValue: defaultFrameSettings.enableExposureControl);
             area.Draw(withOverride);
         }
     }

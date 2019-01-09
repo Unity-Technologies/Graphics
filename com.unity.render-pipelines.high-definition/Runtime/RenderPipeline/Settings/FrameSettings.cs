@@ -27,6 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReprojectionForVolumetrics = 1 << 9,
         LightLayers = 1 << 10,
         MSAA = 1 << 11,
+        ExposureControl = 1 << 12,
 
         //rendering pass
         TransparentPrepass = 1 << 13,
@@ -74,6 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {FrameSettingsOverrides.ReprojectionForVolumetrics, (a, b) => { a.enableReprojectionForVolumetrics = b.enableReprojectionForVolumetrics; } },
             {FrameSettingsOverrides.LightLayers, (a, b) => { a.enableLightLayers = b.enableLightLayers; } },
             {FrameSettingsOverrides.MSAA, (a, b) => { a.enableMSAA = b.enableMSAA; } },
+            {FrameSettingsOverrides.ExposureControl, (a, b) => { a.enableExposureControl = b.enableExposureControl; } },
             {FrameSettingsOverrides.TransparentPrepass, (a, b) => { a.enableTransparentPrepass = b.enableTransparentPrepass; } },
             {FrameSettingsOverrides.TransparentPostpass, (a, b) => { a.enableTransparentPostpass = b.enableTransparentPostpass; } },
             {FrameSettingsOverrides.MotionVectors, (a, b) => { a.enableMotionVectors = b.enableMotionVectors; } },
@@ -110,6 +112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableVolumetrics = true;
         public bool enableReprojectionForVolumetrics = true;
         public bool enableLightLayers = true;
+        public bool enableExposureControl = true;
 
         // Setup by system
         public float diffuseGlobalDimmer = 1.0f;
@@ -170,6 +173,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableVolumetrics = this.enableVolumetrics;
             frameSettings.enableReprojectionForVolumetrics = this.enableReprojectionForVolumetrics;
             frameSettings.enableLightLayers = this.enableLightLayers;
+            frameSettings.enableExposureControl = this.enableExposureControl;
 
             frameSettings.diffuseGlobalDimmer = this.diffuseGlobalDimmer;
             frameSettings.specularGlobalDimmer = this.specularGlobalDimmer;
@@ -264,6 +268,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableReprojectionForVolumetrics = srcFrameSettings.enableReprojectionForVolumetrics;
 
             aggregate.enableLightLayers = srcFrameSettings.enableLightLayers && renderPipelineSettings.supportLightLayers;
+            aggregate.enableExposureControl = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableExposureControl;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
