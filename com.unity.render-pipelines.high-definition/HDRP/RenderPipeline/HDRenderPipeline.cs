@@ -1155,16 +1155,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             visualEnv.PushFogShaderParameters(hdCamera, cmd);
                         }
 
-                        if (OnCameraPreRenderVolumetrics != null)
+                        if (OnCameraPreRenderVolumetrics != null && hdCamera.frameSettings.enableVolumetrics)
                         {
                             bool enableClustered = hdCamera.frameSettings.lightLoopSettings.enableTileAndCluster;
                             if (enableClustered)
                             {
                                 m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
                             }
+                            Debug.Assert(enableClustered);
                             OnCameraPreRenderVolumetrics(hdCamera, cmd, m_VolumetricLightingSystem.GetVolumeVoxelizationCS(), m_VolumetricLightingSystem.GetVolumeVoxelizationKernel(enableClustered));
                         }
-                        
+
                         // Perform the voxelization step which fills the density 3D texture.
                         // Requires the clustered lighting data structure to be built, and can run async.
                         m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes);
@@ -1203,7 +1204,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Render All forward error
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd);
 
-                        
+
                         if (OnCameraPostRenderForward != null)
                         {
                             m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
