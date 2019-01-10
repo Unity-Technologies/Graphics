@@ -264,7 +264,7 @@ float4 ShadowPassVertex(VertexInputLean v) : SV_POSITION
     TerrainInstancing(v.position, v.normal);
 
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
-    float3 normalWS = TransformObjectToWorldDir(v.normal);
+    float3 normalWS = TransformObjectToWorldNormal(v.normal);
 
     float invNdotL = 1.0 - saturate(dot(_LightDirection, normalWS));
     float scale = invNdotL * _ShadowBias.y;

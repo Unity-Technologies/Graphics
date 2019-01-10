@@ -23,7 +23,7 @@ struct Varyings
 float4 GetShadowPositionHClip(Attributes input)
 {
     float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-    float3 normalWS = TransformObjectToWorldDir(input.normalOS);
+    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 
     float invNdotL = 1.0 - saturate(dot(_LightDirection, normalWS));
     float scale = invNdotL * _ShadowBias.y;
