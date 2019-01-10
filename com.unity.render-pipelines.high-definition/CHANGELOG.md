@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Scene Color and Depth nodes for shader graph
 - Fixed SSR in forward
 - Fixed custom editor of PBR shader graph master node
+- Fixed issue with NewFrame not correctly calcualted in Editor when switching scene
 
 ### Changed
 - Update several properties naming and caption based on feedback from documentation team
