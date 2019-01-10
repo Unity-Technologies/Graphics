@@ -91,8 +91,8 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
         case FOGTYPE_VOLUMETRIC:
         {
             bool correctLinearInterpolation = true;
-            bool quadraticFilterXY = false;
-            bool cubicFilterXY = true;
+            bool quadraticFilterXY = true;
+            bool cubicFilterXY = false;
 
             float4 volFog = SampleVolumetricLighting(TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
                                                      posInput.positionNDC,

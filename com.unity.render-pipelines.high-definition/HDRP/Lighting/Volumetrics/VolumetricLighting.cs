@@ -511,9 +511,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_VolumeVoxelizationCS;
         }
 
-        public int GetVolumeVoxelizationKernel(bool highQuality, bool enableClustered)
+        public int GetVolumeVoxelizationKernel(bool enableClustered)
         {
             int kernel;
+            bool highQuality = preset == VolumetricLightingPreset.High;
             if (highQuality)
             {
                 kernel = m_VolumeVoxelizationCS.FindKernel(enableClustered ? "VolumeVoxelizationClusteredHQ"
@@ -541,9 +542,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int numVisibleVolumes = m_VisibleVolumeBounds.Count;
 
-                bool highQuality     = preset == VolumetricLightingPreset.High;
                 bool enableClustered = hdCamera.frameSettings.lightLoopSettings.enableTileAndCluster;
-                int kernel = GetVolumeVoxelizationKernel(highQuality, enableClustered);
+                int kernel = GetVolumeVoxelizationKernel(enableClustered);
 
                 var     frameParams = hdCamera.vBufferParams[0];
                 Vector4 resolution  = frameParams.resolution;

@@ -1157,8 +1157,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (OnCameraPreRenderVolumetrics != null)
                         {
-                            m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
-                            OnCameraPreRenderVolumetrics(hdCamera, cmd, m_VolumetricLightingSystem.GetVolumeVoxelizationCS(), m_VolumetricLightingSystem.GetVolumeVoxelizationKernel(true, true));
+                            bool enableClustered = hdCamera.frameSettings.lightLoopSettings.enableTileAndCluster;
+                            if (enableClustered)
+                            {
+                                m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
+                            }
+                            OnCameraPreRenderVolumetrics(hdCamera, cmd, m_VolumetricLightingSystem.GetVolumeVoxelizationCS(), m_VolumetricLightingSystem.GetVolumeVoxelizationKernel(enableClustered));
                         }
                         
                         // Perform the voxelization step which fills the density 3D texture.

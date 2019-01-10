@@ -119,7 +119,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
             const float BICUBIC_SHARPNESS_BSPLINE = 0.0f;
             const float BICUBIC_SHARPNESS_MITCHELL = 1.0f / 3.0f;
             const float BICUBIC_SHARPNESS_CATMULL_ROM = 0.5f;
-            BicubicFilter(positionPixels, weights, uvs, BICUBIC_SHARPNESS_CATMULL_ROM); // Inverse-translate the filter centered around 0.5
+            BicubicFilter(positionPixels, weights, uvs, BICUBIC_SHARPNESS_BSPLINE); // Inverse-translate the filter centered around 0.5
 
             // Apply the viewport scale right at the end.
             // TODO: precompute (VBufferResolution.zw * VBufferUvScale).
