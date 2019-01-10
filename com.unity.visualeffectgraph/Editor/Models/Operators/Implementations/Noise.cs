@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class NoiseVariantProvider : IVariantProvider
+    class NoiseVariantProvider : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {
