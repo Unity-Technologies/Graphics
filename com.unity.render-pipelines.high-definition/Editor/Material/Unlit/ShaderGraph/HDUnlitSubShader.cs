@@ -374,6 +374,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.ShaderGraph.HDUnlitGUI""");
+
             return subShader.GetShaderString(0);
         }
 
