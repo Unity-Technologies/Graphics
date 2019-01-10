@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update UI of Emission parameters in shaders
 - Updated AxF shader
 - Improve shader variant stripping including shader graph variant
+- Micro-shadowing in Lit forward now use ambientOcclusion instead of SpecularOcclusion
 
 ## [4.6.0-preview] - 2018-12-07
 
