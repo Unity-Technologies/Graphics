@@ -293,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             desc.colorFormat = cameraData.isHdrEnabled ? RenderTextureFormat.DefaultHDR :
                 RenderTextureFormat.Default;
             desc.enableRandomWrite = false;
-            desc.sRGB = true;
+            desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
             return desc;
