@@ -429,7 +429,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
                             m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                             m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
-                            if(!perChannelMask)
+                            m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
+                            m_DecalDatas[m_DecalDatasCount].scalingMAB = m_ScalingMAB;
+
+                            if (!perChannelMask)
                             {
                                 m_DecalDatas[m_DecalDatasCount].blendParams.z = (float)Decal.MaskBlendFlags.Smoothness; 
                             }
@@ -593,6 +596,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private float m_AlbedoContribution = 0;
             private Vector4 m_BaseColor;
             private Vector3 m_BlendParams;
+            private Vector4 m_RemappingAOS;
+            private Vector4 m_ScalingMAB; // metal, base color alpha, mask map blue
+
 
             private bool m_IsHDRenderPipelineDecal;
 
