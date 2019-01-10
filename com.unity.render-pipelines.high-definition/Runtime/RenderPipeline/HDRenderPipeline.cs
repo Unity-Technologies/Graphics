@@ -567,12 +567,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             };
         }
 
-        public void OnSceneLoad()
-        {
-            // Recreate the textures which went NULL
-            m_MaterialList.ForEach(material => material.Build(m_Asset));
-        }
-
         public override void Dispose()
         {
             UnsetRenderingFeatures();
@@ -808,6 +802,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
+                    // If we switch to other scene Time.realtimeSinceStartup is reset, so we need to
+                    // reset also m_Time. Here we simply detect ill case to trigger the reset.
+                    m_Time = m_Time > t ? 0.0f : m_Time;
+
                     newFrame = (t - m_Time) > 0.0166f;
 
                     if (newFrame)
