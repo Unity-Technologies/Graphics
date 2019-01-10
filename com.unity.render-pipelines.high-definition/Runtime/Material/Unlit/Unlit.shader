@@ -296,7 +296,6 @@ Shader "HDRP/Unlit"
         }
     }
 
-    /*
     SubShader
     {
         Pass
@@ -349,7 +348,6 @@ Shader "HDRP/Unlit"
             ENDHLSL
         }
     }
-    */
 
     CustomEditor "Experimental.Rendering.HDPipeline.UnlitGUI"
 }

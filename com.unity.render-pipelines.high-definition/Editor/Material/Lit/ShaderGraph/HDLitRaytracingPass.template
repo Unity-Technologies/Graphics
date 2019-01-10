@@ -229,8 +229,7 @@ Pass
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
-        if(surfaceDescription.Alpha < surfaceDescription.AlphaClipThreshold)
-            return false;
+        $AlphaTest: if(surfaceDescription.Alpha < surfaceDescription.AlphaClipThreshold) return false;
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, intersectionVertice, rayCone, surfaceData, bentNormalWS);

@@ -81,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
             Texture2DArray noiseTexture = m_RaytracingManager.m_RGNoiseTexture;
-            if (rtEnvironement == null || noiseTexture == null)
+            if (rtEnvironement == null || noiseTexture == null || !rtEnvironement.raytracedShadows)
             {
                 return false;
             }

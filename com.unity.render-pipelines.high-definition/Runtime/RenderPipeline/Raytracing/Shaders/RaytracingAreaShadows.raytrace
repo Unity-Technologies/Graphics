@@ -94,7 +94,7 @@ bool GenerateMISSample(uint2 pixelCoordinates, LightData areaLightData, Position
 
         // First we need to figure out if this sample touches the area light
         float t;
-        validity = intersect_plane(posInput.positionWS, sampleDir, areaLightData.forward, areaLightPosWS, t);
+        validity = IntersectPlane(posInput.positionWS, sampleDir, areaLightData.forward, areaLightPosWS, t);
 
         if(validity)
         {

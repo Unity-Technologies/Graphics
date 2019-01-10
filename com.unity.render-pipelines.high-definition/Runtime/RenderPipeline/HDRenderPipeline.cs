@@ -1477,6 +1477,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (!hdCamera.frameSettings.ContactShadowsRunAsync())
                 {
+#if ENABLE_RAYTRACING
+                    // Let's render the screen space area light shadows
+                    bool shadowsRendered = m_RaytracingShadows.RenderAreaShadows(hdCamera, cmd, renderContext);
+                    if (shadowsRendered)
+                    {
+                        cmd.SetGlobalInt(HDShaderIDs._RaytracedAreaShadow, 1);
+                    }
+                    else
+                    {
+                        cmd.SetGlobalInt(HDShaderIDs._RaytracedAreaShadow, 0);
+                    }
+#endif
+
                     HDUtils.CheckRTCreated(m_ScreenSpaceShadowsBuffer);
 
                     int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;

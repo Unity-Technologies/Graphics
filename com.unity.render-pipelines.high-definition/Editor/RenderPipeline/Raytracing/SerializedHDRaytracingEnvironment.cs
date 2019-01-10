@@ -38,6 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty reflBilateralSigma;
 
         // Area Shadow Properties
+        public SerializedProperty raytracedShadows;
         public SerializedProperty shadowNumSamples;
         public SerializedProperty numAreaLightShadows;
         public SerializedProperty shadowFilterRadius;
@@ -69,7 +70,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             reflBilateralRadius = o.Find(x => x.reflBilateralRadius);
             reflBilateralSigma = o.Find(x => x.reflBilateralSigma);
 
-            // Reflections Attributes
+            // Shadows Attributes
+            raytracedShadows = o.Find(x => x.raytracedShadows);
             shadowNumSamples = o.Find(x => x.shadowNumSamples);
             numAreaLightShadows = o.Find(x => x.numAreaLightShadows);
             shadowFilterRadius = o.Find(x => x.shadowFilterRadius);

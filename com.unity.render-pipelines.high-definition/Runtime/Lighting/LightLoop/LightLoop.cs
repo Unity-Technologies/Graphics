@@ -1816,7 +1816,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     #if ENABLE_RAYTRACING
                     int areaLightShadowIndex = 0;
-                    int maxAreaLightShadows = raytracingEnv != null ? raytracingEnv.numAreaLightShadows : 0;
+                    int maxAreaLightShadows = raytracingEnv != null && raytracingEnv.raytracedShadows ? raytracingEnv.numAreaLightShadows : 0;
                     #endif
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)

@@ -747,7 +747,6 @@ Shader "HDRP/Lit"
         }
     }
 
-    /*
     SubShader
     {
         Pass
@@ -809,7 +808,6 @@ Shader "HDRP/Lit"
             ENDHLSL
         }
     }
-    */
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"
 }

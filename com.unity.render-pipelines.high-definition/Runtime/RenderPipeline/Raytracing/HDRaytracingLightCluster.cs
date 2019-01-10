@@ -86,6 +86,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CoreUtils.SafeRelease(m_LightCluster);
                 m_LightCluster = null;
             }
+
+            if (m_LightCullResult != null)
+            {
+                CoreUtils.SafeRelease(m_LightCullResult);
+                m_LightCullResult = null;
+            }
+
+            if (m_LightDataGPUArray != null)
+            {
+                CoreUtils.SafeRelease(m_LightDataGPUArray);
+                m_LightDataGPUArray = null;
+            }
         }
 
         void ResizeClusterBuffer(int bufferSize)

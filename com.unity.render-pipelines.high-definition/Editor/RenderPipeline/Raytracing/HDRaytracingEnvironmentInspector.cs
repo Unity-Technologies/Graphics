@@ -45,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent reflBilateralSigma = new GUIContent("Reflections Bilateral Sigma");
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Area Light Shadow
+            public static GUIContent shadowEnableText = new GUIContent("Enable");
             public static GUIContent shadowSectionText = new GUIContent("Ray-traced Shadows");
             public static GUIContent shadowBilateralRadius = new GUIContent("Shadows Bilateral Radius");
             public static GUIContent shadowNumSamplesText = new GUIContent("Shadows Num Samples");
@@ -159,10 +160,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void AreaShadowSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
-            EditorGUILayout.PropertyField(rtEnv.shadowNumSamples, Styles.shadowNumSamplesText);
-            EditorGUILayout.PropertyField(rtEnv.numAreaLightShadows, Styles.numAreaLightShadows);
-            EditorGUILayout.PropertyField(rtEnv.shadowFilterRadius, Styles.shadowBilateralRadius);
-            EditorGUILayout.PropertyField(rtEnv.shadowFilterSigma, Styles.shadowBilateralSigma);
+            EditorGUILayout.PropertyField(rtEnv.raytracedShadows, Styles.shadowEnableText);
+
+            if (rtEnv.raytracedShadows.boolValue)
+            {
+                EditorGUILayout.PropertyField(rtEnv.shadowNumSamples, Styles.shadowNumSamplesText);
+                EditorGUILayout.PropertyField(rtEnv.numAreaLightShadows, Styles.numAreaLightShadows);
+                EditorGUILayout.PropertyField(rtEnv.shadowFilterRadius, Styles.shadowBilateralRadius);
+                EditorGUILayout.PropertyField(rtEnv.shadowFilterSigma, Styles.shadowBilateralSigma);
+            }
         }
 
         protected void OnEnable()
