@@ -354,7 +354,7 @@ void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 
 float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 {
-#ifdef LIGHT_LAYERS
+#if (SHADERPASS == SHADERPASS_FORWARD) || defined(LIGHT_LAYERS)
     return ComputeMicroShadowing(bsdfData.ambientOcclusion, NdotL, _MicroShadowOpacity);
 #else
     // No extra G-Buffer for AO, so 'bsdfData.ambientOcclusion' does not hold a meaningful value.
