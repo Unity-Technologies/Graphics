@@ -67,6 +67,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Scene Color and Depth nodes
 - Fixed SSR in forward
 - Fixed custom editor of Unlit, HD Unlit and PBR shader graph master node
+- Fixed issue with NewFrame not correctly calcualted in Editor when switching scene
+
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
@@ -85,6 +87,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enable SRP batcher by default
 - Shader code refactor: Rename LIGHTLOOP_SINGLE_PASS => LIGHTLOOP_DISABLE_TILE_AND_CLUSTER and clean all usage of LIGHTLOOP_TILE_PASS
 - Shader code refactor: Move pragma definition of vertex and pixel shader inside pass + Move SURFACE_GRADIENT definition in XXXData.hlsl
+- Micro-shadowing in Lit forward now use ambientOcclusion instead of SpecularOcclusion
 
 ## [5.2.0-preview] - 2018-11-27
 
