@@ -1,7 +1,6 @@
 using System;
-using UnityEditor.UIElements;
+using UnityEngine.Experimental.UIElements;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
@@ -36,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 row.Add(new Toggle(), (toggle) =>
                 {
                     toggle.value = m_Node.affectsAlbedo.isOn;
-                    toggle.RegisterValueChangedCallback(ChangeAffectsAlbedo);
+                    toggle.OnToggleChanged(ChangeAffectsAlbedo);
                 });
             });
 
@@ -45,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 row.Add(new Toggle(), (toggle) =>
                 {
                     toggle.value = m_Node.affectsNormal.isOn;
-                    toggle.RegisterValueChangedCallback(ChangeAffectsNormal);
+                    toggle.OnToggleChanged(ChangeAffectsNormal);
                 });
             });
 
@@ -54,7 +53,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 row.Add(new Toggle(), (toggle) =>
                 {
                     toggle.value = m_Node.affectsMetal.isOn;
-                    toggle.RegisterValueChangedCallback(ChangeAffectsMetal);
+                    toggle.OnToggleChanged(ChangeAffectsMetal);
                 });
             });
 
@@ -63,7 +62,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 row.Add(new Toggle(), (toggle) =>
                 {
                     toggle.value = m_Node.affectsAO.isOn;
-                    toggle.RegisterValueChangedCallback(ChangeAffectsAO);
+                    toggle.OnToggleChanged(ChangeAffectsAO);
                 });
             });
 
@@ -72,7 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 row.Add(new Toggle(), (toggle) =>
                 {
                     toggle.value = m_Node.affectsSmoothness.isOn;
-                    toggle.RegisterValueChangedCallback(ChangeAffectsSmoothness);
+                    toggle.OnToggleChanged(ChangeAffectsSmoothness);
                 });
             });
             Add(ps);

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -59,8 +60,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
-                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   WriteMask {0}", 8), // (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   Ref  {0}", 8), // (int) HDRenderPipeline.StencilBitMask.Decals),
                         "Comp Always",
                         "Pass Replace",
                     "}"
@@ -120,8 +121,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
-                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   WriteMask {0}", 8), //  (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   Ref  {0}", 8), // (int) HDRenderPipeline.StencilBitMask.Decals),
                         "Comp Always",
                         "Pass Replace",
                     "}"
@@ -186,8 +187,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
-                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   WriteMask {0}", 8), // (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   Ref  {0}", 8), // (int) HDRenderPipeline.StencilBitMask.Decals),
                         "Comp Always",
                         "Pass Replace",
                     "}"
@@ -254,8 +255,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
-                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   WriteMask {0}", 8), // (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   Ref  {0}", 8), // (int) HDRenderPipeline.StencilBitMask.Decals),
                         "Comp Always",
                         "Pass Replace",
                     "}"
