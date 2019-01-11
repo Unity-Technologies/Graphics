@@ -316,16 +316,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-            ClearFlag clearFlag = ClearFlag.None;
-            CameraClearFlags cameraClearFlags = camera.clearFlags;
-            if (cameraClearFlags != CameraClearFlags.Nothing)
-            {
-                clearFlag |= ClearFlag.Depth;
-                if (cameraClearFlags == CameraClearFlags.Color || cameraClearFlags == CameraClearFlags.Skybox)
-                    clearFlag |= ClearFlag.Color;
-            }
+            // LWRP doesn't support CameraClearFlags.DepthOnly.
+            // In case of skybox we know all pixels will be rendered to screen so
+            // we don't clear color. In Vulkan/Metal this becomes DontCare load action
+            if ((camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
+                camera.clearFlags == CameraClearFlags.Nothing)
+                return ClearFlag.Depth;
 
-            return clearFlag;
+            // Otherwise we clear color + depth. This becomes either a clear load action or glInvalidateBuffer call
+            // on mobile devices. On PC/Desktop a clear is performed by blitting a full screen quad.
+            return ClearFlag.All;
         }
 
         public static RendererConfiguration GetRendererConfiguration(int additionalLightsCount)

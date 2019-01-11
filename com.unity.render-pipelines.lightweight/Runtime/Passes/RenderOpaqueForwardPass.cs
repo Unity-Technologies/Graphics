@@ -68,13 +68,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderOpaquesTag);
             using (new ProfilingSample(cmd, k_RenderOpaquesTag))
             {
-                RenderBufferLoadAction colorLoadOp = GetColorLoadAction(renderingData.cameraData.camera.clearFlags);
-                RenderBufferStoreAction colorStoreOp = RenderBufferStoreAction.Store;
-                RenderBufferLoadAction depthLoadOp = GetDepthLoadAction(renderingData.cameraData.camera.clearFlags);
-                RenderBufferStoreAction depthStoreOp = RenderBufferStoreAction.Store;
+                // When ClearFlag.None that means this is not the first render pass to write to camera target.
+                // In that case we set loadOp for both color and depth as RenderBufferLoadAction.Load
+                RenderBufferLoadAction loadOp = clearFlag != ClearFlag.None ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+                RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;
 
-                SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), colorLoadOp, colorStoreOp,
-                    depthAttachmentHandle.Identifier(), depthLoadOp, depthStoreOp, clearFlag, clearColor, descriptor.dimension);
+                SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), loadOp, storeOp,
+                    depthAttachmentHandle.Identifier(), loadOp, storeOp, clearFlag, clearColor, descriptor.dimension);
 
                 // TODO: We need a proper way to handle multiple camera/ camera stack. Issue is: multiple cameras can share a same RT
                 // (e.g, split screen games). However devs have to be dilligent with it and know when to clear/preserve color.
@@ -95,34 +95,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        private RenderBufferLoadAction GetColorLoadAction(CameraClearFlags flags)
-        {
-            switch (flags)
-            {
-                case CameraClearFlags.Skybox:
-                case CameraClearFlags.SolidColor:
-                default:
-                    return RenderBufferLoadAction.DontCare;
-                case CameraClearFlags.Depth:
-                case CameraClearFlags.Nothing:
-                    return RenderBufferLoadAction.Load;
-            }
-        }
-
-        private RenderBufferLoadAction GetDepthLoadAction(CameraClearFlags flags)
-        {
-            switch (flags)
-            {
-                case CameraClearFlags.Skybox:
-                case CameraClearFlags.SolidColor:
-                case CameraClearFlags.Depth:
-                default:
-                    return RenderBufferLoadAction.DontCare;
-                case CameraClearFlags.Nothing:
-                    return RenderBufferLoadAction.Load;
-            }
         }
     }
 }
