@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
         public MinIntParameter sampleCount = new MinIntParameter(8, 2);
-
+        public BoolParameter enabled = new BoolParameter(false);
 
         [Tooltip("Sets the intensity of the motion blur effect. Acts as a multiplier for velocities.")]
         public MinFloatParameter intensity = new MinFloatParameter(1.0f, 0.0f);
@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsActive()
         {
-            return intensity > 0.0f;
+            return enabled && intensity > 0.0f;
         }
     }
 }
