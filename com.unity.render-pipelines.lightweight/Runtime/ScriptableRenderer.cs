@@ -301,10 +301,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
             }
-            
-            bool useRGB10A2 = Application.isMobilePlatform &&
-             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010);
-            RenderTextureFormat hdrFormat = (useRGB10A2) ? RenderTextureFormat.ARGB2101010 : RenderTextureFormat.DefaultHDR;
+
+            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format. 
+            bool useRGB111110 = Application.isMobilePlatform &&
+             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+            RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
             desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : RenderTextureFormat.Default;
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
@@ -333,12 +334,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // LWRP doesn't support CameraClearFlags.DepthOnly.
             // In case of skybox we know all pixels will be rendered to screen so
             // we don't clear color. In Vulkan/Metal this becomes DontCare load action
+            // and in GLES, glInvalidateBuffer. 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
                 return ClearFlag.Depth;
 
-            // Otherwise we clear color + depth. This becomes either a clear load action or glInvalidateBuffer call
-            // on mobile devices. On PC/Desktop a clear is performed by blitting a full screen quad.
             return ClearFlag.All;
         }
 
