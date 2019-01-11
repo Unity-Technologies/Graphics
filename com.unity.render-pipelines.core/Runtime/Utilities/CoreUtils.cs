@@ -479,16 +479,16 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        public static void DisplayUnsupportedAPIMessage()
+        public static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
         {
             // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
 #if UNITY_EDITOR
             var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             string currentPlatform = buildTarget.ToString();
-            string graphicAPI = UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
+            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
 #else
             string currentPlatform = SystemInfo.operatingSystem;
-            string graphicAPI = SystemInfo.graphicsDeviceType.ToString();
+            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
 #endif
 
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported, no rendering will occur";

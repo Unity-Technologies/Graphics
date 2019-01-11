@@ -480,9 +480,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
-            if (!IsSupportedPlatform())
+            GraphicsDeviceType unsupportedDeviceType;
+            if (!IsSupportedPlatform(out unsupportedDeviceType))
             {
-                CoreUtils.DisplayUnsupportedAPIMessage();
+                CoreUtils.DisplayUnsupportedAPIMessage(unsupportedDeviceType.ToString());
 
                 // Display more information to the users when it should have use Metal instead of OpenGL
                 if (SystemInfo.graphicsDeviceType.ToString().StartsWith("OpenGL"))
@@ -516,16 +517,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        bool IsSupportedPlatform()
+        // Note: If you add new platform in this function, think about adding support when building the player to in HDRPCustomBuildProcessor.cs
+        bool IsSupportedPlatform(out GraphicsDeviceType unsupportedGraphicDevice)
         {
-            // Note: If you add new platform in this function, think about adding support when building the player to in HDRPCustomBuildProcessor.cs
+            unsupportedGraphicDevice = SystemInfo.graphicsDeviceType;
 
             if (!SystemInfo.supportsComputeShaders)
                 return false;
 
-// If we are in the editor, we have to take the current target build platform as the graphic device type is always the same
 #if UNITY_EDITOR
-            if (HDUtils.IsSupportedBuildTarget(UnityEditor.EditorUserBuildSettings.activeBuildTarget))
+            UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
+            // If the build target matches the operating system of the editor
+            if (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget))
+            {
+                bool autoAPI = UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(activeBuildTarget);
+
+                // then, there is two configuration possible:
+                if (autoAPI)
+                {
+                    // if the graphic api is chosen automatically, then only the system's graphic device type matters
+                    if (!HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType))
+                        return false;
+                }
+                else
+                {
+                    // otherwise, we need to iterate over every graphic api available in the list to track every non-supported APIs
+                    return HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, out unsupportedGraphicDevice);
+                }
+            }
+            else // if the build target does not match the editor OS, then we have to check using the graphic api list
+            {
+                return HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, out unsupportedGraphicDevice);
+            }
+
+            if (HDUtils.IsSupportedBuildTarget(activeBuildTarget))
                 return true;
 #else
             if (HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType))

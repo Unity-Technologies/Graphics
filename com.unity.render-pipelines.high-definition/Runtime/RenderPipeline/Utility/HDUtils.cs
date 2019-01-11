@@ -526,13 +526,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
         public static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
         {
-            return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan ||
-                    SystemInfo.graphicsDeviceType == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/);
+            return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
+                    graphicDevice == GraphicsDeviceType.Direct3D12 ||
+                    graphicDevice == GraphicsDeviceType.PlayStation4 ||
+                    graphicDevice == GraphicsDeviceType.XboxOne ||
+                    graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                    graphicDevice == GraphicsDeviceType.Vulkan ||
+                    graphicDevice == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/);
         }
 
         public static void CheckRTCreated(RenderTexture rt)
@@ -574,6 +574,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
                     buildTarget == UnityEditor.BuildTarget.Switch);
         }
+        
+        public static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
+        {
+            unsupportedGraphicDevice = GraphicsDeviceType.Null;
+
+            foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
+            {
+                if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
+                {
+                    unsupportedGraphicDevice = graphicAPI;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static OperatingSystemFamily BuildTargetToOperatingSystemFamily(UnityEditor.BuildTarget target)
+        {
+            switch (target)
+            {
+                case UnityEditor.BuildTarget.StandaloneOSX:
+                    return OperatingSystemFamily.MacOSX;
+                case UnityEditor.BuildTarget.StandaloneWindows:
+                case UnityEditor.BuildTarget.StandaloneWindows64:
+                    return OperatingSystemFamily.Windows;
+                case UnityEditor.BuildTarget.StandaloneLinux64:
+#if !UNITY_2019_2_OR_NEWER
+                case UnityEditor.BuildTarget.StandaloneLinuxUniversal:
+#endif
+                    return OperatingSystemFamily.Linux;
+                default:
+                    return OperatingSystemFamily.Other;
+            }
+        }
+
 #endif
 
         public static bool IsOperatingSystemSupported(string os)
