@@ -15,19 +15,19 @@ RW_TEXTURE2D(float3, _OutputTexture);
 SAMPLER(sampler_LinearClamp);
 
 CBUFFER_START(cb0)
-    float4 _Params;                 // x: scatter, y: unused, zw: high texel size
+    float4 _Params;                 // x: scatter, yzw: unused
     float4 _BloomBicubicParams;     // xy: low src size, zw: low src texel size
+    float4 _TexelSize;              // xy; high src size, zw: high src texel size
 CBUFFER_END
 
 #define Scatter     _Params.x
-#define TexelSize   _Params.zw
 
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), TexelSize, uint2(GROUP_SIZE, GROUP_SIZE));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC * _ScreenToTargetScale.xy;
 
     float3 highRes = LOAD_TEXTURE2D(_InputHighTexture, posInputs.positionSS).xyz;
@@ -38,5 +38,10 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     float3 lowRes = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputLowTexture, sampler_LinearClamp), uv, _BloomBicubicParams).xyz;
 #endif
 
-    _OutputTexture[posInputs.positionSS] = lerp(highRes, lowRes, Scatter);
+    float3 output = lerp(highRes, lowRes, Scatter);
+
+    // Guard bands
+    output *= all(dispatchThreadId < uint2(_TexelSize.xy));
+
+    _OutputTexture[dispatchThreadId] = output;
 }

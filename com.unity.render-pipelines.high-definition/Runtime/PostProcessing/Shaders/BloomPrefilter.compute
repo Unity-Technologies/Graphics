@@ -58,5 +58,10 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
     color4 *= w4;
 
     float3 acc = color0 + color1 + color2 + color3 + color4;
-    _OutputTexture[posInputs.positionSS] = acc / wSum;
+    float3 output = acc / wSum;
+
+    // Guard bands
+    output *= all(dispatchThreadId < uint2(_TexelSize.xy));
+
+    _OutputTexture[posInputs.positionSS] = output;
 }

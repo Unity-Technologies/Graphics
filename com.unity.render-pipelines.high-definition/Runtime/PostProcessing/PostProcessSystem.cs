@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ComputeBuffer m_FarBokehTileList;
 
         // Bloom data
-        static readonly int k_BloomMipCount = 6;
+        const int k_BloomMipCount = 6;
         readonly RTHandle[] m_BloomMipsDown = new RTHandle[k_BloomMipCount + 1];
         readonly RTHandle[] m_BloomMipsUp = new RTHandle[k_BloomMipCount + 1];
         RTHandle m_BloomTexture;
@@ -46,7 +46,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Color grading data
         readonly int m_LutSize;
-        readonly RenderTextureFormat m_LutFormat;
         RTHandle m_InternalLogLut; // ARGBHalf
         readonly HableCurve m_HableCurve;
 
@@ -81,6 +80,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly bool useSafePath;
 
+        // Max guard band size is assumed to be 8 pixels
+        const int k_RTGuardBandSize = 4;
+
         // Uber feature map to workaround the lack of multi_compile in compute shaders
         readonly Dictionary<int, string> m_UberPostFeatureMap = new Dictionary<int, string>();
 
@@ -98,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // user-provided LUTs will have to be this size
             var settings = hdAsset.renderPipelineSettings.postProcessSettings;
             m_LutSize = settings.lutSize;
-            m_LutFormat = (RenderTextureFormat)settings.lutFormat;
+            var lutFormat = (RenderTextureFormat)settings.lutFormat;
 
             // Feature maps
             // Must be kept in sync with variants defined in UberPost.compute
@@ -120,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 height: m_LutSize,
                 slices: m_LutSize,
                 depthBufferBits: DepthBits.None,
-                colorFormat: m_LutFormat,
+                colorFormat: lutFormat,
                 filterMode: FilterMode.Bilinear,
                 wrapMode: TextureWrapMode.Clamp,
                 anisoLevel: 0,
@@ -129,13 +131,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 sRGB: false
             );
 
-            // Setup a default exposure textures and clear it to (1,0)
+            // Setup a default exposure textures and clear it to neutral values so that the exposure
+            // multiplier is 1 and thus has no effect
+            // Beware that 0 in EV100 maps to a multiplier of 0.833 so the EV100 value in this
+            // neutral exposure texture isn't 0
             m_EmptyExposureTexture = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
                 sRGB: false, enableRandomWrite: true, name: "Empty EV100 Exposure"
             );
 
             var tex = new Texture2D(1, 1, TextureFormat.RGFloat, false, true);
-            tex.SetPixel(0, 0, new Color(1f, 0f, 0f, 0f));
+            tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
             tex.Apply();
             Graphics.Blit(tex, m_EmptyExposureTexture);
             CoreUtils.Destroy(tex);
@@ -229,22 +234,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!camera.frameSettings.enableExposureControl)
             {
-                using (new ProfilingSample(cmd, "Zero Fixed Exposure", CustomSamplerId.Exposure.GetSampler()))
-                {
-                    // TODO: No need to do that on every frame, should only do it once and keep the result around
-                    DoZeroExposure(cmd, camera);
-                }
+                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, m_EmptyExposureTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, m_EmptyExposureTexture);
             }
-            else if (IsExposureFixed())
+            else
             {
-                using (new ProfilingSample(cmd, "Fixed Exposure", CustomSamplerId.Exposure.GetSampler()))
+                if (IsExposureFixed())
                 {
-                    DoFixedExposure(cmd, camera);
+                    using (new ProfilingSample(cmd, "Fixed Exposure", CustomSamplerId.Exposure.GetSampler()))
+                    {
+                        DoFixedExposure(cmd, camera);
+                    }
                 }
-            }
 
-            cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, GetExposureTexture(camera));
-            cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
+                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, GetExposureTexture(camera));
+                cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
+            }
         }
 
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle lightingBuffer)
@@ -260,6 +265,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Post-processing", CustomSamplerId.PostProcessing.GetSampler()))
             {
                 var source = colorBuffer;
+
+                // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
+                // content into smaller viewports with some effects like Bloom that rely on bilinear
+                // filtering and can't use clamp sampler and the likes
+                {
+                    int w = camera.actualWidth;
+                    int h = camera.actualHeight;
+                    cmd.SetRenderTarget(source);
+                    cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
+                    cmd.ClearRenderTarget(false, true, Color.black);
+                    cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
+                    cmd.ClearRenderTarget(false, true, Color.black);
+                }
 
                 // TODO: Do we want user effects before post?
 
@@ -450,17 +468,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return rt ?? m_EmptyExposureTexture;
         }
 
-        void DoZeroExposure(CommandBuffer cmd, HDCamera camera)
-        {
-            GrabExposureHistoryTextures(camera, out var prevExposure, out _);
-
-            var cs = m_Resources.shaders.exposureCS;
-            int kernel = cs.FindKernel("KFixedExposure");
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(ColorUtils.ConvertExposureToEV100(1f), 0f, 0f, 0f));
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
-            cmd.DispatchCompute(cs, kernel, 1, 1, 1);
-        }
-
         void DoFixedExposure(CommandBuffer cmd, HDCamera camera)
         {
             var cs = m_Resources.shaders.exposureCS;
@@ -543,7 +550,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void DoDynamicExposure(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer, RTHandle lightingBuffer)
         {
             var cs = m_Resources.shaders.exposureCS;
-            int kernel = 0;
+            int kernel;
 
             GrabExposureHistoryTextures(camera, out var prevExposure, out var nextExposure);
 
@@ -1436,8 +1443,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // All the computes for this effect use the same group size so let's use a local
             // function to simplify dispatches
-            void Dispatch(ComputeShader shader, int kernelId, in Vector2Int size)
-                => cmd.DispatchCompute(shader, kernelId, (size.x + 7) / 8, (size.y + 7) / 8, 1);
+            // Make sure the thread group count is sufficient to draw the guard bands
+            void DispatchWithGuardBands(ComputeShader shader, int kernelId, in Vector2Int size)
+            {
+                int w = size.x;
+                int h = size.y;
+
+                if (w < source.rt.width && w % 8 < k_RTGuardBandSize)
+                    w += k_RTGuardBandSize;
+                if (h < source.rt.height && h % 8 < k_RTGuardBandSize)
+                    h += k_RTGuardBandSize;
+
+                cmd.DispatchCompute(shader, kernelId, (w + 7) / 8, (h + 7) / 8, 1);
+            }
 
             // Pre-filtering
             ComputeShader cs;
@@ -1452,7 +1470,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_BloomMipsUp[0]); // Use m_BloomMipsUp as temp target
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
-                Dispatch(cs, kernel, size);
+                DispatchWithGuardBands(cs, kernel, size);
 
                 cs = m_Resources.shaders.bloomBlurCS;
                 kernel = cs.FindKernel("KMain"); // Only blur
@@ -1460,7 +1478,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_BloomMipsUp[0]);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_BloomMipsDown[0]);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
-                Dispatch(cs, kernel, size);
+                DispatchWithGuardBands(cs, kernel, size);
             }
             else
             {
@@ -1471,7 +1489,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_BloomMipsDown[0]);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
-                Dispatch(cs, kernel, size);
+                DispatchWithGuardBands(cs, kernel, size);
             }
 
             // Blur pyramid
@@ -1486,7 +1504,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, src);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, dst);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
-                Dispatch(cs, kernel, size);
+                DispatchWithGuardBands(cs, kernel, size);
             }
 
             // Upsample & combine
@@ -1507,9 +1525,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputLowTexture, srcLow);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHighTexture, srcHigh);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, dst);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(scatter, 0f, 1f / highSize.x, 1f / highSize.y));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(scatter, 0f, 0f, 0f));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomBicubicParams, new Vector4(lowSize.x, lowSize.y, 1f / lowSize.x, 1f / lowSize.y));
-                Dispatch(cs, kernel, highSize);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(highSize.x, highSize.y, 1f / highSize.x, 1f / highSize.y));
+                DispatchWithGuardBands(cs, kernel, highSize);
             }
 
             // Cleanup
