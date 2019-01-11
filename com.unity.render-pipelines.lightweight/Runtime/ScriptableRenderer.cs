@@ -314,7 +314,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             desc.msaaSamples = cameraData.msaaSamples;
             desc.depthBufferBits = 32;
             desc.bindMS = false;
-            desc.useDynamicScale = cameraData.camera.allowDynamicResolution;
             return desc;
         }
 
