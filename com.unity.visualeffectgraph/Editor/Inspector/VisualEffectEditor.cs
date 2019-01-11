@@ -75,7 +75,6 @@ namespace UnityEditor.VFX
     }
 
 
-    //[CustomEditor(typeof(VisualEffect))]
     public class VisualEffectEditor : Editor
     {
         protected SerializedProperty m_VisualEffectAsset;
@@ -134,46 +133,67 @@ namespace UnityEditor.VFX
 
         protected const float overrideWidth = 16;
 
-        static void DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty, bool animated)
+        static private bool GenerateMultipleField(ref VFXParameterInfo parameter, SerializedProperty property)
+        {
+            if (property.propertyType == SerializedPropertyType.Vector4 && parameter.realType != typeof(Color).Name)
+            {
+                return true;
+            }
+            else if (property.propertyType == SerializedPropertyType.Vector3 || property.propertyType == SerializedPropertyType.Vector2)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        static void DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty)
         {
             EditorGUILayout.BeginHorizontal();
 
-            Color previousColor = GUI.color;
-            if (animated)
+            var height = 16f;
+            if (EditorGUIUtility.currentViewWidth < 333f && GenerateMultipleField(ref parameter, valueProperty))
             {
-                GUI.color = AnimationMode.animatedPropertyColor;
+                height *= 2.0f;
             }
 
-            overridenProperty.boolValue = EditorGUILayout.Toggle(overridenProperty.hasMultipleDifferentValues ? false : overridenProperty.boolValue, overridenProperty.hasMultipleDifferentValues ? Styles.toggleMixedStyle : Styles.toggleStyle, GUILayout.Width(overrideWidth));
+            var rect = EditorGUILayout.GetControlRect(false, height);
+
+            var toggleRect = rect;
+            toggleRect.yMin += 3.0f;
+            overridenProperty.boolValue = EditorGUI.Toggle(toggleRect, overridenProperty.hasMultipleDifferentValues ? false : overridenProperty.boolValue, overridenProperty.hasMultipleDifferentValues ? Styles.toggleMixedStyle : Styles.toggleStyle);
+            rect.xMin += overrideWidth;
+
+            EditorGUI.BeginProperty(rect, nameContent, valueProperty);
+
             if (parameter.min != Mathf.NegativeInfinity && parameter.max != Mathf.Infinity)
             {
                 if (valueProperty.propertyType == SerializedPropertyType.Float)
-                    EditorGUILayout.Slider(valueProperty, parameter.min, parameter.max, nameContent);
+                    EditorGUI.Slider(rect, valueProperty, parameter.min, parameter.max, nameContent);
                 else
-                    EditorGUILayout.IntSlider(valueProperty, (int)parameter.min, (int)parameter.max, nameContent);
+                    EditorGUI.IntSlider(rect, valueProperty, (int)parameter.min, (int)parameter.max, nameContent);
             }
             else if (parameter.realType == typeof(Color).Name)
             {
                 Vector4 vVal = valueProperty.vector4Value;
                 Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
-                c = EditorGUILayout.ColorField(nameContent, c, true, true, true);
+                c = EditorGUI.ColorField(rect, nameContent, c, true, true, true);
 
                 if (GUI.changed)
                     valueProperty.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
             }
             else if (parameter.realType == typeof(Gradient).Name)
             {
-                Gradient newGradient = EditorGUILayout.GradientField(nameContent, valueProperty.gradientValue, true);
+                Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true);
 
                 if (GUI.changed)
                     valueProperty.gradientValue = newGradient;
             }
             else if (valueProperty.propertyType == SerializedPropertyType.Vector4)
             {
-                var oldVal = valueProperty.vector4Value;
-                var newVal = EditorGUILayout.Vector4Field(nameContent, oldVal);
-                if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
-                    valueProperty.vector4Value = newVal;
+                SerializedProperty copy = valueProperty.Copy();
+                copy.Next(true);
+                EditorGUI.MultiPropertyField(rect, new GUIContent[] { new GUIContent("X"), new GUIContent("Y"), new GUIContent("Z"), new GUIContent("W") }, copy, nameContent);
             }
             else if (valueProperty.propertyType == SerializedPropertyType.ObjectReference)
             {
@@ -189,19 +209,14 @@ namespace UnityEditor.VFX
                         objTyp = typeof(Mesh);
                     }
                 }
-                Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.objectField, null);
-                EditorGUI.ObjectField(r, valueProperty, objTyp, nameContent);
+                EditorGUI.ObjectField(rect, valueProperty, objTyp, nameContent);
             }
             else
             {
-                EditorGUILayout.PropertyField(valueProperty, nameContent, true);
+                EditorGUI.PropertyField(rect, valueProperty, nameContent, true);
             }
 
-            if (animated)
-            {
-                GUI.color = previousColor;
-            }
-
+            EditorGUI.EndProperty();
             EditorGUILayout.EndHorizontal();
         }
 
@@ -631,7 +646,7 @@ namespace UnityEditor.VFX
                             //< Actual display
                             GUIContent nameContent = GetGUIContent(parameter.name, parameter.tooltip);
                             EditorGUI.BeginChangeCheck();
-                            DisplayProperty(ref parameter, nameContent, actualDisplayedPropertyOverridden, actualDisplayedPropertyValue, AnimationMode.IsPropertyAnimated(target, actualDisplayedPropertyValue.propertyPath));
+                            DisplayProperty(ref parameter, nameContent, actualDisplayedPropertyOverridden, actualDisplayedPropertyValue);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 if (wasNewProperty)
