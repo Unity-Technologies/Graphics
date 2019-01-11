@@ -56,6 +56,7 @@ Pass
 		
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
+		o.color.a = saturate(o.color.a);
 		return o;
 	}
 	ENDHLSL

@@ -1,6 +1,6 @@
 #include "UnityCG.cginc"
 
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+Texture2D _CameraDepthTexture;
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
@@ -46,7 +46,7 @@ float4x4 VFXGetViewToWorldMatrix()
 
 float VFXSampleDepth(float4 posSS)
 {
-    return _CameraDepthTexture.Load(int3(posSS.xd, 0)).r;
+    return _CameraDepthTexture.Load(int3(posSS.xy, 0)).r;
 }
 
 float VFXLinearEyeDepth(float depth)

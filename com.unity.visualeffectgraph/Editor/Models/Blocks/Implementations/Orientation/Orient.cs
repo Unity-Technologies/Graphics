@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    class OrientationModeProvider : IVariantProvider
+    class OrientationModeProvider : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {
