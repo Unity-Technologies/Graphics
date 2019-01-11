@@ -3648,9 +3648,10 @@ VisualEffectResource:
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
       o = (ps_output)0;\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t\t\to.color
-      *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);\n\t\t\t\to.color = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn
-      o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t// Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
-      { \"LightMode\"=\"ShadowCaster\" }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);\n\t\t\t\to.color = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\to.color.a
+      = saturate(o.color.a);\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
+      Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
+      }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
       USE_FLIPBOOK_INTERPOLATION\n\t\t\t\tfloat4 uv : TEXCOORD0;\n\t\t\t\t#else\n\t\t\t\tfloat2
       uv : TEXCOORD0;\t\n\t\t\t\t#endif\n\t\t\t\t#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
@@ -3954,9 +3955,10 @@ VisualEffectResource:
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
       o = (ps_output)0;\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t\t\t\n\t\t\t\t//
       Line AA\n\t\t\t\t#if IS_TRANSPARENT_PARTICLE\t\n\t\t\t\to.color.a *= 1.0f -
-      abs(i.pixelOffset);\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\to.color = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn
-      o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t// Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
-      { \"LightMode\"=\"ShadowCaster\" }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      abs(i.pixelOffset);\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\to.color = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\to.color.a
+      = saturate(o.color.a);\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
+      Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
+      }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
       USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT\n\t\t\t\tnointerpolation float2 builtInInterpolants
       : TEXCOORD0;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
@@ -4168,9 +4170,10 @@ VisualEffectResource:
       o;\n\t\t\t}\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
       o = (ps_output)0;\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t\t\to.color
-      = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn
-      o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t\n\t\t// Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
-      { \"LightMode\"=\"ShadowCaster\" }\n\t\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\to.color.a
+      = saturate(o.color.a);\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t\n\t\t//
+      Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
+      }\n\t\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
       USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT\n\t\t\t\tnointerpolation float2 builtInInterpolants
       : TEXCOORD0;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
@@ -4330,9 +4333,10 @@ VisualEffectResource:
       o;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
       o = (ps_output)0;\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t\t\to.color
-      *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);\n\t\t\t\to.color = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn
-      o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t// Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
-      { \"LightMode\"=\"ShadowCaster\" }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);\n\t\t\t\to.color = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\to.color.a
+      = saturate(o.color.a);\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
+      Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
+      }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
       USE_FLIPBOOK_INTERPOLATION\n\t\t\t\tfloat4 uv : TEXCOORD0;\n\t\t\t\t#else\n\t\t\t\tfloat2
       uv : TEXCOORD0;\t\n\t\t\t\t#endif\n\t\t\t\t#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION

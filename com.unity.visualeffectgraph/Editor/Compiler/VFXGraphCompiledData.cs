@@ -624,9 +624,9 @@ namespace UnityEditor.VFX
                 foreach (var data in compilableData)
                     data.CollectAttributes();
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Computing layers", 2 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Process dependencies", 2 / nbSteps);
                 foreach (var data in compilableData)
-                    data.ComputeLayer();
+                    data.ProcessDependencies();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Compiling expression Graph", 3 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();
