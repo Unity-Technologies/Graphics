@@ -436,7 +436,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             // Display list of streams required to make this shader work
             bool useLighting = (material.GetFloat("_LightingEnabled") > 0.0f);
             bool useFlipbookBlending = (material.GetFloat("_FlipbookMode") > 0.0f);
-            bool useTangents = material.GetTexture("_BumpMap") && useLighting;
+            bool useTangents = useLighting && material.GetTexture("_BumpMap");
 
             GUILayout.Label(Styles.streamPositionText, EditorStyles.label);
 
@@ -641,8 +641,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
-            SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap") && useLighting);
-            SetKeyword(material, "_METALLICGLOSSMAP", (material.GetTexture("_MetallicGlossMap") != null) && useLighting);
+            SetKeyword(material, "_NORMALMAP", useLighting && material.GetTexture("_BumpMap"));
+            SetKeyword(material, "_METALLICGLOSSMAP", useLighting && (material.GetTexture("_MetallicGlossMap") != null));
 
             material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             SetKeyword(material, "_EMISSION", material.GetFloat("_EmissionEnabled") > 0.0f);
