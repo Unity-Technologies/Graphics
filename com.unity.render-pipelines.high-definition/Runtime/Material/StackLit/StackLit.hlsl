@@ -2032,7 +2032,7 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                                                                            N[BASE_NORMAL_IDX],
                                                                                            NdotV[BASE_NORMAL_IDX] /* clamped */,
                                                                                            preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
-                                                                                           preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX],
+                                                                                           orthoBasisViewNormal[BASE_NORMAL_IDX],
                                                                                            bentVisibilityAlgorithm,
                                                                                            useHemisphereClip,
                                                                                            bottomF0);
@@ -2044,7 +2044,7 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                                                                            N[BASE_NORMAL_IDX],
                                                                                            NdotV[BASE_NORMAL_IDX] /* clamped */,
                                                                                            preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
-                                                                                           preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX],
+                                                                                           orthoBasisViewNormal[BASE_NORMAL_IDX],
                                                                                            bentVisibilityAlgorithm,
                                                                                            useHemisphereClip,
                                                                                            bottomF0);
@@ -2062,7 +2062,7 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                                                                               N[COAT_NORMAL_IDX],
                                                                                               NdotV[COAT_NORMAL_IDX] /* clamped */,
                                                                                               preLightData.iblPerceptualRoughness[COAT_LOBE_IDX],
-                                                                                              preLightData.orthoBasisViewNormal[COAT_NORMAL_IDX],
+                                                                                              orthoBasisViewNormal[COAT_NORMAL_IDX],
                                                                                               bentVisibilityAlgorithm,
                                                                                               useHemisphereClip,
                                                                                               IorToFresnel0(bsdfData.coatIor));
