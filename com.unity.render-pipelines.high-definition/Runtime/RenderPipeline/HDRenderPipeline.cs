@@ -550,17 +550,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, out unsupportedGraphicDevice);
             }
 
-            if (HDUtils.IsSupportedBuildTarget(activeBuildTarget))
-                return true;
+            if (!HDUtils.IsSupportedBuildTarget(activeBuildTarget))
+                return false;
 #else
-            if (HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType))
-                return true;
+            if (!HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType))
+                return false;
 #endif
 
-            if (HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
-                return true;
+            if (!HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
+                return false;
 
-            return false;
+            return true;
         }
 
         void UnsetRenderingFeatures()

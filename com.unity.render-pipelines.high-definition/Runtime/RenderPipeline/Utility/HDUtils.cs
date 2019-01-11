@@ -531,6 +531,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     graphicDevice == GraphicsDeviceType.PlayStation4 ||
                     graphicDevice == GraphicsDeviceType.XboxOne ||
                     graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                    graphicDevice == GraphicsDeviceType.Metal ||
                     graphicDevice == GraphicsDeviceType.Vulkan ||
                     graphicDevice == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/);
         }

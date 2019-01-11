@@ -37,10 +37,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
 
             // If platform is supported all good
-            if (HDUtils.IsSupportedBuildTarget(report.summary.platform) && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
+            GraphicsDeviceType  unsupportedGraphicDevice = GraphicsDeviceType.Null;
+            if (HDUtils.IsSupportedBuildTarget(report.summary.platform)
+                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem)
+                && HDUtils.AreGraphicsAPIsSupported(report.summary.platform, out unsupportedGraphicDevice))
                 return;
-
-            string msg = "The platform " + report.summary.platform.ToString() + " is not supported with High Definition Render Pipeline";
+            
+            unsupportedGraphicDevice = (unsupportedGraphicDevice == GraphicsDeviceType.Null) ? SystemInfo.graphicsDeviceType : unsupportedGraphicDevice;
+            string msg = "The platform " + report.summary.platform.ToString() + " with the graphic API " +  unsupportedGraphicDevice + " is not supported with High Definition Render Pipeline";
 
             // Throw an exception to stop the build
             throw new BuildFailedException(msg);
