@@ -5052,21 +5052,21 @@ VisualEffectResource:
       o;\n\t\t\t}\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
       o = (ps_output)0;\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t\t\to.color
-      = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn
-      o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t// Motion Vectors pass\n\t\tPass\n\t\t{\t\t\n\t\t\tName
-      \"MOTIONVECTORS\"\n\t\t\tTags { \"LightMode\"=\"MotionVectors\" }\n\t\t\n\t\t\tZWrite
-      Off\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma target 4.5\n\t\t\t\n\t\t\tfloat4x4
-      _NonJitteredVP;\n\t\t\tfloat4x4 _PreviousVP;\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4
-      pos : SV_POSITION;\n\t\t\t\t#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT\n\t\t\t\tnointerpolation
-      float3 builtInInterpolants : TEXCOORD0;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tfloat4
-      previousPos : TEXCOORD1;\n\t\t\t\tfloat4 currentPos : TEXCOORD2;\n\t\t\t};\n\t\t\t\n\t\t\tstruct
-      ps_output\n\t\t\t{\n\t\t\t\tfloat4 motion : SV_Target0;\n\t\t\t};\n\t\t\n\t\t#define
-      VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
-      VFX_VARYING_ALPHA builtInInterpolants.z\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
-      builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t\t\n\t\t\n\t\t\n\t\t\t#if
-      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
-      VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\to.color.a
+      = saturate(o.color.a);\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
+      Motion Vectors pass\n\t\tPass\n\t\t{\t\t\n\t\t\tName \"MOTIONVECTORS\"\n\t\t\tTags
+      { \"LightMode\"=\"MotionVectors\" }\n\t\t\n\t\t\tZWrite Off\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      target 4.5\n\t\t\t\n\t\t\tfloat4x4 _NonJitteredVP;\n\t\t\tfloat4x4 _PreviousVP;\n\t\t\t\n\t\t\tstruct
+      ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if USE_SOFT_PARTICLE
+      || USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT\n\t\t\t\tnointerpolation float3 builtInInterpolants
+      : TEXCOORD0;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tfloat4 previousPos : TEXCOORD1;\n\t\t\t\tfloat4
+      currentPos : TEXCOORD2;\n\t\t\t};\n\t\t\t\n\t\t\tstruct ps_output\n\t\t\t{\n\t\t\t\tfloat4
+      motion : SV_Target0;\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS ps_input\n\t\t#define
+      VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_ALPHA builtInInterpolants.z\n\t\t#define
+      VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
+      builtInInterpolants.y\n\t\t\t\n\t\t\n\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
+      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS
+      must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       ColorOverLife_26AC1(float age, float lifetime, inout float3 color, float gradient)
       /*mode:Color ColorComposition:Multiply AlphaComposition:Multiply */\n\t\t\t{\n\t\t\t

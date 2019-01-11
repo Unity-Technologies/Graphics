@@ -3697,8 +3697,8 @@ VisualEffectResource:
       float r0 = i.rimSettings.a;\n\t\t\t\tfloat3 posToCam = normalize(VFXGetViewWorldPosition()
       - i.posWS);\n\t\t\t\tconst float3 fresnel = r0 + (1.0f - r0) * pow(1.0f - saturate(dot(normal,posToCam)),5.0f);\n\t\t\t\to.color.rgb
       += saturate(fresnel) * i.rimSettings.rgb;\n\t\t#endif\n\t\t\t\t\n\t\t\t\to.color
-      = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn
-      o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t\n\t}\n}\n"
+      = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\to.color.a
+      = saturate(o.color.a);\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t\n\t}\n}\n"
   m_Infos:
     m_Expressions:
       m_Expressions:
