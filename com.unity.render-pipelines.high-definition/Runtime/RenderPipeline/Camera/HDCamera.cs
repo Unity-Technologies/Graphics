@@ -36,7 +36,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Matrix4x4[]  viewMatrixStereo;
         public Matrix4x4[]  projMatrixStereo;
-        public Vector4      centerEyeTranslationOffset;
         public Vector4      textureWidthScaling; // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
         public uint         numEyes; // 2+ when rendering stereo, 1 otherwise
 
@@ -45,7 +44,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Matrix4x4[] invProjStereo;
         Matrix4x4[] invViewProjStereo;
         Vector4[] worldSpaceCameraPosStereo;
-        Vector4[] prevCamPosRWSStereo;
+        Vector4[] worldSpaceCameraPosStereoEyeOffset;
+        Vector4[] prevWorldSpaceCameraPosStereo;
 
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
@@ -96,7 +96,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public Matrix4x4[] prevViewProjMatrixStereo = new Matrix4x4[2];
-        public Matrix4x4[] prevViewMatrixStereo = new Matrix4x4[2];
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
@@ -222,7 +221,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             invViewProjStereo = new Matrix4x4[2];
 
             worldSpaceCameraPosStereo = new Vector4[2];
-            prevCamPosRWSStereo = new Vector4[2];
+            worldSpaceCameraPosStereoEyeOffset = new Vector4[2];
+            prevWorldSpaceCameraPosStereo = new Vector4[2];
 
             m_AdditionalCameraData = null; // Init in Update
 
@@ -328,12 +328,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         if (isFirstFrame)
                         {
-                            prevViewMatrixStereo[eyeIndex] = gpuCurrViewStereo;
+                            prevWorldSpaceCameraPosStereo[eyeIndex] = gpuCurrViewStereo.inverse.GetColumn(3);
                             prevViewProjMatrixStereo[eyeIndex] = gpuCurrVPStereo;
                         }
                         else
                         {
-                            prevViewMatrixStereo[eyeIndex] = viewMatrixStereo[eyeIndex];
+                            prevWorldSpaceCameraPosStereo[eyeIndex] = worldSpaceCameraPosStereo[eyeIndex];
                             prevViewProjMatrixStereo[eyeIndex] = GetViewProjMatrixStereo(eyeIndex); // Grabbing this before ConfigureStereoMatrices updates view/proj
                         }
 
@@ -392,7 +392,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
-                Matrix4x4 cameraDisplacement = Matrix4x4.Translate(worldSpaceCameraPos - prevWorldSpaceCameraPos);
+                prevWorldSpaceCameraPos = worldSpaceCameraPos - prevWorldSpaceCameraPos;
+                Matrix4x4 cameraDisplacement = Matrix4x4.Translate(prevWorldSpaceCameraPos);
                 prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
             }
             else
@@ -595,15 +596,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Using them for other calculations (like light list generation) could be problematic.
 
             var stereoCombinedViewMatrix = cullingParams.stereoViewMatrix;
-
-            if (ShaderConfig.s_CameraRelativeRendering != 0)
-            {
-                // This is pulled back from the center eye, so set the offset
-                var translation = stereoCombinedViewMatrix.GetColumn(3);
-                translation += centerEyeTranslationOffset;
-                stereoCombinedViewMatrix.SetColumn(3, translation);
-            }
-
             viewMatrix = stereoCombinedViewMatrix;
             var stereoCombinedProjMatrix = cullingParams.stereoProjectionMatrix;
             projMatrix = GL.GetGPUProjectionMatrix(stereoCombinedProjMatrix, true);
@@ -675,10 +667,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {
                     viewMatrixStereo[eyeIndex] = camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex);
-                    invViewStereo[eyeIndex] = viewMatrixStereo[eyeIndex].inverse;
 
-                    worldSpaceCameraPosStereo[eyeIndex] = viewMatrixStereo[eyeIndex].GetColumn(3);
-                    prevCamPosRWSStereo[eyeIndex] = (ShaderConfig.s_CameraRelativeRendering != 0) ? prevViewMatrixStereo[eyeIndex].GetColumn(3) - worldSpaceCameraPosStereo[eyeIndex] : prevViewMatrixStereo[eyeIndex].GetColumn(3);
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        // Use the inverse view matrix to compute eye position
+                        worldSpaceCameraPosStereo[eyeIndex] = viewMatrixStereo[eyeIndex].inverse.GetColumn(3);
+                        prevWorldSpaceCameraPosStereo[eyeIndex] = worldSpaceCameraPosStereo[eyeIndex] - prevWorldSpaceCameraPosStereo[eyeIndex];
+
+                        // Compute eye to center offset needed for proper shadows in stereo
+                        for (int i = 0; i < 3; ++i)
+                            worldSpaceCameraPosStereoEyeOffset[eyeIndex][i] = worldSpaceCameraPosStereo[eyeIndex][i] - camera.transform.position[i];
+
+                        // Set translation to 0
+                        viewMatrixStereo[eyeIndex].SetColumn(3, new Vector4(0, 0, 0, 1));
+                    }
+
+                    invViewStereo[eyeIndex] = viewMatrixStereo[eyeIndex].inverse;
 
                     projMatrixStereo[eyeIndex] = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex);
                     projMatrixStereo[eyeIndex] = GL.GetGPUProjectionMatrix(projMatrixStereo[eyeIndex], true);
@@ -687,31 +691,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     viewProjStereo[eyeIndex] = GetViewProjMatrixStereo(eyeIndex);
                     invViewProjStereo[eyeIndex] = viewProjStereo[eyeIndex].inverse;
                 }
-
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    var leftTranslation = viewMatrixStereo[0].GetColumn(3);
-                    var rightTranslation = viewMatrixStereo[1].GetColumn(3);
-                    var centerTranslation = (leftTranslation + rightTranslation) / 2;
-                    var centerOffset = -centerTranslation;
-                    centerOffset.w = 0;
-
-                    // TODO: Grabbing the CenterEye transform would be preferable, but XRNode.CenterEye
-                    // doesn't always seem to be valid.
-
-                    for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
-                    {
-                        var translation = viewMatrixStereo[eyeIndex].GetColumn(3);
-                        translation += centerOffset;
-                        viewMatrixStereo[eyeIndex].SetColumn(3, translation);
-                        worldSpaceCameraPosStereo[eyeIndex] = viewMatrixStereo[eyeIndex].GetColumn(3);
-                        prevCamPosRWSStereo[eyeIndex] = (ShaderConfig.s_CameraRelativeRendering != 0) ? prevViewMatrixStereo[eyeIndex].GetColumn(3) - worldSpaceCameraPosStereo[eyeIndex] : prevViewMatrixStereo[eyeIndex].GetColumn(3);
-                    }
-
-                    centerEyeTranslationOffset = centerOffset;
-
-                }
-
             }
             else
             {
@@ -728,10 +707,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 invViewProjStereo[0] = viewProjMatrix.inverse;
 
                 worldSpaceCameraPosStereo[0] = worldSpaceCameraPos;
-                prevCamPosRWSStereo[0] = (ShaderConfig.s_CameraRelativeRendering != 0) ? prevWorldSpaceCameraPos - worldSpaceCameraPos : prevWorldSpaceCameraPos;
+                prevWorldSpaceCameraPosStereo[0] = prevWorldSpaceCameraPos;
             }
-
-
 
             // TODO: Fetch the single cull matrix stuff
         }
@@ -834,8 +811,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
-			cmd.SetGlobalVector(HDShaderIDs._PrevCamPosRWS, (ShaderConfig.s_CameraRelativeRendering != 0) ? prevWorldSpaceCameraPos - worldSpaceCameraPos
-                                                                                                          : prevWorldSpaceCameraPos);
+            cmd.SetGlobalVector(HDShaderIDs._PrevCamPosRWS,             prevWorldSpaceCameraPos);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
             cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       doubleBufferedViewportScale);
             cmd.SetGlobalVector(HDShaderIDs._ZBufferParams,             zBufferParams);
@@ -882,7 +858,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._PrevViewProjMatrixStereo, prevViewProjMatrixStereo);
             cmd.SetGlobalVectorArray(HDShaderIDs._WorldSpaceCameraPosStereo, worldSpaceCameraPosStereo);
-            cmd.SetGlobalVectorArray(HDShaderIDs._PrevCamPosRWSStereo, prevCamPosRWSStereo);
+            cmd.SetGlobalVectorArray(HDShaderIDs._WorldSpaceCameraPosStereoEyeOffset, worldSpaceCameraPosStereoEyeOffset);
+            cmd.SetGlobalVectorArray(HDShaderIDs._PrevCamPosRWSStereo, prevWorldSpaceCameraPosStereo);
             cmd.SetGlobalVector(HDShaderIDs._TextureWidthScaling, textureWidthScaling);
         }
 

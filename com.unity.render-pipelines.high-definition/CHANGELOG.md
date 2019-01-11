@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSR and microshadowing on fabric material
 - Fixed blit pass for stereo rendering
 - Fixed lightlist bounds for stereo rendering
+- Fixed camera-relative support for stereo rendering
 - Fixed windows and in-game DebugMenu sync.
 - Fixed FrameSettings' LitShaderMode sync when opening DebugMenu.
 - Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader

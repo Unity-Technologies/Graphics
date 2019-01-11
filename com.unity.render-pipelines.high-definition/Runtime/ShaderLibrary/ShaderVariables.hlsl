@@ -25,6 +25,7 @@
     #define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
     #define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
     #define _WorldSpaceCameraPos _WorldSpaceCameraPosStereo[unity_StereoEyeIndex].xyz
+    #define _WorldSpaceCameraPosEyeOffset _WorldSpaceCameraPosStereoEyeOffset[unity_StereoEyeIndex].xyz
     #define _PrevCamPosRWS _PrevCamPosRWSStereo[unity_StereoEyeIndex].xyz
 #endif
 
@@ -325,8 +326,9 @@ float4x4 _InvViewMatrixStereo[2];
 float4x4 _InvProjMatrixStereo[2];
 float4x4 _InvViewProjMatrixStereo[2];
 float4x4 _PrevViewProjMatrixStereo[2];
-float3   _WorldSpaceCameraPosStereo[2];
-float3  _PrevCamPosRWSStereo[2];
+float4   _WorldSpaceCameraPosStereo[2];
+float4   _WorldSpaceCameraPosStereoEyeOffset[2];
+float4   _PrevCamPosRWSStereo[2];
 #if SHADER_STAGE_COMPUTE
 // Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
 // Instead, we manually update _ComputeEyeIndex in SRP code. 
