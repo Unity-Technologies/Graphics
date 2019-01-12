@@ -17,9 +17,11 @@
 // We don't use emission for terrain
 #define _EmissiveColor float3(0,0,0)
 #define _AlbedoAffectEmissive 0
+#define _EmissiveExposureWeight 0
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 #undef _EmissiveColor
 #undef _AlbedoAffectEmissive
+#undef _EmissiveExposureWeight
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"

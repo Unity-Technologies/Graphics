@@ -646,8 +646,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
     // Inverse pre-exposure
-    float exposure = GetCurrentExposureMultiplier();
-    builtinData.bakeDiffuseLighting /= exposure + (exposure == 0.0); // zero-div guard
+    builtinData.bakeDiffuseLighting *= GetInverseCurrentExposureMultiplier(); // zero-div guard
 
     // In deferred ambient occlusion isn't available and is already apply on bakeDiffuseLighting for the GI part.
     // Caution: even if we store it in the GBuffer we need to apply it on GI and not on emissive color, so AO must be 1.0 in deferred
@@ -1642,8 +1641,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
                                         samplingPositionNDC * _ColorPyramidScale.xy, preLightData.transparentSSMipLevel).rgb;
 
     // Inverse pre-exposure
-    float exposure = GetCurrentExposureMultiplier();
-    preLD /= exposure + (exposure == 0.0); // zero-div guard
+    preLD *= GetInverseCurrentExposureMultiplier();
 
     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness)
     float3 F = preLightData.specularFGD;

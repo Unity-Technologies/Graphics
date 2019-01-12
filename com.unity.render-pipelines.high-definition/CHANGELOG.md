@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added physical camera support where applicable
 - Added more color grading tools
 - Added changelog level for Shader Variant stripping
+- Added an emissive color node and a slider to control the pre-exposure percentage of emission color
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering

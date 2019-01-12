@@ -182,6 +182,10 @@ SAMPLER(samplerunity_ShadowMask);
 TEXTURE3D(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 
+// Exposure texture - 1x1 RG16F (r: exposure mult, g: exposure EV100)
+TEXTURE2D(_ExposureTexture);
+TEXTURE2D(_PrevExposureTexture);
+
 // ----------------------------------------------------------------------------
 
 // Define that before including all the sub systems ShaderVariablesXXX.hlsl files in order to include constant buffer properties.
@@ -390,6 +394,37 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 #else
     return inverseModelMatrix;
 #endif
+}
+
+
+float GetCurrentExposureMultiplier()
+{
+#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
+#else
+    return 1.0;
+#endif
+}
+
+float GetPreviousExposureMultiplier()
+{
+#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+    return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x;
+#else
+    return 1.0;
+#endif
+}
+
+float GetInverseCurrentExposureMultiplier()
+{
+    float exposure = GetCurrentExposureMultiplier();
+    return rcp(exposure + (exposure == 0.0)); // zero-div guard
+}
+
+float GetInversePreviousExposureMultiplier()
+{
+    float exposure = GetCurrentExposureMultiplier();
+    return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
 // Define Model Matrix Macro

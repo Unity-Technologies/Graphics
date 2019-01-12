@@ -230,8 +230,15 @@ Shader "HDRP/LayeredLitTessellation"
         [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
+        // Used only to serialize the LDR and HDR emissive color in the material UI,
+        // in the shader only the _EmissiveColor should be used
+        [HideInInspector] _EmissiveColorLDR("EmissiveColor LDR", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
+        [HideInInspector] _EmissiveIntensityUnit("Emissive Mode", Int) = 0
+        [ToggleUI] _UseEmissiveIntensity("Use Emissive Intensity", Int) = 0
+        _EmissiveIntensity("Emissive Intensity", Float) = 1
+        _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
         [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
