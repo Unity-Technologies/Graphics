@@ -409,11 +409,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (cam.stereoEnabled)
             {
                 // Stereo deferred rendering still has the following problems:
-                // VR TODO: Dispatch tile light-list compute per-eye
-                // VR TODO: Update compute lighting shaders for stereo
+                // XRTODO: Dispatch tile light-list compute per-eye
+                // XRTODO: Update compute lighting shaders for stereo
                 shaderLitMode = LitShaderMode.Forward;
 
-                // TODO: The work will be implemented piecemeal to support all passes
+                // XRTODO: re-enable once Single-Pass-Instancing is working
+                enablePostprocess = false;
+
+                // XRTODO: The work will be implemented piecemeal to support all passes
                 enableMotionVectors = enablePostprocess && !enableMSAA;
                 enableSSR = false;
             }
