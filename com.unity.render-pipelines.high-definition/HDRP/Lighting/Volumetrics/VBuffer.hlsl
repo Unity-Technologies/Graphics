@@ -119,7 +119,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
             const float BICUBIC_SHARPNESS_BSPLINE = 0.0f;
             const float BICUBIC_SHARPNESS_MITCHELL = 1.0f / 3.0f;
             const float BICUBIC_SHARPNESS_CATMULL_ROM = 0.5f;
-            BicubicFilter(positionPixels, weights, uvs, BICUBIC_SHARPNESS_BSPLINE); // Inverse-translate the filter centered around 0.5
+            BicubicFilter(positionPixels, weights, uvs, BICUBIC_SHARPNESS_MITCHELL); // Inverse-translate the filter centered around 0.5
 
             // Apply the viewport scale right at the end.
             // TODO: precompute (VBufferResolution.zw * VBufferUvScale).
@@ -135,7 +135,6 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                    + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(float2(uvs[1].x, uvs[1].y) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)
                    + (weights[2].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(float2(uvs[2].x, uvs[1].y) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)
                    + (weights[1].x * weights[2].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(float2(uvs[1].x, uvs[2].y) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0);
-
         }
         else
         {
