@@ -2,7 +2,7 @@
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "black" {}
+        _MainTex ("Texture", 2D) = "white" {}
 		_Color("Color", Color) = (1,1,1,1)
     }
     SubShader
@@ -47,6 +47,7 @@
 			uniform half4x4			_LightInvMatrix;
 			uniform half4x4			_LightNoRotInvMatrix;
 			uniform sampler2D_float	_LightLookup;
+			uniform sampler2D		_NormalMap;
 			uniform half			_OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			uniform half			_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			uniform half			_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
@@ -76,16 +77,17 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-				half4 main = tex2D(_MainTex, i.screenUV);
+				half4 cookie = tex2D(_MainTex, i.lookupUV);
+				half4 normal = tex2D(_NormalMap, i.screenUV);
 				half4 lookupValueNoRot = tex2D(_LightLookup, i.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
 				half4 lookupValue = tex2D(_LightLookup, i.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
-				float usingDefaultNormalMap = (main.x + main.y + main.z) == 0;  // 1 if using a black normal map, 0 if using a custom normal map
+				float usingDefaultNormalMap = (normal.x + normal.y + normal.z) == 0;  // 1 if using a black normal map, 0 if using a custom normal map
 				// Can this be moved to the normal renderer? Is it worth it?
-				float3 normalUnpacked = UnpackNormal(main);
+				float3 normalUnpacked = UnpackNormal(normal);
 				
 				//normalUnpacked.z = 0;
-				//normalUnpacked = normalize(normalUnpacked);
+				normalUnpacked = normalize(normal);
 
 				// Inner Radius
 				half  attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
@@ -98,12 +100,12 @@
 
 				// Calculate final color
 				float3 dirToLight = i.lightDirection; // half2(lookupValueNoRot.b, lookupValueNoRot.a);
-				float3 normal = normalUnpacked; // half2(normalUnpacked.x, normalUnpacked.y);
-				float cosAngle = (1-usingDefaultNormalMap) * saturate(dot(dirToLight, normal)) + usingDefaultNormalMap;
-				half4 color = main.a *_LightColor * attenuation;
-				fixed4 finalColor = color * cosAngle; /*  +color * main.z * attenuation); */
+				float cosAngle = (1-usingDefaultNormalMap) * saturate(dot(dirToLight, normalUnpacked)) + usingDefaultNormalMap;
+				half4 lightColor = normal.a * _LightColor * attenuation * cosAngle;
 
-				return finalColor * _InverseLightIntensityScale;
+				lightColor.rgb = (cookie.a * cookie.rgb * lightColor.rgb) + ((1-cookie.a) * lightColor.rgb); // Apply our cookie texture
+
+				return lightColor * _InverseLightIntensityScale;
 			}
             ENDCG
         }

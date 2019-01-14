@@ -103,11 +103,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static void CreateQuad(out Mesh outQuad)
         {
             Vector3[] vertices = new Vector3[4];
+            Vector2[] uvs = new Vector2[4];
+
             int[] triangles = new int[6];
             vertices[0] = new Vector3(-0.5f, -0.5f, 0);
             vertices[1] = new Vector3(0.5f, -0.5f, 0);
             vertices[2] = new Vector3(0.5f, 0.5f, 0);
             vertices[3] = new Vector3(-0.5f, 0.5f, 0);
+
+            uvs[0] = new Vector2(0, 0);
+            uvs[1] = new Vector2(1, 0);
+            uvs[2] = new Vector2(1, 1);
+            uvs[3] = new Vector2(0, 1);
 
             triangles[0] = 0;
             triangles[1] = 1;
@@ -116,9 +123,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             triangles[4] = 2;
             triangles[5] = 3;
 
+            
+
             outQuad = new Mesh();
             outQuad.vertices = vertices;
             outQuad.triangles = triangles;
+            outQuad.uv = uvs;
         }
 
         static float Square(float f) { return f * f; }
@@ -195,8 +205,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (material != null)
             {
-                if(sourceRT != null)
-                    material.SetTexture("_MainTex", sourceRT);
+                if (light.m_LightCookieSprite != null && light.m_LightCookieSprite.texture != null)
+                    material.SetTexture("_MainTex", light.m_LightCookieSprite.texture);
 
                 cmdBuffer.DrawMesh(GetQuadMesh(), matrix, material);
             }
@@ -231,6 +241,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
             cmdBuffer.SetGlobalColor("_LightVolumeColor", new Color(1,1,1, light.LightVolumeOpacity));
+            cmdBuffer.SetGlobalTexture("_NormalMap", m_NormalRT);
 
             //=====================================================================================
             //                          New stuff
@@ -290,7 +301,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     {
                         // Sort the shadow casters by distance to light, and render the ones furthest first
                         //SortShadowCasters(light, shadowCasters);
-
                         SetShaderGlobals(cmdBuffer, light);
 
                         // We should consider combining all point lights into a single pass instead of rendering them seperately
