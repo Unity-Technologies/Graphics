@@ -2,6 +2,8 @@ Shader "Hidden/HD PostProcessing/Editor/Trackball"
 {
     CGINCLUDE
 
+        #pragma editor_sync_compilation
+
         #include "UnityCG.cginc"
 
         #define PI 3.14159265359

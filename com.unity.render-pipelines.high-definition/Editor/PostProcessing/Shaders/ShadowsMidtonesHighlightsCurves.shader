@@ -3,6 +3,7 @@ Shader "Hidden/HD PostProcessing/Editor/Shadows Midtones Highlights Curve"
     CGINCLUDE
 
         #include "UnityCG.cginc"
+        #pragma editor_sync_compilation
         #pragma target 3.5
 
         float4 _ShaHiLimits;    // xy: shadows min/max, zw: highlight min/max

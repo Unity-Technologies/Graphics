@@ -3,6 +3,7 @@ Shader "Hidden/HD PostProcessing/Editor/Custom Tonemapper Curve"
     CGINCLUDE
 
         #include "UnityCG.cginc"
+        #pragma editor_sync_compilation
         #pragma target 3.5
 
         float4 _CustomToneCurve;

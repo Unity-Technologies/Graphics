@@ -8,6 +8,9 @@ Shader "Hidden/HDRP/PreIntegratedFGD_CookTorrance"
             ZTest Always Cull Off ZWrite Off
 
             HLSLPROGRAM
+
+            #pragma editor_sync_compilation
+
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 4.5
