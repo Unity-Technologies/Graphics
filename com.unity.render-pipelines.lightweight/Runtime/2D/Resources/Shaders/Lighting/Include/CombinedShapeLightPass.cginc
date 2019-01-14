@@ -93,7 +93,6 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
     fixed4 shapeLight0Modulate = shapeLight0 * _ShapeLightBlendFactors0.x;
     fixed4 shapeLight0Additive = shapeLight0 * _ShapeLightBlendFactors0.y;
 #else
-    fixed4 shapeLight0 = 0;
     fixed4 shapeLight0Modulate = 0;
     fixed4 shapeLight0Additive = 0;
 #endif
@@ -107,7 +106,6 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
     fixed4 shapeLight1Modulate = shapeLight1 * _ShapeLightBlendFactors1.x;
     fixed4 shapeLight1Additive = shapeLight1 * _ShapeLightBlendFactors1.y;
 #else
-    fixed4 shapeLight1 = 0;
     fixed4 shapeLight1Modulate = 0;
     fixed4 shapeLight1Additive = 0;
 #endif
@@ -121,7 +119,6 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
     fixed4 shapeLight2Modulate = shapeLight2 * _ShapeLightBlendFactors2.x;
     fixed4 shapeLight2Additive = shapeLight2 * _ShapeLightBlendFactors2.y;
 #else
-    fixed4 shapeLight2 = 0;
     fixed4 shapeLight2Modulate = 0;
     fixed4 shapeLight2Additive = 0;
 #endif

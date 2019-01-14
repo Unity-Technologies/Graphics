@@ -13,7 +13,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private DrawSkyboxPass m_DrawSkyboxPass;
         private Render2DLightingPass m_Render2DLightingPass;
         private SetupForwardRenderingPass m_SetupForwardRenderingPass;
-        //Render2DFallbackPass   m_Render2DFallbackPass;
 
 #if UNITY_EDITOR
         private GizmoRenderingPass m_LitGizmoRenderingPass;
