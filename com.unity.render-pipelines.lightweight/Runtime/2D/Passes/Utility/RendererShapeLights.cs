@@ -81,30 +81,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.DisableShaderKeyword(shaderKeyword);
             bool renderedFirstLight = false;
 
-            if (lights.Count > 0)
+            foreach (var light in lights)
             {
-                for (int i = 0; i < lights.Count; i++)
+                if (light != null && light.isActiveAndEnabled && light.shapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
-                    Light2D light = lights[i];
-
-                    if (light != null && light.isActiveAndEnabled && light.shapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                    Material shapeLightMaterial = light.GetMaterial();
+                    if (shapeLightMaterial != null)
                     {
-                        Material shapeLightMaterial = light.GetMaterial();
-                        if (shapeLightMaterial != null)
+                        Mesh lightMesh = light.GetMesh();
+                        if (lightMesh != null)
                         {
-                            Mesh lightMesh = light.GetMesh();
-                            if (lightMesh != null)
+                            if (!renderedFirstLight)
                             {
-                                if (!renderedFirstLight)
-                                {
-                                    cmdBuffer.SetRenderTarget(renderTexture);
-                                    cmdBuffer.ClearRenderTarget(false, true, fillColor, 1.0f);
-                                    renderedFirstLight = true;
-                                }
-
-                                cmdBuffer.EnableShaderKeyword(shaderKeyword);
-                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
+                                cmdBuffer.SetRenderTarget(renderTexture);
+                                cmdBuffer.ClearRenderTarget(false, true, fillColor, 1.0f);
+                                renderedFirstLight = true;
                             }
+
+                            cmdBuffer.EnableShaderKeyword(shaderKeyword);
+                            cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
                         }
                     }
                 }

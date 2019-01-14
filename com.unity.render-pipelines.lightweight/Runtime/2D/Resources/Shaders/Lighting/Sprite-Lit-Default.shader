@@ -22,7 +22,7 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
 			#pragma fragment CombinedShapeLightFragment
 			#pragma multi_compile USE_SHAPE_LIGHT_TYPE_0 __
 			#pragma multi_compile USE_SHAPE_LIGHT_TYPE_1 __
-			#pragma multi_compile USE_SHAPE_LIGHT_TYPE_2  __
+			#pragma multi_compile USE_SHAPE_LIGHT_TYPE_2 __
 
 			#pragma multi_compile USE_POINT_LIGHTS __
 			#pragma multi_compile USE_POINT_LIGHT_COOKIES __ 
