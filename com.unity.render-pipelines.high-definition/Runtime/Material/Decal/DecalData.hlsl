@@ -24,7 +24,6 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 #ifdef _COLORMAP
     surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
 #endif
-    surfaceData.baseColor.w *= _DecalColorMapAlphaScale;
 	surfaceData.baseColor.w *= albedoMapBlend;
 	albedoMapBlend = surfaceData.baseColor.w;   
 // outside _COLORMAP because we still have base color

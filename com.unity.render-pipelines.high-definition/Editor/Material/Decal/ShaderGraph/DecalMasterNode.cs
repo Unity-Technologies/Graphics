@@ -11,7 +11,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Decal")]

@@ -115,9 +115,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty metallicScale = new MaterialProperty();
         protected const string kMetallicScale = "_MetallicScale";
 
-        protected MaterialProperty colorMapAlphaScale = new MaterialProperty();
-        protected const string kColorMapAlphaScale = "_DecalColorMapAlphaScale";
-
         protected MaterialProperty maskMapBlueScale = new MaterialProperty();
         protected const string kMaskMapBlueScale = "_DecalMaskMapBlueScale";
 
@@ -144,7 +141,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             smoothnessRemapMin = FindProperty(kSmoothnessRemapMin, props);
             smoothnessRemapMax = FindProperty(kSmoothnessRemapMax, props);
             metallicScale = FindProperty(kMetallicScale, props);
-            colorMapAlphaScale = FindProperty(kColorMapAlphaScale, props);
             maskMapBlueScale = FindProperty(kMaskMapBlueScale, props);
 
             // always instanced

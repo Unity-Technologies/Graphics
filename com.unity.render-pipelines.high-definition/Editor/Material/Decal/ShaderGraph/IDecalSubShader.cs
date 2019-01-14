@@ -1,7 +1,7 @@
 
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.ShaderGraph
 {
     interface IDecalSubShader : ISubShader
     {

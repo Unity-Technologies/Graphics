@@ -32,7 +32,6 @@ Shader "HDRenderPipeline/Decal"
 
         // scaling
         [HideInInspector] _MetallicScale("_MetallicScale", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _DecalColorMapAlphaScale("_DecalColorMapAlphaScale", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
     }
 

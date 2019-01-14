@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var graph = new MaterialGraph();
             graph.AddNode(new DecalMasterNode());
+            graph.path = "Shader Graphs";
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
             AssetDatabase.Refresh();
         }

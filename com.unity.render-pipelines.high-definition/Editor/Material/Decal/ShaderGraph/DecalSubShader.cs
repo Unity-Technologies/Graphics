@@ -5,9 +5,10 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
+
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class DecalSubShader : IDecalSubShader
+    public class DecalSubShader : IDecalSubShader
     {
 
         Pass m_PassProjector3RT = new Pass()
@@ -48,7 +49,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -107,7 +108,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -175,7 +176,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -241,7 +242,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
