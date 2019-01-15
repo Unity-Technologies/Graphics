@@ -179,8 +179,8 @@ Shader "Hidden/HDRP/FinalPass"
 
             // sRGB 8-bit dithering
             {
-                int3 ditherParams = int3(_DitherParams);
-                int2 icoords = positionSS % ditherParams.xy;
+                float3 ditherParams = _DitherParams;
+                uint2 icoords = fmod(positionSS, ditherParams.xy);
 
                 // Symmetric triangular distribution on [-1,1] with maximal density at 0
                 float noise = LOAD_TEXTURE2D_ARRAY(_BlueNoiseTexture, icoords, ditherParams.z).a * 2.0 - 1.0;

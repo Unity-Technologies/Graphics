@@ -67,6 +67,8 @@ CBUFFER_END
 #define BloomTint               _BloomTint.xyz
 #define BloomIntensity          _BloomParams.x
 #define DirtIntensity           _BloomParams.y
+#define BloomEnabled            _BloomParams.z
+#define DirtEnabled             _BloomParams.w
 #define DirtScale               _BloomDirtScaleOffset.xy
 #define DirtOffset              _BloomDirtScaleOffset.zw
 
@@ -139,6 +141,8 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // Bloom
+    UNITY_BRANCH
+    if (BloomEnabled)
     {
         #if 0 // Bilinear
         float3 bloom = SAMPLE_TEXTURE2D_LOD(_BloomTexture, sampler_LinearClamp, uvDistorted * _ScreenToTargetScale.xy, 0.0).xyz;
@@ -146,13 +150,17 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
         float3 bloom = SampleTexture2DBicubic(TEXTURE2D_PARAM(_BloomTexture, sampler_LinearClamp), uvDistorted * _ScreenToTargetScale.xy, _BloomBicubicParams).xyz;
         #endif
 
-        // UVs for the dirt texture should be DistortUV(uv * DirtScale + DirtOffset) but
-        // considering we use a cover-style scale on the dirt texture the difference isn't massive
-        // so we chose to save a few ALUs here instead in case lens distortion is active
-        float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, uvDistorted * DirtScale + DirtOffset, 0.0).xyz;
-
         color = lerp(color, bloom * BloomTint, BloomIntensity);
-        color += bloom * dirt * DirtIntensity;
+
+        UNITY_BRANCH
+        if (DirtEnabled)
+        {
+            // UVs for the dirt texture should be DistortUV(uv * DirtScale + DirtOffset) but
+            // considering we use a cover-style scale on the dirt texture the difference isn't massive
+            // so we chose to save a few ALUs here instead in case lens distortion is active
+            float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, uvDistorted * DirtScale + DirtOffset, 0.0).xyz;
+            color += bloom * dirt * DirtIntensity;
+        }
     }
 
     // Vignette
