@@ -299,7 +299,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Assign a position to all the shadows in the atlas, and scale shadows if needed
             if (m_CascadeAtlas != null && !m_CascadeAtlas.Layout(false))
-                Debug.LogWarning("Cascade Shadow atlasing has failed, try reducing the shadow resolution of the directional light or increase the shadow atlas size");
+                Debug.LogError("Cascade Shadow atlasing has failed, only one directional light can cast shadows at a time");
             m_Atlas.Layout();
         }
 
