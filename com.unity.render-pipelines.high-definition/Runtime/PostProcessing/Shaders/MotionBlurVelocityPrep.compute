@@ -65,7 +65,7 @@ void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 velocity;
     DecodeVelocity(velocityBufferSample, velocity);
-    float depth = SampleCameraDepth(dispatchThreadId);
+    float depth = SampleCameraDepth(dispatchThreadId.xy);
 
     if ( !forceNoMotion
 #if SKIP_PREPPING_IF_NOT_NEEDED
