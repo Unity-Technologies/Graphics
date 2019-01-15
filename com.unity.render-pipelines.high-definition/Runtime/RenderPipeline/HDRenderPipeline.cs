@@ -10,6 +10,81 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipeline : RenderPipeline
     {
+        // Callbacks to allow external classes to inject code into the command buffer at specific locations in the render loop.
+        // To subscribe to these callbacks users should:
+        // 1) Create a static method and tag it with the HDRPCallbackMethod attribute.
+        // 2) Push static methods to be invoked by specific callbacks within this HDRPCallbackMethod.
+        // example:
+        //
+        /*
+        public class ExampleCustomRenderingManager : MonoBehaviour
+        {
+            // Define some static methods you would like to invoke during the render loop.
+            static void OnBuild(HDRenderPipelineAsset asset)
+            {
+            }
+            static void OnAllocate()
+            {
+                // TODO: Allocate any camera render textures here.
+            }
+            static void OnFree()
+            {
+                // TODO: Free any render textures allocated in OnInitializeRenderTextures() here.
+            }
+            static void OnPushGlobalParameters(HDCamera camera, CommandBuffer commandBuffer)
+            {
+                // TODO: Set any global shader uniforms here.
+            }
+            static void OnCameraPostRenderGBuffer(ScriptableRenderContext renderContext, HDCamera camera, CommandBuffer commandBuffer)
+            {
+            }
+            static void OnCameraPostRenderForward(ScriptableRenderContext renderContext, HDCamera camera, CommandBuffer commandBuffer)
+            {
+                // TODO: Do cool graphics stuff by appending to the commandBuffer here.
+            }
+            // Define the initialization logic.
+            [HDRPCallbackMethod]
+            static void OnConfigure()
+            {
+                // Subscribe to a callback.
+                // ExampleCustomRenderingManager.OnCameraPostRenderForward() will now be invoked by HDRenderPipeline
+                // at said location in the render loop.
+                HDRenderPipeline.OnBuild += ExampleCustomRenderingManager.OnBuild;
+                HDRenderPipeline.OnAllocate += ExampleCustomRenderingManager.OnAllocate;
+                HDRenderPipeline.OnFree += ExampleCustomRenderingManager.OnFree;
+                HDRenderPipeline.OnPushGlobalParameters += ExampleCustomRenderingManager.OnPushGlobalParameters;
+                HDRenderPipeline.OnCameraPostRenderGBuffer += ExampleCustomRenderingManager.OnCameraPostRenderGBuffer;
+                HDRenderPipeline.OnCameraPostRenderForward += ExampleCustomRenderingManager.OnCameraPostRenderForward;
+            }
+        }
+        */
+        public delegate void Action<T1, T2, T3, T4, T5, T6>(T1 arg, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
+        public static event Action<HDRenderPipelineAsset> OnBuild;
+        public static event Action OnAllocate;
+        public static event Action OnFree;
+        public static event Action<HDCamera, CommandBuffer, LightLoop>OnPrepareLightsForGPU;
+        public static event Action<HDCamera, CommandBuffer> OnPushGlobalParameters;
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnCameraPostRenderGBuffer;
+        public static event Action<HDCamera, CommandBuffer, ComputeShader, int> OnCameraPreRenderVolumetrics;
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier> OnCameraPostRenderDeferredLighting;
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPostRenderForward;
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnCameraPreRenderPostProcess;
+
+        private void InitializeExternalCallbacks()
+        {
+            OnBuild = null;
+            OnAllocate = null;
+            OnFree = null;
+            OnPrepareLightsForGPU = null;
+            OnPushGlobalParameters = null;
+            OnCameraPostRenderGBuffer = null;
+            OnCameraPreRenderVolumetrics = null;
+            OnCameraPostRenderDeferredLighting = null;
+            OnCameraPostRenderForward = null;
+            OnCameraPreRenderPostProcess = null;
+            HDRPCallbackAttribute.ConfigureAllLoadedCallbacks();
+        }
+
         public const string k_ShaderTagName = "HDRenderPipeline";
         const string k_OldQualityShadowKey = "HDRP:oldQualityShadows";
 
@@ -238,6 +313,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+            InitializeExternalCallbacks();
+            if (OnBuild != null)
+                OnBuild(asset);
+
 #if UNITY_EDITOR
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             m_Asset.EvaluateSettings();
@@ -363,6 +442,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeRenderTextures()
         {
+            if(OnAllocate != null)
+                OnAllocate();
+
             RenderPipelineSettings settings = m_Asset.renderPipelineSettings;
 
             if (settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
@@ -416,6 +498,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void DestroyRenderTextures()
         {
+            if (OnFree != null)
+                OnFree();
+
             m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
             m_MipGenerator.Release();
@@ -669,6 +754,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
+                if (OnPushGlobalParameters != null)
+                    OnPushGlobalParameters(hdCamera, cmd);
+
                 // Set up UnityPerFrame CBuffer.
                 m_SSSBufferManager.PushGlobalParams(hdCamera, cmd, sssParameters);
 
@@ -1071,6 +1159,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, m_CullResults, m_ReflectionProbeCullResults, densityVolumes, m_DebugDisplaySettings);
                     }
+
+                    if (OnPrepareLightsForGPU != null)
+                        OnPrepareLightsForGPU(hdCamera, cmd, m_LightLoop);
+
                     // Configure all the keywords
                     ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
@@ -1095,6 +1187,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderDBuffer(hdCamera, cmd, renderContext, m_CullResults);
 
                     RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
+
+                    if (OnCameraPostRenderGBuffer != null)
+                        OnCameraPostRenderGBuffer(renderContext, hdCamera, cmd);
 
                     // We can now bind the normal buffer to be use by any effect
                     m_SharedRTManager.BindNormalBuffer(cmd);
@@ -1240,8 +1335,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         StopStereoRendering(cmd, renderContext, camera);
 
                         HDGPUAsyncTask buildLightListTask = new HDGPUAsyncTask("Build light list", ComputeQueueType.Background);
-                        // It is important that this task is in the same queue as the build light list due to dependency it has on it. If really need to move it, put an extra fence to make sure buildLightListTask has finished. 
-                        HDGPUAsyncTask volumeVoxelizationTask = new HDGPUAsyncTask("Volumetric voxelization", ComputeQueueType.Background); 
+                        // It is important that this task is in the same queue as the build light list due to dependency it has on it. If really need to move it, put an extra fence to make sure buildLightListTask has finished.
+                        HDGPUAsyncTask volumeVoxelizationTask = new HDGPUAsyncTask("Volumetric voxelization", ComputeQueueType.Background);
                         HDGPUAsyncTask SSRTask = new HDGPUAsyncTask("Screen Space Reflection", ComputeQueueType.Background);
                         HDGPUAsyncTask SSAOTask = new HDGPUAsyncTask("SSAO", ComputeQueueType.Background);
                         HDGPUAsyncTask contactShadowsTask = new HDGPUAsyncTask("Screen Space Shadows", ComputeQueueType.Background);
@@ -1376,6 +1471,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         RenderDeferredLighting(hdCamera, cmd);
 
+                        if (OnCameraPostRenderDeferredLighting != null)
+                            OnCameraPostRenderDeferredLighting(renderContext, hdCamera, cmd, m_SharedRTManager.GetDepthStencilBuffer());
+
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
 
                         m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
@@ -1407,6 +1505,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
+                        // Render color pyramid again to include forward transparent items.
+                        RenderColorPyramid(hdCamera, cmd, true);
+
+                        if (OnCameraPostRenderForward != null)
+                        {
+                            m_LightLoop.PushGlobalParamsClusteredLightList(hdCamera, cmd);
+                            OnCameraPostRenderForward(renderContext, hdCamera, cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
+                        }
+
                         // Second resolve the color buffer for finishing the frame
                         m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
 
@@ -1431,6 +1538,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Postprocess system (that doesn't use cmd.Blit) handle it with configuration (and do not flip in SceneView) or it is automatically done in Blit
 
                         StartStereoRendering(cmd, renderContext, camera);
+
+                        if (OnCameraPreRenderPostProcess != null)
+                            OnCameraPreRenderPostProcess(renderContext, hdCamera, cmd);
 
 
                         // Final blit
