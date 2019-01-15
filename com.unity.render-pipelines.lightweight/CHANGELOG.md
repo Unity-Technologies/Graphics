@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Framedebugger now renders correctly when stepping through drawcalls.
 - Cameras that request MSAA and Opaque Textures now use less frame bandwidth when they render.
 - Fixed rendering in the gamma color space, so it doesn't appear darker.
+- A camera's HDR enable flag is now respected when rendering in XR.
 
 ## [5.2.0] - 2018-11-27
 ### Added
