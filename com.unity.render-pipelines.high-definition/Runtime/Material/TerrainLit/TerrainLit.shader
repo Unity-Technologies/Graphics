@@ -237,6 +237,14 @@ Shader "HDRP/TerrainLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #endif
 
+            #ifdef WRITE_NORMAL_BUFFER
+                #if defined(_NORMALMAP)
+                    #define OVERRIDE_SAMPLER_NAME sampler_Normal0
+                #elif defined(_MASKMAP)
+                    #define OVERRIDE_SAMPLER_NAME sampler_Mask0
+                #endif
+            #endif
+
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
