@@ -16,13 +16,8 @@ struct v2f
 	fixed4 color : COLOR;
 	fixed2 uv : TEXCOORD0;
 	fixed2 lightingUV : TEXCOORD1;
-	fixed2 lightScreenPos : TEXCOORD2;
 	float4 vertexWorldPos : TEXCOORD3;
 	fixed2 pixelScreenPos : TEXCOORD4;
-
-	#if USE_POINT_LIGHT_COOKIES
-		fixed2 cookieUV : TEXCOORD5;
-	#endif
 };
 
 uniform sampler2D _MainTex;
@@ -33,9 +28,6 @@ uniform sampler2D _NormalMap;
 uniform fixed4 _NormalMap_ST;
 
 uniform sampler2D _PointLightingTex;
-uniform sampler2D _PointLightCookieTex;
-uniform float4 _PointLightPosition;
-uniform fixed  _PointLightOuterRadius;
 
 #if USE_SHAPE_LIGHT_TYPE_0
     uniform sampler2D _ShapeLightTexture0;
@@ -66,16 +58,9 @@ v2f CombinedShapeLightVertex(appdata v)
 
 	float4 worldVertex = mul(unity_ObjectToWorld, v.vertex);
 	o.pixelScreenPos = ComputeScreenPos(worldVertex);
-
-	o.lightScreenPos = ComputeScreenPos(_PointLightPosition);
 	o.color = v.color;
 
 	o.vertexWorldPos = mul(unity_ObjectToWorld, v.vertex);
-
-	#if USE_POINT_LIGHT_COOKIES
-		o.cookieUV = saturate(abs(o.pixelScreenPos - o.lightScreenPos) / _PointLightOuterRadius);
-	#endif
-
 	return o;
 }
 

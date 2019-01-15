@@ -65,7 +65,7 @@
 				o.lookupUV = 0.5 * (lightSpacePos.xy + 1);
 				o.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
 				o.lightDirection = _LightPosition-worldSpacePos;
-				o.lightDirection.z = 3;
+				o.lightDirection.z = _LightPosition.z;
 				o.lightDirection.w = 0;
 				o.lightDirection.xyz = normalize(o.lightDirection.xyz);
 
