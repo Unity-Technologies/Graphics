@@ -31,8 +31,13 @@ v2f NormalsRenderingVertex(appdata v)
 float4 NormalsRenderingFragment(v2f i) : SV_Target
 {
 	float4 mainTex = tex2D(_MainTex, i.uv);
-	float4 normalMap = tex2D(_NormalMap, i.uv);
-	normalMap.a = mainTex.a;
-	return normalMap;
+	//float4 normalMap = tex2D(_NormalMap, i.uv);
+	//normalMap.a = mainTex.a;
+
+	float4 normalColor;
+	normalColor.rgb = 0.5 * (UnpackNormal(tex2D(_NormalMap, i.uv)) + 1);
+	normalColor.a = mainTex.a;
+
+	return normalColor;
 }
 #endif

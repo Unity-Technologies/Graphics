@@ -65,10 +65,9 @@
 				o.lookupUV = 0.5 * (lightSpacePos.xy + 1);
 				o.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
 				o.lightDirection = _LightPosition-worldSpacePos;
-				o.lightDirection.z = 1.0;
+				o.lightDirection.z = 3;
 				o.lightDirection.w = 0;
 				o.lightDirection.xyz = normalize(o.lightDirection.xyz);
-
 
 				float4 clipVertex = o.vertex / o.vertex.w;
 				o.screenUV = ComputeScreenPos(clipVertex);
@@ -83,27 +82,20 @@
 				half4 lookupValue = tex2D(_LightLookup, i.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
 				float usingDefaultNormalMap = (normal.x + normal.y + normal.z) == 0;  // 1 if using a black normal map, 0 if using a custom normal map
-				// Can this be moved to the normal renderer? Is it worth it?
 				float3 normalUnpacked = UnpackNormal(normal);
-				
-				//normalUnpacked.z = 0;
-				normalUnpacked = normalize(normal);
 
 				// Inner Radius
 				half  attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
-				attenuation = attenuation * attenuation;
 
 				// Spotlight
 				half  spotAttenuation = saturate((_OuterAngle-lookupValue.g)*_InnerAngleMult);
-				spotAttenuation = spotAttenuation * spotAttenuation;
 				attenuation = attenuation * spotAttenuation;
+				//attenuation = attenuation * attenuation;
 
 				// Calculate final color
 				float3 dirToLight = i.lightDirection; // half2(lookupValueNoRot.b, lookupValueNoRot.a);
 				float cosAngle = (1-usingDefaultNormalMap) * saturate(dot(dirToLight, normalUnpacked)) + usingDefaultNormalMap;
 				half4 lightColor = normal.a * _LightColor * attenuation * cosAngle;
-
-				lightColor.rgb = (cookie.a * cookie.rgb * lightColor.rgb) + ((1-cookie.a) * lightColor.rgb); // Apply our cookie texture
 
 				return lightColor * _InverseLightIntensityScale;
 			}
