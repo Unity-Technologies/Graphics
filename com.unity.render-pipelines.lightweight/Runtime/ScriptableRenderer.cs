@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
@@ -292,28 +292,31 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Camera camera = cameraData.camera;
             RenderTextureDescriptor desc;
             float renderScale = cameraData.renderScale;
+            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
 
             if (cameraData.isStereoEnabled)
             {
-                return XRGraphics.eyeTextureDesc;
+                desc = XRGraphics.eyeTextureDesc;
+                renderTextureFormatDefault = desc.colorFormat;
             }
             else
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                desc.width = (int)((float)desc.width * renderScale * scaler);
+                desc.height = (int)((float)desc.height * renderScale * scaler);
+                desc.depthBufferBits = 32;
             }
 
             // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format. 
             bool useRGB111110 = Application.isMobilePlatform &&
              SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
             RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
-            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : RenderTextureFormat.Default;
-            desc.width = (int)((float)desc.width * renderScale * scaler);
-            desc.height = (int)((float)desc.height * renderScale * scaler);
+            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
             desc.enableRandomWrite = false;
             desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             desc.msaaSamples = cameraData.msaaSamples;
-            desc.depthBufferBits = 32;
             desc.bindMS = false;
+
             return desc;
         }
 
