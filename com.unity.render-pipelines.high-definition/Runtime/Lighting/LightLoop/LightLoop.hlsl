@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
-// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
+// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
 #define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && defined(LIGHTLOOP_TILE_PASS) && SHADERPASS == SHADERPASS_FORWARD)
 
@@ -149,7 +149,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if SCALARIZE_LIGHT_LOOP
         // Fast path is when we all pixels in a wave are accessing same tile or cluster.
         uint lightStartLane0 = WaveReadLaneFirst(lightStart);
-        fastPath = WaveActiveAllTrue(lightStart == lightStartLane0); 
+        fastPath = WaveActiveAllTrue(lightStart == lightStartLane0);
 #endif
 
 #else   // LIGHTLOOP_TILE_PASS
@@ -179,7 +179,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if SCALARIZE_LIGHT_LOOP
             if (!fastPath)
             {
-                // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave. 
+                // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave.
                 s_lightIdx = WaveActiveMin(v_lightIdx);
                 // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
                // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
@@ -285,7 +285,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     #if SCALARIZE_LIGHT_LOOP
         // Fast path is when we all pixels in a wave is accessing same tile or cluster.
         uint envStartFirstLane = WaveReadLaneFirst(envLightStart);
-        fastPath = WaveActiveAllTrue(envLightStart == envStartFirstLane); 
+        fastPath = WaveActiveAllTrue(envLightStart == envStartFirstLane);
     #endif
 
 #else   // LIGHTLOOP_TILE_PASS
@@ -408,7 +408,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 #undef EVALUATE_BSDF_ENV
-#undef EVALUATE_BSDF_ENV_SKY    
+#undef EVALUATE_BSDF_ENV_SKY
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
@@ -416,4 +416,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         diffuseLighting, specularLighting);
 
     ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
+
+    // Sanitize any NaNs to zero so that they do not pollute neighboring pixels in color pyramid down the pipe.
+    // Needed to add this guard due to NaN tangent vectors in some Probuilder meshes resulting in NaN outgoing radiance.
+    // Ideally we would sanitize all model data before even pushing to the GPU.
+    // Hopefully can remove once we have production assets.
+    diffuseLighting = any(isnan(diffuseLighting)) ? 0.0 : diffuseLighting;
+    specularLighting = any(isnan(specularLighting)) ? 0.0 : specularLighting;
 }
