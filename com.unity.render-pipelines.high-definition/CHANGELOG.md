@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [4.8.0-preview] - 2018-XX-XX
 
+### Fixed
+- Fixed remove sync with render thread when updating decal texture atlas.
+
 ## [4.7.0-preview] - 2018-01-13
 
 ### Added
