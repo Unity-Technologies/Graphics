@@ -1743,6 +1743,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
+                            // HACK! : We need to call IncrementUpdateCount() here as we modify the RenderTexture from GPU.
+                            // However there is no API on RenderTargetIdentifier... (Target.id here), so our real time planar reflection and probe
+                            // aren't working anymore as they are not updated in the cache... Let's do this HACK until we fix it
+                            cmd.Blit(m_CameraColorBuffer, target.id, Vector2.zero, Vector2.zero);
+
                             HDUtils.BlitCameraTexture(cmd, hdCamera, m_CameraColorBuffer, target.id, hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
                         }
                     }
