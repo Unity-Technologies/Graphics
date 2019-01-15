@@ -148,6 +148,7 @@ float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 rema
 
 #ifdef OVERRIDE_SAMPLER_NAME
     #define sampler_Splat0 OVERRIDE_SAMPLER_NAME
+    SAMPLER(OVERRIDE_SAMPLER_NAME);
 #endif
 
 void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
