@@ -551,6 +551,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public ComputeShader GetVolumeVoxelizationCS()
+        {
+            return m_VolumeVoxelizationCS;
+        }
+
+        public int GetVolumeVoxelizationKernel(bool enableBigTilePrepass)
+        {
+            bool tiledLighting     = enableBigTilePrepass;
+            bool highQuality       = preset == VolumetricLightingPreset.High;
+            int kernel = (tiledLighting ? 1 : 0) | (highQuality ? 2 : 0);
+            return kernel;
+        }
+
         public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes, LightLoop lightLoop)
         {
             if (!hdCamera.frameSettings.enableVolumetrics)
@@ -566,7 +579,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bool tiledLighting     = hdCamera.frameSettings.lightLoopSettings.enableBigTilePrepass;
                 bool highQuality       = preset == VolumetricLightingPreset.High;
 
-                int kernel = (tiledLighting ? 1 : 0) | (highQuality ? 2 : 0);
+                int kernel = GetVolumeVoxelizationKernel(hdCamera.frameSettings.lightLoopSettings.enableBigTilePrepass);
 
                 var currFrameParams = hdCamera.vBufferParams[0];
                 var cvp = currFrameParams.viewportSize;
