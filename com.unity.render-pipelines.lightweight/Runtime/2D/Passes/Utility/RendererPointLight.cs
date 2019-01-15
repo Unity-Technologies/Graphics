@@ -292,7 +292,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = pointLights[i];
 
-                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera))
+                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible())
                     {
                         // Sort the shadow casters by distance to light, and render the ones furthest first
                         //SortShadowCasters(light, shadowCasters);
@@ -348,7 +348,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = pointLights[i];
 
-                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible(camera) && light.LightVolumeOpacity > 0.0f)
+                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible() && light.LightVolumeOpacity > 0.0f)
                     {
                         SetShaderGlobals(cmdBuffer, light);
                         DrawLightQuad(cmdBuffer, light, null, GetPointLightVolumeMat());

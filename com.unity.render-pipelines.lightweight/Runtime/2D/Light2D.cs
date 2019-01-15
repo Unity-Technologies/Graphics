@@ -134,11 +134,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set { m_LightVolumeOpacity = value; }
         }
 
+
+        private int m_LightCullingIndex = -1;
         private Bounds m_LocalBounds;
-        CullingGroup m_CullingGroup;
+        static CullingGroup m_CullingGroup;
 
         static List<Light2D>[] m_Lights = SetupLightArray();
-        
+
         static public List<Light2D>[] SetupLightArray()
         {
             int numLightTypes = (int)Light2DType.Count;
@@ -168,7 +170,35 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 boundingSphere.radius = m_PointLightOuterRadius;
                 boundingSphere.position = transform.position;
             }
-            return boundingSphere;            
+            return boundingSphere;
+        }
+
+        static public CullingGroup SetupCulling(Camera camera)
+        {
+            if (m_CullingGroup == null)
+                m_CullingGroup = new CullingGroup();
+
+            m_CullingGroup.targetCamera = camera;
+
+            int totalLights = 0;
+            for (int lightTypeIndex = 0; lightTypeIndex < m_Lights.Length; lightTypeIndex++)
+                totalLights += m_Lights[lightTypeIndex].Count;
+
+            BoundingSphere[] boundingSpheres = new BoundingSphere[totalLights];
+
+            int lightCullingIndex = 0;
+            for(int lightTypeIndex=0; lightTypeIndex < m_Lights.Length; lightTypeIndex++)
+            {
+                for(int lightIndex=0; lightIndex < m_Lights[lightTypeIndex].Count; lightIndex++)
+                {
+                    Light2D light = m_Lights[lightTypeIndex][lightIndex];
+                    light.m_LightCullingIndex = lightCullingIndex;
+                    boundingSpheres[lightCullingIndex] = light.GetBoundingSphere();
+                }
+            }
+
+            m_CullingGroup.SetBoundingSpheres(boundingSpheres);
+            return m_CullingGroup;
         }
 
         public void InsertLight(Light2D light)
@@ -860,19 +890,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             UpdateShapeLightType(m_ShapeLightType);
         }
 
-        public bool IsLightVisible(Camera camera)
+        public bool IsLightVisible()
         {
-            BoundingSphere[] boundingSpheres = new BoundingSphere[1];
-            boundingSpheres[0] = GetBoundingSphere();
-
-            if (m_CullingGroup == null)
-                m_CullingGroup = new CullingGroup();
-
-            m_CullingGroup.targetCamera = camera;
-            m_CullingGroup.SetBoundingSpheres(boundingSpheres);
-
-            bool isVisible = m_CullingGroup.IsVisible(0);
-            return isVisible;
+            //bool isVisible = m_CullingGroup.IsVisible(m_LightCullingIndex);
+            //return isVisible;
+            return true;
         }
 
         void OnDrawGizmos()

@@ -85,7 +85,7 @@
 				float3 normalUnpacked = UnpackNormal(normal);
 
 				// Inner Radius
-				half  attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
+				half attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
 
 				// Spotlight
 				half  spotAttenuation = saturate((_OuterAngle-lookupValue.g)*_InnerAngleMult);
