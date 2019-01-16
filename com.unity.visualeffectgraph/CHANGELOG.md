@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Samll fixes in Parameter Binder editor
 - Fix fog on decals
 - Saturate alpha component in outputs
+- Fixed scaleY in ConnectTarget
 
 ## [4.6.0-preview] - 2018-12-07
 ### Fixed
