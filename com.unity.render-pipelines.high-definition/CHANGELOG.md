@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with TerrainLit not compiling with depth only pass and normal buffer
 - Fixed geometric normal use for shadow bias with PBR master node in forward
 - Fixed error message when having more than one directional light casting shadow
+- Fixed issue with MicroShadowing and SpecularOcclusion
+- Fixed issue with vertex animation in shader graph not compatible with SRP Batcher
 
 ## [4.7.0-preview] - 2018-01-13
 
