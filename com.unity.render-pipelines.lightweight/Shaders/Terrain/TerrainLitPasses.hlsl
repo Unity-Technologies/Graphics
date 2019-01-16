@@ -94,7 +94,6 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 
 void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
 {
-    //splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, uvMainAndLM.xy);    
     half4 diffAlbedo[4];
     
     diffAlbedo[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, uvSplat01.xy);

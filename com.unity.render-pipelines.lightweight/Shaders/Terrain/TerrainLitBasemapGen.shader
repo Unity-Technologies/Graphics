@@ -1,4 +1,4 @@
-Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit_BasemapGen"
+Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Basemap Gen)"
 {
     Properties
     {
@@ -35,13 +35,9 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit_BasemapGen"
         #define _METALLICSPECGLOSSMAP 1
         #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
 
-
         #pragma shader_feature _TERRAIN_BLEND_HEIGHT
-        //#pragma shader_feature _NORMALMAP
         #pragma shader_feature _MASKMAP
-        // Sample normal in pixel shader when doing instancing
-        //#pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
-
+        
         #include "TerrainLitInput.hlsl"
         #include "TerrainLitPasses.hlsl"
         
