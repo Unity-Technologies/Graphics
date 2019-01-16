@@ -8,7 +8,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [VolumeComponentEditor(typeof(MotionBlur))]
     sealed class MotionBlurEditor : VolumeComponentEditor
     {
-        SerializedDataParameter m_Enabled;
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_SampleCount;
 
@@ -24,7 +23,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var o = new PropertyFetcher<MotionBlur>(serializedObject);
 
-            m_Enabled = Unpack(o.Find(x => x.enabled));
             m_Intensity = Unpack(o.Find(x => x.intensity));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
             m_MinVelInPixels = Unpack(o.Find(x => x.minVelInPixels));
@@ -36,7 +34,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             bool advanced = isInAdvancedMode;
 
-            PropertyField(m_Enabled);
             PropertyField(m_Intensity);
             PropertyField(m_SampleCount);
 

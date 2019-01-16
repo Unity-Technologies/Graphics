@@ -9,10 +9,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
         public MinIntParameter sampleCount = new MinIntParameter(8, 2);
-        public BoolParameter enabled = new BoolParameter(false);
 
         [Tooltip("Sets the intensity of the motion blur effect. Acts as a multiplier for velocities.")]
-        public MinFloatParameter intensity = new MinFloatParameter(1.0f, 0.0f);
+        public MinFloatParameter intensity = new MinFloatParameter(0.0f, 0.0f);
         [Tooltip("Sets the maximum velocity, in pixels, for everything except Camera rotation. Larger values make the limitation of the algorithm more evident, but result in a wider blur. Suggested range is [32, 128].")]
         public ClampedFloatParameter maxVelocity = new ClampedFloatParameter(64.0f, 0.0f, 256.0f);
         [Tooltip("Sets the minimum velocity, in pixels, that a GameObject must have to contribute to the motion blur effect.")]
@@ -26,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsActive()
         {
-            return enabled && intensity > 0.0f;
+            return intensity > 0.0f;
         }
     }
 }
