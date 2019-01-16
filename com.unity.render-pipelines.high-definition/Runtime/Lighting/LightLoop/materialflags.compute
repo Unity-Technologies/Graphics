@@ -15,7 +15,12 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #define USE_MATERIAL_FEATURE_FLAGS
-#define NR_THREADS  64
+
+#if PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
+#define NR_THREADS              PLATFORM_THREAD_GROUP_OPTIMAL_SIZE  // use platform optimal thread group size if possible
+#else
+#define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
+#endif
 
 CBUFFER_START(UnityMaterialFlags)
 uint2 g_viDimensions;

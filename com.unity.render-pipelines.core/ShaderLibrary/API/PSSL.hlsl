@@ -63,6 +63,8 @@ bool WaveIsFirstLane()
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
 
+#define PLATFORM_THREAD_GROUP_OPTIMAL_SIZE 64		// 64 threads in a wafefront
+
 // flow control attributes
 #define UNITY_BRANCH        [branch]
 #define UNITY_FLATTEN       [flatten]
