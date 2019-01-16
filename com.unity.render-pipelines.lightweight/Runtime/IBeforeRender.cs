@@ -1,6 +1,4 @@
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
-
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public interface IBeforeRender
     {
