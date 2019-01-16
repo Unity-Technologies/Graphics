@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FloatParameter compensation = new FloatParameter(0f);
         public FloatParameter limitMin = new FloatParameter(-10f);
         public FloatParameter limitMax = new FloatParameter(20f);
-        public AnimationCurveParameter curveMap = new AnimationCurveParameter(AnimationCurve.Linear(-10f, -10f, 20f, 20f));
+        public AnimationCurveParameter curveMap = new AnimationCurveParameter(AnimationCurve.Linear(-10f, -10f, 20f, 20f)); // TODO: Use TextureCurve instead?
 
         public AdaptationModeParameter adaptationMode = new AdaptationModeParameter(AdaptationMode.Progressive);
         public MinFloatParameter adaptationSpeedDarkToLight = new MinFloatParameter(3f, 0.001f);

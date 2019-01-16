@@ -547,6 +547,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ShaHiLimits                    = Shader.PropertyToID("_ShaHiLimits");
         public static readonly int _SplitShadows                   = Shader.PropertyToID("_SplitShadows");
         public static readonly int _SplitHighlights                = Shader.PropertyToID("_SplitHighlights");
+        public static readonly int _CurveMaster                    = Shader.PropertyToID("_CurveMaster");
+        public static readonly int _CurveRed                       = Shader.PropertyToID("_CurveRed");
+        public static readonly int _CurveGreen                     = Shader.PropertyToID("_CurveGreen");
+        public static readonly int _CurveBlue                      = Shader.PropertyToID("_CurveBlue");
+        public static readonly int _CurveHueVsHue                  = Shader.PropertyToID("_CurveHueVsHue");
+        public static readonly int _CurveHueVsSat                  = Shader.PropertyToID("_CurveHueVsSat");
+        public static readonly int _CurveSatVsSat                  = Shader.PropertyToID("_CurveSatVsSat");
+        public static readonly int _CurveLumVsSat                  = Shader.PropertyToID("_CurveLumVsSat");
 
         public static readonly int _CustomToneCurve                = Shader.PropertyToID("_CustomToneCurve");
         public static readonly int _ToeSegmentA                    = Shader.PropertyToID("_ToeSegmentA");

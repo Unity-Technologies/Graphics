@@ -1673,7 +1673,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         #region Color Grading
 
         // TODO: User lut support
-        // TODO: Curves
         void DoColorGrading(CommandBuffer cmd, ComputeShader cs, int kernel)
         {
             // Prepare data
@@ -1720,6 +1719,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitShadows, splitShadows);
             cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitHighlights, splitHighlights);
 
+            // YRGB
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveMaster, m_Curves.master.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveRed, m_Curves.red.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveGreen, m_Curves.green.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveBlue, m_Curves.blue.value.GetTexture());
+
+            // Secondary curves
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsHue, m_Curves.hueVsHue.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsSat, m_Curves.hueVsSat.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveLumVsSat, m_Curves.lumVsSat.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveSatVsSat, m_Curves.satVsSat.value.GetTexture());
+
+            // Artist-driven tonemap curve
             if (m_Tonemapping.mode.value == TonemappingMode.Custom)
             {
                 m_HableCurve.Init(
