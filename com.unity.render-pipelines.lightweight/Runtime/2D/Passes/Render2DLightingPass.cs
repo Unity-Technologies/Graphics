@@ -6,6 +6,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public class Render2DLightingPass : ScriptableRenderPass
     {
+        private class Light2DCullingComponent : MonoBehaviour, IBeforeCameraRender
+        {
+            public void ExecuteBeforeCameraRender(LightweightRenderPipeline pipelineInstance, ScriptableRenderContext context, Camera camera)
+            {
+                Light2D.SetCullingEnabled(true);
+                Light2D.SetupCulling(camera);
+            }
+        }
+
         private Light2DRTInfo m_PointLightNormalRenderTextureInfo;
         private Light2DRTInfo m_PointLightColorRenderTextureInfo;
 
@@ -48,6 +57,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 #endif
             Camera camera = renderingData.cameraData.camera;
 
+            Light2DCullingComponent light2DCuller = camera.GetComponent<Light2DCullingComponent>();
+            if (light2DCuller == null)
+            {
+                light2DCuller = camera.gameObject.AddComponent<Light2DCullingComponent>();
+                Light2D.SetCullingEnabled(false);
+            }
 
             SortingSettings sortingSettings = new SortingSettings(camera);
             sortingSettings.criteria = SortingCriteria.CommonTransparent;

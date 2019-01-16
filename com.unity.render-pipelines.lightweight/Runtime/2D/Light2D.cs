@@ -137,6 +137,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private int m_LightCullingIndex = -1;
         private Bounds m_LocalBounds;
+        static private bool m_LightCullingEnabled = false;
         static CullingGroup m_CullingGroup;
 
         static List<Light2D>[] m_Lights = SetupLightArray();
@@ -173,6 +174,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return boundingSphere;
         }
 
+        // This won't be needed if we have a better way to setup culling
+        static public void SetCullingEnabled(bool enabled)
+        {
+            m_LightCullingEnabled = enabled;
+        }
+
         static public CullingGroup SetupCulling(Camera camera)
         {
             if (m_CullingGroup == null)
@@ -192,8 +199,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 for(int lightIndex=0; lightIndex < m_Lights[lightTypeIndex].Count; lightIndex++)
                 {
                     Light2D light = m_Lights[lightTypeIndex][lightIndex];
-                    light.m_LightCullingIndex = lightCullingIndex;
                     boundingSpheres[lightCullingIndex] = light.GetBoundingSphere();
+                    light.m_LightCullingIndex = lightCullingIndex++;
                 }
             }
 
@@ -656,8 +663,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Vector3 pos = new Vector3(vertices2d[vertexIdx].x, vertices2d[vertexIdx].y) - center;
                     pos = new Vector3(vertices2d[vertexIdx].x / sprite.bounds.size.x, vertices2d[vertexIdx].y / sprite.bounds.size.y);
-
-                    //vertices3d[vertexIdx] = new Vector3(pos.x + m_ShapeLightOffset.x, pos.y + m_ShapeLightOffset.y);
                     vertices3d[vertexIdx] = pos;
                     colors[vertexIdx] = color;
                     volumeColor[vertexIdx] = new Vector4(1, 1, 1, m_LightVolumeOpacity);
@@ -689,26 +694,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (m_Mesh == null)
                     m_Mesh = new Mesh();
 
-                //float savedA = m_LightColor.a;
-                Color adjColor = m_LightColor;
-
-                // This is done so we don't start going white on a non white light if the intensity is high enough
-                //float maxColor = adjColor.r > adjColor.b ? adjColor.r : adjColor.b;
-                //maxColor = maxColor > adjColor.g ? maxColor : adjColor.g;
-                //if (maxColor > 1.0f)
-                //    adjColor = (1 / maxColor) * adjColor;
-                //adjColor.a = savedA;
-
                 if (m_ShapeLightStyle == CookieStyles.Parametric)
                 {
                     if (m_ParametricShape == ParametricShapes.Freeform)
-                        UpdateShapeLightMesh(adjColor);
+                        UpdateShapeLightMesh(m_LightColor);
                     else
-                        m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, adjColor);
+                        m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, m_LightColor);
                 }
                 else if (m_ShapeLightStyle == CookieStyles.Sprite)
                 {
-                    m_Mesh = GenerateSpriteMesh(m_LightCookieSprite, adjColor);
+                    m_Mesh = GenerateSpriteMesh(m_LightCookieSprite, m_LightColor);
                 }
             }
 
@@ -892,9 +887,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public bool IsLightVisible()
         {
-            //bool isVisible = m_CullingGroup.IsVisible(m_LightCullingIndex);
-            //return isVisible;
-            return true;
+            // If we remove the lwrp injection method, we should remove the m_LightCullingEnabled flag.
+            bool isVisible = m_CullingGroup == null || !m_LightCullingEnabled || m_CullingGroup.IsVisible(m_LightCullingIndex);
+            return isVisible;
         }
 
         void OnDrawGizmos()
