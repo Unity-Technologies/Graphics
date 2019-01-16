@@ -157,6 +157,8 @@ $include("SharedCode.template.hlsl")
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS);
 
+        surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
+
         surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);    // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
