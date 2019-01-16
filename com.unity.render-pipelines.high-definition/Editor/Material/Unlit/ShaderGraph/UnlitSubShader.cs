@@ -279,7 +279,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.Indent();
             {
                 // Options still need to be added to master node - pre-refraction, sort priority...
-                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, false, false, 0);
+                HDMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, 0, false);
                 // Add tags at the SubShader level
                 {
                     var tagsVisitor = new ShaderStringBuilder();

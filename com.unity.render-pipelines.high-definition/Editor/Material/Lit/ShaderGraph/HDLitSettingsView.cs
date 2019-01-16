@@ -68,6 +68,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                         case SurfaceType.Transparent:
                             //GetTransparentEquivalent: prevent issue when switching surface type
                             field.value = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(m_Node.renderingPass));
+
+                            // Render queue BeforeRefraction is not supported with objects that has refraction
+                            if ((HDRenderQueue.TransparentRenderQueue)field.value == HDRenderQueue.TransparentRenderQueue.BeforeRefraction && node.HasRefraction())
+                                Debug.LogError("BeforeRefraction render pass is not supported for object that have refraction");
                             break;
                         default:
                             throw new ArgumentException("Unknown SurfaceType");
@@ -309,6 +313,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
             m_Node.surfaceType = (SurfaceType)evt.newValue;
+
+            UpdateRenderingPassValue((int)m_Node.renderingPass);
         }
 
         void ChangeDoubleSidedMode(ChangeEvent<Enum> evt)
@@ -349,16 +355,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
             m_Node.alphaMode = alphaMode;
         }
+        
         void ChangeRenderingPass(ChangeEvent<Enum> evt)
+        {
+            UpdateRenderingPassValue(Convert.ToInt32(evt.newValue));
+        }
+
+        void UpdateRenderingPassValue(int newValue)
         {
             HDRenderQueue.RenderQueueType renderingPass;
             switch (m_Node.surfaceType)
             {
                 case SurfaceType.Opaque:
-                    renderingPass = HDRenderQueue.ConvertFromOpaqueRenderQueue((HDRenderQueue.OpaqueRenderQueue)evt.newValue);
+                    renderingPass = HDRenderQueue.ConvertFromOpaqueRenderQueue((HDRenderQueue.OpaqueRenderQueue)newValue);
                     break;
                 case SurfaceType.Transparent:
-                    renderingPass = HDRenderQueue.ConvertFromTransparentRenderQueue((HDRenderQueue.TransparentRenderQueue)evt.newValue);
+                    renderingPass = HDRenderQueue.ConvertFromTransparentRenderQueue((HDRenderQueue.TransparentRenderQueue)newValue);
                     break;
                 default:
                     throw new ArgumentException("Unknown SurfaceType");

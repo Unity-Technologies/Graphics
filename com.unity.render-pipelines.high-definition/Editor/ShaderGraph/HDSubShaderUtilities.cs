@@ -830,35 +830,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static SurfaceMaterialTags BuildMaterialTags(SurfaceType surfaceType, bool alphaTest, bool preRefraction, int sortPriority)
+        public static HDMaterialTags BuildMaterialTags(HDRenderQueue.RenderQueueType renderQueueType,
+                                                       int sortPriority,
+                                                       bool alphaTest,
+                                                       HDMaterialTags.RenderType renderType = HDMaterialTags.RenderType.HDLitShader)
         {
-            SurfaceMaterialTags materialTags = new SurfaceMaterialTags();
-
-            if (surfaceType == SurfaceType.Opaque)
+            return new HDMaterialTags
             {
-                if (alphaTest)
-                {
-                    materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.AlphaTest;
-                    materialTags.renderType = SurfaceMaterialTags.RenderType.TransparentCutout;
-                }
-                else
-                {
-                    materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.Geometry;
-                    materialTags.renderType = SurfaceMaterialTags.RenderType.Opaque;
-                }
-            }
-            else
-            {
-                materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.Transparent;
-                materialTags.renderQueueOffset = sortPriority;
-                if (preRefraction)
-                {
-                    materialTags.renderQueueOffset -= HDRenderQueue.Priority.Transparent - HDRenderQueue.Priority.PreRefraction;
-                }
-                materialTags.renderType = SurfaceMaterialTags.RenderType.Transparent;
-            }
+                renderType = renderType,
+                renderQueueIndex = HDRenderQueue.ChangeType(renderQueueType, sortPriority, alphaTest)
+            };
+        }
 
-            return materialTags;
+        public static HDMaterialTags BuildMaterialTags(SurfaceType surfaceType,
+                                                       int sortPriority,
+                                                       bool alphaTest,
+                                                       HDMaterialTags.RenderType renderType = HDMaterialTags.RenderType.HDLitShader)
+        {
+            HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.RenderQueueType.Opaque;
+
+            if (surfaceType == SurfaceType.Transparent)
+                renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
+
+            return BuildMaterialTags(renderQueueType, sortPriority, alphaTest, renderType);
         }
 
         public static SurfaceMaterialOptions BuildMaterialOptions(SurfaceType surfaceType,
