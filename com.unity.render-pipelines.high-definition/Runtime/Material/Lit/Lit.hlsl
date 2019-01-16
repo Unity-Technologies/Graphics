@@ -360,7 +360,7 @@ float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
     // so we use specularOcclusion instead
     // The define LIGHT_LAYERS only exist for the GBuffer and the Forward pass. To avoid to add another
     // variant to deferred.compute, we use dynamic branching instead with _EnableLightLayers.
-    sourceAO = _EnableLightLayers ? bsdfData.ambientOcclusion : bsdfData.specularOcclusion
+    sourceAO = _EnableLightLayers ? bsdfData.ambientOcclusion : bsdfData.specularOcclusion;
 #else
     sourceAO = bsdfData.ambientOcclusion;
 #endif
