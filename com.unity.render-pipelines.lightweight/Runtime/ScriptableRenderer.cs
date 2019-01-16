@@ -316,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             desc.msaaSamples = cameraData.msaaSamples;
             desc.bindMS = false;
-
+            desc.useDynamicScale = cameraData.camera.allowDynamicResolution;
             return desc;
         }
 
