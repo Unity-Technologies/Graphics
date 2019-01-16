@@ -540,6 +540,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 normalizedBlendValue = normalizedVoxelValue;
 
         // Reproject the history at 'centerWS'.
+        const bool quadraticFilterXY = false;
+        const bool clampToBorder = true;
+        const bool cubicFilterXY = false;
         float4 reprojValue = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_linear_clamp_sampler),
                                            centerWS,
                                            _PrevCamPosRWS,
@@ -549,7 +552,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                            _VBufferPrevUvScaleAndLimit.zw,
                                            _VBufferPrevDepthEncodingParams,
                                            _VBufferPrevDepthDecodingParams,
-                                           false, true);
+                                           quadraticFilterXY,
+                                           clampToBorder,
+                                           cubicFilterXY);
 
         bool reprojSuccess = (_VBufferLightingHistoryIsValid != 0) && (reprojValue.a != 0);
 
