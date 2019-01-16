@@ -180,6 +180,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DebugSingleShadowIndex = Shader.PropertyToID("_DebugSingleShadowIndex");
         public static readonly int _DebugDepthPyramidMip = Shader.PropertyToID("_DebugDepthPyramidMip");
         public static readonly int _DebugDepthPyramidOffsets = Shader.PropertyToID("_DebugDepthPyramidOffsets");
+        public static readonly int _DebugLightingMaterialValidateHighColor = Shader.PropertyToID("_DebugLightingMaterialValidateHighColor");
+        public static readonly int _DebugLightingMaterialValidateLowColor = Shader.PropertyToID("_DebugLightingMaterialValidateLowColor");
+        public static readonly int _DebugLightingMaterialValidatePureMetalColor = Shader.PropertyToID("_DebugLightingMaterialValidatePureMetalColor");
+        public static readonly int _DebugFullScreenMode = Shader.PropertyToID("_DebugFullScreenMode");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 

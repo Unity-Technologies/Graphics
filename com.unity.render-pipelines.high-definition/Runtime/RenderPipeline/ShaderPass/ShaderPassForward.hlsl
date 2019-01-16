@@ -93,6 +93,14 @@ void Frag(PackedVaryingsToPS packedInput,
 
         outColor = float4(result, 1.0);
     }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR || _DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    {
+        float3 result = float3(0.0, 0.0, 0.0);
+
+        GetPBRValidatorDebug(surfaceData, result);
+
+        outColor = float4(result, 1.0f);
+    }
     else
 #endif
     {
