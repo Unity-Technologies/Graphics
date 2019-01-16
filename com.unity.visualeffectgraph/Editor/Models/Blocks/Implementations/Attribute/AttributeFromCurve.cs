@@ -375,12 +375,17 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "SpeedRange"))
-                    yield return p;
+                VFXExpression speedRange = null;
+                foreach (var p in GetExpressionsFromSlots(this))
+                {
+                    if (p.name == "SpeedRange")
+                        speedRange = p.exp;
+                    else
+                        yield return p;
+                }
 
                 if (SampleMode == CurveSampleMode.BySpeed)
                 {
-                    var speedRange = inputSlots[0].GetExpression();
                     var speedRangeComponents = VFXOperatorUtility.ExtractComponents(speedRange).ToArray();
                     speedRangeComponents[1] = VFXOperatorUtility.OneExpression[VFXValueType.Float] / (speedRangeComponents[1] - speedRangeComponents[0]);
                     yield return new VFXNamedExpression(new VFXExpressionCombine(speedRangeComponents), "SpeedRange");
