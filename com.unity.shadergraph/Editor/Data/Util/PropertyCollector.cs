@@ -47,14 +47,14 @@ namespace UnityEditor.ShaderGraph
         public void GetPropertiesDeclaration(ShaderStringBuilder builder)
         {
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-            foreach (var prop in m_Properties.Where(n => n.isBatchable))
+            foreach (var prop in m_Properties.Where(n => n.isBatchable && n.generatePropertyBlock))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }
             builder.AppendLine("CBUFFER_END");
             builder.AppendNewLine();
 
-            foreach (var prop in m_Properties.Where(n => !n.isBatchable))
+            foreach (var prop in m_Properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }
