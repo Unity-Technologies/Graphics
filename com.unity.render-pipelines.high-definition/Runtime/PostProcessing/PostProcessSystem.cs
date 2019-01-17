@@ -2003,7 +2003,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void Recycle(RTHandle rt)
             {
                 Assert.IsNotNull(rt);
-                var hashCode = ComputeHashCode(rt.scaleFactor.x, rt.scaleFactor.y, (int)rt.rt.format, rt.rt.useMipMap);
+                var hashCode = ComputeHashCode(rt.scaleFactor.x, rt.scaleFactor.y, (int)rt.rt.graphicsFormat, rt.rt.useMipMap);
 
                 if (!m_Targets.TryGetValue(hashCode, out var stack))
                 {
