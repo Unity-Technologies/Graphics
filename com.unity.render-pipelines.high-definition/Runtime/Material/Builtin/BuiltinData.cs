@@ -70,45 +70,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 emissiveColor; // HDR value
         };
 
-        public static RenderTextureFormat GetLightingBufferFormat()
+        public static GraphicsFormat GetLightingBufferFormat()
         {
-            return RenderTextureFormat.RGB111110Float;
+            return GraphicsFormat.B10G11R11_UFloatPack32;
         }
 
-        public static bool GetLightingBufferSRGBFlag()
+        public static GraphicsFormat GetShadowMaskBufferFormat()
         {
-            return false;
+            return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        public static RenderTextureFormat GetShadowMaskBufferFormat()
+        public static GraphicsFormat GetVelocityBufferFormat()
         {
-            return RenderTextureFormat.ARGB32;
+            return GraphicsFormat.R16G16_SFloat; // TODO: We should use 16bit normalized instead, better precision // RGInt
         }
 
-        public static bool GetShadowMaskBufferSRGBFlag()
-        {
-            return false;
-        }
-
-        public static RenderTextureFormat GetVelocityBufferFormat()
-        {
-            return RenderTextureFormat.RGHalf; // TODO: We should use 16bit normalized instead, better precision // RGInt
-        }
-
-        public static bool GetVelocityBufferSRGBFlag()
-        {
-            return false;
-        }
-
-        public static RenderTextureFormat GetDistortionBufferFormat()
+        public static GraphicsFormat GetDistortionBufferFormat()
         {
             // TODO: // This format need to be additive blendable and include distortionBlur, blend mode different for alpha value
-            return RenderTextureFormat.ARGBHalf;
-        }
-
-        public static bool GetDistortionBufferSRGBFlag()
-        {
-            return false;
+            return GraphicsFormat.R16G16B16A16_SFloat;
         }
     }
 }

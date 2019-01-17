@@ -57,11 +57,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Reallocate everything
             if (m_SkyboxCubemapRT == null)
             {
-                m_SkyboxCubemapRT = RTHandles.Alloc(resolution, resolution, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: "SkyboxCubemap");
+                m_SkyboxCubemapRT = RTHandles.Alloc(resolution, resolution, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: "SkyboxCubemap");
 
                 if (m_SupportsConvolution)
                 {
-                    m_SkyboxBSDFCubemapIntermediate = RTHandles.Alloc(resolution, resolution, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: "SkyboxBSDFIntermediate");
+                    m_SkyboxBSDFCubemapIntermediate = RTHandles.Alloc(resolution, resolution, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: "SkyboxBSDFIntermediate");
                     m_SkyboxBSDFCubemapArray = new CubemapArray(resolution, m_IBLFilterArray.Length, TextureFormat.RGBAHalf, true)
                     {
                         hideFlags = HideFlags.HideAndDontSave,
@@ -80,10 +80,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int height = (int)LightSamplingParameters.TextureHeight;
 
                     // + 1 because we store the value of the integral of the cubemap at the end of the texture.
-                    m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(height + 1, 1, colorFormat: RenderTextureFormat.RFloat, sRGB: false, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
+                    m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(height + 1, 1, colorFormat: GraphicsFormat.R32_SFloat, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
 
                     // TODO: switch the format to R16 (once it's available) to save some bandwidth.
-                    m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(width, height, colorFormat: RenderTextureFormat.RFloat, sRGB: false, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
+                    m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R32_SFloat, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
                 }
             }
 

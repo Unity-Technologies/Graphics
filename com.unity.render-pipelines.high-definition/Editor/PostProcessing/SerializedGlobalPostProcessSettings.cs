@@ -1,5 +1,3 @@
-using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -15,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             this.root = root;
 
             lutSize = root.FindPropertyRelative("m_LutSize");
-            lutFormat = root.Find((GlobalPostProcessSettings s) => s.lutFormat);
+            lutFormat = root.FindPropertyRelative("m_LutFormat");
         }
     }
 }

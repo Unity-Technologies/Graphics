@@ -103,8 +103,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Destination targets
             m_AmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                 filterMode: FilterMode.Bilinear,
-                colorFormat: RenderTextureFormat.R8,
-                sRGB: false,
+                colorFormat: GraphicsFormat.R8_UNorm,
                 enableRandomWrite: true,
                 name: "Ambient Occlusion"
             );
@@ -113,8 +112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_MultiAmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                     filterMode: FilterMode.Bilinear,
-                    colorFormat: RenderTextureFormat.RG16,
-                    sRGB: false,
+                    colorFormat: GraphicsFormat.R8G8_UNorm,
                     enableRandomWrite: true,
                     name: "Ambient Occlusion MSAA"
                 );
@@ -140,9 +138,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 };
             }
 
-            var fmtFP16 = supportMSAA ? RenderTextureFormat.RGHalf  : RenderTextureFormat.RHalf;
-            var fmtFP32 = supportMSAA ? RenderTextureFormat.RGFloat : RenderTextureFormat.RFloat;
-            var fmtFX8  = supportMSAA ? RenderTextureFormat.RG16    : RenderTextureFormat.R8;
+            var fmtFP16 = supportMSAA ? GraphicsFormat.R16G16_SFloat  : GraphicsFormat.R16_SFloat;
+            var fmtFP32 = supportMSAA ? GraphicsFormat.R32G32_SFloat : GraphicsFormat.R32_SFloat;
+            var fmtFX8  = supportMSAA ? GraphicsFormat.R8G8_UNorm    : GraphicsFormat.R8_UNorm;
 
             // All of these are pre-allocated to 1x1 and will be automatically scaled properly by
             // the internal RTHandle system
@@ -335,7 +333,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);
         }
 
-        void Alloc(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav, string name)
+        void Alloc(out RTHandle rt, MipLevel size, GraphicsFormat format, bool uav, string name)
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
@@ -345,13 +343,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 autoGenerateMips: false,
                 enableMSAA: false,
                 enableRandomWrite: uav,
-                sRGB: false,
                 filterMode: FilterMode.Point,
                 name: name
             );
         }
 
-        void AllocArray(out RTHandle rt, MipLevel size, RenderTextureFormat format, bool uav, string name)
+        void AllocArray(out RTHandle rt, MipLevel size, GraphicsFormat format, bool uav, string name)
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
@@ -362,7 +359,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 autoGenerateMips: false,
                 enableMSAA: false,
                 enableRandomWrite: uav,
-                sRGB: false,
                 filterMode: FilterMode.Point,
                 name: name
             );

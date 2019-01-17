@@ -4,9 +4,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public enum GradingLutFormat
     {
-        RGB111110Float = RenderTextureFormat.RGB111110Float,
-        ARGBHalf = RenderTextureFormat.ARGBHalf,
-        ARGBFloat = RenderTextureFormat.ARGBFloat
+        RGB111110Float = GraphicsFormat.B10G11R11_UFloatPack32,
+        ARGBHalf = GraphicsFormat.R16G16B16A16_SFloat,
+        ARGBFloat = GraphicsFormat.R32G32B32A32_SFloat
     }
 
     [Serializable]
@@ -28,6 +28,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set => m_LutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize);
         }
 
-        public GradingLutFormat lutFormat = GradingLutFormat.ARGBHalf;
+        [SerializeField]
+        GradingLutFormat m_LutFormat = GradingLutFormat.ARGBHalf;
+
+        public GradingLutFormat lutFormat
+        {
+            get => m_LutFormat;
+            set => m_LutFormat = value;
+        }
     }
 }
