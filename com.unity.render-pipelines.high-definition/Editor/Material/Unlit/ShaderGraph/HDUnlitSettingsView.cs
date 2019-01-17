@@ -187,6 +187,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
             m_Node.surfaceType = (SurfaceType)evt.newValue;
+
+            UpdateRenderingPassValue((int)m_Node.renderingPass);
         }
 
         void ChangeDoubleSided(ChangeEvent<bool> evt)
@@ -217,17 +219,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             td.isOn = evt.newValue;
             m_Node.transparencyFog = td;
         }
-
+            
         void ChangeRenderingPass(ChangeEvent<Enum> evt)
+        {
+            UpdateRenderingPassValue(Convert.ToInt32(evt.newValue));
+        }
+
+        void UpdateRenderingPassValue(int newValue)
         {
             HDRenderQueue.RenderQueueType renderingPass;
             switch (m_Node.surfaceType)
             {
                 case SurfaceType.Opaque:
-                    renderingPass = HDRenderQueue.ConvertFromOpaqueRenderQueue((HDRenderQueue.OpaqueRenderQueue)evt.newValue);
+                    renderingPass = HDRenderQueue.ConvertFromOpaqueRenderQueue((HDRenderQueue.OpaqueRenderQueue)newValue);
                     break;
                 case SurfaceType.Transparent:
-                    renderingPass = HDRenderQueue.ConvertFromTransparentRenderQueue((HDRenderQueue.TransparentRenderQueue)evt.newValue);
+                    renderingPass = HDRenderQueue.ConvertFromTransparentRenderQueue((HDRenderQueue.TransparentRenderQueue)newValue);
                     break;
                 default:
                     throw new ArgumentException("Unknown SurfaceType");
