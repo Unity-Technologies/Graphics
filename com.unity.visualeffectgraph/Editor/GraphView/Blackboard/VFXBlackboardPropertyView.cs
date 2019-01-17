@@ -96,13 +96,14 @@ namespace  UnityEditor.VFX.UI
             int cpt = 0;
             foreach (var subController in subControllers)
             {
+                subController.RegisterHandler(this);
                 PropertyRM prop = PropertyRM.Create(subController, 85);
                 if (prop != null)
                 {
                     m_SubProperties.Add(prop);
                     Insert(insertIndex++, prop);
                 }
-                if (prop == null || !prop.showsEverything)
+                if (subController.expanded )
                 {
                     subFieldPath.Clear();
                     subFieldPath.AddRange(fieldPath);
@@ -124,7 +125,18 @@ namespace  UnityEditor.VFX.UI
             m_RangeProperty = null;
         }
 
-        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
+        {
+            if( m_Property != null && e.change == VFXSubParameterController.ExpandedChange)
+            {
+                int insertIndex = 2;
+                RecreateSubproperties(ref insertIndex);
+                foreach (var prop in allProperties)
+                {
+                    prop.Update();
+                }
+            }
+        }
 
         public void SelfChange(int change)
         {
@@ -159,20 +171,7 @@ namespace  UnityEditor.VFX.UI
                 if (m_Property != null)
                 {
                     Insert(insertIndex++, m_Property);
-
-                    if (m_SubProperties != null)
-                    {
-                        foreach (var prop in m_SubProperties)
-                        {
-                            prop.RemoveFromHierarchy();
-                        }
-                    }
-                    m_SubProperties = new List<PropertyRM>();
-                    List<int> fieldpath = new List<int>();
-                    if (!m_Property.showsEverything)
-                    {
-                        CreateSubProperties(ref insertIndex, fieldpath);
-                    }
+                    RecreateSubproperties(ref insertIndex);
                     if (m_TooltipProperty == null)
                     {
                         m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
@@ -247,6 +246,28 @@ namespace  UnityEditor.VFX.UI
             foreach (var prop in allProperties)
             {
                 prop.Update();
+            }
+        }
+
+        private void RecreateSubproperties(ref int insertIndex)
+        {
+            if (m_SubProperties != null)
+            {
+                foreach (var subProperty in m_SubProperties)
+                {
+                    (subProperty.provider as Controller).UnregisterHandler(this);
+                    subProperty.RemoveFromHierarchy();
+                }
+            }
+            else
+            {
+                m_SubProperties = new List<PropertyRM>();
+            }
+            m_SubProperties.Clear();
+            List<int> fieldpath = new List<int>();
+            if (!m_Property.showsEverything)
+            {
+                CreateSubProperties(ref insertIndex, fieldpath);
             }
         }
 

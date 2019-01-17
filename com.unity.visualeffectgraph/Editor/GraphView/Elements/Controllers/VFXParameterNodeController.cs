@@ -198,6 +198,7 @@ namespace UnityEditor.VFX.UI
         }
 
         bool IPropertyRMProvider.expandable { get { return false; } }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
 
         public object value
