@@ -79,8 +79,9 @@ namespace UnityEditor.VFX.Block
 
                 return string.Format(@"
 axisY = TargetPosition-position;
-scaleY = length(axisY) / size;
-axisY /= scaleY;
+float len = length(axisY);
+scaleY = len / size;
+axisY /= len;
 axisZ = {0};
 axisX = normalize(cross(axisY,axisZ));
 axisZ = cross(axisX,axisY);
