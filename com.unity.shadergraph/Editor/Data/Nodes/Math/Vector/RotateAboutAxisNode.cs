@@ -53,6 +53,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
+    Rotation = radians(Rotation);
+
     {precision} s = sin(Rotation);
     {precision} c = cos(Rotation);
     {precision} one_minus_c = 1.0 - c;
@@ -79,8 +81,6 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Rotation = radians(Rotation);
-
     {precision} s = sin(Rotation);
     {precision} c = cos(Rotation);
     {precision} one_minus_c = 1.0 - c;

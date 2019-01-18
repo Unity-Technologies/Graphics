@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph
             return
             @"
             {
-                Out = UnpackNormalmapRGB(In);
+                Out = UnpackNormalRGB(In);
             }
             ";
         }
