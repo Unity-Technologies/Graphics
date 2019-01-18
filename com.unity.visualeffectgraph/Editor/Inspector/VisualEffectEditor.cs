@@ -648,7 +648,7 @@ namespace UnityEditor.VFX
                             EditorGUI.BeginChangeCheck();
 
                             bool wasOverriden = actualDisplayedPropertyOverridden.boolValue;
-                            DisplayProperty(ref parameter, nameContent, actualDisplayedPropertyOverridden, actualDisplayedPropertyValue, AnimationMode.IsPropertyAnimated(target, actualDisplayedPropertyValue.propertyPath));
+                            DisplayProperty(ref parameter, nameContent, actualDisplayedPropertyOverridden, actualDisplayedPropertyValue);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 if (wasNewProperty)
