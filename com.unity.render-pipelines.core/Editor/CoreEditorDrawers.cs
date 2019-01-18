@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental.Rendering
     {
         None = 0,
         Indent = 1 << 0,
-        [Obsolete("animated inspector does not been approved by UX team")]
+        //[Obsolete("animated inspector does not been approved by UX team")]
         Animate = 1 << 1,
         Boxed = 1 << 2,
         SubFoldout = 1 << 3,
@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering
     }
 
     [Flags]
-    [Obsolete("Will disappear with CoreEditorDrawer<TUIState, TData>")]
+    //[Obsolete("Will disappear with CoreEditorDrawer<TUIState, TData>")]
     public enum FadeOption
     {
         None = 0,
@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering
         Indent = 1 << 0
     }
 
-    [Obsolete("Prefer using the version without the UIState in coordination with a static ExpandedState")]
+    //[Obsolete("Prefer using the version without the UIState in coordination with a static ExpandedState")]
     public static class CoreEditorDrawer<TUIState, TData>
     {
         public interface IDrawer
@@ -685,7 +685,7 @@ namespace UnityEditor.Experimental.Rendering
 
     public static class CoreEditorDrawersExtensions
     {
-        [Obsolete]
+        //[Obsolete]
         public static void Draw<TUIState, TData>(this IEnumerable<CoreEditorDrawer<TUIState, TData>.IDrawer> drawers, TUIState s, TData p, Editor o)
         {
             foreach (var drawer in drawers)

@@ -18,10 +18,9 @@ namespace UnityEditor.VFX.Block
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.ReadWrite);
-
-                yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.ReadWrite);
-                if (GetData().IsCurrentAttributeWritten(VFXAttribute.SizeY))
-                    yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -29,17 +28,16 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return string.Format(@"
-float2 size = {0};
+                return @"
+float2 localSize = size * float2(scaleX, scaleY);
 float clipPosW = TransformPositionVFXToClip(position).w;
 float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)); // max size in one pixel
-float2 clampedSize = max(size,minSize);
-float fade = (size.x * size.y) / (clampedSize.x * clampedSize.y);
+float2 clampedSize = max(localSize,minSize);
+float fade = (localSize.x * localSize.y) / (clampedSize.x * clampedSize.y);
 alpha *= fade;
-size = clampedSize;
-{1}",
-                    VFXBlockUtility.GetSizeVector(GetParent(), 2),
-                    VFXBlockUtility.SetSizesFromVector(GetParent(), "size", 2));
+localSize = clampedSize;
+scaleX = localSize.x / size;
+scaleY = localSize.y / size;";
             }
         }
     }

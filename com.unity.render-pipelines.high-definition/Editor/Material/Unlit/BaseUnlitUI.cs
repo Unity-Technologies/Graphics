@@ -37,32 +37,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly int[] blendModeValues = Enum.GetValues(typeof(BlendMode)) as int[];
 
-            public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
-            public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
-            public static GUIContent alphaCutoffShadowText = new GUIContent("Alpha Cutoff Shadow", "Threshold for alpha cutoff in case of shadow pass");
-            public static GUIContent alphaCutoffPrepassText = new GUIContent("Alpha Cutoff Prepass", "Threshold for alpha cutoff in case of depth prepass");
-            public static GUIContent alphaCutoffPostpassText = new GUIContent("Alpha Cutoff Postpass", "Threshold for alpha cutoff in case of depth postpass");
-            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to to fill depth buffer to improve sorting");
-            public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Enable transparent depth postpass", "It allow to fill depth buffer for postprocess effect like DOF");
-            public static GUIContent transparentBackfaceEnableText = new GUIContent("Enable back then front rendering", "It allow to better sort transparent mesh by first rendering back faces then front faces in two separate drawcall");
+            public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Clipping", "Enable Alpha Clipping");
+            public static GUIContent alphaCutoffText = new GUIContent("Threshold", "Threshold for Alpha Clipping");
+            public static GUIContent alphaCutoffShadowText = new GUIContent("Shadow Threshold", "Threshold for Alpha Clipping in case of shadow pass");
+            public static GUIContent alphaCutoffPrepassText = new GUIContent("Prepass Threshold", "Threshold for Alpha Clipping in case of transparent depth prepass");
+            public static GUIContent alphaCutoffPostpassText = new GUIContent("Postpass Threshold", "Threshold for Alpha Clipping in case of transparent depth postpass");
+            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Transparent Depth Prepass", "Render a depth prepass for transparent object - Improve sorting");
+            public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Transparent Depth Postpass", "Render a depth postpass for transparent object - Improve PostProcess effect like DOF");
+            public static GUIContent transparentBackfaceEnableText = new GUIContent("Back Then Front Rendering", "It allow to better sort transparent mesh by first rendering back faces then front faces in two separate drawcall");
 
-            public static GUIContent transparentSortPriorityText = new GUIContent("Transparent Sort Priority", "Allow to define priority (from -100 to +100) to solve sorting issue with transparent");
-            public static GUIContent enableTransparentFogText = new GUIContent("Enable fog", "Enable fog on transparent material");
-            public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Blend preserve specular lighting", "Blend mode will only affect diffuse lighting, allowing correct specular lighting (reflection) on transparent object");
+            public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Allow manually define sorting order based on priority (from -100 to +100) to solve sorting issue with transparent");
+            public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "Receive fog on transparent material");
+            public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Preserve specular lighting", "Blend mode will only affect diffuse lighting, allowing correct specular lighting (reflection) on transparent object");
 
-            public static GUIContent doubleSidedEnableText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
+            public static GUIContent doubleSidedEnableText = new GUIContent("Double-Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
-            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map - Dist(RG) Blur(B)", "Vector Map for the distorsion - Dist(RG) Blur(B)");
+            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map (RGB)", "Vector Map for the distortion\nDistortion 2D vector in (RG) and Blur amount in (B)\nScale and Bias apply to distortion vector only, not blur amount.");
             public static GUIContent distortionBlendModeText = new GUIContent("Distortion Blend Mode", "Distortion Blend Mode");
             public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Distortion Scale");
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
             public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Distortion Blur Remapping");
 
-            public static GUIContent transparentPrepassText = new GUIContent("Pre Refraction Pass", "Render objects before the refraction pass");
+            public static GUIContent transparentPrepassText = new GUIContent("Appear in Refraction", "Render objects before the refraction pass");
 
-            public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("Enable MotionVector For Vertex Animation", "This will enable an object motion vector pass for this material. Useful if wind animation is enabled or if displacement map is animated");
+            public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("MotionVector For Vertex Animation", "This will enable an object motion vector pass for this material. Useful if wind animation is enabled or if displacement map is animated");
 
             public static string advancedText = "Advanced Options";
         }
@@ -76,9 +76,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Enum values are hardcoded for retro-compatibility. Don't change them.
         public enum BlendMode
         {
+            // Note: value is due to code change, don't change the value
             Alpha = 0,
-            Additive = 1,
-            PremultipliedAlpha = 4
+            Premultiply = 4,
+            Additive = 1
         }
 
         protected MaterialEditor m_MaterialEditor;
@@ -245,17 +246,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SurfaceTypePopup();
             if (surfaceTypeValue == SurfaceType.Transparent)
             {
+                EditorGUI.indentLevel++;
+
                 if (blendMode != null && showBlendModePopup)
                     BlendModePopup();
 
                 EditorGUI.indentLevel++;
                 if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
                     m_MaterialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, StylesBaseUnlit.enableBlendModePreserveSpecularLightingText);
+                EditorGUI.indentLevel--;
+
+                if (transparentSortPriority != null)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    m_MaterialEditor.ShaderProperty(transparentSortPriority, StylesBaseUnlit.transparentSortPriorityText);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        transparentSortPriority.floatValue = Mathf.Clamp((int)transparentSortPriority.floatValue, -(int)HDRenderQueue.k_TransparentPriorityQueueRange, (int)HDRenderQueue.k_TransparentPriorityQueueRange);
+                    }
+                }
+
                 if (enableFogOnTransparent != null)
                     m_MaterialEditor.ShaderProperty(enableFogOnTransparent, StylesBaseUnlit.enableTransparentFogText);
+
                 if (preRefractionPass != null)
                     m_MaterialEditor.ShaderProperty(preRefractionPass, StylesBaseUnlit.transparentPrepassText);
+
+                if (transparentBackfaceEnable != null)
+                    m_MaterialEditor.ShaderProperty(transparentBackfaceEnable, StylesBaseUnlit.transparentBackfaceEnableText);
+
+                if (transparentDepthPrepassEnable != null)
+                    m_MaterialEditor.ShaderProperty(transparentDepthPrepassEnable, StylesBaseUnlit.transparentDepthPrepassEnableText);
+
+                if (transparentDepthPostpassEnable != null)
+                    m_MaterialEditor.ShaderProperty(transparentDepthPostpassEnable, StylesBaseUnlit.transparentDepthPostpassEnableText);
+
                 EditorGUI.indentLevel--;
+            }
+
+            // This function must finish with double sided option (see LitUI.cs)
+            if (doubleSidedEnable != null)
+            {
+                m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
             }
 
             if (alphaCutoffEnable != null)
@@ -275,48 +307,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.ShaderProperty(alphaCutoffShadow, StylesBaseUnlit.alphaCutoffShadowText);
                     }
 
-                    if (transparentDepthPrepassEnable != null)
+                    if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
                     {
-                        m_MaterialEditor.ShaderProperty(transparentDepthPrepassEnable, StylesBaseUnlit.transparentDepthPrepassEnableText);
-                        if (transparentDepthPrepassEnable.floatValue == 1.0f)
-                        {
-                            EditorGUI.indentLevel++;
-                            m_MaterialEditor.ShaderProperty(alphaCutoffPrepass, StylesBaseUnlit.alphaCutoffPrepassText);
-                            EditorGUI.indentLevel--;
-                        }
+                        m_MaterialEditor.ShaderProperty(alphaCutoffPrepass, StylesBaseUnlit.alphaCutoffPrepassText);
                     }
 
-                    if (transparentDepthPostpassEnable != null)
+                    if (transparentDepthPostpassEnable != null && transparentDepthPostpassEnable.floatValue == 1.0f)
                     {
-                        m_MaterialEditor.ShaderProperty(transparentDepthPostpassEnable, StylesBaseUnlit.transparentDepthPostpassEnableText);
-                        if (transparentDepthPostpassEnable.floatValue == 1.0f)
-                        {
-                            EditorGUI.indentLevel++;
-                            m_MaterialEditor.ShaderProperty(alphaCutoffPostpass, StylesBaseUnlit.alphaCutoffPostpassText);
-                            EditorGUI.indentLevel--;
-                        }
+                        m_MaterialEditor.ShaderProperty(alphaCutoffPostpass, StylesBaseUnlit.alphaCutoffPostpassText);
                     }
                 }
                 EditorGUI.indentLevel--;
-            }
-
-            if (transparentBackfaceEnable != null && surfaceTypeValue == SurfaceType.Transparent)
-                m_MaterialEditor.ShaderProperty(transparentBackfaceEnable, StylesBaseUnlit.transparentBackfaceEnableText);
-
-            if (transparentSortPriority != null && surfaceTypeValue == SurfaceType.Transparent)
-            {
-                EditorGUI.BeginChangeCheck();
-                m_MaterialEditor.ShaderProperty(transparentSortPriority, StylesBaseUnlit.transparentSortPriorityText);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    transparentSortPriority.floatValue = Mathf.Clamp((int)transparentSortPriority.floatValue, -(int)HDRenderQueue.k_TransparentPriorityQueueRange, (int)HDRenderQueue.k_TransparentPriorityQueueRange);
-                }
-            }
-
-            // This function must finish with double sided option (see LitUI.cs)
-            if (doubleSidedEnable != null)
-            {
-                m_MaterialEditor.ShaderProperty(doubleSidedEnable, StylesBaseUnlit.doubleSidedEnableText);
             }
         }
 
@@ -415,7 +416,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     CoreUtils.SetKeyword(material, "_BLENDMODE_ALPHA", BlendMode.Alpha == blendMode);
                     CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
-                    CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.PremultipliedAlpha == blendMode);
+                    CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.Premultiply == blendMode);
 
                     switch (blendMode)
                     {
@@ -438,7 +439,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         // PremultipliedAlpha
                         // color: src * src_a + dst * (1 - src_a)
                         // src is supposed to have been multiplied by alpha in the texture on artists side.
-                        case BlendMode.PremultipliedAlpha:
+                        case BlendMode.Premultiply:
                             material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             break;
@@ -482,6 +483,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         material.SetInt("_DistortionDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
 
                         material.SetInt("_DistortionBlurSrcBlend", (int)UnityEngine.Rendering.BlendMode.DstAlpha);
+                        material.SetInt("_DistortionBlurDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                        material.SetInt("_DistortionBlurBlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
+                        break;
+
+                    case 2: // Replace
+                        material.SetInt("_DistortionSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+
+                        material.SetInt("_DistortionBlurSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         material.SetInt("_DistortionBlurDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                         material.SetInt("_DistortionBlurBlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
                         break;
@@ -638,7 +648,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 VertexAnimationPropertiesGUI();
                 MaterialPropertiesGUI(material);
-                DoEmissionArea(material);
                 using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expandable.Advance, this))
                 {
                     if(header.expanded)

@@ -54,15 +54,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // EditorGUILayout.LabelField(_.GetContent("Budget"), EditorStyles.boldLabel);
             // ++EditorGUI.indentLevel;
-            EditorGUILayout.DelayedIntField(d.maxShadowRequests, _.GetContent("Max Requests|Max shadow requests (SR) per frame, 1 point light = 6 SR, 1 spot light = 1 SR and the directional is 4 SR"));
+            EditorGUILayout.DelayedIntField(d.maxShadowRequests, _.GetContent("Max Shadow on Screen|Max shadow on screen (S) per frame, 1 point light = 6 S, 1 spot light = 1 S and the directional is 4 S"));
             // --EditorGUI.indentLevel;
             
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField(_.GetContent("Filtering Qualities"), EditorStyles.boldLabel);
             ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(d.punctualShadowQuality, _.GetContent("Punctual"));
-            EditorGUILayout.PropertyField(d.directionalShadowQuality, _.GetContent("Directional"));
+            EditorGUILayout.PropertyField(d.shadowQuality, _.GetContent("ShadowQuality"));
             --EditorGUI.indentLevel;
 
             EditorGUILayout.Space();

@@ -9,14 +9,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static List<MaterialUpgrader> GetHDUpgraders()
         {
             var upgraders = new List<MaterialUpgrader>();
-            upgraders.Add(new StandardsToHDLitMaterialUpgrader("Standard", "HDRenderPipeline/Lit"));
-            upgraders.Add(new StandardsToHDLitMaterialUpgrader("Standard (Specular setup)", "HDRenderPipeline/Lit"));
-            upgraders.Add(new StandardsToHDLitMaterialUpgrader("Standard (Roughness setup)", "HDRenderPipeline/Lit"));
+            upgraders.Add(new StandardsToHDLitMaterialUpgrader("Standard", "HDRP/Lit"));
+            upgraders.Add(new StandardsToHDLitMaterialUpgrader("Standard (Specular setup)", "HDRP/Lit"));
+            upgraders.Add(new StandardsToHDLitMaterialUpgrader("Standard (Roughness setup)", "HDRP/Lit"));
 
-            upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Color", "HDRenderPipeline/Unlit"));
-            upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Texture", "HDRenderPipeline/Unlit"));
-            upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent", "HDRenderPipeline/Unlit"));
-            upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent Cutout", "HDRenderPipeline/Unlit"));
+            upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Color", "HDRP/Unlit"));
+            upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Texture", "HDRP/Unlit"));
+            upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent", "HDRP/Unlit"));
+            upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent Cutout", "HDRP/Unlit"));
             return upgraders;
         }
 

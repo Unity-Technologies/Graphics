@@ -23,8 +23,8 @@ namespace UnityEditor.VFX.Utils
         GenericMenu m_Menu;
         Editor m_ElementEditor;
 
-        static Color validColor = new Color(0.5f, 1.0f, 0.2f);
-        static Color invalidColor = new Color(1.0f, 0.5f, 0.2f);
+        static readonly Color validColor = new Color(0.5f, 1.0f, 0.2f);
+        static readonly Color invalidColor = new Color(1.0f, 0.5f, 0.2f);
 
         static class Styles
         {
@@ -68,9 +68,11 @@ namespace UnityEditor.VFX.Utils
             {
                 EditorGUI.BeginChangeCheck();
 
+                var fieldAttribute = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+
                 var binding = m_ElementEditor.serializedObject.targetObject;
                 var type = binding.GetType();
-                var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+                var fields = type.GetFields(fieldAttribute);
 
                 foreach (var field in fields)
                 {
@@ -90,7 +92,6 @@ namespace UnityEditor.VFX.Utils
                             if (parm != parameter.stringValue)
                             {
                                 parameter.stringValue = parm;
-                                property.FindPropertyRelative("m_Id").intValue = -1; // reset value, and wait for it to be regenerated.
                                 serializedObject.ApplyModifiedProperties();
                             }
 
@@ -99,7 +100,7 @@ namespace UnityEditor.VFX.Utils
                         }
                         else
                         {
-                            EditorGUILayout.PropertyField(property);
+                            EditorGUILayout.PropertyField(property, true);
                         }
                     }
                 }
@@ -160,7 +161,7 @@ namespace UnityEditor.VFX.Utils
             {
                 foreach (Type t in assembly.GetTypes())
                 {
-                    if (t.BaseType == typeof(VFXBinderBase))
+                    if (typeof(VFXBinderBase).IsAssignableFrom(t) && !t.IsAbstract)
                         relevantTypes.Add(t);
                 }
             }

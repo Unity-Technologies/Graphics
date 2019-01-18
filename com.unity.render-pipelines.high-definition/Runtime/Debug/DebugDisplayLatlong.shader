@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
+Shader "Hidden/HDRP/DebugDisplayLatlong"
 {
     SubShader
     {
@@ -22,7 +22,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
-            TEXTURECUBE(_InputCubemap);
+            TEXTURECUBE_ARRAY(_InputCubemap);
             SAMPLER(sampler_InputCubemap);
             float _Mipmap;
 
@@ -41,7 +41,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);// *_TextureScaleBias.xy + _TextureScaleBias.zw;
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
 
                 if (ShouldFlipDebugTexture())
                 {
@@ -55,9 +55,11 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
             {
                 uint width, height, depth, mipCount;
                 width = height = depth = mipCount = 0;
-                _InputCubemap.GetDimensions(width, height, depth, mipCount);
+                uint sliceIndex = 0;
+                _InputCubemap.GetDimensions(sliceIndex, width, height, depth, mipCount);
                 mipCount = clamp(mipCount, 0, UNITY_SPECCUBE_LOD_STEPS);
-                return SAMPLE_TEXTURECUBE_LOD(_InputCubemap, sampler_InputCubemap, LatlongToDirectionCoordinate(input.texcoord.xy), _Mipmap * mipCount) * exp2(_DebugExposure);
+
+                return SAMPLE_TEXTURECUBE_ARRAY_LOD(_InputCubemap, sampler_InputCubemap, LatlongToDirectionCoordinate(input.texcoord.xy), sliceIndex, _Mipmap * mipCount) * exp2(_DebugExposure);
             }
 
             ENDHLSL

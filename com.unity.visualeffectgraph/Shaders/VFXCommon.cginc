@@ -19,6 +19,7 @@
 #define VFX_FLT_MIN 1.175494351e-38
 #define VFX_EPSILON 1e-5
 
+#pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
 struct VFXSampler2D
 {
     Texture2D t;

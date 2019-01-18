@@ -70,7 +70,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent materialToCopyHeader = CoreEditorUtils.GetContent("Material to copy");
             public readonly GUIContent uvHeader = CoreEditorUtils.GetContent("UV|Also copy UV when doing the copy.");
             public readonly GUIContent copyButtonIcon = EditorGUIUtility.IconContent("d_UnityEditor.ConsoleWindow", "|Copy parameters of material to layer. If UV is disabled, UV will not be copied.");
-            public readonly GUIContent layersText = new GUIContent("Inputs");
+            public readonly GUIContent layersText = new GUIContent("Surface Inputs");
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
             public readonly GUIContent layerInfluenceMapMaskText = new GUIContent("Layer Influence Mask", "Layer mask");
@@ -823,9 +823,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 optionsChanged = true;
-            }
-
-            DoEmissionArea(material);
+            }            
 
             using (var header = new HeaderScope(StylesBaseUnlit.advancedText, (uint)Expandable.Advance, this))
             {

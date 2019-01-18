@@ -133,6 +133,11 @@ namespace UnityEditor.VFX.UI
             else if (pushButtonProvider.action != null)
             {
                 m_StringFieldPushButton = new VFXStringFieldPushButton(m_Label, pushButtonProvider.action, pushButtonProvider.buttonName);
+                if (isDelayed)
+                {
+                    m_StringFieldPushButton.textfield.RegisterCallback<BlurEvent>(OnFocusLost);
+                    m_StringFieldPushButton.textfield.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                }
                 return m_StringFieldPushButton;
             }
             else

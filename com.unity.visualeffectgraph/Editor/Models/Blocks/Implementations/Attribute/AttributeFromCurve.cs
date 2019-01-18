@@ -6,7 +6,40 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute/Curve", variantProvider = typeof(AttributeVariantReadWritable))]
+    class AttributeFromCurveProvider : VariantProvider
+    {
+        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        {
+            var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite };
+            var attributes = VFXAttribute.AllIncludingVariadicReadWritable.Except(new[] { VFXAttribute.Alive.name }).ToArray();
+            var sampleModes = new[] { AttributeFromCurve.CurveSampleMode.OverLife, AttributeFromCurve.CurveSampleMode.BySpeed, AttributeFromCurve.CurveSampleMode.Random }.ToArray();
+
+            foreach (var attribute in attributes)
+            {
+                foreach (var composition in compositions)
+                {
+                    foreach (var sampleMode in sampleModes)
+                    {
+                        if (attribute == VFXAttribute.Age.name && sampleMode == AttributeFromCurve.CurveSampleMode.OverLife)
+                        {
+                            continue;
+                        }
+
+                        if (attribute == VFXAttribute.Velocity.name && sampleMode == AttributeFromCurve.CurveSampleMode.BySpeed)
+                        {
+                            continue;
+                        }
+
+                        yield return new[] {    new KeyValuePair<string, object>("attribute", attribute),
+                                                new KeyValuePair<string, object>("Composition", composition),
+                                                new KeyValuePair<string, object>("SampleMode", sampleMode)};
+                    }
+                }
+            }
+        }
+    }
+
+    [VFXInfo(category = "Attribute/Curve", variantProvider = typeof(AttributeFromCurveProvider))]
     class AttributeFromCurve : VFXBlock
     {
         public enum CurveSampleMode
@@ -14,7 +47,7 @@ namespace UnityEditor.VFX.Block
             OverLife,
             BySpeed,
             Random,
-            RandomUniformPerParticle,
+            RandomConstantPerParticle,
             Custom
         }
 
@@ -53,30 +86,41 @@ namespace UnityEditor.VFX.Block
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
-        public override string libraryName
+        private string GenerateName(bool library)
         {
-            get
+            var variadicName = (currentAttribute.variadic == VFXVariadic.True && !library) ? "." + channels.ToString() : string.Empty;
+            var n = VFXBlockUtility.GetNameString(Composition) + " " + ObjectNames.NicifyVariableName(attribute) + variadicName;
+            switch (SampleMode)
             {
-                string attributeSource = currentAttribute.Equals(VFXAttribute.Color) ? "from Gradient" : "from Curve";
-                return string.Format("{0} {1} {2}", VFXBlockUtility.GetNameString(Composition), ObjectNames.NicifyVariableName(attribute), attributeSource);
+                case CurveSampleMode.OverLife: n += " over Life"; break;
+                case CurveSampleMode.BySpeed: n += " by Speed"; break;
+                case CurveSampleMode.Random: n += " randomized"; break;
+                case CurveSampleMode.RandomConstantPerParticle: n += " randomized"; break;
+                case CurveSampleMode.Custom: n += " custom"; break;
+                default:
+                    throw new NotImplementedException("Invalid CurveSampleMode");
             }
+
+            if (library && attribute == VFXAttribute.Color.name)
+            {
+                n += " (Gradient)";
+            }
+            return n;
         }
 
         public override string name
         {
             get
             {
-                string n = VFXBlockUtility.GetNameString(Composition) + " " + ObjectNames.NicifyVariableName(attribute);
-                switch (SampleMode)
-                {
-                    case CurveSampleMode.OverLife: return n + " over Life";
-                    case CurveSampleMode.BySpeed: return n + " by Speed";
-                    case CurveSampleMode.Random: return n + " randomized";
-                    case CurveSampleMode.RandomUniformPerParticle: return n + " randomized";
-                    case CurveSampleMode.Custom: return n + " custom";
-                    default:
-                        throw new NotImplementedException("Invalid CurveSampleMode");
-                }
+                return GenerateName(false);
+            }
+        }
+
+        public override string libraryName
+        {
+            get
+            {
+                return GenerateName(true);
             }
         }
 
@@ -112,30 +156,36 @@ namespace UnityEditor.VFX.Block
                     }
                 }
 
-                yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
+                switch (SampleMode)
+                {
+                    case CurveSampleMode.OverLife:
+                        yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
+                        yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
+                        break;
 
-                if (SampleMode == CurveSampleMode.BySpeed)
-                    yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.Read);
+                    case CurveSampleMode.BySpeed:
+                        yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.Read);
+                        break;
 
-                if (SampleMode == CurveSampleMode.Random) yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
-                if (SampleMode == CurveSampleMode.RandomUniformPerParticle) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
+                    case CurveSampleMode.Random:
+                        yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
+                        break;
+
+                    case CurveSampleMode.RandomConstantPerParticle:
+                        yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
+                        break;
+
+                    default:
+                        break;
+
+                }
             }
         }
 
         public override void Sanitize(int version)
         {
-            string newAttrib;
-            VariadicChannelOptions channel;
-
-            // Changes attribute to variadic version
-            if (VFXBlockUtility.ConvertToVariadicAttributeIfNeeded(attribute, out newAttrib, out channel))
-            {
-                Debug.Log(string.Format("Sanitizing AttributeFromCurve: Convert {0} to variadic attribute {1} with channel {2}", attribute, newAttrib, channel));
-                attribute = newAttrib;
-                channels = channel;
+            if (VFXBlockUtility.SanitizeAttribute(ref attribute, ref channels, version))
                 Invalidate(InvalidationCause.kSettingChanged);
-            }
 
             base.Sanitize(version);
         }
@@ -249,7 +299,7 @@ namespace UnityEditor.VFX.Block
                 case CurveSampleMode.OverLife: output = "float t = age / lifetime;\n"; break;
                 case CurveSampleMode.BySpeed: output = "float t = saturate((length(velocity) - SpeedRange.x) * SpeedRange.y);\n"; break;
                 case CurveSampleMode.Random: output = "float t = RAND;\n"; break;
-                case CurveSampleMode.RandomUniformPerParticle: output = "float t = FIXED_RAND(0x34634bc2);\n"; break;
+                case CurveSampleMode.RandomConstantPerParticle: output = "float t = FIXED_RAND(Seed);\n"; break;
                 case CurveSampleMode.Custom: output = "float t = SampleTime;\n"; break;
                 default:
                     throw new NotImplementedException("Invalid CurveSampleMode");
@@ -289,11 +339,6 @@ namespace UnityEditor.VFX.Block
                 if (attrib.variadic == VFXVariadic.True)
                     size = channels.ToString().Length;
 
-                if (SampleMode == CurveSampleMode.BySpeed)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange", new VFXPropertyAttribute[] { new VFXPropertyAttribute(VFXPropertyAttribute.Type.kMin, 0.0f) }));
-                else if (SampleMode == CurveSampleMode.Custom)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "SampleTime"));
-
                 string localName = GenerateLocalAttributeName(attrib.name);
                 if (Mode == ComputeMode.Uniform || size == 1)
                 {
@@ -314,6 +359,13 @@ namespace UnityEditor.VFX.Block
                     }
                 }
 
+                if (SampleMode == CurveSampleMode.BySpeed)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange", new VFXPropertyAttribute[] { new VFXPropertyAttribute(VFXPropertyAttribute.Type.kMin, 0.0f) }));
+                else if (SampleMode == CurveSampleMode.Custom)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "SampleTime"));
+                else if (SampleMode == CurveSampleMode.RandomConstantPerParticle)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "Seed"));
+
                 if (Composition == AttributeCompositionMode.Blend || (attrib.Equals(VFXAttribute.Color) && AlphaComposition == AttributeCompositionMode.Blend))
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend"));
             }
@@ -323,12 +375,17 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "SpeedRange"))
-                    yield return p;
+                VFXExpression speedRange = null;
+                foreach (var p in GetExpressionsFromSlots(this))
+                {
+                    if (p.name == "SpeedRange")
+                        speedRange = p.exp;
+                    else
+                        yield return p;
+                }
 
                 if (SampleMode == CurveSampleMode.BySpeed)
                 {
-                    var speedRange = inputSlots[0].GetExpression();
                     var speedRangeComponents = VFXOperatorUtility.ExtractComponents(speedRange).ToArray();
                     speedRangeComponents[1] = VFXOperatorUtility.OneExpression[VFXValueType.Float] / (speedRangeComponents[1] - speedRangeComponents[0]);
                     yield return new VFXNamedExpression(new VFXExpressionCombine(speedRangeComponents), "SpeedRange");

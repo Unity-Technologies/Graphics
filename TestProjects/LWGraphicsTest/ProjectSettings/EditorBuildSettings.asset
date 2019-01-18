@@ -101,7 +101,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/037_Particles_Standard.unity
     guid: 67bc76c89479b264aa4a5c176433ec3a
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/040_UpgradeScene.unity
     guid: 5b50bbd7a4d4f4f49b5a50ebed1ba42c
   - enabled: 1
@@ -116,7 +116,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/044_Lighting_ReflectionProbe.unity
     guid: 0feef353efdf045989e9c2b501774338
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/045_CustomLWPipe.unity
     guid: 349df85634812cd4e9157f31eace4abe
   - enabled: 1

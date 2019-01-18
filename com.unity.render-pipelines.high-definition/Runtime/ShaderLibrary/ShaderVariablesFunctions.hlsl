@@ -147,4 +147,27 @@ float2 TexCoordStereoOffset(float2 texCoord)
 #endif
     return texCoord;
 }
+
+// This function assumes the bitangent flip is encoded in tangentWS.w
+float3x3 BuildWorldToTangent(float4 tangentWS, float3 normalWS)
+{
+    // tangentWS must not be normalized (mikkts requirement)
+
+    // Normalize normalWS vector but keep the renormFactor to apply it to bitangent and tangent
+    float3 unnormalizedNormalWS = normalWS;
+    float renormFactor = 1.0 / length(unnormalizedNormalWS);
+
+    // bitangent on the fly option in xnormal to reduce vertex shader outputs.
+    // this is the mikktspace transformation (must use unnormalized attributes)
+    float3x3 worldToTangent = CreateWorldToTangent(unnormalizedNormalWS, tangentWS.xyz, tangentWS.w > 0.0 ? 1.0 : -1.0);
+
+    // surface gradient based formulation requires a unit length initial normal. We can maintain compliance with mikkts
+    // by uniformly scaling all 3 vectors since normalization of the perturbed normal will cancel it.
+    worldToTangent[0] = worldToTangent[0] * renormFactor;
+    worldToTangent[1] = worldToTangent[1] * renormFactor;
+    worldToTangent[2] = worldToTangent[2] * renormFactor;		// normalizes the interpolated vertex normal
+
+    return worldToTangent;
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

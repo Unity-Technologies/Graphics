@@ -4,11 +4,33 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [4.2.0-preview] - 2018-10-xx
+## [4.9.0-preview] - 2019-XX-XX
+
+## [4.8.0-preview] - 2019-01-16
+
+## [4.7.0-preview] - 2019-01-13
+### Added
+- You can now inject a custom render pass before rendering opaque objects. To do so, implement an `IBeforeRender` interface. 
+
+### Fixed
+- LWRP now renders shadows on scaled objects correctly. [Case 1109017](https://issuetracker.unity3d.com/issues/scaled-objects-render-shadows-and-specularity-incorrectly-in-the-lwrp-on-device)
+- Realtime shadows now work in GLES2. [Case 1087251](https://issuetracker.unity3d.com/issues/android-lwrp-no-real-time-light-and-shadows-using-gles2)
+- Fixed rendering in the gamma color space, so it doesn't appear darker.
+
+## [4.6.0-preview] - 2018-12-07
+
+### Fixed
+- Fixed artifacts when using multiple or Depth Only cameras. [Case 1072615](https://issuetracker.unity3d.com/issues/ios-using-multiple-cameras-in-the-scene-in-lightweight-render-pipeline-gives-corrupted-image-in-ios-device)
+- Fixed a typo in ERROR_ON_UNSUPPORTED_FUNCTION() that was causing the shader compiler to run out of memory in GLES2. [Case 1104271] (https://issuetracker.unity3d.com/issues/mobile-os-restarts-because-of-high-memory-usage-when-compiling-shaders-for-opengles2)
+
+## [4.3.0-preview] - 2018-11-23
+
+## [4.2.0-preview] - 2018-11-16
 ### Fixed
 - When you select __Per Vertex__ option for __Additional Lights__, the __Per Object Limit__ option is not greyed out anymore.
 - When you change camera viewport height to values above 1.0, the Unity Editor doesn't freeze anymore. [case 1097497](https://issuetracker.unity3d.com/issues/macos-lwrp-editor-freezes-after-changing-cameras-viewport-rect-values)
 - When you use AR with LWRP, the following error message is not displayed in the console anymore: "The camera list passed to the render pipeline is either null or empty."
+- LWRP materials now properly bake emission values. [case 1097667](https://issuetracker.unity3d.com/product/unity/issues/guid/1097667/)
  
 
 ## [4.1.0-preview] - 2018-10-18

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
+  m_Name: Simple Static Mesh
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
@@ -20,6 +20,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114327527808569384}
   m_ParameterInfo: []
+  m_GraphVersion: 1
   m_saved: 1
 --- !u!114 &114195964666403586
 MonoBehaviour:
@@ -69,6 +70,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
+  systemInfos: []
   categories: []
   uiBounds:
     serializedVersion: 2
@@ -99,6 +101,7 @@ MonoBehaviour:
   - {fileID: 114438663863757544}
   - {fileID: 114666935310072058}
   m_OutputSlots: []
+  m_Label: 
   m_Data: {fileID: 114864351922056252}
   m_InputFlowSlot:
   - link: []
@@ -192,7 +195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44f205d2606d1a4a91cfa6aa5ca9d87, type: 3}
   m_Name: VFXDataMesh
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
+  m_Parent: {fileID: 114044576383392884}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
@@ -257,17 +260,17 @@ VisualEffectResource:
         m_Array:
         - m_ExpressionIndex: 3
           m_Value:
-            e00: 0
+            e00: 1
             e01: 0
             e02: 0
             e03: 0
             e10: 0
-            e11: 0
+            e11: 1
             e12: 0
             e13: 0
             e20: 0
             e21: 0
-            e22: 0
+            e22: 1
             e23: 0
             e30: 0
             e31: 0
@@ -359,7 +362,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614533}
   - {fileID: 8926484042661614537}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 8926484042661614528}
   m_MasterData:
@@ -368,7 +371,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.Transform, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: 
+      m_SerializableObject: '{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}'
     m_Space: 0
   m_Property:
     name: transform

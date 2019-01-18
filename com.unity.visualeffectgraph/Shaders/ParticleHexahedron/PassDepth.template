@@ -29,11 +29,11 @@ Pass
 	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
-	float frag(ps_input i) : SV_Target0
+	float4 frag(ps_input i) : SV_Target0
 	{
 		float alpha = VFXGetFragmentColor(i).a;		
 		VFXClipFragmentColor(alpha,i);
-		return 0;
+		return (float4)0;
 	}
 	ENDHLSL
 }

@@ -27,6 +27,10 @@ Pass
 		nointerpolation float4 viewToDecal0 : TEXCOORD2;
 		nointerpolation float4 viewToDecal1 : TEXCOORD3;
 		nointerpolation float4 viewToDecal2 : TEXCOORD4;
+		
+		#if VFX_NEEDS_POSWS_INTERPOLATOR
+		float3 posWS : TEXCOORD5;
+		#endif
 	};
 	
 	struct ps_output
@@ -44,9 +48,12 @@ Pass
 #define VFX_VARYING_FLIPBOOKSIZE flipbookSize.xy
 #define VFX_VARYING_INVFLIPBOOKSIZE flipbookSize.zw
 #endif
+#if VFX_NEEDS_POSWS_INTERPOLATOR
+#define VFX_VARYING_POSWS posWS
+#endif
 				
 	${VFXBegin:VFXVertexAdditionalProcess}
-float4x4 viewToDecal = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size,position);
+float4x4 viewToDecal = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
 #if VFX_LOCAL_SPACE
 viewToDecal = mul(viewToDecal, VFXGetWorldToObjectMatrix());
 #endif
@@ -93,6 +100,7 @@ o.viewToDecal2 = viewToDecal[2];
 		
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
+		o.color.a = saturate(o.color.a);
 		return o;
 	}
 	ENDHLSL

@@ -310,6 +310,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _NormalBufferTexture = Shader.PropertyToID("_NormalBufferTexture");
 
+        public static readonly int _EnableSSRefraction = Shader.PropertyToID("_EnableSSRefraction");
         public static readonly int _SSRefractionInvScreenWeightDistance = Shader.PropertyToID("_SSRefractionInvScreenWeightDistance");
 
         public static readonly int _SsrIterLimit                      = Shader.PropertyToID("_SsrIterLimit");

@@ -13,6 +13,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public void OnPreprocessBuild(BuildReport report)
         {
+            // Detect if the users forget to assign an HDRP Asset
+            if (GraphicsSettings.renderPipelineAsset == null)
+            {
+                if (!Application.isBatchMode)
+                {
+                    if (!EditorUtility.DisplayDialog("Build Player",
+                                                    "There is no HDRP Asset provided in GraphicsSettings.\nAre you sure you want to continue ?\n Build time can be extremely long without it.", "Ok", "Cancel"))
+                    {
+                        throw new BuildFailedException("Stop build on request.");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("There is no HDRP Asset provided in GraphicsSettings. Build time can be extremely long without it.");
+                }
+
+                return;
+            }
+
             // Don't execute the preprocess if we are not HDRenderPipeline
             HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             if (hdPipelineAsset == null)
@@ -22,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (HDUtils.IsSupportedBuildTarget(report.summary.platform) && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
                 return;
 
-            string msg = "The platform " + report.summary.platform.ToString() + " is not supported with Hight Definition Render Pipeline";
+            string msg = "The platform " + report.summary.platform.ToString() + " is not supported with High Definition Render Pipeline";
 
             // Throw an exception to stop the build
             throw new BuildFailedException(msg);

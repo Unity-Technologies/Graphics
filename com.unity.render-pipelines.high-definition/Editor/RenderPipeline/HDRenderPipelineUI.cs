@@ -13,9 +13,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent defaultFrameSettingsContent = CoreEditorUtils.GetContent("Default Frame Settings For");
         static readonly GUIContent renderPipelineResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Resources|Set of resources that need to be loaded when creating stand alone");
         static readonly GUIContent renderPipelineEditorResourcesContent = CoreEditorUtils.GetContent("Render Pipeline Editor Resources|Set of resources that need to be loaded for working in editor");
-        static readonly GUIContent diffusionProfileSettingsContent = CoreEditorUtils.GetContent("Diffusion Profile Settings");
-        //static readonly GUIContent enableShaderVariantStrippingContent = CoreEditorUtils.GetContent("Enable Shader Variant Stripping");
-        static readonly GUIContent enableSRPBatcher = CoreEditorUtils.GetContent("Enable SRP Batcher (experimental)");
+        static readonly GUIContent diffusionProfileSettingsContent = CoreEditorUtils.GetContent("Diffusion Profile List");
+        //static readonly GUIContent enableShaderVariantStrippingContent = CoreEditorUtils.GetContent("Shader Variant Stripping");
+        static readonly GUIContent enableSRPBatcher = CoreEditorUtils.GetContent("SRP Batcher (experimental)");
+        static readonly GUIContent enableVariantStrippingLog = CoreEditorUtils.GetContent("Shader Variant Log");
 
         internal enum SelectedFrameSettings { Camera, BakedOrCustomReflection, RealtimeReflection };
         internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
@@ -164,7 +165,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.PropertyField(d.diffusionProfileSettings, diffusionProfileSettingsContent);
             // EditorGUILayout.PropertyField(d.allowShaderVariantStripping, enableShaderVariantStrippingContent);
-            EditorGUILayout.PropertyField(d.enableSRPBatcher, enableSRPBatcher);            
+            EditorGUILayout.PropertyField(d.enableSRPBatcher, enableSRPBatcher);
+            EditorGUILayout.PropertyField(d.enableVariantStrippingLog, enableVariantStrippingLog);
         }
     }
 }

@@ -79,7 +79,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (new EditorGUI.DisabledScope(!d.supportSubsurfaceScattering.boolValue))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(d.increaseSssSampleCount, _.GetContent("Increase SSS Sample Count|This allows for better SSS quality. Warning: high performance cost, do not enable on consoles."));
+                EditorGUILayout.PropertyField(d.increaseSssSampleCount, _.GetContent("High quality |This allows for better SSS quality. Warning: high performance cost, do not enable on consoles."));
                 --EditorGUI.indentLevel;
             }
 
@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (new EditorGUI.DisabledScope(!d.supportVolumetrics.boolValue))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(d.increaseResolutionOfVolumetrics, _.GetContent("Increase resolution of volumetrics|Increase the resolution of volumetric lighting buffers. Warning: high performance cost, do not enable on consoles."));
+                EditorGUILayout.PropertyField(d.increaseResolutionOfVolumetrics, _.GetContent("High quality |Increase the resolution of volumetric lighting buffers. Warning: high performance cost, do not enable on consoles."));
                 --EditorGUI.indentLevel;
             }
 
@@ -101,13 +101,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (new EditorGUI.DisabledScope(!msaaAllowed))
             {
                 ++EditorGUI.indentLevel;
-                d.supportMSAA.boolValue = EditorGUILayout.Toggle(_.GetContent("Support Multi Sampling Anti-Aliasing|This feature only work when only ForwardOnly LitShaderMode is supported."), d.supportMSAA.boolValue && msaaAllowed);
-                using (new EditorGUI.DisabledScope(!d.supportMSAA.boolValue))
-                {
-                    ++EditorGUI.indentLevel;
-                    EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
-                    --EditorGUI.indentLevel;
-                }
+                EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Quality|This feature only work when only ForwardOnly LitShaderMode is supported. Allow to select the quality of MSAA."));
                 --EditorGUI.indentLevel;
             }
 
@@ -115,15 +109,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(d.supportMotionVectors, _.GetContent("Motion Vectors|Motion vector are use for Motion Blur, TAA, temporal re-projection of various effect like SSR."));
             EditorGUILayout.PropertyField(d.supportRuntimeDebugDisplay, _.GetContent("Runtime debug display|Remove all debug display shader variant only in the player. Allow faster build."));
             EditorGUILayout.PropertyField(d.supportDitheringCrossFade, _.GetContent("Dithering cross fade|Remove all dithering cross fade shader variant only in the player. Allow faster build."));
+            EditorGUILayout.PropertyField(d.supportDistortion, _.GetContent("Distortion|Remove all distortion shader variants only in the player. Allow faster build."));
+            EditorGUILayout.PropertyField(d.supportTransparentBackface, _.GetContent("Transparent Backface|Remove all Transparent backface shader variants only in the player. Allow faster build."));
+            EditorGUILayout.PropertyField(d.supportTransparentDepthPrepass, _.GetContent("Transparent Depth Prepass|Remove all Transparent Depth Prepass shader variants only in the player. Allow faster build."));
+            EditorGUILayout.PropertyField(d.supportTransparentDepthPostpass, _.GetContent("Transparent Depth Postpass|Remove all Transparent Depth Postpass shader variants only in the player. Allow faster build."));
+
 
             // Only display the support ray tracing feature if the platform supports it
-        #if REALTIME_RAYTRACING_SUPPORT
+#if REALTIME_RAYTRACING_SUPPORT
             if(UnityEngine.SystemInfo.supportsRayTracing)
             {
                 EditorGUILayout.PropertyField(d.supportRayTracing, _.GetContent("Support Realtime Raytracing."));
             }
             else
-        #endif
+#endif
             {
                 d.supportRayTracing.boolValue = false;
             }

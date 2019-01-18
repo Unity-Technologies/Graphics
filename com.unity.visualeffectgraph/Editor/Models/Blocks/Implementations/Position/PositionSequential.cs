@@ -6,9 +6,9 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    class PositionSequentialVariantProvider : IVariantProvider
+    class PositionSequentialVariantProvider : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {
@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Block
         }
     }
 
-    [VFXInfo(category = "Position", variantProvider = typeof(PositionSequentialVariantProvider), experimental = true)]
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionSequentialVariantProvider))]
     class PositionSequential : VFXBlock
     {
         public enum SequentialShape

@@ -265,8 +265,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Update viewport sizes.
             m_ViewportSizePrevFrame = new Vector2Int(m_ActualWidth, m_ActualHeight);
-            m_ActualWidth = camera.pixelWidth;
-            m_ActualHeight = camera.pixelHeight;
+            m_ActualWidth = Math.Max(camera.pixelWidth, 1);
+            m_ActualHeight = Math.Max(camera.pixelHeight, 1);
 
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
@@ -730,7 +730,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Set up UnityPerView CBuffer.
         public void SetupGlobalParams(CommandBuffer cmd, float time, float lastTime, uint frameCount)
         {
-            var postProcessLayer = camera.GetComponent<PostProcessLayer>(); 
+            var postProcessLayer = camera.GetComponent<PostProcessLayer>();
             bool taaEnabled = camera.cameraType == CameraType.Game &&
                               HDUtils.IsTemporalAntialiasingActive(postProcessLayer);
 

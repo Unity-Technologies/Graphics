@@ -118,33 +118,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldCullingMask(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.cullingMask, cullingMaskContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.cullingMask, cullingMaskContent);
         }
 
         static void Drawer_Projection(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            CameraProjection projection = p.orthographic.boolValue ? CameraProjection.Orthographic : CameraProjection.Perspective;
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = p.orthographic.hasMultipleDifferentValues;
-            projection = (CameraProjection)EditorGUILayout.EnumPopup(projectionContent, projection);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-                p.orthographic.boolValue = (projection == CameraProjection.Orthographic);
-
-            if (!p.orthographic.hasMultipleDifferentValues)
-            {
-                if (projection == CameraProjection.Orthographic)
-                    EditorGUILayout.PropertyField(p.orthographicSize, sizeContent);
-                else
-                    EditorGUILayout.Slider(p.fieldOfView, 1f, 179f, fieldOfViewContent);
-            }
+            p.baseCameraSettings.DrawProjection();
         }
 
         static void Drawer_FieldClippingPlanes(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
             CoreEditorUtils.DrawMultipleFields(
                 clippingPlaneMultiFieldTitle,
-                new[] { p.nearClippingPlane, p.farClippingPlane },
+                new[] { p.baseCameraSettings.nearClippingPlane, p.baseCameraSettings.farClippingPlane },
                 new[] { nearPlaneContent, farPlaneContent });
         }
 
@@ -172,12 +158,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldNormalizedViewPort(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.normalizedViewPortRect, viewportContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.normalizedViewPortRect, viewportContent);
         }
 
         static void Drawer_FieldDepth(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.depth, depthContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.depth, depthContent);
         }
 
         static void Drawer_FieldClear(HDCameraUI s, SerializedHDCamera p, Editor owner)
@@ -195,13 +181,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldRenderTarget(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.targetTexture);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.targetTexture);
 
             // show warning if we have deferred but manual MSAA set
             // only do this if the m_TargetTexture has the same values across all target cameras
-            if (!p.targetTexture.hasMultipleDifferentValues)
+            if (!p.baseCameraSettings.targetTexture.hasMultipleDifferentValues)
             {
-                var targetTexture = p.targetTexture.objectReferenceValue as RenderTexture;
+                var targetTexture = p.baseCameraSettings.targetTexture.objectReferenceValue as RenderTexture;
                 if (targetTexture
                     && targetTexture.antiAliasing > 1
                     && p.frameSettings.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred)
@@ -213,7 +199,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldOcclusionCulling(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.occlusionCulling, occlusionCullingContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.occlusionCulling, occlusionCullingContent);
         }
 
         static void Drawer_CameraWarnings(HDCameraUI s, SerializedHDCamera p, Editor owner)
@@ -228,8 +214,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldVR(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.stereoSeparation, stereoSeparationContent);
-            EditorGUILayout.PropertyField(p.stereoConvergence, stereoConvergenceContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.stereoSeparation, stereoSeparationContent);
+            EditorGUILayout.PropertyField(p.baseCameraSettings.stereoConvergence, stereoConvergenceContent);
         }
 
 #if ENABLE_MULTIPLE_DISPLAYS
@@ -237,9 +223,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (ModuleManager_ShouldShowMultiDisplayOption())
             {
-                var prevDisplay = p.targetDisplay.intValue;
-                EditorGUILayout.IntPopup(p.targetDisplay, DisplayUtility_GetDisplayNames(), DisplayUtility_GetDisplayIndices(), targetDisplayContent);
-                if (prevDisplay != p.targetDisplay.intValue)
+                var prevDisplay = p.baseCameraSettings.targetDisplay.intValue;
+                EditorGUILayout.IntPopup(p.baseCameraSettings.targetDisplay, DisplayUtility_GetDisplayNames(), DisplayUtility_GetDisplayIndices(), targetDisplayContent);
+                if (prevDisplay != p.baseCameraSettings.targetDisplay.intValue)
                     UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
         }
@@ -250,7 +236,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldTargetEye(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.IntPopup(p.targetEye, k_TargetEyes, k_TargetEyeValues, targetEyeContent);
+            EditorGUILayout.IntPopup(p.baseCameraSettings.targetEye, k_TargetEyes, k_TargetEyeValues, targetEyeContent);
         }
 
         static MethodInfo k_DisplayUtility_GetDisplayIndices = Type.GetType("UnityEditor.DisplayUtility,UnityEditor")

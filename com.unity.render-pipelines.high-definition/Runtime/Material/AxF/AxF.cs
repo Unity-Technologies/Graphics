@@ -23,9 +23,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Tangent", true)]
             public Vector3  tangentWS;
 
-            [SurfaceDataAttributes("BiTangent", true)]
-            public Vector3  biTangentWS;
-
             // SVBRDF Variables
             [SurfaceDataAttributes("Diffuse Color", false, true)]
             public Vector3  diffuseColor;
@@ -33,10 +30,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3  specularColor;
 
-            [SurfaceDataAttributes("Fresnel F0", false, true)]
+            [SurfaceDataAttributes("Fresnel F0")]
             public Vector3  fresnelF0;
 
-            [SurfaceDataAttributes("Specular Lobe", false, true)]
+            [SurfaceDataAttributes("Specular Lobe")]
             public Vector2  specularLobe;
 
             [SurfaceDataAttributes("Height")]
@@ -58,14 +55,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Clearcoat Color")]
             public Vector3  clearcoatColor;
 
-            [SurfaceDataAttributes("Clearcoat Normal", true, true)]
+            [SurfaceDataAttributes("Clearcoat Normal", true)]
             public Vector3  clearcoatNormalWS;
 
             [SurfaceDataAttributes("Clearcoat IOR")]
             public float    clearcoatIOR;
 
-            [SurfaceDataAttributes(new string[] {"Geometric Normal"}, true)]
-            public Vector3 geomNormalWS;
+            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space" }, true)]
+            public Vector3  geomNormalWS;
         };
 
         //-----------------------------------------------------------------------------
@@ -77,7 +74,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3  normalWS;
+            [SurfaceDataAttributes("", true)]
             public Vector3  tangentWS;
+            [SurfaceDataAttributes("", true)]
             public Vector3  biTangentWS;
 
             // SVBRDF Variables
@@ -86,7 +85,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3  fresnelF0;
             public Vector2  roughness;
             public float    height_mm;
-            public float    anisotropyAngle;
 
             // Car Paint Variables
             [SurfaceDataAttributes("")]
@@ -99,9 +97,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Clearcoat
             public Vector3  clearcoatColor;
+            [SurfaceDataAttributes("", true)]
             public Vector3  clearcoatNormalWS;
             public float    clearcoatIOR;
 
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
         };
 
@@ -203,18 +203,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_precomputedFGDTablesAreInit = true;
         }
 
-        public override void Bind()
+        public override void Bind(CommandBuffer cmd)
         {
             if (m_preIntegratedFGD_Ward == null ||  m_preIntegratedFGD_CookTorrance == null)
             {
                 throw new Exception("Ward & Cook-Torrance BRDF pre-integration table not available!");
             }
 
-            Shader.SetGlobalTexture(_PreIntegratedFGD_Ward, m_preIntegratedFGD_Ward);
-            Shader.SetGlobalTexture(_PreIntegratedFGD_CookTorrance, m_preIntegratedFGD_CookTorrance);
+            cmd.SetGlobalTexture(_PreIntegratedFGD_Ward, m_preIntegratedFGD_Ward);
+            cmd.SetGlobalTexture(_PreIntegratedFGD_CookTorrance, m_preIntegratedFGD_CookTorrance);
 
             // LTC Data
-            Shader.SetGlobalTexture(_AxFLtcData, m_LtcData);
+            cmd.SetGlobalTexture(_AxFLtcData, m_LtcData);
         }
     }
 }

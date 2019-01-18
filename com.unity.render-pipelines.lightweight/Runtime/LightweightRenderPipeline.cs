@@ -32,6 +32,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static int _ScaledScreenParams;
         }
 
+        public const string k_ShaderTagName = "LightweightPipeline";
+
         private static IRendererSetup s_DefaultRendererSetup;
         private static IRendererSetup defaultRendererSetup
         {
@@ -266,6 +268,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
+
+            // Disables postprocessing in mobile VR. It's stable on mobile yet.
+            if (cameraData.isStereoEnabled && Application.isMobilePlatform)
+                cameraData.postProcessEnabled = false;
 
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||

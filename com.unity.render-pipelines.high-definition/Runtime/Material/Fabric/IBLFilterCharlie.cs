@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     for (int face = 0; face < 6; ++face)
                     {
                         var faceSize = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
-                        var transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, faceSize, worldToViewMatrices[face], true);
+                        var transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, faceSize, worldToViewMatrices[face], true);
 
                         props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
 

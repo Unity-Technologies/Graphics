@@ -98,8 +98,7 @@ namespace UnityEditor.VFX.UI
             title = m_TitleField.value;
             m_TitleField.visible = false;
 
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-
+            GetFirstAncestorOfType<VFXView>();
             controller.title = title;
         }
 
@@ -412,6 +411,8 @@ namespace UnityEditor.VFX.UI
             if (view == null || m_Controller == null)
                 return;
             contexts = controller.contexts.Select(t => view.GetGroupNodeElement(t) as VFXContextUI).ToArray();
+
+            title = controller.title;
         }
         public void OnControllerChanged(ref ControllerChangedEvent e)
         {

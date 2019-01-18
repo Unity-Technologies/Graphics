@@ -38,11 +38,27 @@ namespace UnityEditor.VFX
         public abstract VFXContextType compatibleContexts { get; }
         public abstract VFXDataType compatibleData { get; }
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
-        public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); }}
+        public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
 
-        protected VFXData GetData()
+        public IEnumerable<VFXAttributeInfo> mergedAttributes
+        {
+            get
+            {
+                 var attribs = new Dictionary< VFXAttribute, VFXAttributeMode >();
+                 foreach (var a in attributes)
+                 {
+                     VFXAttributeMode mode = VFXAttributeMode.None;
+                     attribs.TryGetValue(a.attrib, out mode);
+                     mode |= a.mode;
+                     attribs[a.attrib] = mode;
+                 }
+                 return attribs.Select(kvp => new VFXAttributeInfo(kvp.Key,kvp.Value));
+            }
+        }
+
+        public VFXData GetData()
         {
             if (GetParent() != null)
                 return GetParent().GetData();

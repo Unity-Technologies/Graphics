@@ -64,6 +64,7 @@ namespace UnityEditor.Experimental.Rendering
             where T : VolumeComponent
         {
             var comp = profile.Add<T>(overrides);
+            comp.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
             AssetDatabase.AddObjectToAsset(comp, profile);
 
             if (saveAsset)

@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
+Shader "Hidden/HDRP/Sky/HDRISky"
 {
     HLSLINCLUDE
 

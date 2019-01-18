@@ -9,7 +9,7 @@
 //-----------------------------------------------------------------------------
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl" // Require for GetIndexColor auto generated
-#include "BuiltinData.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // helper macro
@@ -49,7 +49,7 @@ void EncodeDistortion(float2 distortion, float distortionBlur, bool isValidSourc
 {
     // RT - 16:16:16:16 float
     // distortionBlur in alpha for a different blend mode
-    outBuffer = float4(distortion, isValidSource, distortionBlur);
+    outBuffer = float4(distortion, isValidSource, distortionBlur); // Caution: Blend mode depends on order of attribut here, can't change without updating blend mode.
 }
 
 void DecodeDistortion(float4 inBuffer, out float2 distortion, out float distortionBlur, out bool isValidSource)

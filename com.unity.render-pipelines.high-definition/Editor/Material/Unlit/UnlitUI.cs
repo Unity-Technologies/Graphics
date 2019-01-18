@@ -10,11 +10,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static class Styles
         {
-            public static string InputsText = "Inputs";
+            public static string InputsText = "Surface Inputs";
 
             public static GUIContent colorText = new GUIContent("Color", "Color");
 
-            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
+            public static string emissiveLabelText = "Emission Inputs";
+            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");            
         }
 
         protected MaterialProperty color = null;
@@ -43,11 +44,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     m_MaterialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
                     m_MaterialEditor.TextureScaleOffsetProperty(colorMap);
-
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-                    m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
                 }
             }
+
             var surfaceTypeValue = (SurfaceType)surfaceType.floatValue;
             if (surfaceTypeValue == SurfaceType.Transparent)
             {
@@ -57,6 +56,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         DoDistortionInputsGUI();
                     }
+                }
+            }
+
+            using (var header = new HeaderScope(Styles.emissiveLabelText, (uint)Expandable.Emissive, this))
+            {
+                if (header.expanded)
+                {
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+                    m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+                    DoEmissionArea(material);
                 }
             }
         }
