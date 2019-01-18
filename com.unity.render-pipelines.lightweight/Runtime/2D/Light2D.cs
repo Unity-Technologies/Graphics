@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 using UnityEngine.U2D.Shape;
-using Unity.Mathematics;
 using Unity.RenderPipeline2D.External.LibTessDotNet;
 using Mesh = UnityEngine.Mesh;
 using System.Linq;
@@ -289,25 +288,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 int h = (i == 0) ? (contourPointCount - 1) : (i - 1);
                 int j = (i + 1) % contourPointCount;
 
-                float2 pp = new float2(contourPoints[h].Position.X, contourPoints[h].Position.Y);
-                float2 cp = new float2(contourPoints[i].Position.X, contourPoints[i].Position.Y);
-                float2 np = new float2(contourPoints[j].Position.X, contourPoints[j].Position.Y);
+                Vector2 pp = new Vector2(contourPoints[h].Position.X, contourPoints[h].Position.Y);
+                Vector2 cp = new Vector2(contourPoints[i].Position.X, contourPoints[i].Position.Y);
+                Vector2 np = new Vector2(contourPoints[j].Position.X, contourPoints[j].Position.Y);
 
-                float2 cpd = cp - pp;
-                float2 npd = np - cp;
-                if (math.length(cpd) < 0.001f || math.length(npd) < 0.001f)
+                Vector2 cpd = cp - pp;
+                Vector2 npd = np - cp;
+                if (cpd.magnitude < 0.001f || npd.magnitude < 0.001f)
                     continue;
 
-                float2 vl = math.normalize(cpd);
-                float2 vr = math.normalize(npd);
+                Vector2 vl = cpd.normalized;
+                Vector2 vr = npd.normalized;
 
-                vl = new float2(-vl.y, vl.x);
-                vr = new float2(-vr.y, vr.x);
+                vl = new Vector2(-vl.y, vl.x);
+                vr = new Vector2(-vr.y, vr.x);
 
-                float2 va = math.normalize(vl) + math.normalize(vr);
-                float2 vn = math.normalize(va);
+                Vector2 va = vl.normalized + vr.normalized;
+                Vector2 vn = va.normalized;
 
-                if (math.length(va) > 0 && math.length(vn) > 0)
+                if (va.magnitude > 0 && vn.magnitude > 0)
                 {
                     var t = cp + (vn * m_ShapeLightFeathering);
                     feathered.Add(t);
