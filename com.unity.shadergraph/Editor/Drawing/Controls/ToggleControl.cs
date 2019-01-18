@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
 
+        Label m_Label;
         Toggle m_Toggle;
 
         public ToggleControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
@@ -62,7 +63,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var value = (ToggleData)m_PropertyInfo.GetValue(m_Node, null);
             var panel = new VisualElement { name = "togglePanel" };
             if (!string.IsNullOrEmpty(label))
-                panel.Add(new Label(label));
+            {
+                m_Label = new Label(label);
+                m_Label.SetEnabled(value.isEnabled);
+                panel.Add(m_Label);
+            }
+
             m_Toggle = new Toggle();
             m_Toggle.OnToggleChanged(OnChangeToggle);
             m_Toggle.SetEnabled(value.isEnabled);
@@ -75,6 +81,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             var value = (ToggleData)m_PropertyInfo.GetValue(m_Node, null);
             m_Toggle.SetEnabled(value.isEnabled);
+            if (m_Label != null)
+                m_Label.SetEnabled(value.isEnabled);
 
             if (scope == ModificationScope.Graph)
             {

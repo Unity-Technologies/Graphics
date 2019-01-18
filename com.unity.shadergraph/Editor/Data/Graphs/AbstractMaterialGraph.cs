@@ -634,8 +634,8 @@ namespace UnityEditor.ShaderGraph
             if (property == null)
                 return;
 
-            var node = property.ToConcreteNode();
-            if (!(node is AbstractMaterialNode))
+            var node = property.ToConcreteNode() as AbstractMaterialNode;
+            if (node == null)
                 return;
 
             var slot = propertyNode.FindOutputSlot<MaterialSlot>(PropertyNode.OutputSlotId);
@@ -644,6 +644,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             node.drawState = propertyNode.drawState;
+            node.groupGuid = propertyNode.groupGuid;
             AddNodeNoValidate(node);
 
             foreach (var edge in this.GetEdges(slot.slotReference))

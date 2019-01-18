@@ -165,7 +165,7 @@ Defines a [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) value. D
 
 ## Boolean
 
-Defines a **Boolean** value. Displays a **Toggle** field in the material inspector. Note that internally to the shader this value is a **Vector 1**. The **Boolean** type in [Shader Graph](Shader-Graph.md) is merely for usability. 
+Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Vector 1**. The **Boolean** type in [Shader Graph](Shader-Graph.md) is merely for usability. 
 
 | Data Type    | Modes |
 |:-------------|:------|

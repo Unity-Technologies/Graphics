@@ -28,7 +28,6 @@ The following example code represents one possible outcome of this node per **Un
 ```
 void Unity_RotateAboutAxis_Radians_float(float3 In, float3 Axis, float Rotation, out float3 Out)
 {
-    Rotation = radians(Rotation);
     float s = sin(Rotation);
     float c = cos(Rotation);
     float one_minus_c = 1.0 - c;
@@ -48,6 +47,7 @@ void Unity_RotateAboutAxis_Radians_float(float3 In, float3 Axis, float Rotation,
 ```
 void Unity_RotateAboutAxis_Degrees_float(float3 In, float3 Axis, float Rotation, out float3 Out)
 {
+    Rotation = radians(Rotation);
     float s = sin(Rotation);
     float c = cos(Rotation);
     float one_minus_c = 1.0 - c;
