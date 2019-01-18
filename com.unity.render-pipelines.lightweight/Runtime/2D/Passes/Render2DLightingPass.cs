@@ -62,6 +62,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 light2DCuller = camera.gameObject.AddComponent<Light2DCullingComponent>();
                 Light2D.SetCullingEnabled(false);
+                light2DCuller.hideFlags = HideFlags.HideInInspector | HideFlags.HideAndDontSave;
             }
 
             SortingSettings sortingSettings = new SortingSettings(camera);

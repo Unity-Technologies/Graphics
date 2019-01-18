@@ -95,7 +95,7 @@
 				// Calculate final color
 				float3 dirToLight = i.lightDirection; // half2(lookupValueNoRot.b, lookupValueNoRot.a);
 				float cosAngle = (1-usingDefaultNormalMap) * saturate(dot(dirToLight, normalUnpacked)) + usingDefaultNormalMap;
-				half4 lightColor = normal.a * _LightColor * attenuation * cosAngle;
+				half4 lightColor = _LightColor * attenuation * cosAngle;
 
 				return lightColor * _InverseLightIntensityScale;
 			}
