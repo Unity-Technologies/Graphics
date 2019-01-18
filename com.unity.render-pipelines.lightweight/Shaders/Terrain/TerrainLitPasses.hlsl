@@ -42,6 +42,7 @@ struct VertexOutput
 #else
     half3 normal                    : TEXCOORD3;
     half3 viewDir                   : TEXCOORD4;
+    half3 vertexSH                  : TEXCOORD5; // SH
 #endif
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
@@ -55,10 +56,12 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
     input = (InputData)0;
 
     input.positionWS = IN.positionWS;
+    half3 SH = half3(0, 0, 0);
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
     input.normalWS = TransformTangentToWorld(normalTS, half3x3(IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
+    SH = SampleSH(input.normalWS.xyz);
 #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = IN.viewDir;
     float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
@@ -68,6 +71,7 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 #else
     half3 viewDirWS = IN.viewDir;
     input.normalWS = IN.normal;
+    SH = IN.vertexSH;
 #endif
 
 #if SHADER_HINT_NICE_QUALITY
@@ -85,9 +89,7 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
     input.fogCoord = IN.fogFactorAndVertexLight.x;
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
-#ifdef LIGHTMAP_ON
-    input.bakedGI = SampleLightmap(IN.uvMainAndLM.zw, input.normalWS);
-#endif
+    input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -200,6 +202,7 @@ VertexOutput SplatmapVert(VertexInput v)
 #else
     o.normal = TransformObjectToWorldNormal(v.normal);
     o.viewDir = viewDirWS;
+    o.vertexSH = SampleSH(o.normal);
 #endif
     o.fogFactorAndVertexLight.x = ComputeFogFactor(vertexInput.positionCS.z);
     o.fogFactorAndVertexLight.yzw = VertexLighting(vertexInput.positionWS, o.normal.xyz);
