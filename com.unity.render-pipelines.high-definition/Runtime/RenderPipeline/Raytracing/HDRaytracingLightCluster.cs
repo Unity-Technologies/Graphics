@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RaytracingManager = raytracingManager;
             
             // Texture used to output debug information
-            m_DebugLightClusterTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: false, name: "DebugLightClusterTexture");
+            m_DebugLightClusterTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "DebugLightClusterTexture");
         }
 
         public void ReleaseResources()
@@ -181,19 +181,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (int lightIdx = 0; lightIdx < numLights; ++lightIdx)
             {
                 HDAdditionalLightData currentLight = lightArray[lightIdx];
-                float lightRange = currentLight.gameObject.GetComponent<Light>().range;
-                m_LightVolumesCPUArray[lightIdx].range = lightRange;
-                m_LightVolumesCPUArray[lightIdx].position = currentLight.gameObject.transform.position;
-                m_LightVolumesCPUArray[lightIdx].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
-                if(currentLight.lightTypeExtent == LightTypeExtent.Punctual)
+                if(currentLight != null)
                 {
-                    m_LightVolumesCPUArray[lightIdx].lightType = 0;
-                    punctualLightCount++;
-                }
-                else
-                {
-                    m_LightVolumesCPUArray[lightIdx].lightType = 1;
-                    areaLightCount++;
+                    float lightRange = currentLight.gameObject.GetComponent<Light>().range;
+                    m_LightVolumesCPUArray[lightIdx].range = lightRange;
+                    m_LightVolumesCPUArray[lightIdx].position = currentLight.gameObject.transform.position;
+                    m_LightVolumesCPUArray[lightIdx].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
+                    if (currentLight.lightTypeExtent == LightTypeExtent.Punctual)
+                    {
+                        m_LightVolumesCPUArray[lightIdx].lightType = 0;
+                        punctualLightCount++;
+                    }
+                    else
+                    {
+                        m_LightVolumesCPUArray[lightIdx].lightType = 1;
+                        areaLightCount++;
+                    }
                 }
             }
 

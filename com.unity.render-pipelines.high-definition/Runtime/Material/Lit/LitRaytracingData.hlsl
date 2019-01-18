@@ -139,10 +139,25 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz);
 
     // Transparency
+#if HAS_REFRACTION
+    surfaceData.ior = _Ior;
+    surfaceData.transmittanceColor = _TransmittanceColor;
+#ifdef _TRANSMITTANCECOLORMAP
+    surfaceData.transmittanceColor *= SAMPLE_TEXTURE2D_LOD(_TransmittanceColorMap, sampler_TransmittanceColorMap, uvBase, 0.0f).rgb;
+#endif
+
+    surfaceData.atDistance = _ATDistance;
+    // Thickness already defined with SSS (from both thickness and thicknessMap)
+    surfaceData.thickness *= _ThicknessMultiplier;
+    // Rough refraction don't use opacity. Instead we use opacity as a transmittance mask.
+    surfaceData.transmittanceMask = (1.0 - alpha);
+    alpha = 1.0;
+#else
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
-    surfaceData.atDistance = 1000000.0;
+    surfaceData.atDistance = 1.0;
     surfaceData.transmittanceMask = 0.0;
+#endif
 
     InitBuiltinData(alpha, surfaceData.normalWS, -input.worldToTangent[2], input.positionRWS, input.texCoord1, builtinData);
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);

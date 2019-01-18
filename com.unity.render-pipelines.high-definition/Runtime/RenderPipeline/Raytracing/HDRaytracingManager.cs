@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -72,8 +75,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The list of layer masks that exist
         List<int> m_LayerMasks = null;
 
-        // The set of resources
+        // The HDRPAsset data that needs to be 
         RenderPipelineResources m_Resources = null;
+        RenderPipelineSettings m_Settings = null;
 
         // Noise texture used for screen space sampling
         public Texture2DArray m_RGNoiseTexture = null;
@@ -139,6 +143,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Keep track of the resources
             m_Resources = resources;
 
+            // Keep track of the settings
+            m_Settings = settings;
+
             // Create the list of environments
             m_Environments = new List<HDRaytracingEnvironment>();
 
@@ -160,11 +167,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Let's start by building the "default" sub-scene (used by the scene camera)
             HDRayTracingSubScene defaultSubScene = new HDRayTracingSubScene();
-            defaultSubScene.mask = settings.editorRaytracingFilterLayerMask.value;
+            defaultSubScene.mask = m_Settings.editorRaytracingFilterLayerMask.value;
             defaultSubScene.persistent = true;
             BuildSubSceneStructure(ref defaultSubScene);
-            m_SubScenes.Add(settings.editorRaytracingFilterLayerMask.value, defaultSubScene);
-            m_LayerMasks.Add(settings.editorRaytracingFilterLayerMask.value);
+            m_SubScenes.Add(m_Settings.editorRaytracingFilterLayerMask.value, defaultSubScene);
+            m_LayerMasks.Add(m_Settings.editorRaytracingFilterLayerMask.value);
 
             // Grab all the ray-tracing graphs that have been created before
             HDRayTracingFilter[] filterArray = Object.FindObjectsOfType<HDRayTracingFilter>();
@@ -175,6 +182,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Keep track of the noise texture to use
             m_RGNoiseTexture = blueNoise.textureArray128RGCoherent;
+
+#if UNITY_EDITOR
+            // We need to invalidate the acceleration structures in case the hierarchy changed
+            EditorApplication.hierarchyChanged += OnHierarchyChanged;
+#endif
+        }
+#if UNITY_EDITOR
+
+        static void OnHierarchyChanged()
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdPipeline != null)
+            {
+                hdPipeline.m_RayTracingManager.SetDirty();
+            }
+        }
+#endif
+
+        public void SetDirty()
+        {
+            int numFilters = m_Filters.Count;
+            for(int filterIdx = 0; filterIdx < numFilters; ++filterIdx)
+            {
+                // Grab the target graph component
+                HDRayTracingFilter filterComponent = m_Filters[filterIdx];
+                
+                // If this camera had a graph component had an obsolete flag
+                if(filterComponent != null)
+                {
+                    filterComponent.SetDirty();
+                }
+            }
         }
 
         public void Release()
@@ -394,9 +433,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             for(int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
                             {
                                 Material currentMaterial = currentRenderer.sharedMaterials[meshIdx];
+                                bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT");
                                 if(currentMaterial != null)
                                 {
-                                    subMeshFlagArray[meshIdx] = !currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT");
+                                    subMeshFlagArray[meshIdx] = true; // !currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT");
                                     subMeshCutoffArray[meshIdx] = currentMaterial.IsKeywordEnabled("_ALPHATEST_ON");
                                     singleSided |= !currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
                                 }
@@ -472,6 +512,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
             {
                 subScene.valid = false;
+            }
+        }
+
+        public RaytracingAccelerationStructure RequestAccelerationStructure(HDCamera hdCamera)
+        {
+            bool editorCamera = hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview;
+            if (editorCamera)
+            {
+                // For the scene view, we want to use the default acceleration structure
+                return RequestAccelerationStructure(m_Settings.editorRaytracingFilterLayerMask);
+            }
+            else
+            {
+                HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
+                return raytracingFilter ? RequestAccelerationStructure(raytracingFilter.layermask) : null;
+            }
+        }
+
+        public List<HDAdditionalLightData> RequestHDLightList(HDCamera hdCamera)
+        {
+            bool editorCamera = hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview;
+            if (editorCamera)
+            {
+                return RequestHDLightList(m_Settings.editorRaytracingFilterLayerMask);
+            }
+            else
+            {
+                HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
+                return raytracingFilter ? RequestHDLightList(raytracingFilter.layermask) : null;
             }
         }
 

@@ -24,9 +24,12 @@ struct SphericalRectangle
 	// Solid angles
 	float2 solidAngles;
 	float totalSolidAngle;
+
+	// Dimension of the light source
+	float2 dimension;
 };
 
-bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 normal, float3 pos, out float t)
+bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
 {
 	float denom = dot(normal, ray_dir); 
 	if (abs(denom) > 1e-6)
@@ -41,8 +44,10 @@ bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 normal, float3 pos
 
 bool SetupSphericalRectangle(float3 v0, float3 v1, float3 v2, float3 v3,
 							float3 rectWSPos, float3 rectWSDir,
-							float3 smpWSPos, float3 smpWSNormal, out SphericalRectangle outSr)
+							float3 smpWSPos, float3 smpWSNormal, float2 dimension, 
+							out SphericalRectangle outSr)
 {
+	outSr.dimension = dimension;
 	outSr.rectWSPos = rectWSPos;
 	outSr.rectWSDir = rectWSDir;
 
@@ -124,10 +129,8 @@ bool SetupSphericalRectangle(float3 v0, float3 v1, float3 v2, float3 v3,
 	return true;
 }
 
-bool SampleSphericalRectangle(SphericalRectangle sr, float2 rands, out float3 outDir, out float3 outPos, out float outVis, out float outInvPDF)
+bool SampleSphericalRectangle(SphericalRectangle sr, float2 rands, out float3 outDir, out float3 outPos)
 {
-	outInvPDF = 0.0f;
-
 	int faceIdx;
 	if(rands.x < sr.areaCoeff)
 	{
@@ -196,24 +199,21 @@ bool SampleSphericalRectangle(SphericalRectangle sr, float2 rands, out float3 ou
 		outDir = normalize(outDir);
     }
 
-    outVis = dot(sr.smpWSNormal, outDir);
-    if ((outVis <= 0.0f) || (dot(sr.smpWSNormal, outDir) <= 0.0f))
+    float vis = dot(sr.smpWSNormal, outDir);
+    if ((vis <= 0.0f) || (dot(sr.smpWSNormal, outDir) <= 0.0f))
       return false;
 
     // Turn the sampling direction into a sample position on the light source.
     float3 vecL = sr.rectWSPos - sr.smpWSPos;
     float num = dot(vecL, sr.smpWSNormal);
     float t = 0.0f;
-    if (!IntersectPlane(sr.smpWSPos, outDir, sr.rectWSDir, sr.rectWSPos, t))
+    if (!IntersectPlane(sr.smpWSPos, outDir, sr.rectWSPos, sr.rectWSDir, t))
     {
       return false;
     }
 
     // Spit out the out position
     outPos = outDir * t + sr.smpWSPos;
-
-    // Spit out the solid angle
-    outInvPDF = sr.totalSolidAngle;
 
     // All done
     return true;

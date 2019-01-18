@@ -128,6 +128,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public RaytracingShader aoRaytracing;
             public RaytracingShader reflectionRaytracing;
             public RaytracingShader shadowsRaytracing;
+            public Shader           raytracingFlagMask;
+            public RaytracingShader forwardRaytracing;
             public ComputeShader areaBillateralFilterCS;
             public ComputeShader reflectionBilateralFilterCS;
             public ComputeShader lightClusterBuildCS;
@@ -299,7 +301,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bloomBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomBlur.compute"),
                 bloomUpsampleCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomUpsample.compute"),
                 finalPassPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/FinalPass.shader")
-            };
+            
+#if ENABLE_RAYTRACING
+                ,
+                aoRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace"),
+                reflectionRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace"),
+                shadowsRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAreaShadows.raytrace"),
+                areaBillateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/AreaBilateralShadow.compute"),
+                reflectionBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/GaussianBilateral.compute"),
+                lightClusterBuildCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute"),
+                lightClusterDebugCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute")
+#endif
+        };
 
             // Materials
             materials = new MaterialResources

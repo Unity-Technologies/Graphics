@@ -16,10 +16,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public LayerMask layermask = -1;
 
         // Flag that requests a rebuild of the matching acceleration structure
-        private bool dirty = false;
-
-        // This exposes a context menu  that allows us to manually rebuild the matching acceleration structure
-        [ContextMenu("Rebuild Acceleration Structure")]
+        public bool dirty = false;
+        
         public void SetDirty()
         {
             dirty = true;
@@ -35,6 +33,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void ResetDirty()
         {
             dirty = false;
+        }
+
+        void OnValidate()
+        {
+            SetDirty();
         }
 
         private void Start()

@@ -59,6 +59,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent lightClusterSectionText = EditorGUIUtility.TrTextContent("Light Cluster");
             public static GUIContent maxNumLightsText = new GUIContent("Cluster Cell Max Lights");
             public static GUIContent cameraClusterRangeText = new GUIContent("Cluster Range");
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////
+            // Primary visibility
+            public static readonly GUIContent primaryRaytracingSectionText = EditorGUIUtility.TrTextContent("Primary Visiblity Raytracing");
+            public static readonly GUIContent rayrtacingEnableText = new GUIContent("Enable");
+            public static readonly GUIContent rayMaxDepth = new GUIContent("Raytracing Maximal Depth");
+            public static readonly GUIContent raytracingRayLength = new GUIContent("Raytracing Ray Length");
         }
 
         SerializedHDRaytracingEnvironment m_SerializedHDRaytracingEnvironment;
@@ -71,7 +78,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             AmbientOcclusion = 1 << 1,
             Reflection = 1 << 2,
             LightCluster = 1 << 3,
-            AreaShadow = 1 << 4
+            AreaShadow = 1 << 4,
+            PrimaryRaytracing = 1 << 5
+
         }
         static ExpandedState<Expandable, HDRaytracingEnvironment> k_ExpandedState;
 
@@ -81,6 +90,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         CED.FoldoutGroup(Styles.aoSectionText, Expandable.AmbientOcclusion, k_ExpandedState, AmbientOcclusionSubMenu),
                         CED.FoldoutGroup(Styles.reflSectionText, Expandable.Reflection, k_ExpandedState, ReflectionsSubMenu),
                         CED.FoldoutGroup(Styles.shadowSectionText, Expandable.AreaShadow, k_ExpandedState, AreaShadowSubMenu),
+                        CED.FoldoutGroup(Styles.primaryRaytracingSectionText, Expandable.PrimaryRaytracing, k_ExpandedState, RaytracingSubMenu),
                         CED.FoldoutGroup(Styles.lightClusterSectionText, Expandable.LightCluster, k_ExpandedState, LightClusterSubMenu));
         }
         static void GenericSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
@@ -152,10 +162,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        static void RaytracingSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
+        {
+            // Primary Visibility Specific fields
+            EditorGUILayout.PropertyField(rtEnv.rayrtacedObjects, Styles.rayrtacingEnableText);
+
+            if (rtEnv.rayrtacedObjects.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(rtEnv.rayMaxDepth, Styles.rayMaxDepth);
+                EditorGUILayout.PropertyField(rtEnv.raytracingRayLength, Styles.raytracingRayLength);
+                EditorGUI.indentLevel--;
+            }
+        }
+
         static void LightClusterSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
             EditorGUILayout.PropertyField(rtEnv.maxNumLightsPercell, Styles.maxNumLightsText);
-            EditorGUILayout.PropertyField(rtEnv.cameraClusterRange, Styles.reflBilateralSigma);
+            EditorGUILayout.PropertyField(rtEnv.cameraClusterRange, Styles.cameraClusterRangeText);
         }
 
         static void AreaShadowSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)

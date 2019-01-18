@@ -332,6 +332,29 @@ Shader "HDRP/Unlit"
 
         Pass
         {
+            Name "RTRaytrace_Forward"
+            Tags{ "LightMode" = "ForwardDXR" }
+
+            HLSLPROGRAM
+
+            #pragma raytracing test      
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+ 
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+            
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingForward.hlsl"
+
+            ENDHLSL
+        }
+        
+        Pass
+        {
             Name "RTRaytrace_Visibility"
             Tags{ "LightMode" = "ShadowsDXR" }
 

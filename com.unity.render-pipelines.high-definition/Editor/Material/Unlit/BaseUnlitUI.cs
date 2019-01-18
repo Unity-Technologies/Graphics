@@ -36,8 +36,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string blendModeText = "Blending Mode";
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
+#if ENABLE_RAYTRACING
+            public static readonly string[] opaqueRenderingPathNames = new[] { "Default", "After post-process", "Raytracing" };
+            public static readonly string[] transparentRenderingPathNames = new[] { "Before refraction", "Default", "Low resolution", "After post-process", "Raytracing" };
+#else
             public static readonly string[] opaqueRenderingPathNames = new[] { "Default", "After post-process" };
             public static readonly string[] transparentRenderingPathNames = new[] { "Before refraction", "Default", "Low resolution", "After post-process" };
+#endif
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly int[] blendModeValues = Enum.GetValues(typeof(BlendMode)) as int[];
 

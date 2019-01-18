@@ -2,14 +2,16 @@
 #include "UnityRaytracingMeshUtils.cginc"
 
 // The target acceleration acceleration structure
-RaytracingAccelerationStructure 		_RaytracingAccelerationStructure;
+RaytracingAccelerationStructure         _RaytracingAccelerationStructure;
 
 // Ray data used for the intersections
-float 									_RaytracingRayBias;
-float 									_RaytracingRayMaxLength;
+float                                   _RaytracingRayBias;
+float                                   _RaytracingRayMaxLength;
+int                                     _RaytracingNumSamples;
+int                                     _RaytracingMaxRecursion;
 
 // Camera data required that is not part of the classic information
-float 									_PixelSpreadAngle;
+float                                   _PixelSpreadAngle;
 
 // Raycone structure that defines the stateof the ray
 struct RayCone
@@ -31,6 +33,8 @@ struct RayIntersection
 	float3 color;
 	// Cone representation of the ray
 	RayCone cone;
+	// The remaining available depth for the current Ray
+	uint remainingDepth;
 };
 
 struct AttributeData

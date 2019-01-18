@@ -37,6 +37,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty reflBilateralRadius;
         public SerializedProperty reflBilateralSigma;
 
+        // Primary visiblity raytracing
+        public SerializedProperty rayrtacedObjects;
+        public SerializedProperty rayMaxDepth;
+        public SerializedProperty raytracingRayLength;
+
         // Area Shadow Properties
         public SerializedProperty raytracedShadows;
         public SerializedProperty shadowNumSamples;
@@ -80,6 +85,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Light Cluster Attributes
             maxNumLightsPercell = o.Find(x => x.maxNumLightsPercell);
             cameraClusterRange = o.Find(x => x.cameraClusterRange);
+
+            // Raytracing Attributes
+            rayrtacedObjects = o.Find(x => x.rayrtacedObjects);
+            rayMaxDepth = o.Find(x => x.rayMaxDepth);
+            raytracingRayLength = o.Find(x => x.raytracingRayLength);
         }
 
         public void Update()

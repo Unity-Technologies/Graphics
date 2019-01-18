@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Buffers that hold the intermediate data of the shadow algorithm
         RTHandleSystem.RTHandle m_SNBuffer = null;
         RTHandleSystem.RTHandle m_UNBuffer = null;
+        RTHandleSystem.RTHandle m_UBuffer = null;
 
         // Array that holds the shadow textures for the area lights
         RTHandleSystem.RTHandle m_AreaShadowTextureArray = null;
@@ -26,10 +27,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         const string m_RayGenShaderName = "RayGenShadows";
         const string m_MissShaderName = "MissShaderShadows";
 
-        public static readonly int _TargetAreaLight = Shader.PropertyToID("_TargetAreaLight");
         public static readonly int _SNBuffer = Shader.PropertyToID("_SNTextureUAV");
         public static readonly int _UNBuffer = Shader.PropertyToID("_UNTextureUAV");
-        public static readonly int _DSNDUNUAV = Shader.PropertyToID("_DSNDUNUAV");
+        public static readonly int _UBuffer = Shader.PropertyToID("_UTextureUAV");
 
         // Denoise data
         public static readonly int _DenoiseRadius = Shader.PropertyToID("_DenoiseRadius");
@@ -37,7 +37,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // output Slot
         public static readonly int _ShadowSlot = Shader.PropertyToID("_ShadowSlot");
-        public static readonly int _AreaShadowTexture = Shader.PropertyToID("_AreaShadowTexture");
+
+        // Temporary variable that allows us to store the world to local matrix
+        Matrix4x4 worldToLocalArea = new Matrix4x4();
 
         public HDRaytracingShadowManager()
         {
@@ -61,58 +63,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GbufferManager = gbufferManager;
 
             // Allocate the intermediate buffers
-            m_SNBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: false, name: "SNBuffer");
-            m_UNBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: false, name: "UNBuffer");
-            m_AreaShadowTextureArray = RTHandles.Alloc(Vector2.one, slices:4, dimension: TextureDimension.Tex2DArray ,filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: false, name: "AreaShadowArrayBuffer");
+            m_SNBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "SNBuffer");
+            m_UNBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "UNBuffer");
+            m_UBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "UBuffer");
+            m_AreaShadowTextureArray = RTHandles.Alloc(Vector2.one, slices:4, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "AreaShadowArrayBuffer");
+        }
+
+        public RTHandleSystem.RTHandle GetShadowedIntegrationTexture()
+        {
+            return m_SNBuffer;
+        }
+
+        public RTHandleSystem.RTHandle GetUnShadowedIntegrationTexture()
+        {
+            return m_UNBuffer;
         }
 
         public void Release()
         {
             RTHandles.Release(m_AreaShadowTextureArray);
+            RTHandles.Release(m_UBuffer);
             RTHandles.Release(m_UNBuffer);
             RTHandles.Release(m_SNBuffer);
         }
 
+        void BindShadowTexture(CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._AreaShadowTexture, m_AreaShadowTextureArray);
+        }
+
         public bool RenderAreaShadows(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext)
         {
-            // Bind the texture because everyone needs it
-            cmd.SetGlobalTexture(_AreaShadowTexture, m_AreaShadowTextureArray);
+            // NOTE: Here we cannot clear the area shadow texture because it is a texture array. So we need to bind it and make sure no material will try to read it in the shaders
+            BindShadowTexture(cmd);
 
-            // First thing to check is: Do we have a valid ray-tracing environment?
+            // Let's check all the resources and states to see if we should render the effect
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
             Texture2DArray noiseTexture = m_RaytracingManager.m_RGNoiseTexture;
-            if (rtEnvironement == null || noiseTexture == null || !rtEnvironement.raytracedShadows)
-            {
-                return false;
-            }
-
-            // Try to grab the acceleration structure for the target camera
-            HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
-            RaytracingAccelerationStructure accelerationStructure = null;
-            if (raytracingFilter != null)
-            {
-                accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(raytracingFilter.layermask);
-            }
-            else if (hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview)
-            {
-                // For the scene view, we want to use the default acceleration structure
-                accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(m_PipelineAsset.renderPipelineSettings.editorRaytracingFilterLayerMask);
-            }
-            // If no acceleration structure available, end it now
-            if (accelerationStructure == null)
-            {
-                return false;
-            }
-
-            // If no shadows shader is available, just skip right away
-            if (m_PipelineAsset.renderPipelineResources.shaders.areaBillateralFilterCS == null || m_PipelineAsset.renderPipelineResources.shaders.shadowsRaytracing == null)
-            {
-                return false;
-            }
-
-            // Fetch the shaders we will be using
             RaytracingShader shadowsShader = m_PipelineAsset.renderPipelineResources.shaders.shadowsRaytracing;
             ComputeShader bilateralFilter = m_PipelineAsset.renderPipelineResources.shaders.areaBillateralFilterCS;
+            bool invalidState = rtEnvironement == null || noiseTexture == null || !rtEnvironement.raytracedShadows || shadowsShader  == null || bilateralFilter == null || hdCamera.frameSettings.shaderLitMode != LitShaderMode.Deferred;
+
+            // Try to grab the acceleration structure for the target camera
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
+
+            // If invalid state or ray-tracing acceleration structure, we stop right away
+            if (invalidState || accelerationStructure == null)
+                return false;
 
             // Fetch the filter kernel
             m_KernelFilter = bilateralFilter.FindKernel("AreaBilateralShadow");
@@ -129,7 +126,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingIntParams(shadowsShader, HDShaderIDs._RaytracingNumNoiseLayers, noiseTexture.depth);
 
             // Inject the ray generation data
-            cmd.SetRaytracingFloatParams(shadowsShader, HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
 
             int numLights = m_LightLoop.m_lightList.lights.Count;
 
@@ -139,11 +136,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if(m_LightLoop.m_lightList.lights[lightIdx].lightType != GPULightType.Rectangle || m_LightLoop.m_lightList.lights[lightIdx].shadowIndex == -1) continue;
                 using (new ProfilingSample(cmd, "Raytrace Area Shadow", CustomSamplerId.RaytracingShadowIntegration.GetSampler()))
                 {
+                    LightData currentLight = m_LightLoop.m_lightList.lights[lightIdx];
+                    
+                    // We need to build the world to area light matrix
+                    worldToLocalArea.SetColumn(0, currentLight.right);
+                    worldToLocalArea.SetColumn(1, currentLight.up);
+                    worldToLocalArea.SetColumn(2, currentLight.forward);
+
+                    // Compensate the  relative rendering if active
+                    Vector3 lightPositionWS = currentLight.positionRWS;
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        lightPositionWS += hdCamera.camera.transform.position;
+                    }
+                    worldToLocalArea.SetColumn(3, lightPositionWS);
+                    worldToLocalArea.m33 = 1.0f;
+                    worldToLocalArea =  worldToLocalArea.inverse;
+
                     // Inject the light data
                     cmd.SetRaytracingBufferParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._LightDatas, m_LightLoop.lightDatas);
-                    cmd.SetRaytracingIntParam(shadowsShader, _TargetAreaLight, lightIdx);
+                    cmd.SetRaytracingIntParam(shadowsShader, HDShaderIDs._RaytracingTargetAreaLight, lightIdx);
                     cmd.SetRaytracingIntParam(shadowsShader, HDShaderIDs._RaytracingNumSamples, rtEnvironement.shadowNumSamples);
-
+                    cmd.SetRaytracingMatrixParam(shadowsShader, HDShaderIDs._RaytracingAreaWorldToLocal, worldToLocalArea);
+                    
                     // Set the data for the ray generation
                     cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                     cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
@@ -155,6 +170,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Set the output textures
                     cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, _SNBuffer, m_SNBuffer);
                     cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, _UNBuffer, m_UNBuffer);
+                    cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, _UBuffer, m_UBuffer);
 
 
                     // Run the shadow evaluation
@@ -173,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(bilateralFilter, _ShadowSlot, m_LightLoop.m_lightList.lights[lightIdx].shadowIndex);
 
                     // Set the output slot
-                    cmd.SetComputeTextureParam(bilateralFilter, m_KernelFilter, _DSNDUNUAV, m_AreaShadowTextureArray);
+                    cmd.SetComputeTextureParam(bilateralFilter, m_KernelFilter, HDShaderIDs._AreaShadowTexture, m_AreaShadowTextureArray);
 
                     // Texture dimensions
                     int texWidth = m_AreaShadowTextureArray.rt.width;

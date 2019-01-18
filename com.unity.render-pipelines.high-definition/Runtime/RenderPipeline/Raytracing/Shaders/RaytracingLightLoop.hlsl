@@ -61,7 +61,7 @@ LightData FetchClusterLightIndex(int cellIndex, uint lightIndex)
     return _LightDatasRT[absoluteLightIndex];
 }
 
-void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData,
+void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, float3 reflection, float3 transmission,
 			out float3 diffuseLighting,
             out float3 specularLighting)
 {
@@ -182,6 +182,25 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 
+#if !defined(_DISABLE_SSR)
+    // Add the traced reflection
+    {
+        IndirectLighting indirect;
+        ZERO_INITIALIZE(IndirectLighting, indirect);
+        indirect.specularReflected = reflection.rgb * preLightData.specularFGD;
+        AccumulateIndirectLighting(indirect, aggregateLighting);
+    }
+#endif
+
+#if HAS_REFRACTION
+    // Add the traced transmission
+    {
+        IndirectLighting indirect;
+        ZERO_INITIALIZE(IndirectLighting, indirect);
+        IndirectLighting lighting = EvaluateBSDF_RaytracedRefraction(context, preLightData, transmission);
+        AccumulateIndirectLighting(lighting, aggregateLighting);
+    }
+#endif
     // TODO: Support properly the sky env lights
    	EnvLightData envLightSky = InitSkyEnvLightData(0);
     // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)

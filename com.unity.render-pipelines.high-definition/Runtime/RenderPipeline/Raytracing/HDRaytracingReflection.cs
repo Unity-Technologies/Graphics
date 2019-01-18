@@ -58,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Keep track of the shared rt manager
             m_SharedRTManager = sharedRTManager;
 
-            m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, useMipMap: false, name: "IntermediateReflectionBuffer");
+            m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "IntermediateReflectionBuffer");
 
             // Allocate the light cluster
             m_LightCluster = new HDRaytracingLightCluster();
@@ -81,35 +81,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Texture2DArray noiseTexture = m_RaytracingManager.m_RGNoiseTexture;
             ComputeShader bilateralFilter = m_PipelineAsset.renderPipelineResources.shaders.reflectionBilateralFilterCS;
             RaytracingShader reflectionShader = m_PipelineAsset.renderPipelineResources.shaders.reflectionRaytracing;
-            if (rtEnvironement == null || noiseTexture == null || bilateralFilter == null || reflectionShader == null)
-            {
-                return;
-            }
+            bool missingResources = rtEnvironement == null || noiseTexture == null || bilateralFilter == null || reflectionShader == null;
 
-            // If no reflection shader is available, just skip right away
-            if (m_PipelineAsset.renderPipelineResources.shaders.reflectionRaytracing == null) return;
-            m_KernelFilter = bilateralFilter.FindKernel("GaussianBilateralFilter");
-
-            // Try to grab the acceleration structure for the target camera
-            HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
-            RaytracingAccelerationStructure accelerationStructure = null;
-            List<HDAdditionalLightData> lightData = null;
-            if (raytracingFilter != null)
-            {
-                accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(raytracingFilter.layermask);
-                lightData = m_RaytracingManager.RequestHDLightList(raytracingFilter.layermask);
-            }
-            else if(hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview)
-            {
-                // For the scene view, we want to use the default acceleration structure
-                accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(m_PipelineAsset.renderPipelineSettings.editorRaytracingFilterLayerMask);
-                lightData = m_RaytracingManager.RequestHDLightList(m_PipelineAsset.renderPipelineSettings.editorRaytracingFilterLayerMask);
-            }
+            // Try to grab the acceleration structure and the list of HD lights for the target camera
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
+            List<HDAdditionalLightData> lightData = m_RaytracingManager.RequestHDLightList(hdCamera);
 
             // If no acceleration structure available, end it now
-            if (accelerationStructure == null) return;
+            if (accelerationStructure == null || lightData == null || missingResources)
+                return;
 
             // Evaluate the light cluster
+            // TODO: Do only this once per frame and share it between primary visibility and reflection (if any of them request it)
             m_LightCluster.EvaluateLightClusters(cmd, hdCamera, lightData);
 
             // Define the shader pass to use for the reflection pass
@@ -124,8 +107,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingIntParams(reflectionShader, HDShaderIDs._RaytracingNumNoiseLayers, noiseTexture.depth);
 
             // Inject the ray generation data
-            cmd.SetRaytracingFloatParams(reflectionShader, HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
-            cmd.SetRaytracingFloatParams(reflectionShader, HDShaderIDs._RaytracingRayMaxLength, rtEnvironement.reflRayLength);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, rtEnvironement.reflRayLength);
             cmd.SetRaytracingIntParams(reflectionShader, HDShaderIDs._RaytracingNumSamples, rtEnvironement.reflNumMaxSamples);
 
             // Set the data for the ray generation
@@ -161,6 +144,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     case HDRaytracingEnvironment.ReflectionsFilterMode.Bilateral:
                     {
+                        // Fetch the right filter to use
+                        m_KernelFilter = bilateralFilter.FindKernel("GaussianBilateralFilter");
+
                         // Inject all the parameters for the compute
                         cmd.SetComputeIntParam(bilateralFilter, _DenoiseRadius, rtEnvironement.reflBilateralRadius);
                         cmd.SetComputeFloatParam(bilateralFilter, _GaussianSigma, rtEnvironement.reflBilateralSigma);

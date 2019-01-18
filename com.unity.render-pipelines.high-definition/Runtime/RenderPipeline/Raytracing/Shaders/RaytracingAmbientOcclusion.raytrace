@@ -1,5 +1,5 @@
 // We need 2 bounces given that we want to see the direct lighting of the reflected surfaces
-#pragma max_recursion_depth 2
+#pragma max_recursion_depth 1
 
 // HDRP include
 #define SHADER_TARGET 50
@@ -19,7 +19,6 @@ Texture2D<float>						_DepthTexture;
 
 // Flag value that defines if a given pixel recieves reflections or not
 // int   									_SsrStencilExclusionValue;
-int 									_RaytracingNumSamples;
 
 // Output structure of the reflection raytrace shader
 RWTexture2D<float4> 					_AmbientOcclusionTextureRW;
@@ -63,9 +62,6 @@ void RayGenAmbientOcclusion()
 	PositionInputs posInput = GetPositionInput(currentPixelCoord, 1.0/LaunchDim.xy, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
 	posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
-	// Compute the incident vector on the surfaces
-	float3 incidentWS = normalize(posInput.positionWS - _WorldSpaceCameraPos);
-	
 	// Decode the world space normal
     NormalData normalData;	
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
@@ -90,7 +86,7 @@ void RayGenAmbientOcclusion()
 		
 		// Create the ray descriptor for this pixel
 		RayDesc rayDescriptor;
-		rayDescriptor.Origin = posInput.positionWS + sampleDir * _RaytracingRayBias;
+		rayDescriptor.Origin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
 		rayDescriptor.Direction = sampleDir;
 		rayDescriptor.TMin = 0;
 		rayDescriptor.TMax = _RaytracingRayMaxLength;
@@ -123,4 +119,12 @@ void RayGenAmbientOcclusion()
     _RaytracingHitDistanceTexture[currentPixelCoord] = minDistance;
     float3 normalWS = mul(unity_MatrixInvV, float4(normalData.normalWS, 0.0f)).xyz;
     _RaytracingVSNormalTexture[currentPixelCoord] = float4(normalWS, 1.0f);
+}
+
+// Fallback default any hit shader for this raytrace shader
+[shader("anyhit")]
+void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+{
+    rayIntersection.color = float3(0.0, 0.0, 0.0);
+    AcceptHitAndEndSearch();
 }

@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Bilateral,
             Nvidia
         };
-        public AOFilterMode aoFilterMode = AOFilterMode.Bilateral;
+        public AOFilterMode aoFilterMode = AOFilterMode.None;
 
         // Max Ray Length for the AO
         [Range(0.001f, 20.0f)]
@@ -60,14 +60,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Number of Samples for the Reflections
         [Range(1, 64)]
-        public int reflNumMaxSamples = 13;
+        public int reflNumMaxSamples = 8;
 
         public enum ReflectionsFilterMode
         {
             None,
             Bilateral
         };
-        public ReflectionsFilterMode reflFilterMode = ReflectionsFilterMode.Bilateral;
+        public ReflectionsFilterMode reflFilterMode = ReflectionsFilterMode.None;
 
         // Reflection Bilateral Filter Data
         [Range(1, 27)]
@@ -82,10 +82,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(0.001f, 50.0f)]
         public float cameraClusterRange = 10;
 
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+        // Primary Visibility
+        // Flag that defines if raytraced objects should be rendered
+        public bool rayrtacedObjects = false;
+
+        // This is the maximal depth that a ray can have for the primary visibility pass
+        const int maxRayDepth = 10;
+        [Range(1, maxRayDepth)]
+        public int rayMaxDepth = 3;
+
+        // Max Ray Length for the primary visibility
+        [Range(0.001f, 50.0f)]
+        public float raytracingRayLength = 20.0f;
+
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Area Light Shadows
         public bool raytracedShadows = false;
-        [Range(1, 8)]
+        [Range(2, 32)]
         public int shadowNumSamples = 4;
         [Range(0, 4)]
         public int numAreaLightShadows = 1;

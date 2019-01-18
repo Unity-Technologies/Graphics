@@ -19,7 +19,6 @@ Texture2D<float>						_DepthTexture;
 
 // Flag value that defines if a given pixel recieves reflections or not
 // int   									_SsrStencilExclusionValue;
-int 									_RaytracingNumSamples;
 
 // Output structure of the reflection raytrace shader
 RWTexture2D<float4> 					_SsrLightingTextureRW;
@@ -99,7 +98,7 @@ void RayGenReflections()
 
 		// Create the ray descriptor for this pixel
 		RayDesc rayDescriptor;
-		rayDescriptor.Origin = posInput.positionWS + reflectDir * _RaytracingRayBias;
+		rayDescriptor.Origin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
 		rayDescriptor.Direction = reflectDir;
 		rayDescriptor.TMin = 0;
 		rayDescriptor.TMax = _RaytracingRayMaxLength;

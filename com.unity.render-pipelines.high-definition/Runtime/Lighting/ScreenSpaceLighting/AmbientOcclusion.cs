@@ -211,30 +211,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
 #if ENABLE_RAYTRACING
             HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
             if (m_Settings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedAO)
-            {
-
-                if (!camera.frameSettings.enableSSAO) // Use filler texture if SRP settings have disabled SSAO
-                {
-                    // No AO applied - neutral is black, see the comment in the shaders
-                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, Texture2D.blackTexture);
-                    cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
-                    return;
-                }
-                else
-                {
-                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext);
-                    cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionTex);
-                    cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
-
-                    // TODO: All the push-debug stuff should be centralized somewhere
-                    (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);
-                }
-            }
+                m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext);
             else
 #endif
             {
