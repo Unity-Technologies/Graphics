@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             if (!renderedFirstLight)
                             {
                                 cmdBuffer.SetRenderTarget(renderTexture);
-                                cmdBuffer.ClearRenderTarget(false, true, fillColor, 1.0f);
+                                cmdBuffer.ClearRenderTarget(false, true, fillColor);
                                 renderedFirstLight = true;
                             }
 

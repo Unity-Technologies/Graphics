@@ -74,7 +74,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
             filterSettings.sortingLayerRange = SortingLayerRange.all;
-            bool renderBuffersDirty = true;
             Profiler.EndSample();
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
@@ -85,34 +84,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_CommandBuffer.Clear();
             RendererPointLights.SetShaderGlobals(m_CommandBuffer);
             RendererShapeLights.SetShaderGlobals(m_CommandBuffer);
-            RendererPointLights.Clear(m_CommandBuffer);
-            RendererShapeLights.Clear(m_CommandBuffer);
-
             context.ExecuteCommandBuffer(m_CommandBuffer);
 
             bool cleared = false;
             for (int i = 0; i < m_SortingLayers.Length; i++)
             {
                 m_CommandBuffer.Clear();
-                bool isLitLayer = true;
                 int layerToRender = m_SortingLayers[i].id;
                 short layerValue = (short)m_SortingLayers[i].value;
 
                 m_SortingLayerRange = new SortingLayerRange(layerValue, layerValue);
                 filterSettings.sortingLayerRange = m_SortingLayerRange;
 
-                if (isLitLayer)
-                {
-                    RendererPointLights.RenderLights(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
-                    RendererShapeLights.RenderLights(camera, m_CommandBuffer, layerToRender);
-                    renderBuffersDirty = true;
-                }
-                else if (renderBuffersDirty)
-                {
-                    RendererPointLights.Clear(m_CommandBuffer);
-                    RendererShapeLights.Clear(m_CommandBuffer);
-                    renderBuffersDirty = false;
-                }
+                RendererPointLights.RenderLights(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
+                RendererShapeLights.Clear(m_CommandBuffer);
+                RendererShapeLights.RenderLights(camera, m_CommandBuffer, layerToRender);
 
                 // This should have an optimization where I can determine if this needs to be called
                 m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
@@ -131,13 +117,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
                 Profiler.EndSample();
 
-                if (isLitLayer)
-                {
-                    m_CommandBuffer.Clear();
-                    RendererShapeLights.RenderLightVolumes(camera, m_CommandBuffer, layerToRender);
-                    RendererPointLights.RenderLightVolumes(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
-                    context.ExecuteCommandBuffer(m_CommandBuffer);
-                }
+                m_CommandBuffer.Clear();
+                RendererShapeLights.RenderLightVolumes(camera, m_CommandBuffer, layerToRender);
+                RendererPointLights.RenderLightVolumes(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
+                context.ExecuteCommandBuffer(m_CommandBuffer);
             }
 
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");

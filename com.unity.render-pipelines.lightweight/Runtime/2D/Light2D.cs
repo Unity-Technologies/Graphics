@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public Color m_ShadowColor;
         public bool m_CastsSoftShadows = true;
 
-        public int m_ApplyToLayers = 0;
+        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs.
 
         //------------------------------------------------------------------------------------------
         //                              Values for Shape light type
@@ -710,10 +710,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return m_Mesh;
         }
 
-
         public bool IsLitLayer(int layer)
         {
-            return m_ApplyToLayers == layer;
+            return m_ApplyToSortingLayers != null ? m_ApplyToSortingLayers.Contains(layer) : false;
         }
 
         public void UpdateMesh()

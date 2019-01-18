@@ -55,6 +55,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         static float s_InnerRangeCapSize = 0.08f * s_GlobalLightGizmoSize;
         static Handles.CapFunction s_InnerRangeCapFunction = Handles.SphereHandleCap;
 
+        SerializedProperty m_LightProjectionType;
+        SerializedProperty m_LightColor;
+        SerializedProperty m_ApplyToSortingLayers;
+        SerializedProperty m_VolumetricAlpha;
+
         SplineEditor m_SplineEditor;
         SplineSceneEditor m_SplineSceneEditor;
 
@@ -65,6 +70,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         bool m_AnyShapeLightTypeEnabled = false;
 
         private Light2D lightObject { get { return target as Light2D; } }
+
+        private Rect m_SortingLayerDropdownRect = new Rect();
+        private SortingLayer[] m_AllSortingLayers;
+        private GUIContent[] m_AllSortingLayerNames;
+        private List<int> m_ApplyToSortingLayersList;
 
         #region Handle Utilities
 
@@ -114,6 +124,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         private void OnEnable()
         {
+            m_LightProjectionType = serializedObject.FindProperty("m_LightProjectionType");
+            m_LightColor = serializedObject.FindProperty("m_LightColor");
+            m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
+            m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
+
             var light = target as Light2D;
             m_SplineEditor = new SplineEditor(this);
             m_SplineSceneEditor = new SplineSceneEditor(light.spline, this, light);
@@ -141,7 +156,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
             else
             {
-                for (int i = 0; i < 4; ++i)
+                for (int i = 0; i < 3; ++i)
                 {
                     shapeLightTypeIndices.Add(i);
                     shapeLightTypeNames.Add("Type" + i);
@@ -150,6 +165,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             m_ShapeLightTypeIndices = shapeLightTypeIndices.ToArray();
             m_ShapeLightTypeNames = shapeLightTypeNames.Select(x => EditorGUIUtility.TrTextContent(x)).ToArray();
+
+            m_AllSortingLayers = SortingLayer.layers;
+            m_AllSortingLayerNames = m_AllSortingLayers.Select(x => new GUIContent(x.name)).ToArray();
+
+            int applyToSortingLayersSize = m_ApplyToSortingLayers.arraySize;
+            m_ApplyToSortingLayersList = new List<int>(applyToSortingLayersSize);
+
+            for (int i = 0; i < applyToSortingLayersSize; ++i)
+            {
+                int layerID = m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue;
+                if (SortingLayer.IsValid(layerID))
+                    m_ApplyToSortingLayersList.Add(layerID);
+            }
         }
 
         private void OnDestroy()
@@ -264,6 +292,62 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUI.indentLevel--;
 
             return updateMesh;
+        }
+
+        private void OnTargetSortingLayers()
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply this light to the specified sorting layers."));
+
+            GUIContent selectedLayers;
+            if (m_ApplyToSortingLayersList.Count == 1)
+                selectedLayers = new GUIContent(SortingLayer.IDToName(m_ApplyToSortingLayersList[0]));
+            else if (m_ApplyToSortingLayersList.Count == m_AllSortingLayers.Length)
+                selectedLayers = EditorGUIUtility.TrTempContent("All");
+            else if (m_ApplyToSortingLayersList.Count == 0)
+                selectedLayers = EditorGUIUtility.TrTempContent("None");
+            else
+                selectedLayers = EditorGUIUtility.TrTempContent("Mixed...");
+
+            bool buttonDown = EditorGUILayout.DropdownButton(selectedLayers, FocusType.Keyboard, EditorStyles.popup);
+
+            if (Event.current.type == EventType.Repaint)
+                m_SortingLayerDropdownRect = GUILayoutUtility.GetLastRect();
+
+            if (buttonDown)
+            {
+                GenericMenu menu = new GenericMenu();
+                menu.allowDuplicateNames = true;
+
+                GenericMenu.MenuFunction2 menuFunction = (layerIDObject) =>
+                {
+                    int layerID = (int)layerIDObject;
+
+                    if (m_ApplyToSortingLayersList.Contains(layerID))
+                        m_ApplyToSortingLayersList.RemoveAll(id => id == layerID);
+                    else
+                        m_ApplyToSortingLayersList.Add(layerID);
+
+                    m_ApplyToSortingLayers.ClearArray();
+                    for (int i = 0; i < m_ApplyToSortingLayersList.Count; ++i)
+                    {
+                        m_ApplyToSortingLayers.InsertArrayElementAtIndex(i);
+                        m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue = m_ApplyToSortingLayersList[i];
+                    }
+
+                    serializedObject.ApplyModifiedProperties();
+                };
+
+                for (int i = 0; i < m_AllSortingLayers.Length; ++i)
+                {
+                    var sortingLayer = m_AllSortingLayers[i];
+                    menu.AddItem(m_AllSortingLayerNames[i], m_ApplyToSortingLayersList.Contains(sortingLayer.id), menuFunction, sortingLayer.id);
+                }
+
+                menu.DropDown(m_SortingLayerDropdownRect);
+            }
+
+            EditorGUILayout.EndHorizontal();
         }
 
         private Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, ref float angle)
@@ -458,13 +542,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             serializedObject.Update();
 
-            SerializedProperty lightProjectionType = serializedObject.FindProperty("m_LightProjectionType");
-            SerializedProperty lightColor = serializedObject.FindProperty("m_LightColor");
-            SerializedProperty applyToLayers = serializedObject.FindProperty("m_ApplyToLayers");
-            SerializedProperty volumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
-
-            EditorGUILayout.PropertyField(lightProjectionType, EditorGUIUtility.TrTextContent("Light Type", "Specify the light type"));
-            switch (lightProjectionType.intValue)
+            EditorGUILayout.PropertyField(m_LightProjectionType, EditorGUIUtility.TrTextContent("Light Type", "Specify the light type"));
+            switch (m_LightProjectionType.intValue)
             {
                 case (int)Light2D.LightProjectionTypes.Point:
                     {
@@ -478,20 +557,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     break;
             }
 
-            Color previousColor = lightColor.colorValue;
-            EditorGUILayout.PropertyField(lightColor, EditorGUIUtility.TrTextContent("Light Color", "Specify the light color"));
-            EditorGUILayout.Slider(volumetricAlpha, 0, 1, EditorGUIUtility.TrTextContent("Light Volume Opacity", "Specify the light color"));
-            InternalEditorBridge.SortingLayerField(EditorGUIUtility.TrTextContent("Target Sorting Layer", "Apply this light to the specifed layer"), applyToLayers, EditorStyles.popup, EditorStyles.label);
+            Color previousColor = m_LightColor.colorValue;
+            EditorGUILayout.PropertyField(m_LightColor, EditorGUIUtility.TrTextContent("Light Color", "Specify the light color"));
+            EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, EditorGUIUtility.TrTextContent("Light Volume Opacity", "Specify the light color"));
 
-
-
+            OnTargetSortingLayers();
 
             if (lightObject.m_ParametricShape == Light2D.ParametricShapes.Freeform && lightObject.LightProjectionType == Light2D.LightProjectionTypes.Shape && lightObject.m_ShapeLightStyle != Light2D.CookieStyles.Sprite)
             {
                 m_SplineSceneEditor.OnInspectorGUI();
                 m_SplineEditor.OnInspectorGUI(lightObject.spline);
             }
-
 
             serializedObject.ApplyModifiedProperties();
 
