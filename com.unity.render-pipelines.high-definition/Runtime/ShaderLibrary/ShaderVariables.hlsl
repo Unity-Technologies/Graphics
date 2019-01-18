@@ -354,9 +354,14 @@ float SampleCameraDepth(float2 uv)
     return SampleCameraDepth(uint2(uv * _ScreenSize.xy));
 }
 
-float3 SampleCameraColor(float2 uv, float lod)
+float3 SampleCameraColor(uint2 pixelCoords)
 {
-    return SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, lod).rgb;
+    return LOAD_TEXTURE2D_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
+}
+
+float3 SampleCameraColor(float2 uv)
+{
+    return SampleCameraColor(uint2(uv * _ScreenSize.xy));
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)

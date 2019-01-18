@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV), _ZBufferParams);
+    Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 }
 ";
         }
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV);
+    Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);
 }
 ";
         }
@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV), _ZBufferParams);
+    Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 }
 ";
         }
