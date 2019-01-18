@@ -87,7 +87,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
-    public partial class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver, IDebugData
+    public partial class HDAdditionalCameraData : MonoBehaviour
     {
         public enum FlipYMode
         {
@@ -121,9 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
         public bool clearDepth = true;
         
-        [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
         public LayerMask volumeLayerMask = -1;
-        [Tooltip("Transform used for the volume interpolation for this camera.")]
         public Transform volumeAnchorOverride;
 
         public AntialiasingMode antialiasing = AntialiasingMode.None;
@@ -134,10 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public FlipYMode flipYMode;
         
-        [Tooltip("This will skip rendering settings to directly rendering in fullscreen (for instance: Useful for video)")]
         public bool fullscreenPassthrough = false;
-
-        [Tooltip("This will allows to override default settings for this renderer")]
         public bool customRenderingSettings = false;
 
         public bool invertFaceCulling = false;
@@ -148,16 +143,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         public bool hasCustomRender { get { return customRender != null; } }
         
-        // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
-        // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        [SerializeField]
-        [FormerlySerializedAs("serializedFrameSettings")]
-        FrameSettings m_FrameSettings = new FrameSettings(); // Serialize frameSettings
-
-        // Not serialized, visible only in the debug windows
-        FrameSettings m_FrameSettingsRuntime = new FrameSettings();
-
-        bool m_frameSettingsIsDirty = true;
+        public FrameSettings renderingPathCustomFrameSettings = FrameSettings.defaultCamera;
+        public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
+        public FrameSettingsRenderType defaultFrameSettings;
 
         // Use for debug windows
         // When camera name change we need to update the name in DebugWindows.
@@ -187,56 +175,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.dithering = dithering;
             physicalParameters.CopyTo(data.physicalParameters);
 
-            m_FrameSettings.CopyTo(data.m_FrameSettings);
-            m_FrameSettingsRuntime.CopyTo(data.m_FrameSettingsRuntime);
-            data.m_frameSettingsIsDirty = true; // Let's be sure it is dirty for update
+            data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
+            data.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;
+            data.defaultFrameSettings = defaultFrameSettings;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;
             //data.m_CameraRegisterName = m_CameraRegisterName;
             //data.isEditorCameraPreview = isEditorCameraPreview;
-        }
-
-        public void SetPersistentFrameSettings(FrameSettings settings)
-        {
-            m_FrameSettings = settings;
-            m_frameSettingsIsDirty = true;
-        }
-
-        // This is the function use outside to access FrameSettings. It return the current state of FrameSettings for the camera
-        // taking into account the customization via the debug menu
-        public FrameSettings GetFrameSettings()
-        {
-            return m_FrameSettingsRuntime;
-        }
-
-        // This allows to read serialized value in readonly mode
-        internal T ReadSerializedFrameSettings<T>(Func<FrameSettings, T> reader) where T : struct => reader(m_FrameSettings);
-
-        // IDebugData interface required to reset DebugMenu's FrameSettings
-        Action IDebugData.GetReset() => () => m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
-
-        // This function is call at the beginning of camera loop in HDRenderPipeline.Render()
-        // It allow to correctly init the m_FrameSettingsRuntime to use.
-        // If the camera use defaultFrameSettings it must be copied in m_FrameSettingsRuntime
-        // otherwise it is the serialized m_FrameSettings that are used
-        // This is required so each camera have its own debug settings even if they all use the RenderingPath.Default path
-        // and important at Runtime as Default Camera from Scene Preview doesn't exist
-        // assetFrameSettingsIsDirty is the current dirty frame settings state of HDRenderPipelineAsset
-        // if it is dirty and camera use RenderingPath.Default, we need to update it
-        // defaultFrameSettings are the settings store in the HDRenderPipelineAsset
-        public void UpdateDirtyFrameSettings(bool assetFrameSettingsIsDirty, FrameSettings defaultFrameSettings)
-        {
-            if (m_frameSettingsIsDirty || assetFrameSettingsIsDirty)
-            {
-                // We do a copy of the settings to those effectively used
-                defaultFrameSettings.CopyTo(m_FrameSettingsRuntime);
-
-                if (!fullscreenPassthrough && customRenderingSettings)
-                    m_FrameSettings.ApplyOverrideOn(m_FrameSettingsRuntime);
-
-                m_frameSettingsIsDirty = false;
-            }
         }
 
         // For custom projection matrices
@@ -252,9 +198,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!m_IsDebugRegistered)
             {
-                // Note that we register m_FrameSettingsRuntime, so manipulating it in the Debug windows
+                // Note that we register FrameSettingsHistory, so manipulating FrameSettings in the Debug windows
                 // doesn't affect the serialized version
-                if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
+                // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
+                // Do not attempt to not register them till this issue persist.
+                if (/*m_camera.cameraType != CameraType.Preview &&*/ m_camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(m_camera, this);
                 }
@@ -270,7 +218,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_IsDebugRegistered)
             {
-                if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
+                // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
+                // Do not attempt to not register them till this issue persist.
+                if (/*m_camera.cameraType != CameraType.Preview &&*/ m_camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.UnRegisterCamera(m_camera, this);
                 }
@@ -291,9 +241,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
             m_camera.allowHDR = false;
 
-            //  Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
-            m_frameSettingsIsDirty = true;
-
             RegisterDebug();
         }
 
@@ -313,18 +260,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnDisable()
         {
             UnRegisterDebug();
-        }
-
-        public void OnBeforeSerialize()
-        {
-        }
-
-        public void OnAfterDeserialize()
-        {
-            // This is call on load or when this settings are change.
-            // When FrameSettings are manipulated or RenderPath change we reset them to reflect the change, discarding all the Debug Windows change.
-            // Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
-            m_frameSettingsIsDirty = true;
         }
 
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD

@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.UI
     {
         public Text nameLabel;
         public Text valueLabel;
-        DebugUI.EnumField m_Field;
+        protected DebugUI.EnumField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)
         {
@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.UI
             UpdateValueLabel();
         }
 
-        void UpdateValueLabel()
+        protected virtual void UpdateValueLabel()
         {
             int index = m_Field.currentIndex;
 

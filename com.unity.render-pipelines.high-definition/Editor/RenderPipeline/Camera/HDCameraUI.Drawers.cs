@@ -9,7 +9,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using CED = CoreEditorDrawer<SerializedHDCamera>;
 
-    partial class HDCameraUI
+    static partial class HDCameraUI
     {
         enum Expandable
         {
@@ -389,7 +389,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldRenderingPath(SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.passThrough);
+            EditorGUILayout.PropertyField(p.passThrough, fullScreenPassthroughContent);
             using (new EditorGUI.DisabledScope(p.passThrough.boolValue))
                 EditorGUILayout.PropertyField(p.customRenderingSettings, renderingPathContent);
         }
@@ -405,7 +405,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var targetTexture = p.baseCameraSettings.targetTexture.objectReferenceValue as RenderTexture;
                 if (targetTexture
                     && targetTexture.antiAliasing > 1
-                    && p.frameSettings.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred)
+                    && p.frameSettings.litShaderMode == LitShaderMode.Deferred)
                 {
                     EditorGUILayout.HelpBox(msaaWarningMessage, MessageType.Warning, true);
                 }

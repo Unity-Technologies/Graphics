@@ -10,13 +10,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="settings">Settings to apply.</param>
         public static void ApplySettings(this Camera cam, CameraSettings settings)
         {
-            if (settings.frameSettings == null)
-                throw new InvalidOperationException("'frameSettings' must not be null.");
-
             var add = cam.GetComponent<HDAdditionalCameraData>()
                 ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
 
-            add.SetPersistentFrameSettings(settings.frameSettings);
+            // FrameSettings 
+            add.defaultFrameSettings = settings.defaultFrameSettings;
+            add.renderingPathCustomFrameSettings = settings.renderingPathCustomFrameSettings;
             // Frustum
             cam.nearClipPlane = settings.frustum.nearClipPlane;
             cam.farClipPlane = settings.frustum.farClipPlane;
@@ -37,8 +36,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             add.customRenderingSettings = settings.customRenderingSettings;
             add.flipYMode = settings.flipYMode;
             add.invertFaceCulling = settings.invertFaceCulling;
-
-            add.OnAfterDeserialize();
         }
 
         /// <summary>Applies <paramref name="settings"/> to <paramref name="cam"/>.</summary>

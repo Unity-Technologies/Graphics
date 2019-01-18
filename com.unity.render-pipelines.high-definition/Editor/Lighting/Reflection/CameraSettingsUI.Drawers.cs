@@ -94,9 +94,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 
                 if (serialized.customRenderingSettings.boolValue)
                 {
+                    --EditorGUI.indentLevel; //fix alignment issue for Planar Reflection and Reflection probe's FrameSettings
                     // TODO: place it in static cache
                     var drawer = FrameSettingsUI.Inspector(true);
                     drawer.Draw(serialized.frameSettings, owner);
+                    ++EditorGUI.indentLevel;
                 }
             }
         }

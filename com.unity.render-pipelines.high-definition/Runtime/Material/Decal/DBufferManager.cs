@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (hdCamera.frameSettings.enableDecals)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
                 cmd.SetGlobalInt(HDShaderIDs._EnableDecals, enableDecals ? 1 : 0);
                 cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight));

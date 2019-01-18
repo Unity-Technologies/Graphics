@@ -5,12 +5,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class FrameSettingsUI
     {
-        const string renderingPassesHeaderContent = "Rendering Passes";
+        static readonly GUIContent frameSettingsHeaderContent = EditorGUIUtility.TrTextContent("Frame Settings Override", "Default FrameSettings are defined in HDRenderPipelineAsset.");
+
         const string renderingSettingsHeaderContent = "Rendering";
-        const string xrSettingsHeaderContent = "XR Settings";
         const string lightSettingsHeaderContent = "Lighting";
         const string asyncComputeSettingsHeaderContent = "Async Compute";
-        
+        const string lightLoopSettingsHeaderContent = "Light Loop";
+
+        // Rendering Passes
         static readonly GUIContent transparentPrepassContent = EditorGUIUtility.TrTextContent("Transparent Prepass");
         static readonly GUIContent transparentPostpassContent = EditorGUIUtility.TrTextContent("Transparent Postpass");
         static readonly GUIContent motionVectorContent = EditorGUIUtility.TrTextContent("Motion Vectors");
@@ -19,6 +21,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent roughRefractionContent = EditorGUIUtility.TrTextContent("Rough Refraction");
         static readonly GUIContent distortionContent = EditorGUIUtility.TrTextContent("Distortion");
         static readonly GUIContent postprocessContent = EditorGUIUtility.TrTextContent("Postprocess");
+
+        // Rendering Settings
         static readonly GUIContent litShaderModeContent = EditorGUIUtility.TrTextContent("Lit Shader Mode");
         static readonly GUIContent depthPrepassWithDeferredRenderingContent = EditorGUIUtility.TrTextContent("Depth Prepass With Deferred Rendering");
         static readonly GUIContent opaqueObjectsContent = EditorGUIUtility.TrTextContent("Opaque Objects");
@@ -45,8 +49,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent SSAOAsyncContent = EditorGUIUtility.TrTextContent("SSAO in Async");
         static readonly GUIContent contactShadowsAsyncContent = EditorGUIUtility.TrTextContent("Contact Shadows in Async");
         static readonly GUIContent volumeVoxelizationAsyncContent = EditorGUIUtility.TrTextContent("Volumetrics Voxelization in Async");
-
-
-        static readonly GUIContent frameSettingsHeaderContent = EditorGUIUtility.TrTextContent("Frame Settings Overrides", "Default FrameSettings are defined in HDRenderPipelineAsset.");
+        
+        // Light Loop
+        // Uncomment if you re-enable LIGHTLOOP_SINGLE_PASS multi_compile in lit*.shader
+        //static readonly GUIContent tileAndClusterContent = EditorGUIUtility.TrTextContent("Enable Tile And Cluster");
+        static readonly GUIContent fptlForForwardOpaqueContent = EditorGUIUtility.TrTextContent("FPTL For Forward Opaque");
+        static readonly GUIContent bigTilePrepassContent = EditorGUIUtility.TrTextContent("Big Tile Prepass");
+        static readonly GUIContent computeLightEvaluationContent = EditorGUIUtility.TrTextContent("Compute Light Evaluation");
+        static readonly GUIContent computeLightVariantsContent = EditorGUIUtility.TrTextContent("Compute Light Variants");
+        static readonly GUIContent computeMaterialVariantsContent = EditorGUIUtility.TrTextContent("Compute Material Variants");
     }
 }

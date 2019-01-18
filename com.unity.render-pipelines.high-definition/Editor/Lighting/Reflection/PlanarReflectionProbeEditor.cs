@@ -141,7 +141,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
                 null,
                 CallingConventions.Any,
-                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption },
+                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption, typeof(EditorWindow) },
                 null);
         static void SceneViewOverlay_Window(GUIContent title, Action<Object, SceneView> sceneViewFunc, int order, Object target)
         {
@@ -150,7 +150,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 title, DelegateUtility.Cast(sceneViewFunc, k_SceneViewOverlay_WindowFunction),
                 order,
                 target,
-                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1)
+                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1),
+                null
             });
         }
 

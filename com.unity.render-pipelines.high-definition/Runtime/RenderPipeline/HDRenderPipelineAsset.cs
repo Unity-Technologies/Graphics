@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
@@ -12,15 +13,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
-    public class HDRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset
     {
-        [HideInInspector]
-        const int currentVersion = 1;
-        // Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
-#pragma warning disable 414
-        [SerializeField]
-        int m_Version = currentVersion;
-#pragma warning restore 414
 
         HDRenderPipelineAsset()
         {
@@ -64,79 +58,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
         [SerializeField]
-        [FormerlySerializedAs("serializedFrameSettings")]
-        FrameSettings m_FrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
-        // Not serialized, not visible, the settings effectively used
-        FrameSettings m_FrameSettingsRuntime = new FrameSettings();
+        FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.defaultCamera;
 
         [SerializeField]
-        FrameSettings m_BakedOrCustomReflectionFrameSettings = new FrameSettings();
+        FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.defaultCustomOrBakeReflectionProbe;
 
         [SerializeField]
-        FrameSettings m_RealtimeReflectionFrameSettings = new FrameSettings()
-        {
-            //deactivating some feature by for default realtime probe framesettings
-            enableRoughRefraction = false,
-            enableDistortion = false,
-            enablePostprocess = false,
-            enableContactShadows = false,
-            enableShadowMask = false,
-            enableSSAO = false,
-            enableAtmosphericScattering = false,
-            enableExposureControl = false
-        };
-        
-        bool m_frameSettingsIsDirty = true;
-        public bool frameSettingsIsDirty
-        {
-            get { return m_frameSettingsIsDirty; }
-        }
+        FrameSettings m_RenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettings.defaultRealtimeReflectionProbe;
 
-        public FrameSettings GetFrameSettings()
+        public ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
         {
-            return m_FrameSettingsRuntime;
-        }
-        
-        public FrameSettings GetBakedOrCustomReflectionFrameSettings()
-        {
-            return m_BakedOrCustomReflectionFrameSettings;
-        }
-
-        public FrameSettings GetRealtimeReflectionFrameSettings()
-        {
-            return m_RealtimeReflectionFrameSettings;
-        }
-
-        // See comment in FrameSettings.UpdateDirtyFrameSettings()
-        // for detail about this function
-        public void UpdateDirtyFrameSettings()
-        {
-            if (m_frameSettingsIsDirty)
+            switch(type)
             {
-                m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
-
-                m_frameSettingsIsDirty = false;
-
-                // In Editor we can have plenty of camera that are not render at the same time as SceneView.
-                // It is really tricky to keep in sync with them. To have a coherent state. When a change is done
-                // on HDRenderPipelineAsset, we tag all camera as dirty so we are sure that they will get the
-                // correct default FrameSettings when the camera will be in the HDRenderPipeline.Render() call
-                // otherwise, as SceneView and Game camera are not in the same call Render(), Game camera that use default
-                // will not be update correctly.
-                #if UNITY_EDITOR
-                Camera[] cameras = Camera.allCameras;
-                foreach (Camera camera in cameras)
-                {
-                    var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-                    if (additionalCameraData)
-                    {
-                        // Call OnAfterDeserialize that set dirty on FrameSettings
-                        additionalCameraData.OnAfterDeserialize();
-                    }
-                }
-                #endif
+                case FrameSettingsRenderType.Camera:
+                    return ref m_RenderingPathDefaultCameraFrameSettings;
+                case FrameSettingsRenderType.CustomOrBakedReflection:
+                    return ref m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
+                case FrameSettingsRenderType.RealtimeReflection:
+                    return ref m_RenderingPathDefaultRealtimeReflectionFrameSettings;
+                default:
+                    throw new ArgumentException("Unknown FrameSettingsRenderType");
             }
         }
+
+        public bool frameSettingsHistory { get; set; } = false;
 
         public ReflectionSystemParameters reflectionSystemParameters
         {
@@ -271,27 +216,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultTerrainMat;
             }
         }
-#endif
 
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-        }
-
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-        {
-            // This is call on load or when this settings are change.
-            // When FrameSettings are manipulated we reset them to reflect the change, discarding all the Debug Windows change.
-            // Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
-            m_frameSettingsIsDirty = true;
-
-            if (m_Version != currentVersion)
-            {
-                // Add here data migration code
-                m_Version = currentVersion;
-            }
-        }
-
-#if UNITY_EDITOR
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();
 

@@ -12,8 +12,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MirrorReferenceTransformWithProbePlane
         }
 
-        // This is viable to use a static variable here because ApplySettings() must be called only on main thread.
-        static FrameSettings s_ApplySettings_TMP = new FrameSettings();
         /// <summary>
         /// Apply <paramref name="settings"/> and <paramref name="probePosition"/> to
         /// <paramref name="cameraPosition"/> and <paramref name="cameraSettings"/>.
@@ -84,20 +82,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Frame Settings Overrides
-            var hd = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
             switch (settings.mode)
             {
                 default:
                 case ProbeSettings.Mode.Realtime:
-                    hd.asset.GetRealtimeReflectionFrameSettings().CopyTo(s_ApplySettings_TMP);
+                    cameraSettings.defaultFrameSettings = FrameSettingsRenderType.RealtimeReflection;
                     break;
                 case ProbeSettings.Mode.Baked:
                 case ProbeSettings.Mode.Custom:
-                    hd.asset.GetBakedOrCustomReflectionFrameSettings().CopyTo(s_ApplySettings_TMP);
+                    cameraSettings.defaultFrameSettings = FrameSettingsRenderType.CustomOrBakedReflection;
                     break;
             }
-            cameraSettings.frameSettings.ApplyOverrideOn(s_ApplySettings_TMP);
-            s_ApplySettings_TMP.CopyTo(cameraSettings.frameSettings);
         }
 
         internal static void ApplyMirroredReferenceTransform(

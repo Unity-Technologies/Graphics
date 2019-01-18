@@ -231,7 +231,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
-            if (!camera.frameSettings.enableExposureControl)
+            if (!camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
             {
                 cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, m_EmptyExposureTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, m_EmptyExposureTexture);
@@ -281,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: Do we want user effects before post?
 
                 // Start with exposure - will be applied in the next frame
-                if (!IsExposureFixed() && camera.frameSettings.enableExposureControl)
+                if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
                 {
                     using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
                     {

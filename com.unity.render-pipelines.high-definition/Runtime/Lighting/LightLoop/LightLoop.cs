@@ -343,7 +343,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static int[] s_TempScreenDimArray = new int[2]; // Used to avoid GC stress when calling SetComputeIntParams
 
-        FrameSettings m_FrameSettings = null;
+        FrameSettings m_FrameSettings;
         RenderPipelineResources m_Resources = null;
 
         ContactShadows m_ContactShadows = null;
@@ -436,11 +436,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.y, LightDefinitions.s_TileSizeClustered);
         }
 
-        public bool GetFeatureVariantsEnabled()
-        {
-            return m_FrameSettings.shaderLitMode == LitShaderMode.Deferred && m_FrameSettings.lightLoopSettings.isFptlEnabled && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation &&
-                (m_FrameSettings.lightLoopSettings.enableComputeLightVariants || m_FrameSettings.lightLoopSettings.enableComputeMaterialVariants);
-        }
+        public bool GetFeatureVariantsEnabled() =>
+            m_FrameSettings.litShaderMode == LitShaderMode.Deferred
+            && m_FrameSettings.fptl
+            && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation)
+            && (m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants) || m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants));
 
         public LightLoop()
         {}
@@ -686,16 +686,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FrameSettings = frameSettings;
 
             m_ContactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
-            m_EnableContactShadow = m_FrameSettings.enableContactShadows && m_ContactShadows.enable && m_ContactShadows.length > 0;
+            m_EnableContactShadow = m_FrameSettings.IsEnabled(FrameSettingsField.ContactShadows) && m_ContactShadows.enable && m_ContactShadows.length > 0;
             m_indirectLightingController = VolumeManager.instance.stack.GetComponent<IndirectLightingController>();
 
             // Cluster
             {
-                var clustPrepassSourceIdx = m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
+                var clustPrepassSourceIdx = m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
                 var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
                 if (k_UseDepthBuffer)
                 {
-                    if (m_FrameSettings.enableMSAA)
+                    if (m_FrameSettings.IsEnabled(FrameSettingsField.MSAA))
                         clustDepthSourceIdx = ClusterDepthSource.MSAA_Depth;
                     else
                         clustDepthSourceIdx = ClusterDepthSource.Depth;
@@ -709,14 +709,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (GetFeatureVariantsEnabled())
             {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
-                s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags_Oblique" : "TileLightListGen_FeatureFlags_Oblique");
+                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
+                s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_FeatureFlags_Oblique" : "TileLightListGen_FeatureFlags_Oblique");
 
             }
             else
             {
-                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
-                s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_Oblique" : "TileLightListGen_Oblique");
+                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
+                s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_Oblique" : "TileLightListGen_Oblique");
             }
 
             m_CookieTexArray.NewFrame();
@@ -728,7 +728,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool NeedResize()
         {
             return s_LightList == null || s_TileList == null || s_TileFeatureFlags == null ||
-                (s_BigTileLightList == null && m_FrameSettings.lightLoopSettings.enableBigTilePrepass) ||
+                (s_BigTileLightList == null && m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass)) ||
                 (s_PerVoxelLightLists == null);
         }
 
@@ -781,7 +781,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
+            if (m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
             {
                 var nrBigTilesX = (width + 63) / 64;
                 var nrBigTilesY = (height + 63) / 64;
@@ -878,7 +878,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.color *= (HDUtils.s_DefaultHDAdditionalLightData == additionalLightData) ? Mathf.PI : 1.0f;
 
             lightData.lightDimmer           = additionalLightData.lightDimmer;
-            lightData.diffuseDimmer         = additionalLightData.affectDiffuse  ? additionalLightData.lightDimmer * m_FrameSettings.diffuseGlobalDimmer  : 0;
+            lightData.diffuseDimmer         = additionalLightData.affectDiffuse  ? additionalLightData.lightDimmer : 0;
             lightData.specularDimmer        = additionalLightData.affectSpecular ? additionalLightData.lightDimmer * m_FrameSettings.specularGlobalDimmer : 0;
             lightData.volumetricLightDimmer = additionalLightData.volumetricDimmer;
 
@@ -1110,7 +1110,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             lightData.lightDimmer           = lightDistanceFade * (additionalLightData.lightDimmer);
-            lightData.diffuseDimmer         = lightDistanceFade * (additionalLightData.affectDiffuse  ? additionalLightData.lightDimmer * m_FrameSettings.diffuseGlobalDimmer  : 0);
+            lightData.diffuseDimmer         = lightDistanceFade * (additionalLightData.affectDiffuse  ? additionalLightData.lightDimmer : 0);
             lightData.specularDimmer        = lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * m_FrameSettings.specularGlobalDimmer : 0);
             lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.volumetricDimmer);
 
@@ -1400,8 +1400,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 case PlanarReflectionProbe planarProbe:
                     {
-                        if (!hdCamera.frameSettings.enableRealtimePlanarReflection)
+                        if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection))
                             break;
+
                         var fetchIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
                         envIndex = (fetchIndex << 1) | (int)EnvCacheType.Texture2D;
 
@@ -2113,7 +2114,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
             }
 
-            m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.enableShadowMask;
+            m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ShadowMask);
 
             // We push this parameter here because we know that normal/deferred shadows are not yet rendered
             if (debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
@@ -2195,7 +2196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_vLayeredLightList, s_PerVoxelLightLists);
             cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_LayeredOffset, s_PerVoxelOffset);
             cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, s_GlobalLightListAtomic);
-            if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
+            if (m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
 
             if (k_UseDepthBuffer)
@@ -2299,7 +2300,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
-            if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
+            if (m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
             {
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
@@ -2329,7 +2330,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool enableFeatureVariants = GetFeatureVariantsEnabled();
 
             // optimized for opaques only
-            if (m_FrameSettings.lightLoopSettings.isFptlEnabled)
+            if (m_FrameSettings.fptl)
             {
                 var genListPerTileKernel = isProjectionOblique ? s_GenListPerTileKernel_Oblique : s_GenListPerTileKernel;
 
@@ -2348,7 +2349,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetComputeTextureParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_vLightList, s_LightList);
-                if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
+                if (m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
                     cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
 
                 if (enableFeatureVariants)
@@ -2362,7 +2363,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
                     }
-                    if (!m_FrameSettings.lightLoopSettings.enableComputeMaterialVariants)
+                    if (!m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants))
                     {
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                     }
@@ -2379,12 +2380,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (enableFeatureVariants)
             {
                 // material classification
-                if (m_FrameSettings.lightLoopSettings.enableComputeMaterialVariants)
+                if (m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants))
                 {
                     int buildMaterialFlagsKernel = s_BuildMaterialFlagsOrKernel;
 
                     uint baseFeatureFlags = 0;
-                    if (!m_FrameSettings.lightLoopSettings.enableComputeLightVariants)
+                    if (!m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants))
                     {
                         buildMaterialFlagsKernel = s_BuildMaterialFlagsWriteKernel;
                         baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
@@ -2481,9 +2482,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(hdCamera));
 
-                cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, hdCamera.frameSettings.enableRoughRefraction ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) ? 1 : 0);
 
-                if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
+                if (m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
 
                 // Cluster
@@ -2562,7 +2563,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int             kernel;
 
                 // Pick the adequate kenel
-                kernel = hdCamera.frameSettings.enableMSAA ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
+                kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
 
                 // We use the .w component of the direction/position vectors to choose in the shader the
                 // light direction of the contact shadows (direction light direction or (pixel position - light position))
@@ -2592,7 +2593,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeVectorParam(screenSpaceShadowComputeShader, HDShaderIDs._PunctualLightPosition, lightPosition);
 
                 // Inject the texture in the adequate slot
-                cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, hdCamera.frameSettings.enableMSAA ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);
+                cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);
 
                 cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
 
@@ -2613,8 +2614,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LightingPassOptions options)
         {
             cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_LightList);
-
-            if (m_FrameSettings.lightLoopSettings.enableDeferredTileAndCluster && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation && options.outputSplitLighting)
+            
+            if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTileAndCluster) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) && options.outputSplitLighting)
             {
                 // The CS is always in the MRT mode. Do not execute the same shader twice.
                 return;
@@ -2626,15 +2627,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             string tilePassMRTName = "TilePass - Deferred Lighting Pass MRT";
             string singlePassName = "SinglePass - Deferred Lighting Pass";
             string SinglePassMRTName = "SinglePass - Deferred Lighting Pass MRT";
-
-            string sLabel = m_FrameSettings.lightLoopSettings.enableDeferredTileAndCluster ?
+            
+            string sLabel = m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTileAndCluster) ?
                 (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
                 (options.outputSplitLighting ? SinglePassMRTName : singlePassName);
 
             using (new ProfilingSample(cmd, sLabel, CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
             {
                 // Compute path
-                if (m_FrameSettings.lightLoopSettings.enableDeferredTileAndCluster && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation)
+                if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTileAndCluster) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation))
                 {
                     int w = hdCamera.actualWidth;
                     int h = hdCamera.actualHeight;
@@ -2700,7 +2701,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else // Pixel shader evaluation
                 {
                     int index = GetDeferredLightingMaterialIndex(options.outputSplitLighting ? 1 : 0,
-                            m_FrameSettings.lightLoopSettings.enableDeferredTileAndCluster ? 0 : 1,
+                            m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTileAndCluster) ? 1 : 0,
                             m_enableBakeShadowMask ? 1 : 0,
                             debugDisplaySettings.IsDebugDisplayEnabled() ? 1 : 0);
 
@@ -2714,7 +2715,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // If SSS is disable, do lighting for both split lighting and no split lighting
                         // This is for debug purpose, so fine to use immediate material mode here to modify render state
-                        if (!m_FrameSettings.enableSubsurfaceScattering)
+                        if (!m_FrameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                         {
                             currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
                             currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
@@ -2735,8 +2736,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Note: SHADOWS_SHADOWMASK keyword is enabled in HDRenderPipeline.cs ConfigureForShadowMask
 
-            // Only opaques can use FPTL, transparent must use clustered!
-            bool useFptl = renderOpaque && m_FrameSettings.lightLoopSettings.enableFptlForForwardOpaque;
+            bool useFptl = renderOpaque && m_FrameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
 
             using (new ProfilingSample(cmd, useFptl ? "Forward Tiled pass" : "Forward Clustered pass", CustomSamplerId.TPForwardTiledClusterpass.GetSampler()))
             {

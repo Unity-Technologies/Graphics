@@ -113,7 +113,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Function that will return the set of buffers required for the prepass (depending on if msaa is enabled or not)
         public RenderTargetIdentifier[] GetPrepassBuffersRTI(FrameSettings frameSettings)
         {
-            if (frameSettings.enableMSAA)
+            if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
                 m_RTIDs2[0] = m_NormalMSAART.nameID;
@@ -131,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public RenderTargetIdentifier[] GetVelocityPassBuffersRTI(FrameSettings frameSettings)
         {
             Debug.Assert(m_VelocitySupport);
-            if (frameSettings.enableMSAA)
+            if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
                 m_RTIDs3[0] = m_VelocityMSAART.nameID;
@@ -296,7 +296,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void ResolveSharedRT(CommandBuffer cmd, HDCamera hdCamera)
         {
-            if (hdCamera.frameSettings.enableMSAA)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
                 using (new ProfilingSample(cmd, "ComputeDepthValues", CustomSamplerId.VolumeUpdate.GetSampler()))
@@ -317,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public void ResolveMSAAColor(CommandBuffer cmd, HDCamera hdCamera, RTHandleSystem.RTHandle msaaTarget, RTHandleSystem.RTHandle simpleTarget)
         {
-            if (hdCamera.frameSettings.enableMSAA)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
                 using (new ProfilingSample(cmd, "ResolveColor", CustomSamplerId.VolumeUpdate.GetSampler()))

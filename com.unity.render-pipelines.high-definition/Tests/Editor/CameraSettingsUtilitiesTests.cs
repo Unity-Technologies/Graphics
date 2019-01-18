@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                         cullingMask = RandomUtilities.RandomInt(i),
                         useOcclusionCulling = RandomUtilities.RandomBool(i + 0.5f),
                     },
-                    frameSettings = new FrameSettings(),
+                    renderingPathCustomFrameSettings = default,
                     frustum = new CameraSettings.Frustum
                     {
                         aspect = RandomUtilities.RandomFloat(i, 6724.2745f) * 0.5f + 1,

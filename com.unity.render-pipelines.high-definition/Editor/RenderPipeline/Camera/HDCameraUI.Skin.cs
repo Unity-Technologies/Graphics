@@ -15,27 +15,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string msaaWarningMessage = "Manual MSAA target set with deferred rendering. This will lead to undefined behavior.";
 
         static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Clear Mode", "The Camera clears the screen to selected mode.");
-        static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "TThe BackgroundColor used to clear the screen when selecting BackgrounColor before rendering.");
-        static readonly GUIContent clearDepthContent = EditorGUIUtility.TrTextContent("ClearDepth", "TThe Camera clears the depth buffer before rendering.");
+        static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "The BackgroundColor used to clear the screen when selecting BackgrounColor before rendering.");
+        static readonly GUIContent clearDepthContent = EditorGUIUtility.TrTextContent("ClearDepth", "The Camera clears the depth buffer before rendering.");
         static readonly GUIContent cullingMaskContent = EditorGUIUtility.TrTextContent("Culling Mask");
-        static readonly GUIContent volumeLayerMaskContent = EditorGUIUtility.TrTextContent("Volume Layer Mask");
-        static readonly GUIContent volumeAnchorOverrideContent = EditorGUIUtility.TrTextContent("Volume Anchor Override");
+        static readonly GUIContent volumeLayerMaskContent = EditorGUIUtility.TrTextContent("Volume Layer Mask", "Layer Mask used for the volume interpolation for this camera.");
+        static readonly GUIContent volumeAnchorOverrideContent = EditorGUIUtility.TrTextContent("Volume Anchor Override", "Transform used for the volume interpolation for this camera.");
         static readonly GUIContent occlusionCullingContent = EditorGUIUtility.TrTextContent("Occlusion Culling");
 
-        static readonly GUIContent projectionContent = EditorGUIUtility.TrTextContent("Projection", "THow the Camera renders perspective.\n\nChoose Perspective to render objects with perspective.\n\nChoose Orthographic to render objects uniformly, with no sense of perspective.");
-        static readonly GUIContent sizeContent = EditorGUIUtility.TrTextContent("Size", "TThe vertical size of the camera view.");
-        static readonly GUIContent fieldOfViewContent = EditorGUIUtility.TrTextContent("Field of View", "TThe camera’s view angle measured in degrees along the selected axis.");
-        static readonly GUIContent focalLengthContent = EditorGUIUtility.TrTextContent("Focal Length", "TThe simulated distance between the lens and the sensor of the physical camera. Larger values give a narrower field of view.");
-        static readonly GUIContent FOVAxisModeContent = EditorGUIUtility.TrTextContent("FOV Axis", "TField of view axis.");
-        static readonly GUIContent sensorSizeContent = EditorGUIUtility.TrTextContent("Sensor Size", "TThe size of the camera sensor in millimeters.");
-        static readonly GUIContent lensShiftContent = EditorGUIUtility.TrTextContent("Shift", "TOffset from the camera sensor. Use these properties to simulate a shift lens. Measured as a multiple of the sensor size.");
-        static readonly GUIContent physicalCameraContent = EditorGUIUtility.TrTextContent("Link FOV to Physical Camera", "TEnables Physical camera mode for FOV calculation. When checked, the field of view is calculated from properties for simulating physical attributes (focal length, sensor size, and lens shift).");
-        static readonly GUIContent cameraTypeContent = EditorGUIUtility.TrTextContent("Sensor Type", "TCommon sensor sizes. Choose an item to set Sensor Size, or edit Sensor Size for your custom settings.");
-        static readonly GUIContent gateFitContent = EditorGUIUtility.TrTextContent("Gate Fit", "TDetermines how the rendered area (resolution gate) fits into the sensor area (film gate).");
-        static readonly GUIContent nearPlaneContent = EditorGUIUtility.TrTextContent("Near", "TThe closest point relative to the camera that drawing will occur.");
-        static readonly GUIContent farPlaneContent = EditorGUIUtility.TrTextContent("Far", "TThe furthest point relative to the camera that drawing will occur.");
+        static readonly GUIContent projectionContent = EditorGUIUtility.TrTextContent("Projection", "How the Camera renders perspective.\n\nChoose Perspective to render objects with perspective.\n\nChoose Orthographic to render objects uniformly, with no sense of perspective.");
+        static readonly GUIContent sizeContent = EditorGUIUtility.TrTextContent("Size", "The vertical size of the camera view.");
+        static readonly GUIContent fieldOfViewContent = EditorGUIUtility.TrTextContent("Field of View", "The camera’s view angle measured in degrees along the selected axis.");
+        static readonly GUIContent focalLengthContent = EditorGUIUtility.TrTextContent("Focal Length", "The simulated distance between the lens and the sensor of the physical camera. Larger values give a narrower field of view.");
+        static readonly GUIContent FOVAxisModeContent = EditorGUIUtility.TrTextContent("FOV Axis", "Field of view axis.");
+        static readonly GUIContent sensorSizeContent = EditorGUIUtility.TrTextContent("Sensor Size", "The size of the camera sensor in millimeters.");
+        static readonly GUIContent lensShiftContent = EditorGUIUtility.TrTextContent("Shift", "Offset from the camera sensor. Use these properties to simulate a shift lens. Measured as a multiple of the sensor size.");
+        static readonly GUIContent physicalCameraContent = EditorGUIUtility.TrTextContent("Link FOV to Physical Camera", "Enables Physical camera mode for FOV calculation. When checked, the field of view is calculated from properties for simulating physical attributes (focal length, sensor size, and lens shift).");
+        static readonly GUIContent cameraTypeContent = EditorGUIUtility.TrTextContent("Sensor Type", "Common sensor sizes. Choose an item to set Sensor Size, or edit Sensor Size for your custom settings.");
+        static readonly GUIContent gateFitContent = EditorGUIUtility.TrTextContent("Gate Fit", "Determines how the rendered area (resolution gate) fits into the sensor area (film gate).");
+        static readonly GUIContent nearPlaneContent = EditorGUIUtility.TrTextContent("Near", "The closest point relative to the camera that drawing will occur.");
+        static readonly GUIContent farPlaneContent = EditorGUIUtility.TrTextContent("Far", "The furthest point relative to the camera that drawing will occur.");
         static readonly GUIContent probeLayerMaskContent = EditorGUIUtility.TrTextContent("Probe Layer Mask", "The layer mask to use to cull probe influences.");
-        
+        static readonly GUIContent fullScreenPassthroughContent = EditorGUIUtility.TrTextContent("Fullscreen Passthrough", "This will skip rendering settings to directly rendering in fullscreen(for instance: Useful for video)");
+
         static readonly GUIContent renderingPathContent = EditorGUIUtility.TrTextContent("Custom Frame Settings", "Here, you must select which settings to override. If you do enable a specific override, the setting uses the pipeline default.");
 
         // TODO: Tooltips
@@ -47,10 +48,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent barrelClippingContent = EditorGUIUtility.TrTextContent("Barrel Clipping");
         static readonly GUIContent anamorphismContent = EditorGUIUtility.TrTextContent("Anamorphism");
 
-        static readonly GUIContent antialiasingContent = EditorGUIUtility.TrTextContent("Anti-aliasing", "TThe anti-aliasing method to use.");
-        static readonly GUIContent ditheringContent = EditorGUIUtility.TrTextContent("Dithering", "TShould we apply 8-bit dithering to the final render?");
+        static readonly GUIContent antialiasingContent = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
+        static readonly GUIContent ditheringContent = EditorGUIUtility.TrTextContent("Dithering", "Should we apply 8-bit dithering to the final render?");
 
-        static readonly GUIContent viewportContent = EditorGUIUtility.TrTextContent("Viewport Rect", "TFour values that indicate where on the screen this camera view will be drawn. Measured in Viewport Coordinates (values 0–1).");
+        static readonly GUIContent viewportContent = EditorGUIUtility.TrTextContent("Viewport Rect", "Four values that indicate where on the screen this camera view will be drawn. Measured in Viewport Coordinates (values 0–1).");
         static readonly GUIContent depthContent = EditorGUIUtility.TrTextContent("Depth");
       
 #if ENABLE_MULTIPLE_DISPLAYS

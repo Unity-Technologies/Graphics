@@ -198,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_Combined2Tex);
             RTHandles.Release(m_Combined3Tex);
         }
-
+        
 #if ENABLE_RAYTRACING
         public void InitRaytracing(HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
         {
@@ -207,7 +207,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 #endif
 
-        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.enableSSAO && settings.intensity.value > 0f;
+        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
         public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext)
         {
@@ -272,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Textures used for rendering
                 RTHandle depthMap, destination;
-                bool msaa = camera.frameSettings.enableMSAA;
+                bool msaa = camera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
                 if (msaa)
                 {
@@ -315,7 +315,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // MSAA Resolve
-            if (camera.frameSettings.enableMSAA)
+            if (camera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 using (new ProfilingSample(cmd, "Resolve AO Buffer", CustomSamplerId.ResolveSSAO.GetSampler()))
                 {

@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
             Assert.Throws<ArgumentException>(() => HDRenderUtilities.Render(
                     new CameraSettings
                     {
-                        frameSettings = new FrameSettings()
+                        renderingPathCustomFrameSettings = default
                     },
                     default(CameraPositionSettings),
                     Texture2D.whiteTexture

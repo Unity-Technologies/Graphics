@@ -54,6 +54,44 @@ namespace UnityEditor.Experimental.Rendering
             return true;
         }
     }
+    [DebugUIDrawer(typeof(DebugUI.HistoryBoolField))]
+    public sealed class DebugUIDrawerHistoryBoolField : DebugUIDrawer
+    {
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.HistoryBoolField>(widget);
+            var s = Cast<DebugStateBool>(state);
+
+            EditorGUI.BeginChangeCheck();
+
+            var rect = PrepareControlRect();
+            var labelRect = rect;
+            labelRect.width = EditorGUIUtility.labelWidth;
+            const int oneValueWidth = 60;
+            var valueRects = new Rect[w.historyDepth + 1];
+            for(int i = 0; i < w.historyDepth + 1; i++)
+            {
+                valueRects[i] = rect;
+                valueRects[i].x += EditorGUIUtility.labelWidth + i * oneValueWidth;
+                valueRects[i].width = oneValueWidth;
+            }
+            EditorGUI.LabelField(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+            int indent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0; //be at left of rects
+            bool value = EditorGUI.Toggle(valueRects[0], w.GetValue());
+            using (new EditorGUI.DisabledScope(true))
+            {
+                for (int i = 0; i < w.historyDepth; i++)
+                    EditorGUI.Toggle(valueRects[i + 1], w.GetHistoryValue(i));
+            }
+            EditorGUI.indentLevel = indent;
+
+            if (EditorGUI.EndChangeCheck())
+                Apply(w, s, value);
+            
+            return true;
+        }
+    }
 
     [DebugUIDrawer(typeof(DebugUI.IntField))]
     public sealed class DebugUIDrawerIntField : DebugUIDrawer
@@ -167,6 +205,67 @@ namespace UnityEditor.Experimental.Rendering
             return true;
         }
     }
+    [DebugUIDrawer(typeof(DebugUI.HistoryEnumField))]
+    public sealed class DebugUIDrawerHistoryEnumField : DebugUIDrawer
+    {
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.HistoryEnumField>(widget);
+            var s = Cast<DebugStateInt>(state);
+
+            if (w.indexes == null)
+                w.InitIndexes();
+
+            EditorGUI.BeginChangeCheck();
+
+            int index = -1;
+            int value = w.GetValue();
+            if (w.enumNames == null || w.enumValues == null)
+            {
+                EditorGUILayout.LabelField("Can't draw an empty enumeration.");
+            }
+            else
+            {
+                var rect = PrepareControlRect();
+                index = w.currentIndex;
+
+                // Fallback just in case, we may be handling sub/sectionned enums here
+                if (index < 0)
+                    index = 0;
+                
+                var labelRect = rect;
+                labelRect.width = EditorGUIUtility.labelWidth;
+                const int oneValueWidth = 60;
+                var valueRects = new Rect[w.historyDepth + 1];
+                for (int i = 0; i < w.historyDepth + 1; i++)
+                {
+                    valueRects[i] = rect;
+                    valueRects[i].x += EditorGUIUtility.labelWidth + i * oneValueWidth;
+                    valueRects[i].width = oneValueWidth;
+                }                
+                EditorGUI.LabelField(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+                int indent = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0; //be at left of rects
+                index = EditorGUI.IntPopup(valueRects[0], index, w.enumNames, w.indexes);
+                value = w.enumValues[index];
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    for (int i = 0; i < w.historyDepth; i++)
+                        EditorGUI.IntPopup(valueRects[i + 1], w.GetHistoryValue(i), w.enumNames, w.indexes);
+                }
+                EditorGUI.indentLevel = indent;
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Apply(w, s, value);
+                if (index > -1)
+                    w.currentIndex = index;
+            }
+
+            return true;
+        }
+    }
 
     [DebugUIDrawer(typeof(DebugUI.BitField))]
     public sealed class DebugUIDrawerBitField : DebugUIDrawer
@@ -195,10 +294,27 @@ namespace UnityEditor.Experimental.Rendering
         {
             var w = Cast<DebugUI.Foldout>(widget);
             var s = Cast<DebugStateBool>(state);
-
+            
             EditorGUI.BeginChangeCheck();
 
-            bool value = EditorGUILayout.Foldout(w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName), true);
+            Rect rect = PrepareControlRect();
+            bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName), true);
+
+            Rect drawRect = GUILayoutUtility.GetLastRect();
+            if (w.columnLabels != null && value)
+            {
+                const int oneColumnWidth = 60;
+                int indent = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0; //be at left of rects
+                for (int i = 0; i < w.columnLabels.Length; i++)
+                {
+                    var columnRect = drawRect;
+                    columnRect.x += EditorGUIUtility.labelWidth + i * oneColumnWidth;
+                    columnRect.width = oneColumnWidth;
+                    EditorGUI.LabelField(columnRect, w.columnLabels[i] ?? "", EditorStyles.miniBoldLabel);
+                }
+                EditorGUI.indentLevel = indent;
+            }
 
             if (EditorGUI.EndChangeCheck())
                 Apply(w, s, value);

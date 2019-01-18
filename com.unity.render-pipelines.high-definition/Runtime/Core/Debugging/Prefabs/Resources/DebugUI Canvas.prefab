@@ -69,6 +69,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1153602445894428}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 1980459831, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -91,6 +92,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1153602445894428}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 1301386320, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -108,6 +110,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1153602445894428}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 76db615e524a19c4990482d75a475543, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -162,4 +165,11 @@ MonoBehaviour:
   - type: UnityEngine.Experimental.Rendering.DebugUI+BitField, Unity.RenderPipelines.HighDefinition.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     prefab: {fileID: 5833802642077810669, guid: 7c78b588b2e1f7c4a86ca4a985cf6e4a,
+      type: 3}
+  - type: UnityEngine.Experimental.Rendering.DebugUI+HistoryBoolField, Unity.RenderPipelines.HighDefinition.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 108402283379224504, guid: 5088d0220f0c4df439cf06c5c270eacb, type: 3}
+  - type: UnityEngine.Experimental.Rendering.DebugUI+HistoryEnumField, Unity.RenderPipelines.HighDefinition.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 8535926254376877601, guid: b2da6b27df236b144b3516ed8e7d36ac,
       type: 3}
