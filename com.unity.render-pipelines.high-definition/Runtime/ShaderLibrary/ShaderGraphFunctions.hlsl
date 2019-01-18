@@ -9,8 +9,7 @@
 float shadergraph_HDSampleSceneDepth(float2 uv)
 {
 #if defined(REQUIRE_DEPTH_TEXTURE)
-    float rawDepth = SampleCameraDepth(uv);
-	return Linear01Depth(rawDepth, _ZBufferParams);
+    return SampleCameraDepth(uv);
 #endif
     return 0;
 }
@@ -18,7 +17,7 @@ float shadergraph_HDSampleSceneDepth(float2 uv)
 float3 shadergraph_HDSampleSceneColor(float2 uv)
 {
 #if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT)
-	return SampleCameraColor(uv, 0);
+	return SampleCameraColor(uv);
 #endif
     return float3(0, 0, 0);
 }

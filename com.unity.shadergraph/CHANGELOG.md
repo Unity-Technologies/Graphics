@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [4.9.0-preview] - 2019-XX-XX
+### Changed
+- In the `Scene Depth` node you can now choose the depth sampling mode: `Linear01`, `Raw` or `Eye`.
 
 ## [4.8.0-preview] - 2019-01-16
 
