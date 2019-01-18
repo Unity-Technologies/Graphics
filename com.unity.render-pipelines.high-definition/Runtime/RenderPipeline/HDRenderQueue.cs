@@ -121,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case RenderQueueType.Overlay:
                     return (int)Priority.Overlay;
                 default:
-                    throw new ArgumentException("Unknown RenderQueueType");
+                    throw new ArgumentException("Unknown RenderQueueType, was " + targetType);
             }
         }
 
@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return type;
                 case RenderQueueType.Overlay:
                 case RenderQueueType.Background:
-                    throw new ArgumentException("Unknow RenderQueueType conversion to transparent equivalent");
+                    throw new ArgumentException("Unknow RenderQueueType conversion to transparent equivalent, was " + type);
             }
         }
 
@@ -157,7 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return type;
                 case RenderQueueType.Overlay:
                 case RenderQueueType.Background:
-                    throw new ArgumentException("Unknow RenderQueueType conversion to opaque equivalent");
+                    throw new ArgumentException("Unknow RenderQueueType conversion to opaque equivalent, was " + type);
             }
         }
 
@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case RenderQueueType.AfterPostProcessOpaque:
                     return OpaqueRenderQueue.AfterPostProcessing;
                 default:
-                    throw new ArgumentException("Cannot map to OpaqueRenderQueue");
+                    throw new ArgumentException("Cannot map to OpaqueRenderQueue, was " + renderQueue);
             }
         }
 
@@ -199,7 +199,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case OpaqueRenderQueue.AfterPostProcessing:
                     return RenderQueueType.AfterPostProcessOpaque;
                 default:
-                    throw new ArgumentException("Unknown OpaqueRenderQueue");
+                    throw new ArgumentException("Unknown OpaqueRenderQueue, was " + opaqueRenderQueue);
             }
         }
 
@@ -216,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case RenderQueueType.AfterPostprocessTransparent:
                     return TransparentRenderQueue.AfterPostProcessing;
                 default:
-                    throw new ArgumentException("Cannot map to TransparentRenderQueue");
+                    throw new ArgumentException("Cannot map to TransparentRenderQueue, was " + renderQueue);
             }
         }
 
@@ -233,7 +233,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case TransparentRenderQueue.AfterPostProcessing:
                     return RenderQueueType.AfterPostprocessTransparent;
                 default:
-                    throw new ArgumentException("Unknown TransparentRenderQueue");
+                    throw new ArgumentException("Unknown TransparentRenderQueue, was " + transparentRenderqueue);
             }
         }
     }

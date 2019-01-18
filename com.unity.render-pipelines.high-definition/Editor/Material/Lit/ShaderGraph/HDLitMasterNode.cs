@@ -202,10 +202,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-
-        //could be either BaseUnlitGUI.OpaqueRenderQueue or BaseUnlitGUI.TransparentRenderQueue
+        
         [SerializeField]
-        HDRenderQueue.RenderQueueType m_RenderingPass = HDRenderQueue.RenderQueueType.Opaque;
+        HDRenderQueue.RenderQueueType m_RenderingPass = HDRenderQueue.RenderQueueType.Unknown;
 
         public HDRenderQueue.RenderQueueType renderingPass
         {
@@ -249,22 +248,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-
-        [SerializeField]
-        bool m_DrawBeforeRefraction;
-
-        public ToggleData drawBeforeRefraction
-        {
-            get { return new ToggleData(m_DrawBeforeRefraction); }
-            set
-            {
-                if (m_DrawBeforeRefraction == value.isOn)
-                    return;
-                m_DrawBeforeRefraction = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
+        
+        [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_DrawBeforeRefraction"), Obsolete("Kept for data migration")]
+        internal bool drawBeforeRefraction;
 
         [SerializeField]
         ScreenSpaceRefraction.RefractionModel m_RefractionModel;
@@ -607,7 +593,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public bool HasRefraction()
         {
-            return (surfaceType == SurfaceType.Transparent && !drawBeforeRefraction.isOn && refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            return (surfaceType == SurfaceType.Transparent && renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && refractionModel != ScreenSpaceRefraction.RefractionModel.None);
         }
 
         public bool HasDistortion()
