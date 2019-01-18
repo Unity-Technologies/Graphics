@@ -1137,7 +1137,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 					//SS Spotlight Added.
 					if (afterGBufferPass != null)
 					{
-						afterGBufferPass(cmd, hdCamera, m_SharedRTManager.GetDepthTexture());
+						afterGBufferPass(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
 					}
 
                     if (shouldRenderMotionVectorAfterGBuffer)
