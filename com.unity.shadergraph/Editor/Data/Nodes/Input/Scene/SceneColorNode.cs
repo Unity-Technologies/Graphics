@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV);
+    Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV.xy);
 }
 ";
         }
