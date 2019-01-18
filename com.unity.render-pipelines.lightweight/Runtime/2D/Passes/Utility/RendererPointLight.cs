@@ -40,6 +40,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static RenderTexture m_ColorRT;
 
         static Color k_ClearColor = Color.black;
+        static Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
 
 
         static Texture GetLightLookupTexture()
@@ -220,7 +221,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_TemporaryCmdBuffer.name = "Render Normals";
             m_TemporaryCmdBuffer.Clear();
             m_TemporaryCmdBuffer.SetRenderTarget(m_NormalRT);
-            m_TemporaryCmdBuffer.ClearRenderTarget(true, true, k_ClearColor); 
+            m_TemporaryCmdBuffer.ClearRenderTarget(true, true, k_NormalClearColor); 
             renderContext.ExecuteCommandBuffer(m_TemporaryCmdBuffer);
             drawSettings.SetShaderPassName(0, m_NormalsRenderingPassName);
             renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
