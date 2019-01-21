@@ -296,7 +296,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9302_MotionVectorsOn-DefferedDecal-Static.unity
     guid: aa2b8ed7d0d276340b794c91ebc7cdce
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/9x_Other/9401_MSAAForwardOnly.unity
     guid: b8bed8c61a04a644f87582e26e3596f2
   - enabled: 1
