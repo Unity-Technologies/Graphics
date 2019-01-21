@@ -34,6 +34,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         //    set { m_ResizeBorderFrame.OnResizeFinished = value; }
         //}
 
+        Dictionary<IShaderProperty, bool> m_ExpandedProperties = new Dictionary<IShaderProperty, bool>();
+
+        public Dictionary<IShaderProperty, bool> expandedProperties
+        {
+            get { return m_ExpandedProperties; }
+        }
+
         public string assetName
         {
             get { return blackboard.title; }
@@ -230,6 +237,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in m_Graph.addedProperties)
                 AddProperty(property, index: m_Graph.GetShaderPropertyIndex(property));
 
+            foreach (var propertyDict in expandedProperties)
+            {
+                SessionState.SetBool(propertyDict.Key.guid.ToString(), propertyDict.Value);
+            }
+
             if (m_Graph.movedProperties.Any())
             {
                 foreach (var row in m_PropertyRows.Values)
@@ -238,6 +250,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var property in m_Graph.properties)
                     m_Section.Add(m_PropertyRows[property.guid]);
             }
+            m_ExpandedProperties.Clear();
         }
 
         void AddProperty(IShaderProperty property, bool create = false, int index = -1)
@@ -258,6 +271,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, property));
             pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 
+            var expandButton = row.Q<Button>("expandButton");
+            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, property), TrickleDown.TrickleDown);
+
             row.userData = property;
             if (index < 0)
                 index = m_PropertyRows.Count;
@@ -267,6 +283,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Section.Insert(index, row);
             m_PropertyRows[property.guid] = row;
 
+            m_PropertyRows[property.guid].expanded = SessionState.GetBool(property.guid.ToString(), true);
+
             if (create)
             {
                 row.expanded = true;
@@ -274,6 +292,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.AddShaderProperty(property);
                 field.OpenTextEditor();
             }
+        }
+
+        void OnExpanded(MouseDownEvent evt, IShaderProperty property)
+        {
+            m_ExpandedProperties[property] = !m_PropertyRows[property.guid].expanded;
         }
 
         void DirtyNodes()
