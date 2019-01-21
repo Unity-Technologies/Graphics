@@ -60,10 +60,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-
-#if SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
-#endif
 
     inputData.viewDirectionWS = viewDirWS;
 #if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
@@ -91,11 +88,6 @@ Varyings LitPassVertex(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
     half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
-
-#if !SHADER_HINT_NICE_QUALITY
-    viewDirWS = SafeNormalize(viewDirWS);
-#endif
-
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
@@ -106,7 +98,7 @@ Varyings LitPassVertex(Attributes input)
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normalWS = normalInput.normalWS;
+    output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
     output.viewDirWS = viewDirWS;
 #endif
     

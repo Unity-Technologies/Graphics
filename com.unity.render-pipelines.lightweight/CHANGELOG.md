@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Framedebugger now renders correctly when stepping through drawcalls.
 - Cameras that request MSAA and Opaque Textures now use less frame bandwidth when they render.
 - Fixed rendering in the gamma color space, so it doesn't appear darker.
+- Fixed specular issues on mobile. [case 1109017](https://issuetracker.unity3d.com/issues/scaled-objects-render-shadows-and-specularity-incorrectly-in-the-lwrp-on-device)
+- Fixed issue causing LWRP to create MSAA framebuffer even when MSAA setting was disabled.
+- Post-processing in mobile VR is now forced to be disabled. It was causing many rendering issues.
 - Fixed Editor Previews breaking in Play Mode when VR is enabled. [Case 1109009](https://issuetracker.unity3d.com/issues/lwrp-editor-previews-break-in-play-mode-if-vr-is-enabled)
 - A camera's HDR enable flag is now respected when rendering in XR.
 

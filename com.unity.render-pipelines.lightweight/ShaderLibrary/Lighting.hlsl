@@ -68,7 +68,7 @@ half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
 {
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
-    half lightAtten = 1.0h / distanceSqr;
+    half lightAtten = rcp(distanceSqr);
 
 #if defined(SHADER_HINT_NICE_QUALITY)
     // Use the smoothing factor also used in the Unity lightmapper.
