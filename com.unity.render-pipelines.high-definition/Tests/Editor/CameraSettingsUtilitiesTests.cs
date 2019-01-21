@@ -8,20 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
     public class CameraSettingsUtilitiesTests
     {
         Object m_ToClean;
-
-        [Test]
-        public void ApplySettingsThrowIfFrameSettingsIsNull()
-        {
-            var settings = new CameraSettings();
-            var go = new GameObject();
-            m_ToClean = go;
-            var cam = go.AddComponent<Camera>();
-
-            Assert.Throws<InvalidOperationException>(() => cam.ApplySettings(settings));
-
-            Object.DestroyImmediate(go);
-        }
-
+        
         [Test]
         public void ApplySettings()
         {
