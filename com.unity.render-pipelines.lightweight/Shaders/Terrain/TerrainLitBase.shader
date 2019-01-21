@@ -2,7 +2,7 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
 {
     Properties
     {
-        _Color("Color", Color) = (1,1,1,1)
+        _BaseColor("Color", Color) = (1,1,1,1)
         _MainTex("Albedo(RGB), Smoothness(A)", 2D) = "white" {}
         _MetallicTex ("Metallic (R)", 2D) = "black" {}
     }
@@ -58,8 +58,8 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_BASEPASS 1
 
-            #include "TerrainLitInput.hlsl"
-            #include "TerrainLitPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitPasses.hlsl"
             ENDHLSL
         }
 
@@ -82,8 +82,8 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "TerrainLitInput.hlsl"
-            #include "TerrainLitPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitPasses.hlsl"
             ENDHLSL
         }
 
@@ -107,8 +107,8 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #include "TerrainLitInput.hlsl"
-            #include "TerrainLitPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitPasses.hlsl"
             ENDHLSL
         }
 
@@ -125,14 +125,14 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
 
-            #pragma vertex LightweightVertexMeta
-            #pragma fragment LightweightFragmentMeta
+            #pragma vertex TerrainVertexMeta
+            #pragma fragment TerrainFragmentMeta
 
             #define _METALLICSPECGLOSSMAP 1
             #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
 
-            #include "TerrainLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitMetaPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitMetaPass.hlsl"
 
             ENDHLSL
         }
@@ -141,5 +141,5 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
         UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
     FallBack "Hidden/InternalErrorShader"
-    CustomEditor "LitShaderGUI"
+    //CustomEditor "LitShaderGUI"
 }

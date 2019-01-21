@@ -5,11 +5,11 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 
-TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
+TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
 TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
 
-// Must match Lightweigth ShaderGraph master node
+// Must match Lightweight ShaderGraph master node
 struct SurfaceData
 {
     half3 albedo;
@@ -49,7 +49,7 @@ half3 SampleNormal(float2 uv, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), half sca
 {
 #ifdef _NORMALMAP
     half4 n = SAMPLE_TEXTURE2D(bumpMap, sampler_bumpMap, uv);
-    #ifdef BUMP_SCALE_NOT_SUPPORTED
+    #if BUMP_SCALE_NOT_SUPPORTED
         return UnpackNormal(n);
     #else
         return UnpackNormalScale(n, scale);

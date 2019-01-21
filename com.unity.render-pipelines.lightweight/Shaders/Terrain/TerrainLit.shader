@@ -23,7 +23,7 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
 
         // used in fallback on old cards & base map
         [HideInInspector] _MainTex("BaseMap (RGB)", 2D) = "grey" {}
-        [HideInInspector] _Color("Main Color", Color) = (1,1,1,1)
+        [HideInInspector] _BaseColor("Main Color", Color) = (1,1,1,1)
 
         // TODO: Implement ShaderGUI for the shader and display the checkbox only when instancing is enabled.
         [Toggle(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)] _TERRAIN_INSTANCED_PERPIXEL_NORMAL("Enable Instanced Per-pixel Normal", Float) = 0
@@ -70,8 +70,8 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
-            #include "TerrainLitInput.hlsl"
-            #include "TerrainLitPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitPasses.hlsl"
             ENDHLSL
         }
 
@@ -94,8 +94,8 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #include "TerrainLitInput.hlsl"
-            #include "TerrainLitPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitPasses.hlsl"
             ENDHLSL
         }
 
@@ -119,8 +119,8 @@ Shader "Lightweight Render Pipeline/Terrain/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #include "TerrainLitInput.hlsl"
-            #include "TerrainLitPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitPasses.hlsl"
             ENDHLSL
         }
 

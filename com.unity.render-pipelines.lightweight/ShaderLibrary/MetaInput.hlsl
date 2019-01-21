@@ -42,7 +42,7 @@ struct Varyings
     float2 uv           : TEXCOORD0;
 };
 
-float4 MetaVertexPosition(float4 positionOS, float2 uvLM, float2 uvDLM, float4 lightmapST)
+float4 MetaVertexPosition(float3 positionOS, float2 uvLM, float2 uvDLM, float4 lightmapST)
 {
     if (unity_MetaVertexControl.x)
     {
@@ -59,7 +59,7 @@ half4 MetaFragment(MetaInput input)
     half4 res = 0;
     if (unity_MetaFragmentControl.x)
     {
-        res = half4(input.Albedo, 1);
+        res = half4(input.Albedo, 1.0);
 
         // d3d9 shader compiler doesn't like NaNs and infinity.
         unity_OneOverOutputBoost = saturate(unity_OneOverOutputBoost);
@@ -72,14 +72,6 @@ half4 MetaFragment(MetaInput input)
         res = half4(input.Emission, 1.0);
     }
     return res;
-}
-
-Varyings LightweightVertexMeta(Attributes input)
-{
-    Varyings output;
-    output.positionCS = MetaVertexPosition(input.positionOS, input.uvLM, input.uvDLM, unity_LightmapST);
-    output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-    return output;
 }
 
 #endif
