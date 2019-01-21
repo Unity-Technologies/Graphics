@@ -246,9 +246,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettingsHistory.Remove(camera);
         }
 
+#if UNITY_EDITOR
         /// <summary>Check if the common frameSettings for SceneViewCamera is already created.</summary>
         public static bool isRegisteredSceneViewCamera(Camera camera) =>
             camera.cameraType == CameraType.SceneView && sceneViewCamera != null && frameSettingsHistory.ContainsKey(sceneViewCamera);
+#endif
 
         /// <summary>Return a copy of the persistently stored data.</summary>
         public static IDebugData GetPersistantDebugDataCopy(Camera camera) => frameSettingsHistory[camera];

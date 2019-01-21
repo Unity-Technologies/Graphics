@@ -969,7 +969,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         skipRequest = true;
                         // Execute custom render
                         additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
-                        continue;
                     }
                     
                     if (skipRequest)
@@ -1168,6 +1167,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cameraSettings = cameraSettings[j]
                             // TODO: store DecalCullResult
                         };
+
+                        // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
+                        visibleProbe.realtimeTexture.IncrementUpdateCount();
+
                         if (cameraSettings.Count > 1)
                         {
                             var face = (CubemapFace)j;
@@ -1178,11 +1181,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             };
                         }
                         else
+                        {
                             request.target = new RenderRequest.Target
                             {
                                 id = visibleProbe.realtimeTexture,
                                 face = CubemapFace.Unknown
                             };
+                        }
                         renderRequests.Add(request);
 
 
@@ -1325,6 +1330,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var target = renderRequest.target;
 
+            // If we render a reflection view or a preview we should not display any debug information
+            // This need to be call before ApplyDebugDisplaySettings()
+            if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
+            {
+                // Neutral allow to disable all debug settings
+                m_CurrentDebugDisplaySettings = s_NeutralDebugDisplaySettings;
+            }
+            else
+            {
+                // Make sure we are in sync with the debug menu for the msaa count
+                m_MSAASamples = m_DebugDisplaySettings.data.msaaSamples;
+                m_SharedRTManager.SetNumMSAASamples(m_MSAASamples);
+
+                m_DebugDisplaySettings.UpdateCameraFreezeOptions();
+
+                m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
+            }
+
             m_DbufferManager.enableDecals = false;
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
@@ -1342,8 +1365,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
             }
-
-            m_DebugDisplaySettings.UpdateCameraFreezeOptions();
 
             // Do anything we need to do upon a new frame.
             // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
@@ -1774,11 +1795,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            // HACK! : We need to call IncrementUpdateCount() here as we modify the RenderTexture from GPU.
-                            // However there is no API on RenderTargetIdentifier... (Target.id here), so our real time planar reflection and probe
-                            // aren't working anymore as they are not updated in the cache... Let's do this HACK until we fix it
-                            cmd.Blit(m_CameraColorBuffer, target.id, Vector2.zero, Vector2.zero);
-
                             HDUtils.BlitCameraTexture(cmd, hdCamera, m_CameraColorBuffer, target.id, hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
                         }
                     }
@@ -1932,24 +1948,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
 
             hdCamera = null;
-            // If we render a reflection view or a preview we should not display any debug information
-            // This need to be call before ApplyDebugDisplaySettings()
-            if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
-            {
-                // Neutral allow to disable all debug settings
-                m_CurrentDebugDisplaySettings = s_NeutralDebugDisplaySettings;
-            }
-            else
-            {
-                m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
 
-                // Make sure we are in sync with the debug menu for the msaa count
-                m_MSAASamples = m_DebugDisplaySettings.data.msaaSamples;
-                m_SharedRTManager.SetNumMSAASamples(m_MSAASamples);
-            }
+            // Retrieve debug display settings to init FrameSettings, unless we are a reflection and in this case we don't have debug settings apply.
+            DebugDisplaySettings debugDisplaySettings = (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview) ? s_NeutralDebugDisplaySettings : m_DebugDisplaySettings;
 
             // Disable post process if we enable debug mode or if the post process layer is disabled
-            if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess())
+            if (debugDisplaySettings.IsDebugDisplayRemovePostprocess())
             {
                 currentFrameSettings.SetEnabled(FrameSettingsField.Postprocess, false);
             }

@@ -284,7 +284,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCameraFreezeOptions()
         {
-            if(needsRefreshingCameraFreezeList)
+            if (needsRefreshingCameraFreezeList)
             {
                 s_CameraNames.Insert(0, new GUIContent("None"));
 
