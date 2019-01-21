@@ -1,10 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
-using System;
-using System.Linq;
 
 // Steps to convert
 // 1) swap out single light rendering code to render to a render texture, and make sure our results stay the same
@@ -38,8 +33,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static RenderTexture m_NormalRT;
         static RenderTexture m_ColorRT;
+        static bool m_ColorRTDirty;
 
-        static Color k_ClearColor = Color.black;
         static Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
 
 
@@ -181,6 +176,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             m_NormalRT = normalTexture.GetRenderTexture(m_RenderTextureFormatToUse);
             m_ColorRT = colorTexture.GetRenderTexture(m_RenderTextureFormatToUse);
+            m_ColorRTDirty = true;
         }
 
         static public void ReleaseRenderTextures()
@@ -218,7 +214,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings)
         {
-            m_TemporaryCmdBuffer.name = "Render Normals";
+            m_TemporaryCmdBuffer.name = "Clear Normals";
             m_TemporaryCmdBuffer.Clear();
             m_TemporaryCmdBuffer.SetRenderTarget(m_NormalRT);
             m_TemporaryCmdBuffer.ClearRenderTarget(true, true, k_NormalClearColor); 
@@ -280,14 +276,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.SetGlobalTexture("_PointLightingTex", m_ColorRT);
 
             List<Light2D> pointLights = Light2D.GetPointLights();
+            bool renderedAnyLight = false;
+
             if (pointLights != null && pointLights.Count > 0)
             {
                 cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
-                RenderNormals(renderContext, cullResults, drawSettings, filterSettings);
-
                 cmdBuffer.BeginSample("2D Point Lights");
                 cmdBuffer.SetRenderTarget(m_ColorRT);
-                cmdBuffer.ClearRenderTarget(true, true, k_ClearColor);
+
+                if (m_ColorRTDirty)
+                {
+                    cmdBuffer.ClearRenderTarget(true, true, Color.black);
+                    m_ColorRTDirty = false;
+                }
 
                 for (int i = 0; i < pointLights.Count; i++)
                 {
@@ -295,6 +296,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                     if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible())
                     {
+                        if (!renderedAnyLight)
+                        {
+                            RenderNormals(renderContext, cullResults, drawSettings, filterSettings);
+                            renderedAnyLight = true;
+                        }
+
                         // Sort the shadow casters by distance to light, and render the ones furthest first
                         //SortShadowCasters(light, shadowCasters);
                         SetShaderGlobals(cmdBuffer, light);
@@ -324,12 +331,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
                 cmdBuffer.EndSample("2D Point Lights");
             }
-            else
-            {
-                cmdBuffer.SetRenderTarget(m_ColorRT);
-                cmdBuffer.ClearRenderTarget(true, true, k_ClearColor);
-            }
 
+            m_ColorRTDirty = m_ColorRTDirty || renderedAnyLight;
             renderContext.ExecuteCommandBuffer(cmdBuffer);
             cmdBuffer.Clear();
         }
