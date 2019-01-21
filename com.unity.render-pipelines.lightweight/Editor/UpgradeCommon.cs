@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.LWRP
         NoSpecular
     }
 
-    public enum GlossinessSource
+    public enum SmoothnessSource
     {
         BaseAlpha,
         SpecularAlpha
@@ -39,6 +39,6 @@ namespace UnityEditor.Rendering.LWRP
         public UpgradeBlendMode blendMode { get; set; }
         public bool alphaClip { get; set; }
         public SpecularSource specularSource { get; set; }
-        public GlossinessSource glosinessSource { get; set; }
+        public SmoothnessSource smoothnessSource { get; set; }
     }
 }

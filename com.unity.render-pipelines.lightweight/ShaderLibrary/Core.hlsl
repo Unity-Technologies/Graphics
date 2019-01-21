@@ -39,6 +39,7 @@ struct VertexPositionInputs
     float3 positionWS; // World space position
     float3 positionVS; // View space position
     float4 positionCS; // Homogeneous clip space position
+    float4 positionNDC;// Homogeneous normalized device coordinates
 };
 
 struct VertexNormalInputs
@@ -54,6 +55,11 @@ VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
     input.positionWS = TransformObjectToWorld(positionOS);
     input.positionVS = TransformWorldToView(input.positionWS);
     input.positionCS = TransformWorldToHClip(input.positionWS);
+    
+    float4 ndc = input.positionCS * 0.5f;
+    input.positionNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
+    input.positionNDC.zw = input.positionCS.zw;
+        
     return input;
 }
 

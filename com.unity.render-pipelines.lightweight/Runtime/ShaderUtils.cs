@@ -1,14 +1,18 @@
+using System;
+using System.Linq;
+
 namespace UnityEngine.Rendering.LWRP
 {
     public enum ShaderPathID
     {
-        PhysicallyBased,
+        Lit,
         SimpleLit,
         Unlit,
-        TerrainPhysicallyBased,
-        ParticlesPhysicallyBased,
+        TerrainLit,
+        ParticlesLit,
         ParticlesSimpleLit,
         ParticlesUnlit,
+        BakedLit,
         Count
     }
 
@@ -23,6 +27,7 @@ namespace UnityEngine.Rendering.LWRP
             "Lightweight Render Pipeline/Particles/Lit",
             "Lightweight Render Pipeline/Particles/Simple Lit",
             "Lightweight Render Pipeline/Particles/Unlit",
+            "Lightweight Render Pipeline/Baked Lit",
         };
 
         public static string GetShaderPath(ShaderPathID id)
@@ -35,6 +40,17 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             return s_ShaderPaths[index];
+        }
+        
+        public static ShaderPathID GetEnumFromPath(string path)
+        {
+            var index = Array.FindIndex(s_ShaderPaths, m => m == path);
+            return (ShaderPathID)index;
+        }
+
+        public static bool IsLWShader(Shader shader)
+        {
+            return s_ShaderPaths.Contains(shader.name);
         }
     }
 }

@@ -4,13 +4,13 @@ Shader "Lightweight Render Pipeline/Lit"
     {
         // Specular vs Metallic workflow
         [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
-
-        _Color("Color", Color) = (0.5,0.5,0.5,1)
-        _MainTex("Albedo", 2D) = "white" {}
+        
+        [MainColor] _BaseColor("Color", Color) = (0.5,0.5,0.5,1)
+        [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        _Glossiness("Smoothness", Range(0.0, 1.0)) = 0.5
+        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
         _GlossMapScale("Smoothness Scale", Range(0.0, 1.0)) = 1.0
         _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
@@ -21,7 +21,7 @@ Shader "Lightweight Render Pipeline/Lit"
         _SpecGlossMap("Specular", 2D) = "white" {}
 
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
-        [ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
+        [ToggleOff] _EnvironmentReflections("Environment Reflections", Float) = 1.0
 
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
@@ -41,7 +41,16 @@ Shader "Lightweight Render Pipeline/Lit"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
 
-        _ReceiveShadows("Receive Shadows", Float) = 1.0
+        _ReceiveShadows("Receive Shadows", Float) = 1.0        
+        // Editmode props
+        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        
+        // ObsoleteProperties
+        [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
+        [HideInInspector] _Color("Base Color", Color) = (0.5, 0.5, 0.5, 1)
+        [HideInInspector] _GlossMapScale("Smoothness", Float) = 0.0
+        [HideInInspector] _Glossiness("Smoothness", Float) = 0.0
+        [HideInInspector] _GlossyReflections("EnvironmentReflections", Float) = 0.0
     }
 
     SubShader
@@ -83,7 +92,7 @@ Shader "Lightweight Render Pipeline/Lit"
             #pragma shader_feature _OCCLUSIONMAP
 
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
+            #pragma shader_feature _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature _SPECULAR_SETUP
             #pragma shader_feature _RECEIVE_SHADOWS_OFF
 
@@ -184,7 +193,7 @@ Shader "Lightweight Render Pipeline/Lit"
             Name "Meta"
             Tags{"LightMode" = "Meta"}
 
-            Cull Off
+            Cull[_Cull]
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -197,6 +206,7 @@ Shader "Lightweight Render Pipeline/Lit"
             #pragma shader_feature _SPECULAR_SETUP
             #pragma shader_feature _EMISSION
             #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
             #pragma shader_feature _SPECGLOSSMAP
@@ -209,5 +219,5 @@ Shader "Lightweight Render Pipeline/Lit"
 
     }
     FallBack "Hidden/InternalErrorShader"
-    CustomEditor "UnityEditor.Rendering.LWRP.LitShaderGUI"
+    CustomEditor "UnityEditor.Rendering.LWRP.ShaderGUI.LitShader"
 }

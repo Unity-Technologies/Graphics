@@ -91,7 +91,7 @@ Varyings LitPassVertex(Attributes input)
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
-    output.uv = TRANSFORM_TEX(input.texcoord, _MainTex);
+    output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
 #ifdef _NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);

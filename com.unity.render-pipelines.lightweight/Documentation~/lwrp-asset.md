@@ -1,5 +1,3 @@
-**Note:** This page is subject to change during the 2019.1 beta cycle.
-
 # Lightweight Render Pipeline Asset
 To use the Lightweight Render Pipeline (LWRP), you have to [create a LWRP Asset and assign the asset in the Graphics settings](configuring-lwrp-for-use.md). 
 
@@ -18,17 +16,19 @@ In the LWRP, you can configure settings for:
 - [__Shadows__](#shadows)
 - [__Advanced__](#advanced)
 
+
+
 ### General
 The __General__ settings control the core part of the pipeline rendered frame.
 
 | __Property__            | __Description__                                              |
 | ----------------------- | ------------------------------------------------------------ |
-| __Depth Texture__       | Enable this to make the LWRP render a [depth texture](https://docs.unity3d.com/Manual/SL-DepthTextures.html) by default for all cameras in your Scene. If you want to use Post Processing, Soft Particles, or Shader effects that depend on Scene depth, you must enable this. When this is enabled, you can access the Depth Texture in your custom shaders and in shader code via the `_CameraDepthTexture` element. You can override this for individual cameras in the Camera Inspector. |
-| __Opaque Texture__      | Enable this to create a `_CameraOpaqueTexture` as default for all cameras in your Scene. This works like the [GrabPass](https://docs.unity3d.com/Manual/SL-GrabPass.html) in the built-in render pipeline. The __Opaque Texture__ provides a snapshot of the scene right before LWRP renders any transparent meshes. You can use this in transparent shaders to create effects like frosted glass, water refraction, or heat waves. You can override this for individual cameras in the Camera Inspector. |
+| __Depth Texture__       | Enables LWRP to create a `_CameraDepthTexture`. LWRP then uses this [depth texture](https://docs.unity3d.com/Manual/SL-DepthTextures.html) by default for all Cameras in your Scene. You can override this for individual cameras in the [Camera Inspector](camera-inspector.md). |
+| __Opaque Texture__      | Enable this to create a `_CameraOpaqueTexture` as default for all cameras in your Scene. This works like the [GrabPass](https://docs.unity3d.com/Manual/SL-GrabPass.html) in the built-in render pipeline. The __Opaque Texture__ provides a snapshot of the scene right before LWRP renders any transparent meshes. You can use this in transparent Shaders to create effects like frosted glass, water refraction, or heat waves. You can override this for individual cameras in the [Camera Inspector](camera-inspector.md). |
 | __Opaque Downsampling__ | Set the sampling mode on the opaque texture to one of the following:<br/>__None__:  Produces a copy of the opaque pass in the same resolution as the camera.<br/>__2x Bilinear__: Produces a half-resolution image with bilinear filtering.<br/>__4x Box__: Produces a quarter-resolution image with box filtering. This produces a softly blurred copy.<br/>__4x Bilinear__: Produces a quarter-resolution image with bi-linear filtering. |
 
 
-### Quality
+### Quality                                                                                                                                                                                                                                         
 These settings control the quality level of the LWRP. This is where you can make performance better on lower-end hardware or make graphics look better on  higher-end hardware. 
 
 **Tip:** If you want to have different settings for different hardware, you can configure these settings across multiple Lightweight Render Pipeline assets, and switch them out as needed.
@@ -44,7 +44,7 @@ These settings control the quality level of the LWRP. This is where you can make
 ### Lighting
 These settings affect the lights in your Scene. 
 
-If you disable some of these settings, the relevant [keywords](shader-stripping-keywords.md) are [stripped from the shader variables](shading-model.md#shaderStripping). If there are certain settings that you know for certain you won’t use in your game or app, you can disable them to improve performance and reduce build time.
+If you disable some of these settings, the relevant [keywords](shader-stripping-keywords.md) are [stripped from the Shader variables](shading-model.md#shaderStripping). If there are certain settings that you know for certain you won’t use in your game or app, you can disable them to improve performance and reduce build time.
 
 | Property              | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
@@ -52,7 +52,7 @@ If you disable some of these settings, the relevant [keywords](shader-stripping-
 | __Cast Shadows__      | Check this box to make the main light cast shadows in your Scene. |
 | __Shadow Resolution__ | This controls how large the shadow map texture for the main light is. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
 | __Additional Lights__ | Here, you can choose to have additional lights to suppliment your main light. Choose between [Vertex Lights](https://docs.unity3d.com/Manual/LightPerformance.html), [Pixel Lights](https://docs.unity3d.com/Manual/LightPerformance.html), __Both__, or __None__. |
-| __Per Object Limit__  | This slider sets the limit for how many additional lights can affect each GameObject. |
+| __ Per Object Limit__ | This slider sets the limit for how many additional lights can affect each GameObject. |
 | __Cast Shadows__      | Check this box to make the additional lights cast shadows in your Scene. |
 | __Shadow Resolution__ | This controls the size of the textures that cast directional shadows for the additional lights. This is a sprite atlas that packs up to 16 shadow maps. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
 
@@ -72,7 +72,7 @@ These settings affect how shadows look and behave. They also impact performance,
 
 
 ### Advanced
-This section allows you to fine tune less commonly changed settings, which impact deeper rendering features and shader combinations. 
+This section allows you to fine tune less commonly changed settings, which impact deeper rendering features and Shader combinations. 
 
 | Property             | Description                                                  |
 | -------------------- | ------------------------------------------------------------ |
