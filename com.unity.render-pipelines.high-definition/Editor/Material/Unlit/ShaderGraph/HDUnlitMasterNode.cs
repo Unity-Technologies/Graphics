@@ -103,8 +103,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_DrawBeforeRefraction"), Obsolete("Kept for data migration")]
-        internal bool drawBeforeRefraction;
+        [SerializeField, Obsolete("Kept for data migration")]
+        internal bool m_DrawBeforeRefraction;
 
         [SerializeField]
         bool m_Distortion;

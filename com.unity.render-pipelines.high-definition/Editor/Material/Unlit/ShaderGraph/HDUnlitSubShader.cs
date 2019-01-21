@@ -356,9 +356,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             break;
                         case SurfaceType.Transparent:
 #pragma warning disable CS0618 // Type or member is obsolete
-                            if (masterNode.drawBeforeRefraction)
+                            if (masterNode.m_DrawBeforeRefraction)
                             {
-                                masterNode.drawBeforeRefraction = false;
+                                masterNode.m_DrawBeforeRefraction = false;
 #pragma warning restore CS0618 // Type or member is obsolete
                                 masterNode.renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
                             }
