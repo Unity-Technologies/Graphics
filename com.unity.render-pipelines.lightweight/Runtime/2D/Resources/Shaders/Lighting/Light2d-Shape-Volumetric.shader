@@ -4,6 +4,24 @@
     {
 	}
 
+	HLSLINCLUDE
+	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+
+	struct Attributes
+	{
+		float4 positionOS   : POSITION;
+		float4 color : COLOR;
+		float4 volumeColor : TANGENT;
+	};
+
+	struct Varyings
+	{
+		float4  positionCS	: SV_POSITION;
+		float4  color		: COLOR;
+	};
+	ENDHLSL
+
+
 	SubShader
 	{
 		Tags { "RenderType" = "Transparent" }
@@ -18,39 +36,26 @@
 			Cull Off  // Shape lights have their interiors with the wrong winding order
 
 
-			CGPROGRAM
+			HLSLPROGRAM
+			#pragma prefer_hlslcc gles
 			#pragma vertex vert
 			#pragma fragment frag
 
-			#include "UnityCG.cginc"
 
-            struct appdata
+			Varyings vert (Attributes attributes)
             {
-                float4 vertex : POSITION;
-				float4 color : COLOR;
-				float4 volumeColor : TANGENT;
-            };
-
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-				float4 color : COLOR;
-            };
-
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-				o.color = v.color * v.volumeColor;
+				Varyings o;
+                o.positionCS = TransformObjectToHClip(attributes.positionOS);
+				o.color = attributes.color * attributes.volumeColor;
                 return o;
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            half4 frag (Varyings i) : SV_Target
             {
-				fixed4 color = i.color;
+				half4 color = i.color;
                 return color;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }

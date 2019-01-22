@@ -3,6 +3,23 @@
 	Properties
 	{
 	}
+
+	HLSLINCLUDE
+	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+
+	struct Attributes
+	{
+		float4 positionOS   : POSITION;
+		float4 color		: COLOR;
+	};
+
+	struct Varyings
+	{
+		float4  positionCS	: SV_POSITION;
+		float4  color		: COLOR;
+	};
+	ENDHLSL
+
 	SubShader
 	{
 		Tags{ "Queue" = "Transparent" "RenderType" = "Transparent" }
@@ -11,50 +28,33 @@
 		ZWrite Off
 		Cull Off
 
-		LOD 100
-
 		Pass
 		{
-			CGPROGRAM
+			HLSLPROGRAM
+			#pragma prefer_hlslcc gles
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma enable_d3d11_debug_symbols
+
+			TEXTURE2D(_MainTex);
+			SAMPLER(sampler_MainTex);
+			uniform float  _InverseLightIntensityScale;
 			
-			#include "UnityCG.cginc"
-
-			struct appdata
+			Varyings vert (Attributes attributes)
 			{
-				float4 vertex : POSITION;
-				float4 color : COLOR;
-			};
-
-			struct v2f
-			{
-				float4 vertex : SV_POSITION;
-				float4 color : COLOR;
-			};
-
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
-			fixed4 _Color;
-			uniform float _InverseLightIntensityScale;
-			
-			v2f vert (appdata v)
-			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.color = v.color;
+				Varyings o;
+				o.positionCS = TransformObjectToHClip(attributes.positionOS);
+				o.color = attributes.color;
 				return o;
 			}
 			
-			fixed4 frag (v2f i) : SV_Target
+			half4 frag (Varyings i) : SV_Target
 			{
-				fixed4 col = i.color * _InverseLightIntensityScale;
+				half4 col = i.color * _InverseLightIntensityScale;
 				col = col * i.color.a;
 				col.a = 1;
 				return col;
 			}
-			ENDCG
+			ENDHLSL
 		}
 	}
 }

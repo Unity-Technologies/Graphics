@@ -5,6 +5,24 @@
         _MainTex ("Texture", 2D) = "white" {}
 	}
 
+	HLSLINCLUDE
+	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+
+	struct Attributes
+	{
+		float4 positionOS   : POSITION;
+		float2 volumeColor  : TANGENT;
+	};
+
+	struct Varyings
+	{
+		float4  positionCS		: SV_POSITION;
+		float2	lookupUV		: TEXCOORD2;  // This is used for light relative direction
+		float2	lookupNoRotUV	: TEXCOORD3;  // This is used for screen relative direction of a light
+	};
+	ENDHLSL
+
+
 	SubShader
 	{
 		Tags { "RenderType" = "Transparent" }
@@ -18,28 +36,14 @@
 			ZTest Off 
 			Cull Off  // Shape lights have their interiors with the wrong winding order
 
-			CGPROGRAM
+			HLSLPROGRAM
+			#pragma prefer_hlslcc gles
 			#pragma vertex vert
 			#pragma fragment frag
 
-			#include "UnityCG.cginc"
+			TEXTURE2D(_LightLookup);
+			SAMPLER(sampler_LightLookup);
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
-				float4 color : COLOR;
-				float4 volumeColor : TANGENT;
-            };
-
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-				float4 color : COLOR;
-				float2 lookupUV : TEXCOORD0;
-				float2 lookupNoRotUV : TEXCOORD1;
-            };
-
-			uniform sampler2D_float	_LightLookup;
 			uniform half			_OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			uniform half			_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			uniform half			_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
@@ -48,25 +52,27 @@
 			uniform float4			_LightColor;
 			uniform float4			_LightVolumeColor;
 
-            v2f vert (appdata v)
+			Varyings vert (Attributes attributes)
             {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                //o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				Varyings o;
+                o.positionCS = TransformObjectToHClip(attributes.positionOS);
 
-				float4 worldSpacePos = mul(unity_ObjectToWorld, v.vertex);
-				float4 lightSpacePos = mul(_LightInvMatrix, worldSpacePos);
-				float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
+				float4 positionWS;
+				positionWS.xyz = TransformObjectToWorld(attributes.positionOS);
+				positionWS.w = 1;
+
+				float4 lightSpacePos = mul(_LightInvMatrix, positionWS);
+				float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, positionWS);
 				o.lookupUV = 0.5 * (lightSpacePos.xy + 1);
 				o.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
 
                 return o;
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            half4 frag (Varyings i) : SV_Target
             {
-				half4 lookupValueNoRot = tex2D(_LightLookup, i.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
-				half4 lookupValue = tex2D(_LightLookup, i.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
+				half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, i.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
+				half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, i.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
 				// Inner Radius
 				half  attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
@@ -77,10 +83,10 @@
 				spotAttenuation = spotAttenuation * spotAttenuation;
 				attenuation = attenuation * spotAttenuation;
 
-				fixed4 col = _LightColor * _LightVolumeColor * attenuation;
+				half4 col = _LightColor * _LightVolumeColor * attenuation;
 	            return col;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }
