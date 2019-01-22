@@ -92,6 +92,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
         private bool m_AlphaChannel;
 
         [ToggleControl("Alpha")]

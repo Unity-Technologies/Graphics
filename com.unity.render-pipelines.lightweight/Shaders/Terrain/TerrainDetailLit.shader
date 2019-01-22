@@ -41,6 +41,7 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
     
+            TEXTURE2D(_MainTex);       SAMPLER(sampler_MainTex);
             float4 _MainTex_ST;
     
             struct Attributes
@@ -101,8 +102,6 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
                 
                 return output;
             }
-    
-            TEXTURE2D(_MainTex);       SAMPLER(sampler_MainTex);
     
             half4 Frag(Varyings input) : SV_Target
             {

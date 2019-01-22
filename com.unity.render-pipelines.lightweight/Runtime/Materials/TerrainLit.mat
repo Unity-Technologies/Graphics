@@ -102,7 +102,7 @@ Material:
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
-    - _GlossyReflections: 1
+    - _EnvironmentReflections: 1
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0

@@ -41,14 +41,14 @@ Varyings ShadowPassVertex(Attributes input)
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
 
-    output.uv = TRANSFORM_TEX(input.texcoord, _MainTex);
+    output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.positionCS = GetShadowPositionHClip(input);
     return output;
 }
 
 half4 ShadowPassFragment(Varyings input) : SV_TARGET
 {
-    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).a, _Color, _Cutoff);
+    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_PARAM(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
     return 0;
 }
 

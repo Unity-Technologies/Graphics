@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
-            result.Append("[Toggle] ");
+            result.Append("[ToggleUI] ");
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);

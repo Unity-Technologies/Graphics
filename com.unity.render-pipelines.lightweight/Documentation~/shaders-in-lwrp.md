@@ -8,14 +8,14 @@ The Lightweight Render Pipeline uses a different shading approach than the Unity
 
 - [Lit](lit-shader.md)
 - [Simple Lit](simple-lit-shader.md)
-- Baked Lit
-- Unlit
-- Particles Lit
-- Particles Simple Lit
-- Particles Unlit
-- Autodesk Interactive 
-- Autodesk Interactive Transparent 
-- Autodesk Interactive Masked 
+- [Baked Lit](baked-lit-shader.md)
+- [Unlit](unlit-shader.md)
+- [Particles Lit](particles-lit-shader.md)
+- [Particles Simple Lit](particles-simple-lit-shader.md)
+- [Particles Unlit](particles-unlit-shader.md)
+- Autodesk Interactive
+- Autodesk Interactive Transparent
+- Autodesk Interactive Masked
 
 **Upgrade advice:** If you upgrade your current Project to LWRP, you can [upgrade](upgrading-your-shaders.md) built-in shaders to the new ones. Unlit shaders from the built-in render pipeline still work with LWRP.
 
