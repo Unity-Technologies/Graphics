@@ -1,8 +1,13 @@
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [ExecuteAlways]
     [RequireComponent(typeof(ReflectionProbe))]
     public partial class HDAdditionalReflectionData : HDProbe
     {
@@ -54,6 +59,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (isActiveAndEnabled)
                 ReflectionSystem.RegisterProbe(this);
         }
+
+        void Update()
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying && autoGenerateBake)
+                UpdateCubemapSize();
+#endif
+        }
+
+#if UNITY_EDITOR
+        bool autoGenerateBake { get { return UnityEditor.Lightmapping.giWorkflowMode == (int)Lightmapping.GIWorkflowMode.Iterative; } }
+
+        void UpdateCubemapSize()
+        {
+            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            if (hdrpAsset == null)
+                return; // not in hdrp
+
+            reflectionProbe.resolution = (int)hdrpAsset.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+        }
+#endif
 
         public override Texture customTexture { get { return reflectionProbe.customBakedTexture; } set { reflectionProbe.customBakedTexture = value; } }
         public override Texture bakedTexture { get { return reflectionProbe.bakedTexture; } set { reflectionProbe.bakedTexture = value; } }
