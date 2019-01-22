@@ -84,7 +84,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 normalTS = float3(0.0, 0.0, 1.0);
 #endif
 
-    GetNormalWS(input, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
 
     surfaceData.geomNormalWS = input.worldToTangent[2];
 

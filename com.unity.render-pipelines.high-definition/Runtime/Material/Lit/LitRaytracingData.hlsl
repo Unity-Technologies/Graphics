@@ -3,7 +3,13 @@
 
 bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
+
+    ApplyDoubleSidedFlipOrMirror(input, doubleSidedConstants); // Apply double sided flip on the vertex normal
 
     // Initial value of the material features
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
@@ -65,7 +71,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
 
     #ifdef _NORMALMAP
     float3 normalTS = SAMPLE_TEXTURE2D_LOD(_NormalMap, sampler_NormalMap, uvBase, _NormalScale);
-    GetNormalWS(input, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
     #else
     surfaceData.normalWS = input.worldToTangent[2];
     #endif

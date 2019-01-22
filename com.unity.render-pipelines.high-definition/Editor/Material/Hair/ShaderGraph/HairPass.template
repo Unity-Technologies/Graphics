@@ -48,6 +48,7 @@ Pass
     $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
+    $DoubleSided:                       #define _DOUBLESIDED_ON 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -207,15 +208,19 @@ $include("SharedCode.template.hlsl")
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_TRANSMISSION;
 #endif
 
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
         $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
 
         // compute world space normal
-        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS);
+        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
         bentNormalWS = surfaceData.normalWS;
-        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS);
+        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
         surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
 
@@ -272,14 +277,11 @@ $include("SharedCode.template.hlsl")
         LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-        // This applies the double sided tangent space correction
-        // Must match /Runtime/Material/MaterialUtilities.hlsl:ApplyDoubleSidedFlipOrMirror()
-        $DoubleSided:            if (!fragInputs.isFrontFace)
-        $DoubleSided:            {
-        $DoubleSided.Flip:           fragInputs.worldToTangent[1] = -fragInputs.worldToTangent[1];     // bitangent
-        $DoubleSided.Flip:           fragInputs.worldToTangent[2] = -fragInputs.worldToTangent[2];     // normal
-        $DoubleSided.Mirror:         fragInputs.worldToTangent[2] = -fragInputs.worldToTangent[2];     // normal
-        $DoubleSided:            }
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
+        ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);

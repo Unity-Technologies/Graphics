@@ -147,6 +147,7 @@ Pass
 
     $DisableDecals:                                      #define _DISABLE_DECALS
     $DisableSSR:                                         #define _DISABLE_SSR
+    $DoubleSided:                                        #define _DOUBLESIDED_ON 1
 
     // StackLit shader_features:
 
@@ -361,6 +362,10 @@ $include("SharedCode.template.hlsl")
         // Setup all surfaceData normals: .normalWS, .bentNormalWS, .tangentWS, .coatNormalWS, .geomNormalWS
         //
 
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
         surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
 
         // tangent-space normal
@@ -368,12 +373,12 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
 
         // compute world space normal
-        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS);
+        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
         surfaceData.bentNormalWS = surfaceData.normalWS;
         surfaceData.coatNormalWS = surfaceData.geomNormalWS;
-        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, surfaceData.bentNormalWS);
-        $CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS);
+        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, surfaceData.bentNormalWS, doubleSidedConstants);
+        $CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS, doubleSidedConstants);
 
         // surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);
         // ...We don't need to normalize if we're going to call Orthonormalize anyways as long as
@@ -444,14 +449,11 @@ $include("SharedCode.template.hlsl")
         LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-        // This applies the double sided tangent space correction
-        // Must match /Runtime/Material/MaterialUtilities.hlsl:ApplyDoubleSidedFlipOrMirror()
-        $DoubleSided:            if (!fragInputs.isFrontFace)
-        $DoubleSided:            {
-        $DoubleSided.Flip:           fragInputs.worldToTangent[1] = -fragInputs.worldToTangent[1];     // bitangent
-        $DoubleSided.Flip:           fragInputs.worldToTangent[2] = -fragInputs.worldToTangent[2];     // normal
-        $DoubleSided.Mirror:         fragInputs.worldToTangent[2] = -fragInputs.worldToTangent[2];     // normal
-        $DoubleSided:            }
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
+        ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
