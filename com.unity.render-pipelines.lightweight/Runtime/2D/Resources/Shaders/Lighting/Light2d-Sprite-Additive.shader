@@ -4,6 +4,25 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 	}
+
+	HLSLINCLUDE
+	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+
+	struct Attributes
+	{
+		float4 positionOS : POSITION;
+		half4  color	  : COLOR;
+		half2  uv		  : TEXCOORD0;
+	};
+
+	struct Varyings
+	{
+		float4 positionCS : SV_POSITION;
+		half4  color	  : COLOR;
+		half2  uv		  : TEXCOORD0;
+	};
+	ENDHLSL
+
 	SubShader
 	{
 		Tags{ "Queue" = "Transparent" "RenderType" = "Transparent" }
@@ -15,58 +34,33 @@
 
 		Pass
 		{
-			CGPROGRAM
+			HLSLPROGRAM
+			#pragma prefer_hlslcc gles
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma enable_d3d11_debug_symbols
+
+			TEXTURE2D(_MainTex);
+			SAMPLER(sampler_MainTex);
 			
-			#include "UnityCG.cginc"
-
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				half4 color : COLOR;
-				half2 uv : TEXCOORD0;
-			};
-
-			struct v2f
-			{
-				float4 vertex : SV_POSITION;
-				half4 color : COLOR;
-				half2 uv : TEXCOORD0;
-
-				//half2 shadowUV : TEXCOORD1;
-			};
-
-			uniform sampler2D _MainTex;
-			uniform float4 _MainTex_ST;
-			uniform sampler2D _ShadowTex;
 			uniform float	_InverseLightIntensityScale;
 			
-			v2f vert (appdata v)
+			Varyings vert (Attributes attributes)
 			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				//o.shadowUV.x = (o.vertex.x + 1) / 2;
-				//o.shadowUV.y = 1-((o.vertex.y + 1) / 2);
-				o.color = v.color;
-				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				Varyings o;
+				o.positionCS = TransformObjectToHClip(attributes.positionOS);
+				o.color = attributes.color;
+				o.uv = attributes.uv;
 				return o;
 			}
 			
-			fixed4 frag (v2f i) : SV_Target
+			half4 frag (Varyings i) : SV_Target
 			{
-				//fixed4 shadow = tex2D(_ShadowTex, i.shadowUV);
-				fixed4 col = tex2D(_MainTex, i.uv);
+				half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
 				col = i.color * i.color.a * col * col.a * _InverseLightIntensityScale;
 				col.a = 1;
-				////fixed4 finalCol = (1-shadow.a) * col + shadow.a * shadow;
-				//fixed4 finalCol = col;
-				//col.a = 1;
-				//return finalCol;
 				return col;
 			}
-			ENDCG
+			ENDHLSL
 		}
 	}
 }
