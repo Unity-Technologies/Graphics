@@ -39,7 +39,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return output;
     }
 
-    float4 RenderSky(Varyings input)
+    float4 RenderSky(Varyings input, float exposure)
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy, (float3x3)_PixelCoordToViewDirWS);
@@ -54,20 +54,19 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float3 rotDirY = float3(sinPhi, 0, cosPhi);
         dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
-        float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
+        float3 skyColor = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * _SkyParam.x * _SkyParam.y * exposure;
+        skyColor = ClampToFloat16Max(skyColor);
         return float4(skyColor, 1.0);
     }
 
     float4 FragBaking(Varyings input) : SV_Target
     {
-        return RenderSky(input);
+        return RenderSky(input, 1.0);
     }
 
     float4 FragRender(Varyings input) : SV_Target
     {
-        float4 color = RenderSky(input);
-        color.rgb *= GetCurrentExposureMultiplier();
-        return color;
+        return RenderSky(input, GetCurrentExposureMultiplier());
     }
 
     ENDHLSL

@@ -268,7 +268,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
         }
     #endif
 
-        return float4(col * exp2(_SkyParam.x), 1.0);
+        return float4(col * _SkyParam.x, 1.0);
     }
 
     float4 FragBaking(Varyings input) : SV_Target
