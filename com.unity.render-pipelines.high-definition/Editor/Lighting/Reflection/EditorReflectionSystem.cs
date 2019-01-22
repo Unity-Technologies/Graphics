@@ -128,6 +128,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!GetCustomBakePath(probe.name, probe.customBakedTexture, probe.hdr, usePreviousAssetPath, out path))
                 return;
 
+            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            probe.resolution = (int)hdrpAsset.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+
             ReflectionProbe collidingProbe;
             if (IsCollidingWithOtherProbes(path, probe, out collidingProbe))
             {
@@ -148,6 +151,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static MethodInfo k_Lightmapping_BakeReflectionProbeSnapshot = typeof(UnityEditor.Lightmapping).GetMethod("BakeReflectionProbeSnapshot", BindingFlags.Static | BindingFlags.NonPublic);
         public static bool BakeReflectionProbeSnapshot(ReflectionProbe probe)
         {
+            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            probe.resolution = (int)hdrpAsset.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+
             return (bool)k_Lightmapping_BakeReflectionProbeSnapshot.Invoke(null, new object[] { probe });
         }
 
@@ -182,6 +188,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static MethodInfo k_Lightmapping_BakeAllReflectionProbesSnapshots = typeof(UnityEditor.Lightmapping).GetMethod("BakeAllReflectionProbesSnapshots", BindingFlags.Static | BindingFlags.NonPublic);
         public static bool BakeAllReflectionProbesSnapshots()
         {
+            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            foreach (var probe in GameObject.FindObjectsOfType<ReflectionProbe>())
+                probe.resolution = (int)hdrpAsset.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
             return (bool)k_Lightmapping_BakeAllReflectionProbesSnapshots.Invoke(null, new object[0]);
         }
 
