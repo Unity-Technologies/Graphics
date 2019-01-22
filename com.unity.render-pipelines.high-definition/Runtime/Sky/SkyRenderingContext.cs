@@ -19,14 +19,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         BuiltinSkyParameters        m_BuiltinParameters = new BuiltinSkyParameters();
         bool                        m_NeedUpdate = true;
 
-        public RenderTexture cubemapRT { get { return m_SkyboxCubemapRT; } }
-        public Texture reflectionTexture { get { return m_SkyboxBSDFCubemapArray; } }
+        ComputeShader               m_ComputeAmbientProbeCS;
+        ComputeBuffer               m_AmbientProbeResult;
+        SphericalHarmonicsL2        m_AmbientProbe;
+        readonly int                m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
+        readonly int                m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
+        int                         m_ComputeAmbientProbeKernel;
 
+
+        public RenderTexture cubemapRT => m_SkyboxCubemapRT;
+        public Texture reflectionTexture => m_SkyboxBSDFCubemapArray;
+        public SphericalHarmonicsL2 ambientProbe => m_AmbientProbe;
 
         public SkyRenderingContext(IBLFilterBSDF[] iblFilterBDSDFArray, int resolution, bool supportsConvolution)
         {
             m_IBLFilterArray = iblFilterBDSDFArray;
             m_SupportsConvolution = supportsConvolution;
+
+            // Compute buffer storing the resulting SH from diffuse convolution. L2 SH => 9 float per component.
+            m_AmbientProbeResult = new ComputeBuffer(27, 4);
+            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            m_ComputeAmbientProbeCS = hdrp.renderPipelineResources.shaders.ambientProbeConvolutionCS;
+            m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolution");
 
             RebuildTextures(resolution);
         }
@@ -118,6 +132,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CoreUtils.Destroy(m_SkyboxBSDFCubemapArray);
             }
 
+            m_AmbientProbeResult.Release();
+
             RTHandles.Release(m_SkyboxMarginalRowCdfRT);
             RTHandles.Release(m_SkyboxConditionalCdfRT);
         }
@@ -181,9 +197,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        private void OnComputeAmbientProbeDone(AsyncGPUReadbackRequest request)
+        {
+            if (!request.hasError)
+            {
+                var result = request.GetData<float>();
+                for (int channel = 0; channel < 3; ++channel)
+                {
+                    for (int coeff = 0; coeff < 9; ++coeff)
+                    {
+                        m_AmbientProbe[channel, coeff] = result[channel * 9 + coeff];
+                    }
+                }
+            }
+        }
+
         // GC.Alloc
         // VolumeParameter`.op_Equality()
-        public bool UpdateEnvironment(SkyUpdateContext skyContext, HDCamera camera, Light sunLight, bool updateRequired, CommandBuffer cmd)
+        public bool UpdateEnvironment(SkyUpdateContext skyContext, HDCamera camera, Light sunLight, bool updateRequired, bool updateAmbientProbe, CommandBuffer cmd)
         {
             bool result = false;
             if (skyContext.IsValid())
@@ -212,6 +243,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         using (new ProfilingSample(cmd, "Update Env: Generate Lighting Cubemap"))
                         {
                             RenderSkyToCubemap(skyContext);
+
+                            if (updateAmbientProbe)
+                            {
+                                using (new ProfilingSample(cmd, "Update Ambient Probe"))
+                                {
+                                    cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, m_AmbientProbeResult);
+                                    cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, m_SkyboxCubemapRT);
+                                    cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
+                                    cmd.RequestAsyncReadback(m_AmbientProbeResult, OnComputeAmbientProbeDone);
+                                }
+                            }
                         }
 
                         if (m_SupportsConvolution)
@@ -283,7 +325,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.debugSettings = debugSettings;
 
                     skyContext.renderer.SetRenderTargets(m_BuiltinParameters);
-                    
+
                     // If the luxmeter is enabled, we don't render the sky
                     if (debugSettings.data.lightingDebugSettings.debugLightingMode != DebugLightingMode.LuxMeter)
                     {

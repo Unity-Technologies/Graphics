@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEditor.Rendering;
 
@@ -10,6 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public class VisualEnvironmentEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_SkyType;
+        SerializedDataParameter m_SkyAmbientMode;
         SerializedDataParameter m_FogType;
 
         List<GUIContent> m_SkyClassNames = null;
@@ -25,6 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var o = new PropertyFetcher<VisualEnvironment>(serializedObject);
 
             m_SkyType = Unpack(o.Find(x => x.skyType));
+            m_SkyAmbientMode = Unpack(o.Find(x => x.skyAmbientMode));
             m_FogType = Unpack(o.Find(x => x.fogType));
         }
 
@@ -64,21 +67,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             UpdateSkyAndFogIntPopupData();
 
+            EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Sky"), EditorStyles.miniLabel);
             using (new EditorGUILayout.HorizontalScope())
             {
+
                 DrawOverrideCheckbox(m_SkyType);
                 using (new EditorGUI.DisabledScope(!m_SkyType.overrideState.boolValue))
                 {
-                    EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), new GUIContent("Sky Type"));
+                    EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Type"));
                 }
             }
+            PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode"));
 
+            if ( ((SkyAmbientMode)m_SkyAmbientMode.value.enumValueIndex == SkyAmbientMode.Static) && SkyManager.GetStaticLightingSky() == null)
+            {
+                EditorGUILayout.HelpBox("A Static Lighting Sky Component is required for Static Ambient Mode.", MessageType.Info);
+            }
+
+            EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Fog"), EditorStyles.miniLabel);
             using (new EditorGUILayout.HorizontalScope())
             {
                 DrawOverrideCheckbox(m_FogType);
                 using (new EditorGUI.DisabledScope(!m_FogType.overrideState.boolValue))
                 {
-                    EditorGUILayout.IntPopup(m_FogType.value, m_FogNames.ToArray(), fogValues, new GUIContent("Fog Type"));
+                    EditorGUILayout.IntPopup(m_FogType.value, m_FogNames.ToArray(), fogValues, EditorGUIUtility.TrTextContent("Type"));
                 }
             }
         }

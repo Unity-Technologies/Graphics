@@ -91,9 +91,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             volume.isGlobal = true;
             volume.sharedProfile = profile;
 
-            var bakingSky = sceneSettings.AddComponent<BakingSky>();
-            bakingSky.profile = volume.sharedProfile;
-            bakingSky.bakingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
+            var staticLightingSky = sceneSettings.AddComponent<StaticLightingSky>();
+            staticLightingSky.profile = volume.sharedProfile;
+            staticLightingSky.staticLightingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
         }
 
 #if ENABLE_RAYTRACING

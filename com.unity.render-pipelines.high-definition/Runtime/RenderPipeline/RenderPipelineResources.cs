@@ -67,6 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader proceduralSkyPS;
             public Shader skyboxCubemapPS;
             public Shader gradientSkyPS;
+            public ComputeShader ambientProbeConvolutionCS;
 
             // Material
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -243,6 +244,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 integrateHdriSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/IntegrateHDRISky.shader"),
                 proceduralSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/ProceduralSky/ProceduralSky.shader"),
                 gradientSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/GradientSky/GradientSky.shader"),
+                ambientProbeConvolutionCS = Load<ComputeShader>(HDRenderPipelinePath + "Sky/AmbientProbeConvolution.compute"),
 
                 // Skybox/Cubemap is a builtin shader, must use Shader.Find to access it. It is fine because we are in the editor
                 skyboxCubemapPS = Shader.Find("Skybox/Cubemap"),
@@ -266,7 +268,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Decal
                 decalNormalBufferPS = Load<Shader>(HDRenderPipelinePath + "Material/Decal/DecalNormalBuffer.shader"),
-
+                
                 // Ambient occlusion
                 aoDownsample1CS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/ScreenSpaceLighting/AmbientOcclusionDownsample1.compute"),
                 aoDownsample2CS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/ScreenSpaceLighting/AmbientOcclusionDownsample2.compute"),

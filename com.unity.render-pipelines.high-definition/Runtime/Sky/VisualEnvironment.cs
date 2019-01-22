@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using System.Diagnostics;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -14,11 +12,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Gradient = 3,
     }
 
+    public enum SkyAmbientMode
+    {
+        Static,
+        Dynamic,
+    }
+
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class SkyAmbientModeParameter : VolumeParameter<SkyAmbientMode>
+    {
+        public SkyAmbientModeParameter(SkyAmbientMode value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
     // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
     [Serializable]
     public sealed class VisualEnvironment : VolumeComponent
     {
         public IntParameter skyType = new IntParameter(0);
+        public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
         public FogTypeParameter fogType = new FogTypeParameter(FogType.None);
 
         public void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)

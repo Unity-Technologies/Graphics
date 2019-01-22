@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 0
+  m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
@@ -35,7 +35,7 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 0
+  m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
   m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
@@ -96,7 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
     m_ExportTrainingData: 0
-  m_LightingDataAsset: {fileID: 112000004, guid: 226153d6e6734a64aad7ccb2652a1a72,
+  m_LightingDataAsset: {fileID: 112000002, guid: c6a57b1ea60e62047aa12ed5e3010980,
     type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -234,7 +234,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!102 &157050144
 TextMesh:
   serializedVersion: 3
@@ -327,7 +327,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 157050144}
 --- !u!1 &213184775
 GameObject:
@@ -346,7 +346,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &213184776
 Transform:
   m_ObjectHideFlags: 0
@@ -610,7 +610,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!102 &613492055
 TextMesh:
   serializedVersion: 3
@@ -703,7 +703,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 613492055}
 --- !u!1 &647703699
 GameObject:
@@ -814,7 +814,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &666783012
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1092,6 +1092,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
+--- !u!20 &749245063 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
+    type: 3}
+  m_PrefabInstance: {fileID: 749245062}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &749245064 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
@@ -1123,7 +1129,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &941293627
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1213,7 +1219,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1068892493
 Transform:
   m_ObjectHideFlags: 0
@@ -1291,7 +1297,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1344893242
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1488,7 +1494,7 @@ TextMesh:
   m_GameObject: {fileID: 1431426000}
   m_Text: 'Unlit
 
-    RealtimeGI
+    Baked
 
     Emission'
   m_OffsetZ: 0
@@ -1570,7 +1576,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1431426001}
 --- !u!1 &1545289412
 GameObject:
@@ -1681,7 +1687,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1552677494
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1946,7 +1952,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1689131024}
 --- !u!1 &1749057127
 GameObject:
@@ -1970,7 +1976,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1749057128
 Transform:
   m_ObjectHideFlags: 0
@@ -2063,7 +2069,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1749057129}
 --- !u!1 &1792090651
 GameObject:
@@ -2180,7 +2186,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1792090652}
 --- !u!1 &1902136125
 GameObject:
@@ -2277,7 +2283,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1927821533
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2367,7 +2373,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &1937521696
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2445,7 +2451,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &2020866983
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2613,7 +2619,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &2074546145
 BoxCollider:
   m_ObjectHideFlags: 0

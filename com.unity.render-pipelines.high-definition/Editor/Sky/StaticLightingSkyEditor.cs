@@ -6,9 +6,9 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [CustomEditor(typeof(BakingSky))]
+    [CustomEditor(typeof(StaticLightingSky))]
     [DisallowMultipleComponent]
-    public class BakingSkyEditor : Editor
+    public class StaticLightingSkyEditor : Editor
     {
         SerializedProperty m_VolumeProfile;
         SerializedProperty m_SkyUniqueID;
@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void InitializeProperties()
         {
             m_VolumeProfile = serializedObject.FindProperty("m_Profile");
-            m_SkyUniqueID = serializedObject.FindProperty("m_BakingSkyUniqueID");
+            m_SkyUniqueID = serializedObject.FindProperty("m_StaticLightingSkyUniqueID");
         }
 
         void UpdateSkyIntPopupData(bool reset = false)
@@ -60,11 +60,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_VolumeProfile.objectReferenceValue == null)
             {
-                BakingSky bakingSky = (BakingSky)target;
-                Volume volume = bakingSky.GetComponent<Volume>();
+                StaticLightingSky staticLightingSky = (StaticLightingSky)target;
+                Volume volume = staticLightingSky.GetComponent<Volume>();
                 if (volume != null)
                 {
-                    bakingSky.profile = volume.sharedProfile;
+                    staticLightingSky.profile = volume.sharedProfile;
                 }
             }
         }
@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_VolumeProfile);
             using (new EditorGUI.DisabledScope(m_SkyClassNames.Count == 1)) // Only "None"
             {
-                EditorGUILayout.IntPopup(m_SkyUniqueID, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Baking Sky", "Specify which kind of sky you want to use for baking in the referenced profile."));
+                EditorGUILayout.IntPopup(m_SkyUniqueID, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Sky|Specify which kind of sky you want to use for static ambient in the referenced profile."));
             }
 
             serializedObject.ApplyModifiedProperties();

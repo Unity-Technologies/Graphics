@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Separated Passthrough from other RenderingPath
 - Update several properties naming and caption based on feedback from documentation team
 - Remove tile shader variant for transparent backface pass of lit shader
+- Added a new dynamic mode for ambient probe and renamed BakingSky to StaticLightingSky
 - Rename all HDRenderPipeline to HDRP folder for shaders
 - Rename decal property label (based on doc team feedback)
 - Add command buffer parameter to all Bind() method of material

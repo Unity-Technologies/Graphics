@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 0
+  m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
@@ -35,7 +35,7 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 0
+  m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
   m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
@@ -96,7 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
     m_ExportTrainingData: 0
-  m_LightingDataAsset: {fileID: 112000004, guid: 9a6878e185c6da04a93ba48657003c8f,
+  m_LightingDataAsset: {fileID: 112000004, guid: 8cbaeae580470c042a0eca0c3923a192,
     type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -173,7 +173,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &64526597
 Transform:
   m_ObjectHideFlags: 0
@@ -304,7 +304,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 109491473}
 --- !u!1 &127590475
 GameObject:
@@ -433,7 +433,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 127590477}
 --- !u!1001 &195387727
 PrefabInstance:
@@ -665,7 +665,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 220129832}
 --- !u!1 &223803304
 GameObject:
@@ -1009,7 +1009,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 342153848}
 --- !u!1001 &342321945
 PrefabInstance:
@@ -1429,7 +1429,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 449841087}
 --- !u!1 &452544930
 GameObject:
@@ -1696,7 +1696,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 484910130}
 --- !u!1001 &550135561
 PrefabInstance:
@@ -2029,7 +2029,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 560439888}
 --- !u!1001 &625519322
 PrefabInstance:
@@ -2710,6 +2710,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
+--- !u!20 &749245063 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
+    type: 3}
+  m_PrefabInstance: {fileID: 749245062}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &749245064 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
@@ -2834,7 +2840,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 794808269}
 --- !u!1 &866265380
 GameObject:
@@ -2943,7 +2949,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 866265382}
 --- !u!1001 &902572456
 PrefabInstance:
@@ -3255,7 +3261,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1062298945
 Transform:
   m_ObjectHideFlags: 0
@@ -3392,7 +3398,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1062834881}
 --- !u!1001 &1075727378
 PrefabInstance:
@@ -3739,7 +3745,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1144593133}
 --- !u!1 &1146233057
 GameObject:
@@ -3856,7 +3862,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1146233059}
 --- !u!1 &1231441372
 GameObject:
@@ -3979,7 +3985,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1231441374}
 --- !u!1001 &1273236757
 PrefabInstance:
@@ -4300,7 +4306,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1308441685}
 --- !u!1001 &1347885227
 PrefabInstance:
@@ -4489,7 +4495,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1349041040}
 --- !u!1 &1433030620
 GameObject:
@@ -4606,7 +4612,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1433030622}
 --- !u!1001 &1526394628
 PrefabInstance:
@@ -5308,7 +5314,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1671375030}
 --- !u!1001 &1730906924
 PrefabInstance:
@@ -5608,7 +5614,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1774193052}
 --- !u!1 &1790542682
 GameObject:
@@ -5717,7 +5723,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1790542684}
 --- !u!1001 &1800008974
 PrefabInstance:
@@ -6182,7 +6188,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 1972098989}
 --- !u!1 &2029283104
 GameObject:
@@ -6299,7 +6305,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 2029283106}
 --- !u!1001 &2042587254
 PrefabInstance:
@@ -6489,7 +6495,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pixelSize: 8
   testSettings: {fileID: 749245064}
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 749245063}
   textMesh: {fileID: 2042645717}
 --- !u!1 &2043658936
 GameObject:

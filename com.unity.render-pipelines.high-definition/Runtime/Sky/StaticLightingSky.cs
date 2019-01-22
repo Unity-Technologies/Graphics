@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteAlways]
-    public class BakingSky : MonoBehaviour
+    public class StaticLightingSky : MonoBehaviour
     {
         [SerializeField]
         VolumeProfile m_Profile;
-        [SerializeField]
-        int m_BakingSkyUniqueID = 0;
+        [SerializeField, FormerlySerializedAs("m_BakingSkyUniqueID")]
+        int m_StaticLightingSkyUniqueID = 0;
 
-        // We need to keep a reference in order to unregister it upon change.
-        SkySettings m_BakingSky = null;
+        public SkySettings skySettings { get; private set; }
 
         List<SkySettings> m_VolumeSkyList = new List<SkySettings>();
 
@@ -25,41 +25,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             set
             {
-                // Changing the volume is considered a destructive operation => reset the baking sky.
+                // Changing the volume is considered a destructive operation => reset the static lighting sky.
                 if (value != m_Profile)
                 {
-                    m_BakingSkyUniqueID = 0;
+                    m_StaticLightingSkyUniqueID = 0;
                 }
 
                 m_Profile = value;
             }
         }
 
-        public int bakingSkyUniqueID
+        public int staticLightingSkyUniqueID
         {
             get
             {
-                return m_BakingSkyUniqueID;
+                return m_StaticLightingSkyUniqueID;
             }
             set
             {
-                m_BakingSkyUniqueID = value;
-                UpdateCurrentBakingSky();
+                m_StaticLightingSkyUniqueID = value;
+                UpdateCurrentStaticLightingSky();
             }
         }
 
-        void UpdateCurrentBakingSky()
+        void UpdateCurrentStaticLightingSky()
         {
-            SkySettings newBakingSky = GetSkyFromIDAndVolume(m_BakingSkyUniqueID, m_Profile);
-
-            if (newBakingSky != m_BakingSky)
-            {
-                SkyManager.UnRegisterBakingSky(m_BakingSky);
-                if (newBakingSky != null)
-                    SkyManager.RegisterBakingSky(newBakingSky);
-
-                m_BakingSky = newBakingSky;
-            }
+            skySettings = GetSkyFromIDAndVolume(m_StaticLightingSkyUniqueID, m_Profile);
         }
 
         SkySettings GetSkyFromIDAndVolume(int skyUniqueID, VolumeProfile profile)
@@ -88,34 +79,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!isActiveAndEnabled)
                 return;
 
-            // If we detect that the profile has been removed we need to reset the baking sky.
+            // If we detect that the profile has been removed we need to reset the static lighting sky.
             if (m_Profile == null)
             {
-                m_BakingSkyUniqueID = 0;
+                m_StaticLightingSkyUniqueID = 0;
             }
 
-            // If we detect that the profile has changed, we need to reset the baking sky.
+            // If we detect that the profile has changed, we need to reset the static lighting sky.
             // We have to do that manually because PropertyField won't go through setters.
-            if (profile != null && m_BakingSky != null)
+            if (profile != null && skySettings != null)
             {
-                if (!profile.components.Find(x => x == m_BakingSky))
+                if (!profile.components.Find(x => x == skySettings))
                 {
-                    m_BakingSkyUniqueID = 0;
+                    m_StaticLightingSkyUniqueID = 0;
                 }
             }
 
-            UpdateCurrentBakingSky();
+            UpdateCurrentStaticLightingSky();
         }
 
         void OnEnable()
         {
-            UpdateCurrentBakingSky();
+            UpdateCurrentStaticLightingSky();
+            SkyManager.RegisterStaticLightingSky(this);
         }
 
         void OnDisable()
         {
-            SkyManager.UnRegisterBakingSky(m_BakingSky);
-            m_BakingSky = null;
+            SkyManager.UnRegisterStaticLightingSky(this);
+            skySettings = null;
         }
     }
 }

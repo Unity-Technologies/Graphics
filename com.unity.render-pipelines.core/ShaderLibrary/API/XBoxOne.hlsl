@@ -45,6 +45,7 @@
 #define INTRINSIC_WAVE_LOGICAL_OPS
 #define WaveActiveBitAnd __XB_WaveAND
 #define WaveActiveBitOr __XB_WaveOR
+#define WaveGetLaneCount() (64)
 #define WaveGetID __XB_GetWaveID
 
 #define INTRINSIC_BITFIELD_EXTRACT

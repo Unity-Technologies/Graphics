@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 10
+    serializedVersion: 12
     m_Resolution: 2
     m_BakeResolution: 40
     m_AtlasSize: 1024
@@ -62,6 +62,7 @@ LightmapSettings:
     m_AOMaxDistance: 1
     m_CompAOExponent: 1
     m_CompAOExponentDirect: 0
+    m_ExtractAmbientOcclusion: 0
     m_Padding: 2
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
@@ -76,10 +77,16 @@ LightmapSettings:
     m_PVRDirectSampleCount: 32
     m_PVRSampleCount: 500
     m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 500
+    m_PVREnvironmentReferencePointCount: 2048
+    m_PVRFilteringMode: 2
+    m_PVRDenoiserTypeDirect: 0
+    m_PVRDenoiserTypeIndirect: 0
+    m_PVRDenoiserTypeAO: 0
     m_PVRFilterTypeDirect: 0
     m_PVRFilterTypeIndirect: 0
     m_PVRFilterTypeAO: 0
-    m_PVRFilteringMode: 1
+    m_PVREnvironmentMIS: 0
     m_PVRCulling: 1
     m_PVRFilteringGaussRadiusDirect: 1
     m_PVRFilteringGaussRadiusIndirect: 5
@@ -88,6 +95,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
+    m_ExportTrainingData: 0
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -119,6 +127,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
+      propertyPath: m_Name
+      value: HDRP_Test_Camera
+      objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -163,15 +175,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
-      propertyPath: m_Name
-      value: HDRP_Test_Camera
-      objectReference: {fileID: 0}
-    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: clearColorMode
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: field of view
@@ -181,6 +184,11 @@ PrefabInstance:
         type: 3}
       propertyPath: ImageComparisonSettings.TargetHeight
       value: 640
+      objectReference: {fileID: 0}
+    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: clearColorMode
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
@@ -199,6 +207,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1588264496}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: f33372cd2da94ca4480cbacca97d3b25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -210,6 +219,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 7897940750528371561, guid: 6e970b6acef289042af8a6f6d0c1e6fb,
+        type: 3}
+      propertyPath: m_Name
+      value: MSAATestPrefab
+      objectReference: {fileID: 0}
     - target: {fileID: 4624023023346815260, guid: 6e970b6acef289042af8a6f6d0c1e6fb,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -265,11 +279,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7897940750528371561, guid: 6e970b6acef289042af8a6f6d0c1e6fb,
-        type: 3}
-      propertyPath: m_Name
-      value: MSAATestPrefab
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6e970b6acef289042af8a6f6d0c1e6fb, type: 3}
 --- !u!1 &1916420829
@@ -299,11 +308,40 @@ MonoBehaviour:
   m_GameObject: {fileID: 1916420829}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: e14bd757737c3884ba64af99a466ec80, type: 2}
-  m_BakingSkyUniqueID: 2
+  m_StaticLightingSkyUniqueID: 2
+  m_AmbientProbe:
+    sh[ 0]: 0.06027168
+    sh[ 1]: 0.027359921
+    sh[ 2]: 0.0044965222
+    sh[ 3]: -0.0015658992
+    sh[ 4]: -0.00034217132
+    sh[ 5]: 0.0009826319
+    sh[ 6]: 0.0073624034
+    sh[ 7]: -0.007623904
+    sh[ 8]: 0.012473657
+    sh[ 9]: 0.07379283
+    sh[10]: 0.038883843
+    sh[11]: 0.0069369525
+    sh[12]: -0.0024166608
+    sh[13]: -0.0005350297
+    sh[14]: 0.0015355991
+    sh[15]: 0.009107903
+    sh[16]: -0.009800919
+    sh[17]: 0.014964738
+    sh[18]: 0.09001093
+    sh[19]: 0.055168584
+    sh[20]: 0.012270652
+    sh[21]: -0.0042745844
+    sh[22]: -0.0010454021
+    sh[23]: 0.0030010724
+    sh[24]: 0.010525904
+    sh[25]: -0.012118401
+    sh[26]: 0.016297543
 --- !u!114 &1916420831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -313,6 +351,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1916420829}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

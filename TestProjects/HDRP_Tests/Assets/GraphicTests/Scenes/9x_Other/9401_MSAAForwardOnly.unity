@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 11
+    serializedVersion: 12
     m_Resolution: 2
     m_BakeResolution: 40
     m_AtlasSize: 1024
@@ -77,6 +77,8 @@ LightmapSettings:
     m_PVRDirectSampleCount: 32
     m_PVRSampleCount: 500
     m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 500
+    m_PVREnvironmentReferencePointCount: 2048
     m_PVRFilteringMode: 2
     m_PVRDenoiserTypeDirect: 0
     m_PVRDenoiserTypeIndirect: 0
@@ -84,6 +86,7 @@ LightmapSettings:
     m_PVRFilterTypeDirect: 0
     m_PVRFilterTypeIndirect: 0
     m_PVRFilterTypeAO: 0
+    m_PVREnvironmentMIS: 0
     m_PVRCulling: 1
     m_PVRFilteringGaussRadiusDirect: 1
     m_PVRFilteringGaussRadiusIndirect: 5
@@ -149,7 +152,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: 516f572551099b046abfe364a6456bb0, type: 2}
-  m_BakingSkyUniqueID: 2
+  m_StaticLightingSkyUniqueID: 2
+  m_AmbientProbe:
+    sh[ 0]: 0.06027168
+    sh[ 1]: 0.027359921
+    sh[ 2]: 0.0044965222
+    sh[ 3]: -0.0015658992
+    sh[ 4]: -0.00034217132
+    sh[ 5]: 0.0009826319
+    sh[ 6]: 0.0073624034
+    sh[ 7]: -0.007623904
+    sh[ 8]: 0.012473657
+    sh[ 9]: 0.07379283
+    sh[10]: 0.038883843
+    sh[11]: 0.0069369525
+    sh[12]: -0.0024166608
+    sh[13]: -0.0005350297
+    sh[14]: 0.0015355991
+    sh[15]: 0.009107903
+    sh[16]: -0.009800919
+    sh[17]: 0.014964738
+    sh[18]: 0.09001093
+    sh[19]: 0.055168584
+    sh[20]: 0.012270652
+    sh[21]: -0.0042745844
+    sh[22]: -0.0010454021
+    sh[23]: 0.0030010724
+    sh[24]: 0.010525904
+    sh[25]: -0.012118401
+    sh[26]: 0.016297543
 --- !u!114 &115701100
 MonoBehaviour:
   m_ObjectHideFlags: 0

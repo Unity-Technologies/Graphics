@@ -193,6 +193,7 @@
 #define WaveActiveSum ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveSum)
 #define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitAnd)
 #define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitOr)
+#define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
 #endif
 
 #if !defined(SHADER_API_GLES)
