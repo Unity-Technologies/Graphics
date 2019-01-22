@@ -3,7 +3,7 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
 	Properties
 	{
 		_MainTex ("Diffuse", 2D) = "white" {}
-		_MaskTex("Mask", 2D) = "black" {}
+		_MaskTex("Mask", 2D) = "white" {}
 		_NormalMap("Normal Map", 2D) = "bump" {}
 	}
 

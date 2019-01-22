@@ -52,9 +52,12 @@ v2f CombinedShapeLightVertex(appdata v)
 	v2f o;
 	o.vertex = UnityObjectToClipPos(v.vertex);
 	o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-	float4 clipVertex = o.vertex / o.vertex.w;
+    float4 clipVertex = o.vertex / o.vertex.w;
 	o.lightingUV = ComputeScreenPos(clipVertex);
+
+#if UNITY_UV_STARTS_AT_TOP
     o.lightingUV.y = 1.0 - o.lightingUV.y;
+#endif
 
 	float4 worldVertex = mul(unity_ObjectToWorld, v.vertex);
 	o.pixelScreenPos = ComputeScreenPos(worldVertex);
@@ -110,7 +113,11 @@ fixed4 CombinedShapeLightFragment(v2f i) : SV_Target
 
 #if USE_POINT_LIGHTS
     float2 lightingUV = i.lightingUV;
+
+#if UNITY_UV_STARTS_AT_TOP
     lightingUV.y = 1.0 - lightingUV.y;
+#endif
+
     fixed4 pointLight = tex2D(_PointLightingTex, lightingUV);
 #else
     fixed4 pointLight = 0;
