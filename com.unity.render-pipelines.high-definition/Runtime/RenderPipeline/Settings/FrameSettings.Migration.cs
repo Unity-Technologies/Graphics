@@ -72,6 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     class ObsoleteLightLoopSettings
     {
         public ObsoleteLightLoopSettingsOverrides overrides;
+        [FormerlySerializedAs("enableTileAndCluster")]
         public bool enableDeferredTileAndCluster;
         public bool enableComputeLightEvaluation;
         public bool enableComputeLightVariants;
@@ -133,8 +134,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool runVolumeVoxelizationAsync;
         
         public ObsoleteLightLoopSettings lightLoopSettings;
-
-        int m_LitShaderModeEnumIndex; 
     }
 
     public partial struct FrameSettings
@@ -246,6 +245,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         case ObsoleteFrameSettingsOverrides.LightLayers:
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.LightLayers] = true;
                             break;
+                        case ObsoleteFrameSettingsOverrides.ShaderLitMode:
+                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.LitShaderMode] = true;
+                            break;
                         case ObsoleteFrameSettingsOverrides.DepthPrepassWithDeferredRendering:
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.DepthPrepassWithDeferredRendering] = true;
                             break;
@@ -307,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.VolumeVoxelizationsAsync] = true;
                             break;
                         default:
-                            throw new ArgumentException("Unknown ObsoleteFrameSettingsOverride");
+                            throw new ArgumentException("Unknown ObsoleteFrameSettingsOverride, was " + val);
                     }
                 }
             }
