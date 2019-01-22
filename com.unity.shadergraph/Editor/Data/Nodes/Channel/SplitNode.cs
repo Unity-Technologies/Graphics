@@ -54,9 +54,6 @@ namespace UnityEditor.ShaderGraph
                 numInputChannels = SlotValueHelper.GetChannelCount(inputSlot.concreteValueType);
                 if (numInputChannels > 4)
                     numInputChannels = 0;
-
-                if (!owner.GetEdges(inputSlot.slotReference).Any())
-                    numInputChannels = 0;
             }
 
             for (var i = 0; i < 4; i++)

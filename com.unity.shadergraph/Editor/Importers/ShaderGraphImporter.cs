@@ -8,7 +8,7 @@ using UnityEditor.Experimental.AssetImporters;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(20, Extension)]
+    [ScriptedImporter(21, Extension)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";

@@ -8,14 +8,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
 - You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
+- Baked Lit Shader, which uses global illumination via Light Probes and lightmaps, but no real-time lighting. 
+- Distortion support in all Particle Shaders.
+- An upgrade system for LWRP Materials with `MaterialPostprocessor`.
+- An upgrade path for Unlit shaders
+- Tooltips for Shaders.
+- SRP Batcher support for Particle Shaders.
+- Docs for these Shaders: Baked Lit, Particles Lit, Particles Simple Lit, and Particles Unlit.
 - LWRP now supports dynamic resolution scaling. The target platform must also support it.
 - LWRP now includes version defines for both C# and Shaders in the format of `LWRP_X_Y_Z_OR_NEWER`. For example, `LWRP_5_3_0_OR_NEWER` defines version 5.3.0.
+- The Terrain Lit Shader now samples Spherical Harmonics if you haven't baked any lightmaps for terrain.
 
 ### Changed
 - You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Care.
 - LWRP now uses non-square shadowmap textures when it renders directional shadows with 2 shadow cascades. 
-- LWRP now uses ARGB2101010 as the HDR format on mobile devices, when this format is supported.
+- LWRP now uses RGB111110 as the HDR format on mobile devices, when this format is supported.
 - Removed `IAfterDepthPrePass` interface.
+- We’ve redesigned the Shader GUI. For example, all property names in Shaders are now inline across the board
+- The Simple Lit Shader now has Smoothness, which can be stored in the alpha of specular or albedo maps.
+- The Simple Lit and Particles Simple Lit Shaders now take shininess from the length (brightness) of the specular map.
+- The __Double sided__ property is now __Render Face__. This means you can also do front face culling.
+- Changed the docs for Lit Shader, Simple Lit Shader and Unlit Shader according to Shader GUI changes.
+- When you create a new LWRP Asset, it will now be initialized with settings that favor performance on mobile platforms.
 
 ### Fixed
 - Several tweaks to reduce bandwidth consumption on mobile devices.
@@ -29,6 +43,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Framedebugger now renders correctly when stepping through drawcalls.
 - Cameras that request MSAA and Opaque Textures now use less frame bandwidth when they render.
 - Fixed rendering in the gamma color space, so it doesn't appear darker.
+- Particles SImple Lit and Particles Unlit Shaders now work correctly.
+- __Soft Particles__ now work correctly.
+- Camera fading for particles.
+- Fixed a typo in the Unlit `IgnoreProjector` tag.
+- Particles render in both eyes with stereo instancing
+- Fixed specular issues on mobile. [case 1109017](https://issuetracker.unity3d.com/issues/scaled-objects-render-shadows-and-specularity-incorrectly-in-the-lwrp-on-device)
+- Fixed issue causing LWRP to create MSAA framebuffer even when MSAA setting was disabled.
+- Post-processing in mobile VR is now forced to be disabled. It was causing many rendering issues.
 - Fixed Editor Previews breaking in Play Mode when VR is enabled. [Case 1109009](https://issuetracker.unity3d.com/issues/lwrp-editor-previews-break-in-play-mode-if-vr-is-enabled)
 - A camera's HDR enable flag is now respected when rendering in XR.
 

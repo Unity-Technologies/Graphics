@@ -10,7 +10,7 @@ Shader "Hidden/TerrainEngine/Details/WavingDoublePass" // Has to override the in
     }
     SubShader
     {
-        Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }//"DisableBatching"="True"
+        Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjector" = "True" "RenderPipeline" = "LightweightPipeline" }//"DisableBatching"="True"
         Cull Off
         LOD 200
         AlphaTest Greater [_Cutoff]
@@ -47,8 +47,8 @@ Shader "Hidden/TerrainEngine/Details/WavingDoublePass" // Has to override the in
             #pragma fragment LitPassFragmentGrass
             #define _ALPHATEST_ON
 
-            #include "WavingGrassInput.hlsl"
-            #include "WavingGrassPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/WavingGrassInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/WavingGrassPasses.hlsl"
 
             ENDHLSL
         }
@@ -79,8 +79,8 @@ Shader "Hidden/TerrainEngine/Details/WavingDoublePass" // Has to override the in
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "WavingGrassInput.hlsl"
-            #include "WavingGrassPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/WavingGrassInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/WavingGrassPasses.hlsl"
             ENDHLSL
         }
     }

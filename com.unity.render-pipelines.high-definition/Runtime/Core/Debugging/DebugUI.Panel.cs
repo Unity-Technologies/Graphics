@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public bool isEditorOnly { get { return (flags & Flags.EditorOnly) != 0; } }
             public bool isRuntimeOnly { get { return (flags & Flags.RuntimeOnly) != 0; } }
+            public bool isInactiveInEditor { get { return (isRuntimeOnly && !Application.isPlaying); } }
             public bool editorForceUpdate { get { return (flags & Flags.EditorForceUpdate) != 0; } }
 
             public ObservableList<Widget> children { get; private set; }

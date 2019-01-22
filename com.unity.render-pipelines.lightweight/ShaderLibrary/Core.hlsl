@@ -15,6 +15,21 @@
 #endif
 #endif
 
+// Shader Quality Tiers in LWRP. 
+// SRP doesn't use Graphics Settings Quality Tiers.
+// We should expose shader quality tiers in the pipeline asset.
+// Meanwhile, it's forced to be:
+// High Quality: Non-mobile platforms or shader explicit defined SHADER_HINT_NICE_QUALITY
+// Medium: Mobile aside from GLES2
+// Low: GLES2 
+#if SHADER_HINT_NICE_QUALITY
+#define SHADER_QUALITY_HIGH
+#elif defined(SHADER_API_GLES)
+#define SHADER_QUALITY_LOW
+#else
+#define SHADER_QUALITY_MEDIUM
+#endif
+
 #ifndef BUMP_SCALE_NOT_SUPPORTED
 #define BUMP_SCALE_NOT_SUPPORTED !SHADER_HINT_NICE_QUALITY
 #endif
@@ -24,6 +39,7 @@ struct VertexPositionInputs
     float3 positionWS; // World space position
     float3 positionVS; // View space position
     float4 positionCS; // Homogeneous clip space position
+    float4 positionNDC;// Homogeneous normalized device coordinates
 };
 
 struct VertexNormalInputs
@@ -39,6 +55,11 @@ VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
     input.positionWS = TransformObjectToWorld(positionOS);
     input.positionVS = TransformWorldToView(input.positionWS);
     input.positionCS = TransformWorldToHClip(input.positionWS);
+    
+    float4 ndc = input.positionCS * 0.5f;
+    input.positionNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
+    input.positionNDC.zw = input.positionCS.zw;
+        
     return input;
 }
 
@@ -116,13 +137,32 @@ real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 #endif
 }
 
-real3 NormalizeNormalPerPixel(real3 normal)
+// A word on normalization of normals:
+// For better quality normals should be normalized before and after
+// interpolation. 
+// 1) In vertex, skinning or blend shapes might vary significantly the lenght of normal. 
+// 2) In fragment, because even outputting unit-length normals interpolation can make it non-unit.
+// 3) In fragment when using normal map, because mikktspace sets up non orthonormal basis. 
+// However we will try to balance performance vs quality here as also let users configure that as 
+// shader quality tiers. 
+// Low Quality Tier: Normalize either per-vertex or per-pixel depending if normalmap is sampled.
+// Medium Quality Tier: Always normalize per-vertex. Normalize per-pixel only if using normal map
+// High Quality Tier: Normalize in both vertex and pixel shaders.
+real3 NormalizeNormalPerVertex(real3 normalWS)
 {
-#if !SHADER_HINT_NICE_QUALITY
-    // World normal is already normalized in vertex. Small acceptable error to save ALU.
-    return normal;
+#if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
+    return normalWS;
 #else
-    return normalize(normal);
+    return normalize(normalWS);
+#endif
+}
+
+real3 NormalizeNormalPerPixel(real3 normalWS)
+{ 
+#if defined(SHADER_QUALITY_HIGH) || defined(_NORMALMAP)
+    return normalize(normalWS);
+#else
+    return normalWS;
 #endif
 }
 

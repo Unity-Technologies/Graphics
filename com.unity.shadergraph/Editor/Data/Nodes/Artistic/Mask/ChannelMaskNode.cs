@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
                 bool alpha = (channelMask & 8) != 0;
                 channelSum = string.Format("{0}{1}{2}{3}", red ? "Red" : "", green ? "Green" : "", blue ? "Blue" : "", alpha ? "Alpha" : "");
             }
-            return string.Format("Unity_ChannelMask_{0}_{1}", channelSum, precision);
+            return string.Format("Unity_ChannelMask_{0}_{1}", channelSum, NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType));
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

@@ -2,11 +2,9 @@ Shader "Lightweight Render Pipeline/Unlit"
 {
     Properties
     {
-        _MainTex("Texture", 2D) = "white" {}
-        _Color("Color", Color) = (1, 1, 1, 1)
+        _BaseMap("Texture", 2D) = "white" {}
+        _BaseColor("Color", Color) = (1, 1, 1, 1)
         _Cutoff("AlphaCutout", Range(0.0, 1.0)) = 0.5
-        [Toggle] _SampleGI("SampleGI", float) = 0.0
-        _BumpMap("Normal Map", 2D) = "bump" {}
 
         // BlendMode
         [HideInInspector] _Surface("__surface", Float) = 0.0
@@ -16,10 +14,18 @@ Shader "Lightweight Render Pipeline/Unlit"
         [HideInInspector] _DstBlend("Dst", Float) = 0.0
         [HideInInspector] _ZWrite("ZWrite", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
+        
+        // Editmode props
+        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        
+        // ObsoleteProperties
+        [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
+        [HideInInspector] _Color("Base Color", Color) = (0.5, 0.5, 0.5, 1)
+        [HideInInspector] _SampleGI("SampleGI", float) = 0.0 // needed from bakedlit
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }
+        Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "LightweightPipeline" }
         LOD 100
 
         Blend [_SrcBlend][_DstBlend]
@@ -36,43 +42,27 @@ Shader "Lightweight Render Pipeline/Unlit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ _SAMPLE_GI _SAMPLE_GI_NORMALMAP
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
-            // Lighting include is needed because of GI
-            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
             #include "UnlitInput.hlsl"
 
             struct Attributes
             {
                 float4 positionOS       : POSITION;
                 float2 uv               : TEXCOORD0;
-                float2 lightmapUV       : TEXCOORD1;
-                float3 normalOS         : NORMAL;
-                float4 tangentOS        : TANGENT;
-
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
-                float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
-#if defined(_SAMPLE_GI) || defined(_SAMPLE_GI_NORMALMAP)
-                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-                half3 normal                    : TEXCOORD2;
-    #if defined(_SAMPLE_GI_NORMALMAP)
-                half3 tangent                   : TEXCOORD3;
-                half3 bitangent                 : TEXCOORD4;
-    #endif
-#endif
+                float2 uv        : TEXCOORD0;
+                float fogCoord  : TEXCOORD1;
                 float4 vertex : SV_POSITION;
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -89,19 +79,9 @@ Shader "Lightweight Render Pipeline/Unlit"
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
-                output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _MainTex);
-                output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
-
-#if defined(_SAMPLE_GI) || defined(_SAMPLE_GI_NORMALMAP)
-                VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-                output.normal = normalInput.normalWS;
-    #if defined(_SAMPLE_GI_NORMALMAP)
-                output.tangent = normalInput.tangentWS;
-                output.bitangent = normalInput.bitangentWS;
-    #endif
-                OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-                OUTPUT_SH(output.normal, output.vertexSH);
-#endif
+                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
+                
                 return output;
             }
 
@@ -109,28 +89,17 @@ Shader "Lightweight Render Pipeline/Unlit"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                half2 uv = input.uv0AndFogCoord.xy;
-                half4 texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
-                half3 color = texColor.rgb * _Color.rgb;
-                half alpha = texColor.a * _Color.a;
+                half2 uv = input.uv;
+                half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+                half3 color = texColor.rgb * _BaseColor.rgb;
+                half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
 
 #ifdef _ALPHAPREMULTIPLY_ON
                 color *= alpha;
 #endif
 
-
-#if defined(_SAMPLE_GI) || defined(_SAMPLE_GI_NORMALMAP)
-    #if defined(_SAMPLE_GI_NORMALMAP)
-                half3 normalTS = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv).xyz;
-                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
-    #else
-                half3 normalWS = input.normal;
-    #endif
-                normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-#endif
-                color = MixFog(color, input.uv0AndFogCoord.z);
+                color = MixFog(color, input.fogCoord);
 
                 return half4(color, alpha);
             }
@@ -188,5 +157,5 @@ Shader "Lightweight Render Pipeline/Unlit"
         }
     }
     FallBack "Hidden/InternalErrorShader"
-    CustomEditor "UnityEditor.Rendering.LWRP.UnlitShaderGUI"
+    CustomEditor "UnityEditor.Rendering.LWRP.ShaderGUI.UnlitShader"
 }

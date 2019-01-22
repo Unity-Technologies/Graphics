@@ -232,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             // Skip runtime only containers, we won't draw them so no need to serialize them either
             var actualWidget = container as DebugUI.Widget;
-            if (actualWidget != null && actualWidget.isRuntimeOnly)
+            if (actualWidget != null && actualWidget.isInactiveInEditor)
                 return;
 
             // Recursively update widget states
@@ -244,7 +244,7 @@ namespace UnityEditor.Experimental.Rendering
                 if (valueField != null)
                 {
                     // Skip runtime & readonly only items
-                    if (widget.isRuntimeOnly)
+                    if (widget.isInactiveInEditor)
                         return;
 
                     var widgetType = widget.GetType();
@@ -354,7 +354,7 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             var panels = DebugManager.instance.panels;
-            int itemCount = panels.Count(x => !x.isRuntimeOnly && x.children.Count(w => !w.isRuntimeOnly) > 0);
+            int itemCount = panels.Count(x => !x.isInactiveInEditor && x.children.Count(w => !w.isInactiveInEditor) > 0);
 
             if (itemCount == 0)
             {
@@ -394,7 +394,7 @@ namespace UnityEditor.Experimental.Rendering
                         m_Settings.selectedPanel = 0;
 
                     // Validate container id
-                    while (panels[m_Settings.selectedPanel].isRuntimeOnly || panels[m_Settings.selectedPanel].children.Count(x => !x.isRuntimeOnly) == 0)
+                    while (panels[m_Settings.selectedPanel].isInactiveInEditor || panels[m_Settings.selectedPanel].children.Count(x => !x.isInactiveInEditor) == 0)
                     {
                         m_Settings.selectedPanel++;
 
@@ -407,10 +407,10 @@ namespace UnityEditor.Experimental.Rendering
                     {
                         var panel = panels[i];
 
-                        if (panel.isRuntimeOnly)
+                        if (panel.isInactiveInEditor)
                             continue;
 
-                        if (panel.children.Count(x => !x.isRuntimeOnly) == 0)
+                        if (panel.children.Count(x => !x.isInactiveInEditor) == 0)
                             continue;
 
                         var elementRect = GUILayoutUtility.GetRect(EditorGUIUtility.TrTextContent(panel.displayName), s_Styles.sectionElement, GUILayout.ExpandWidth(true));
@@ -499,7 +499,7 @@ namespace UnityEditor.Experimental.Rendering
 
         void OnWidgetGUI(DebugUI.Widget widget)
         {
-            if (widget.isRuntimeOnly)
+            if (widget.isInactiveInEditor)
                 return;
 
             DebugState state; // State will be null for stateless widget

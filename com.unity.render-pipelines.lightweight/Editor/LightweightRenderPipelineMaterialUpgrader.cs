@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.LWRP
         private LightweightRenderPipelineMaterialUpgrader()
         {
         }
-
+        
         [MenuItem("Edit/Render Pipeline/Upgrade Project Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
         private static void UpgradeProjectMaterials()
         {
@@ -147,7 +147,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularOpaque = new UpgradeParams()
@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams diffuseAlpha = new UpgradeParams()
@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.SpecularAlpha,
+            smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
         static public UpgradeParams specularAlpha = new UpgradeParams()
@@ -174,7 +174,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.SpecularAlpha,
+            smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
         static public UpgradeParams diffuseAlphaCutout = new UpgradeParams()
@@ -183,7 +183,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = true,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.SpecularAlpha,
+            smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
         static public UpgradeParams specularAlphaCutout = new UpgradeParams()
@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = true,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.SpecularAlpha,
+            smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
         static public UpgradeParams diffuseCubemap = new UpgradeParams()
@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularCubemap = new UpgradeParams()
@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularCubemapAlpha = new UpgradeParams()
@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
     }
 
@@ -238,6 +238,11 @@ namespace UnityEditor.Rendering.LWRP
         {
             if (material == null)
                 throw new ArgumentNullException("material");
+            
+            if(material.GetTexture("_MetallicGlossMap"))
+                material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
+            else
+                material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
 
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
@@ -248,6 +253,11 @@ namespace UnityEditor.Rendering.LWRP
         {
             if (material == null)
                 throw new ArgumentNullException("material");
+            
+            if(material.GetTexture("_SpecGlossMap"))
+                material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
+            else
+                material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
 
             material.SetFloat("_WorkflowMode", 0.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
@@ -260,12 +270,20 @@ namespace UnityEditor.Rendering.LWRP
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
 
-            string standardShaderPath = ShaderUtils.GetShaderPath(ShaderPathID.PhysicallyBased);
+            string standardShaderPath = ShaderUtils.GetShaderPath(ShaderPathID.Lit);
 
             if (oldShaderName.Contains("Specular"))
+            {
                 RenameShader(oldShaderName, standardShaderPath, UpdateStandardSpecularMaterialKeywords);
+            }
             else
+            {
                 RenameShader(oldShaderName, standardShaderPath, UpdateStandardMaterialKeywords);
+            }
+
+            RenameTexture("_MainTex", "_BaseMap");
+            RenameColor("_Color", "_BaseColor");
+            RenameFloat("_GlossyReflections", "_EnvironmentReflections");
         }
     }
 
@@ -281,8 +299,12 @@ namespace UnityEditor.Rendering.LWRP
             SetFloat("_Surface", (float)upgradeParams.surfaceType);
             SetFloat("_Blend", (float)upgradeParams.blendMode);
             SetFloat("_AlphaClip", upgradeParams.alphaClip ? 1 : 0);
-            SetFloat("_SpecSource", (float)upgradeParams.specularSource);
-            SetFloat("_GlossinessSource", (float)upgradeParams.glosinessSource);
+            SetFloat("_SpecularHighlights", (float)upgradeParams.specularSource);
+            SetFloat("_SmoothnessSource", (float)upgradeParams.smoothnessSource);
+            
+            RenameTexture("_MainTex", "_BaseMap");
+            RenameColor("_Color", "_BaseColor");
+            RenameFloat("_Shininess", "_Smoothness");
 
             if (oldShaderName.Contains("Legacy Shaders/Self-Illumin"))
             {
@@ -321,11 +343,11 @@ namespace UnityEditor.Rendering.LWRP
             }
             else
             {
-                GlossinessSource glossSource = (GlossinessSource)material.GetFloat("_GlossinessSource");
+                SmoothnessSource glossSource = (SmoothnessSource)material.GetFloat("_SmoothnessSource");
                 bool hasGlossMap = material.GetTexture("_SpecGlossMap");
                 CoreUtils.SetKeyword(material, "_SPECGLOSSMAP", hasGlossMap);
                 CoreUtils.SetKeyword(material, "_SPECULAR_COLOR", !hasGlossMap);
-                CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", glossSource == GlossinessSource.BaseAlpha);
+                CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", glossSource == SmoothnessSource.BaseAlpha);
             }
         }
     }
@@ -334,7 +356,7 @@ namespace UnityEditor.Rendering.LWRP
     {
         public TerrainUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainPhysicallyBased));
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit));
         }
     }
 
@@ -344,11 +366,65 @@ namespace UnityEditor.Rendering.LWRP
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
+            
+            RenameFloat("_Mode", "_Surface");
 
             if (oldShaderName.Contains("Unlit"))
-                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesUnlit));
+            {
+                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesUnlit), UpdateUnlit);
+            }
             else
-                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesPhysicallyBased));
+            {
+                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesLit),
+                    UpdateStandardSurface);
+                RenameFloat("_Glossiness", "_Smoothness");
+            }
+
+            RenameTexture("_MainTex", "_BaseMap");
+            RenameColor("_Color", "_BaseColor");
+            RenameFloat("_FlipbookMode", "_FlipbookBlending");
+        }
+
+        public static void UpdateStandardSurface(Material material)
+        {
+            UpdateSurfaceBlendModes(material);
+        }
+
+        public static void UpdateUnlit(Material material)
+        {
+            UpdateSurfaceBlendModes(material);
+        }
+
+        public static void UpdateSurfaceBlendModes(Material material)
+        {
+            switch (material.GetFloat("_Mode"))
+            {
+                case 0: // opaque
+                    material.SetFloat("_Surface", (int)UpgradeSurfaceType.Opaque);
+                    break;
+                case 1: // cutout > alphatest
+                    material.SetFloat("_Surface", (int)UpgradeSurfaceType.Opaque);
+                    material.SetFloat("_AlphaClip", 1);
+                    break;
+                case 2: // fade > alpha
+                    material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
+                    material.SetFloat("_Blend", (int)UpgradeBlendMode.Alpha);
+                    break;
+                case 3: // transparent > premul
+                    material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
+                    material.SetFloat("_Blend", (int)UpgradeBlendMode.Premultiply);
+                    break;
+                case 4: // add
+                    material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
+                    material.SetFloat("_Blend", (int)UpgradeBlendMode.Additive);
+                    break;
+                case 5: // sub > none
+                    break;
+                case 6: // mod > multiply
+                    material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
+                    material.SetFloat("_Blend", (int)UpgradeBlendMode.Multiply);
+                    break;
+            }
         }
     }
 

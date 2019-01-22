@@ -27,10 +27,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reverted the visual styling of various graph elements to their previous correct states.
 - Previews now repaint correctly when Unity does not have focus.
 - Code generation now works correctly for exposed Vector1 shader properties where the decimal separator is not a dot.
+- The `Rotate About Axis` node's Modes now use the correct function versions.
+- Shader Graph now preserves grouping when you convert nodes between property and inline.
+- The `Flip` node now greys out labels for inactive controls.
+- The `Boolean` property type now uses the `ToggleUI` property attribute, so as to not generate keywords.
+- The `Normal Unpack` node no longer generates errors in Object space.
+- The `Split` node now uses values from its default Port input fields.
+- The `Channel Mask` node now allows multiple node instances, and no longer generates any errors.
+- Serialized the Alpha control value on the `Flip` node.
+- The `Is Infinite` and `Is NaN` nodes now use `Vector 1` input ports, but the output remains the same.
+- You can no longer convert a node inside a `Sub Graph` into a `Sub Graph`, which previously caused errors.
+- The `Transformation Matrix` node's Inverse Projection and Inverse View Projection modes no longer produce errors.
+- The term `Shader Graph` is now captilized correctly in the Save Graph prompt. 
 
 ## [5.2.0] - 2018-11-27
 ### Added
 - Shader Graph now has __Group Node__, where you can group together several nodes. You can use this to keep your Graphs organized and nice.
+
+### Fixed
+- The expanded state of blackboard properties are now remembered during a Unity session.
 
 ## [5.1.0] - 2018-11-19
 ### Added
