@@ -109,14 +109,13 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
-            m_SerializableSubShaders = SerializationHelper.Serialize<T>(m_SubShaders);
+            SerializationHelper.Serialize(m_SubShaders, m_SerializableSubShaders);
         }
 
         public override void OnAfterDeserialize()
         {
-            m_SubShaders = SerializationHelper.Deserialize<T>(m_SerializableSubShaders, GraphUtil.GetLegacyTypeRemapping());
+            SerializationHelper.Deserialize(m_SerializableSubShaders, GraphUtil.GetLegacyTypeRemapping(), m_SubShaders);
             m_SubShaders.RemoveAll(x => x == null);
-            m_SerializableSubShaders = null;
             base.OnAfterDeserialize();
         }
 

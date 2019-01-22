@@ -120,6 +120,24 @@ namespace UnityEditor.Graphing
             return null;
         }
 
+        public static void Serialize<T>(IEnumerable<T> list, List<JSONSerializedElement> result)
+        {
+            if (list == null)
+                return;
+
+            foreach (var element in list)
+            {
+                try
+                {
+                    result.Add(Serialize(element));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+        }
+
         public static List<JSONSerializedElement> Serialize<T>(IEnumerable<T> list)
         {
             var result = new List<JSONSerializedElement>();
@@ -140,7 +158,26 @@ namespace UnityEditor.Graphing
             return result;
         }
 
-        public static List<T> Deserialize<T>(IEnumerable<JSONSerializedElement> list, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper, params object[] constructorArgs) where T : class
+        public static void Deserialize<T>(List<JSONSerializedElement> list, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper, List<T> result) where T : class
+        {
+            if (list == null)
+                return;
+
+            list.RemoveAll(element =>
+            {
+                try
+                {
+                    result.Add(Deserialize<T>(element, remapper));
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
+        }
+
+        public static List<T> Deserialize<T>(IEnumerable<JSONSerializedElement> list, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper) where T : class
         {
             var result = new List<T>();
             if (list == null)
