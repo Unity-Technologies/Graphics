@@ -31,7 +31,8 @@
 
 #define PLATFORM_SUPPORTS_EXPLICIT_BINDING 1
 #define PLATFORM_NEEDS_UNORM_UAV_SPECIFIER 1
-#define PLATFORM_THREAD_GROUP_OPTIMAL_SIZE 64       // 64 threads in a wafefront
+#define PLATFORM_LANE_COUNT 64
+#define PLATFORM_THREAD_GROUP_OPTIMAL_SIZE PLATFORM_LANE_COUNT       // 64 threads in a wafefront
 
 // Intrinsics
 #define SUPPORTS_WAVE_INTRINSICS
@@ -45,7 +46,6 @@
 #define INTRINSIC_WAVE_LOGICAL_OPS
 #define WaveActiveBitAnd __XB_WaveAND
 #define WaveActiveBitOr __XB_WaveOR
-#define WaveGetLaneCount() (64)
 #define WaveGetID __XB_GetWaveID
 
 #define INTRINSIC_BITFIELD_EXTRACT
@@ -80,6 +80,12 @@ bool WaveIsFirstLane()
 {
     return (__XB_MBCNT64(WaveActiveBallot(true))) == 0;
 }
+
+uint WaveGetLaneCount()
+{
+    return PLATFORM_LANE_COUNT;
+}
+
 
 #define INTRINSIC_MINMAX3
 GENERATE_INTRINSIC_VARIANTS_3_ARGS(Min3, __XB_Min3_, a, b, c);

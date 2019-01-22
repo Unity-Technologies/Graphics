@@ -24,7 +24,7 @@ TEXTURECUBE(_AmbientProbeInputCubemap);
 
 #ifdef SUPPORTS_WAVE_INTRINSICS
     // Allocate space to accumulate all waves result. We need space for each single wavefront (because we can't atomic add floats)
-    groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / WaveGetLaneCount()];
+    groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / PLATFORM_LANE_COUNT];
 #else
     // Allocate space for parallel reduction (so half the number of samples.
     groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / 2];
@@ -81,7 +81,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     }
 
     // First thread of each wave stores the result in LDS
-    uint laneCount = WaveGetLaneCount();
+    uint laneCount = PLATFORM_LANE_COUNT;
     if (dispatchThreadId % laneCount == 0)
     {
         for (int i = 0; i < SH_COEFF_COUNT; ++i)
