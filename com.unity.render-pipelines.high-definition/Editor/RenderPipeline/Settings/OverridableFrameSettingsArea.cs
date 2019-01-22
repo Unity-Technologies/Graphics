@@ -40,14 +40,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public GUIContent label => EditorGUIUtility.TrTextContent(attributes[field].displayedName);
             public bool IsOverrideableWithDependencies(SerializedFrameSettings serialized, FrameSettings defaultFrameSettings)
             {
+                FrameSettingsFieldAttribute attribute = attributes[field];
                 bool locallyOverrideable = overrideable == null || overrideable();
-                FrameSettingsField[] dependencies = attributes[field].dependencies;
+                FrameSettingsField[] dependencies = attribute.dependencies;
                 if (dependencies == null || !locallyOverrideable)
                     return locallyOverrideable;
 
                 bool dependenciesOverrideable = true;
                 for (int index = dependencies.Length - 1; index >= 0 && dependenciesOverrideable; --index)
-                    dependenciesOverrideable &= EvaluateBoolWithOverride(dependencies[index], defaultFrameSettings, serialized);
+                {
+                    FrameSettingsField depency = dependencies[index];
+                    dependenciesOverrideable &= EvaluateBoolWithOverride(depency, defaultFrameSettings, serialized, attribute.IsNegativeDependency(depency));
+                }
                 return dependenciesOverrideable;
             }
         }
@@ -88,8 +92,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 match.overridedDefaultValue = overridedDefaultValue;
         }
 
-        static bool EvaluateBoolWithOverride(FrameSettingsField field, FrameSettings defaultFrameSettings, SerializedFrameSettings serializedFrameSettings)
-            => serializedFrameSettings.GetOverrides(field) ? serializedFrameSettings.IsEnabled(field) : defaultFrameSettings.IsEnabled(field);
+        static bool EvaluateBoolWithOverride(FrameSettingsField field, FrameSettings defaultFrameSettings, SerializedFrameSettings serializedFrameSettings, bool negative)
+            => (serializedFrameSettings.GetOverrides(field) ? serializedFrameSettings.IsEnabled(field) : defaultFrameSettings.IsEnabled(field)) ^ negative;
 
         /// <summary>Add an overrideable field to be draw when Draw(bool) will be called.</summary>
         /// <param name="serializedFrameSettings">The overrideable property to draw in inspector</param>

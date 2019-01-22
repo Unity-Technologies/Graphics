@@ -42,6 +42,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public readonly Type targetType;
         public readonly int indentLevel;
         public readonly FrameSettingsField[] dependencies;
+        private readonly int dependencySeparator;
 
         static int autoOrder = 0;
 
@@ -52,11 +53,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="tooltip">[Optional] tooltip to use in inspector.</param>
         /// <param name="type">[Optional] Requested display for this entry.</param>
         /// <param name="targetType">[Requested for Enum] Allow to map boolean value to named enum.</param>
-        /// <param name="dependencies">[Optional] Dependencies that must be activated in order to appear activable in Inspector. Indentation is deduced frm this information.</param>
+        /// <param name="positiveDependencies">[Optional] Dependencies that must be activated in order to appear activable in Inspector. Indentation is deduced frm this information.</param>
         /// <param name="customOrderInGroup">[Optional] If order is not the same than the order of value in the FrameSettingsField enum, you can ask to rewrite order from this element.
         /// Could be asked to use this on another element too to have correct ordering amongst everything.
         /// (Exemple if the 2nd element must be showed at position 10, add this property with value 10 to in and this parameter with value 3 to the following one (the 3rd).</param>
-        public FrameSettingsFieldAttribute(int group, FrameSettingsField autoName = FrameSettingsField.None, string displayedName = null, string tooltip = null, DisplayType type = DisplayType.BoolAsCheckbox, Type targetType = null, FrameSettingsField[] dependencies = null, int customOrderInGroup = -1)
+        public FrameSettingsFieldAttribute(int group, FrameSettingsField autoName = FrameSettingsField.None, string displayedName = null, string tooltip = null, DisplayType type = DisplayType.BoolAsCheckbox, Type targetType = null, FrameSettingsField[] positiveDependencies = null, FrameSettingsField[] negativeDependencies = null, int customOrderInGroup = -1)
         {
             if (string.IsNullOrEmpty(displayedName))
                 displayedName = autoName.ToString().CamelToPascalCaseWithSpace();
@@ -69,7 +70,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             this.displayedName = displayedName;
             this.type = type;
             this.targetType = targetType;
-            this.dependencies = dependencies;
+            dependencySeparator = positiveDependencies?.Length ?? 0;
+            dependencies = new FrameSettingsField[dependencySeparator + (negativeDependencies?.Length ?? 0)];
+            positiveDependencies?.CopyTo(dependencies, 0);
+            negativeDependencies?.CopyTo(dependencies, dependencySeparator);
             indentLevel = dependencies?.Length ?? 0;
 
 #if UNITY_EDITOR
@@ -77,5 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             this.tooltip = tooltip;
 #endif
         }
+
+        public bool IsNegativeDependency(FrameSettingsField frameSettingsField) => Array.FindIndex(dependencies, fsf => fsf == frameSettingsField) >= dependencySeparator;
     }
 }
