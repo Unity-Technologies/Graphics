@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // FrameSettings 
             add.defaultFrameSettings = settings.defaultFrameSettings;
             add.renderingPathCustomFrameSettings = settings.renderingPathCustomFrameSettings;
+            add.renderingPathCustomFrameSettingsOverrideMask = settings.renderingPathCustomFrameSettingsOverrideMask;
             // Frustum
             cam.nearClipPlane = settings.frustum.nearClipPlane;
             cam.farClipPlane = settings.frustum.farClipPlane;
