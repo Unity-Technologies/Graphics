@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RendererPointLights.Initialize();
         }
 
-        public void Setup(Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo, float lightIntensityScale, _2DShapeLightTypeDescription[] shapeLightTypes, Camera camera)
+        public void Setup(Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo, float lightIntensityScale, _2DLightOperationDescription[] lightOperations, Camera camera)
         {
             m_PointLightNormalRenderTextureInfo = pointLightNormalRTInfo;
             m_PointLightColorRenderTextureInfo = pointLightColorRTInfo;
@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Shader.SetGlobalFloat("_LightIntensityScale", lightIntensityScale);
             Shader.SetGlobalFloat("_InverseLightIntensityScale", inverseLightIntensityScale);
 
-            RendererShapeLights.Setup(shapeLightTypes, camera);
+            RendererShapeLights.Setup(lightOperations, camera);
         }
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)

@@ -6,12 +6,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     public class RendererShapeLights
     {
         static private RenderTextureFormat m_RenderTextureFormatToUse;
-        static _2DShapeLightTypeDescription[] m_LightTypes;
+        static _2DLightOperationDescription[] m_LightTypes;
         static RenderTargetHandle[] m_RenderTargets;
         static bool[] m_RenderTargetsDirty;
         static Camera m_Camera;
         static RenderTexture m_FullScreenShadowTexture = null;
-        const string k_UseShapeLightTypeKeyword = "USE_SHAPE_LIGHT_TYPE_";
+        const string k_UseLightOperationKeyword = "USE_SHAPE_LIGHT_TYPE_";
 
         private delegate void PerLightTypeAction(int lightTypeIndex);
         static private void DoPerLightTypeActions(PerLightTypeAction action)
@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        static public void Setup(_2DShapeLightTypeDescription[] lightTypes, Camera camera)
+        static public void Setup(_2DLightOperationDescription[] lightTypes, Camera camera)
         {
             m_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
             if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
@@ -75,13 +75,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             CommandBufferPool.Release(cmd);
         }
 
-        static private bool RenderLightSet(Camera camera, Light2D.ShapeLightType type, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
+        static private bool RenderLightSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
         {
             bool renderedAnyLight = false;
 
             foreach (var light in lights)
             {
-                if (light != null && light.isActiveAndEnabled && light.shapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible())
+                if (light != null && light.isActiveAndEnabled && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible())
                 {
                     Material shapeLightMaterial = light.GetMaterial();
                     if (shapeLightMaterial != null)
@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return renderedAnyLight;
         }
 
-        static private void RenderLightVolumeSet(Camera camera, Light2D.ShapeLightType type, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        static private void RenderLightVolumeSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             if (lights.Count > 0)
             {
@@ -109,7 +109,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = lights[i];
 
-                    if (light != null && light.isActiveAndEnabled && light.LightVolumeOpacity > 0.0f && light.shapeLightType == type && light.IsLitLayer(layerToRender) && light.IsLightVisible())
+                    if (light != null && light.isActiveAndEnabled && light.LightVolumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible())
                     {
                         Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
                         if (shapeLightVolumeMaterial != null)
@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             for (int i = 0; i < m_LightTypes.Length; ++i)
             {
-                string keyword = k_UseShapeLightTypeKeyword + i;
+                string keyword = k_UseLightOperationKeyword + i;
 
                 if (m_LightTypes[i].enabled)
                     cmdBuffer.EnableShaderKeyword(keyword);
@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (m_RenderTargetsDirty[i])
                     cmdBuffer.ClearRenderTarget(false, true, m_LightTypes[i].globalColor);
 
-                var lightType = (Light2D.ShapeLightType)i;
+                var lightType = (Light2D.LightOperation)i;
                 bool rtDirty = RenderLightSet(
                     camera,
                     lightType,
@@ -180,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 string sampleName = "2D Shape Light Volumes - " + m_LightTypes[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
-                var lightType = (Light2D.ShapeLightType)i;
+                var lightType = (Light2D.LightOperation)i;
                 RenderLightVolumeSet(
                     camera,
                     lightType,

@@ -44,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Count
         }
 
-        public enum ShapeLightType
+        public enum LightOperation
         {
             Type0 = 0,
             Type1 = 1,
@@ -88,8 +88,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public CookieStyles m_ShapeLightStyle = CookieStyles.Parametric;
 
         [SerializeField]
-        private ShapeLightType m_ShapeLightType = ShapeLightType.Type0;
-        private ShapeLightType m_PreviousShapeLightType = ShapeLightType.Type0;
+        private LightOperation m_ShapeLightType = LightOperation.Type0;
+        private LightOperation m_PreviousShapeLightType = LightOperation.Type0;
 
         public ParametricShapes m_ParametricShape = ParametricShapes.Circle; // This should be removed and fixed in the inspector
 
@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_Lights[lightType].Insert(index, this);
         }
 
-        public void UpdateShapeLightType(ShapeLightType type)
+        public void UpdateShapeLightType(LightOperation type)
         {
             if (m_LightProjectionType == LightProjectionTypes.Shape)
             {
@@ -260,7 +260,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        public ShapeLightType shapeLightType
+        public LightOperation lightOperation
         {
             get { return m_ShapeLightType; }
             set { UpdateShapeLightType(value); }
@@ -761,9 +761,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return m_Lights[(int)Light2DType.Point];
         }
 
-        public static List<Light2D> GetShapeLights(ShapeLightType shapeLightType)
+        public static List<Light2D> GetShapeLights(LightOperation lightOperation)
         {
-            return m_Lights[(int)shapeLightType];
+            return m_Lights[(int)lightOperation];
         }
 
         void RegisterLight()

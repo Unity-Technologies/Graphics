@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_RendererData.m_PointLightNormalRenderTextureInfo,
                 m_RendererData.m_PointLightColorRenderTextureInfo,
                 m_RendererData.LightIntensityScale,
-                m_RendererData.shapeLightTypes,
+                m_RendererData.lightOperations,
                 renderingData.cameraData.camera
             );
 
