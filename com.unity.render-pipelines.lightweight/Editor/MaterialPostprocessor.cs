@@ -44,7 +44,13 @@ namespace UnityEditor.Rendering.LWRP
 
                 ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
                 var wasUpgraded = false;
-                var assetVersion = AssetDatabase.LoadAllAssetsAtPath(asset)[0] as AssetVersion;
+                var assetVersions = AssetDatabase.LoadAllAssetsAtPath(asset);
+                AssetVersion assetVersion = null;
+                foreach (var subAsset in assetVersions)
+                {
+                    if(subAsset.GetType() == typeof(AssetVersion))
+                        assetVersion = subAsset as AssetVersion;
+                }
                 var debug = "\n" + material.name;
 
                 if (!assetVersion)
@@ -213,19 +219,20 @@ namespace UnityEditor.Rendering.LWRP
             if (material.GetTexture("_SpecGlossMap") == null)
             {
                 var col = material.GetColor("_SpecColor");
-                
+                var colBase = material.GetColor("_Color");
                 var smoothness = material.GetFloat("_Shininess");
-                material.SetColor("_SpecColor", col);
+                
                 if (material.GetFloat("_Surface") == 0)
                 {
-                    var colBase = material.GetColor("_Color");
-                    material.SetColor("_BaseColor", colBase);
-                    
                     if (smoothnessSource == 1)
                         colBase.a = smoothness;
                     else
                         col.a = smoothness;
+                    material.SetColor("_BaseColor", colBase);
                 }
+                
+                material.SetColor("_BaseColor", colBase);
+                material.SetColor("_SpecColor", col);
             }
         }
     }
