@@ -98,7 +98,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 filterSettings.sortingLayerRange = m_SortingLayerRange;
 
                 RendererPointLights.RenderLights(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
-                RendererShapeLights.Clear(m_CommandBuffer);
                 RendererShapeLights.RenderLights(camera, m_CommandBuffer, layerToRender);
 
                 // This should have an optimization where I can determine if this needs to be called

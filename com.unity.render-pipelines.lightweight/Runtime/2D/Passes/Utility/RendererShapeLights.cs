@@ -6,8 +6,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     public class RendererShapeLights
     {
         static private RenderTextureFormat m_RenderTextureFormatToUse;
-        static RenderTargetHandle[] m_RenderTargets;
         static _2DShapeLightTypeDescription[] m_LightTypes;
+        static RenderTargetHandle[] m_RenderTargets;
+        static bool[] m_RenderTargetsDirty;
         static Camera m_Camera;
         static RenderTexture m_FullScreenShadowTexture = null;
         const string k_UseShapeLightTypeKeyword = "USE_SHAPE_LIGHT_TYPE_";
@@ -37,6 +38,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             m_RenderTargets = new RenderTargetHandle[m_LightTypes.Length];
             DoPerLightTypeActions(i => { m_RenderTargets[i].Init("_ShapeLightTexture" + i); });
+
+            m_RenderTargetsDirty = new bool[m_LightTypes.Length];
         }
 
         static public void CreateRenderTextures(ScriptableRenderContext context)
@@ -57,6 +60,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 descriptor.width = (int)(m_Camera.pixelWidth * renderTextureScale);
                 descriptor.height = (int)(m_Camera.pixelHeight * renderTextureScale);
                 cmd.GetTemporaryRT(m_RenderTargets[i].id, descriptor, FilterMode.Bilinear);
+                m_RenderTargetsDirty[i] = true;
             });
 
             context.ExecuteCommandBuffer(cmd);
@@ -71,20 +75,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             CommandBufferPool.Release(cmd);
         }
 
-        static public void ClearTarget(CommandBuffer cmdBuffer, RenderTargetIdentifier renderTexture, Color color)
+        static private bool RenderLightSet(Camera camera, Light2D.ShapeLightType type, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
         {
-            cmdBuffer.SetRenderTarget(renderTexture);
-            cmdBuffer.ClearRenderTarget(false, true, color, 1.0f);
-        }
-
-        static public void Clear(CommandBuffer cmdBuffer)
-        {
-            DoPerLightTypeActions(i => { ClearTarget(cmdBuffer, m_RenderTargets[i].Identifier(), m_LightTypes[i].globalColor); });
-        }
-
-        static private void RenderLightSet(Camera camera, Light2D.ShapeLightType type, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, Color fillColor, List<Light2D> lights)
-        {
-            bool renderedFirstLight = false;
+            bool renderedAnyLight = false;
 
             foreach (var light in lights)
             {
@@ -96,18 +89,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                         Mesh lightMesh = light.GetMesh();
                         if (lightMesh != null)
                         {
-                            if (!renderedFirstLight)
-                            {
-                                cmdBuffer.SetRenderTarget(renderTexture);
-                                cmdBuffer.ClearRenderTarget(false, true, fillColor);
-                                renderedFirstLight = true;
-                            }
+                            if (!renderedAnyLight)
+                                renderedAnyLight = true;
 
                             cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
                         }
                     }
                 }
             }
+
+            return renderedAnyLight;
         }
 
         static private void RenderLightVolumeSet(Camera camera, Light2D.ShapeLightType type, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
@@ -162,16 +153,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 string sampleName = "2D Shape Lights - " + m_LightTypes[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
+                cmdBuffer.SetRenderTarget(m_RenderTargets[i].Identifier());
+
+                if (m_RenderTargetsDirty[i])
+                    cmdBuffer.ClearRenderTarget(false, true, m_LightTypes[i].globalColor);
+
                 var lightType = (Light2D.ShapeLightType)i;
-                RenderLightSet(
+                bool rtDirty = RenderLightSet(
                     camera,
                     lightType,
                     cmdBuffer,
                     layerToRender,
-                    m_RenderTargets[i].Identifier(),
-                    m_LightTypes[i].globalColor,
                     Light2D.GetShapeLights(lightType)
                 );
+
+                m_RenderTargetsDirty[i] = rtDirty;
 
                 cmdBuffer.EndSample(sampleName);
             });
