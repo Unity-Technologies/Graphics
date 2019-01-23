@@ -9,23 +9,6 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
 
 	HLSLINCLUDE
 	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-
-	struct Attributes
-	{
-		float4 positionOS   : POSITION;
-		float4 color		: COLOR;
-		half2  uv			: TEXCOORD0;
-	};
-
-	struct Varyings
-	{
-		float4  positionCS		: SV_POSITION;
-		float4  color			: COLOR;
-		half2	uv				: TEXCOORD0;
-		half2	lightingUV		: TEXCOORD1;
-		float4  vertexWorldPos	: TEXCOORD3;
-		half2	pixelScreenPos	: TEXCOORD4;
-	};
 	ENDHLSL
 
 	SubShader
@@ -39,6 +22,23 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
 		{
 			Tags { "LightMode" = "CombinedShapeLight" }
 			HLSLPROGRAM
+			struct Attributes
+			{
+				float4 positionOS   : POSITION;
+				float4 color		: COLOR;
+				half2  uv			: TEXCOORD0;
+			};
+
+			struct Varyings
+			{
+				float4  positionCS		: SV_POSITION;
+				float4  color			: COLOR;
+				half2	uv				: TEXCOORD0;
+				half2	lightingUV		: TEXCOORD1;
+				float4  vertexWorldPos	: TEXCOORD3;
+				half2	pixelScreenPos	: TEXCOORD4;
+			};
+
 			#pragma prefer_hlslcc gles
 
 			#pragma vertex CombinedShapeLightVertex
@@ -58,6 +58,23 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
 		{
 			Tags { "LightMode" = "NormalsRendering"}
 			HLSLPROGRAM
+			struct Attributes
+			{
+				float4 positionOS   : POSITION;
+				float4 color		: COLOR;
+				half2  uv			: TEXCOORD0;
+			};
+
+			struct Varyings
+			{
+				float4  positionCS		: SV_POSITION;
+				float4  color			: COLOR;
+				half2	uv				: TEXCOORD0;
+				float3  normal			: TEXCOORD1;
+				float3  tangent			: TEXCOORD2;
+				float3  bitangent		: TEXCOORD3;
+			};
+
 			#pragma prefer_hlslcc gles
 			#pragma vertex NormalsRenderingVertex
 			#pragma fragment NormalsRenderingFragment
