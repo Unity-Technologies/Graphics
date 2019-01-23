@@ -310,25 +310,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                         // We should consider combining all point lights into a single pass instead of rendering them seperately
                         DrawLightQuad(cmdBuffer, light, m_NormalRT, GetPointLightMat());
-
-                        //m_PointLightingMat.SetTexture("_MainTex", m_NormalRT);
-                        //ScriptableRenderer.RenderFullscreenQuad(cmdBuffer, m_PointLightingMat);
-
-                        //cmdBuffer.SetRenderTarget(m_FullScreenShadowTexture);
-                        //cmdBuffer.ClearRenderTarget(true, true, Color.clear, 1.0f);
-                        //if (light.m_CastsShadows && shadowCasters != null && shadowCasters.Count > 0)
-                        //{
-
-                        //// Render all the hard shadows
-                        //foreach (GameObject shadowCaster in shadowCasters)
-                        //{
-                        //    MeshFilter shadowRenderer = shadowCaster.GetComponent<MeshFilter>();
-                        //    if (shadowRenderer != null)
-                        //    {
-                        //        cmdBuffer.DrawMesh(shadowRenderer.sharedMesh, shadowRenderer.transform.localToWorldMatrix, m_HardShadowMaterial);
-                        //    }
-                        //}
-                        //}
                     }
                 }
                 cmdBuffer.EndSample("2D Point Lights");
@@ -366,12 +347,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             renderContext.ExecuteCommandBuffer(cmdBuffer);
             cmdBuffer.Clear();
         }
-
-        //static public void Render(int layerToRender, ScriptableRenderContext renderContext, Camera camera)
-        //{
-        //    RenderPointLights(layerToRender, renderContext, camera);  // This needs to be re-evaluated. Because the light intensity is unfortunately not layer independent
-        //    cmdBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-
-        //}
+        
     }
 }
