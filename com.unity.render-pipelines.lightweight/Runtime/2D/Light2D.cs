@@ -74,6 +74,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public float m_PointLightOuterAngle = 360;
         public float m_PointLightInnerRadius = 1;
         public float m_PointLightOuterRadius = 1;
+        public float m_PointLightZDistance = 3;
         public bool m_CastsShadows = true;
 
         public Color m_ShadowColor;

@@ -196,6 +196,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             SerializedProperty pointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             SerializedProperty pointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             SerializedProperty pointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
+            SerializedProperty pointZDistance = serializedObject.FindProperty("m_PointLightZDistance");
             SerializedProperty castsShadows = serializedObject.FindProperty("m_CastsShadows");
             SerializedProperty shadowColor = serializedObject.FindProperty("m_ShadowColor");
             SerializedProperty pointLightCookie = serializedObject.FindProperty("m_LightCookieSprite");
@@ -206,9 +207,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.PropertyField(pointOuterAngle, EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light"));
             EditorGUILayout.PropertyField(pointInnerRadius, EditorGUIUtility.TrTextContent("Inner Radius", "Specify the inner radius of the light"));
             EditorGUILayout.PropertyField(pointOuterRadius, EditorGUIUtility.TrTextContent("Outer Radius", "Specify the outer radius of the light"));
+            EditorGUILayout.PropertyField(pointZDistance, EditorGUIUtility.TrTextContent("Distance", "Specify the Z Distance of the light"));
             EditorGUILayout.PropertyField(pointLightCookie, EditorGUIUtility.TrTextContent("Cookie", "Specify a sprite as the cookie for the light"));
             if (pointInnerRadius.floatValue < 0) pointInnerRadius.floatValue = 0;
             if (pointOuterRadius.floatValue < 0) pointOuterRadius.floatValue = 0;
+            if (pointZDistance.floatValue < 0) pointZDistance.floatValue = 0;
 
             EditorGUILayout.PropertyField(castsShadows, EditorGUIUtility.TrTextContent("Casts Shadows", "Specify if this light should casts shadows"));
 

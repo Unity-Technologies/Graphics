@@ -258,6 +258,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
             cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
 
+            cmdBuffer.SetGlobalFloat("_LightZDistance", light.m_PointLightZDistance);
+
             if (light.m_LightCookieSprite != null && light.m_LightCookieSprite.texture != null)
             {
                 cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHT_COOKIES");

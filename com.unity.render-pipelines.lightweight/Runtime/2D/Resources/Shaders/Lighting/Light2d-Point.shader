@@ -55,6 +55,7 @@
 			float4			_LightPosition;
 			half4x4			_LightInvMatrix;
 			half4x4			_LightNoRotInvMatrix;
+			half			_LightZDistance;
 			half			_OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			half			_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
 			half			_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
@@ -75,7 +76,7 @@
 				output.lookupUV = 0.5 * (lightSpacePos.xy + 1);
 				output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
 				output.lightDirection.xy  = _LightPosition.xy - worldSpacePos.xy;
-				output.lightDirection.z   = _LightPosition.z;
+				output.lightDirection.z   = _LightZDistance;
 				output.lightDirection.w   = 0;
 				output.lightDirection.xyz = normalize(output.lightDirection.xyz);
 
