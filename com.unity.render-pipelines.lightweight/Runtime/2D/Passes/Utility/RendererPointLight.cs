@@ -296,7 +296,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = pointLights[i];
 
-                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible())
+                    if (light != null && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                     {
                         if (!renderedAnyLight)
                         {
@@ -354,7 +354,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = pointLights[i];
 
-                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible() && light.LightVolumeOpacity > 0.0f)
+                    if (light != null && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera) && light.LightVolumeOpacity > 0.0f)
                     {
                         SetShaderGlobals(cmdBuffer, light);
                         DrawLightQuad(cmdBuffer, light, null, GetPointLightVolumeMat());

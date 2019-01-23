@@ -884,10 +884,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             UpdateShapeLightType(m_ShapeLightType);
         }
 
-        public bool IsLightVisible()
+        public bool IsLightVisible(Camera camera)
         {
             // If we remove the lwrp injection method, we should remove the m_LightCullingEnabled flag.
-            bool isVisible = m_CullingGroup == null || !m_LightCullingEnabled || m_CullingGroup.IsVisible(m_LightCullingIndex);
+            bool isVisible = (m_CullingGroup == null || !m_LightCullingEnabled || m_CullingGroup.IsVisible(m_LightCullingIndex)) && isActiveAndEnabled;
+
+#if UNITY_EDITOR
+            isVisible = isVisible && UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(gameObject, camera);
+#endif
+
             return isVisible;
         }
 
