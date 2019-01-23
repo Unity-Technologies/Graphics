@@ -943,5 +943,60 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH"
         };
+
+        public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
+        {
+            switch (value)
+            {
+                case HDRenderQueue.RenderQueueType.Opaque:
+                    return "Default";
+                case HDRenderQueue.RenderQueueType.AfterPostProcessOpaque:
+                    return "After Post-process";
+
+                case HDRenderQueue.RenderQueueType.PreRefraction:
+                    return "Before Refraction";
+                case HDRenderQueue.RenderQueueType.Transparent:
+                    return "Default";
+                case HDRenderQueue.RenderQueueType.LowTransparent:
+                    return "Low Resolution";
+                case HDRenderQueue.RenderQueueType.AfterPostprocessTransparent:
+                    return "After Post-process";
+
+#if ENABLE_RAYTRACING
+                case HDRenderQueue.RenderQueueType.RaytracingOpaque: return "Raytracing";
+                case HDRenderQueue.RenderQueueType.RaytracingTransparent: return "Raytracing";
+#endif
+                default:
+                    return "None";
+            }
+        }
+
+        public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque)
+        {
+            if (opaque)
+            {
+                return new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>()
+                {
+                    HDRenderQueue.RenderQueueType.Opaque
+                  //  , HDRenderQueue.RenderQueueType.AfterPostProcessOpaque
+#if ENABLE_RAYTRACING
+                    , HDRenderQueue.RenderQueueType.RaytracingOpaque
+#endif
+                };
+            }
+            else
+            {
+                return new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>()
+                {
+                    HDRenderQueue.RenderQueueType.PreRefraction
+                    , HDRenderQueue.RenderQueueType.Transparent
+                 //   , HDRenderQueue.RenderQueueType.LowTransparent
+                 //   , HDRenderQueue.RenderQueueType.AfterPostprocessTransparent
+#if ENABLE_RAYTRACING
+                    , HDRenderQueue.RenderQueueType.RaytracingTransparent
+#endif
+                };
+            }
+        }
     }
 }

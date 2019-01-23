@@ -48,9 +48,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 case SurfaceType.Opaque:
                     ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
                     {
-                        row.Add(new EnumField(HDRenderQueue.OpaqueRenderQueue.Default), (field) =>
+                        var valueList = HDSubShaderUtilities.GetRenderingPassList(true);
+
+                        row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Opaque, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
                         {
-                            field.value = HDRenderQueue.ConvertToOpaqueRenderQueue(HDRenderQueue.GetOpaqueEquivalent(m_Node.renderingPass));
+                            field.value = HDRenderQueue.GetOpaqueEquivalent(m_Node.renderingPass);
                             field.RegisterValueChangedCallback(ChangeRenderingPass);
                         });
                     });
@@ -59,7 +61,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
                     {
                         Enum defaultValue;
-                        switch (m_Node.renderingPass)
+                        switch (m_Node.renderingPass) // Migration
                         {
                             default: //when deserializing without issue, we still need to init the default to something even if not used.
                             case HDRenderQueue.RenderQueueType.Transparent:
@@ -69,9 +71,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                                 defaultValue = HDRenderQueue.TransparentRenderQueue.BeforeRefraction;
                                 break;
                         }
-                        row.Add(new EnumField(defaultValue), (field) =>
+
+                        var valueList = HDSubShaderUtilities.GetRenderingPassList(false);
+
+                        row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Transparent, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
                         {
-                            field.value = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(m_Node.renderingPass));
+                            field.value = HDRenderQueue.GetTransparentEquivalent(m_Node.renderingPass);
                             field.RegisterValueChangedCallback(ChangeRenderingPass);
                         });
                     });
@@ -214,17 +219,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             td.isOn = evt.newValue;
             m_Node.transparencyFog = td;
         }
-            
-        void ChangeRenderingPass(ChangeEvent<Enum> evt)
+
+        void ChangeRenderingPass(ChangeEvent<HDRenderQueue.RenderQueueType> evt)
         {
-            HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.RenderQueueType.Unknown;
-            if (evt.newValue is HDRenderQueue.OpaqueRenderQueue)
-                renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue((HDRenderQueue.OpaqueRenderQueue)evt.newValue);
-            else if (evt.newValue is HDRenderQueue.TransparentRenderQueue)
-                renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue((HDRenderQueue.TransparentRenderQueue)evt.newValue);
-            else
-                throw new ArgumentException("Unknown kind of RenderQueue, was " + evt.newValue);
-            UpdateRenderingPassValue(renderQueueType);
+            switch (evt.newValue)
+            {
+                case HDRenderQueue.RenderQueueType.Overlay:
+                case HDRenderQueue.RenderQueueType.Unknown:
+                case HDRenderQueue.RenderQueueType.Background:
+                    throw new ArgumentException("Unexpected kind of RenderQueue, was " + evt.newValue);
+                default:
+                    break;
+            };
+            UpdateRenderingPassValue(evt.newValue);
         }
 
         void UpdateRenderingPassValue(HDRenderQueue.RenderQueueType newValue)

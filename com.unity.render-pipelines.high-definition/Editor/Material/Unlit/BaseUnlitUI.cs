@@ -37,11 +37,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
 #if ENABLE_RAYTRACING
-            public static readonly string[] opaqueRenderingPathNames = new[] { "Default", "After post-process", "Raytracing" };
-            public static readonly string[] transparentRenderingPathNames = new[] { "Before refraction", "Default", "Low resolution", "After post-process", "Raytracing" };
+            public static readonly string[] opaqueRenderingPassNames = new[] { "Default", "After post-process", "Raytracing" };
+            public static readonly string[] transparentRenderingPassNames = new[] { "Before refraction", "Default", "Low resolution", "After post-process", "Raytracing" };
 #else
-            public static readonly string[] opaqueRenderingPathNames = new[] { "Default", "After post-process" };
-            public static readonly string[] transparentRenderingPathNames = new[] { "Before refraction", "Default", "Low resolution", "After post-process" };
+            // TEMP: Disable extra pass until supported
+            //public static readonly string[] opaqueRenderingPassNames = new[] { "Default", "After post-process" };
+            public static readonly string[] opaqueRenderingPassNames = new[] { "Default" };
+            //public static readonly string[] transparentRenderingPassNames = new[] { "Before refraction", "Default", "Low resolution", "After post-process" };
+            // TEMP: Disable extra pass until supported
+            public static readonly string[] transparentRenderingPassNames = new[] { "Before refraction", "Default" };
 #endif
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly int[] blendModeValues = Enum.GetValues(typeof(BlendMode)) as int[];
@@ -68,8 +72,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Distortion Scale");
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
             public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Distortion Blur Remapping");
-
-            public static GUIContent transparentPrepassText = new GUIContent("Appear in Refraction", "Render objects before the refraction pass");
 
             public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("MotionVector For Vertex Animation", "This will enable an object motion vector pass for this material. Useful if wind animation is enabled or if displacement map is animated");
 
@@ -253,10 +255,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case SurfaceType.Opaque:
                     //GetOpaqueEquivalent: prevent issue when switching surface type
                     HDRenderQueue.OpaqueRenderQueue renderQueueOpaqueType = HDRenderQueue.ConvertToOpaqueRenderQueue(HDRenderQueue.GetOpaqueEquivalent(renderQueueType));
-                    var newRenderQueueOpaqueType = (HDRenderQueue.OpaqueRenderQueue)EditorGUILayout.Popup(StylesBaseUnlit.renderingPassText, (int)renderQueueOpaqueType, StylesBaseUnlit.opaqueRenderingPathNames);
+                    var newRenderQueueOpaqueType = (HDRenderQueue.OpaqueRenderQueue)EditorGUILayout.Popup(StylesBaseUnlit.renderingPassText, (int)renderQueueOpaqueType, StylesBaseUnlit.opaqueRenderingPassNames);
                     if (newRenderQueueOpaqueType != renderQueueOpaqueType) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
                     {
-                        m_MaterialEditor.RegisterPropertyChangeUndo("Rendering Path");
+                        m_MaterialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(newRenderQueueOpaqueType);
                         material.renderQueue = HDRenderQueue.ChangeType(renderQueueType, alphaTest: alphaTest);
                     }
@@ -264,7 +266,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case SurfaceType.Transparent:
                     //GetTransparentEquivalent: prevent issue when switching surface type
                     HDRenderQueue.TransparentRenderQueue renderQueueTransparentType = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(renderQueueType));
-                    var names = StylesBaseUnlit.transparentRenderingPathNames;
+                    var names = StylesBaseUnlit.transparentRenderingPassNames;
                     if (!showPreRefractionPass)
                     {
                         names = names.Skip(1).ToArray();
@@ -275,7 +277,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         if (!showPreRefractionPass)
                             ++newRenderQueueTransparentType;    //keep index sync with displayed value
-                        m_MaterialEditor.RegisterPropertyChangeUndo("Rendering Path");
+                        m_MaterialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(newRenderQueueTransparentType);
                         material.renderQueue = HDRenderQueue.ChangeType(renderQueueType, offset: (int)transparentSortPriority.floatValue);
                     }
