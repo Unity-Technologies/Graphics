@@ -80,7 +80,12 @@ namespace UnityEditor.Rendering
             var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
             var buttonCopyRect = new Rect(buttonNewRect.xMax, lineRect.y, buttonWidth, lineRect.height);
 
-            EditorGUI.PrefixLabel(labelRect, CoreEditorUtils.GetContent(actualTarget.HasInstantiatedProfile() ? "Profile (Instance)|A copy of a profile asset." : "Profile|A reference to a profile asset."));
+            GUIContent guiContent;
+            if (actualTarget.HasInstantiatedProfile())
+                guiContent = EditorGUIUtility.TrTextContent("Profile (Instance)", "A copy of a profile asset.");
+            else
+                guiContent = EditorGUIUtility.TrTextContent("Profile", "A reference to a profile asset.");
+            EditorGUI.PrefixLabel(labelRect, guiContent);
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
@@ -107,7 +112,7 @@ namespace UnityEditor.Rendering
 
             using (new EditorGUI.DisabledScope(multiEdit))
             {
-                if (GUI.Button(buttonNewRect, CoreEditorUtils.GetContent("New|Create a new profile."), showCopy ? EditorStyles.miniButtonLeft : EditorStyles.miniButton))
+                if (GUI.Button(buttonNewRect, EditorGUIUtility.TrTextContent("New", "Create a new profile."), showCopy ? EditorStyles.miniButtonLeft : EditorStyles.miniButton))
                 {
                     // By default, try to put assets in a folder next to the currently active
                     // scene file. If the user isn't a scene, put them in root instead.
@@ -119,7 +124,11 @@ namespace UnityEditor.Rendering
                     assetHasChanged = true;
                 }
 
-                if (showCopy && GUI.Button(buttonCopyRect, CoreEditorUtils.GetContent(actualTarget.HasInstantiatedProfile() ? "Save|Save the instantiated profile" : "Clone|Create a new profile and copy the content of the currently assigned profile."), EditorStyles.miniButtonRight))
+                if (actualTarget.HasInstantiatedProfile())
+                    guiContent = EditorGUIUtility.TrTextContent("Save", "Save the instantiated profile");
+                else
+                    guiContent = EditorGUIUtility.TrTextContent("Clone", "Create a new profile and copy the content of the currently assigned profile.");
+                if (showCopy && GUI.Button(buttonCopyRect, guiContent, EditorStyles.miniButtonRight))
                 {
                     // Duplicate the currently assigned profile and save it as a new profile
                     var origin = profileRef;

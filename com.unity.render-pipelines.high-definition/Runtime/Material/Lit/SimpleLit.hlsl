@@ -25,12 +25,18 @@ void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
 
 float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 {
-#ifdef LIGHT_LAYERS
-    return ComputeMicroShadowing(bsdfData.ambientOcclusion, NdotL, _MicroShadowOpacity);
+    float sourceAO;
+#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
+    // Note: In deferred pass we don't have space in GBuffer to store ambientOcclusion unless LIGHT_LAYERS is enabled
+    // so we use specularOcclusion instead
+    // The define LIGHT_LAYERS only exist for the GBuffer and the Forward pass. To avoid to add another
+    // variant to deferred.compute, we use dynamic branching instead with _EnableLightLayers.
+    sourceAO = _EnableLightLayers ? bsdfData.ambientOcclusion : bsdfData.specularOcclusion;
 #else
-    // No extra G-Buffer for AO, so 'bsdfData.ambientOcclusion' does not hold a meaningful value.
-    return ComputeMicroShadowing(bsdfData.specularOcclusion, NdotL, _MicroShadowOpacity);
+    sourceAO = bsdfData.ambientOcclusion;
 #endif
+
+    return ComputeMicroShadowing(sourceAO, NdotL, _MicroShadowOpacity);
 }
 
 bool MaterialSupportsTransmission(BSDFData bsdfData)

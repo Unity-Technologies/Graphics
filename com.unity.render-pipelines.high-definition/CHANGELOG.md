@@ -19,6 +19,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added basic distance fade for density volumes
 - Added decal master node for shader graph
 - Added HD unlit master node (Cross Pipeline one is name Unlit)
+- Added new Rendering Queue in materials.
+- Added post-processing features (work in progress)
+- Post-processing now uses the generic volume framework
+- New depth-of-field, bloom, panini projection effects (motion blur is currently missing)
+- Exposure is now done as a pre-exposition pass, the whole system has been revamped
+- Exposure now use EV100 everywhere in the UI (Sky, Emissive Light)
+- Add emissive intensity (Luminance and EV100 control) control for Emissive
+- Add pre-exposure weigth for Emissive
+- Add new node in shader graph for Emissive intensity control
+- Added physical camera support where applicable
+- Added more color grading tools
+- Added changelog level for Shader Variant stripping
+- Added an emissive color node and a slider to control the pre-exposure percentage of emission color
+- Added Debug mode for validation of material albedo and metalness/specularColor values
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -55,7 +69,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material's RenderQueue edition in default view.
 - Fixed banding issues within volumetric density buffer
 - Fixed missing multicompile for MSAA for AxF
+- Fixed camera-relative support for stereo rendering
 - Fixed remove sync with render thread when updating decal texture atlas.
+- Fixed max number of keyword reach [256] issue. Several shader feature are now local
+- Fixed Scene Color and Depth nodes
+- Fixed SSR in forward
+- Fixed custom editor of Unlit, HD Unlit and PBR shader graph master node
+- Fixed issue with NewFrame not correctly calcualted in Editor when switching scene
+- Fixed issue with TerrainLit not compiling with depth only pass and normal buffer
+- Fixed geometric normal use for shadow bias with PBR master node in forward
+- Fixed error message when having more than one directional light casting shadow
+- Fixed error when trying to display preview of Camera or PlanarReflectionProbe
+- Fixed an issue where probe target texture wasn't resized properly when changing HDRP asset.
+- Fixed rendering viewport for probe rendering
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
@@ -64,12 +90,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Separated Passthrough from other RenderingPath
 - Update several properties naming and caption based on feedback from documentation team
 - Remove tile shader variant for transparent backface pass of lit shader
+- Added a new dynamic mode for ambient probe and renamed BakingSky to StaticLightingSky
 - Rename all HDRenderPipeline to HDRP folder for shaders
 - Rename decal property label (based on doc team feedback)
 - Add command buffer parameter to all Bind() method of material
 - Lit shader mode now default to Deferred to reduce build time
 - Update UI of Emission parameters in shaders
 - Improve shader variant stripping including shader graph variant
+- Refactored render loop to render realtime probes visible per camera
+- Enable SRP batcher by default
+- Shader code refactor: Rename LIGHTLOOP_SINGLE_PASS => LIGHTLOOP_DISABLE_TILE_AND_CLUSTER and clean all usage of LIGHTLOOP_TILE_PASS
+- Shader code refactor: Move pragma definition of vertex and pixel shader inside pass + Move SURFACE_GRADIENT definition in XXXData.hlsl
+- Micro-shadowing in Lit forward now use ambientOcclusion instead of SpecularOcclusion
+- Upgraded FrameSettings workflow, DebugMenu and Inspector part relative to it.
 
 ## [5.2.0-preview] - 2018-11-27
 
@@ -352,7 +385,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Decal now support per channel selection mask. There is now two mode. One with BaseColor, Normal and Smoothness and another one more expensive with BaseColor, Normal, Smoothness, Metal and AO. Control is on HDRP Asset. This may require to launch an update script for old scene: 'Edit/Render Pipeline/Single step upgrade script/Upgrade all DecalMaterial MaskBlendMode'.
 - Decal now supports depth bias for decal mesh, to prevent z-fighting
-- Decal material now supports draw order for decal projectors 
+- Decal material now supports draw order for decal projectors
 - Added LightLayers support (Base on mask from renderers name RenderingLayers and mask from light name LightLayers - if they match, the light apply) - cost an extra GBuffer in deferred (more bandwidth)
 - When LightLayers is enabled, the AmbientOclusion is store in the GBuffer in deferred path allowing to avoid double occlusion with SSAO. In forward the double occlusion is now always avoided.
 - Added the possibility to add an override transform on the camera for volume interpolation
@@ -530,7 +563,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
-- Fix numerical issues with the default value of mean free path of volumetric fog 
+- Fix numerical issues with the default value of mean free path of volumetric fog
 - Fix the bug preventing decals from coexisting with density volumes
 - Fix issue with alpha tested geometry using planar/triplanar mapping not render correctly or flickering (due to being wrongly alpha tested in depth prepass)
 - Fix meta pass with triplanar (was not handling correctly the normal)

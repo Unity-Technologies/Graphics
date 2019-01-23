@@ -82,6 +82,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string emissiveLabelText = "Emission Inputs";
             public static GUIContent emissiveText = new GUIContent("Emission Map", "Emission Map (RGB) in nits unit");
             public static GUIContent albedoAffectEmissiveText = new GUIContent("Emission multiply with Base", "Specifies whether or not the emission color is multiplied by the albedo.");
+            public static GUIContent useEmissiveIntensityText = new GUIContent("Use Emission Intensity", "Specifies whether to use to a HDR color or a LDR color with a separate multiplier.");
+            public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "");
+            public static GUIContent emissiveIntensityFromHDRColorText = new GUIContent("The emission intensity is from the HDR color picker in luminance", "");
+            public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Control the percentage of emission to expose.");
 
             public static GUIContent normalMapSpaceWarning = new GUIContent("Object space normal can't be use with triplanar mapping.");
 
@@ -269,6 +273,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kTexWorldScaleEmissive = "_TexWorldScaleEmissive";
         protected MaterialProperty UVMappingMaskEmissive = null;
         protected const string kUVMappingMaskEmissive = "_UVMappingMaskEmissive";
+        protected MaterialProperty emissiveIntensity = null;
+        protected const string kEmissiveIntensity = "_EmissiveIntensity";
+        protected MaterialProperty emissiveColorLDR = null;
+        protected const string kEmissiveColorLDR = "_EmissiveColorLDR";
+        protected MaterialProperty emissiveIntensityUnit = null;
+        protected const string kEmissiveIntensityUnit = "_EmissiveIntensityUnit";
+        protected MaterialProperty emissiveExposureWeight = null;
+        protected const string kemissiveExposureWeight = "_EmissiveExposureWeight";
+        protected MaterialProperty useEmissiveIntensity = null;
+        protected const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
 
         protected MaterialProperty enableSpecularOcclusion = null;
         protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
@@ -288,10 +302,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kRefractionModel = "_RefractionModel";
         protected MaterialProperty ssrefractionProjectionModel = null;
         protected const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
-        
+
         protected override bool showBlendModePopup
         {
-            get { return refractionModel == null || refractionModel.floatValue == 0f || preRefractionPass.floatValue > 0.0f; }
+            get { return refractionModel == null || refractionModel.floatValue == 0f || HDRenderQueue.k_RenderQueue_PreRefraction.Contains((m_MaterialEditor.target as Material).renderQueue); }
+        }
+        protected override bool showPreRefractionPass
+        {
+            get { return refractionModel == null || refractionModel.floatValue == 0f; }
         }
 
         protected void FindMaterialLayerProperties(MaterialProperty[] props)
@@ -360,6 +378,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UVEmissive = FindProperty(kUVEmissive, props);
             TexWorldScaleEmissive = FindProperty(kTexWorldScaleEmissive, props);
             UVMappingMaskEmissive = FindProperty(kUVMappingMaskEmissive, props);
+
+            emissiveIntensityUnit = FindProperty(kEmissiveIntensityUnit, props);
+            emissiveIntensity = FindProperty(kEmissiveIntensity, props);
+            emissiveExposureWeight = FindProperty(kemissiveExposureWeight, props);
+            emissiveColorLDR = FindProperty(kEmissiveColorLDR, props);
+            useEmissiveIntensity = FindProperty(kUseEmissiveIntensity, props);
 
             enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion, props);
         }
@@ -741,7 +765,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
-            
+
             using (var header = new HeaderScope(layerPrefix + Styles.detailText, detailToggle, this, colorDot: colorDot))
             {
                 if (header.expanded)
@@ -799,7 +823,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     if (header.expanded)
                     {
-                        var isPrepass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0;
+                        var isPrepass = HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
                         if (refractionModel != null
                             // Refraction is not available for pre-refraction objects
                             && !isPrepass)
@@ -841,35 +865,77 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (header.expanded)
                 {
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-
-                    if (material.GetTexture(kEmissiveColorMap))
+                    EditorGUI.BeginChangeCheck();
+                    m_MaterialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissiveIntensityText);
+                    bool updateEmissiveColor = EditorGUI.EndChangeCheck();
+                        
+                    if (useEmissiveIntensity.floatValue == 0)
                     {
-                        EditorGUI.indentLevel++;
-                        m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVBaseMappingText);
-                        UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
-
-                        float X, Y, Z, W;
-                        X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-                        Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-                        Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-                        W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
-
-                        UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
-
-                        if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
-                        {
-                            m_MaterialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
-                        }
-
-                        m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
-                        EditorGUI.indentLevel--;
+                        EditorGUI.BeginChangeCheck();
+                        DoEmissiveTextureProperty(material, emissiveColor);
+                        if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
+                            emissiveColor.colorValue = emissiveColor.colorValue;
+                        EditorGUILayout.HelpBox(Styles.emissiveIntensityFromHDRColorText.text, MessageType.Info, true);
                     }
+                    else
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        {
+                            DoEmissiveTextureProperty(material, emissiveColorLDR);
+
+                            using (new EditorGUILayout.HorizontalScope())
+                            {
+                                EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
+
+                                if (unit == EmissiveIntensityUnit.Luminance)
+                                    m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+                                else
+                                {
+                                    float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
+                                    evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
+                                    emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
+                                }
+                                emissiveIntensityUnit.floatValue = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
+                            }
+                        }
+                        if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
+                            emissiveColor.colorValue = emissiveColorLDR.colorValue * emissiveIntensity.floatValue;
+                    }
+
+                    m_MaterialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
 
                     m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
 
                     DoEmissionArea(material);
                 }
+            }
+        }
+
+        protected void DoEmissiveTextureProperty(Material material, MaterialProperty color)
+        {
+            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, color);
+
+            if (material.GetTexture(kEmissiveColorMap))
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVBaseMappingText);
+                UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
+
+                float X, Y, Z, W;
+                X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+                Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+                Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+                W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+                UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
+
+                if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
+                {
+                    m_MaterialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
+                }
+
+                m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+                EditorGUI.indentLevel--;
             }
         }
 
@@ -970,7 +1036,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             var refractionModelValue = (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel);
             // We can't have refraction in pre-refraction queue
-            var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
+            var canHaveRefraction = !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
             CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
             CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
             CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);

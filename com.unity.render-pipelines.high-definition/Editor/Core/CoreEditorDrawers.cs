@@ -263,7 +263,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static IDrawer FoldoutGroup<TEnum, TState>(string title, TEnum mask, ExpandedState<TEnum, TState> state, params ActionDrawer[] contentDrawers)
             where TEnum : struct, IConvertible
         {
-            return FoldoutGroup(CoreEditorUtils.GetContent(title), mask, state, contentDrawers);
+            return FoldoutGroup(EditorGUIUtility.TrTextContent(title), mask, state, contentDrawers);
         }
 
         /// <summary> Create an IDrawer foldout header using an ExpandedState </summary>
@@ -285,7 +285,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static IDrawer FoldoutGroup<TEnum, TState>(string title, TEnum mask, ExpandedState<TEnum, TState> state, FoldoutOption options, params ActionDrawer[] contentDrawers)
             where TEnum : struct, IConvertible
         {
-            return FoldoutGroup(CoreEditorUtils.GetContent(title), mask, state, options, contentDrawers);
+            return FoldoutGroup(EditorGUIUtility.TrTextContent(title), mask, state, options, contentDrawers);
         }
 
         /// <summary>

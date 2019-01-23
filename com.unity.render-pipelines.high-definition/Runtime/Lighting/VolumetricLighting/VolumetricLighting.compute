@@ -5,27 +5,27 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel VolumetricLightingBruteforceMQ            VolumetricLighting=VolumetricLightingBruteforceMQ            LIGHTLOOP_SINGLE_PASS ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledMQ                 VolumetricLighting=VolumetricLightingTiledMQ                 LIGHTLOOP_TILE_PASS   ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
-#pragma kernel VolumetricLightingBruteforceReprojMQ      VolumetricLighting=VolumetricLightingBruteforceReprojMQ      LIGHTLOOP_SINGLE_PASS ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledReprojMQ           VolumetricLighting=VolumetricLightingTiledReprojMQ           LIGHTLOOP_TILE_PASS   ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
+#pragma kernel VolumetricLightingBruteforceMQ            VolumetricLighting=VolumetricLightingBruteforceMQ            LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
+#pragma kernel VolumetricLightingTiledMQ                 VolumetricLighting=VolumetricLightingTiledMQ                 ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
+#pragma kernel VolumetricLightingBruteforceReprojMQ      VolumetricLighting=VolumetricLightingBruteforceReprojMQ      LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
+#pragma kernel VolumetricLightingTiledReprojMQ           VolumetricLighting=VolumetricLightingTiledReprojMQ           ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
 
-#pragma kernel VolumetricLightingBruteforceAnisoMQ       VolumetricLighting=VolumetricLightingBruteforceAnisoMQ       LIGHTLOOP_SINGLE_PASS ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledAnisoMQ            VolumetricLighting=VolumetricLightingTiledAnisoMQ            LIGHTLOOP_TILE_PASS   ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-#pragma kernel VolumetricLightingBruteforceReprojAnisoMQ VolumetricLighting=VolumetricLightingBruteforceReprojAnisoMQ LIGHTLOOP_SINGLE_PASS ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
-#pragma kernel VolumetricLightingTiledReprojAnisoMQ      VolumetricLighting=VolumetricLightingTiledReprojAnisoMQ      LIGHTLOOP_TILE_PASS   ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
+#pragma kernel VolumetricLightingBruteforceAnisoMQ       VolumetricLighting=VolumetricLightingBruteforceAnisoMQ       LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
+#pragma kernel VolumetricLightingTiledAnisoMQ            VolumetricLighting=VolumetricLightingTiledAnisoMQ            ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
+#pragma kernel VolumetricLightingBruteforceReprojAnisoMQ VolumetricLighting=VolumetricLightingBruteforceReprojAnisoMQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
+#pragma kernel VolumetricLightingTiledReprojAnisoMQ      VolumetricLighting=VolumetricLightingTiledReprojAnisoMQ      ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_MQ
 
-#pragma kernel VolumetricLightingBruteforceHQ            VolumetricLighting=VolumetricLightingBruteforceHQ            LIGHTLOOP_SINGLE_PASS ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledHQ                 VolumetricLighting=VolumetricLightingTiledHQ                 LIGHTLOOP_TILE_PASS   ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-#pragma kernel VolumetricLightingBruteforceReprojHQ      VolumetricLighting=VolumetricLightingBruteforceReprojHQ      LIGHTLOOP_SINGLE_PASS ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledReprojHQ           VolumetricLighting=VolumetricLightingTiledReprojHQ           LIGHTLOOP_TILE_PASS   ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
+#pragma kernel VolumetricLightingBruteforceHQ            VolumetricLighting=VolumetricLightingBruteforceHQ            LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
+#pragma kernel VolumetricLightingTiledHQ                 VolumetricLighting=VolumetricLightingTiledHQ                 ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
+#pragma kernel VolumetricLightingBruteforceReprojHQ      VolumetricLighting=VolumetricLightingBruteforceReprojHQ      LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
+#pragma kernel VolumetricLightingTiledReprojHQ           VolumetricLighting=VolumetricLightingTiledReprojHQ           ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=0 VL_PRESET_HQ
 
-#pragma kernel VolumetricLightingBruteforceAnisoHQ       VolumetricLighting=VolumetricLightingBruteforceAnisoHQ       LIGHTLOOP_SINGLE_PASS ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledAnisoHQ            VolumetricLighting=VolumetricLightingTiledAnisoHQ            LIGHTLOOP_TILE_PASS   ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-#pragma kernel VolumetricLightingBruteforceReprojAnisoHQ VolumetricLighting=VolumetricLightingBruteforceReprojAnisoHQ LIGHTLOOP_SINGLE_PASS ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
-#pragma kernel VolumetricLightingTiledReprojAnisoHQ      VolumetricLighting=VolumetricLightingTiledReprojAnisoHQ      LIGHTLOOP_TILE_PASS   ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
+#pragma kernel VolumetricLightingBruteforceAnisoHQ       VolumetricLighting=VolumetricLightingBruteforceAnisoHQ       LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
+#pragma kernel VolumetricLightingTiledAnisoHQ            VolumetricLighting=VolumetricLightingTiledAnisoHQ            ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
+#pragma kernel VolumetricLightingBruteforceReprojAnisoHQ VolumetricLighting=VolumetricLightingBruteforceReprojAnisoHQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
+#pragma kernel VolumetricLightingTiledReprojAnisoHQ      VolumetricLighting=VolumetricLightingTiledReprojAnisoHQ      ENABLE_REPROJECTION=1 ENABLE_ANISOTROPY=1 VL_PRESET_HQ
 
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     #define USE_BIG_TILE_LIGHTLIST
 #endif
 

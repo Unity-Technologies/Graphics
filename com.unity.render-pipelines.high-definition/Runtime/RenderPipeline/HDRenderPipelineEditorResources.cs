@@ -1,17 +1,15 @@
 #if UNITY_EDITOR //file must be in realtime assembly folder to be found in HDRPAsset
 using System;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
         public GameObject defaultScene;
-        public VolumeProfile defaultVolumeProfile;
-        public PostProcessProfile defaultPostProcessProfile;
+        public VolumeProfile defaultRenderSettingsProfile;
+        public VolumeProfile defaultPostProcessingProfile;
         public DiffusionProfileSettings defaultDiffusionProfileSettings;
 
         [Serializable]

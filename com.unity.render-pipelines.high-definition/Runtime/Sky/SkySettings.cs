@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ClampedFloatParameter    rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         [Tooltip("Sky intensity mode")]
         public SkyIntensityParameter    skyIntensityMode = new SkyIntensityParameter(SkyIntensityMode.Exposure);
-        [Tooltip("Exposure of the sky in EV.")]
+        [Tooltip("Exposure of the sky in EV100.")]
         public FloatParameter           exposure = new FloatParameter(0.0f);
         [Tooltip("Intensity multiplier for the sky.")]
         public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);

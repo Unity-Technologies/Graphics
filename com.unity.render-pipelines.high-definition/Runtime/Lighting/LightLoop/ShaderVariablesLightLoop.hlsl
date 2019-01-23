@@ -33,4 +33,9 @@
     // XRTODO: Need to stereo-ize access
     TEXTURE2D(_DeferredShadowTexture);
 
+    // Area shadow paper texture
+#ifdef ENABLE_RAYTRACING
+    TEXTURE2D_ARRAY(_AreaShadowTexture);
+#endif
+
 #endif

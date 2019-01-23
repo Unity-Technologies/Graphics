@@ -31,11 +31,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_MaxShadowDistance, CoreEditorUtils.GetContent("Max Distance"));
+            PropertyField(m_MaxShadowDistance, EditorGUIUtility.TrTextContent("Max Distance"));
             Rect firstLine = GUILayoutUtility.GetLastRect();
 
             EditorGUILayout.Space();
-            PropertyField(m_CascadeShadowSplitCount, CoreEditorUtils.GetContent("Cascade Count"));
+            PropertyField(m_CascadeShadowSplitCount, EditorGUIUtility.TrTextContent("Cascade Count"));
 
             if (!m_CascadeShadowSplitCount.value.hasMultipleDifferentValues)
             {
@@ -43,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int splitCount = m_CascadeShadowSplitCount.value.intValue;
                 for (int i = 0; i < splitCount - 1; i++)
                 {
-                    PropertyField(m_CascadeShadowSplits[i], CoreEditorUtils.GetContent(string.Format("Split {0}", i + 1)));
+                    PropertyField(m_CascadeShadowSplits[i], EditorGUIUtility.TrTextContent(string.Format("Split {0}", i + 1)));
                 }
 
                 if (LightLoop.s_UseCascadeBorders)
@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     for (int i = 0; i < splitCount; i++)
                     {
-                        PropertyField(m_CascadeShadowBorders[i], CoreEditorUtils.GetContent(string.Format("Border {0}", i + 1)));
+                        PropertyField(m_CascadeShadowBorders[i], EditorGUIUtility.TrTextContent(string.Format("Border {0}", i + 1)));
                     }
                 }
                 EditorGUI.indentLevel--;

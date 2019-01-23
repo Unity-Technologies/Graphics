@@ -27,6 +27,11 @@ namespace UnityEngine.Rendering
 
         internal ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
 
+#pragma warning disable 414
+        [SerializeField]
+        bool m_AdvancedMode = false; // Editor-only
+#pragma warning restore 414
+
         protected virtual void OnEnable()
         {
             // Automatically grab all fields of type VolumeParameter for this instance

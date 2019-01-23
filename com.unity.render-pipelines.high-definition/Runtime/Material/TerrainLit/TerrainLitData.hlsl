@@ -1,4 +1,11 @@
 //-------------------------------------------------------------------------------------
+// Defines
+//-------------------------------------------------------------------------------------
+
+// Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+#define SURFACE_GRADIENT
+
+//-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 
@@ -10,9 +17,11 @@
 // We don't use emission for terrain
 #define _EmissiveColor float3(0,0,0)
 #define _AlbedoAffectEmissive 0
+#define _EmissiveExposureWeight 0
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 #undef _EmissiveColor
 #undef _AlbedoAffectEmissive
+#undef _EmissiveExposureWeight
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
@@ -67,7 +76,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    GetNormalWS(input, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
 
     surfaceData.geomNormalWS = input.worldToTangent[2];
 

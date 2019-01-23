@@ -441,7 +441,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, false, false, 0);
+                HDMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, 0, false);
 
                 // Add tags at the SubShader level
                 {
@@ -472,7 +472,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
-            subShader.AddShaderChunk("CustomEditor \"UnityEditor.Experimental.Rendering.HDPipeline.PBRMasterGUI\"", true);
+
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.HDLitGUI""");
 
             return subShader.GetShaderString(0);
         }

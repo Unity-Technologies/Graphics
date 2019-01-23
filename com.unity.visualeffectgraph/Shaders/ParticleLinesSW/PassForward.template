@@ -54,6 +54,7 @@ Pass
 		o.color.a *= 1.0f - abs(i.pixelOffset);
 		#endif
 		
+        o.color = VFXApplyPreExposure(o.color);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);

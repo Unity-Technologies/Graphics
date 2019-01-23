@@ -84,6 +84,7 @@ Pass
 		o.color.rgb += saturate(fresnel) * i.rimSettings.rgb;
 #endif
 		
+        o.color = VFXApplyPreExposure(o.color);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);

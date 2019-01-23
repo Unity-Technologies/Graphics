@@ -43,7 +43,13 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
+
+    ApplyDoubleSidedFlipOrMirror(input, doubleSidedConstants); // Apply double sided flip on the vertex normal
 
     float2 UV0 = input.texCoord0.xy * float2(_MaterialTilingU, _MaterialTilingV);
 
@@ -73,8 +79,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.clearcoatIOR = max(1.0, (1.0 + sqrtF0) / (1.00001 - sqrtF0));    // We make sure it's working for F0=1
 
     // TBN
-    GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, UV0).xyz - 1.0, surfaceData.normalWS);
-    GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, UV0).xyz - 1.0, surfaceData.clearcoatNormalWS);
+    GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, UV0).xyz - 1.0, surfaceData.normalWS, doubleSidedConstants);
+    GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, UV0).xyz - 1.0, surfaceData.clearcoatNormalWS, doubleSidedConstants);
 
     alpha = SAMPLE_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, UV0).x;
 
@@ -92,7 +98,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.clearcoatIOR = max(1.001, _CarPaint2_ClearcoatIOR); // Can't be exactly 1 otherwise the precise fresnel divides by 0!
 
     surfaceData.normalWS = input.worldToTangent[2].xyz;
-    GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, UV0).xyz - 1.0, surfaceData.clearcoatNormalWS);
+    GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, UV0).xyz - 1.0, surfaceData.clearcoatNormalWS, doubleSidedConstants);
 
     // Create mirrored UVs to hide flakes tiling
     surfaceData.flakesUV = _CarPaint2_FlakeTiling * UV0;

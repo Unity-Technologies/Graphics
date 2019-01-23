@@ -40,9 +40,14 @@ void EncodeVelocity(float2 velocity, out float4 outBuffer)
     outBuffer = float4(velocity.xy, 0.0, 0.0);
 }
 
+bool PixelSetAsNoMotionVectors(float4 inBuffer)
+{
+	return inBuffer.x > 1.0f;
+}
+
 void DecodeVelocity(float4 inBuffer, out float2 velocity)
 {
-    velocity = inBuffer.xy;
+	velocity = PixelSetAsNoMotionVectors(inBuffer) ? 0.0f : inBuffer.xy;
 }
 
 void EncodeDistortion(float2 distortion, float distortionBlur, bool isValidSource, out float4 outBuffer)

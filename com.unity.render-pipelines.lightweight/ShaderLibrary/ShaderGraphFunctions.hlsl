@@ -36,7 +36,7 @@ float shadergraph_LWSampleSceneDepth(float2 uv)
 #else
     float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
 #endif
-	return Linear01Depth(rawDepth, _ZBufferParams);
+	return rawDepth;
 #endif // REQUIRE_DEPTH_TEXTURE
     return 0;
 }

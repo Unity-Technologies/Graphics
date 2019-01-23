@@ -129,7 +129,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     DrawEmissionAdvancedContent
                     ),
                 CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric),
+#if ENABLE_RAYTRACING
+                CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Tube,
+#else
                 CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Rectangle && serialized.editorLightShape != LightShape.Tube,
+#endif
                     CED.AdvancedFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
                         (serialized, owner) => GetAdvanced(Advanceable.Shadow, serialized, owner),
                         (serialized, owner) => SwitchAdvanced(Advanceable.Shadow, serialized, owner),
@@ -148,7 +152,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
                             CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.Low, serialized, owner),
                                 CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
-                            CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent),
+
+#if ENABLE_RAYTRACING
+                            CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Rectangle && serialized.editorLightShape != LightShape.Tube,
+#endif
+                            CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
+
+#if ENABLE_RAYTRACING
+                            ),
+#else
+                            ,
+#endif
                             CED.Conditional((serialized, owner) => serialized.settings.isBakedOrMixed || serialized.settings.isCompletelyBaked,
                                 CED.space,
                                 CED.FoldoutGroup(s_Styles.bakedShadowsSubHeader, Expandable.BakedShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawBakedShadowsContent))
@@ -576,7 +590,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 serialized.settings.shadowsType.enumValueIndex = newShadowsEnabled ? (int)LightShadows.Hard : (int)LightShadows.None;
             }
 
+            #if ENABLE_RAYTRACING
+            using (new EditorGUI.DisabledScope(!newShadowsEnabled || LightShape.Rectangle == serialized.editorLightShape))
+            #else
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
+            #endif
             {
                 EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
                 EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, 10f, s_Styles.shadowNearPlane);
