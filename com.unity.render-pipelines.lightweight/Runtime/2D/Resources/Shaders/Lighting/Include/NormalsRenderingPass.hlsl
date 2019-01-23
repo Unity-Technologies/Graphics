@@ -26,7 +26,7 @@ float4 NormalsRenderingFragment(Varyings i) : SV_Target
 
 	float4 normalColor;
 	float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
-	float3 normalWS = TransformTangentToWorld(normalTS, half3x3(i.tangent.xyz, i.bitangent.xyz, i.normal.xyz));
+	float3 normalWS = TransformTangentToWorld(normalTS, half3x3(i.tangent.xyz, i.bitangent.xyz, -i.normal.xyz));
 	float3 normalVS = TransformWorldToViewDir(normalWS);
 
 	normalColor.rgb = 0.5 * ((normalVS) + 1);
