@@ -63,7 +63,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Primary visibility
             public static readonly GUIContent primaryRaytracingSectionText = EditorGUIUtility.TrTextContent("Primary Visiblity Raytracing");
-            public static readonly GUIContent rayrtacingEnableText = new GUIContent("Enable");
+            public static readonly GUIContent raytracingEnableText = new GUIContent("Enable");
             public static readonly GUIContent rayMaxDepth = new GUIContent("Raytracing Maximal Depth");
             public static readonly GUIContent raytracingRayLength = new GUIContent("Raytracing Ray Length");
         }
@@ -165,9 +165,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void RaytracingSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
             // Primary Visibility Specific fields
-            EditorGUILayout.PropertyField(rtEnv.rayrtacedObjects, Styles.rayrtacingEnableText);
+            EditorGUILayout.PropertyField(rtEnv.raytracedObjects, Styles.raytracingEnableText);
 
-            if (rtEnv.rayrtacedObjects.boolValue)
+            if (rtEnv.raytracedObjects.boolValue)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(rtEnv.rayMaxDepth, Styles.rayMaxDepth);

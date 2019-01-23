@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Primary Visibility
         // Flag that defines if raytraced objects should be rendered
-        public bool rayrtacedObjects = false;
+        public bool raytracedObjects = false;
 
         // This is the maximal depth that a ray can have for the primary visibility pass
         const int maxRayDepth = 10;

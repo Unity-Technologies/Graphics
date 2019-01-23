@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty reflBilateralSigma;
 
         // Primary visiblity raytracing
-        public SerializedProperty rayrtacedObjects;
+        public SerializedProperty raytracedObjects;
         public SerializedProperty rayMaxDepth;
         public SerializedProperty raytracingRayLength;
 
@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             cameraClusterRange = o.Find(x => x.cameraClusterRange);
 
             // Raytracing Attributes
-            rayrtacedObjects = o.Find(x => x.rayrtacedObjects);
+            raytracedObjects = o.Find(x => x.raytracedObjects);
             rayMaxDepth = o.Find(x => x.rayMaxDepth);
             raytracingRayLength = o.Find(x => x.raytracingRayLength);
         }
