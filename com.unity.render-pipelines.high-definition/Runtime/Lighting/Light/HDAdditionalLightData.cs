@@ -249,7 +249,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float cameraDistance = Vector3.Distance(camera.transform.position, transform.position);
             
             #if ENABLE_RAYTRACING
-            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnable(FrameSettingsField.Shadow) && lightTypeExtent == LightTypeExtent.Punctual;
+            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow) && lightTypeExtent == LightTypeExtent.Punctual;
             #else
             m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow);
             #endif

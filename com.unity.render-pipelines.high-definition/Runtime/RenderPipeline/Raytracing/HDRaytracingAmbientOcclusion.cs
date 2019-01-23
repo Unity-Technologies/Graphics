@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
 
             // If a resource is missing, the effect is not requested or no acceleration structure, set the default one and leave right away
-            if (missingResources || !hdCamera.frameSettings.enableSSAO || accelerationStructure == null)
+            if (missingResources || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO) || accelerationStructure == null)
             {
                 SetDefaultAmbientOcclusionTexture(cmd);
                 return;
