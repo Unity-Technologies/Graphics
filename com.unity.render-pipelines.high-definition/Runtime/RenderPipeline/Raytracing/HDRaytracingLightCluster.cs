@@ -511,7 +511,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 lightData.lightDimmer = lightDistanceFade * (additionalLightData.lightDimmer);
-                lightData.diffuseDimmer = lightDistanceFade * (additionalLightData.affectDiffuse ? additionalLightData.lightDimmer * hdCamera.frameSettings.diffuseGlobalDimmer : 0);
+                lightData.diffuseDimmer = lightDistanceFade * (additionalLightData.affectDiffuse ? additionalLightData.lightDimmer : 0);
                 lightData.specularDimmer = lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
                 lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.volumetricDimmer);
 

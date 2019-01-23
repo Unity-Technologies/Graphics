@@ -102,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Texture2DArray noiseTexture = m_RaytracingManager.m_RGNoiseTexture;
             RaytracingShader shadowsShader = m_PipelineAsset.renderPipelineResources.shaders.shadowsRaytracing;
             ComputeShader bilateralFilter = m_PipelineAsset.renderPipelineResources.shaders.areaBillateralFilterCS;
-            bool invalidState = rtEnvironement == null || noiseTexture == null || !rtEnvironement.raytracedShadows || shadowsShader  == null || bilateralFilter == null || hdCamera.frameSettings.shaderLitMode != LitShaderMode.Deferred;
+            bool invalidState = rtEnvironement == null || noiseTexture == null || !rtEnvironement.raytracedShadows || shadowsShader  == null || bilateralFilter == null || hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred;
 
             // Try to grab the acceleration structure for the target camera
             RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
