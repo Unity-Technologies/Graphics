@@ -542,12 +542,4 @@ namespace UnityEditor.VFX
             }
         }
     }
-
-    // TODO Do that later!
-    /* class VFXSubContext : VFXModel<VFXContext, VFXModel>
-     {
-         // In and out sub context, if null directly connected to the context input/output
-         private VFXSubContext m_In;
-         private VFXSubContext m_Out;
-     }*/
 }
