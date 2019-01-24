@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed baked probe texture size issue.
 - Fixed an issue with SceneColor node in shader graph not taking correctly resize of screen into account
+- Fixed LOAD_TEXTURE2D_ARRAY_MSAA macro
 
 ## [4.8.0-preview] - 2019-01-16
 
