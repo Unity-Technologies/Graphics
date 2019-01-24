@@ -1,0 +1,151 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Hammersley.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel AmbientProbeConvolution KERNEL_NAME=AmbientProbeConvolution
+
+RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
+TEXTURECUBE(_AmbientProbeInputCubemap);
+
+// Constants from SetSHEMapConstants function in the Stupid Spherical Harmonics Tricks paper:
+// http://www.ppsloan.org/publications/StupidSH36.pdf
+#define sqrtPI (sqrt(PI))
+#define fC0 (0.282095 * (1.0 / (2.0 * sqrtPI)))
+#define fC1 (0.488603 * (sqrt ( 3.0) / ( 3.0 * sqrtPI)))
+#define fC2 (1.092548 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
+#define fC3 (0.315392 * (sqrt ( 5.0) / (16.0 * sqrtPI)))
+#define fC4 (0.546274 * 0.5 * fC2)
+
+#define SAMPLE_COUNT 256
+#define SH_COEFF_COUNT 27
+
+#ifdef SUPPORTS_WAVE_INTRINSICS
+    // Allocate space to accumulate all waves result. We need space for each single wavefront (because we can't atomic add floats)
+    groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / PLATFORM_LANE_COUNT];
+#else
+    // Allocate space for parallel reduction (so half the number of samples.
+    groupshared float outputSHCoeffsLDS[SH_COEFF_COUNT * SAMPLE_COUNT / 2];
+#endif
+
+static const float ConvolveCosineLobeBandFactor[] = { fC0, -fC1, fC1, -fC1, fC2, -fC2, fC3, -fC2, fC4 };
+
+[numthreads(SAMPLE_COUNT, 1, 1)]
+void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
+{
+    uint sampleCount = SAMPLE_COUNT;
+
+    float2 cubeSize;
+    _AmbientProbeInputCubemap.GetDimensions(cubeSize.x, cubeSize.y);
+
+    // Prefiltered importance sampling
+    // Use lower MIP-map levels for fetching samples with low probabilities
+    // in order to reduce the variance.
+    // Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
+    //
+    // - OmegaS: Solid angle associated with the sample
+    // - OmegaP: Solid angle associated with the texel of the cubemap
+    float invOmegaP = (6.0 * cubeSize.x * cubeSize.y) / FOUR_PI;
+    float pdf = 1.0 / FOUR_PI; // Solid angle of the sphere is 4*PI
+    float omegaS = rcp(sampleCount) * rcp(pdf);
+    float mipLevel = 0.5 * log2(omegaS * invOmegaP);
+
+    float2 u = Hammersley2d(dispatchThreadId, sampleCount);
+    float3 n = SampleSphereUniform(u.x, u.y);
+
+    // Sample once per thread
+    float4 value = SAMPLE_TEXTURECUBE_LOD(_AmbientProbeInputCubemap, s_linear_clamp_sampler, n, mipLevel);
+
+    float outputSHCoeffs[SH_COEFF_COUNT];
+
+    for (int channel = 0; channel < 3; ++channel)
+    {
+        outputSHCoeffs[channel * 9 + 0] = value[channel];
+        outputSHCoeffs[channel * 9 + 1] = -n.y * value[channel];
+        outputSHCoeffs[channel * 9 + 2] = n.z * value[channel];
+        outputSHCoeffs[channel * 9 + 3] = -n.x * value[channel];
+        outputSHCoeffs[channel * 9 + 4] = n.x * n.y * value[channel];
+        outputSHCoeffs[channel * 9 + 5] = -n.y * n.z * value[channel];
+        outputSHCoeffs[channel * 9 + 6] = (3.0 * n.z * n.z - 1.0) * value[channel];
+        outputSHCoeffs[channel * 9 + 7] = -n.x * n.z * value[channel];
+        outputSHCoeffs[channel * 9 + 8] = (n.x * n.x - n.y * n.y) * value[channel];
+    }
+
+#ifdef SUPPORTS_WAVE_INTRINSICS
+    // Sum up all threads result and broadcast
+    for (int i = 0; i < SH_COEFF_COUNT; ++i)
+    {
+        outputSHCoeffs[i] = WaveActiveSum(outputSHCoeffs[i]);
+    }
+
+    // First thread of each wave stores the result in LDS
+    uint laneCount = PLATFORM_LANE_COUNT;
+    if (dispatchThreadId % laneCount == 0)
+    {
+        for (int i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            uint offset = (dispatchThreadId / laneCount) * SH_COEFF_COUNT;
+            outputSHCoeffsLDS[i + offset] = outputSHCoeffs[i];
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Read back the result to VGPRs to store it to memory at the end
+    // First wave intializes the array
+    for (int i = 0; i < SH_COEFF_COUNT; ++i)
+    {
+        outputSHCoeffs[i] = outputSHCoeffsLDS[i];
+    }
+
+    // Then accumulate remaining waves
+    uint waveCount = sampleCount / laneCount;
+    for (uint wave = 1; wave < waveCount; ++wave)
+    {
+        for (int i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            outputSHCoeffs[i] += outputSHCoeffsLDS[i + wave * SH_COEFF_COUNT];
+        }
+    }
+#else
+    // Parallel reduction of all threads result.
+    for (uint k = 0; k < FastLog2(SAMPLE_COUNT); ++k)
+    {
+        // Each loop iteration, even threads store their result in LDS, odd threads sum them up back to local VGPR until all results are summed up.
+        if ((dispatchThreadId & ((2 << k) - 1)) == (1 << k))
+        {
+            uint index = dispatchThreadId >> (k + 1);
+            for (uint coeff = 0; coeff < SH_COEFF_COUNT; ++coeff)
+            {
+                outputSHCoeffsLDS[index * SH_COEFF_COUNT + coeff] = outputSHCoeffs[coeff];
+            }
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+
+        if ((dispatchThreadId & ((2 << k) - 1)) == 0)
+        {
+            uint index = dispatchThreadId >> (k + 1);
+            for (uint coeff = 0; coeff < SH_COEFF_COUNT; ++coeff)
+            {
+                outputSHCoeffs[coeff] += outputSHCoeffsLDS[index * SH_COEFF_COUNT + coeff];
+            }
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+#endif
+
+    float weight = 4.0 * PI / (sampleCount);
+
+    // Write to memory and convolution + weighing
+    if (dispatchThreadId == 0)
+    {
+        for (uint i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * ConvolveCosineLobeBandFactor[i % 9] * weight;
+        }
+    }
+}

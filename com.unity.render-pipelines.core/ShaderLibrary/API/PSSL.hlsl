@@ -1,5 +1,8 @@
 // This file assume SHADER_API_D3D11 is defined
 
+#define PLATFORM_LANE_COUNT 64
+#define PLATFORM_THREAD_GROUP_OPTIMAL_SIZE PLATFORM_LANE_COUNT       // 64 threads in a wafefront
+
 #define SUPPORTS_WAVE_INTRINSICS
 
 #define INTRINSIC_BITFIELD_EXTRACT
@@ -26,6 +29,7 @@
 #define INTRINSIC_WAVE_LOGICAL_OPS
 #define WaveActiveBitAnd CrossLaneAnd
 #define WaveActiveBitOr CrossLaneOr
+#define WaveGetID GetWaveID
 
 #define INTRINSIC_WAVE_ACTIVE_ALL_ANY
 bool WaveActiveAllTrue(bool expression)
@@ -36,6 +40,21 @@ bool WaveActiveAllTrue(bool expression)
 bool WaveActiveAnyTrue(bool expression)
 {
     return (popcnt(WaveActiveBallot(expression))) != 0;
+}
+
+uint WaveGetLaneIndex()
+{
+    return __v_mbcnt_hi_u32_b32(0xffffffff, __v_mbcnt_lo_u32_b32(0xffffffff, 0));
+}
+
+bool WaveIsFirstLane()
+{
+    return MaskBitCnt(__s_read_exec()) == 0;
+}
+
+uint WaveGetLaneCount()
+{
+    return PLATFORM_LANE_COUNT;
 }
 
 
@@ -52,6 +71,7 @@ bool WaveActiveAnyTrue(bool expression)
 
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
+
 
 // flow control attributes
 #define UNITY_BRANCH        [branch]

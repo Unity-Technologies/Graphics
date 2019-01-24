@@ -9,7 +9,8 @@ namespace UnityEditor.Experimental.Rendering.TestFramework
         public static float RandomFloat(float i, float seed)
         {
             var f = Mathf.Sin((i + 1) * 2.0f) * seed;
-            f = f - (int)f + 1;
+            f = f - (int)f;
+            if (f < 0) f += 1;
             return f;
         }
         public static Color RandomColor(float i)
@@ -21,13 +22,23 @@ namespace UnityEditor.Experimental.Rendering.TestFramework
             );
         }
 
-        public static T RandomEnum<T>(float i)
+        public static T RandomEnumIndex<T>(float i)
             where T : struct, IConvertible
         {
             if (!typeof(T).IsEnum)
                 throw new InvalidOperationException();
             var length = Enum.GetValues(typeof(T)).Length;
             return (T)(object)(int)(RandomFloat(i, 6142.1359f) * (length - 1));
+        }
+
+        public static T RandomEnumValue<T>(float i)
+            where T : struct, IConvertible
+        {
+            if (!typeof(T).IsEnum)
+                throw new InvalidOperationException();
+            var values = Enum.GetValues(typeof(T));
+            var length = values.Length;
+            return (T)values.GetValue((int)(RandomFloat(i, 6142.1359f) * (length - 1)));
         }
 
         public static bool RandomBool(float i)

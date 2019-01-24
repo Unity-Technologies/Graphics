@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -24,7 +23,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         cullingInvertFaceCulling = 1 << 14,
         customRenderingSettings = 1 << 15,
         flipYMode = 1 << 16,
-        frameSettings = 1 << 17
+        frameSettings = 1 << 17,
+        probeLayerMask = 1 << 18
     }
 
     [Serializable]
@@ -163,21 +163,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             bufferClearing = BufferClearing.@default,
             culling = Culling.@default,
-            frameSettings = new FrameSettings(),
+            renderingPathCustomFrameSettings = FrameSettings.defaultCamera,
             frustum = Frustum.@default,
-            postProcessLayer = null,
             customRenderingSettings = false,
             volumes = Volumes.@default,
             flipYMode = HDAdditionalCameraData.FlipYMode.Automatic,
-            invertFaceCulling = false
+            invertFaceCulling = false,
+            probeLayerMask = ~0
         };
+
+        public static CameraSettings From(HDCamera hdCamera)
+        {
+            var settings = @default;
+            settings.culling.cullingMask = hdCamera.camera.cullingMask;
+            settings.culling.useOcclusionCulling = hdCamera.camera.useOcclusionCulling;
+            settings.frustum.aspect = hdCamera.camera.aspect;
+            settings.frustum.farClipPlane = hdCamera.camera.farClipPlane;
+            settings.frustum.nearClipPlane = hdCamera.camera.nearClipPlane;
+            settings.frustum.fieldOfView = hdCamera.camera.fieldOfView;
+            settings.frustum.mode = Frustum.Mode.UseProjectionMatrixField;
+            settings.frustum.projectionMatrix = hdCamera.camera.projectionMatrix;
+            settings.invertFaceCulling = false;
+
+            var add = hdCamera.camera.GetComponent<HDAdditionalCameraData>();
+            if (add != null && !add.Equals(null))
+            {
+                settings.customRenderingSettings = add.customRenderingSettings;
+                settings.bufferClearing.backgroundColorHDR = add.backgroundColorHDR;
+                settings.bufferClearing.clearColorMode = add.clearColorMode;
+                settings.bufferClearing.clearDepth = add.clearDepth;
+                settings.flipYMode = add.flipYMode;
+                settings.renderingPathCustomFrameSettings = add.renderingPathCustomFrameSettings;
+                settings.renderingPathCustomFrameSettingsOverrideMask = add.renderingPathCustomFrameSettingsOverrideMask;
+                settings.volumes = new Volumes
+                {
+                    anchorOverride = add.volumeAnchorOverride,
+                    layerMask = add.volumeLayerMask
+                };
+                settings.probeLayerMask = add.probeLayerMask;
+                settings.invertFaceCulling = add.invertFaceCulling;
+            }
+            return settings;
+        }
 
         /// <summary>Override rendering settings if true.</summary>
         public bool customRenderingSettings;
         /// <summary>Frame settings to use.</summary>
-        public FrameSettings frameSettings;
-        /// <summary>Post process layer to use.</summary>
-        public PostProcessLayer postProcessLayer;
+        public FrameSettings renderingPathCustomFrameSettings;
+        /// <summary>Frame settings mask to use.</summary>
+        public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
         /// <summary>Buffer clearing settings to use.</summary>
         public BufferClearing bufferClearing;
         /// <summary>Volumes settings to use.</summary>
@@ -188,9 +222,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Culling culling;
         /// <summary>True to invert face culling, false otherwise.</summary>
         public bool invertFaceCulling;
+        /// <summary>The mode to use when we want to flip the Y axis.</summary>
         public HDAdditionalCameraData.FlipYMode flipYMode;
+        /// <summary>The layer mask to use to filter probes that can influence this camera.</summary>
+        public LayerMask probeLayerMask;
+        /// <summary>Which default FrameSettings should be used when rendering with these parameters.</summary>
+        public FrameSettingsRenderType defaultFrameSettings;
 
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For data migration")]
         internal int m_ObsoleteRenderingPath;
+#pragma warning disable 618 // Type or member is obsolete
+        [SerializeField, FormerlySerializedAs("frameSettings"), Obsolete("For data migration")]
+        internal ObsoleteFrameSettings m_ObsoleteFrameSettings;
+#pragma warning restore 618
     }
 }

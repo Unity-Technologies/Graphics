@@ -25,6 +25,7 @@
     #define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
     #define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
     #define _WorldSpaceCameraPos _WorldSpaceCameraPosStereo[unity_StereoEyeIndex].xyz
+    #define _WorldSpaceCameraPosEyeOffset _WorldSpaceCameraPosStereoEyeOffset[unity_StereoEyeIndex].xyz
     #define _PrevCamPosRWS _PrevCamPosRWSStereo[unity_StereoEyeIndex].xyz
 #endif
 
@@ -158,6 +159,9 @@ SAMPLER_CMP(s_linear_clamp_compare_sampler);
 TEXTURE2D(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
+// Color pyramid (width, height, lodcount, Unused)
+TEXTURE2D(_ColorPyramidTexture);
+
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
@@ -177,6 +181,10 @@ SAMPLER(samplerunity_ShadowMask);
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
 TEXTURE3D(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
+
+// Exposure texture - 1x1 RG16F (r: exposure mult, g: exposure EV100)
+TEXTURE2D(_ExposureTexture);
+TEXTURE2D(_PrevExposureTexture);
 
 // ----------------------------------------------------------------------------
 
@@ -259,6 +267,10 @@ CBUFFER_START(UnityGlobal)
     // TAA Frame Index ranges from 0 to 7.
     // First two channels of this gives you two rotations per cycle. 
     float4 _TaaFrameInfo;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), taaFrame, taaEnabled ? 1 : 0 }
+
+    // Current jitter strength (0 if TAA is disabled)
+    float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
+
     // t = animateMaterials ? Time.realtimeSinceStartup : 0.
     float4 _Time;                       // { t/20, t, t*2, t*3 }
     float4 _LastTime;                   // { t/20, t, t*2, t*3 }
@@ -318,8 +330,9 @@ float4x4 _InvViewMatrixStereo[2];
 float4x4 _InvProjMatrixStereo[2];
 float4x4 _InvViewProjMatrixStereo[2];
 float4x4 _PrevViewProjMatrixStereo[2];
-float3   _WorldSpaceCameraPosStereo[2];
-float3  _PrevCamPosRWSStereo[2];
+float4   _WorldSpaceCameraPosStereo[2];
+float4   _WorldSpaceCameraPosStereoEyeOffset[2];
+float4   _PrevCamPosRWSStereo[2];
 #if SHADER_STAGE_COMPUTE
 // Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
 // Instead, we manually update _ComputeEyeIndex in SRP code. 
@@ -339,6 +352,16 @@ float SampleCameraDepth(uint2 pixelCoords)
 float SampleCameraDepth(float2 uv)
 {
     return SampleCameraDepth(uint2(uv * _ScreenSize.xy));
+}
+
+float3 SampleCameraColor(uint2 pixelCoords)
+{
+    return LOAD_TEXTURE2D_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
+}
+
+float3 SampleCameraColor(float2 uv)
+{
+    return SampleCameraColor(uint2(uv * _ScreenSize.xy));
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
@@ -376,6 +399,37 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 #else
     return inverseModelMatrix;
 #endif
+}
+
+
+float GetCurrentExposureMultiplier()
+{
+#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
+#else
+    return 1.0;
+#endif
+}
+
+float GetPreviousExposureMultiplier()
+{
+#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+    return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x;
+#else
+    return 1.0;
+#endif
+}
+
+float GetInverseCurrentExposureMultiplier()
+{
+    float exposure = GetCurrentExposureMultiplier();
+    return rcp(exposure + (exposure == 0.0)); // zero-div guard
+}
+
+float GetInversePreviousExposureMultiplier()
+{
+    float exposure = GetCurrentExposureMultiplier();
+    return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
 // Define Model Matrix Macro

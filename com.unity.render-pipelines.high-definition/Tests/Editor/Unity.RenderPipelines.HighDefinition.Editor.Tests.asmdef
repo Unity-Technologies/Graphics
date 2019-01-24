@@ -1,8 +1,6 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Editor.Tests",
     "references": [
-        "Unity.Postprocessing.Runtime",
-        "Unity.Postprocessing.Editor",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Editor",
         "Unity.RenderPipelines.HighDefinition.Runtime",

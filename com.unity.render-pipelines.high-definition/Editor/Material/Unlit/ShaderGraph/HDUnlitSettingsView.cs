@@ -42,6 +42,50 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ++indentLevel;
+            switch (m_Node.surfaceType)
+            {
+                case SurfaceType.Opaque:
+                    ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
+                    {
+                        var valueList = HDSubShaderUtilities.GetRenderingPassList(true);
+
+                        row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Opaque, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
+                        {
+                            field.value = HDRenderQueue.GetOpaqueEquivalent(m_Node.renderingPass);
+                            field.RegisterValueChangedCallback(ChangeRenderingPass);
+                        });
+                    });
+                    break;
+                case SurfaceType.Transparent:
+                    ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
+                    {
+                        Enum defaultValue;
+                        switch (m_Node.renderingPass) // Migration
+                        {
+                            default: //when deserializing without issue, we still need to init the default to something even if not used.
+                            case HDRenderQueue.RenderQueueType.Transparent:
+                                defaultValue = HDRenderQueue.TransparentRenderQueue.Default;
+                                break;
+                            case HDRenderQueue.RenderQueueType.PreRefraction:
+                                defaultValue = HDRenderQueue.TransparentRenderQueue.BeforeRefraction;
+                                break;
+                        }
+
+                        var valueList = HDSubShaderUtilities.GetRenderingPassList(false);
+
+                        row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Transparent, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
+                        {
+                            field.value = HDRenderQueue.GetTransparentEquivalent(m_Node.renderingPass);
+                            field.RegisterValueChangedCallback(ChangeRenderingPass);
+                        });
+                    });
+                    break;
+                default:
+                    throw new ArgumentException("Unknown SurfaceType");
+            }
+            --indentLevel;
+
             if (m_Node.surfaceType == SurfaceType.Transparent)
             {
                 ++indentLevel;
@@ -70,15 +114,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     {
                         toggle.value = m_Node.transparencyFog.isOn;
                         toggle.OnToggleChanged(ChangeTransparencyFog);
-                    });
-                });
-
-                ps.Add(new PropertyRow(CreateLabel("Appear in Refraction", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.drawBeforeRefraction.isOn;
-                        toggle.OnToggleChanged(ChangeDrawBeforeRefraction);
                     });
                 });
 
@@ -152,6 +187,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
             m_Node.surfaceType = (SurfaceType)evt.newValue;
+
+            UpdateRenderingPassValue(m_Node.renderingPass);
         }
 
         void ChangeDoubleSided(ChangeEvent<bool> evt)
@@ -183,12 +220,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.transparencyFog = td;
         }
 
-        void ChangeDrawBeforeRefraction(ChangeEvent<bool> evt)
+        void ChangeRenderingPass(ChangeEvent<HDRenderQueue.RenderQueueType> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Draw Before Refraction Change");
-            ToggleData td = m_Node.drawBeforeRefraction;
-            td.isOn = evt.newValue;
-            m_Node.drawBeforeRefraction = td;
+            switch (evt.newValue)
+            {
+                case HDRenderQueue.RenderQueueType.Overlay:
+                case HDRenderQueue.RenderQueueType.Unknown:
+                case HDRenderQueue.RenderQueueType.Background:
+                    throw new ArgumentException("Unexpected kind of RenderQueue, was " + evt.newValue);
+                default:
+                    break;
+            };
+            UpdateRenderingPassValue(evt.newValue);
+        }
+
+        void UpdateRenderingPassValue(HDRenderQueue.RenderQueueType newValue)
+        {
+            HDRenderQueue.RenderQueueType renderingPass;
+            switch (m_Node.surfaceType)
+            {
+                case SurfaceType.Opaque:
+                    renderingPass = HDRenderQueue.GetOpaqueEquivalent(newValue);
+                    break;
+                case SurfaceType.Transparent:
+                    renderingPass = HDRenderQueue.GetTransparentEquivalent(newValue);
+                    break;
+                default:
+                    throw new ArgumentException("Unknown SurfaceType");
+            }
+
+            if (Equals(m_Node.renderingPass, renderingPass))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Rendering Pass Change");
+            m_Node.renderingPass = renderingPass;
         }
 
         void ChangeDistortion(ChangeEvent<bool> evt)
@@ -226,7 +291,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
         void ChangeSortPriority(ChangeEvent<int> evt)
         {
-            m_Node.sortPriority = Math.Max(-HDRenderQueue.k_TransparentPriorityQueueRange, Math.Min(evt.newValue, HDRenderQueue.k_TransparentPriorityQueueRange));
+            m_Node.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(evt.newValue);
             // Force the text to match.
             m_SortPiorityField.value = m_Node.sortPriority;
             if (Equals(m_Node.sortPriority, evt.newValue))

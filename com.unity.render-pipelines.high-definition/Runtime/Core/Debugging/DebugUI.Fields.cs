@@ -57,7 +57,19 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public class BoolField : Field<bool> {}
+        public class BoolField : Field<bool> { }
+        public class HistoryBoolField : BoolField
+        {
+            public Func<bool>[] historyGetter { get; set; }
+            public int historyDepth => historyGetter?.Length ?? 0;
+            public bool GetHistoryValue(int historyIndex)
+            {
+                Assert.IsNotNull(historyGetter);
+                Assert.IsTrue(historyIndex >= 0 && historyIndex < historyGetter.Length, "out of range historyIndex");
+                Assert.IsNotNull(historyGetter[historyIndex]);
+                return historyGetter[historyIndex]();
+            }
+        }
 
         public class IntField : Field<int>
         {
@@ -173,6 +185,18 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     indexes[i] = i;
                 }
+            }
+        }
+        public class HistoryEnumField : EnumField
+        {
+            public Func<int>[] historyIndexGetter { get; set; }
+            public int historyDepth => historyIndexGetter?.Length ?? 0;
+            public int GetHistoryValue(int historyIndex)
+            {
+                Assert.IsNotNull(historyIndexGetter);
+                Assert.IsTrue(historyIndex >= 0 && historyIndex < historyIndexGetter.Length, "out of range historyIndex");
+                Assert.IsNotNull(historyIndexGetter[historyIndex]);
+                return historyIndexGetter[historyIndex]();
             }
         }
 

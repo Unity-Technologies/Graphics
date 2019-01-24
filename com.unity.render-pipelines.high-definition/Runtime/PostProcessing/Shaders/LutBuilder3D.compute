@@ -1,0 +1,243 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel KBuild_NoTonemap                MAIN=KBuild_NoTonemap                 TONEMAPPING_NONE
+#pragma kernel KBuild_NeutralTonemap           MAIN=KBuild_NeutralTonemap            TONEMAPPING_NEUTRAL
+#pragma kernel KBuild_AcesTonemap              MAIN=KBuild_AcesTonemap               TONEMAPPING_ACES
+#pragma kernel KBuild_CustomTonemap            MAIN=KBuild_CustomTonemap             TONEMAPPING_CUSTOM
+#pragma kernel KBuild_NoTonemap_Source         MAIN=KBuild_NoTonemap_Source          TONEMAPPING_NONE       USE_SOURCE_LUT
+#pragma kernel KBuild_NeutralTonemap_Source    MAIN=KBuild_NeutralTonemap_Source     TONEMAPPING_NEUTRAL    USE_SOURCE_LUT
+#pragma kernel KBuild_AcesTonemap_Source       MAIN=KBuild_AcesTonemap_Source        TONEMAPPING_ACES       USE_SOURCE_LUT
+#pragma kernel KBuild_CustomTonemap_Source     MAIN=KBuild_CustomTonemap_Source      TONEMAPPING_CUSTOM     USE_SOURCE_LUT
+
+TEXTURE3D(_LogLut3D);
+RW_TEXTURE3D(float4, _OutputTexture);
+
+TEXTURE2D(_CurveMaster);
+TEXTURE2D(_CurveRed);
+TEXTURE2D(_CurveGreen);
+TEXTURE2D(_CurveBlue);
+TEXTURE2D(_CurveHueVsHue);
+TEXTURE2D(_CurveHueVsSat);
+TEXTURE2D(_CurveSatVsSat);
+TEXTURE2D(_CurveLumVsSat);
+
+SAMPLER(sampler_LogLut3D);
+SAMPLER(sampler_LinearClamp);
+
+CBUFFER_START(cb0)
+    float4 _Size;               // x: lut_size, y: 1 / (lut_size - 1), zw: unused
+    float4 _LogLut3D_Params;    // x: 1 / lut_size, y: lut_size - 1
+    float4 _ColorBalance;       // xyz: LMS coeffs, w: unused
+    float4 _ColorFilter;        // xyz: color, w: unused
+    float4 _ChannelMixerRed;    // xyz: rgb coeffs, w: unused
+    float4 _ChannelMixerGreen;  // xyz: rgb coeffs, w: unused
+    float4 _ChannelMixerBlue;   // xyz: rgb coeffs, w: unused
+    float4 _HueSatCon;          // x: hue shift, y: saturation, z: contrast, w: unused
+    float4 _Lift;               // xyz: color, w: unused
+    float4 _Gamma;              // xyz: color, w: unused
+    float4 _Gain;               // xyz: color, w: unused
+    float4 _Shadows;            // xyz: color, w: unused
+    float4 _Midtones;           // xyz: color, w: unused
+    float4 _Highlights;         // xyz: color, w: unused
+    float4 _ShaHiLimits;        // xy: shadows min/max, zw: highlight min/max
+    float4 _SplitShadows;       // xyz: color, w: balance
+    float4 _SplitHighlights;    // xyz: color, w: unused
+
+    // Custom tonemapping settings
+    float4 _CustomToneCurve;
+    float4 _ToeSegmentA;
+    float4 _ToeSegmentB;
+    float4 _MidSegmentA;
+    float4 _MidSegmentB;
+    float4 _ShoSegmentA;
+    float4 _ShoSegmentB;
+CBUFFER_END
+
+float GetLuminance(float3 colorLinear)
+{
+    #if defined(TONEMAPPING_ACES)
+    return AcesLuminance(colorLinear);
+    #else
+    return Luminance(colorLinear);
+    #endif
+}
+
+// Soft-light blending mode use for split-toning. Works in HDR as long as `blend` is [0;1] which is
+// fine for our use case.
+float3 SoftLight(float3 base, float3 blend)
+{
+    float3 r1 = 2.0 * base * blend + base * base * (1.0 - 2.0 * blend);
+    float3 r2 = sqrt(base) * (2.0 * blend - 1.0) + 2.0 * base * (1.0 - blend);
+    float3 t = step(0.5, blend);
+    return r2 * t + (1.0 - t) * r1;
+}
+
+float EvaluateCurve(TEXTURE2D(curve), float t)
+{
+    float x = SAMPLE_TEXTURE2D_LOD(curve, sampler_LinearClamp, float2(t, 0.0), 0.0).x;
+    return saturate(x);
+}
+
+// Note: when the ACES tonemapper is selected the grading steps will be done using ACES spaces
+float3 ColorGrade(float3 colorLutSpace)
+{
+    // Switch back to linear
+    float3 colorLinear = LogCToLinear(colorLutSpace);
+
+    // White balance in LMS space
+    float3 colorLMS = LinearToLMS(colorLinear);
+    colorLMS *= _ColorBalance.xyz;
+    colorLinear = LMSToLinear(colorLMS);
+
+    // Do contrast in log after white balance
+    #if defined(TONEMAPPING_ACES)
+    float3 colorLog = ACES_to_ACEScc(unity_to_ACES(colorLinear));
+    #else
+    float3 colorLog = LinearToLogC(colorLinear);
+    #endif
+
+    colorLog = (colorLog - ACEScc_MIDGRAY) * _HueSatCon.z + ACEScc_MIDGRAY;
+    
+    #if defined(TONEMAPPING_ACES)
+    colorLinear = ACES_to_ACEScg(ACEScc_to_ACES(colorLog));
+    #else
+    colorLinear = LogCToLinear(colorLog);
+    #endif
+
+    // Color filter is just an unclipped multiplier
+    colorLinear *= _ColorFilter.xyz;
+
+    // Do NOT feed negative values to the following color ops
+    colorLinear = max(0.0, colorLinear);
+
+    // Split toning
+    // As counter-intuitive as it is, to make split-toning work the same way it does in Adobe
+    // products we have to do all the maths in gamma-space...
+    float balance = _SplitShadows.w;
+    float3 colorGamma = PositivePow(colorLinear, 1.0 / 2.2);
+
+    float luma = saturate(GetLuminance(saturate(colorGamma)) + balance);
+    float3 splitShadows = lerp((0.5).xxx, _SplitShadows.xyz, 1.0 - luma);
+    float3 splitHighlights = lerp((0.5).xxx, _SplitHighlights.xyz, luma);
+    colorGamma = SoftLight(colorGamma, splitShadows);
+    colorGamma = SoftLight(colorGamma, splitHighlights);
+
+    colorLinear = PositivePow(colorGamma, 2.2);
+
+    // Channel mixing (Adobe style)
+    colorLinear = float3(
+        dot(colorLinear, _ChannelMixerRed.xyz),
+        dot(colorLinear, _ChannelMixerGreen.xyz),
+        dot(colorLinear, _ChannelMixerBlue.xyz)
+    );
+
+    // Shadows, midtones, highlights
+    luma = GetLuminance(colorLinear);
+    float shadowsFactor = 1.0 - smoothstep(_ShaHiLimits.x, _ShaHiLimits.y, luma);
+    float highlightsFactor = smoothstep(_ShaHiLimits.z, _ShaHiLimits.w, luma);
+    float midtonesFactor = 1.0 - shadowsFactor - highlightsFactor;
+    colorLinear = colorLinear * _Shadows.xyz * shadowsFactor
+                + colorLinear * _Midtones.xyz * midtonesFactor
+                + colorLinear * _Highlights.xyz * highlightsFactor;
+
+    // Lift, gamma, gain
+    colorLinear = colorLinear * _Gain.xyz + _Lift.xyz;
+    colorLinear = sign(colorLinear) * pow(abs(colorLinear), _Gamma.xyz);
+
+    // HSV operations
+    float satMult;
+    float3 hsv = RgbToHsv(colorLinear);
+    {
+        // Hue Vs Sat
+        satMult = EvaluateCurve(_CurveHueVsSat, hsv.x) * 2.0;
+
+        // Sat Vs Sat
+        satMult *= EvaluateCurve(_CurveSatVsSat, hsv.y) * 2.0;
+
+        // Lum Vs Sat
+        satMult *= EvaluateCurve(_CurveLumVsSat, Luminance(colorLinear)) * 2.0;
+
+        // Hue Shift & Hue Vs Hue
+        float hue = hsv.x + _HueSatCon.x;
+        float offset = EvaluateCurve(_CurveHueVsHue, hue) - 0.5;
+        hue += offset;
+        hsv.x = RotateHue(hue, 0.0, 1.0);
+    }
+    colorLinear = HsvToRgb(hsv);
+
+    // Global saturation
+    luma = GetLuminance(colorLinear);
+    colorLinear = luma.xxx + (_HueSatCon.yyy * satMult) * (colorLinear - luma.xxx);
+
+    // YRGB curves
+    // Conceptually these need to be in range [0;1] and from an artist-workflow perspective it's
+    // easier to deal with
+    colorLinear = FastTonemap(colorLinear);
+    {
+        const float kHalfPixel = (1.0 / 128.0) / 2.0;
+        float3 c = colorLinear;
+
+        // Y (master)
+        c += kHalfPixel.xxx;
+        float mr = EvaluateCurve(_CurveMaster, c.r);
+        float mg = EvaluateCurve(_CurveMaster, c.g);
+        float mb = EvaluateCurve(_CurveMaster, c.b);
+        c = float3(mr, mg, mb);
+
+        // RGB
+        c += kHalfPixel.xxx;
+        float r = EvaluateCurve(_CurveRed, c.r);
+        float g = EvaluateCurve(_CurveGreen, c.g);
+        float b = EvaluateCurve(_CurveBlue, c.b);
+        colorLinear = float3(r, g, b);
+    }
+    colorLinear = FastTonemapInvert(colorLinear);
+
+    colorLinear = max(0.0, colorLinear);
+    return colorLinear;
+}
+
+float3 Tonemap(float3 colorLinear)
+{
+    #if defined(TONEMAPPING_NEUTRAL)
+    {
+        colorLinear = NeutralTonemap(colorLinear);
+    }
+    #elif defined(TONEMAPPING_CUSTOM)
+    {
+        colorLinear = CustomTonemap(colorLinear, _CustomToneCurve.xyz, _ToeSegmentA, _ToeSegmentB.xy, _MidSegmentA, _MidSegmentB.xy, _ShoSegmentA, _ShoSegmentB.xy);
+    }
+    #elif defined(TONEMAPPING_ACES)
+    {
+        // Note: input is actually ACEScg (AP1 w/ linear encoding)
+        float3 aces = ACEScg_to_ACES(colorLinear);
+        colorLinear = AcesTonemap(aces);
+    }
+    #endif
+
+    return colorLinear;
+}
+
+// Note: according to the specs the maximum thread group size for Metal/Desktop is 1024. 8x8x8 is
+// 512 so it shouldn't be an issue... except with some Intel chipsets where for some reason it won't
+// allow anything higher than 256 threads. We'll use 4x4x4 then.
+// Ultimately it would nice to expose `maxTotalThreadsPerThreadgroup` for Metal...
+// Source: https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+[numthreads(4,4,4)]
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    // Lut space
+    // We use Alexa LogC (El 1000) to store the LUT as it provides a good enough range (~58.85666)
+    // and is good enough to be stored in fp16 without losing precision in the darks
+    float3 colorLutSpace = float3(dispatchThreadId) * _Size.yyy;
+
+    // Color grade & tonemap
+    float3 gradedColor = ColorGrade(colorLutSpace);
+    gradedColor = Tonemap(gradedColor);
+
+    _OutputTexture[dispatchThreadId] = float4(max(gradedColor, 0.0), 1.0);
+}

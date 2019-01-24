@@ -354,7 +354,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(SurfaceType.Opaque, false, false, 0);
+                HDMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(HDRenderQueue.RenderQueueType.Opaque, 0, false);
 
                 // Add tags at the SubShader level
                 {

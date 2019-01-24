@@ -230,8 +230,15 @@ Shader "HDRP/LayeredLit"
         [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
+        // Used only to serialize the LDR and HDR emissive color in the material UI,
+        // in the shader only the _EmissiveColor should be used
+        [HideInInspector] _EmissiveColorLDR("EmissiveColor LDR", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
+        [HideInInspector] _EmissiveIntensityUnit("Emissive Mode", Int) = 0
+        [ToggleUI] _UseEmissiveIntensity("Use Emissive Intensity", Int) = 0
+        _EmissiveIntensity("Emissive Intensity", Float) = 1
+        _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
         [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
@@ -337,9 +344,6 @@ Shader "HDRP/LayeredLit"
         [ToggleUI] _LinkDetailsWithBase2("LinkDetailsWithBase2", Float) = 1.0
         [ToggleUI] _LinkDetailsWithBase3("LinkDetailsWithBase3", Float) = 1.0
 
-        // Transparency
-        [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
-
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
@@ -354,79 +358,80 @@ Shader "HDRP/LayeredLit"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-    #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DEPTHOFFSET_ON
-    #pragma shader_feature _DOUBLESIDED_ON
-    #pragma shader_feature _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
-    #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
-    #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _VERTEX_WIND
+    #pragma shader_feature_local _ALPHATEST_ON
+    #pragma shader_feature_local _DEPTHOFFSET_ON
+    #pragma shader_feature_local _DOUBLESIDED_ON
+    #pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
+    #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
+    #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local _VERTEX_WIND
 
-    #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
-    #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE0
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE1
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
-    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
+    #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
+    #pragma shader_feature_local _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE0
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE1
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE2
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE3
+    #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
 
-    #pragma shader_feature _NORMALMAP0
-    #pragma shader_feature _NORMALMAP1
-    #pragma shader_feature _NORMALMAP2
-    #pragma shader_feature _NORMALMAP3
-    #pragma shader_feature _MASKMAP0
-    #pragma shader_feature _MASKMAP1
-    #pragma shader_feature _MASKMAP2
-    #pragma shader_feature _MASKMAP3
-    #pragma shader_feature _BENTNORMALMAP0
-    #pragma shader_feature _BENTNORMALMAP1
-    #pragma shader_feature _BENTNORMALMAP2
-    #pragma shader_feature _BENTNORMALMAP3
-    #pragma shader_feature _EMISSIVE_COLOR_MAP
-    #pragma shader_feature _ENABLESPECULAROCCLUSION
-    #pragma shader_feature _DETAIL_MAP0
-    #pragma shader_feature _DETAIL_MAP1
-    #pragma shader_feature _DETAIL_MAP2
-    #pragma shader_feature _DETAIL_MAP3
-    #pragma shader_feature _HEIGHTMAP0
-    #pragma shader_feature _HEIGHTMAP1
-    #pragma shader_feature _HEIGHTMAP2
-    #pragma shader_feature _HEIGHTMAP3
-    #pragma shader_feature _SUBSURFACE_MASK_MAP0
-    #pragma shader_feature _SUBSURFACE_MASK_MAP1
-    #pragma shader_feature _SUBSURFACE_MASK_MAP2
-    #pragma shader_feature _SUBSURFACE_MASK_MAP3
-    #pragma shader_feature _THICKNESSMAP0
-    #pragma shader_feature _THICKNESSMAP1
-    #pragma shader_feature _THICKNESSMAP2
-    #pragma shader_feature _THICKNESSMAP3
+    // We can only have 64 shader_feature_local
+    #pragma shader_feature _NORMALMAP0              // Non-local
+    #pragma shader_feature _NORMALMAP1              // Non-local
+    #pragma shader_feature _NORMALMAP2              // Non-local
+    #pragma shader_feature _NORMALMAP3              // Non-local
+    #pragma shader_feature _MASKMAP0                // Non-local
+    #pragma shader_feature _MASKMAP1                // Non-local
+    #pragma shader_feature _MASKMAP2                // Non-local
+    #pragma shader_feature _MASKMAP3                // Non-local
+    #pragma shader_feature _BENTNORMALMAP0          // Non-local
+    #pragma shader_feature _BENTNORMALMAP1          // Non-local
+    #pragma shader_feature _BENTNORMALMAP2          // Non-local
+    #pragma shader_feature _BENTNORMALMAP3          // Non-local
+    #pragma shader_feature _EMISSIVE_COLOR_MAP      // Non-local
+    #pragma shader_feature _ENABLESPECULAROCCLUSION // Non-local
+    #pragma shader_feature _DETAIL_MAP0             // Non-local
+    #pragma shader_feature _DETAIL_MAP1             // Non-local
+    #pragma shader_feature _DETAIL_MAP2             // Non-local
+    #pragma shader_feature _DETAIL_MAP3             // Non-local
+    #pragma shader_feature _HEIGHTMAP0              // Non-local
+    #pragma shader_feature _HEIGHTMAP1              // Non-local
+    #pragma shader_feature _HEIGHTMAP2              // Non-local
+    #pragma shader_feature _HEIGHTMAP3              // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP0    // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP1    // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP2    // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP3    // Non-local
+    #pragma shader_feature _THICKNESSMAP0           // Non-local
+    #pragma shader_feature _THICKNESSMAP1           // Non-local
+    #pragma shader_feature _THICKNESSMAP2           // Non-local
+    #pragma shader_feature _THICKNESSMAP3           // Non-local
 
-    #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
-    #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
-    #pragma shader_feature _INFLUENCEMASK_MAP
-    #pragma shader_feature _DENSITY_MODE
-    #pragma shader_feature _HEIGHT_BASED_BLEND
-    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+    #pragma shader_feature_local _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
+    #pragma shader_feature_local _MAIN_LAYER_INFLUENCE_MODE
+    #pragma shader_feature_local _INFLUENCEMASK_MAP
+    #pragma shader_feature_local _DENSITY_MODE
+    #pragma shader_feature_local _HEIGHT_BASED_BLEND
+    #pragma shader_feature_local _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
-    #pragma shader_feature _DISABLE_DECALS
-    #pragma shader_feature _DISABLE_SSR
-    #pragma shader_feature _ENABLE_GEOMETRIC_SPECULAR_AA
+    #pragma shader_feature_local _DISABLE_DECALS
+    #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
-    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
-    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -439,8 +444,6 @@ Shader "HDRP/LayeredLit"
     // Define
     //-------------------------------------------------------------------------------------
 
-    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
-    #define SURFACE_GRADIENT
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
 
@@ -489,10 +492,6 @@ Shader "HDRP/LayeredLit"
     // LitShading.hlsl implements the light loop API.
     // LitData.hlsl is included here, LitShading.hlsl is included below for shading passes only.
 
-    // All our shaders use same name for entry point
-    #pragma vertex Vert
-    #pragma fragment Frag
-
     ENDHLSL
 
     SubShader
@@ -523,6 +522,9 @@ Shader "HDRP/LayeredLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             ENDHLSL
         }
@@ -571,6 +573,9 @@ Shader "HDRP/LayeredLit"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+
             ENDHLSL
         }
 
@@ -596,6 +601,9 @@ Shader "HDRP/LayeredLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             ENDHLSL
         }
@@ -633,6 +641,9 @@ Shader "HDRP/LayeredLit"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+
             ENDHLSL
         }
 
@@ -659,6 +670,9 @@ Shader "HDRP/LayeredLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             ENDHLSL
         }
@@ -702,6 +716,9 @@ Shader "HDRP/LayeredLit"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+
             ENDHLSL
         }
 
@@ -737,9 +754,6 @@ Shader "HDRP/LayeredLit"
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH    
 
-            // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Lighting/Forward.hlsl"
-            //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define SHADERPASS SHADERPASS_FORWARD
@@ -771,6 +785,9 @@ Shader "HDRP/LayeredLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             ENDHLSL
         }

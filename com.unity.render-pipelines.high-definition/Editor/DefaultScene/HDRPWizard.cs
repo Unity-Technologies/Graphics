@@ -4,7 +4,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -21,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static class Style
         {
-            public static readonly GUIContent hdrpProjectSettingsPath = EditorGUIUtility.TrTextContent("Default Resources Folder");
+            public static readonly GUIContent hdrpProjectSettingsPath = EditorGUIUtility.TrTextContent("Default Resources Folder"); 
             public static readonly GUIContent firstTimeInit = EditorGUIUtility.TrTextContent("Populate / Reset");
             public static readonly GUIContent defaultScene = EditorGUIUtility.TrTextContent("Default Scene Prefab", "Shared Volume Profile assigned on new created Volumes.");
             public static readonly GUIContent haveStartPopup = EditorGUIUtility.TrTextContent("Show on start");
@@ -297,19 +296,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultScene.name + ".asset";
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultScene), defaultScenePath);
-            string defaultVolumeProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultVolumeProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultVolumeProfile), defaultVolumeProfilePath);
-            string defaultPostProcessProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultPostProcessProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultPostProcessProfile), defaultPostProcessProfilePath);
+            string defaultRenderSettingsProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultRenderSettingsProfile.name + ".asset";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultRenderSettingsProfile), defaultRenderSettingsProfilePath);
+            string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultPostProcessingProfile.name + ".asset";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultPostProcessingProfile), defaultPostProcessingProfilePath);
 
             GameObject defaultScene = AssetDatabase.LoadAssetAtPath<GameObject>(defaultScenePath);
-            VolumeProfile defaultVolumeProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultVolumeProfilePath);
-            PostProcessProfile defaultPostProcessProfile = AssetDatabase.LoadAssetAtPath<PostProcessProfile>(defaultPostProcessProfilePath);
+            VolumeProfile defaultRenderSettingsProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultRenderSettingsProfilePath);
+            VolumeProfile defaultPostProcessingProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultPostProcessingProfilePath);
 
             foreach (var volume in defaultScene.GetComponentsInChildren<Volume>())
-                volume.sharedProfile = defaultVolumeProfile;
-            foreach (var postProcessVolume in defaultScene.GetComponentsInChildren<PostProcessVolume>())
-                postProcessVolume.sharedProfile = defaultPostProcessProfile;
+            {
+                if (volume.sharedProfile.name.StartsWith(hdrpAsset.renderPipelineEditorResources.defaultRenderSettingsProfile.name))
+                    volume.sharedProfile = defaultRenderSettingsProfile;
+                else if (volume.sharedProfile.name.StartsWith(hdrpAsset.renderPipelineEditorResources.defaultPostProcessingProfile.name))
+                    volume.sharedProfile = defaultPostProcessingProfile;
+            }
+
             HDProjectSettings.defaultScenePrefab = defaultScene;
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

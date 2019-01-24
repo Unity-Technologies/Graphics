@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -16,6 +15,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
         static public AdditionalShadowData s_DefaultAdditionalShadowData { get { return ComponentSingleton<AdditionalShadowData>.instance; } }
 
+        static Texture2D m_ClearTexture;
+        public static Texture2D clearTexture
+        {
+            get
+            {
+                if (m_ClearTexture == null)
+                {
+                    m_ClearTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "Clear Texture" };
+                    m_ClearTexture.SetPixel(0, 0, Color.clear);
+                    m_ClearTexture.Apply();
+                }
+
+                return m_ClearTexture;
+            }
+        }
+
+        static Texture3D m_ClearTexture3D;
+        public static Texture3D clearTexture3D
+        {
+            get
+            {
+                if (m_ClearTexture3D == null)
+                {
+                    m_ClearTexture3D = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false) { name = "Transparent Texture 3D" };
+                    m_ClearTexture3D.SetPixel(0, 0, 0, Color.clear);
+                    m_ClearTexture3D.Apply();
+                }
+
+                return m_ClearTexture3D;
+            }
+        }
 
         public static Material GetBlitMaterial()
         {
@@ -78,14 +108,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Helper to help to display debug info on screen
         static float s_OverlayLineHeight = -1.0f;
-        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, float width)
+        public static void ResetOverlay()
+        {
+            s_OverlayLineHeight = -1.0f;
+        }
+
+        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
         {
             x += overlayWidth;
             s_OverlayLineHeight = Mathf.Max(overlayHeight, s_OverlayLineHeight);
             // Go to next line if it goes outside the screen.
-            if (x + overlayWidth > width)
+            if ( (x + overlayWidth - hdCamera.viewport.x) > hdCamera.actualWidth)
             {
-                x = 0;
+                x = hdCamera.viewport.x;
                 y -= s_OverlayLineHeight;
                 s_OverlayLineHeight = -1.0f;
             }
@@ -97,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // V = -(X, Y, Z), s.t. Z = 1,
             // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
             // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
-            
+
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
             float aspectRatio = screenSize.x * screenSize.w;
 
@@ -265,6 +300,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             BlitTexture(cmd, source, destination, camera.viewportScale, mipLevel, bilinear);
         }
 
+
         // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
         public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
         {
@@ -281,16 +317,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // This particular case is for blitting a camera-scaled texture into a non scaling texture. So we setup the full viewport (implicit in cmd.Blit) but have to scale the input UVs.
-        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination, bool flip = false)
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination, bool flip)
         {
-            var scale = new Vector2(camera.viewportScale.x, camera.viewportScale.y);
+            var scaleBias = new Vector4(camera.viewportScale.x, camera.viewportScale.y, 0.0f, 0.0f);
             var offset = Vector2.zero;
+
             if (flip)
             {
-                offset.y = scale.y;
-                scale.y *= -1;
+                scaleBias.w = scaleBias.y;
+                scaleBias.y *= -1;
             }
-            cmd.Blit(source, destination, scale, offset);
+
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+            DrawFullScreen(cmd, camera.viewport, GetBlitMaterial(), destination, s_PropertyBlock, 0);
         }
 
         // This particular case is for blitting a non-scaled texture into a scaled texture. So we setup the partial viewport but don't scale the input UVs.
@@ -310,18 +351,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void BlitCameraTextureStereoDoubleWide(CommandBuffer cmd, RTHandleSystem.RTHandle source)
         {
-#if UNITY_2019_1_OR_NEWER
-            Material finalDoubleWideBlit = GetBlitMaterial();
-            finalDoubleWideBlit.SetTexture(HDShaderIDs._BlitTexture, source);
-            finalDoubleWideBlit.SetFloat(HDShaderIDs._BlitMipLevel, 0.0f);
-            finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-            finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-            int pass = 1; // triangle, bilinear (from Blit.shader)
-            cmd.Blit(source, BuiltinRenderTextureType.CameraTarget, finalDoubleWideBlit, pass);
-#else
-            // Prior to 2019.1's y-flip fixes, we didn't need a flip in the shader
-            cmd.BlitFullscreenTriangle(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
-#endif
+            var mat = GetBlitMaterial();
+            mat.SetTexture(HDShaderIDs._BlitTexture, source);
+            mat.SetFloat(HDShaderIDs._BlitMipLevel, 0f);
+            mat.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1f, 1f, 0f, 0f));
+            mat.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1f, 1f, 0f, 0f));
+            cmd.Blit(source, BuiltinRenderTextureType.CameraTarget, mat, 1);
         }
 
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
@@ -362,6 +397,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            CoreUtils.SetRenderTarget(commandBuffer, destination);
+            commandBuffer.SetViewport(viewport);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
         // Returns mouse coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
         public static Vector4 GetMouseCoordinates(HDCamera camera)
         {
@@ -384,29 +426,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return camera.cameraType == CameraType.Preview && ((additionalCameraData == null) || (additionalCameraData && !additionalCameraData.isEditorCameraPreview));
         }
 
-        // Post-processing misc
-        public static bool IsPostProcessingActive(PostProcessLayer layer)
-        {
-            return layer != null
-                && layer.enabled;
-        }
-
-        public static bool IsTemporalAntialiasingActive(PostProcessLayer layer)
-        {
-            return IsPostProcessingActive(layer)
-                && layer.antialiasingMode == PostProcessLayer.Antialiasing.TemporalAntialiasing
-                && layer.temporalAntialiasing.IsSupported();
-        }
-
         // We need these at runtime for RenderPipelineResources upgrade
         public static string GetHDRenderPipelinePath()
         {
             return "Packages/com.unity.render-pipelines.high-definition/";
-        }
-
-        public static string GetPostProcessingPath()
-        {
-            return "Packages/com.unity.postprocessing/";
         }
 
         public static string GetCorePath()
@@ -503,13 +526,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
         public static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
         {
-            return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan ||
-                    SystemInfo.graphicsDeviceType == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/);
+            return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
+                    graphicDevice == GraphicsDeviceType.Direct3D12 ||
+                    graphicDevice == GraphicsDeviceType.PlayStation4 ||
+                    graphicDevice == GraphicsDeviceType.XboxOne ||
+                    graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                    graphicDevice == GraphicsDeviceType.Metal ||
+                    graphicDevice == GraphicsDeviceType.Vulkan ||
+                    graphicDevice == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/);
         }
 
         public static void CheckRTCreated(RenderTexture rt)
@@ -551,6 +575,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
                     buildTarget == UnityEditor.BuildTarget.Switch);
         }
+        
+        public static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
+        {
+            unsupportedGraphicDevice = GraphicsDeviceType.Null;
+
+            foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
+            {
+                if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
+                {
+                    unsupportedGraphicDevice = graphicAPI;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static OperatingSystemFamily BuildTargetToOperatingSystemFamily(UnityEditor.BuildTarget target)
+        {
+            switch (target)
+            {
+                case UnityEditor.BuildTarget.StandaloneOSX:
+                    return OperatingSystemFamily.MacOSX;
+                case UnityEditor.BuildTarget.StandaloneWindows:
+                case UnityEditor.BuildTarget.StandaloneWindows64:
+                    return OperatingSystemFamily.Windows;
+                case UnityEditor.BuildTarget.StandaloneLinux64:
+#if !UNITY_2019_2_OR_NEWER
+                case UnityEditor.BuildTarget.StandaloneLinuxUniversal:
+#endif
+                    return OperatingSystemFamily.Linux;
+                default:
+                    return OperatingSystemFamily.Other;
+            }
+        }
+
 #endif
 
         public static bool IsOperatingSystemSupported(string os)
@@ -581,6 +640,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             return true;
+        }
+
+        public static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
+        {
+            // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
+            float distanceFadeNear = 0.9f * fadeDistance;
+            scale = 1.0f / (fadeDistance - distanceFadeNear);
+            bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
+        }
+        public static float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
+        {
+            float scale;
+            float bias;
+            GetScaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
+
+            return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
         }
     }
 }

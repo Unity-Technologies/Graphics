@@ -7,11 +7,29 @@ using Object = System.Object;
 
 namespace UnityEditor.VFX
 {
-    interface IVariantProvider
+    abstract class VariantProvider
     {
-        Dictionary<string, object[]> variants {  get; }
-    };
+        protected virtual Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, Object[]>();
+            }
+        }
 
+        public virtual IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        {
+            //Default behavior : Cartesian product
+            IEnumerable<IEnumerable<object>> empty = new[] { Enumerable.Empty<object>() };
+            var arrVariants = variants.Select(o => o.Value as IEnumerable<Object>);
+            var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))));
+            foreach (var combination in combinations)
+            {
+                var variant = combination.Select((o, i) => new KeyValuePair<string, object>(variants.ElementAt(i).Key, o));
+                yield return variant;
+            }
+        }
+    };
 
     // Attribute used to register VFX type to library
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
@@ -246,19 +264,10 @@ namespace UnityEditor.VFX
                     {
                         if (modelDesc.info.variantProvider != null)
                         {
-                            var provider = Activator.CreateInstance(modelDesc.info.variantProvider) as IVariantProvider;
-                            if (provider == null)
+                            var provider = Activator.CreateInstance(modelDesc.info.variantProvider) as VariantProvider;
+                            foreach (var variant in provider.ComputeVariants())
                             {
-                                throw new Exception("Invalid variant type (except IVariantProvider) : " + modelDesc.info.variantProvider);
-                            }
-                            var arrVariants = provider.variants.Select(o => o.Value as IEnumerable<Object>);
-
-                            //Cartesian product
-                            IEnumerable<IEnumerable<object>> empty = new[] { Enumerable.Empty<object>() };
-                            var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))));
-                            foreach (var combination in combinations)
-                            {
-                                var variant = combination.Select((o, i) => new KeyValuePair<string, object>(provider.variants.ElementAt(i).Key, o)).ToArray();
+                                var variantArray = variant.ToArray();
                                 modelDescs.Add(new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant));
                             }
                         }

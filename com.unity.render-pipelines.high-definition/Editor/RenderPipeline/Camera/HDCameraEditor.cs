@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -53,7 +52,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         RenderTexture m_PreviewTexture;
         Camera m_PreviewCamera;
         HDAdditionalCameraData m_PreviewAdditionalCameraData;
-        PostProcessLayer m_PreviewPostProcessLayer;
 
         void OnEnable()
         {
@@ -65,7 +63,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDAdditionalCameraData>();
             // Say that we are a camera editor preview and not just a regular preview
             m_PreviewAdditionalCameraData.isEditorCameraPreview = true;
-            m_PreviewPostProcessLayer = m_PreviewCamera.gameObject.AddComponent<PostProcessLayer>();
         }
 
         void OnDisable()

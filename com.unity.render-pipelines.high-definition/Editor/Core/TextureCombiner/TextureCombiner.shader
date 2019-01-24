@@ -29,6 +29,9 @@ Shader "Hidden/SRP_Core/TextureCombiner"
         Pass
         {
             CGPROGRAM
+
+            #pragma editor_sync_compilation
+
             #pragma vertex vert
             #pragma fragment frag
 
