@@ -13,9 +13,9 @@ namespace UnityEditor.ShaderGraph
             public bool modifiable;
         }
 
-        private readonly List<IShaderProperty> m_Properties = new List<IShaderProperty>();
+        private readonly List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
 
-        public void AddShaderProperty(IShaderProperty chunk)
+        public void AddShaderProperty(AbstractShaderProperty chunk)
         {
             if (m_Properties.Any(x => x.referenceName == chunk.referenceName))
                 return;

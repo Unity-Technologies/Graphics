@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEditor.ShaderGraph.NormalCreateNode")]
     [Title("Artistic", "Normal", "Normal From Texture")]
-    class NormalFromTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IGenerateProperties, IMayRequireMeshUV
+    class NormalFromTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV
     {
         public const int TextureInputId = 0;
         public const int UVInputId = 1;

@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_Map = new ShaderSourceMap(m_Shader, testList);
         }
 
-        static ShaderStringMapping CreateMapping(int start, INode node, int count)
+        static ShaderStringMapping CreateMapping(int start, AbstractMaterialNode node, int count)
         {
             var map = new ShaderStringMapping();
             map.startIndex = start;

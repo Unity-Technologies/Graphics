@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
                 }
 
-                var materialGraph = graphObject.graph as AbstractMaterialGraph;
+                var materialGraph = graphObject.graph as GraphData;
                 if (materialGraph == null)
                     return;
 
@@ -205,11 +205,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 bool VCSEnabled = (VersionControl.Provider.enabled && VersionControl.Provider.isActive);
                 CheckoutIfValid(path, VCSEnabled);
 
-                if (m_GraphObject.graph.GetType() == typeof(MaterialGraph))
+                if (m_GraphObject.graph.isSubGraph)
+                    UpdateAbstractSubgraphOnDisk(path);
+                else
                     UpdateShaderGraphOnDisk(path);
-
-                if (m_GraphObject.graph.GetType() == typeof(SubGraph))
-                    UpdateAbstractSubgraphOnDisk<SubGraph>(path);
 
                 graphObject.isDirty = false;
                 var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
@@ -230,7 +229,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphObject.RegisterCompleteObjectUndo("Convert To Subgraph");
             var graphView = graphEditorView.graphView;
 
-            var nodes = graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode).ToArray();
+            var nodes = graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as AbstractMaterialNode).ToArray();
             var bounds = Rect.MinMaxRect(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity);
             foreach (var node in nodes)
             {
@@ -251,16 +250,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.graph.guid,
                     graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
-                    graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
+                    graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as AbstractMaterialNode),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
-                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty),
+                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty),
                     metaProperties);
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)
                 return;
 
-            var subGraph = new SubGraph();
+            var subGraph = new GraphData { isSubGraph = true };
             subGraph.path = "Sub Graphs";
             var subGraphOutputNode = new SubGraphOutputNode();
             {
@@ -271,7 +270,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             subGraph.AddNode(subGraphOutputNode);
 
             var nodeGuidMap = new Dictionary<Guid, Guid>();
-            foreach (var node in deserialized.GetNodes<INode>())
+            foreach (var node in deserialized.GetNodes<AbstractMaterialNode>())
             {
                 var oldGuid = node.guid;
                 var newGuid = node.RewriteGuid();
@@ -319,14 +318,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     edge => edge,
                     (key, edges) => new { slotRef = key, edges = edges.ToList() });
 
-            var externalInputNeedingConnection = new List<KeyValuePair<IEdge, IShaderProperty>>();
+            var externalInputNeedingConnection = new List<KeyValuePair<IEdge, AbstractShaderProperty>>();
             foreach (var group in uniqueIncomingEdges)
             {
                 var sr = group.slotRef;
                 var fromNode = graphObject.graph.GetNodeFromGuid(sr.nodeGuid);
                 var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(sr.slotId);
 
-                IShaderProperty prop;
+                AbstractShaderProperty prop;
                 switch (fromSlot.concreteValueType)
                 {
                     case ConcreteSlotValueType.Texture2D:
@@ -362,7 +361,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (prop != null)
                 {
-                    var materialGraph = (AbstractMaterialGraph)graphObject.graph;
+                    var materialGraph = (GraphData)graphObject.graph;
                     var fromPropertyNode = fromNode as PropertyNode;
                     var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
                     prop.displayName = fromProperty != null ? fromProperty.displayName : fromNode.name;
@@ -381,7 +380,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         subGraph.Connect(
                             new SlotReference(propNode.guid, PropertyNode.OutputSlotId),
                             new SlotReference(nodeGuidMap[edge.inputSlot.nodeGuid], edge.inputSlot.slotId));
-                        externalInputNeedingConnection.Add(new KeyValuePair<IEdge, IShaderProperty>(edge, prop));
+                        externalInputNeedingConnection.Add(new KeyValuePair<IEdge, AbstractShaderProperty>(edge, prop));
                     }
                 }
             }
@@ -394,7 +393,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var externalOutputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
             foreach (var group in uniqueOutgoingEdges)
             {
-                var outputNode = subGraph.outputNode;
+                var outputNode = subGraph.outputNode as SubGraphOutputNode;
                 var slotId = outputNode.AddSlot();
 
                 var inputSlotRef = new SlotReference(outputNode.guid, slotId);
@@ -431,32 +430,24 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graphObject.graph.RemoveElements(
-                graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as INode),
+                graphView.selection.OfType<MaterialNodeView>().Select(x => x.node as AbstractMaterialNode),
                 Enumerable.Empty<IEdge>(),
                 Enumerable.Empty<GroupData>());
             graphObject.graph.ValidateGraph();
         }
 
-        void UpdateAbstractSubgraphOnDisk<T>(string path) where T : SubGraph
+        void UpdateAbstractSubgraphOnDisk(string path)
         {
-            var graph = graphObject.graph as T;
-            if (graph == null)
-                return;
-
-            File.WriteAllText(path, EditorJsonUtility.ToJson(graph, true));
+            File.WriteAllText(path, EditorJsonUtility.ToJson(graphObject.graph, true));
             AssetDatabase.ImportAsset(path);
         }
 
         void UpdateShaderGraphOnDisk(string path)
         {
-            var graph = graphObject.graph as IShaderGraph;
-            if (graph == null)
-                return;
-
-            UpdateShaderGraphOnDisk(path, graph);
+            UpdateShaderGraphOnDisk(path, graphObject.graph);
         }
 
-        static void UpdateShaderGraphOnDisk(string path, IShaderGraph graph)
+        static void UpdateShaderGraphOnDisk(string path, GraphData graph)
         {
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderGraphImporter;
             if (shaderImporter == null)
@@ -501,14 +492,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Path.GetExtension returns the extension prefixed with ".", so we remove it. We force lower case such that
                 // the comparison will be case-insensitive.
                 extension = extension.Substring(1).ToLowerInvariant();
-                Type graphType;
+                bool isSubGraph;
                 switch (extension)
                 {
                     case ShaderGraphImporter.Extension:
-                        graphType = typeof(MaterialGraph);
+                        isSubGraph = false;
                         break;
                     case ShaderSubGraphImporter.Extension:
-                        graphType = typeof(SubGraph);
+                        isSubGraph = true;
                         break;
                     default:
                         return;
@@ -519,12 +510,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
                 graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.graph = JsonUtility.FromJson(textGraph, graphType) as IGraph;
-                ((AbstractMaterialGraph) graphObject.graph).messageManager = messageManager;
+                graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
+                graphObject.graph.isSubGraph = isSubGraph;
+                graphObject.graph.messageManager = messageManager;
                 graphObject.graph.OnEnable();
                 graphObject.graph.ValidateGraph();
 
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, messageManager)
+                graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
                 {
                     viewDataKey = selectedGuid,
                     assetName = asset.name.Split('/').Last()

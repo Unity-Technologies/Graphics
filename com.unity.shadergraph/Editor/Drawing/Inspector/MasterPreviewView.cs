@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
     class MasterPreviewView : VisualElement
     {
         PreviewManager m_PreviewManager;
-        AbstractMaterialGraph m_Graph;
+        GraphData m_Graph;
 
         PreviewRenderData m_PreviewRenderHandle;
         Image m_PreviewTextureView;
@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             set { m_Title.text = value; }
         }
 
-        public MasterPreviewView(PreviewManager previewManager, AbstractMaterialGraph graph)
+        public MasterPreviewView(PreviewManager previewManager, GraphData graph)
         {
             cacheAsBitmap = true;
             style.overflow = Overflow.Hidden;
@@ -133,24 +133,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), DropdownMenuAction.AlwaysEnabled);
         }
 
-        IMasterNode masterNode
-        {
-            get { return m_PreviewRenderHandle.shaderData != null ? m_PreviewRenderHandle.shaderData.node as IMasterNode : null; }
-        }
-
         void DirtyMasterNode(ModificationScope scope)
         {
-            var amn = masterNode as AbstractMaterialNode;
-            if (amn != null)
-                amn.Dirty(scope);
-
-            // If currently editing a subgraph, dirty the output node rather than master node.
-            if (m_Graph is SubGraph)
-            {
-                var subgraph = m_Graph as SubGraph;
-                if (subgraph != null && subgraph.outputNode != null)
-                    subgraph.outputNode.Dirty(scope);
-            }
+            m_Graph?.outputNode?.Dirty(scope);
         }
 
         void OnPreviewChanged()
