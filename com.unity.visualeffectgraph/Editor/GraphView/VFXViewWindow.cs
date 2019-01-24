@@ -41,12 +41,6 @@ namespace  UnityEditor.VFX.UI
         }
 
         public static VFXViewWindow currentWindow;
-
-
-        [MenuItem("Window/Visual Effects", false, 3010)]
-        public static void AAToCreateSubmenuAtRightPlace()
-        {
-        }
         
         [MenuItem("Window/Visual Effects/Visual Effect Graph",false,3011)]
         public static void ShowWindow()
@@ -159,10 +153,6 @@ namespace  UnityEditor.VFX.UI
 
             currentWindow = this;
 
-            /*if (m_ViewScale != Vector3.zero)
-            {
-                graphView.UpdateViewTransform(m_ViewPosition, m_ViewScale);
-            }*/
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
@@ -191,12 +181,6 @@ namespace  UnityEditor.VFX.UI
                 graphView.controller = null;
             }
             currentWindow = null;
-        }
-
-        void OnFocus()
-        {
-            if (graphView != null)
-                graphView.UpdateGlobalSelection();
         }
 
         void OnEnterPanel(AttachToPanelEvent e)

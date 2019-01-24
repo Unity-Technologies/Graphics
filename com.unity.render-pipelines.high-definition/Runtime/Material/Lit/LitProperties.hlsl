@@ -118,6 +118,7 @@ float _PPDLodThreshold;
 
 float3 _EmissiveColor;
 float _AlbedoAffectEmissive;
+float _EmissiveExposureWeight;
 
 float _EnableSpecularOcclusion;
 

@@ -114,10 +114,11 @@ float4 ComputeRectangleAverage_uint4(float2 LeftTop,float2 RightBottom, float4 T
     // Sample the summed area table at all relevant locations. The first two indices 
     // determine whether we are at the left top or right bottom of the rectangle, 
     // the latter two determine the pixel offset.
+    int x, y;
     uint4 Samples[2][2][2][2];
-    [unroll] for(int x=0;x!=2;++x){
+    [unroll] for(x=0;x!=2;++x){
         int TexelX=(x==0)?iLeftTop.x:iRightBottom.x;
-        [unroll] for(int y=0;y!=2;++y){
+        [unroll] for(y=0;y!=2;++y){
             int TexelY=(y==0)?iLeftTop.y:iRightBottom.y;
             [unroll] for(int z=0;z!=2;++z){
                 [unroll] for(int w=0;w!=2;++w){
@@ -128,8 +129,8 @@ float4 ComputeRectangleAverage_uint4(float2 LeftTop,float2 RightBottom, float4 T
     }
     // Compute integrals for various rectangles
     float4 pCornerIntegral[2][2];
-    [unroll] for(int x=0;x!=2;++x){
-        [unroll] for(int y=0;y!=2;++y){
+    [unroll] for(x=0;x!=2;++x){
+        [unroll] for(y=0;y!=2;++y){
             pCornerIntegral[x][y]=float4(Samples[x][y][0][0]+Samples[x][y][1][1]-Samples[x][y][1][0]-Samples[x][y][0][1]);
         }
     }

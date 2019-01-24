@@ -4,6 +4,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         ColorBufferMipChain,
         VolumetricLighting,
+        Exposure,
+        TemporalAntialiasing,
+        DepthOfFieldCoC,
         Count
     }
 }

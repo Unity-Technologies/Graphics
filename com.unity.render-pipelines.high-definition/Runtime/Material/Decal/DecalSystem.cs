@@ -92,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // cube mesh bounds for decal
         static Vector4 kMin = new Vector4(-0.5f, -0.5f, -0.5f, 1.0f);
-        static Vector4 kMax = new Vector4(0.5f,  0.5f,  0.5f, 1.0f);
+        static Vector4 kMax = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
 
         static public Mesh m_DecalMesh = null;
 
@@ -127,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_Atlas == null)
                 {
-                    m_Atlas = new Texture2DAtlas(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight, RenderTextureFormat.ARGB32);
+                    m_Atlas = new Texture2DAtlas(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight, GraphicsFormat.R8G8B8A8_UNorm);
                 }
                 return m_Atlas;
             }
@@ -195,7 +195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public DecalSet(Material material)
             {
-                m_Material = material;              
+                m_Material = material;
                 InitializeMaterialValues();
             }
 
@@ -244,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_Material == null)
                     return;
-                UpdateCachedData(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle);                
+                UpdateCachedData(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle);
             }
 
             public DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, int materialID)
@@ -424,7 +424,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // clustered forward data
                         if (m_CachedAffectsTransparency[decalIndex])
-                        { 
+                        {
                             m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
                             m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
                             m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
@@ -433,9 +433,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DecalDatas[m_DecalDatasCount].scalingMAB = m_ScalingMAB;
                             if (!perChannelMask)
                             {
-                                m_DecalDatas[m_DecalDatasCount].blendParams.z = (float)Decal.MaskBlendFlags.Smoothness; 
+                                m_DecalDatas[m_DecalDatasCount].blendParams.z = (float)Decal.MaskBlendFlags.Smoothness;
                             }
-                                                        
+
                             // we have not allocated the textures in atlas yet, so only store references to them
                             m_DiffuseTextureScaleBias[m_DecalDatasCount] = m_Diffuse;
                             m_NormalTextureScaleBias[m_DecalDatasCount] = m_Normal;
@@ -458,7 +458,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // only add if any projectors in this decal set affect transparency, doesn't actually allocate textures in the atlas yet, this is because we want all the textures in the list so we can optimize the packing
                 if (anyAffectTransparency)
-                { 
+                {
                     AddToTextureList(ref instance.m_TextureList);
                 }
             }
@@ -660,7 +660,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCachedData(Vector3 position, Quaternion rotation, Vector3 scale, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle)
         {
-             UpdateCachedData(Matrix4x4.TRS(position,  rotation, scale), rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle);
+            UpdateCachedData(Matrix4x4.TRS(position, rotation, scale), rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle);
         }
 
         public void UpdateCachedData(Transform transform, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle)
@@ -775,7 +775,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UpdateDecalDatasWithAtlasInfo();
         }
 
-     
+
         public void CreateDrawData()
         {
             m_DecalDatasCount = 0;
@@ -799,7 +799,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (pair.Value.IsDrawn())
                 {
                     int insertIndex = 0;
-                    while((insertIndex < m_DecalSetsRenderList.Count) && (pair.Value.DrawOrder >= m_DecalSetsRenderList[insertIndex].DrawOrder))
+                    while ((insertIndex < m_DecalSetsRenderList.Count) && (pair.Value.DrawOrder >= m_DecalSetsRenderList[insertIndex].DrawOrder))
                     {
                         insertIndex++;
                     }
@@ -807,7 +807,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            foreach(var decalSet in m_DecalSetsRenderList)
+            foreach (var decalSet in m_DecalSetsRenderList)
             {
                 decalSet.CreateDrawData();
             }
@@ -834,8 +834,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "Display Decal Atlas", CustomSamplerId.DisplayDebugDecalsAtlas.GetSampler()))
                 {
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0 , 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel, true);
-                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
+                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel, true);
+                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                 }
             }
         }

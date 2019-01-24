@@ -17,8 +17,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #define LIGHTLOOP_TILE_PASS
-
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
             #pragma multi_compile SHOW_LIGHT_CATEGORIES SHOW_FEATURE_VARIANTS
 
@@ -57,8 +55,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
             struct Varyings
             {
-                float4 positionCS : SV_POSITION;
-                int variant : TEXCOORD0;
+                float4  positionCS  : SV_POSITION;
+                int     variant     : TEXCOORD0;
+                float2  texcoord    : TEXCOORD1;
             };
 
 #if SHOW_FEATURE_VARIANTS
@@ -90,6 +89,12 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 Varyings output;
                 output.positionCS = float4(clipCoord, 0, 1.0);
                 output.variant = variant;
+
+                output.texcoord = clipCoord * 0.5 + 0.5;
+                if (!ShouldFlipDebugTexture())
+                {
+                    output.texcoord.y = 1.0 - output.texcoord.y;
+                }
                 return output;
             }
 #else
@@ -97,6 +102,11 @@ Shader "Hidden/HDRP/DebugViewTiles"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+                if (ShouldFlipDebugTexture())
+                {
+                    output.texcoord.y = 1.0 - output.texcoord.y;
+                }
                 output.variant = 0; // unused
                 return output;
             }
@@ -146,16 +156,14 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                if (ShouldFlipDebugTexture())
-                {
-                    input.positionCS.y = _ScreenSize.y - input.positionCS.y;
-                }
+                // For debug shaders, Viewport can be at a non zero (x,y) but the pipeline render targets all starts at (0,0)
+                // input.positionCS in in pixel coordinate relative to the render target origin so they will be offsted compared to internal render textures
+                // To solve that, we compute pixel coordinates from full screen quad texture coordinates which start correctly at (0,0)
+                uint2 pixelCoord = uint2(input.texcoord.xy * _ScreenSize.xy);
 
-                // positionCS is SV_Position
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, pixelCoord).x;
+                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
 
-                int2 pixelCoord = posInput.positionSS.xy;
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
                 int2 mouseTileCoord = _MousePixelCoord.xy / GetTileSize();
                 int2 offsetInTile = pixelCoord - tileCoord * GetTileSize();

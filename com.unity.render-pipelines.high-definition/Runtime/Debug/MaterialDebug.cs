@@ -265,6 +265,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        //Validator Settings
+        public Color materialValidateLowColor = new Color(1.0f, 0.0f, 0.0f);
+        public Color materialValidateHighColor = new Color(0.0f, 0.0f, 1.0f);
+        public Color materialValidateTrueMetalColor = new Color(1.0f, 1.0f, 0.0f);
+        public bool  materialValidateTrueMetal = false;
+
         public int debugViewMaterial { get { return m_DebugViewMaterial; } }
         public int debugViewEngine { get { return m_DebugViewEngine; } }
         public DebugViewVarying debugViewVarying { get { return m_DebugViewVarying; } }

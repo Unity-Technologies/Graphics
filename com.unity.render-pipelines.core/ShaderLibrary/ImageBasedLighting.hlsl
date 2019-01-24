@@ -128,7 +128,7 @@ real3 GetSpecularDominantDir(real3 N, real3 R, real perceptualRoughness, real Nd
 // Importance sampling BSDF functions
 // ----------------------------------------------------------------------------
 
-void SampleGGXDir(real2   u,
+void SampleGGXDir2(real2   u,
                   real3   V,
                   real3x3 localToWorld,
                   real    roughness,
@@ -136,7 +136,8 @@ void SampleGGXDir(real2   u,
               out real    NdotL,
               out real    NdotH,
               out real    VdotH,
-                  bool     VeqN = false)
+              out real    LdotH,
+              bool     VeqN = false)
 {
     // GGX NDF sampling
     real cosTheta = sqrt(SafeDiv(1.0 - u.x, 1.0 + (roughness * roughness - 1.0) * u.x));
@@ -164,7 +165,23 @@ void SampleGGXDir(real2   u,
     real3 localL = -localV + 2.0 * VdotH * localH;
     NdotL = localL.z;
 
+    LdotH = saturate(dot(localL, localH));
+
     L = mul(localL, localToWorld);
+}
+
+void SampleGGXDir(real2   u,
+                  real3   V,
+                  real3x3 localToWorld,
+                  real    roughness,
+              out real3   L,
+              out real    NdotL,
+              out real    NdotH,
+              out real    VdotH,
+                  bool     VeqN = false)
+{
+    float LdotH = 0.0f;
+    SampleGGXDir2(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, LdotH, VeqN);
 }
 
 // Ref: "A Simpler and Exact Sampling Routine for the GGX Distribution of Visible Normals".

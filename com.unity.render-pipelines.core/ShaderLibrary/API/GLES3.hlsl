@@ -20,6 +20,8 @@
 #define CBUFFER_START(name)
 #define CBUFFER_END
 
+#define PLATFORM_THREAD_GROUP_OPTIMAL_SIZE 0		// cannot infer the optimal compute shader group size (GPU vendor not known).
+
 // flow control attributes
 #define UNITY_BRANCH        [branch]
 #define UNITY_FLATTEN       [flatten]
@@ -133,7 +135,7 @@
 #define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)                              textureName.Load(int3(unCoord2, lod))
 #define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)                     textureName.Load(unCoord2, sampleIndex)
 #define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)                          textureName.Load(int4(unCoord2, index, 0))
-#define LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, index, sampleIndex)        textureName.Load(int4(unCoord2, index, 0), sampleIndex)
+#define LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, index, sampleIndex)        textureName.Load(int3(unCoord2, index), sampleIndex)
 #define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod)                 textureName.Load(int4(unCoord2, index, lod))
 
 #if GLES3_1_AEP

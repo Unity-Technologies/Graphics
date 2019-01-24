@@ -31,6 +31,8 @@
 
 #define PLATFORM_SUPPORTS_EXPLICIT_BINDING 1
 #define PLATFORM_NEEDS_UNORM_UAV_SPECIFIER 1
+#define PLATFORM_LANE_COUNT 64
+#define PLATFORM_THREAD_GROUP_OPTIMAL_SIZE PLATFORM_LANE_COUNT       // 64 threads in a wafefront
 
 // Intrinsics
 #define SUPPORTS_WAVE_INTRINSICS
@@ -44,7 +46,7 @@
 #define INTRINSIC_WAVE_LOGICAL_OPS
 #define WaveActiveBitAnd __XB_WaveAND
 #define WaveActiveBitOr __XB_WaveOR
-
+#define WaveGetID __XB_GetWaveID
 
 #define INTRINSIC_BITFIELD_EXTRACT
 uint BitFieldExtract(uint data, uint offset, uint numBits)
@@ -67,6 +69,21 @@ bool WaveActiveAllTrue(bool expression)
 bool WaveActiveAnyTrue(bool expression)
 {
     return (__XB_S_BCNT1_U64(WaveActiveBallot(expression))) != 0;
+}
+
+uint WaveGetLaneIndex()
+{
+    return __XB_GetLaneID();
+}
+
+bool WaveIsFirstLane()
+{
+    return (__XB_MBCNT64(WaveActiveBallot(true))) == 0;
+}
+
+uint WaveGetLaneCount()
+{
+    return PLATFORM_LANE_COUNT;
 }
 
 
@@ -186,7 +203,7 @@ float WaveActiveSum(float value)
 #define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)                          textureName.Load(int3(unCoord2, lod))
 #define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)                 textureName.Load(unCoord2, sampleIndex)
 #define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)                      textureName.Load(int4(unCoord2, index, 0))
-#define LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, index, sampleIndex)    textureName.Load(int4(unCoord2, index, 0), sampleIndex)
+#define LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, index, sampleIndex)    textureName.Load(int3(unCoord2, index), sampleIndex)
 #define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod)             textureName.Load(int4(unCoord2, index, lod))
 #define LOAD_TEXTURE3D(textureName, unCoord3)                                   textureName.Load(int4(unCoord3, 0))
 #define LOAD_TEXTURE3D_LOD(textureName, unCoord3, lod)                          textureName.Load(int4(unCoord3, lod))

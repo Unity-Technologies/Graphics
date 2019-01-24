@@ -648,6 +648,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 if (graphRequirements.requiresDepthTexture)
                     defines.AddShaderChunk("#define REQUIRE_DEPTH_TEXTURE");
+                if (graphRequirements.requiresCameraOpaqueTexture)
+                    defines.AddShaderChunk("#define REQUIRE_OPAQUE_TEXTURE");
                 defines.AddGenerator(interpolatorDefines);
             }
 
@@ -828,35 +830,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static SurfaceMaterialTags BuildMaterialTags(SurfaceType surfaceType, bool alphaTest, bool preRefraction, int sortPriority)
+        public static HDMaterialTags BuildMaterialTags(HDRenderQueue.RenderQueueType renderQueueType,
+                                                       int sortPriority,
+                                                       bool alphaTest,
+                                                       HDMaterialTags.RenderType renderType = HDMaterialTags.RenderType.HDLitShader)
         {
-            SurfaceMaterialTags materialTags = new SurfaceMaterialTags();
-
-            if (surfaceType == SurfaceType.Opaque)
+            return new HDMaterialTags
             {
-                if (alphaTest)
-                {
-                    materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.AlphaTest;
-                    materialTags.renderType = SurfaceMaterialTags.RenderType.TransparentCutout;
-                }
-                else
-                {
-                    materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.Geometry;
-                    materialTags.renderType = SurfaceMaterialTags.RenderType.Opaque;
-                }
-            }
-            else
-            {
-                materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.Transparent;
-                materialTags.renderQueueOffset = sortPriority;
-                if (preRefraction)
-                {
-                    materialTags.renderQueueOffset -= HDRenderQueue.Priority.Transparent - HDRenderQueue.Priority.PreRefraction;
-                }
-                materialTags.renderType = SurfaceMaterialTags.RenderType.Transparent;
-            }
+                renderType = renderType,
+                renderQueueIndex = HDRenderQueue.ChangeType(renderQueueType, sortPriority, alphaTest)
+            };
+        }
 
-            return materialTags;
+        public static HDMaterialTags BuildMaterialTags(SurfaceType surfaceType,
+                                                       int sortPriority,
+                                                       bool alphaTest,
+                                                       HDMaterialTags.RenderType renderType = HDMaterialTags.RenderType.HDLitShader)
+        {
+            HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.RenderQueueType.Opaque;
+
+            if (surfaceType == SurfaceType.Transparent)
+                renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
+
+            return BuildMaterialTags(renderQueueType, sortPriority, alphaTest, renderType);
         }
 
         public static SurfaceMaterialOptions BuildMaterialOptions(SurfaceType surfaceType,
@@ -920,7 +916,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
             "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
-            "#define LIGHTLOOP_TILE_PASS",
             "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
             "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
         };
@@ -933,7 +928,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
             "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
-            "#define LIGHTLOOP_TILE_PASS",
             "#define USE_CLUSTERED_LIGHTLIST",
             "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
         };
@@ -949,5 +943,60 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH"
         };
+
+        public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
+        {
+            switch (value)
+            {
+                case HDRenderQueue.RenderQueueType.Opaque:
+                    return "Default";
+                case HDRenderQueue.RenderQueueType.AfterPostProcessOpaque:
+                    return "After Post-process";
+
+                case HDRenderQueue.RenderQueueType.PreRefraction:
+                    return "Before Refraction";
+                case HDRenderQueue.RenderQueueType.Transparent:
+                    return "Default";
+                case HDRenderQueue.RenderQueueType.LowTransparent:
+                    return "Low Resolution";
+                case HDRenderQueue.RenderQueueType.AfterPostprocessTransparent:
+                    return "After Post-process";
+
+#if ENABLE_RAYTRACING
+                case HDRenderQueue.RenderQueueType.RaytracingOpaque: return "Raytracing";
+                case HDRenderQueue.RenderQueueType.RaytracingTransparent: return "Raytracing";
+#endif
+                default:
+                    return "None";
+            }
+        }
+
+        public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque)
+        {
+            if (opaque)
+            {
+                return new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>()
+                {
+                    HDRenderQueue.RenderQueueType.Opaque
+                  //  , HDRenderQueue.RenderQueueType.AfterPostProcessOpaque
+#if ENABLE_RAYTRACING
+                    , HDRenderQueue.RenderQueueType.RaytracingOpaque
+#endif
+                };
+            }
+            else
+            {
+                return new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>()
+                {
+                    HDRenderQueue.RenderQueueType.PreRefraction
+                    , HDRenderQueue.RenderQueueType.Transparent
+                 //   , HDRenderQueue.RenderQueueType.LowTransparent
+                 //   , HDRenderQueue.RenderQueueType.AfterPostprocessTransparent
+#if ENABLE_RAYTRACING
+                    , HDRenderQueue.RenderQueueType.RaytracingTransparent
+#endif
+                };
+            }
+        }
     }
 }

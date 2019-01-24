@@ -1,6 +1,6 @@
 #include "UnityCG.cginc"
 
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+Texture2D _CameraDepthTexture;
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
@@ -62,4 +62,9 @@ float4 VFXApplyShadowBias(float4 posCS)
 float4 VFXApplyFog(float4 color,float4 posSS,float3 posWS)
 {
     return color; // TODO
+}
+
+float4 VFXApplyPreExposure(float4 color)
+{
+    return color;
 }

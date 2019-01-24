@@ -73,6 +73,15 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
     {
         surfaceData.normalWS = worldToTangent[2];
     }
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
+    {
+        surfaceData.diffuseColor = pbrDiffuseColorValidate(surfaceData.diffuseColor, DEFAULT_HAIR_SPECULAR_VALUE, false, false).xyz;
+    }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    {
+        surfaceData.diffuseColor = pbrSpecularColorValidate(surfaceData.diffuseColor, DEFAULT_HAIR_SPECULAR_VALUE, false, false).xyz;
+    }
 #endif
 }
 
@@ -218,6 +227,11 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
         break;
     }
+}
+
+void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
+{
+    result = surfaceData.diffuseColor;
 }
 
 //-----------------------------------------------------------------------------

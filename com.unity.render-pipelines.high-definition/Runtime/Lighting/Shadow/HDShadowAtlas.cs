@@ -51,15 +51,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Atlas != null)
                 m_Atlas.Release();
             
-            m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, sRGB: false, colorFormat: m_Format, name: m_Name);
-            if(m_SupportMomentShadows)
+            m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, isShadowMap: true, name: m_Name);
+
+            if (m_SupportMomentShadows)
             {
                 string momentShadowMapName = m_Name + "Moment";
-                m_AtlasMoments = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false, enableRandomWrite: true, name: momentShadowMapName);
+                m_AtlasMoments = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, name: momentShadowMapName);
                 string intermediateSummedAreaName = m_Name + "IntermediateSummedArea";
-                m_IntermediateSummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBInt, sRGB: false, enableRandomWrite: true, name: intermediateSummedAreaName);
+                m_IntermediateSummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: intermediateSummedAreaName);
                 string summedAreaName = m_Name + "SummedAreaFinal";
-                m_SummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBInt, sRGB: false, enableRandomWrite: true, name: summedAreaName);
+                m_SummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: summedAreaName);
             }
             identifier = new RenderTargetIdentifier(m_Atlas);
         }

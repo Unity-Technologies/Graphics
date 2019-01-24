@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 11
+    serializedVersion: 12
     m_Resolution: 2
     m_BakeResolution: 40
     m_AtlasSize: 1024
@@ -77,6 +77,8 @@ LightmapSettings:
     m_PVRDirectSampleCount: 32
     m_PVRSampleCount: 500
     m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 500
+    m_PVREnvironmentReferencePointCount: 2048
     m_PVRFilteringMode: 2
     m_PVRDenoiserTypeDirect: 0
     m_PVRDenoiserTypeIndirect: 0
@@ -84,6 +86,7 @@ LightmapSettings:
     m_PVRFilterTypeDirect: 0
     m_PVRFilterTypeIndirect: 0
     m_PVRFilterTypeAO: 0
+    m_PVREnvironmentMIS: 0
     m_PVRCulling: 1
     m_PVRFilteringGaussRadiusDirect: 1
     m_PVRFilteringGaussRadiusIndirect: 5
@@ -93,7 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
     m_ExportTrainingData: 0
-  m_LightingDataAsset: {fileID: 112000002, guid: d80385fe5983b404c8f32f9a1a8e15b9,
+  m_LightingDataAsset: {fileID: 112000000, guid: c94afa91fbeb884458860d2161eee4bc,
     type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -535,7 +538,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: e55a1a266a4600f498c9ecaf58d9e55a, type: 2}
-  m_BakingSkyUniqueID: 2
+  m_StaticLightingSkyUniqueID: 2
+  m_AmbientProbe:
+    sh[ 0]: 0.065212615
+    sh[ 1]: 0.03157668
+    sh[ 2]: -0.005160542
+    sh[ 3]: 0.0029792874
+    sh[ 4]: 0.002422889
+    sh[ 5]: -0.00419646
+    sh[ 6]: 0.004415847
+    sh[ 7]: -0.0023490193
+    sh[ 8]: 0.011891244
+    sh[ 9]: 0.0868642
+    sh[10]: 0.04901794
+    sh[11]: -0.007702641
+    sh[12]: 0.0044486923
+    sh[13]: 0.0035994644
+    sh[14]: -0.006233534
+    sh[15]: 0.0058623925
+    sh[16]: -0.003406679
+    sh[17]: 0.01562003
+    sh[18]: 0.13094057
+    sh[19]: 0.08397035
+    sh[20]: -0.01297025
+    sh[21]: 0.0074885567
+    sh[22]: 0.0061192308
+    sh[23]: -0.010598702
+    sh[24]: 0.008104002
+    sh[25]: -0.0053388188
+    sh[26]: 0.021229453
 --- !u!114 &637000357
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1925,6 +1956,7 @@ MonoBehaviour:
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 32
+  minFilterSize: 0.00001
 --- !u!1 &2125996808
 GameObject:
   m_ObjectHideFlags: 0

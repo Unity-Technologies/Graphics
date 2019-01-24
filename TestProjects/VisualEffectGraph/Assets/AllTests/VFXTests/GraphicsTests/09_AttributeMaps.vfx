@@ -2696,19 +2696,19 @@ VisualEffectResource:
       uint particleId, VFXSampler2D attributeMap, uint Seed, float3 valueBias, float3
       valueScale) /*attribute:position Composition:Overwrite SampleMode:RandomConstantPerParticle
       channels:XYZ */\n{\n    \n    uint width, height;\n    attributeMap.t.GetDimensions(width,
-      height);\n    uint count = width * height;\n    uint id = clamp(uint(FIXED_RAND(Seed)
-      * count), 0, count - 1);\n    float3 value = (float3)attributeMap.t.Load(int3(id
-      % width, id / width,0));\n    value = (value  + valueBias) * valueScale;\n    position
-      = value;\n}\nvoid AttributeFromMap_9AACC55(inout float3 color, uint particleId,
-      VFXSampler2D attributeMap, uint Seed, float3 valueBias, float3 valueScale) /*attribute:color
-      Composition:Overwrite SampleMode:RandomConstantPerParticle channels:XYZ */\n{\n
-      \   \n    uint width, height;\n    attributeMap.t.GetDimensions(width, height);\n
-      \   uint count = width * height;\n    uint id = clamp(uint(FIXED_RAND(Seed)
-      * count), 0, count - 1);\n    float3 value = (float3)attributeMap.t.Load(int3(id
-      % width, id / width,0));\n    value = (value  + valueBias) * valueScale;\n    color
-      = value;\n}\nvoid SetAttribute_F01429A3(inout float lifetime, inout uint seed,
-      float Min, float Max) /*attribute:lifetime Composition:Overwrite Source:Slot
-      Random:Uniform channels:XYZ */\n{\n    lifetime = lerp(Min,Max,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      height);\n    uint count = width * height;\n    uint id = FIXED_RAND(Seed) *
+      count;\n    uint y = id / width;\n    uint x = id - y * width;\n    float3 value
+      = (float3)attributeMap.t.Load(int3(x, y, 0));\n    value = (value  + valueBias)
+      * valueScale;\n    position = value;\n}\nvoid AttributeFromMap_9AACC55(inout
+      float3 color, uint particleId, VFXSampler2D attributeMap, uint Seed, float3
+      valueBias, float3 valueScale) /*attribute:color Composition:Overwrite SampleMode:RandomConstantPerParticle
+      channels:XYZ */\n{\n    \n    uint width, height;\n    attributeMap.t.GetDimensions(width,
+      height);\n    uint count = width * height;\n    uint id = FIXED_RAND(Seed) *
+      count;\n    uint y = id / width;\n    uint x = id - y * width;\n    float3 value
+      = (float3)attributeMap.t.Load(int3(x, y, 0));\n    value = (value  + valueBias)
+      * valueScale;\n    color = value;\n}\nvoid SetAttribute_F01429A3(inout float
+      lifetime, inout uint seed, float Min, float Max) /*attribute:lifetime Composition:Overwrite
+      Source:Slot Random:Uniform channels:XYZ */\n{\n    lifetime = lerp(Min,Max,RAND);\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
       CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId
       \   : SV_GroupThreadID)\n{\n    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;\n#if
       !VFX_USE_SPAWNER_FROM_GPU\n    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n#endif\n\n#if
@@ -3072,8 +3072,9 @@ VisualEffectResource:
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
       o = (ps_output)0;\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t\t\to.color
-      *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);\n\t\t\t\to.color = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\treturn
-      o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t\n\t}\n}\n"
+      *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);\n\t\t        o.color = VFXApplyPreExposure(o.color);\n\t\t\t\to.color
+      = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\to.color.a
+      = saturate(o.color.a);\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t\n\t}\n}\n"
   m_Infos:
     m_Expressions:
       m_Expressions:

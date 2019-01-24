@@ -210,6 +210,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool                m_WillRenderShadows;
         int[]               m_ShadowRequestIndices;
 
+
+        #if ENABLE_RAYTRACING
+        // Temporary index that stores the current shadow index for the light
+        [System.NonSerialized] public int shadowIndex;
+        #endif
+
         [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;
         HDShadowSettings    m_ShadowSettings
         {
@@ -241,8 +247,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Bounds bounds;
             float cameraDistance = Vector3.Distance(camera.transform.position, transform.position);
+            
+            #if ENABLE_RAYTRACING
+            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow) && lightTypeExtent == LightTypeExtent.Punctual;
+            #else
+            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow);
+            #endif
 
-            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.enableShadow;
             m_WillRenderShadows &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadows &= m_ShadowData != null && m_ShadowData.shadowDimmer > 0;
@@ -676,7 +687,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = m_Light.color.linear * m_Light.intensity;
             if (useColorTemperature)
-                value *= LightUtils.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature);
+                value *= Mathf.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature);
             value.r = Mathf.Clamp01(value.r);
             value.g = Mathf.Clamp01(value.g);
             value.b = Mathf.Clamp01(value.b);

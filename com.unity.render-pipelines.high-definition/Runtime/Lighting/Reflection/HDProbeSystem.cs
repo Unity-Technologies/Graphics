@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -19,6 +21,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Don't set the reference to null
         // Only dispose resources
         static void DisposeStaticInstance() => s_Instance.Dispose();
+
+        public static ReflectionSystemParameters Parameters
+        {
+            get => s_Instance.Parameters;
+            set => s_Instance.Parameters = value;
+        }
 
         public static IList<HDProbe> realtimeViewDependentProbes => s_Instance.realtimeViewDependentProbes;
         public static IList<HDProbe> realtimeViewIndependentProbes => s_Instance.realtimeViewIndependentProbes;
@@ -85,8 +93,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static void PrepareCull(Camera camera, ReflectionProbeCullResults results)
-            => s_Instance.PrepareCull(camera, results);
+        public static HDProbeCullState PrepareCull(Camera camera)
+            => s_Instance.PrepareCull(camera);
+
+        public static void QueryCullResults(HDProbeCullState state, ref HDProbeCullingResults results)
+            => s_Instance.QueryCullResults(state, ref results);
 
         public static Texture CreateRenderTargetForMode(HDProbe probe, ProbeSettings.Mode targetMode)
         {
@@ -184,6 +195,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public IList<HDProbe> realtimeViewIndependentProbes
         { get { RemoveDestroyedProbes(m_RealtimeViewIndependentProbes); return m_RealtimeViewIndependentProbes; } }
 
+        public ReflectionSystemParameters Parameters;
+
+        public void Dispose()
+        {
+            m_PlanarProbeCullingGroup.Dispose();
+            m_PlanarProbeCullingGroup = null;
+        }
+
         internal void RegisterProbe(HDProbe probe)
         {
             var settings = probe.settings;
@@ -246,12 +265,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal void PrepareCull(Camera camera, ReflectionProbeCullResults results)
+        internal HDProbeCullState PrepareCull(Camera camera)
         {
             // Can happens right before a domain reload
             // The CullingGroup is disposed at that point 
             if (m_PlanarProbeCullingGroup == null)
-                return;
+                return default;
 
             RemoveDestroyedProbes(m_PlanarProbes, m_PlanarProbeBounds, ref m_PlanarProbeCount);
 
@@ -259,7 +278,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_PlanarProbeCullingGroup.SetBoundingSpheres(m_PlanarProbeBounds);
             m_PlanarProbeCullingGroup.SetBoundingSphereCount(m_PlanarProbeCount);
 
-            results.PrepareCull(m_PlanarProbeCullingGroup, m_PlanarProbes);
+            var stateHash = ComputeStateHashDebug(m_PlanarProbeBounds, m_PlanarProbes, m_PlanarProbeCount);
+
+            return new HDProbeCullState(m_PlanarProbeCullingGroup, m_PlanarProbes, stateHash);
+        }
+
+        int[] m_QueryCullResults_Indices;
+        internal void QueryCullResults(HDProbeCullState state, ref HDProbeCullingResults results)
+        {
+            Assert.IsNotNull(state.cullingGroup, "Culling was not prepared, please prepare cull before performing it.");
+            Assert.IsNotNull(state.hdProbes, "Culling was not prepared, please prepare cull before performing it.");
+            var stateHash = ComputeStateHashDebug(m_PlanarProbeBounds, m_PlanarProbes, m_PlanarProbeCount);
+            Assert.AreEqual(stateHash, state.stateHash, "HDProbes changes since culling was prepared, this will lead to incorrect results.");
+
+            results.Reset();
+            var probes = results.writeableVisibleProbes;
+
+            Array.Resize(
+                ref m_QueryCullResults_Indices,
+                Parameters.maxActivePlanarReflectionProbe + Parameters.maxActiveReflectionProbe
+            );
+            var indexCount = state.cullingGroup.QueryIndices(true, m_QueryCullResults_Indices, 0);
+            for (int i = 0; i < indexCount; ++i)
+                probes.Add(state.hdProbes[m_QueryCullResults_Indices[i]]);
         }
 
         static void RemoveDestroyedProbes(List<HDProbe> probes)
@@ -285,10 +326,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void Dispose()
+        static unsafe Hash128 ComputeStateHashDebug(
+            BoundingSphere[] probeBounds,
+            HDProbe[] probes,
+            int probeCount
+        )
         {
-            m_PlanarProbeCullingGroup.Dispose();
-            m_PlanarProbeCullingGroup = null;
+#if DEBUG
+            var result = new Hash128();
+            if (probeBounds != null)
+            {
+                var h = new Hash128();
+                fixed (BoundingSphere* s = &probeBounds[0])
+                {
+                    var stride = (ulong)UnsafeUtility.SizeOf<BoundingSphere>();
+                    var size = stride * (ulong)probeBounds.Length;
+                    HashUnsafeUtilities.ComputeHash128(s, size, &h);
+                }
+                HashUtilities.AppendHash(ref h, ref result);
+            }
+            if (probes != null)
+            {
+                var h = new Hash128();
+                for (int i = 0; i < probes.Length; ++i)
+                {
+                    if (probes[i] == null || probes[i].Equals(null))
+                        continue;
+
+                    var instanceID = probes[i].GetInstanceID();
+                    HashUtilities.ComputeHash128(ref instanceID, ref h);
+                    HashUtilities.AppendHash(ref h, ref result);
+                }
+            }
+            return result;
+#else
+            return default;
+#endif
         }
     }
 }
