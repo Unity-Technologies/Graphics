@@ -11,6 +11,7 @@ Varyings NormalsRenderingVertex(Attributes attributes)
 {
 	Varyings o;
     o.positionCS = TransformObjectToHClip(attributes.positionOS);
+	o.positionCS.y = -o.positionCS.y;
     o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap); 
 	o.uv = attributes.uv;
 	o.color = attributes.color;

@@ -731,8 +731,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
                 else if(m_LightProjectionType == LightProjectionTypes.Point)
                 {
-                    m_Mesh = GenerateParametricMesh(m_PointLightOuterRadius, 32 /* 4 sides */, 0, m_LightColor);
-//                    RendererPointLights.CreateQuad(out m_Mesh);
+                    m_Mesh = GenerateParametricMesh(1, 32 /* 4 sides */, 0, m_LightColor);
                 }
             }
 
