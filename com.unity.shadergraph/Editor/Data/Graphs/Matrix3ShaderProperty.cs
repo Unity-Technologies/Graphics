@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
             return "float4x4 " + referenceName + " = float4x4(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0)" + delimiter;
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new Matrix3Node
             {
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new Matrix3ShaderProperty();
             copied.displayName = displayName;

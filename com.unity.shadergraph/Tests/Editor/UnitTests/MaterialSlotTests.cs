@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
     [TestFixture]
     class MaterialSlotTests
     {
-        private ShaderGraph.MaterialGraph m_Graph;
+        private GraphData m_Graph;
         private TestNode m_NodeA;
 
         class TestNode : AbstractMaterialNode
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new ShaderGraph.MaterialGraph();
+            m_Graph = new GraphData();
             m_NodeA = new TestNode();
             m_NodeA.precision = AbstractMaterialNode.OutputPrecision.half;
             m_Graph.AddNode(m_NodeA);

@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             var elements = containedElements.ToList();
             foreach (GraphElement element in elements)
             {
-                var node = element.userData as INode;
+                var node = element.userData as AbstractMaterialNode;
                 if (node == null)
                     continue;
 

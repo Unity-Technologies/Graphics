@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void TestCreateMaterialGraph()
         {
-            var graph = new ShaderGraph.MaterialGraph();
+            var graph = new GraphData();
 
             Assert.IsNotNull(graph);
 

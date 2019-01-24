@@ -13,19 +13,19 @@ namespace UnityEditor.Graphing.Util
         HashSet<IEdge> m_Edges = new HashSet<IEdge>();
 
         [NonSerialized]
-        HashSet<INode> m_Nodes = new HashSet<INode>();
+        HashSet<AbstractMaterialNode> m_Nodes = new HashSet<AbstractMaterialNode>();
 
         [SerializeField]
         List<GroupData> m_Groups = new List<GroupData>();
 
         [NonSerialized]
-        HashSet<IShaderProperty> m_Properties = new HashSet<IShaderProperty>();
+        HashSet<AbstractShaderProperty> m_Properties = new HashSet<AbstractShaderProperty>();
 
         // The meta properties are properties that are not copied into the tatget graph
         // but sent along to allow property nodes to still hvae the data from the original
         // property present.
         [NonSerialized]
-        HashSet<IShaderProperty> m_MetaProperties = new HashSet<IShaderProperty>();
+        HashSet<AbstractShaderProperty> m_MetaProperties = new HashSet<AbstractShaderProperty>();
 
         [NonSerialized]
         SerializableGuid m_SourceGraphGuid;
@@ -47,7 +47,7 @@ namespace UnityEditor.Graphing.Util
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(Guid sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<INode> nodes, IEnumerable<IEdge> edges, IEnumerable<IShaderProperty> properties, IEnumerable<IShaderProperty> metaProperties)
+        public CopyPasteGraph(Guid sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<AbstractShaderProperty> properties, IEnumerable<AbstractShaderProperty> metaProperties)
         {
             m_SourceGraphGuid = new SerializableGuid(sourceGraphGuid);
 
@@ -78,7 +78,7 @@ namespace UnityEditor.Graphing.Util
             m_Groups.Add(group);
         }
 
-        public void AddNode(INode node)
+        public void AddNode(AbstractMaterialNode node)
         {
             m_Nodes.Add(node);
         }
@@ -88,17 +88,17 @@ namespace UnityEditor.Graphing.Util
             m_Edges.Add(edge);
         }
 
-        public void AddProperty(IShaderProperty property)
+        public void AddProperty(AbstractShaderProperty property)
         {
             m_Properties.Add(property);
         }
 
-        public void AddMetaProperty(IShaderProperty metaProperty)
+        public void AddMetaProperty(AbstractShaderProperty metaProperty)
         {
             m_MetaProperties.Add(metaProperty);
         }
 
-        public IEnumerable<T> GetNodes<T>() where T : INode
+        public IEnumerable<T> GetNodes<T>()
         {
             return m_Nodes.OfType<T>();
         }
@@ -113,12 +113,12 @@ namespace UnityEditor.Graphing.Util
             get { return m_Edges; }
         }
 
-        public IEnumerable<IShaderProperty> properties
+        public IEnumerable<AbstractShaderProperty> properties
         {
             get { return m_Properties; }
         }
 
-        public IEnumerable<IShaderProperty> metaProperties
+        public IEnumerable<AbstractShaderProperty> metaProperties
         {
             get { return m_MetaProperties; }
         }
@@ -131,17 +131,17 @@ namespace UnityEditor.Graphing.Util
         public void OnBeforeSerialize()
         {
             m_SerializeableSourceGraphGuid = SerializationHelper.Serialize(m_SourceGraphGuid);
-            m_SerializableNodes = SerializationHelper.Serialize<INode>(m_Nodes);
+            m_SerializableNodes = SerializationHelper.Serialize<AbstractMaterialNode>(m_Nodes);
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
-            m_SerilaizeableProperties = SerializationHelper.Serialize<IShaderProperty>(m_Properties);
-            m_SerializableMetaProperties = SerializationHelper.Serialize<IShaderProperty>(m_MetaProperties);
+            m_SerilaizeableProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
+            m_SerializableMetaProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_MetaProperties);
         }
 
         public void OnAfterDeserialize()
         {
             m_SourceGraphGuid = SerializationHelper.Deserialize<SerializableGuid>(m_SerializeableSourceGraphGuid, GraphUtil.GetLegacyTypeRemapping());
 
-            var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
+            var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
             m_Nodes.Clear();
             foreach (var node in nodes)
                 m_Nodes.Add(node);
@@ -153,13 +153,13 @@ namespace UnityEditor.Graphing.Util
                 m_Edges.Add(edge);
             m_SerializableEdges = null;
 
-            var properties = SerializationHelper.Deserialize<IShaderProperty>(m_SerilaizeableProperties, GraphUtil.GetLegacyTypeRemapping());
+            var properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerilaizeableProperties, GraphUtil.GetLegacyTypeRemapping());
             m_Properties.Clear();
             foreach (var property in properties)
                 m_Properties.Add(property);
             m_SerilaizeableProperties = null;
 
-            var metaProperties = SerializationHelper.Deserialize<IShaderProperty>(m_SerializableMetaProperties, GraphUtil.GetLegacyTypeRemapping());
+            var metaProperties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializableMetaProperties, GraphUtil.GetLegacyTypeRemapping());
             m_MetaProperties.Clear();
             foreach (var metaProperty in metaProperties)
             {

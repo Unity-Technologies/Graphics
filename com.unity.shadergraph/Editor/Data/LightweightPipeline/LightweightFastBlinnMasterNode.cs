@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph
             GenerationMode mode,
             int[] validNodeIds)
         {
-            var activeNodeList = new List<INode>();
+            var activeNodeList = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include,
                 new List<int>(validNodeIds));
 
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph
                 node.GeneratePropertyUsages(propertyUsages, mode);
             }
 
-            var nodes = ListPool<INode>.Get();
+            var nodes = ListPool<AbstractMaterialNode>.Get();
             //Get the rest of the nodes for all the other slots
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude, new List<int>(vertexInputs));
             for (var i = 0; i < nodes.Count; i++)
@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph
                 if (node is IGeneratesBodyCode)
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, mode);
             }
-            ListPool<INode>.Release(nodes);
+            ListPool<AbstractMaterialNode>.Release(nodes);
         }
 
         void GenerateVertexShaderInternal(
@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph
                 if (fromNode == null)
                     continue;
 
-                var remapper = fromNode as INodeGroupRemapper;
+                var remapper = fromNode as AbstractMaterialNodeGroupRemapper;
                 if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
                     continue;
 
@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph
             if (!File.Exists(templateLocation))
                 return string.Empty;
 
-            var activeNodeList = new List<INode>();
+            var activeNodeList = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
             foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
                 node.GeneratePropertyBlock(shaderPropertiesVisitor, mode);
@@ -259,7 +259,7 @@ namespace UnityEditor.ShaderGraph
             ShaderGenerator definesVisitor,
             GenerationMode mode)
         {
-            var activeNodeList = new List<INode>();
+            var activeNodeList = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include,
                 new List<int>(surfaceInputs));
 
@@ -298,7 +298,7 @@ namespace UnityEditor.ShaderGraph
                         if (fromNode == null)
                             continue;
 
-                        var remapper = fromNode as INodeGroupRemapper;
+                        var remapper = fromNode as AbstractMaterialNodeGroupRemapper;
                         if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
                             continue;
 
@@ -402,7 +402,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderGenerator shaderBody, ShaderGenerator propertyUsages, GenerationMode generationMode)
         {
-            var nodes = ListPool<INode>.Get();
+            var nodes = ListPool<AbstractMaterialNode>.Get();
 
             //Get the rest of the nodes for all the other slots
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude, new List<int>(surfaceInputs));
@@ -412,7 +412,7 @@ namespace UnityEditor.ShaderGraph
                 if (node is IGeneratesBodyCode)
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
-            ListPool<INode>.Release(nodes);
+            ListPool<AbstractMaterialNode>.Release(nodes);
 
             foreach (var slot in GetInputSlots<MaterialSlot>())
             {
@@ -425,7 +425,7 @@ namespace UnityEditor.ShaderGraph
                         if (fromNode == null)
                             continue;
 
-                        var remapper = fromNode as INodeGroupRemapper;
+                        var remapper = fromNode as AbstractMaterialNodeGroupRemapper;
                         if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
                             continue;
 

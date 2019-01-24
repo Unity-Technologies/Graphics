@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph
             get { return new SlotReference(owner.guid, m_Id); }
         }
 
-        public INode owner { get; set; }
+        public AbstractMaterialNode owner { get; set; }
 
         public bool hidden
         {

@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    class ChannelEnumMaskControlView : VisualElement, INodeModificationListener
+    class ChannelEnumMaskControlView : VisualElement, AbstractMaterialNodeModificationListener
     {
         GUIContent m_Label;
         AbstractMaterialNode m_Node;

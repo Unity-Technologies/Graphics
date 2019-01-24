@@ -62,12 +62,12 @@ namespace UnityEditor.ShaderGraph
 
         public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
         {
-            var activeNodeList = ListPool<INode>.Get();
+            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
 
             var shaderProperties = new PropertyCollector();
 
-            var abstractMaterialGraph = owner as AbstractMaterialGraph;
+            var abstractMaterialGraph = owner as GraphData;
             if (abstractMaterialGraph != null)
                 abstractMaterialGraph.CollectShaderProperties(shaderProperties, mode);
 
