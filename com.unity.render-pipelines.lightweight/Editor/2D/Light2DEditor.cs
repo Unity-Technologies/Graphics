@@ -203,8 +203,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             EditorGUI.indentLevel++;
 
-            EditorGUILayout.PropertyField(pointInnerAngle, EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light"));
-            EditorGUILayout.PropertyField(pointOuterAngle, EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light"));
+            EditorGUILayout.Slider(pointInnerAngle, 0, 360, EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light"));
+            EditorGUILayout.Slider(pointOuterAngle, 0, 360, EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light"));
+
             EditorGUILayout.PropertyField(pointInnerRadius, EditorGUIUtility.TrTextContent("Inner Radius", "Specify the inner radius of the light"));
             EditorGUILayout.PropertyField(pointOuterRadius, EditorGUIUtility.TrTextContent("Outer Radius", "Specify the outer radius of the light"));
             EditorGUILayout.PropertyField(pointZDistance, EditorGUIUtility.TrTextContent("Distance", "Specify the Z Distance of the light"));
