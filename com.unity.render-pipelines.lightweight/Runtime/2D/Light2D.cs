@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     // TODO: 
     //     Fix parametric mesh code so that the vertices, triangle, and color arrays are only recreated when number of sides change
     //     Change code to update mesh only when it is on screen. Maybe we can recreate a changed mesh if it was on screen last update (in the update), and if it wasn't set it dirty. If dirty, in the OnBecameVisible function create the mesh and clear the dirty flag.
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class Light2D : MonoBehaviour
     {
         private Mesh m_Mesh = null;
@@ -782,7 +782,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         void Awake()
         {
             GetMesh();
-            RegisterLight();
 
             if (spline.GetPointCount() == 0)
             {
@@ -793,12 +792,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        void Update()
+        void OnEnable()
         {
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-                RegisterLight();
-#endif
+            RegisterLight();
         }
 
         bool CheckForColorChange(Color i, ref Color j)
