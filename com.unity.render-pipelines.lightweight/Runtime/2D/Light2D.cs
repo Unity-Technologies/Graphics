@@ -735,16 +735,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_CullingGroup.Dispose();
                 m_CullingGroup = null;
             }
-        }
-
-        private void OnDestroy()
-        {
-            if (m_CullingGroup != null)
-            {
-                m_CullingGroup.Dispose();
-                m_CullingGroup = null;
-            }
-
 
             if (m_Lights != null)
             {
