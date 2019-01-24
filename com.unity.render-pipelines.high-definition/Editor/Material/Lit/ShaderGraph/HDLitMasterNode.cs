@@ -717,7 +717,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 AddSlot(new Vector1MaterialSlot(AlphaThresholdDepthPostpassSlotId, AlphaClipThresholdDepthPostpassSlotName, AlphaClipThresholdDepthPostpassSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaThresholdDepthPostpassSlotId);
             }
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaThresholdShadow) && surfaceType == SurfaceType.Transparent && alphaTest.isOn && alphaTestShadow.isOn)
+            if (MaterialTypeUsesSlotMask(SlotMask.AlphaThresholdShadow) && alphaTest.isOn && alphaTestShadow.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(AlphaThresholdShadowSlotId, AlphaClipThresholdShadowSlotName, AlphaClipThresholdShadowSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaThresholdShadowSlotId);
