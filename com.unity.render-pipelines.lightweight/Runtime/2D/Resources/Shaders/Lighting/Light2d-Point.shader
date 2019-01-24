@@ -41,6 +41,7 @@
 			#pragma prefer_hlslcc gles
 			#pragma vertex vert
 			#pragma fragment frag
+			#pragma enable_d3d11_debug_symbols
 
 			TEXTURE2D(_MainTex);
 			SAMPLER(sampler_MainTex);
@@ -75,7 +76,7 @@
 				float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
 				output.lookupUV = 0.5 * (lightSpacePos.xy + 1);
 				output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
-				output.lightDirection.xy  = _LightPosition.xy - worldSpacePos.xy;
+				output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
 				output.lightDirection.z   = _LightZDistance;
 				output.lightDirection.w   = 0;
 				output.lightDirection.xyz = normalize(output.lightDirection.xyz);
@@ -111,6 +112,12 @@
 				half4 lightColor = _LightColor * attenuation * cosAngle;
 
 				return lightColor * _InverseLightIntensityScale;
+
+				//float4 tmpColor;
+				//tmpColor.rgb = 0.5 * (normalize(dirToLight) + 1);
+				//tmpColor.a = 1;
+
+				//return tmpColor;
             }
             ENDHLSL
         }

@@ -97,8 +97,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_SortingLayerRange = new SortingLayerRange(layerValue, layerValue);
                 filterSettings.sortingLayerRange = m_SortingLayerRange;
 
-                RendererPointLights.RenderLights(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
-                RendererShapeLights.RenderLights(camera, m_CommandBuffer, layerToRender);
+                RendererPointLights.RenderNormals(context, renderingData.cullResults, drawSettings, filterSettings);
+                //RendererShapeLights.RenderLights(camera, m_CommandBuffer, layerToRender, Light2D.LightProjectionTypes.Shape);
+                RendererShapeLights.RenderLights(camera, m_CommandBuffer, layerToRender, Light2D.LightProjectionTypes.Point);
 
                 // This should have an optimization where I can determine if this needs to be called
                 m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
@@ -118,8 +119,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Profiler.EndSample();
 
                 m_CommandBuffer.Clear();
-                RendererShapeLights.RenderLightVolumes(camera, m_CommandBuffer, layerToRender);
-                RendererPointLights.RenderLightVolumes(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
+                RendererShapeLights.RenderLightVolumes(camera, m_CommandBuffer, layerToRender, Light2D.LightProjectionTypes.Shape);
+                //RendererShapeLights.RenderLightVolumes(camera, m_CommandBuffer, layerToRender, Light2D.LightProjectionTypes.Point);
                 context.ExecuteCommandBuffer(m_CommandBuffer);
             }
 

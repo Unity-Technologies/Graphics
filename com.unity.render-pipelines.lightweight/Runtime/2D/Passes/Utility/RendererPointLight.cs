@@ -212,7 +212,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
         }
 
-        static void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings)
+        static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings)
         {
             m_TemporaryCmdBuffer.name = "Clear Normals";
             m_TemporaryCmdBuffer.Clear();
@@ -271,81 +271,81 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        static public void RenderLights(Camera camera, CommandBuffer cmdBuffer, ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, int layerToRender)
+        static public void RenderLights(Camera camera, CommandBuffer cmdBuffer, int layerToRender)
         {
             //List<GameObject> shadowCasters = GameObject.FindGameObjectsWithTag("Shadow").ToList();
-            cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHTS");
-            cmdBuffer.SetGlobalTexture("_PointLightingTex", m_ColorRT);
+            //cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHTS");
+            //cmdBuffer.SetGlobalTexture("_PointLightingTex", m_ColorRT);
 
-            List<Light2D> pointLights = Light2D.GetPointLights();
-            bool renderedAnyLight = false;
+            //List<Light2D> pointLights = Light2D.GetPointLights();
+            //bool renderedAnyLight = false;
 
-            if (pointLights != null && pointLights.Count > 0)
-            {
-                cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
-                cmdBuffer.BeginSample("2D Point Lights");
-                cmdBuffer.SetRenderTarget(m_ColorRT);
+            //if (pointLights != null && pointLights.Count > 0)
+            //{
+            //    cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
+            //    cmdBuffer.BeginSample("2D Point Lights");
+            //    cmdBuffer.SetRenderTarget(m_ColorRT);
 
-                if (m_ColorRTDirty)
-                {
-                    cmdBuffer.ClearRenderTarget(true, true, Color.black);
-                    m_ColorRTDirty = false;
-                }
+            //    if (m_ColorRTDirty)
+            //    {
+            //        cmdBuffer.ClearRenderTarget(true, true, Color.black);
+            //        m_ColorRTDirty = false;
+            //    }
 
-                for (int i = 0; i < pointLights.Count; i++)
-                {
-                    Light2D light = pointLights[i];
+            //    for (int i = 0; i < pointLights.Count; i++)
+            //    {
+            //        Light2D light = pointLights[i];
 
-                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible())
-                    {
-                        if (!renderedAnyLight)
-                        {
-                            RenderNormals(renderContext, cullResults, drawSettings, filterSettings);
-                            renderedAnyLight = true;
-                        }
+            //        if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible())
+            //        {
+            //            if (!renderedAnyLight)
+            //            {
+            //                RenderNormals(renderContext, cullResults, drawSettings, filterSettings);
+            //                renderedAnyLight = true;
+            //            }
 
-                        // Sort the shadow casters by distance to light, and render the ones furthest first
-                        //SortShadowCasters(light, shadowCasters);
-                        SetShaderGlobals(cmdBuffer, light);
+            //            // Sort the shadow casters by distance to light, and render the ones furthest first
+            //            //SortShadowCasters(light, shadowCasters);
+            //            SetShaderGlobals(cmdBuffer, light);
 
-                        // We should consider combining all point lights into a single pass instead of rendering them seperately
-                        DrawLightQuad(cmdBuffer, light, m_NormalRT, GetPointLightMat());
-                    }
-                }
-                cmdBuffer.EndSample("2D Point Lights");
-            }
+            //            // We should consider combining all point lights into a single pass instead of rendering them seperately
+            //            DrawLightQuad(cmdBuffer, light, m_NormalRT, GetPointLightMat());
+            //        }
+            //    }
+            //    cmdBuffer.EndSample("2D Point Lights");
+            //}
 
-            m_ColorRTDirty = m_ColorRTDirty || renderedAnyLight;
-            renderContext.ExecuteCommandBuffer(cmdBuffer);
-            cmdBuffer.Clear();
+            //m_ColorRTDirty = m_ColorRTDirty || renderedAnyLight;
+            //renderContext.ExecuteCommandBuffer(cmdBuffer);
+            //cmdBuffer.Clear();
         }
 
         static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, int layerToRender)
         {
-            cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHTS");
-            cmdBuffer.SetGlobalTexture("_PointLightingTex", m_ColorRT);
+            //cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHTS");
+            //cmdBuffer.SetGlobalTexture("_PointLightingTex", m_ColorRT);
 
-            List<Light2D> pointLights = Light2D.GetPointLights();
-            if (pointLights != null && pointLights.Count > 0)
-            {
-                cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
-                cmdBuffer.BeginSample("2D Point Lights");
+            //List<Light2D> pointLights = Light2D.GetPointLights();
+            //if (pointLights != null && pointLights.Count > 0)
+            //{
+            //    cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHTS");
+            //    cmdBuffer.BeginSample("2D Point Lights");
 
-                for (int i = 0; i < pointLights.Count; i++)
-                {
-                    Light2D light = pointLights[i];
+            //    for (int i = 0; i < pointLights.Count; i++)
+            //    {
+            //        Light2D light = pointLights[i];
 
-                    if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible() && light.LightVolumeOpacity > 0.0f)
-                    {
-                        SetShaderGlobals(cmdBuffer, light);
-                        DrawLightQuad(cmdBuffer, light, null, GetPointLightVolumeMat());
-                    }
-                }
-                cmdBuffer.EndSample("2D Point Lights");
-            }
+            //        if (light != null && light.IsLitLayer(layerToRender) && light.isActiveAndEnabled && light.IsLightVisible() && light.LightVolumeOpacity > 0.0f)
+            //        {
+            //            SetShaderGlobals(cmdBuffer, light);
+            //            DrawLightQuad(cmdBuffer, light, null, GetPointLightVolumeMat());
+            //        }
+            //    }
+            //    cmdBuffer.EndSample("2D Point Lights");
+            //}
 
-            renderContext.ExecuteCommandBuffer(cmdBuffer);
-            cmdBuffer.Clear();
+            //renderContext.ExecuteCommandBuffer(cmdBuffer);
+            //cmdBuffer.Clear();
         }
         
     }
