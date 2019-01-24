@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             CreateQuad(out m_Quad);
         }
 
-        static void CreateQuad(out Mesh outQuad)
+        static public void CreateQuad(out Mesh outQuad)
         {
             Vector3[] vertices = new Vector3[4];
             //Vector2[] uvs = new Vector2[4];

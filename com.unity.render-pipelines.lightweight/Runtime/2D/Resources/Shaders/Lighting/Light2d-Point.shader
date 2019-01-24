@@ -107,17 +107,23 @@
 				//attenuation = attenuation * attenuation;
 
 				// Calculate final color
-				float3 dirToLight = input.lightDirection.xyz; // half2(lookupValueNoRot.b, lookupValueNoRot.a);
+
+				// This is the code for fast point lights
+				float3 dirToLight = input.lightDirection.xyz;  
+
+				// This will be the code later for accurate point lights
+				//float3 dirToLight;
+				//dirToLight.xy = _LightPosition.xy - input.PositionWS.xy; // Calculate this in the vertex shader so we have less precision issues...
+				//dirToLight.z = _LightZDistance;
+				//dirToLight = normalize(dirToLight);
+
+
 				float cosAngle = (1 - usingDefaultNormalMap) * saturate(dot(dirToLight, normalUnpacked)) + usingDefaultNormalMap;
 				half4 lightColor = _LightColor * attenuation * cosAngle;
 
 				return lightColor * _InverseLightIntensityScale;
 
-				//float4 tmpColor;
-				//tmpColor.rgb = 0.5 * (normalize(dirToLight) + 1);
-				//tmpColor.a = 1;
-
-				//return tmpColor;
+				//return 1;
             }
             ENDHLSL
         }

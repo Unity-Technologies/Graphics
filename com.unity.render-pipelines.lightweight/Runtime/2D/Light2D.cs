@@ -138,7 +138,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set { m_LightVolumeOpacity = value; }
         }
 
-
         private int m_LightCullingIndex = -1;
         private Bounds m_LocalBounds;
         static private bool m_LightCullingEnabled = false;
@@ -163,9 +162,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public BoundingSphere GetBoundingSphere()
         {
-            if (transform == null)
-                return default(BoundingSphere);
-
             BoundingSphere boundingSphere = new BoundingSphere();
             if (m_LightProjectionType == LightProjectionTypes.Shape)
             {
@@ -179,7 +175,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
             else
             {
-
                 boundingSphere.radius = m_PointLightOuterRadius;
                 boundingSphere.position = transform.position;
             }
@@ -211,8 +206,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 for(int lightIndex=0; lightIndex < m_Lights[lightTypeIndex].Count; lightIndex++)
                 {
                     Light2D light = m_Lights[lightTypeIndex][lightIndex];
-                    boundingSpheres[lightCullingIndex] = light.GetBoundingSphere();
-                    light.m_LightCullingIndex = lightCullingIndex++;
+                    if (light != null)
+                    {
+                        boundingSpheres[lightCullingIndex] = light.GetBoundingSphere();
+                        light.m_LightCullingIndex = lightCullingIndex++;
+                    }
                 }
             }
 
@@ -246,16 +244,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (type != m_PreviousLightProjectionType)
             {
                 // Remove the old value
-                int index = (int)Light2DType.Point;
-                if (m_PreviousLightProjectionType == LightProjectionTypes.Shape)
-                    index = (int)m_LightOperation;
+                int index = (int)m_LightOperation;
                 if (m_Lights[index].Contains(this))
                     m_Lights[index].Remove(this);
 
                 // Add the new value
-                index = (int)Light2DType.Point;
-                if (type == LightProjectionTypes.Shape)
-                    index = (int)m_LightOperation;
+                index = (int)m_LightOperation;
                 if (!m_Lights[index].Contains(this))
                     m_Lights[index].Add(this);
 
@@ -332,7 +326,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             Vector3 minimum = new Vector3(float.MaxValue, float.MaxValue);
             Vector3 maximum = new Vector3(float.MinValue, float.MinValue);
-
             for (int i=0;i<vertices.Length;i++)
             {
                 Vector3 vertex = vertices[i];
@@ -738,7 +731,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
                 else if(m_LightProjectionType == LightProjectionTypes.Point)
                 {
-                    m_Mesh = GenerateParametricMesh(m_PointLightOuterRadius, 4 /* 4 sides */, 0, m_LightColor);
+                    m_Mesh = GenerateParametricMesh(m_PointLightOuterRadius, 32 /* 4 sides */, 0, m_LightColor);
+//                    RendererPointLights.CreateQuad(out m_Mesh);
                 }
             }
 
@@ -807,10 +801,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (m_Lights != null)
             {
-                int index = (int)Light2DType.Point;
-                if (m_LightProjectionType == LightProjectionTypes.Shape)
-                    index = (int)m_LightOperation;
-
+                int index = (int)m_LightOperation;
                 if (!m_Lights[index].Contains(this))
                     InsertLight(this);
             }

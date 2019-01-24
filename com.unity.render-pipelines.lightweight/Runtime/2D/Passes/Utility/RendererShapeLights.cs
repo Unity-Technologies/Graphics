@@ -94,7 +94,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             if (!renderedAnyLight)
                                 renderedAnyLight = true;
 
-                            cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
+                            if (lightProjectionType == Light2D.LightProjectionTypes.Shape)
+                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
+                            else
+                            {
+                                //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
+                                Vector3 scale = Vector3.one;
+                                Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
+                                cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightMaterial);
+                             }
                         }
                     }
                 }
