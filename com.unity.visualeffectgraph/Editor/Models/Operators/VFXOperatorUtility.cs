@@ -216,6 +216,12 @@ namespace UnityEditor.VFX
             return Dot(delta, delta);
         }
 
+        static public VFXExpression InverseLerp(VFXExpression x, VFXExpression y, VFXExpression s)
+        {
+            //(s - x)/(y - x)
+            return (s - x) / (y - x);
+        }
+
         static public VFXExpression Lerp(VFXExpression x, VFXExpression y, VFXExpression s)
         {
             //x + s(y - x)

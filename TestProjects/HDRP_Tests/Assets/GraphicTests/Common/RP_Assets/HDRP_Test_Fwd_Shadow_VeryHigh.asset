@@ -163,7 +163,6 @@ MonoBehaviour:
     supportTransparentDepthPostpass: 1
     supportedLitShaderMode: 1
     supportDecals: 1
-    supportMSAA: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
@@ -201,8 +200,11 @@ MonoBehaviour:
       atlasWidth: 2048
       atlasHeight: 1024
       perChannelMask: 1
+    postProcessSettings:
+      m_LutSize: 32
+      lutFormat: 2
   allowShaderVariantStripping: 1
-  enableSRPBatcher: 0
+  enableSRPBatcher: 1
   enableVariantStrippingLog: 0
   diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
     type: 2}

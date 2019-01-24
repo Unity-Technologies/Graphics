@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2458424b5c344b2409e3b844f89e459f, type: 3}
   m_Name: HDRenderPipelineEditorResources
   m_EditorClassIdentifier: 
-  defaultScene: {fileID: 3918024557961652705, guid: 89855f25edaeb7a458d3f6c9b8b8571e,
+  defaultScene: {fileID: 3628837357921210760, guid: bc694eebc7afe0b42b02d231420b217a,
     type: 3}
-  defaultVolumeProfile: {fileID: 11400000, guid: bd77ede639838eb4fa2e09a25ead8e24,
+  defaultRenderSettingsProfile: {fileID: 11400000, guid: cf1b32335766f2e40a3d01fb915d6960,
     type: 2}
-  defaultPostProcessProfile: {fileID: 11400000, guid: cf9a968c7c5fdad4d91a538548383802,
+  defaultPostProcessingProfile: {fileID: 11400000, guid: 0904b06389a0ca142ae72fe1effad808,
     type: 2}
   defaultDiffusionProfileSettings: {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0,
     type: 2}

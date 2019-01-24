@@ -44,6 +44,7 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
             struct Varyings
             {
                 float4 positionCS : SV_Position;
+                float2 texcoord   : TEXCOORD0;
             };
 
             int _FlipY;
@@ -52,13 +53,18 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+                if (_FlipY)
+                {
+                    output.texcoord.y = 1.0 - output.texcoord.y;
+                }
                 return output;
             }
 
             float Frag(Varyings input) : SV_Depth
             {
-                PositionInputs posInputs = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-                return LOAD_TEXTURE2D(_InputDepthTexture, (_FlipY == 0) ? posInputs.positionSS : float2(posInputs.positionNDC.x, 1.0 - posInputs.positionNDC.y) * _ScreenSize.xy).x;
+                uint2 coord = uint2(input.texcoord.xy * _ScreenSize.xy);
+                return LOAD_TEXTURE2D(_InputDepthTexture, coord).x;
             }
 
             ENDHLSL

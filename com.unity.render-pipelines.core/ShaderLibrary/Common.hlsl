@@ -184,12 +184,16 @@
 #ifndef SUPPORTS_WAVE_INTRINSICS
 #define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAllTrue)
 #define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAnyTrue)
+#define WaveGetLaneIndex ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneIndex)
+#define WaveIsFirstLane ERROR_ON_UNSUPPORTED_FUNCTION(WaveIsFirstLane)
+#define GetWaveID ERROR_ON_UNSUPPORTED_FUNCTION(GetWaveID)
 #define WaveActiveMin ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMin)
 #define WaveActiveMax ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMax)
 #define WaveActiveBallot ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBallot)
 #define WaveActiveSum ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveSum)
 #define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitAnd)
 #define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitOr)
+#define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
 #endif
 
 #if !defined(SHADER_API_GLES)

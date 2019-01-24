@@ -104,7 +104,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             GUILayout.Box(s_ExposureLow, s_PreLabel, GUILayout.MaxWidth(20));
             GUI.changed = false;
-            previewExposure = GUILayout.HorizontalSlider(previewExposure, -10f, 10f, GUILayout.MaxWidth(80));
+            previewExposure = GUILayout.HorizontalSlider(previewExposure, -20f, 20f, GUILayout.MaxWidth(80));
             GUILayout.Space(5);
             GUILayout.Box(s_MipMapHigh, s_PreLabel, GUILayout.MaxWidth(20));
             GUI.changed = false;

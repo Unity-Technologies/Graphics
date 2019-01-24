@@ -9,8 +9,6 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using _ = UnityEditor.Rendering.CoreEditorUtils;
-
     static partial class HDProbeUI
     {
         [Flags]
@@ -149,7 +147,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Drawers
             public static void DrawPrimarySettings(SerializedHDProbe serialized, Editor owner)
             {
-                const string modeGUIContent = "Type|'Baked' uses the 'Auto Baking' mode from the Lighting window. " +
+                const string modeTooltip = "'Baked' uses the 'Auto Baking' mode from the Lighting window. " +
                     "If it is enabled then baking is automatic otherwise manual bake is needed (use the bake button below). \n" +
                     "'Custom' can be used if a custom capture is wanted. \n" +
                     "'Realtime' can be used to dynamically re-render the capture during runtime (every frame).";
@@ -167,7 +165,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // Probe Mode
                 EditorGUI.showMixedValue = serialized.probeSettings.mode.hasMultipleDifferentValues;
-                EditorGUILayout.IntPopup(serialized.probeSettings.mode, k_ModeContents, k_ModeValues, _.GetContent(modeGUIContent));
+                EditorGUILayout.IntPopup(serialized.probeSettings.mode, k_ModeContents, k_ModeValues, EditorGUIUtility.TrTextContent("Type", modeTooltip));
                 EditorGUI.showMixedValue = false;
 
 #if !ENABLE_BAKED_PLANAR
@@ -188,7 +186,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             EditorGUI.showMixedValue = serialized.customTexture.hasMultipleDifferentValues;
                             EditorGUI.BeginChangeCheck();
                             var customTexture = EditorGUILayout.ObjectField(
-                                _.GetContent("Texture"), serialized.customTexture.objectReferenceValue, provider.customTextureType, false
+                                EditorGUIUtility.TrTextContent("Texture"), serialized.customTexture.objectReferenceValue, provider.customTextureType, false
                             );
                             EditorGUI.showMixedValue = false;
                             if (EditorGUI.EndChangeCheck())
@@ -299,9 +297,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     case ProbeSettings.Mode.Custom:
                         {
                             if (ButtonWithDropdownList(
-                                _.GetContent(
-                                    "Bake|Bakes Probe's texture, overwriting the existing texture asset " +
-                                    "(if any)."
+                                EditorGUIUtility.TrTextContent(
+                                    "Bake", "Bakes Probe's texture, overwriting the existing texture asset (if any)."
                                 ),
                                 k_BakeCustomOptionText,
                                 data =>
@@ -323,9 +320,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             if (UnityEditor.Lightmapping.giWorkflowMode
                                 != UnityEditor.Lightmapping.GIWorkflowMode.OnDemand)
                             {
-                                EditorGUILayout.HelpBox("Baking of this probe is automatic because this probe's " +
-                                    "type is 'Baked' and the Lighting window is using 'Auto Baking'. " +
-                                    "The texture created is stored in the GI cache.", MessageType.Info);
+                                EditorGUILayout.HelpBox("Baking of this probe is automatic because this probe's type is 'Baked' and the Lighting window is using 'Auto Baking'. The texture created is stored in the GI cache.", MessageType.Info);
                                 break;
                             }
 
@@ -333,7 +328,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                             // Bake button in non-continous mode
                             if (ButtonWithDropdownList(
-                                    _.GetContent("Bake"),
+                                    EditorGUIUtility.TrTextContent("Bake"),
                                     k_BakeButtonsText,
                                     data =>
                                     {

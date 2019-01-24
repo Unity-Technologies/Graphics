@@ -4,13 +4,10 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using _ = CoreEditorUtils;
-
     partial class HDCameraEditor
     {
         void OnSceneGUI()
@@ -20,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
                 return;
 
-            SceneViewOverlay_Window(_.GetContent("Camera Preview"), OnOverlayGUI, -100, target);
+            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Camera Preview"), OnOverlayGUI, -100, target);
 
             UnityEditor.CameraEditorUtils.HandleFrustum(c, c.GetInstanceID());
         }
@@ -36,8 +33,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorUtility.CopySerialized(c, m_PreviewCamera);
             var cameraData = c.GetComponent<HDAdditionalCameraData>();
             EditorUtility.CopySerialized(cameraData, m_PreviewAdditionalCameraData);
-            var layer = c.GetComponent<PostProcessLayer>() ?? ComponentSingleton<PostProcessLayer>.instance;
-            EditorUtility.CopySerialized(layer, m_PreviewPostProcessLayer);
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);
             m_PreviewCamera.targetTexture = previewTexture;
@@ -54,7 +49,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
                 null,
                 CallingConventions.Any,
-                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption },
+                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption, typeof(EditorWindow) },
                 null);
         static void SceneViewOverlay_Window(GUIContent title, Action<Object, SceneView> sceneViewFunc, int order, Object target)
         {
@@ -63,7 +58,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 title, DelegateUtility.Cast(sceneViewFunc, k_SceneViewOverlay_WindowFunction),
                 order,
                 target,
-                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1)
+                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1),
+                null
             });
         }
     }

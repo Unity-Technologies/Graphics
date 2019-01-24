@@ -60,11 +60,30 @@ namespace UnityEditor.Experimental.Rendering
         static bool s_TypeMapDirty;
         static Dictionary<Type, Type> s_WidgetStateMap; // DebugUI.Widget type -> DebugState type
         static Dictionary<Type, DebugUIDrawer> s_WidgetDrawerMap; // DebugUI.Widget type -> DebugUIDrawer
-        
+
+        static bool s_Open;
+        public static bool open
+        {
+            get => s_Open;
+            private set
+            {
+                if (s_Open ^ value)
+                    OnDebugWindowToggled?.Invoke(value);
+                s_Open = value;
+            }
+        }
+        static event Action<bool> OnDebugWindowToggled;
+                
         [DidReloadScripts]
         static void OnEditorReload()
         {
             s_TypeMapDirty = true;
+
+            //find if it where open, relink static event end propagate the info
+            open = (Resources.FindObjectsOfTypeAll<DebugWindow>()?.Length ?? 0) > 0;
+            if (OnDebugWindowToggled == null)
+                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
+            DebugManager.instance.ToggleEditorUI(open);
         }
 
         static void RebuildTypeMaps()
@@ -118,6 +137,9 @@ namespace UnityEditor.Experimental.Rendering
         {
             var window = GetWindow<DebugWindow>();
             window.titleContent = new GUIContent("Debug");
+            if(OnDebugWindowToggled == null)
+                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
+            open = true;
         }
 
         void OnEnable()
@@ -157,6 +179,7 @@ namespace UnityEditor.Experimental.Rendering
         // Note: this won't get called if the window is opened when the editor itself is closed
         void OnDestroy()
         {
+            open = false;
             DebugManager.instance.onSetDirty -= MarkDirty;
             Undo.ClearUndo(m_Settings);
 
@@ -390,7 +413,7 @@ namespace UnityEditor.Experimental.Rendering
                         if (panel.children.Count(x => !x.isInactiveInEditor) == 0)
                             continue;
 
-                        var elementRect = GUILayoutUtility.GetRect(CoreEditorUtils.GetContent(panel.displayName), s_Styles.sectionElement, GUILayout.ExpandWidth(true));
+                        var elementRect = GUILayoutUtility.GetRect(EditorGUIUtility.TrTextContent(panel.displayName), s_Styles.sectionElement, GUILayout.ExpandWidth(true));
 
                         if (m_Settings.selectedPanel == i && Event.current.type == EventType.Repaint)
                             s_Styles.selected.Draw(elementRect, false, false, false, false);

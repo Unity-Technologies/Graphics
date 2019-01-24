@@ -352,9 +352,6 @@ namespace UnityEditor.VFX
 
         static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData)
         {
-            var dependencies = new HashSet<ScriptableObject>();
-            context.CollectDependencies(dependencies);
-
             var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);
 
             var globalDeclaration = new VFXShaderWriter();

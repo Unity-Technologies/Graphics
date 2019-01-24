@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_ScreenFadeDistance, CoreEditorUtils.GetContent("Screen Weight Distance"));
+            PropertyField(m_ScreenFadeDistance, EditorGUIUtility.TrTextContent("Screen Weight Distance"));
         }
     }
 }

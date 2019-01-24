@@ -93,6 +93,14 @@ void Frag(PackedVaryingsToPS packedInput,
 
         outColor = float4(result, 1.0);
     }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR || _DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    {
+        float3 result = float3(0.0, 0.0, 0.0);
+
+        GetPBRValidatorDebug(surfaceData, result);
+
+        outColor = float4(result, 1.0f);
+    }
     else
 #endif
     {
@@ -105,6 +113,9 @@ void Frag(PackedVaryingsToPS packedInput,
         float3 specularLighting;
 
         LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+
+        diffuseLighting *= GetCurrentExposureMultiplier();
+        specularLighting *= GetCurrentExposureMultiplier();
 
 #ifdef OUTPUT_SPLIT_LIGHTING
         if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))

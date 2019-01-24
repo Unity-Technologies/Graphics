@@ -202,6 +202,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
+        
+        [SerializeField]
+        HDRenderQueue.RenderQueueType m_RenderingPass = HDRenderQueue.RenderQueueType.Unknown;
+
+        public HDRenderQueue.RenderQueueType renderingPass
+        {
+            get { return m_RenderingPass; }
+            set
+            {
+                if (m_RenderingPass == value)
+                    return;
+
+                m_RenderingPass = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
 
         [SerializeField]
         bool m_BlendPreserveSpecular = true;
@@ -232,22 +248,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-
-        [SerializeField]
-        bool m_DrawBeforeRefraction;
-
-        public ToggleData drawBeforeRefraction
-        {
-            get { return new ToggleData(m_DrawBeforeRefraction); }
-            set
-            {
-                if (m_DrawBeforeRefraction == value.isOn)
-                    return;
-                m_DrawBeforeRefraction = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
+        
+        [SerializeField, Obsolete("Kept for data migration")]
+        internal bool m_DrawBeforeRefraction;
 
         [SerializeField]
         ScreenSpaceRefraction.RefractionModel m_RefractionModel;
@@ -590,7 +593,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public bool HasRefraction()
         {
-            return (surfaceType == SurfaceType.Transparent && !drawBeforeRefraction.isOn && refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            return (surfaceType == SurfaceType.Transparent && renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && refractionModel != ScreenSpaceRefraction.RefractionModel.None);
         }
 
         public bool HasDistortion()

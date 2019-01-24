@@ -44,10 +44,10 @@ Shader "HDRP/Decal"
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
-    #pragma shader_feature _COLORMAP
-    #pragma shader_feature _NORMALMAP
-    #pragma shader_feature _MASKMAP
-	#pragma shader_feature _ALBEDOCONTRIBUTION
+    #pragma shader_feature_local _COLORMAP
+    #pragma shader_feature_local _NORMALMAP
+    #pragma shader_feature_local _MASKMAP
+	#pragma shader_feature_local _ALBEDOCONTRIBUTION
 
     #pragma multi_compile_instancing
 

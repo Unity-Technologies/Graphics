@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public AdditionalShadowData additionalShadowData;
             public bool isPrefab;
             public Object prefabRoot;
-            
+
             public LightData(HDAdditionalLightData hdAdditionalLightData, AdditionalShadowData additionalShadowData, bool isPrefab, Object prefabRoot)
             {
                 this.hdAdditionalLightData = hdAdditionalLightData;
@@ -28,13 +28,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         struct VolumeData
         {
             public bool isGlobal;
-            public bool hasBakingSky;
+            public bool hasStaticLightingSky;
             public bool hasVisualEnvironment;
             public VolumeProfile profile;
             public FogType fogType;
             public SkyType skyType;
-            
-            public VolumeData(bool isGlobal, VolumeProfile profile, bool hasBakingSky)
+
+            public VolumeData(bool isGlobal, VolumeProfile profile, bool hasStaticLightingSky)
             {
                 this.isGlobal = isGlobal;
                 this.profile = profile;
@@ -50,7 +50,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     this.skyType = (SkyType)1;
                     this.fogType = (FogType)0;
                 }
-                this.hasBakingSky = hasBakingSky;
+                this.hasStaticLightingSky = hasStaticLightingSky;
             }
         }
 
@@ -90,7 +90,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent HasVisualEnvironment = EditorGUIUtility.TrTextContent("Has Visual Environment");
             public static readonly GUIContent FogType = EditorGUIUtility.TrTextContent("Fog Type");
             public static readonly GUIContent SkyType = EditorGUIUtility.TrTextContent("Sky Type");
-            public static readonly GUIContent HasBakingSky = EditorGUIUtility.TrTextContent("Has Baking Sky");
+            public static readonly GUIContent HasStaticLightingSky = EditorGUIUtility.TrTextContent("Has Static Lighting Sky");
 
             public static readonly GUIContent ReflectionProbeMode = EditorGUIUtility.TrTextContent("Mode");
             public static readonly GUIContent ReflectionProbeShape = EditorGUIUtility.TrTextContent("Shape");
@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent[] LightmapBakeTypeTitles = { EditorGUIUtility.TrTextContent("Realtime"), EditorGUIUtility.TrTextContent("Mixed"), EditorGUIUtility.TrTextContent("Baked") };
             public static readonly int[] LightmapBakeTypeValues = { (int)LightmapBakeType.Realtime, (int)LightmapBakeType.Mixed, (int)LightmapBakeType.Baked };
         }
-        
+
         public override LightingExplorerTab[] GetContentTabs()
         {
             return new[]
@@ -130,7 +130,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 else
                 {
                     lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(), light.GetComponent<AdditionalShadowData>(), false, null);
-                }                
+                }
             }
             return lights;
         }
@@ -157,12 +157,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var volumes = UnityEngine.Object.FindObjectsOfType<Volume>();
             foreach (var volume in volumes)
             {
-                bool hasBakingSky = volume.GetComponent<BakingSky>();
-                volumeDataPairing[volume] = new VolumeData(volume.isGlobal, volume.profile,hasBakingSky);
+                bool hasStaticLightingSky = volume.GetComponent<StaticLightingSky>();
+                volumeDataPairing[volume] = new VolumeData(volume.isGlobal, volume.profile,hasStaticLightingSky);
             }
             return volumes;
         }
-        
+
         protected virtual LightingExplorerTableColumn[] GetHDLightColumns()
         {
             return new[]
@@ -193,7 +193,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         Undo.RecordObject(lightDataPairing[light].hdAdditionalLightData, "Changed light intensity");
                         lightDataPairing[light].hdAdditionalLightData.intensity = intensity;
                     }
-                }), 
+                }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Unit, "m_Intensity", 60, (r, prop, dep) =>                // 9: Unit
                 {
                     Light light = prop.serializedObject.targetObject as Light;
@@ -315,14 +315,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.EndDisabledGroup();
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.HasBakingSky, "sharedProfile", 100, (r, prop, dep) =>       // 8: Has Baking Sky
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.HasStaticLightingSky, "sharedProfile", 100, (r, prop, dep) =>       // 8: Has Static Lighting Sky
                 {
                     Volume volume = prop.serializedObject.targetObject as Volume;
-                    bool hasBakingSky = volumeDataPairing[volume].hasBakingSky;
+                    bool hasStaticLightingSky = volumeDataPairing[volume].hasStaticLightingSky;
                     EditorGUI.BeginDisabledGroup(true);
-                    EditorGUI.Toggle(r, hasBakingSky);
+                    EditorGUI.Toggle(r, hasStaticLightingSky);
                     EditorGUI.EndDisabledGroup();
-                }), 
+                }),
             };
         }
 

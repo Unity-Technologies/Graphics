@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -15,7 +15,6 @@ public class MultiCam : MonoBehaviour
 
     RenderTexture rt;
     RenderTexture smallRT;
-    RenderTexture flipRT;
 
     Camera targetCam;
     HDAdditionalCameraData hdCam;
@@ -79,16 +78,8 @@ public class MultiCam : MonoBehaviour
             Destroy(smallRT);
 #endif
 
-        if (flipRT != null)
-#if UNITY_EDITOR
-            DestroyImmediate(flipRT, false);
-#else
-            Destroy(smallRT);
-#endif
-
         rt = new RenderTexture(descriptor);
         smallRT = new RenderTexture(smallDescriptor);
-        flipRT = new RenderTexture(smallDescriptor);
     }
 
     void Render()
@@ -111,8 +102,7 @@ public class MultiCam : MonoBehaviour
 
                 targetCam.Render();
 
-                Graphics.Blit(smallRT, flipRT); //vertical flip
-                Graphics.CopyTexture( flipRT, 0, 0, 0, 0, singleRes.x, singleRes.y, rt, 0, 0, x*singleRes.x, (tiles.y-y-1)*singleRes.y);
+                Graphics.CopyTexture(smallRT, 0, 0, 0, 0, singleRes.x, singleRes.y, rt, 0, 0, x*singleRes.x, (tiles.y-y-1)*singleRes.y);
 
                 if ( i < sets.Length ) sets[i].gameObject.SetActive(false);
                 ++i;

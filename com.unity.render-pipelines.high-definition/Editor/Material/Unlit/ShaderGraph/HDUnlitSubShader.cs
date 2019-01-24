@@ -346,7 +346,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, masterNode.alphaTest.isOn, masterNode.drawBeforeRefraction.isOn, masterNode.sortPriority);
+                //Handle data migration here as we need to have a renderingPass already set with accurate data at this point.
+                if (masterNode.renderingPass == HDRenderQueue.RenderQueueType.Unknown)
+                {
+                    switch (masterNode.surfaceType)
+                    {
+                        case SurfaceType.Opaque:
+                            masterNode.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+                            break;
+                        case SurfaceType.Transparent:
+#pragma warning disable CS0618 // Type or member is obsolete
+                            if (masterNode.m_DrawBeforeRefraction)
+                            {
+                                masterNode.m_DrawBeforeRefraction = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+                                masterNode.renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
+                            }
+                            else
+                            {
+                                masterNode.renderingPass = HDRenderQueue.RenderQueueType.Transparent;
+                            }
+                            break;
+                        default:
+                            throw new System.ArgumentException("Unknown SurfaceType");
+                    }
+                }
+
+                HDMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn, HDMaterialTags.RenderType.HDUnlitShader);
 
                 // Add tags at the SubShader level
                 {
@@ -380,6 +406,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
+
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitGUI""");
 
             return subShader.GetShaderString(0);

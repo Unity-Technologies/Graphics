@@ -29,7 +29,7 @@
 #ifdef SHADOW_VERY_HIGH
 #define PUNCTUAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_PCSS(posTC, posSS, sd.shadowMapSize.xy * _ShadowAtlasSize.zw, sd.atlasOffset, sampleBias, sd.shadowFilterParams0.x, sd.shadowFilterParams0.w, asint(sd.shadowFilterParams0.y), asint(sd.shadowFilterParams0.z), tex, samp, s_point_clamp_sampler)
 #define USE_IMPROVED_MOMENT_SHADOWS
-#define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_IMS(sd, posTC, sampleBias, sd.shadowFilterParams0.x, sd.shadowFilterParams0.y, sd.shadowFilterParams0.z)
+#define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, sampleBias, tex, samp) SampleShadow_IMS(sd, posTC, sampleBias.x, sd.shadowFilterParams0.x, sd.shadowFilterParams0.y, sd.shadowFilterParams0.z)
 #endif
 
 #ifndef PUNCTUAL_FILTER_ALGORITHM
@@ -46,6 +46,7 @@ float4 EvalShadow_WorldToShadow(HDShadowData sd, float3 positionWS, bool perspPr
 #if 0
     return mul(viewProjection, float4(positionWS, 1));
 #else
+
     if(perspProj)
     {
         positionWS = positionWS - sd.pos;
@@ -262,6 +263,9 @@ float2 EvalShadow_SampleBias_Ortho(float3 normalWS)                             
 //
 float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
+    /* in stereo, translate input position to the same space as shadows for proper sampling and bias */
+    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
+
     /* bias the world position */
     float recvBiasWeight = EvalShadow_ReceiverBiasWeight(sd, _ShadowAtlasSize.zw, sd.atlasOffset, sd.viewBias, sd.edgeTolerance, sd.flags, tex, samp, positionWS, normalWS, L, L_dist, perspective);
     positionWS = EvalShadow_ReceiverBias(sd.viewBias, sd.normalBias, positionWS, normalWS, L, L_dist, recvBiasWeight, perspective);
@@ -283,7 +287,6 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
     float  relDistance = 0.0;
     float3 wposDir, splitSphere;
 
-    HDShadowData sd = shadowContext.shadowDatas[index];
     HDDirectionalShadowData dsd = shadowContext.directionalShadowData;
 
     // find the current cascade
@@ -322,6 +325,9 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
 
 float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
 {
+    // In stereo, translate input position to the same space as shadows for proper sampling and bias
+    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
+
     float   alpha;
     int     cascadeCount;
     float   shadow = 1.0;

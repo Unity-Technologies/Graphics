@@ -111,7 +111,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V)
         }
     }
 
-    return float4(fogColor, fogFactor);
+    return float4(fogColor * GetCurrentExposureMultiplier(), fogFactor);
 }
 
 #endif

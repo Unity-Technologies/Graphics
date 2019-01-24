@@ -46,11 +46,6 @@
     background-color: rgba(63,63,63,0.8);
 }
 
-.VFXNodeUI.node #contents > #top > #input
-{
-    background-color: rgba(0,0,0,0.0);
-}
-
 
 .VFXNodeUI #settings
 {
@@ -92,6 +87,13 @@
     padding-top:6;
     padding-bottom:6;
     flex: 1 1 auto;
+    background-color: rgba(0,0,0,0.0);
+}
+
+.VFXNodeUI.node #contents > #top > #output
+{
+    padding-top:6;
+    padding-bottom:6;
 }
 
 #line

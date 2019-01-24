@@ -3,7 +3,6 @@ Shader "Hidden/HDRP/Sky/GradientSky"
     HLSLINCLUDE
 
     #pragma vertex Vert
-    #pragma fragment Frag
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
@@ -20,6 +19,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
     float4 _GradientMiddle;
     float4 _GradientTop;
     float _GradientDiffusion;
+    float2 _SkyParam;
 
     struct Attributes
     {
@@ -38,15 +38,27 @@ Shader "Hidden/HDRP/Sky/GradientSky"
         return output;
     }
 
-    float4 Frag(Varyings input) : SV_Target
+    float4 RenderSky(Varyings input)
     {
         float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy, (float3x3)_PixelCoordToViewDirWS);
         float verticalGradient = viewDirWS.y * _GradientDiffusion;
         float topLerpFactor = saturate(-verticalGradient);
         float bottomLerpFactor = saturate(verticalGradient);
         float3 color = lerp(_GradientMiddle.xyz, _GradientBottom.xyz, bottomLerpFactor);
-        color = lerp(color, _GradientTop.xyz, topLerpFactor);
-        return float4 (color, 1.0);
+        color = lerp(color, _GradientTop.xyz, topLerpFactor) * _SkyParam.x * _SkyParam.y;
+        return float4(color, 1.0);
+    }
+
+    float4 FragBaking(Varyings input) : SV_Target
+    {
+        return RenderSky(input);
+    }
+
+    float4 FragRender(Varyings input) : SV_Target
+    {
+        float4 color = RenderSky(input);
+        color.rgb *= GetCurrentExposureMultiplier();
+        return color;
     }
 
     ENDHLSL
@@ -61,6 +73,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
             Cull Off
 
             HLSLPROGRAM
+                #pragma fragment FragBaking
             ENDHLSL
 
         }
@@ -73,6 +86,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
             Cull Off
 
             HLSLPROGRAM
+                #pragma fragment FragRender
             ENDHLSL
         }
 

@@ -471,7 +471,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
         void ChangeSortPriority(ChangeEvent<int> evt)
         {
-            m_Node.sortPriority = Math.Max(-HDRenderQueue.k_TransparentPriorityQueueRange, Math.Min(evt.newValue, HDRenderQueue.k_TransparentPriorityQueueRange));
+            m_Node.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(evt.newValue);
             // Force the text to match.
             m_SortPiorityField.value = m_Node.sortPriority;
             if (Equals(m_Node.sortPriority, evt.newValue))
