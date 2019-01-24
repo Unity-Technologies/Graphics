@@ -27,6 +27,12 @@ namespace UnityEditor.Rendering
         public SerializedProperty baseProperty { get; internal set; }
         public SerializedProperty activeProperty { get; internal set; }
 
+        SerializedProperty m_AdvancedMode;
+
+        public virtual bool hasAdvancedMode => false;
+
+        public bool isInAdvancedMode => m_AdvancedMode != null && m_AdvancedMode.boolValue;
+
         Editor m_Inspector;
         List<SerializedDataParameter> m_Parameters;
 
@@ -76,6 +82,7 @@ namespace UnityEditor.Rendering
             m_Inspector = inspector;
             serializedObject = new SerializedObject(target);
             activeProperty = serializedObject.FindProperty("active");
+            m_AdvancedMode = serializedObject.FindProperty("m_AdvancedMode");
             OnEnable();
         }
 
@@ -84,6 +91,7 @@ namespace UnityEditor.Rendering
             m_Parameters = new List<SerializedDataParameter>();
 
             // Grab all valid serializable field on the VolumeComponent
+            // TODO: Should only be done when needed / on demand as this can potentially be wasted CPU when a custom editor is in use
             var fields = target.GetType()
                 .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
@@ -132,13 +140,17 @@ namespace UnityEditor.Rendering
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(CoreEditorUtils.GetContent("All|Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need."), CoreEditorStyles.miniLabelButton, GUILayout.Width(17f), GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("All", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need."), CoreEditorStyles.miniLabelButton, GUILayout.Width(17f), GUILayout.ExpandWidth(false)))
                     SetAllOverridesTo(true);
 
-                if (GUILayout.Button(CoreEditorUtils.GetContent("None|Toggle all overrides off."), CoreEditorStyles.miniLabelButton, GUILayout.Width(32f), GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("None", "Toggle all overrides off."), CoreEditorStyles.miniLabelButton, GUILayout.Width(32f), GUILayout.ExpandWidth(false)))
                     SetAllOverridesTo(false);
 
                 GUILayout.FlexibleSpace();
+
+                // TODO: Rework the UI to match the 'advanced mode' in regular HDRP components
+                if (hasAdvancedMode)
+                    m_AdvancedMode.boolValue = GUILayout.Toggle(m_AdvancedMode.boolValue, "Advanced", EditorStyles.miniButton, GUILayout.ExpandWidth(false), GUILayout.Width(70f));
             }
         }
 
@@ -158,7 +170,7 @@ namespace UnityEditor.Rendering
 
         protected void PropertyField(SerializedDataParameter property)
         {
-            var title = CoreEditorUtils.GetContent(property.displayName);
+            var title = EditorGUIUtility.TrTextContent(property.displayName);
             PropertyField(property, title);
         }
 
@@ -254,7 +266,7 @@ namespace UnityEditor.Rendering
         {
             var overrideRect = GUILayoutUtility.GetRect(17f, 17f, GUILayout.ExpandWidth(false));
             overrideRect.yMin += 4f;
-            property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, CoreEditorUtils.GetContent("|Override this setting for this volume."), CoreEditorStyles.smallTickbox);
+            property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, EditorGUIUtility.TrTextContent("", "Override this setting for this volume."), CoreEditorStyles.smallTickbox);
         }
     }
 }

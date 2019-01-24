@@ -37,7 +37,7 @@ Shader "Hidden/HDRP/Deferred"
             #pragma fragment Frag
 
             // Chose supported lighting architecture in case of deferred rendering
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+            #pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
@@ -82,6 +82,14 @@ Shader "Hidden/HDRP/Deferred"
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
+
+            //#define ENABLE_RAYTRACING
+            #ifdef ENABLE_RAYTRACING
+            CBUFFER_START(UnityDeferred)
+                // Uniform variables that defines if we shall be using the shadow area texture or not
+                int _RaytracedAreaShadow;
+            CBUFFER_END
+            #endif
 
             struct Attributes
             {
@@ -129,6 +137,9 @@ Shader "Hidden/HDRP/Deferred"
                 float3 diffuseLighting;
                 float3 specularLighting;
                 LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+
+                diffuseLighting *= GetCurrentExposureMultiplier();
+                specularLighting *= GetCurrentExposureMultiplier();
 
                 Outputs outputs;
 

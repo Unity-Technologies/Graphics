@@ -2,7 +2,7 @@
 
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && defined(LIGHTLOOP_TILE_PASS) && SHADERPASS == SHADERPASS_FORWARD)
+#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 
 //-----------------------------------------------------------------------------
 // LightLoop
@@ -143,7 +143,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         uint lightCount, lightStart;
         bool fastPath = false;
 
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
 
 #if SCALARIZE_LIGHT_LOOP
@@ -152,7 +152,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         fastPath = WaveActiveAllTrue(lightStart == lightStartLane0); 
 #endif
 
-#else   // LIGHTLOOP_TILE_PASS
+#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         lightCount = _PunctualLightCount;
         lightStart = 0;
 #endif
@@ -213,7 +213,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     {
         uint lightCount, lightStart;
 
-    #ifdef LIGHTLOOP_TILE_PASS
+    #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_AREA, lightStart, lightCount);
     #else
         lightCount = _AreaLightCount;
@@ -279,7 +279,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         bool fastPath = false;
         // Fetch first env light to provide the scene proxy for screen space computation
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
 
     #if SCALARIZE_LIGHT_LOOP
@@ -288,7 +288,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         fastPath = WaveActiveAllTrue(envLightStart == envStartFirstLane); 
     #endif
 
-#else   // LIGHTLOOP_TILE_PASS
+#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         envLightCount = _EnvLightCount;
         envLightStart = 0;
 #endif

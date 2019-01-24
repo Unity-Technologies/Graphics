@@ -9,7 +9,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             None,
             First,
-            SeparatePassThrough
+            SeparatePassThrough,
+            UpgradingFrameSettingsToStruct
         }
 
         [SerializeField, FormerlySerializedAs("version")]
@@ -35,6 +36,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         data.customRenderingSettings = false;
                         break;
                 }
+            }),
+            MigrationStep.New(Version.UpgradingFrameSettingsToStruct, (HDAdditionalCameraData data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                if (data.m_ObsoleteFrameSettings != null)
+                    FrameSettings.MigrateFromClassVersion(ref data.m_ObsoleteFrameSettings, ref data.renderingPathCustomFrameSettings, ref data.renderingPathCustomFrameSettingsOverrideMask);
+#pragma warning restore 618
             })
         );
 
@@ -43,6 +51,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #pragma warning disable 649 // Field never assigned
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
         int m_ObsoleteRenderingPath;
+        [SerializeField]
+        [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings")]
+#pragma warning disable 618 // Type or member is obsolete
+        ObsoleteFrameSettings m_ObsoleteFrameSettings;
+#pragma warning restore 618
 #pragma warning restore 649
     }
 }

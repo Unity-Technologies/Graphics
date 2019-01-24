@@ -29,6 +29,14 @@ namespace UnityEngine.Experimental.Rendering
                 children.ItemRemoved += OnItemRemoved;
             }
 
+            public Container(string displayName, ObservableList<Widget> children)
+            {
+                this.displayName = displayName;
+                this.children = children;
+                children.ItemAdded += OnItemAdded;
+                children.ItemRemoved += OnItemRemoved;
+            }
+
             internal override void GenerateQueryPath()
             {
                 base.GenerateQueryPath();
@@ -80,30 +88,24 @@ namespace UnityEngine.Experimental.Rendering
 
             public bool opened;
 
-            public bool GetValue()
+            public string[] columnLabels { get; set; } = null;
+
+            public Foldout() : base() { }
+            public Foldout(string displayName, ObservableList<Widget> children, string[] columnLabels = null)
+                : base(displayName, children)
             {
-                return opened;
+                this.columnLabels = columnLabels;
             }
 
-            object IValueField.GetValue()
-            {
-                return GetValue();
-            }
+            public bool GetValue() => opened;
 
-            public void SetValue(object value)
-            {
-                SetValue((bool)value);
-            }
+            object IValueField.GetValue() => GetValue();
 
-            public object ValidateValue(object value)
-            {
-                return value;
-            }
+            public void SetValue(object value) => SetValue((bool)value);
 
-            public void SetValue(bool value)
-            {
-                opened = value;
-            }
+            public object ValidateValue(object value) => value;
+
+            public void SetValue(bool value) => opened = value;
         }
 
         // Horizontal layout

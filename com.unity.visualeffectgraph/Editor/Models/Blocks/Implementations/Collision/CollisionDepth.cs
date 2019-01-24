@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Block
             Custom,
         }
 
-        [VFXSetting]
+        [VFXSetting, SerializeField]
         SurfaceThickness surfaceThickness = SurfaceThickness.Infinite;
 
         public override string name { get { return "Collider (Depth)"; } }

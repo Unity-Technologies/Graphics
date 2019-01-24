@@ -77,10 +77,10 @@ namespace UnityEditor.Experimental.Rendering
     }
 
     // Builtins
-    [Serializable, DebugState(typeof(DebugUI.BoolField), typeof(DebugUI.Foldout))]
+    [Serializable, DebugState(typeof(DebugUI.BoolField), typeof(DebugUI.Foldout), typeof(DebugUI.HistoryBoolField))]
     public sealed class DebugStateBool : DebugState<bool> {}
 
-    [Serializable, DebugState(typeof(DebugUI.IntField), typeof(DebugUI.EnumField))]
+    [Serializable, DebugState(typeof(DebugUI.IntField), typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
     public sealed class DebugStateInt : DebugState<int> {}
 
     [Serializable, DebugState(typeof(DebugUI.BitField))]

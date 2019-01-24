@@ -71,7 +71,7 @@ namespace UnityEditor.VFX
 
         class VFXSettingsProvider : SettingsProvider
         {
-            public VFXSettingsProvider() : base("Visual Effects", SettingsScope.User)
+            public VFXSettingsProvider() : base("Preferences/Visual Effects", SettingsScope.User)
             {
                 hasSearchInterestHandler = HasSearchInterestHandler;
             }

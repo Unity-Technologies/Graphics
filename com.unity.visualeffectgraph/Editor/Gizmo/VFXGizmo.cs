@@ -55,20 +55,20 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public bool ScaleGizmo(Vector3 position, ref Vector3 scale, bool always)
+        public bool ScaleGizmo(Vector3 position, ref Vector3 scale, Quaternion rotation, bool always)
         {
             if (always || Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                scale = Handles.ScaleHandle(scale, position , Quaternion.identity, Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
+                scale = Handles.ScaleHandle(scale, position , rotation, Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
                 return EditorGUI.EndChangeCheck();
             }
             return false;
         }
 
-        public bool ScaleGizmo(Vector3 position, Vector3 scale, IProperty<Vector3> scaleProperty, bool always)
+        public bool ScaleGizmo(Vector3 position, Vector3 scale, Quaternion rotation, IProperty<Vector3> scaleProperty, bool always)
         {
-            if (scaleProperty.isEditable && ScaleGizmo(position, ref scale, always))
+            if (scaleProperty.isEditable && ScaleGizmo(position, ref scale, rotation, always))
             {
                 scaleProperty.SetValue(scale);
                 return true;
@@ -221,22 +221,14 @@ namespace UnityEditor.VFX
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
-            if( !spaceLocalByDefault)
+            if (currentSpace == VFXCoordinateSpace.Local)
             {
-                if (currentSpace == VFXCoordinateSpace.Local)
-                {
-                    if (component == null) return;
-                    Handles.matrix = component.transform.localToWorldMatrix;
-                }
+                if (component == null) return;
+                Handles.matrix = component.transform.localToWorldMatrix;
             }
             else
             {
-                if (currentSpace != VFXCoordinateSpace.Local)
-                {
-                    if (component == null) return;
-                    Handles.matrix = component.transform.worldToLocalMatrix;
-                }
-
+                Handles.matrix = Matrix4x4.identity;
             }
 
             OnDrawSpacedGizmo(value);

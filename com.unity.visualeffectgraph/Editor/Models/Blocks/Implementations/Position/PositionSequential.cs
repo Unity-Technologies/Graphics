@@ -6,9 +6,9 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    class PositionSequentialVariantProvider : IVariantProvider
+    class PositionSequentialVariantProvider : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {
@@ -107,18 +107,18 @@ namespace UnityEditor.VFX.Block
 
         public class InputPropertiesThreeDimensional
         {
-            public Position Origin = Position.defaultValue;
-
-            public Vector3 AxisX = Vector3.right;
-            public Vector3 AxisY = Vector3.up;
-            public Vector3 AxisZ = Vector3.forward;
-
             [Tooltip("Element X count used to loop over the sequence")]
             public uint CountX = 8;
             [Tooltip("Element Y count used to loop over the sequence")]
             public uint CountY = 8;
             [Tooltip("Element Z count used to loop over the sequence")]
             public uint CountZ = 8;
+
+            public Position Origin = Position.defaultValue;
+
+            public Vector AxisX = Vector3.right;
+            public Vector AxisY = Vector3.up;
+            public Vector AxisZ = Vector3.forward;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties

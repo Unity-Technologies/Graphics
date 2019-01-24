@@ -1,7 +1,6 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Runtime.Tests",
     "references": [
-        "Unity.Postprocessing.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime"
     ],

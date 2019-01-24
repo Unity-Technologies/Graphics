@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private RTHandleSystem.RTHandle m_AtlasTexture = null;
         private int m_Width;
         private int m_Height;
-        private RenderTextureFormat m_Format;
+        private GraphicsFormat m_Format;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<int, Vector4> m_AllocationCache = new Dictionary<int, Vector4>();
 
@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public Texture2DAtlas(int width, int height, RenderTextureFormat format)
+        public Texture2DAtlas(int width, int height, GraphicsFormat format)
         {
             m_Width = width;
             m_Height = height;
@@ -145,7 +145,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     FilterMode.Point,
                     TextureWrapMode.Clamp,
                     TextureDimension.Tex2D,
-                    false,
                     false,
                     true,
                     false);

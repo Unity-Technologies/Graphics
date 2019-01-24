@@ -1,0 +1,159 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
+
+#pragma kernel TileGenPass          GEN_PASS
+#pragma kernel TileNeighbourhood    NEIGHBOURHOOD_PASS
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#define USE_WAVE_INTRINSICS         defined(SUPPORTS_WAVE_INTRINSICS)
+
+uint PackVel(float2 packedVel)
+{
+    // Most relevant bits contain the length of the velocity, so that we can sort directly on uint value.
+    return f32tof16(packedVel.y) | f32tof16(packedVel.x) << 16;
+}
+
+float2 UnpackVel(uint packedVel)
+{
+    float2 outVel;
+    outVel.x = f16tof32(packedVel >> 16);
+    outVel.y = f16tof32(packedVel);
+    return outVel;
+}
+
+#if USE_WAVE_INTRINSICS
+
+#define LDS_SIZE  (TILE_SIZE * TILE_SIZE) / WAVE_SIZE
+
+#else
+
+#define LDS_SIZE TILE_SIZE * TILE_SIZE
+
+#endif
+
+groupshared float gs_minVel[LDS_SIZE];
+groupshared uint gs_maxVel[LDS_SIZE];
+
+
+
+// Returns min vel length in x, max vel in zw
+float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
+{
+    uint packedVel = PackVel(velocity);
+    float velLength = VelocityLengthFromEncoded(velocity);
+    float minVelLen = 0.0f;
+    uint  maxVelPacked = 0.0f;
+
+#if USE_WAVE_INTRINSICS // This works only with multiple of 8 for TILE_SIZE.
+
+    uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
+
+    // Find min/max for this wave and store it in LDS. 
+    float waveMin = WaveActiveMin(velLength);
+    uint waveMax = WaveActiveMax(packedVel);
+
+    uint waveIDInGroup = gid / WAVE_SIZE;
+    if (WaveIsFirstLane())
+    {
+        gs_minVel[waveIDInGroup] = waveMin;
+        gs_maxVel[waveIDInGroup] = waveMax;
+    }
+
+    // We have values for all the waves, let's sync. 
+    GroupMemoryBarrierWithGroupSync();
+
+    if (threadIdx == 0)
+    {
+        // Find min and max across waves.
+        minVelLen = gs_minVel[0];
+        maxVelPacked = gs_maxVel[0];
+        for (int i = 1; i < waveCount; ++i)
+        {
+            minVelLen = min(minVelLen, gs_minVel[i]);
+            maxVelPacked = max(maxVelPacked, gs_maxVel[i]);
+        }
+    }
+#else
+    gs_minVel[threadIdx] = velLength;
+    gs_maxVel[threadIdx] = packedVel;
+
+    GroupMemoryBarrierWithGroupSync();
+
+
+    UNITY_UNROLL
+    for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_minVel[threadIdx] = min(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
+            gs_maxVel[threadIdx] = max(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    maxVelPacked = gs_maxVel[0];
+    minVelLen = gs_minVel[0];
+
+#endif
+    float2 unpackedMaxVel = UnpackVel(maxVelPacked);
+    return float3(minVelLen, unpackedMaxVel);
+}
+
+
+#ifdef GEN_PASS
+
+[numthreads(TILE_SIZE, TILE_SIZE,1)]
+void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
+{
+    uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
+
+    float2 velocity = LOAD_TEXTURE2D(_VelocityAndDepth, id.xy).xy;
+
+    float3 minMaxVel = ParallelReduction(gid, threadIdx, velocity);
+    float minVelLength = minMaxVel.x;
+    float2 maxVel = minMaxVel.yz;
+
+    if (threadIdx == 0)
+    {
+        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, minVelLength);
+    }
+
+}
+
+#elif NEIGHBOURHOOD_PASS 
+
+[numthreads(8, 8, 1)]
+void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    int2 id = dispatchID.xy;
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    float3 centralSample = _TileMinMaxVel[id.xy + uint2(0, 0)].xyz;
+    
+    float3 v0 = _TileMinMaxVel[clamp(id.xy + int2(-1,  1), int2(0, 0), maxCoords)].xyz;
+    float3 v1 = _TileMinMaxVel[clamp(id.xy + int2( 0,  1), int2(0, 0), maxCoords)].xyz;
+    float3 v2 = _TileMinMaxVel[clamp(id.xy + int2( 1,  1), int2(0, 0), maxCoords)].xyz;
+
+    float3 v3 = _TileMinMaxVel[clamp(id.xy + int2(-1,  0), int2(0, 0), maxCoords)].xyz;
+    float3 v4 = centralSample.xyz;
+    float3 v5 = _TileMinMaxVel[clamp(id.xy + int2( 1,  0), int2(0, 0), maxCoords)].xyz;
+
+    float3 v6 = _TileMinMaxVel[clamp(id.xy + int2(-1,  -1), int2(0, 0), maxCoords)].xyz;
+    float3 v7 = _TileMinMaxVel[clamp(id.xy + int2( 0,  -1), int2(0, 0), maxCoords)].xyz;
+    float3 v8 = _TileMinMaxVel[clamp(id.xy + int2( 1,  -1), int2(0, 0), maxCoords)].xyz;
+
+
+    float2 maxVel0 = MaxVel(v0.xy, MaxVel(v1.xy, v2.xy));
+    float2 maxVel1 = MaxVel(v3.xy, MaxVel(v4.xy, v5.xy));
+    float2 maxVel2 = MaxVel(v6.xy, MaxVel(v7.xy, v8.xy));
+
+    float minVel0 = Min3(v0.z, v1.z, v2.z);
+    float minVel1 = Min3(v3.z, v4.z, v5.z);
+    float minVel2 = Min3(v6.z, v7.z, v8.z);
+
+
+    _TileMaxNeighbourhood[id.xy] = float3(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2)) ;
+}
+
+#endif

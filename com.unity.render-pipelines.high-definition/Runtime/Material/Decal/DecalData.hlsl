@@ -8,7 +8,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 {
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
     // With inspector version of decal we can use instancing to get normal to world access
-    float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(matrix, _NormalToWorld);
+    float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
     float albedoMapBlend = clamp(normalToWorld[0][3], 0.0f, 1.0f);
     float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
     float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);

@@ -70,6 +70,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return false; }
         }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
         public virtual string iconName
         {
