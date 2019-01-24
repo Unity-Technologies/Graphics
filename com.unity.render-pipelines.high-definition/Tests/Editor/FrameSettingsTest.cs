@@ -22,12 +22,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
         {
             for (int i = 0; i < 10; ++i)
             {
+                //init
                 FrameSettings fs = default;
                 FrameSettingsOverrideMask fso = default;
-                FrameSettingsRenderType defaultFS = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
+                FrameSettingsRenderType defaultFSType = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
+                FrameSettings defaultFS;
                 FrameSettings result = FrameSettings.defaultCamera;
                 FrameSettings tester = default;
+                RenderPipelineSettings supportedFeatures = new RenderPipelineSettings();
+                switch (defaultFSType)
+                {
+                    case FrameSettingsRenderType.Camera:
+                        defaultFS = FrameSettings.defaultCamera;
+                        break;
+                    case FrameSettingsRenderType.CustomOrBakedReflection:
+                        defaultFS = FrameSettings.defaultCustomOrBakeReflectionProbe;
+                        break;
+                    case FrameSettingsRenderType.RealtimeReflection:
+                        defaultFS = FrameSettings.defaultRealtimeReflectionProbe;
+                        break;
+                    default:
+                        throw new ArgumentException("Unknown FrameSettingsRenderType");
+                }
 
+                //change randomly override values
                 for (int j = 0; j < 10; ++j)
                 {
                     FrameSettingsField field = RandomUtilities.RandomEnumValue<FrameSettingsField>((i + 0.5f) * (j + 0.3f));
@@ -35,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     fso.mask[(uint)field] = true;
                 }
 
+                //create and init gameobjects
                 var go = new GameObject("TestObject");
                 m_ToClean = go;
                 var cam = go.AddComponent<Camera>();
@@ -44,20 +63,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
 
                 add.renderingPathCustomFrameSettings = fs;
                 add.renderingPathCustomFrameSettingsOverrideMask = fso;
-                add.defaultFrameSettings = defaultFS;
+                add.defaultFrameSettings = defaultFSType;
                 add.customRenderingSettings = true;
 
-                HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-                Assert.NotNull(hdrpAsset);
-
-                FrameSettings.AggregateFrameSettings(ref result, cam, add, hdrpAsset);
+                //gather data two different ways
+                FrameSettings.AggregateFrameSettings(ref result, cam, add, ref defaultFS, supportedFeatures);
 
                 foreach (FrameSettingsField field in Enum.GetValues(typeof(FrameSettingsField)))
                 {
-                    tester.SetEnabled(field, fso.mask[(uint)field] ? fs.IsEnabled(field) : hdrpAsset.GetDefaultFrameSettings(defaultFS).IsEnabled(field));
+                    tester.SetEnabled(field, fso.mask[(uint)field] ? fs.IsEnabled(field) : defaultFS.IsEnabled(field));
                 }
-                FrameSettings.Sanitize(ref tester, cam, hdrpAsset.renderPipelineSettings);
+                FrameSettings.Sanitize(ref tester, cam, supportedFeatures);
 
+                //test
                 Assert.AreEqual(result, tester);
 
                 Object.DestroyImmediate(go);
@@ -69,12 +87,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
         {
             for (int i = 0; i < 10; ++i)
             {
+                //init
                 FrameSettings fs = default;
                 FrameSettingsOverrideMask fso = default;
-                FrameSettingsRenderType defaultFS = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
+                FrameSettingsRenderType defaultFSType = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
+                FrameSettings defaultFS;
                 FrameSettings result = FrameSettings.defaultCamera;
                 FrameSettings tester = default;
+                RenderPipelineSettings supportedFeatures = new RenderPipelineSettings();
+                switch (defaultFSType)
+                {
+                    case FrameSettingsRenderType.Camera:
+                        defaultFS = FrameSettings.defaultCamera;
+                        break;
+                    case FrameSettingsRenderType.CustomOrBakedReflection:
+                        defaultFS = FrameSettings.defaultCustomOrBakeReflectionProbe;
+                        break;
+                    case FrameSettingsRenderType.RealtimeReflection:
+                        defaultFS = FrameSettings.defaultRealtimeReflectionProbe;
+                        break;
+                    default:
+                        throw new ArgumentException("Unknown FrameSettingsRenderType");
+                }
 
+                //change randomly override values
                 for (int j = 0; j < 10; ++j)
                 {
                     FrameSettingsField field = RandomUtilities.RandomEnumValue<FrameSettingsField>((i + 0.5f) * (j + 0.3f));
@@ -82,6 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     fso.mask[(uint)field] = true;
                 }
 
+                //create and init gameobjects
                 var go = new GameObject("TestObject");
                 m_ToClean = go;
                 var cam = go.AddComponent<Camera>();
@@ -91,19 +128,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
 
                 add.renderingPathCustomFrameSettings = fs;
                 add.renderingPathCustomFrameSettingsOverrideMask = fso;
-                add.defaultFrameSettings = defaultFS;
+                add.defaultFrameSettings = defaultFSType;
                 add.customRenderingSettings = true;
 
-                HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-                Assert.NotNull(hdrpAsset);
-
-                FrameSettingsHistory.AggregateFrameSettings(ref result, cam, add, hdrpAsset);
+                //gather data two different ways
+                FrameSettingsHistory.AggregateFrameSettings(ref result, cam, add, ref defaultFS, supportedFeatures);
 
                 foreach (FrameSettingsField field in Enum.GetValues(typeof(FrameSettingsField)))
                 {
-                    tester.SetEnabled(field, fso.mask[(uint)field] ? fs.IsEnabled(field) : hdrpAsset.GetDefaultFrameSettings(defaultFS).IsEnabled(field));
+                    tester.SetEnabled(field, fso.mask[(uint)field] ? fs.IsEnabled(field) : defaultFS.IsEnabled(field));
                 }
-                FrameSettings.Sanitize(ref tester, cam, hdrpAsset.renderPipelineSettings);
+                FrameSettings.Sanitize(ref tester, cam, supportedFeatures);
 
                 //simulate debugmenu changes
                 for (int j = 0; j < 10; ++j)
@@ -117,6 +152,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     tester.SetEnabled(field, debugValue);
                 }
 
+                //test
                 result = FrameSettingsHistory.frameSettingsHistory[cam].debug;
                 Assert.AreEqual(result, tester);
 

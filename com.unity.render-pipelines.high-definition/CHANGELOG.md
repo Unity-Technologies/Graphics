@@ -4,35 +4,39 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.3.0-preview] - 2019-01-14
+## [6.0.0-preview] - 2019-xx-xx
 
 ### Added
 - Added new API to perform a camera rendering
-- Add suport for hair master node (Double kajiya kay - Lambert)
+- Added support for hair master node (Double kajiya kay - Lambert)
 - Added Reset behaviour in DebugMenu (ingame mapping is right joystick + B)
-- Added default HD scene at new scene creation while in HDRP.
-- Added Wizard helping to configure HDRP project.
+- Added Default HD scene at new scene creation while in HDRP
+- Added Wizard helping to configure HDRP project
 - Added new UI for decal material to allow remapping and scaling of some properties
 - Added cascade shadow visualisation toggle in HD shadow settings
-- Added icons for assets.
+- Added icons for assets
 - Added replace blending mode for distortion
 - Added basic distance fade for density volumes
 - Added decal master node for shader graph
-- Added HD unlit master node (Cross Pipeline one is name Unlit)
-- Added new Rendering Queue in materials.
-- Added post-processing features (work in progress)
-- Post-processing now uses the generic volume framework
-- New depth-of-field, bloom, panini projection effects (motion blur is currently missing)
-- Exposure is now done as a pre-exposition pass, the whole system has been revamped
-- Exposure now use EV100 everywhere in the UI (Sky, Emissive Light)
-- Add emissive intensity (Luminance and EV100 control) control for Emissive
-- Add pre-exposure weigth for Emissive
-- Add new node in shader graph for Emissive intensity control
+- Added HD unlit master node (Cross Pipeline version is name Unlit)
+- Added new Rendering Queue in materials
+- Added post-processing V3 framework embed in HDRP, remove postprocess V2 framework
+  - Post-processing now uses the generic volume framework
+  - New depth-of-field, bloom, panini projection effects, motion blur
+  - Exposure is now done as a pre-exposition pass, the whole system has been revamped
+  - Exposure now use EV100 everywhere in the UI (Sky, Emissive Light)
+- Added emissive intensity (Luminance and EV100 control) control for Emissive
+- Added pre-exposure weigth for Emissive
+- Added an emissive color node and a slider to control the pre-exposure percentage of emission color
 - Added physical camera support where applicable
 - Added more color grading tools
 - Added changelog level for Shader Variant stripping
-- Added an emissive color node and a slider to control the pre-exposure percentage of emission color
 - Added Debug mode for validation of material albedo and metalness/specularColor values
+- Added a new dynamic mode for ambient probe and renamed BakingSky to StaticLightingSky
+- Added command buffer parameter to all Bind() method of material
+- Added Material validator in Render Pipeline Debug
+- Added code to future support of DXR (not enabled)
+- Added support of multiviewport
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -75,25 +79,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Scene Color and Depth nodes
 - Fixed SSR in forward
 - Fixed custom editor of Unlit, HD Unlit and PBR shader graph master node
-- Fixed issue with NewFrame not correctly calcualted in Editor when switching scene
+- Fixed issue with NewFrame not correctly calculated in Editor when switching scene
 - Fixed issue with TerrainLit not compiling with depth only pass and normal buffer
 - Fixed geometric normal use for shadow bias with PBR master node in forward
 - Fixed error message when having more than one directional light casting shadow
 - Fixed error when trying to display preview of Camera or PlanarReflectionProbe
-- Fixed an issue where probe target texture wasn't resized properly when changing HDRP asset.
-- Fixed rendering viewport for probe rendering
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
 - Removing the simple lightloop used by the simple lit shader
-- Whole refactor of reflection system: Workflow and performance improvement.
+- Whole refactor of reflection system: Planar and reflection probe
 - Separated Passthrough from other RenderingPath
 - Update several properties naming and caption based on feedback from documentation team
 - Remove tile shader variant for transparent backface pass of lit shader
-- Added a new dynamic mode for ambient probe and renamed BakingSky to StaticLightingSky
 - Rename all HDRenderPipeline to HDRP folder for shaders
 - Rename decal property label (based on doc team feedback)
-- Add command buffer parameter to all Bind() method of material
 - Lit shader mode now default to Deferred to reduce build time
 - Update UI of Emission parameters in shaders
 - Improve shader variant stripping including shader graph variant
@@ -102,7 +102,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader code refactor: Rename LIGHTLOOP_SINGLE_PASS => LIGHTLOOP_DISABLE_TILE_AND_CLUSTER and clean all usage of LIGHTLOOP_TILE_PASS
 - Shader code refactor: Move pragma definition of vertex and pixel shader inside pass + Move SURFACE_GRADIENT definition in XXXData.hlsl
 - Micro-shadowing in Lit forward now use ambientOcclusion instead of SpecularOcclusion
-- Upgraded FrameSettings workflow, DebugMenu and Inspector part relative to it.
+- Upgraded FrameSettings workflow, DebugMenu and Inspector part relative to it
+- Update build light list shader code to support 32 threads in wavefronts on Switch
 
 ## [5.2.0-preview] - 2018-11-27
 

@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.3.0] - 2019-01-14
+## [6.0.0] - 2019-xx-xx
 ### Added
 - LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
 - You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LWRP now supports dynamic resolution scaling. The target platform must also support it.
 - LWRP now includes version defines for both C# and Shaders in the format of `LWRP_X_Y_Z_OR_NEWER`. For example, `LWRP_5_3_0_OR_NEWER` defines version 5.3.0.
 - The Terrain Lit Shader now samples Spherical Harmonics if you haven't baked any lightmaps for terrain.
+- Added a __Priority__ option, which you can use to tweak the rendering order. This is similar to render queue in the built-in render pipeline. These Shaders now have this option: Lit, Simple Lit, Baked Lit, Unlit, and all three Particle Shaders.
 
 ### Changed
 - You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Care.

@@ -68,7 +68,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
             }
         }
-
         /// <summary>Same than FrameSettings.AggregateFrameSettings but keep history of agregation in a collection for DebugMenu.
         /// Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset. Then the DebugMenu override occurs.</summary>
         /// <param name="aggregatedFrameSettings">The aggregated FrameSettings result.</param>
@@ -76,20 +75,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="additionalData">Additional data of the camera rendering.</param>
         /// <param name="hdrpAsset">HDRenderPipelineAsset contening default FrameSettings.</param>
         public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset)
+            => AggregateFrameSettings(
+                ref aggregatedFrameSettings,
+                camera,
+                additionalData,
+                ref hdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
+                hdrpAsset.GetRenderPipelineSettings()
+                );
+
+        // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
+        /// <summary>Same than FrameSettings.AggregateFrameSettings but keep history of agregation in a collection for DebugMenu.
+        /// Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset. Then the DebugMenu override occurs.</summary>
+        /// <param name="aggregatedFrameSettings">The aggregated FrameSettings result.</param>
+        /// <param name="camera">The camera rendering.</param>
+        /// <param name="additionalData">Additional data of the camera rendering.</param>
+        /// <param name="defaultFrameSettings">Base framesettings to copy prior any override.</param>
+        /// <param name="supportedFeatures">Currently supported feature for the sanitazation pass.</param>
+        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, ref FrameSettings defaultFrameSettings, RenderPipelineSettings supportedFeatures)
         {
             FrameSettingsHistory history = new FrameSettingsHistory
             {
                 camera = camera,
                 defaultType = additionalData ? additionalData.defaultFrameSettings : FrameSettingsRenderType.Camera
             };
-            aggregatedFrameSettings = hdrpAsset.GetDefaultFrameSettings(history.defaultType);
+            aggregatedFrameSettings = defaultFrameSettings;
             if (additionalData && additionalData.customRenderingSettings)
             {
                 FrameSettings.Override(ref aggregatedFrameSettings, additionalData.renderingPathCustomFrameSettings, additionalData.renderingPathCustomFrameSettingsOverrideMask);
                 history.customMask = additionalData.renderingPathCustomFrameSettingsOverrideMask;
             }
             history.custom = aggregatedFrameSettings;
-            FrameSettings.Sanitize(ref aggregatedFrameSettings, camera, hdrpAsset.GetRenderPipelineSettings());
+            FrameSettings.Sanitize(ref aggregatedFrameSettings, camera, supportedFeatures);
 
             bool noHistory = !frameSettingsHistory.ContainsKey(camera);                   
             bool updatedComponent = !noHistory && frameSettingsHistory[camera].sanitazed != aggregatedFrameSettings;

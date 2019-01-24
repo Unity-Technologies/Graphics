@@ -42,7 +42,7 @@ struct Varyings
     float2 uv           : TEXCOORD0;
 };
 
-float4 MetaVertexPosition(float3 positionOS, float2 uvLM, float2 uvDLM, float4 lightmapST)
+float4 MetaVertexPosition(float4 positionOS, float2 uvLM, float2 uvDLM, float4 lightmapST)
 {
     if (unity_MetaVertexControl.x)
     {
