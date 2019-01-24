@@ -6,9 +6,6 @@
 
 StructuredBuffer<DecalData> _DecalDatas;
 
-TEXTURE2D_ARRAY(_DecalAtlas);
-SAMPLER(sampler_DecalAtlas);
-
 TEXTURE2D(_DecalAtlas2D);
 SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
 
@@ -21,6 +18,6 @@ TEXTURE2D(_DecalHTileTexture);
 
 UNITY_INSTANCING_BUFFER_START(Decal)
     UNITY_DEFINE_INSTANCED_PROP(float4x4, _NormalToWorld)
-UNITY_INSTANCING_BUFFER_END(matrix)
+UNITY_INSTANCING_BUFFER_END(Decal)
 
 #endif

@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with NewFrame not correctly calculated in Editor when switching scene
 - Fixed issue with TerrainLit not compiling with depth only pass and normal buffer
 - Fixed geometric normal use for shadow bias with PBR master node in forward
+- Fixed instancing macro usage for decals
 - Fixed error message when having more than one directional light casting shadow
 - Fixed error when trying to display preview of Camera or PlanarReflectionProbe
 - Fixed LOAD_TEXTURE2D_ARRAY_MSAA macro
