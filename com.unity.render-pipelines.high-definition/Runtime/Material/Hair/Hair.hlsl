@@ -17,6 +17,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
+#define DEFAULT_HAIR_SPECULAR_VALUE 0.0465 // Hair is IOR 1.55
+
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
@@ -127,8 +129,6 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-#define DEFAULT_HAIR_SPECULAR_VALUE 0.0465 // Hair is IOR 1.55
-
 BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData bsdfData;
@@ -164,8 +164,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
     }
 
-    bsdfData.tangentWS = surfaceData.tangentWS;
-    bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);
+    // This is the hair tangent (which represents the hair strand direction, root to tip).
+    bsdfData.hairStrandDirectionWS = surfaceData.hairStrandDirectionWS;
 
     // Kajiya kay
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
@@ -265,8 +265,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.NdotV = dot(N, V);
 
     float NdotV = ClampNdotV(preLightData.NdotV);
-    float TdotV = dot(bsdfData.tangentWS, V);
-    float BdotV = dot(bsdfData.bitangentWS, V);
 
     float unused;
     float3 iblN;
@@ -288,7 +286,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     }
 
     // perceptualRoughness is use as input and output here
-    GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.bitangentWS, bsdfData.tangentWS, N, V, bsdfData.anisotropy, preLightData.iblPerceptualRoughness, iblN, preLightData.iblPerceptualRoughness);
+    GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.hairStrandDirectionWS, bsdfData.hairStrandDirectionWS, N, V, bsdfData.anisotropy, preLightData.iblPerceptualRoughness, iblN, preLightData.iblPerceptualRoughness);
 
     preLightData.iblR = reflect(-V, iblN);
 
@@ -376,9 +374,8 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
-        // Must shift with bitangent and not tangent? <= TODO: check this
-        float3 t1 = ShiftTangent(bsdfData.bitangentWS, bsdfData.normalWS, bsdfData.specularShift);
-        float3 t2 = ShiftTangent(bsdfData.bitangentWS, bsdfData.normalWS, bsdfData.secondarySpecularShift);
+        float3 t1 = ShiftTangent(bsdfData.hairStrandDirectionWS, bsdfData.normalWS, bsdfData.specularShift);
+        float3 t2 = ShiftTangent(bsdfData.hairStrandDirectionWS, bsdfData.normalWS, bsdfData.secondarySpecularShift);
 
         float3 H = (L + V) * invLenLV;
 
@@ -390,7 +387,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 
         // Diffuse lighting
         float diffuseTerm = Lambert();
-        diffuseLighting = bsdfData.diffuseColor * diffuseTerm;
+        diffuseLighting = diffuseTerm;
     }
     else
     {
