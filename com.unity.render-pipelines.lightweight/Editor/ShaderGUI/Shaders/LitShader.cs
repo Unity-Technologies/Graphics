@@ -37,18 +37,16 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
 
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
+            if (litProperties.workflowMode != null)
             {
-                if (litProperties.workflowMode != null)
-                {
-                    litProperties.workflowMode.floatValue = (float)(LitGUI.WorkflowMode)EditorGUILayout.EnumPopup(LitGUI.Styles.workflowModeText, (LitGUI.WorkflowMode)litProperties.workflowMode.floatValue);
-                }
-                base.DrawSurfaceOptions(material);
+                DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
             }
             if (EditorGUI.EndChangeCheck())
             {
                 foreach (var obj in blendModeProp.targets)
                     MaterialChanged((Material)obj);
             }
+            base.DrawSurfaceOptions(material);
         }
 
         // material main surface inputs

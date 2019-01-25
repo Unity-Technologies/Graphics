@@ -61,10 +61,10 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             base.DrawAdvancedOptions(material);
         }
 
-        public override void OnOpenGUI(Material material)
+        public override void OnOpenGUI(Material material, MaterialEditor materialEditor)
         {
             CacheRenderersUsingThisMaterial(material);
-            base.OnOpenGUI(material);
+            base.OnOpenGUI(material, materialEditor);
         }
 
         void CacheRenderersUsingThisMaterial(Material material)

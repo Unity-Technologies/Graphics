@@ -34,11 +34,10 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
 
-                 EditorGUI.BeginChangeCheck();
-                 {
-                     base.DrawSurfaceOptions(material);
-                 }       // Detect any changes to the material
-
+            EditorGUI.BeginChangeCheck();
+            {
+                base.DrawSurfaceOptions(material);
+            }
             if (EditorGUI.EndChangeCheck())
             {
                 foreach (var obj in blendModeProp.targets)
@@ -60,7 +59,8 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             base.DrawAdvancedOptions(material);
             if (EditorGUI.EndChangeCheck())
             {
-                MaterialChanged(material);
+                foreach (var obj in blendModeProp.targets)
+                    MaterialChanged((Material)obj);
             }
         }
 
