@@ -222,14 +222,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Curves                    = stack.GetComponent<ColorCurves>();
             m_FilmGrain                 = stack.GetComponent<FilmGrain>();
 
-            // Check if motion vectors are needed, if so we need to enable a flag on the camera so
-            // that Unity properly generate motion vectors (internal engine dependency)
-            // TODO: Check for motion blur as well
-            if (camera.antialiasing == AntialiasingMode.TemporalAntialiasing)
-            {
-                camera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
-            }
-
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
             {
