@@ -49,7 +49,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 #endif
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly int[] blendModeValues = Enum.GetValues(typeof(BlendMode)) as int[];
-
+          
+            public static GUIContent useShadowThresholdText = new GUIContent("Use Shadow Threshold", "Enable separate threshold for shadow pass");
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Clipping", "Enable Alpha Clipping");
             public static GUIContent alphaCutoffText = new GUIContent("Threshold", "Threshold for Alpha Clipping");
             public static GUIContent alphaCutoffShadowText = new GUIContent("Shadow Threshold", "Threshold for Alpha Clipping in case of shadow pass");
@@ -99,6 +100,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty surfaceType = null;
         protected const string kSurfaceType = "_SurfaceType";
         protected MaterialProperty alphaCutoffEnable = null;
+
+        protected const string kUseShadowThreshold = "_UseShadowThreshold";
+        protected MaterialProperty useShadowThreshold = null;
         protected const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         protected MaterialProperty alphaCutoff = null;
         protected const string kAlphaCutoff = "_AlphaCutoff";
@@ -175,7 +179,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected virtual void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             // Everything is optional (except surface type) so users that derive from this class can decide what they expose or not
-            surfaceType = FindProperty(kSurfaceType, props, false);
+            surfaceType = FindProperty(kSurfaceType, props, false);            
+            useShadowThreshold = FindProperty(kUseShadowThreshold, props, true);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props, false);
             alphaCutoff = FindProperty(kAlphaCutoff, props, false);
 
@@ -359,15 +364,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(alphaCutoff, StylesBaseUnlit.alphaCutoffText);
 
+                if (useShadowThreshold != null)
+                    m_MaterialEditor.ShaderProperty(useShadowThreshold, StylesBaseUnlit.useShadowThresholdText);
+
+                if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(alphaCutoffShadow, StylesBaseUnlit.alphaCutoffShadowText);
+                    EditorGUI.indentLevel--;
+                }
+
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
                 // This allow to get a better sorting (with prepass), better shadow (better silhouettes fidelity) etc...
                 if (surfaceTypeValue == SurfaceType.Transparent)
                 {
-                    if (alphaCutoffShadow != null)
-                    {
-                        m_MaterialEditor.ShaderProperty(alphaCutoffShadow, StylesBaseUnlit.alphaCutoffShadowText);
-                    }
-
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
                     {
                         m_MaterialEditor.ShaderProperty(alphaCutoffPrepass, StylesBaseUnlit.alphaCutoffPrepassText);

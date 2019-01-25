@@ -84,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 --indentLevel;
             }
 
-            ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Alpha Clipping", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -143,16 +143,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Transmission", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.transmission.isOn;
-                    toggle.OnToggleChanged(ChangeTransmission);
-                });
-            });
-
-
             if (m_Node.surfaceType != SurfaceType.Transparent)
             {
                 ps.Add(new PropertyRow(CreateLabel("Subsurface Scattering", indentLevel)), (row) =>
@@ -165,9 +155,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             }
 
+            ps.Add(new PropertyRow(CreateLabel("Transmission", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.transmission.isOn;
+                    toggle.OnToggleChanged(ChangeTransmission);
+                });
+            });
 
-
-           ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
