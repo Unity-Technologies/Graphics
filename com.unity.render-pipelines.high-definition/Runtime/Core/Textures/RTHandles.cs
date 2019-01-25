@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering
             MSAASamples msaaSamples = MSAASamples.None,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
-            VRTextureUsage vrUsage = VRTextureUsage.None,
+            bool xrInstancing = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
             )
@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering
                 msaaSamples,
                 bindTextureMS,
                 useDynamicScale,
-                vrUsage,
+                xrInstancing,
                 memoryless,
                 name
                 );
@@ -74,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering
             bool enableMSAA = false,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
-            VRTextureUsage vrUsage = VRTextureUsage.None,
+            bool xrInstancing = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
             )
@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering
                 enableMSAA,
                 bindTextureMS,
                 useDynamicScale,
-                vrUsage,
+                xrInstancing,
                 memoryless,
                 name
                 );
@@ -119,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering
             bool enableMSAA = false,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
-            VRTextureUsage vrUsage = VRTextureUsage.None,
+            bool xrInstancing = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
             )
@@ -141,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering
                 enableMSAA,
                 bindTextureMS,
                 useDynamicScale,
-                vrUsage,
+                xrInstancing,
                 memoryless,
                 name
                 );
