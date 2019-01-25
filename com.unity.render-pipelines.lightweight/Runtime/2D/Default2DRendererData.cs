@@ -7,12 +7,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     public class Default2DRendererData : IRendererData
     {
         [SerializeField]
-        internal Light2DRTInfo m_PointLightNormalRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
-
-        [SerializeField]
-        internal Light2DRTInfo m_PointLightColorRenderTextureInfo = new Light2DRTInfo(false, 512, 512, FilterMode.Bilinear);
-
-        [SerializeField]
         private float m_LightIntensityScale = 1;
 
         [SerializeField]
