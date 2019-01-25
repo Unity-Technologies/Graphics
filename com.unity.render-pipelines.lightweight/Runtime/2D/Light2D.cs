@@ -44,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Count
         }
 
-        public enum ShapeLightType
+        public enum LightOperation
         {
             Type0 = 0,
             Type1 = 1,
@@ -88,8 +88,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public CookieStyles m_ShapeLightStyle = CookieStyles.Parametric;
 
         [SerializeField]
-        private ShapeLightType m_ShapeLightType = ShapeLightType.Type0;
-        private ShapeLightType m_PreviousShapeLightType = ShapeLightType.Type0;
+        private LightOperation m_LightOperation = LightOperation.Type0;
+        private LightOperation m_PreviousLightOperation = LightOperation.Type0;
 
         public ParametricShapes m_ParametricShape = ParametricShapes.Circle; // This should be removed and fixed in the inspector
 
@@ -98,6 +98,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private int m_PreviousParametricSides = -1;
         public int m_ParametricSides = 128;
+
+        static Material m_PointLightMaterial = null;
+        static Material m_PointLightVolumeMaterial = null;
+
         static Material m_ShapeCookieSpriteSuperimposeMaterial = null;
         static Material m_ShapeCookieSpriteAdditiveMaterial = null;
         static Material m_ShapeCookieSpriteVolumeMaterial = null;
@@ -134,13 +138,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set { m_LightVolumeOpacity = value; }
         }
 
-
         private int m_LightCullingIndex = -1;
         private Bounds m_LocalBounds;
         static private bool m_LightCullingEnabled = false;
         static CullingGroup m_CullingGroup;
 
         static List<Light2D>[] m_Lights = SetupLightArray();
+
+        public LightProjectionTypes GetLightProjectionType()
+        {
+            return m_LightProjectionType;
+        }
 
         static public List<Light2D>[] SetupLightArray()
         {
@@ -167,7 +175,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
             else
             {
-
                 boundingSphere.radius = m_PointLightOuterRadius;
                 boundingSphere.position = transform.position;
             }
@@ -199,8 +206,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 for(int lightIndex=0; lightIndex < m_Lights[lightTypeIndex].Count; lightIndex++)
                 {
                     Light2D light = m_Lights[lightTypeIndex][lightIndex];
-                    boundingSpheres[lightCullingIndex] = light.GetBoundingSphere();
-                    light.m_LightCullingIndex = lightCullingIndex++;
+                    if (light != null)
+                    {
+                        boundingSpheres[lightCullingIndex] = light.GetBoundingSphere();
+                        light.m_LightCullingIndex = lightCullingIndex++;
+                    }
                 }
             }
 
@@ -210,30 +220,22 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public void InsertLight(Light2D light)
         {
-            int lightType = (int)Light2DType.Point;
             int index = 0;
-
-            if (m_LightProjectionType == LightProjectionTypes.Shape)
-            {
-                lightType = (int)m_ShapeLightType;
-                while (index < m_Lights[lightType].Count && m_ShapeLightOrder > m_Lights[lightType][index].m_ShapeLightOrder)
-                    index++;
-            }
+            int lightType = (int)m_LightOperation;
+            while (index < m_Lights[lightType].Count && m_ShapeLightOrder > m_Lights[lightType][index].m_ShapeLightOrder)
+                index++;
 
             m_Lights[lightType].Insert(index, this);
         }
 
-        public void UpdateShapeLightType(ShapeLightType type)
+        public void UpdateLightOperation(LightOperation type)
         {
-            if (m_LightProjectionType == LightProjectionTypes.Shape)
+            if (type != m_PreviousLightOperation)
             {
-                if (type != m_PreviousShapeLightType)
-                {
-                    m_Lights[(int)m_ShapeLightType].Remove(this);
-                    m_ShapeLightType = type;
-                    m_PreviousShapeLightType = m_ShapeLightType;
-                    InsertLight(this);
-                }
+                m_Lights[(int)m_LightOperation].Remove(this);
+                m_LightOperation = type;
+                m_PreviousLightOperation = m_LightOperation;
+                InsertLight(this);
             }
         }
 
@@ -242,16 +244,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (type != m_PreviousLightProjectionType)
             {
                 // Remove the old value
-                int index = (int)Light2DType.Point;
-                if (m_PreviousLightProjectionType == LightProjectionTypes.Shape)
-                    index = (int)m_ShapeLightType;
+                int index = (int)m_LightOperation;
                 if (m_Lights[index].Contains(this))
                     m_Lights[index].Remove(this);
 
                 // Add the new value
-                index = (int)Light2DType.Point;
-                if (type == LightProjectionTypes.Shape)
-                    index = (int)m_ShapeLightType;
+                index = (int)m_LightOperation;
                 if (!m_Lights[index].Contains(this))
                     m_Lights[index].Add(this);
 
@@ -260,10 +258,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        public ShapeLightType shapeLightType
+        public LightOperation lightOperation
         {
-            get { return m_ShapeLightType; }
-            set { UpdateShapeLightType(value); }
+            get { return m_LightOperation; }
+            set { UpdateLightOperation(value); }
         }
 
         public LightProjectionTypes LightProjectionType
@@ -328,7 +326,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             Vector3 minimum = new Vector3(float.MaxValue, float.MaxValue);
             Vector3 maximum = new Vector3(float.MinValue, float.MinValue);
-
             for (int i=0;i<vertices.Length;i++)
             {
                 Vector3 vertex = vertices[i];
@@ -454,6 +451,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     return m_ShapeVertexColoredVolumeMaterial;
                 }
             }
+            else if(m_LightProjectionType == LightProjectionTypes.Point)
+            {
+                if (m_PointLightVolumeMaterial == null)
+                {
+                    Shader shader = Shader.Find("Hidden/Light2d-Point-Volumetric");
+                    if(shader != null )
+                    m_PointLightVolumeMaterial = new Material(shader);
+                }
+
+                return m_PointLightVolumeMaterial;
+            }
 
             return null;
         }
@@ -467,7 +475,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     // This is causing Object.op_inequality fix this
                     if (m_ShapeCookieSpriteAdditiveMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
                     {
-                        Shader shader = Shader.Find("Hidden/Light2D-Sprite-Additive"); ;
+                        Shader shader = Shader.Find("Hidden/Light2D-Sprite-Additive");
 
                         if (shader != null)
                         {
@@ -523,6 +531,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     else
                         return m_ShapeVertexColoredSuperimposeMaterial;
                 }
+            }
+            if(m_LightProjectionType == LightProjectionTypes.Point)
+            {
+                if (m_PointLightMaterial == null)
+                {
+                    Shader shader = Shader.Find("Hidden/Light2D-Point");
+                    if (shader != null)
+                        m_PointLightMaterial = new Material(shader);
+                    else
+                        Debug.LogError("Missing shader Light2D-Point");
+                }
+
+                return m_PointLightMaterial;
             }
 
             return null;
@@ -694,16 +715,23 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (m_Mesh == null)
                     m_Mesh = new Mesh();
 
-                if (m_ShapeLightStyle == CookieStyles.Parametric)
+                if (m_LightProjectionType == LightProjectionTypes.Shape)
                 {
-                    if (m_ParametricShape == ParametricShapes.Freeform)
-                        UpdateShapeLightMesh(m_LightColor);
-                    else
-                        m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, m_LightColor);
+                    if (m_ShapeLightStyle == CookieStyles.Parametric)
+                    {
+                        if (m_ParametricShape == ParametricShapes.Freeform)
+                            UpdateShapeLightMesh(m_LightColor);
+                        else
+                            m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, m_LightColor);
+                    }
+                    else if (m_ShapeLightStyle == CookieStyles.Sprite)
+                    {
+                        m_Mesh = GenerateSpriteMesh(m_LightCookieSprite, m_LightColor);
+                    }
                 }
-                else if (m_ShapeLightStyle == CookieStyles.Sprite)
+                else if(m_LightProjectionType == LightProjectionTypes.Point)
                 {
-                    m_Mesh = GenerateSpriteMesh(m_LightCookieSprite, m_LightColor);
+                    m_Mesh = GenerateParametricMesh(1, 32 /* 4 sides */, 0, m_LightColor);
                 }
             }
 
@@ -725,6 +753,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_ShapeCookieSpriteAdditiveMaterial = null;
             m_ShapeCookieSpriteSuperimposeMaterial = null;
             m_ShapeCookieSpriteVolumeMaterial = null;
+            m_PointLightMaterial = null;
+            m_PointLightVolumeMaterial = null;
             GetMaterial();
         }
 
@@ -751,19 +781,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return m_Lights[(int)Light2DType.Point];
         }
 
-        public static List<Light2D> GetShapeLights(ShapeLightType shapeLightType)
+        public static List<Light2D> GetShapeLights(LightOperation lightOperation)
         {
-            return m_Lights[(int)shapeLightType];
+            return m_Lights[(int)lightOperation];
         }
 
         void RegisterLight()
         {
             if (m_Lights != null)
             {
-                int index = (int)Light2DType.Point;
-                if (m_LightProjectionType == LightProjectionTypes.Shape)
-                    index = (int)m_ShapeLightType;
-
+                int index = (int)m_LightOperation;
                 if (!m_Lights[index].Contains(this))
                     InsertLight(this);
             }
@@ -831,7 +858,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if(CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && this.m_LightProjectionType == LightProjectionTypes.Shape)
             {
                 //m_ShapeLightStyle = CookieStyles.Parametric;
-                m_Lights[(int)m_ShapeLightType].Remove(this);
+                m_Lights[(int)m_LightOperation].Remove(this);
                 InsertLight(this);
             }
 
@@ -867,7 +894,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             UpdateLightProjectionType(m_LightProjectionType);
-            UpdateShapeLightType(m_ShapeLightType);
+            UpdateLightOperation(m_LightOperation);
         }
 
         public bool IsLightVisible(Camera camera)

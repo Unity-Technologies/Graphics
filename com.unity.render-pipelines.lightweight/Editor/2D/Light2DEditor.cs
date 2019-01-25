@@ -59,15 +59,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_LightColor;
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricAlpha;
+        SerializedProperty m_LightOperation;
 
         SplineEditor m_SplineEditor;
         SplineSceneEditor m_SplineSceneEditor;
 
         bool m_ModifiedMesh = false;
 
-        int[] m_ShapeLightTypeIndices;
-        GUIContent[] m_ShapeLightTypeNames;
-        bool m_AnyShapeLightTypeEnabled = false;
+        int[] m_LightOperationIndices;
+        GUIContent[] m_LightOperationNames;
+        bool m_AnyLightOperationEnabled = false;
 
         private Light2D lightObject { get { return target as Light2D; } }
 
@@ -129,42 +130,44 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
 
+            m_LightOperation = serializedObject.FindProperty("m_LightOperation");
+
             var light = target as Light2D;
             m_SplineEditor = new SplineEditor(this);
             m_SplineSceneEditor = new SplineSceneEditor(light.spline, this, light);
             //m_SplineSceneEditor.SplineEditMode = SplineSceneEditor.SplineEditModes.Buttonless;
 
-            m_AnyShapeLightTypeEnabled = false;
-            var shapeLightTypeIndices = new List<int>();
-            var shapeLightTypeNames = new List<string>();
+            m_AnyLightOperationEnabled = false;
+            var lightOperationIndices = new List<int>();
+            var lightOperationNames = new List<string>();
 
             var pipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
             var rendererData = pipelineAsset != null ? pipelineAsset.rendererData as Default2DRendererData : null;
             if (rendererData != null)
             {
-                for (int i = 0; i < rendererData.shapeLightTypes.Length; ++i)
+                for (int i = 0; i < rendererData.lightOperations.Length; ++i)
                 {
-                    var shapeLightType = rendererData.shapeLightTypes[i];
-                    if (shapeLightType.enabled)
+                    var lightOperation = rendererData.lightOperations[i];
+                    if (lightOperation.enabled)
                     {
-                        shapeLightTypeIndices.Add(i);
-                        shapeLightTypeNames.Add(shapeLightType.name);
+                        lightOperationIndices.Add(i);
+                        lightOperationNames.Add(lightOperation.name);
                     }
                 }
 
-                m_AnyShapeLightTypeEnabled = shapeLightTypeIndices.Count != 0;
+                m_AnyLightOperationEnabled = lightOperationIndices.Count != 0;
             }
             else
             {
                 for (int i = 0; i < 3; ++i)
                 {
-                    shapeLightTypeIndices.Add(i);
-                    shapeLightTypeNames.Add("Type" + i);
+                    lightOperationIndices.Add(i);
+                    lightOperationNames.Add("Type" + i);
                 }
             }
 
-            m_ShapeLightTypeIndices = shapeLightTypeIndices.ToArray();
-            m_ShapeLightTypeNames = shapeLightTypeNames.Select(x => EditorGUIUtility.TrTextContent(x)).ToArray();
+            m_LightOperationIndices = lightOperationIndices.ToArray();
+            m_LightOperationNames = lightOperationNames.Select(x => EditorGUIUtility.TrTextContent(x)).ToArray();
 
             m_AllSortingLayers = SortingLayer.layers;
             m_AllSortingLayerNames = m_AllSortingLayers.Select(x => new GUIContent(x.name)).ToArray();
@@ -243,7 +246,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         private bool OnShapeLight(SerializedObject serializedObject)
         {
-            if (!m_AnyShapeLightTypeEnabled)
+            if (!m_AnyLightOperationEnabled)
             {
                 EditorGUILayout.HelpBox("No valid Shape Light type is defined.", MessageType.Error);
                 return false;
@@ -252,7 +255,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             bool updateMesh = false;
 
             SerializedProperty shapeLightStyle = serializedObject.FindProperty("m_ShapeLightStyle");
-            SerializedProperty shapeLightType = serializedObject.FindProperty("m_ShapeLightType");
             SerializedProperty shapeLightFeathering = serializedObject.FindProperty("m_ShapeLightFeathering");
             SerializedProperty shapeLightParametricShape = serializedObject.FindProperty("m_ParametricShape");
             SerializedProperty shapeLightParametricSides = serializedObject.FindProperty("m_ParametricSides");
@@ -264,8 +266,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             int prevShapeLightStyle = shapeLightStyle.intValue;
 
             EditorGUI.indentLevel++;
-            EditorGUILayout.IntPopup(shapeLightType, m_ShapeLightTypeNames, m_ShapeLightTypeIndices, EditorGUIUtility.TrTextContent("Type", "Specify the shape light type"));
-
             EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
             EditorGUILayout.PropertyField(shapeLightBlending, EditorGUIUtility.TrTextContent("Blending Mode", "Specify the lights blending mode"));
 
@@ -597,6 +597,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             Color previousColor = m_LightColor.colorValue;
+            EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, EditorGUIUtility.TrTextContent("Light Operation", "Specify the shape light type"));
             EditorGUILayout.PropertyField(m_LightColor, EditorGUIUtility.TrTextContent("Light Color", "Specify the light color"));
             EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, EditorGUIUtility.TrTextContent("Light Volume Opacity", "Specify the light color"));
 

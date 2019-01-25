@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
     public class RendererPointLights
     {
+        /*
         //static bool m_SelfShadowing = true;
 
         static private RenderTextureFormat m_RenderTextureFormatToUse;
@@ -373,5 +374,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //    cmdBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
         //}
+
+    */
     }
 }

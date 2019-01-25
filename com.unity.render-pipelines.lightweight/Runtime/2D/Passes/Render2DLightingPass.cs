@@ -32,11 +32,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_CommandBuffer = new CommandBuffer();
             m_CommandBuffer.name = "Lights and Shadows Command Buffer";
             m_SortingLayers = SortingLayer.layers;
-
-            RendererPointLights.Initialize();
         }
 
-        public void Setup(Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo, float lightIntensityScale, _2DShapeLightTypeDescription[] shapeLightTypes, Camera camera)
+        public void Setup(Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo, float lightIntensityScale, _2DLightOperationDescription[] lightOperations, Camera camera)
         {
             m_PointLightNormalRenderTextureInfo = pointLightNormalRTInfo;
             m_PointLightColorRenderTextureInfo = pointLightColorRTInfo;
@@ -46,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Shader.SetGlobalFloat("_LightIntensityScale", lightIntensityScale);
             Shader.SetGlobalFloat("_InverseLightIntensityScale", inverseLightIntensityScale);
 
-            RendererShapeLights.Setup(shapeLightTypes, camera);
+            RendererLighting.Setup(lightOperations, camera);
         }
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
@@ -78,13 +76,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Profiler.EndSample();
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
-            RendererShapeLights.CreateRenderTextures(context);
-            RendererPointLights.CreateRenderTextures(m_PointLightNormalRenderTextureInfo, m_PointLightColorRenderTextureInfo);
+            RendererLighting.CreateRenderTextures(context);
             Profiler.EndSample();
 
             m_CommandBuffer.Clear();
-            RendererPointLights.SetShaderGlobals(m_CommandBuffer);
-            RendererShapeLights.SetShaderGlobals(m_CommandBuffer);
+            RendererLighting.SetShapeLightShaderGlobals(m_CommandBuffer);
             context.ExecuteCommandBuffer(m_CommandBuffer);
 
             bool cleared = false;
@@ -97,8 +93,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_SortingLayerRange = new SortingLayerRange(layerValue, layerValue);
                 filterSettings.sortingLayerRange = m_SortingLayerRange;
 
-                RendererPointLights.RenderLights(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
-                RendererShapeLights.RenderLights(camera, m_CommandBuffer, layerToRender);
+                RendererLighting.RenderNormals(context, renderingData.cullResults, drawSettings, filterSettings);
+                RendererLighting.RenderLights(camera, m_CommandBuffer, layerToRender);
 
                 // This should have an optimization where I can determine if this needs to be called
                 m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
@@ -118,14 +114,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Profiler.EndSample();
 
                 m_CommandBuffer.Clear();
-                RendererShapeLights.RenderLightVolumes(camera, m_CommandBuffer, layerToRender);
-                RendererPointLights.RenderLightVolumes(camera, m_CommandBuffer, context, renderingData.cullResults, drawSettings, filterSettings, layerToRender);
+                RendererLighting.RenderLightVolumes(camera, m_CommandBuffer, layerToRender, Light2D.LightProjectionTypes.Shape);
+                RendererLighting.RenderLightVolumes(camera, m_CommandBuffer, layerToRender, Light2D.LightProjectionTypes.Point);
                 context.ExecuteCommandBuffer(m_CommandBuffer);
             }
 
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
-            RendererPointLights.ReleaseRenderTextures();
-            RendererShapeLights.ReleaseRenderTextures(context);
+            RendererLighting.ReleaseRenderTextures(context);
             Profiler.EndSample();
         }
     }

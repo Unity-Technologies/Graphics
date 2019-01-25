@@ -16,11 +16,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private float m_LightIntensityScale = 1;
 
         [SerializeField]
-        private _2DShapeLightTypeDescription[] m_ShapeLightTypes = new _2DShapeLightTypeDescription[3];
+        private _2DLightOperationDescription[] m_LightOperations = new _2DLightOperationDescription[4];
 
-        public _2DShapeLightTypeDescription[] shapeLightTypes
+        public _2DLightOperationDescription[] lightOperations
         {
-            get => m_ShapeLightTypes;
+            get => m_LightOperations;
         }
 
         public float LightIntensityScale
@@ -41,21 +41,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Default2DRendererData asset = ScriptableObject.CreateInstance<Default2DRendererData>();
             asset.name = "2D Renderer Data";
 
-            var shapeLightType0 = new _2DShapeLightTypeDescription();
-            shapeLightType0.enabled = true;
-            shapeLightType0.name = "Additive Light";
-            shapeLightType0.blendMode = _2DShapeLightTypeDescription.BlendMode.Additive;
-            shapeLightType0.renderTextureScale = 1.0f;
-            shapeLightType0.globalColor = Color.black;
-            asset.m_ShapeLightTypes[0] = shapeLightType0;
+            var lightOperation0 = new _2DLightOperationDescription();
+            lightOperation0.enabled = true;
+            lightOperation0.name = "Additive Light";
+            lightOperation0.blendMode = _2DLightOperationDescription.BlendMode.Additive;
+            lightOperation0.renderTextureScale = 1.0f;
+            lightOperation0.globalColor = Color.black;
+            asset.m_LightOperations[0] = lightOperation0;
 
-            var shapeLightType1 = new _2DShapeLightTypeDescription();
-            shapeLightType1.enabled = true;
-            shapeLightType1.name = "Modulate Light";
-            shapeLightType1.blendMode = _2DShapeLightTypeDescription.BlendMode.Modulate;
-            shapeLightType1.renderTextureScale = 1.0f;
-            shapeLightType1.globalColor = Color.gray;
-            asset.m_ShapeLightTypes[1] = shapeLightType1;
+            var lightOperation1 = new _2DLightOperationDescription();
+            lightOperation1.enabled = true;
+            lightOperation1.name = "Modulate Light";
+            lightOperation1.blendMode = _2DLightOperationDescription.BlendMode.Modulate;
+            lightOperation1.renderTextureScale = 1.0f;
+            lightOperation1.globalColor = Color.gray;
+            asset.m_LightOperations[1] = lightOperation1;
 
             AssetDatabase.CreateAsset(asset, "Assets/New 2D Renderer Data " + Random.Range(0, 100000) + ".asset");
             AssetDatabase.SaveAssets();

@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     [Serializable]
-    public struct _2DShapeLightTypeDescription
+    public struct _2DLightOperationDescription
     {
         internal enum TextureChannel
         {

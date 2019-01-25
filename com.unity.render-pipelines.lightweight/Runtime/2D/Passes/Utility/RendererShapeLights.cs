@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public class RendererShapeLights
     {
-        static private RenderTextureFormat m_RenderTextureFormatToUse;
+        /*static private RenderTextureFormat m_RenderTextureFormatToUse;
         static _2DShapeLightTypeDescription[] m_LightTypes;
         static RenderTargetHandle[] m_RenderTargets;
         static bool[] m_RenderTargetsDirty;
@@ -192,6 +192,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 cmdBuffer.EndSample(sampleName);
             });
-        }
+        }*/
     }
 }
