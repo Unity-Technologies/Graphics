@@ -203,11 +203,26 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             EditorGUI.indentLevel++;
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.Slider(pointInnerAngle, 0, 360, EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light"));
-            EditorGUILayout.Slider(pointOuterAngle, 0, 360, EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light"));
+            if (EditorGUI.EndChangeCheck())
+                pointInnerAngle.floatValue = Mathf.Min(pointInnerAngle.floatValue, pointOuterAngle.floatValue);
 
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.Slider(pointOuterAngle, 0, 360, EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light"));
+            if (EditorGUI.EndChangeCheck())
+                pointOuterAngle.floatValue = Mathf.Max(pointInnerAngle.floatValue, pointOuterAngle.floatValue);
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(pointInnerRadius, EditorGUIUtility.TrTextContent("Inner Radius", "Specify the inner radius of the light"));
+            if (EditorGUI.EndChangeCheck())
+                pointInnerRadius.floatValue = Mathf.Min(pointInnerRadius.floatValue, pointOuterRadius.floatValue);
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(pointOuterRadius, EditorGUIUtility.TrTextContent("Outer Radius", "Specify the outer radius of the light"));
+            if (EditorGUI.EndChangeCheck())
+                pointOuterRadius.floatValue = Mathf.Max(pointInnerRadius.floatValue, pointOuterRadius.floatValue);
+
             EditorGUILayout.PropertyField(pointZDistance, EditorGUIUtility.TrTextContent("Distance", "Specify the Z Distance of the light"));
             EditorGUILayout.PropertyField(pointLightCookie, EditorGUIUtility.TrTextContent("Cookie", "Specify a sprite as the cookie for the light"));
             if (pointInnerRadius.floatValue < 0) pointInnerRadius.floatValue = 0;
@@ -359,13 +374,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             float angleBy2 = (angle / 2) * (leftAngle ? -1.0f : 1.0f);
             Vector3 trcwPos = Quaternion.AngleAxis(angleBy2, -transform.forward) * (transform.up);
             Vector3 cwPos = transform.position + trcwPos * (radius + offset);
+
+            EditorGUI.BeginChangeCheck();
             Vector3 cwHandle = Handles.Slider2D(cwPos, Vector3.forward, rotation * Vector3.up, rotation * Vector3.right, capSize, capFunc, Vector3.zero);
-            Vector3 toCwHandle = (transform.position - cwHandle).normalized;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Vector3 toCwHandle = (transform.position - cwHandle).normalized;
+                angle = 360 - 2 * Quaternion.Angle(Quaternion.FromToRotation(transform.up, toCwHandle), Quaternion.identity);
+                angle = Mathf.Round(angle * 100) / 100f;
+            }
+
             if (drawLine)
                 Handles.DrawLine(transform.position, cwHandle);
 
-            if (GUIUtility.hotControl == GetLastControlId())
-                angle = 360 - 2 * Quaternion.Angle(Quaternion.FromToRotation(transform.up, toCwHandle), Quaternion.identity);
             return cwHandle;
         }
 
@@ -381,7 +402,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Quaternion rotRt = Quaternion.AngleAxis(angle / 2, -transform.forward) * transform.rotation;
             DrawAngleSlider2D(transform, rotRt, radius, handleOffset, capRight, handleSize, false, true, ref angle);
 
-            angle = Mathf.Round(angle * 100) / 100f;
             return angle - old;
         }
 
@@ -394,11 +414,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             var oldColor = Handles.color;
             Handles.color = Color.yellow;
+
             float diff = DrawAngleHandle(lt.transform, lt.m_PointLightOuterRadius, s_AngleCapOffset, TriCapTR, TriCapBR, ref lt.m_PointLightOuterAngle);
-            float iang = lt.m_PointLightInnerAngle + diff;
-            lt.m_PointLightInnerAngle = iang > 0 ? iang : 0;
-            DrawAngleHandle(lt.transform, lt.m_PointLightOuterRadius, -s_AngleCapOffset, TriCapTL, TriCapBL, ref lt.m_PointLightInnerAngle);
-            lt.m_PointLightInnerAngle = lt.m_PointLightInnerAngle < lt.m_PointLightOuterAngle ? lt.m_PointLightInnerAngle : lt.m_PointLightOuterAngle;
+
+            if (diff != 0.0f)
+                lt.m_PointLightInnerAngle = Mathf.Max(0.0f, lt.m_PointLightInnerAngle + diff);
+
+            diff = DrawAngleHandle(lt.transform, lt.m_PointLightOuterRadius, -s_AngleCapOffset, TriCapTL, TriCapBL, ref lt.m_PointLightInnerAngle);
+
+            if (diff != 0.0f)
+                lt.m_PointLightInnerAngle = lt.m_PointLightInnerAngle < lt.m_PointLightOuterAngle ? lt.m_PointLightInnerAngle : lt.m_PointLightOuterAngle;
+
             Handles.color = oldColor;
         }
 
@@ -413,7 +439,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         private void DrawRangeHandles(Light2D lt)
         {
             var handleColor = Handles.color;
-            var angle = 0.0f;
+            var dummy = 0.0f;
+            bool radiusChanged = false;
             Vector3 handlePos = Vector3.zero;
             Quaternion rotLeft = Quaternion.AngleAxis(0, -lt.transform.forward) * lt.transform.rotation;
             float handleOffset = HandleUtility.GetHandleSize(lt.transform.position) * s_AngleCapOffsetSecondary;
@@ -423,30 +450,38 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.color = Color.yellow;
 
             float outerRadius = lt.m_PointLightOuterRadius;
-            Vector3 returnPos = DrawAngleSlider2D(lt.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUC, handleSize, false, false, ref angle);
-            if (GUIUtility.hotControl == GetLastControlId())
+            EditorGUI.BeginChangeCheck();
+            Vector3 returnPos = DrawAngleSlider2D(lt.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUC, handleSize, false, false, ref dummy);
+            if (EditorGUI.EndChangeCheck())
             {
                 var vec = (returnPos - lt.transform.position).normalized;
                 lt.transform.up = new Vector3(vec.x, vec.y, 0);
                 outerRadius = (returnPos - lt.transform.position).magnitude;
                 outerRadius = outerRadius + handleOffset;
+                radiusChanged = true;
             }
             DrawRadiusArc(lt.transform, lt.m_PointLightOuterRadius, lt.m_PointLightOuterAngle, 0, s_RangeCapFunction, s_RangeCapSize, false);
 
             Handles.color = Color.gray;
             float innerRadius = lt.m_PointLightInnerRadius;
-            returnPos = DrawAngleSlider2D(lt.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDC, handleSize, true, false, ref angle);
-            if (GUIUtility.hotControl == GetLastControlId())
+            EditorGUI.BeginChangeCheck();
+            returnPos = DrawAngleSlider2D(lt.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDC, handleSize, true, false, ref dummy);
+            if (EditorGUI.EndChangeCheck())
             {
                 innerRadius = (returnPos - lt.transform.position).magnitude;
                 innerRadius = innerRadius - handleOffset;
+                radiusChanged = true;
             }
             DrawRadiusArc(lt.transform, lt.m_PointLightInnerRadius, lt.m_PointLightOuterAngle, 0, s_InnerRangeCapFunction, s_InnerRangeCapSize, false);
 
             Handles.color = oldColor;
 
-            lt.m_PointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
-            lt.m_PointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
+            if (radiusChanged)
+            {
+                lt.m_PointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
+                lt.m_PointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
+            }
+            
             Handles.color = handleColor;
         }
 
@@ -586,18 +621,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
         }
 
-        // Use Internal Bridge Later.
-        public static FieldInfo LastControlIdField = typeof(EditorGUIUtility).GetField("s_LastControlID", BindingFlags.Static | BindingFlags.NonPublic);
-        public static int GetLastControlId()
-        {
-            if (LastControlIdField == null)
-            {
-                Debug.LogError("Compatibility with Unity broke: can't find lastControlId field in EditorGUI");
-                return 0;
-            }
-            return (int)LastControlIdField.GetValue(null);
-        }
-
         [DrawGizmo(GizmoType.InSelectionHierarchy | GizmoType.Selected | GizmoType.Pickable)]
         static void RenderSpline(Light2D light, GizmoType gizmoType)
         {
@@ -618,6 +641,5 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 Handles.matrix = oldMatrix;
             }
         }
-
     }
 }
