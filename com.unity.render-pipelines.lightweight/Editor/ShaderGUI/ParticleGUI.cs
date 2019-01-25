@@ -180,7 +180,8 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                             properties.softParticlesNearFadeDistance,
                             Styles.softParticlesNearFadeDistanceText,
                             properties.softParticlesFarFadeDistance,
-                            Styles.softParticlesFarFadeDistanceText);
+                            Styles.softParticlesFarFadeDistanceText, 
+                            materialEditor);
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -205,7 +206,8 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                             properties.cameraNearFadeDistance,
                             Styles.cameraNearFadeDistanceText,
                             properties.cameraFarFadeDistance,
-                            Styles.cameraFarFadeDistanceText);
+                            Styles.cameraFarFadeDistanceText, 
+                            materialEditor);
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -213,8 +215,10 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 // Distortion
                 if (properties.distortionEnabled != null)
                 {
-                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.showMixedValue = properties.distortionEnabled.hasMixedValue;
                     var enabled = properties.distortionEnabled.floatValue;
+                    
+                    EditorGUI.BeginChangeCheck();
                     enabled = EditorGUILayout.Toggle(Styles.distortionEnabled, enabled != 0.0f) ? 1.0f : 0.0f;
                     if (EditorGUI.EndChangeCheck())
                     {
@@ -227,6 +231,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                         EditorGUI.indentLevel++;
                         materialEditor.ShaderProperty(properties.distortionStrength, Styles.distortionStrength);
                         EditorGUI.BeginChangeCheck();
+                        EditorGUI.showMixedValue = properties.distortionStrength.hasMixedValue;
                         var blend = EditorGUILayout.Slider(Styles.distortionBlend, properties.distortionBlend.floatValue, 0f, 1f);
                         if(EditorGUI.EndChangeCheck())
                             properties.distortionBlend.floatValue = blend;
