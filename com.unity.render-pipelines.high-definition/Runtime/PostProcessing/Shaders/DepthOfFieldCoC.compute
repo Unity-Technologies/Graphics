@@ -23,14 +23,19 @@ CBUFFER_END
 #define FarStart        _Params.z
 #define FarEnd          _Params.w
 
+#define FIX_NEAR_BLEND 0
 #define GROUP_SIZE 8
 
 float GetFixedNearBlend(float linearEyeDepth)
 {
+#if FIX_NEAR_BLEND
     // We can't rely on the actual CoC to blur the foreground as we have a fixed number of samples
     // so an object close to the camera would appear less blurry than another further away with the
     // same CoC
     return 1.0 - saturate(linearEyeDepth / (NearEnd * NearEnd));
+#else
+    return 1.0;
+#endif
 }
 
 // Physical CoC

@@ -67,7 +67,7 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
         // Find min and max across waves.
         minVelLen = gs_minVel[0];
         maxVelPacked = gs_maxVel[0];
-        for (int i = 1; i < waveCount; ++i)
+        for (uint i = 1u; i < waveCount; ++i)
         {
             minVelLen = min(minVelLen, gs_minVel[i]);
             maxVelPacked = max(maxVelPacked, gs_maxVel[i]);
