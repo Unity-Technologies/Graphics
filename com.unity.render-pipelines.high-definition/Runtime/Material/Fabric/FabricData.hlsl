@@ -32,11 +32,17 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
-    
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
+
+    ApplyDoubleSidedFlipOrMirror(input, doubleSidedConstants); // Apply double sided flip on the vertex normal
+
     // Initial value of the material features
     surfaceData.materialFeatures = 0;
-    
+
 // Transform the preprocess macro into a material feature (note that silk flag is deduced from the abscence of this one)
 #ifdef _MATERIAL_FEATURE_COTTON_WOOL
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
@@ -49,7 +55,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION;
 #endif
-    
+
     // Generate the primary uv coordinates
     float2 uvBase = _UVMappingMask.x * input.texCoord0.xy +
                     _UVMappingMask.y * input.texCoord1.xy +
@@ -100,7 +106,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float4 threadSample = float4(1.0, 0.0, 0.0, 1.0);
     float3 threadGradient = float3(0.0, 0.0, 0.0);
 #endif
-    
+
     // The base color of the object mixed with the base color texture
     surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, uvBase).rgb * _BaseColor.rgb;
 
@@ -109,7 +115,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Propagate the geometry normal
     surfaceData.geomNormalWS = input.worldToTangent[2];
-    
+
 #ifdef _NORMALMAP
     float2 derivative = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uvBase), _NormalScale);
     #ifdef _THREAD_MAP
@@ -153,7 +159,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float smoothnessOverlay = lerp(surfaceData.perceptualSmoothness, (threadSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
     surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, saturate(smoothnessOverlay), maskValue.z);
 #endif
-    
+
 // If a thread map was provided, modify the matching ao
 #ifdef _THREAD_MAP
     float aoOverlay = lerp(surfaceData.ambientOcclusion, threadAO * surfaceData.ambientOcclusion, _ThreadAOScale);
@@ -224,9 +230,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Builtin Data
     // -------------------------------------------------------------
 
-    // For back lighting we use the oposite vertex normal 
+    // For back lighting we use the oposite vertex normal
     InitBuiltinData(alpha, surfaceData.normalWS, -input.worldToTangent[2], input.positionRWS, input.texCoord1, input.texCoord2, builtinData);
-    
+
     // Support the emissive color and map
     builtinData.emissiveColor = _EmissiveColor.rgb * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #ifdef _EMISSIVE_COLOR_MAP
@@ -235,7 +241,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
                     _UVMappingMaskEmissive.y * input.texCoord1.xy +
                     _UVMappingMaskEmissive.z * input.texCoord2.xy +
                     _UVMappingMaskEmissive.w * input.texCoord3.xy;
-    
+
     uvEmissive = uvEmissive * _EmissiveColorMap_ST.xy + _EmissiveColorMap_ST.zw;
 
     builtinData.emissiveColor *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, uvEmissive).rgb;
