@@ -29,18 +29,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly bool expanded;
             private bool spaceAtEnd;
 
-            public HeaderScope(string title, uint bitExpanded, ExpandableAreaMaterial owner, bool spaceAtEnd = true, Color colorDot = default(Color))
+            public HeaderScope(string title, uint bitExpanded, ExpandableAreaMaterial owner, bool spaceAtEnd = true, Color colorDot = default(Color), bool subHeader = false)
             {
                 bool beforeExpended = owner.GetExpandedAreas(bitExpanded);
 
                 this.spaceAtEnd = spaceAtEnd;
-                CoreEditorUtils.DrawSplitter();
+                if (!subHeader)
+                    CoreEditorUtils.DrawSplitter();
                 GUILayout.BeginVertical();
 
                 bool saveChangeState = GUI.changed;
                 if (colorDot != default(Color))
                     title = "   " + title;
-                expanded = CoreEditorUtils.DrawHeaderFoldout(title, beforeExpended);
+                expanded = subHeader
+                    ? CoreEditorUtils.DrawSubHeaderFoldout(title, beforeExpended)
+                    : CoreEditorUtils.DrawHeaderFoldout(title, beforeExpended);
                 if (colorDot != default(Color))
                 {
                     Color previousColor = GUI.contentColor;
