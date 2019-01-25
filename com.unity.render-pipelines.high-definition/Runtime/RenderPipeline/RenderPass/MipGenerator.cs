@@ -98,6 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     enableRandomWrite: true,
                     useMipMap: false,
                     enableMSAA: false,
+                    xrInstancing: source.dimension == TextureDimension.Tex2DArray,
                     name: "Temp Gaussian Pyramid Target"
                 );
             }
