@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed LOAD_TEXTURE2D_ARRAY_MSAA macro
 - Fixed instancing macro usage for decals
 - Fixed issue with alpha shadow clip (was incorrectly clipping object shadow)
+- Fixed double sided flip mode
 
 ## [4.8.0-preview] - 2019-01-16
 
