@@ -197,6 +197,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public override Shader terrainDetailLitShader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailLitShader;
+            }
+        }
+
+        public override Shader terrainDetailGrassShader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailGrassShader;
+            }
+        }
+
+        public override Shader terrainDetailGrassBillboardShader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailGrassBillboardShader;
+            }
+        }
+
         // Note: This function is HD specific
         public Material GetDefaultDecalMaterial()
         {

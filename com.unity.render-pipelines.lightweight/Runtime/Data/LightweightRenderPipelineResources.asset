@@ -9,6 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: cc1f30932f41a6a4d8c53677788dd8aa, type: 3}
   m_Name: LightweightRenderPipelineResources
   m_EditorClassIdentifier: 
@@ -17,3 +18,9 @@ MonoBehaviour:
   m_ScreenSpaceShadowShader: {fileID: 4800000, guid: 0f854b35a0cf61a429bd5dcfea30eddd,
     type: 3}
   m_SamplingShader: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
+  m_TerrainDetailLitShader: {fileID: 4800000, guid: f6783ab646d374f94b199774402a5144,
+    type: 3}
+  m_TerrainDetailGrassShader: {fileID: 4800000, guid: e507fdfead5ca47e8b9a768b51c291a1,
+    type: 3}
+  m_TerrainDetailGrassBillboardShader: {fileID: 4800000, guid: 29868e73b638e48ca99a19ea58c48d90,
+    type: 3}
