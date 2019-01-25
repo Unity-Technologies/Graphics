@@ -12,6 +12,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [Flags]
         protected enum LayerExpandable : uint
         {
+            MainLayer = 1 << 11,
+            Layer1 = 1 << 12,
+            Layer2 = 1 << 13,
+            Layer3 = 1 << 14,
             LayeringOptionMain = 1 << 15,
             ShowLayer1 = 1 << 16,
             ShowLayer2 = 1 << 17,
@@ -30,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LayeringOption3 = 1 << 30
         }
 
-        protected override uint defaultExpandedState { get { return (uint)(Expandable.Base | Expandable.Input | Expandable.VertexAnimation | Expandable.Detail | Expandable.Emissive | Expandable.Transparency | Expandable.Other | Expandable.Tesselation) + (uint)(LayerExpandable.MaterialReferences | LayerExpandable.MainInput | LayerExpandable.MainDetail); } }
+        protected override uint defaultExpandedState { get { return (uint)(Expandable.Base | Expandable.Input | Expandable.VertexAnimation | Expandable.Detail | Expandable.Emissive | Expandable.Transparency | Expandable.Other | Expandable.Tesselation) + (uint)(LayerExpandable.MaterialReferences | LayerExpandable.MainInput | LayerExpandable.MainDetail | LayerExpandable.Layer1 | LayerExpandable.Layer2 | LayerExpandable.Layer3); } }
         
         public enum VertexColorMode
         {
@@ -346,64 +350,76 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             materialImporter.userData = JsonUtility.ToJson(layersGUID);
         }
 
+        void DrawLayeringOptions(bool mainLayerInfluenceEnable, uint expended, int layerIndex)
+        {
+            // do layering option (if main layer (0) check if there is any content before drawing the foldout)
+            if (layerIndex > 0 || layerIndex == 0 && !useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
+            {
+                using (var header = new HeaderScope(styles.layeringOptionText.text, expended, this, colorDot: s_Styles.layerColors[layerIndex], subHeader: true))
+                {
+                    if (header.expanded)
+                    {
+                        // Main layer does not have any options but height base blend.
+                        if (layerIndex > 0)
+                        {
+                            m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
+
+                            if (mainLayerInfluenceEnable)
+                            {
+                                m_MaterialEditor.ShaderProperty(inheritBaseColor[layerIndex - 1], styles.inheritBaseColorText);
+                                m_MaterialEditor.ShaderProperty(inheritBaseNormal[layerIndex - 1], styles.inheritBaseNormalText);
+                                // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
+                                // We always display it as it can be tricky to know when per pixel displacement is enabled or not
+                                m_MaterialEditor.ShaderProperty(inheritBaseHeight[layerIndex - 1], styles.inheritBaseHeightText);
+                            }
+                        }
+                        else
+                        {
+                            m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
+                        }
+                    }
+                }
+            }
+        }
+
         bool DoLayerGUI(AssetImporter materialImporter, int layerIndex)
         {
             bool result = false;
 
-            int paramIndex = -1;
             Array values = Enum.GetValues(typeof(LayerExpandable));
-            if (layerIndex > 0)
+            if (layerIndex > 1) //main layer (0) and layer 1 always here
             {
-                paramIndex = layerIndex - 1;
-
                 int startShowVal = Array.IndexOf(values, LayerExpandable.ShowLayer1);
-                if (!GetExpandedAreas((uint)values.GetValue(startShowVal + paramIndex)))
+                if (!GetExpandedAreas((uint)values.GetValue(startShowVal + layerIndex)))
                 {
                     return false;
                 }
             }
-            
-            //showLayer[layerIndex].floatValue = EditorGUILayout.Foldout(showLayer[layerIndex].floatValue != 0.0f, styles.layerLabels[layerIndex], styles.layerLabelColors[layerIndex]) ? 1.0f : 0.0f;
-            
+                        
             Material material = m_MaterialEditor.target as Material;
 
             bool mainLayerInfluenceEnable = useMainLayerInfluence.floatValue > 0.0f;
 
-            // Main layer does not have any options but height base blend.
-            if (layerIndex > 0)
+            int startLayer = Array.IndexOf(values, LayerExpandable.MainLayer);
+            using (var layerHeader = new HeaderScope(s_Styles.layerLabels[layerIndex].text, (uint)values.GetValue(startLayer + layerIndex), this, false, s_Styles.layerColors[layerIndex]))
             {
-                int startLayeringOptionValue = Array.IndexOf(values, LayerExpandable.LayeringOption1);
-                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)values.GetValue(startLayeringOptionValue + paramIndex), this, colorDot: s_Styles.layerColors[layerIndex]))
+                if (layerHeader.expanded)
                 {
-                    if (header.expanded)
-                    {
-                        m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
+                    //Note LayeringOptionMain do not preced LayeringOption1
+                    int startLayeringOptionValue = Array.IndexOf(values, LayerExpandable.LayeringOption1);
+                    var layeringOptionValue = layerIndex == 0 ? LayerExpandable.LayeringOptionMain : (LayerExpandable)values.GetValue(startLayeringOptionValue + layerIndex - 1);
+                    DrawLayeringOptions(mainLayerInfluenceEnable, (uint)layeringOptionValue, layerIndex);
+                    
+                    int startInputValue = Array.IndexOf(values, LayerExpandable.MainInput);
+                    var inputValue = (LayerExpandable)values.GetValue(startInputValue + layerIndex);
+                    int startDetailValue = Array.IndexOf(values, LayerExpandable.MainDetail);
+                    var detailValue = (LayerExpandable)values.GetValue(startDetailValue + layerIndex);
+                    DoLayerGUI(material, layerIndex, true, m_UseHeightBasedBlend, (uint)inputValue, (uint)detailValue, colorDot: s_Styles.layerColors[layerIndex], subHeader: true);
 
-                        if (mainLayerInfluenceEnable)
-                        {
-                            m_MaterialEditor.ShaderProperty(inheritBaseColor[paramIndex], styles.inheritBaseColorText);
-                            m_MaterialEditor.ShaderProperty(inheritBaseNormal[paramIndex], styles.inheritBaseNormalText);
-                            // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
-                            // We always display it as it can be tricky to know when per pixel displacement is enabled or not
-                            m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
-                        }
-
-                    }
+                    if (!GetExpandedAreas((uint)detailValue))
+                        EditorGUILayout.Space();
                 }
             }
-            else if (!useMainLayerInfluence.hasMixedValue && useMainLayerInfluence.floatValue != 0.0f)
-            {
-                using (var header = new HeaderScope(s_Styles.layerLabels[layerIndex].text + " " + styles.layeringOptionText.text, (uint)LayerExpandable.LayeringOptionMain, this, colorDot: s_Styles.layerColors[layerIndex]))
-                {
-                    if (header.expanded)
-                        m_MaterialEditor.TexturePropertySingleLine(styles.layerInfluenceMapMaskText, layerInfluenceMaskMap);
-                }
-            }
-
-            int startInputValue = Array.IndexOf(values, LayerExpandable.Layer1Input);
-            int startDetailValue = Array.IndexOf(values, LayerExpandable.Layer1Detail);
-            DoLayerGUI(material, layerIndex, true, m_UseHeightBasedBlend, s_Styles.layerLabels[layerIndex].text + " ", (uint)values.GetValue(startInputValue + paramIndex), (uint)values.GetValue(startDetailValue + paramIndex), colorDot: s_Styles.layerColors[layerIndex]);
-
             return result;
         }
 
