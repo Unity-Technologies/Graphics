@@ -105,6 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 filterMode: FilterMode.Bilinear,
                 colorFormat: GraphicsFormat.R8_UNorm,
                 enableRandomWrite: true,
+                xrInstancing: true,
                 name: "Ambient Occlusion"
             );
 
@@ -114,6 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     filterMode: FilterMode.Bilinear,
                     colorFormat: GraphicsFormat.R8G8_UNorm,
                     enableRandomWrite: true,
+                    xrInstancing: true,
                     name: "Ambient Occlusion MSAA"
                 );
 
@@ -178,27 +180,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_MultiAmbientOcclusionTex);
 
             RTHandles.Release(m_LinearDepthTex);
-            
+
             RTHandles.Release(m_LowDepth1Tex);
             RTHandles.Release(m_LowDepth2Tex);
             RTHandles.Release(m_LowDepth3Tex);
             RTHandles.Release(m_LowDepth4Tex);
-            
+
             RTHandles.Release(m_TiledDepth1Tex);
             RTHandles.Release(m_TiledDepth2Tex);
             RTHandles.Release(m_TiledDepth3Tex);
             RTHandles.Release(m_TiledDepth4Tex);
-            
+
             RTHandles.Release(m_Occlusion1Tex);
             RTHandles.Release(m_Occlusion2Tex);
             RTHandles.Release(m_Occlusion3Tex);
             RTHandles.Release(m_Occlusion4Tex);
-            
+
             RTHandles.Release(m_Combined1Tex);
             RTHandles.Release(m_Combined2Tex);
             RTHandles.Release(m_Combined3Tex);
         }
-        
+
 #if ENABLE_RAYTRACING
         public void InitRaytracing(HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
         {
@@ -325,6 +327,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableMSAA: false,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
+                xrInstancing: true,
                 name: name
             );
         }
@@ -336,11 +339,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 dimension: TextureDimension.Tex2DArray,
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
-                slices: 16,
+                slices: 16, // XRTODO: multiply by eyeCount and handle indexing in shader
                 autoGenerateMips: false,
                 enableMSAA: false,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
+                xrInstancing: true,
                 name: name
             );
         }

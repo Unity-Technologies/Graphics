@@ -36,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Matrix4x4[]  viewMatrixStereo;
         public Matrix4x4[]  projMatrixStereo;
+        // XRTODO: remove once SinglePassInstanced is working
         public Vector4      textureWidthScaling; // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
         public uint         numEyes; // 2+ when rendering stereo, 1 otherwise
 
@@ -308,7 +309,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (camera.stereoEnabled)
             {
-                textureWidthScaling = new Vector4(2.0f, 0.5f, 0.0f, 0.0f);
+                if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
+                    textureWidthScaling = new Vector4(2.0f, 0.5f, 0.0f, 0.0f);
+
                 for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {
                     // For VR, TAA proj matrices don't need to be jittered
