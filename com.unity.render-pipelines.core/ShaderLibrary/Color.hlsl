@@ -457,6 +457,7 @@ real4 FastTonemapInvert(real4 c)
     return real4(FastTonemapInvert(c.rgb), c.a);
 }
 
+#ifndef SHADER_API_GLES
 // 3D LUT grading
 // scaleOffset = (1 / lut_size, lut_size - 1)
 real3 ApplyLut3D(TEXTURE3D_ARGS(tex, samplerTex), real3 uvw, real2 scaleOffset)
@@ -464,6 +465,7 @@ real3 ApplyLut3D(TEXTURE3D_ARGS(tex, samplerTex), real3 uvw, real2 scaleOffset)
     uvw.xyz = uvw.xyz * scaleOffset.yyy * scaleOffset.xxx + scaleOffset.xxx * 0.5;
     return SAMPLE_TEXTURE3D_LOD(tex, samplerTex, uvw, 0.0).rgb;
 }
+#endif
 
 // 2D LUT grading
 // scaleOffset = (1 / lut_width, 1 / lut_height, lut_height - 1)
