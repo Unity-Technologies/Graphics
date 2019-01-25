@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
     [TestFixture]
     class DynamicSlotTests
     {
-        private ShaderGraph.MaterialGraph m_Graph;
+        private GraphData m_Graph;
         private DynamicNode m_DynamicNode;
         private TestNode m_StaticNode;
 
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new ShaderGraph.MaterialGraph();
+            m_Graph = new GraphData();
             m_DynamicNode = new DynamicNode();
             m_Graph.AddNode(m_DynamicNode);
             m_StaticNode = new TestNode();

@@ -575,7 +575,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // geometricSpecularAA, energyConservingSpecular, specularOcclusion
         //
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(INode iMasterNode, Pass pass)
+        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
 

@@ -55,12 +55,12 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new BooleanNode { value = new ToggleData(value) };
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new BooleanShaderProperty();
             copied.displayName = displayName;

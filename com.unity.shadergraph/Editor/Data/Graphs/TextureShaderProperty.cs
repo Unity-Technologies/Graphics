@@ -87,12 +87,12 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new Texture2DAssetNode { texture = value.texture };
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new TextureShaderProperty();
             copied.displayName = displayName;

@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     class SearchWindowProvider : ScriptableObject, ISearchWindowProvider
     {
         EditorWindow m_EditorWindow;
-        AbstractMaterialGraph m_Graph;
+        GraphData m_Graph;
         GraphView m_GraphView;
         Texture2D m_Icon;
         public ShaderPort connectedPort { get; set; }
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public SlotReference targetSlotReference { get; private set; }
         public Vector2 targetPosition { get; private set; }
 
-        public void Initialize(EditorWindow editorWindow, AbstractMaterialGraph graph, GraphView graphView)
+        public void Initialize(EditorWindow editorWindow, GraphData graph, GraphView graphView)
         {
             m_EditorWindow = editorWindow;
             m_Graph = graph;
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if (!(m_Graph is SubGraph))
+            if (!(m_Graph.isSubGraph))
             {
                 foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
                 {
@@ -184,9 +184,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> nodeEntries)
         {
-            if (m_Graph is SubGraph && !node.allowedInSubGraph)
+            if (m_Graph.isSubGraph && !node.allowedInSubGraph)
                 return;
-            if (m_Graph is MaterialGraph && !node.allowedInMainGraph)
+            if (!m_Graph.isSubGraph && !node.allowedInMainGraph)
                 return;
             if (connectedPort == null)
             {

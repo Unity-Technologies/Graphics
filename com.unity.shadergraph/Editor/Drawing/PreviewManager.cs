@@ -8,14 +8,13 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
-using INode = UnityEditor.Graphing.INode;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class PreviewManager : IDisposable
     {
-        AbstractMaterialGraph m_Graph;
+        GraphData m_Graph;
         MessageManager m_Messenger;
         List<PreviewRenderData> m_RenderDatas = new List<PreviewRenderData>();
         PreviewRenderData m_MasterRenderData;
@@ -35,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_MasterRenderData; }
         }
 
-        public PreviewManager(AbstractMaterialGraph graph, MessageManager messenger)
+        public PreviewManager(GraphData graph, MessageManager messenger)
         {
             m_Graph = graph;
             m_Messenger = messenger;
@@ -58,7 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
             m_MasterRenderData.renderTexture.Create();
 
-            foreach (var node in m_Graph.GetNodes<INode>())
+            foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
                 AddPreview(node);
         }
 
@@ -72,7 +71,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return m_RenderDatas[node.tempId.index];
         }
 
-        void AddPreview(INode node)
+        void AddPreview(AbstractMaterialNode node)
         {
             var shaderData = new PreviewShaderData
             {
@@ -106,16 +105,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_NeedShaderUpdate = true;
         }
 
-        void OnNodeModified(INode node, ModificationScope scope)
+        void OnNodeModified(AbstractMaterialNode node, ModificationScope scope)
         {
             m_NeedShaderUpdate |= (scope == ModificationScope.Topological || scope == ModificationScope.Graph);
         }
 
-        Stack<INode> m_NodeWave = new Stack<INode>();
+        Stack<AbstractMaterialNode> m_NodeWave = new Stack<AbstractMaterialNode>();
         List<IEdge> m_Edges = new List<IEdge>();
         List<MaterialSlot> m_Slots = new List<MaterialSlot>();
 
-        void PropagateNodeList(ICollection<INode> nodes, bool forward)
+        void PropagateNodeList(ICollection<AbstractMaterialNode> nodes, bool forward)
         {
             m_NodeWave.Clear();
             foreach (var node in nodes)
@@ -295,7 +294,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 EditorUtility.DisplayProgressBar("Shader Graph", "Compiling preview shaders", 0f);
 
-                foreach (var masterNode in m_Graph.GetNodes<IMasterNode>())
+                foreach (var masterNode in m_Graph.GetNodes<AbstractMaterialNode>().Where(x => x is IMasterNode))
                 {
                     UpdateMasterNodeShader(masterNode.tempId);
                 }
@@ -312,7 +311,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 });
 
-                var errNodes = new HashSet<INode>();
+                var errNodes = new HashSet<AbstractMaterialNode>();
                 GenerationResults results;
                 var uberShaderHasError = GenerateUberShader(errNodes, out results);
                 
@@ -352,7 +351,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        bool GenerateUberShader(ICollection<INode> errNodes, out GenerationResults results)
+        bool GenerateUberShader(ICollection<AbstractMaterialNode> errNodes, out GenerationResults results)
         {
             ShaderUtil.ClearCachedData(m_UberShader);
             results = m_Graph.GetUberColorShader(errNodes);
@@ -361,9 +360,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             return ShaderUtil.ShaderHasError(m_UberShader);
         }
 
-        HashSet<INode> ProcessUberErrors(GenerationResults results)
+        HashSet<AbstractMaterialNode> ProcessUberErrors(GenerationResults results)
         {
-            var errNodes = new HashSet<INode>();
+            var errNodes = new HashSet<AbstractMaterialNode>();
             var message = new StringBuilder();
             var messages = ShaderUtil.GetShaderMessages(m_UberShader);
             message.AppendFormat(@"Preview shader for graph has {0} error{1}:\n", messages.Length, messages.Length != 1 ? "s" : "");
@@ -423,7 +422,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateMasterNodeShader(Identifier nodeId)
         {
-            var masterNode = m_Graph.GetNodeFromTempId(nodeId) as IMasterNode;
+            var node = m_Graph.GetNodeFromTempId(nodeId);
+            var masterNode = node as IMasterNode;
             var renderData = Get(m_RenderDatas, nodeId);
             var shaderData = renderData?.shaderData;
 
@@ -431,7 +431,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             List<PropertyCollector.TextureInfo> configuredTextures;
-            shaderData.shaderString = masterNode.GetShader(GenerationMode.Preview, masterNode.name, out configuredTextures);
+            shaderData.shaderString = masterNode.GetShader(GenerationMode.Preview, node.name, out configuredTextures);
 
             var debugOutputPath = DefaultShaderIncludes.GetDebugOutputPath();
             if (!string.IsNullOrEmpty(debugOutputPath))
@@ -638,7 +638,7 @@ Shader ""hidden/preview""
 
     class PreviewShaderData
     {
-        public INode node { get; set; }
+        public AbstractMaterialNode node { get; set; }
         public Shader shader { get; set; }
         public string shaderString { get; set; }
         public bool hasError { get; set; }

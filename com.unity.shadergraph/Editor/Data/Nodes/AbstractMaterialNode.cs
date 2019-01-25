@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractMaterialNode : INode, ISerializationCallbackReceiver, IGenerateProperties
+    abstract class AbstractMaterialNode : ISerializationCallbackReceiver
     {
         protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
         protected static List<IEdge> s_TempEdges = new List<IEdge>();
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
 
         public Identifier tempId { get; set; }
 
-        public IGraph owner { get; set; }
+        public GraphData owner { get; set; }
 
         OnNodeModified m_OnModified;
 
@@ -451,7 +451,7 @@ namespace UnityEditor.ShaderGraph
 
             if (isInError)
             {
-                ((AbstractMaterialGraph) owner).AddValidationError(tempId, errorMessage);
+                ((GraphData) owner).AddValidationError(tempId, errorMessage);
             }
             else
             {

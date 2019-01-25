@@ -5,11 +5,8 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractShaderProperty<T> : IShaderProperty
+    abstract class AbstractShaderProperty
     {
-        [SerializeField]
-        private T m_Value;
-
         [SerializeField]
         private string m_Name;
 
@@ -19,12 +16,11 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private SerializableGuid m_Guid = new SerializableGuid();
 
-        public T value
+        public Guid guid
         {
-            get { return m_Value; }
-            set { m_Value = value; }
+            get { return m_Guid.guid; }
         }
-
+        
         public string displayName
         {
             get
@@ -52,7 +48,7 @@ namespace UnityEditor.ShaderGraph
                 return overrideReferenceName;
             }
         }
-
+        
         [SerializeField]
         string m_OverrideReferenceName;
 
@@ -62,19 +58,14 @@ namespace UnityEditor.ShaderGraph
             set { m_OverrideReferenceName = value; }
         }
 
-        public abstract PropertyType propertyType { get; }
-
-        public Guid guid
-        {
-            get { return m_Guid.guid; }
-        }
-
         public bool generatePropertyBlock
         {
             get { return m_GeneratePropertyBlock; }
             set { m_GeneratePropertyBlock = value; }
         }
 
+        public abstract PropertyType propertyType { get; }
+        
         public abstract Vector4 defaultValue { get; }
         public abstract bool isBatchable { get; }
         public abstract string GetPropertyBlockString();
@@ -86,7 +77,20 @@ namespace UnityEditor.ShaderGraph
         }
 
         public abstract PreviewProperty GetPreviewMaterialProperty();
-        public abstract INode ToConcreteNode();
-        public abstract IShaderProperty Copy();
+        public abstract AbstractMaterialNode ToConcreteNode();
+        public abstract AbstractShaderProperty Copy();
+    }
+    
+    [Serializable]
+    abstract class AbstractShaderProperty<T> : AbstractShaderProperty
+    {
+        [SerializeField]
+        private T m_Value;
+
+        public T value
+        {
+            get { return m_Value; }
+            set { m_Value = value; }
+        }
     }
 }
