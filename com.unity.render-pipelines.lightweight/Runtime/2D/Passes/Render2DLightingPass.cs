@@ -15,9 +15,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        private Light2DRTInfo m_PointLightNormalRenderTextureInfo;
-        private Light2DRTInfo m_PointLightColorRenderTextureInfo;
-
         public RenderTexture m_NormalMapRT;
         public RenderTexture m_PointLightingRT;
 
@@ -34,11 +31,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_SortingLayers = SortingLayer.layers;
         }
 
-        public void Setup(Light2DRTInfo pointLightNormalRTInfo, Light2DRTInfo pointLightColorRTInfo, float lightIntensityScale, _2DLightOperationDescription[] lightOperations, Camera camera)
+        public void Setup(float lightIntensityScale, _2DLightOperationDescription[] lightOperations, Camera camera)
         {
-            m_PointLightNormalRenderTextureInfo = pointLightNormalRTInfo;
-            m_PointLightColorRenderTextureInfo = pointLightColorRTInfo;
-
             float inverseLightIntensityScale = 1 / lightIntensityScale;
 
             Shader.SetGlobalFloat("_LightIntensityScale", lightIntensityScale);
