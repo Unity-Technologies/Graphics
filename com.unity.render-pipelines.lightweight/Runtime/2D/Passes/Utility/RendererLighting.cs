@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             foreach (var light in lights)
             {
-                if (light != null && light.GetLightProjectionType() == lightProjectionType && light.isActiveAndEnabled && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible())
+                if (light != null && light.GetLightProjectionType() == lightProjectionType && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
                     RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
 
@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = lights[i];
 
-                    if (light != null && light.GetLightProjectionType() == lightProjectionType && light.isActiveAndEnabled && light.LightVolumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible())
+                    if (light != null && light.GetLightProjectionType() == lightProjectionType && light.LightVolumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                     {
                         Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
                         if (shapeLightVolumeMaterial != null)

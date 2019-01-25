@@ -88,6 +88,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public CookieStyles m_ShapeLightStyle = CookieStyles.Parametric;
 
         [SerializeField]
+        [Serialization.FormerlySerializedAs("m_ShapeLightType")]
         private LightOperation m_LightOperation = LightOperation.Type0;
         private LightOperation m_PreviousLightOperation = LightOperation.Type0;
 

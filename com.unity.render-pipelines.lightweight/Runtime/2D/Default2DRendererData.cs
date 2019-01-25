@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private float m_LightIntensityScale = 1;
 
         [SerializeField]
+        [Serialization.FormerlySerializedAs("m_ShapeLightTypes")]
         private _2DLightOperationDescription[] m_LightOperations = new _2DLightOperationDescription[4];
 
         public _2DLightOperationDescription[] lightOperations
