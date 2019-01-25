@@ -144,7 +144,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             Mesh lightMesh = light.GetMesh();
                             if (lightMesh != null)
                             {
-                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
+                                if (lightProjectionType == Light2D.LightProjectionTypes.Shape)
+                                {
+                                    cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
+                                }
+                                else
+                                {
+                                    //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
+                                    Vector3 scale = new Vector3(light.m_PointLightOuterRadius, light.m_PointLightOuterRadius, light.m_PointLightOuterRadius);
+                                    Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
+                                    cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightVolumeMaterial);
+                                }
                             }
                         }
                     }
@@ -200,6 +210,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
             cmdBuffer.SetGlobalColor("_LightVolumeColor", new Color(1, 1, 1, light.LightVolumeOpacity));
+
+            if (light.m_LightQuality == Light2D.LightQuality.Fast)
+            {
+                cmdBuffer.EnableShaderKeyword("LIGHT_QUALITY_FAST");
+                cmdBuffer.DisableShaderKeyword("LIGHT_QUALITY_ACCURATE");
+            }
+            else
+            {
+                cmdBuffer.DisableShaderKeyword("LIGHT_QUALITY_FAST");
+                cmdBuffer.EnableShaderKeyword("LIGHT_QUALITY_ACCURATE");
+            }
 
             //=====================================================================================
             //                          New stuff

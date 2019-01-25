@@ -63,6 +63,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Superimpose, // Overlay might be confusing because of the photoshop overlay blending mode
         }
 
+        public enum LightQuality
+        {
+            Fast,
+            Accurate
+        }
+
         [SerializeField]
         private LightProjectionTypes m_LightProjectionType = LightProjectionTypes.Shape;
         private LightProjectionTypes m_PreviousLightProjectionType = LightProjectionTypes.Shape;
@@ -75,10 +81,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public float m_PointLightInnerRadius = 1;
         public float m_PointLightOuterRadius = 1;
         public float m_PointLightZDistance = 3;
-        public bool m_CastsShadows = true;
-
-        public Color m_ShadowColor;
-        public bool m_CastsSoftShadows = true;
+        public LightQuality m_LightQuality = LightQuality.Fast;
 
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs.
 
