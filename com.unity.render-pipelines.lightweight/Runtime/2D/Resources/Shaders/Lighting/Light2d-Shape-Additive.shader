@@ -24,7 +24,7 @@
 	{
 		Tags{ "Queue" = "Transparent" "RenderType" = "Transparent" }
 		Blend One One
-		BlendOp Add, Max
+		BlendOp Add
 		ZWrite Off
 		Cull Off
 
