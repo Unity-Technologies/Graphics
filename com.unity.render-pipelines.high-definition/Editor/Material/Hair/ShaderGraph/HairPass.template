@@ -316,6 +316,10 @@ $include("SharedCode.template.hlsl")
         // For back lighting we use the oposite vertex normal 
         InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
+        // override sampleBakedGI:
+        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
+        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
+
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
         // TODO: Handle depth offset
