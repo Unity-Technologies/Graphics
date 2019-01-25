@@ -180,7 +180,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             // Everything is optional (except surface type) so users that derive from this class can decide what they expose or not
             surfaceType = FindProperty(kSurfaceType, props, false);            
-            useShadowThreshold = FindProperty(kUseShadowThreshold, props, true);
+            useShadowThreshold = FindProperty(kUseShadowThreshold, props, false);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props, false);
             alphaCutoff = FindProperty(kAlphaCutoff, props, false);
 
