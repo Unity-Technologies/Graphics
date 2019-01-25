@@ -201,6 +201,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
             cmdBuffer.SetGlobalColor("_LightVolumeColor", new Color(1, 1, 1, light.LightVolumeOpacity));
 
+            if (light.m_LightQuality == Light2D.LightQuality.Fast)
+            {
+                cmdBuffer.EnableShaderKeyword("LIGHT_QUALITY_FAST");
+                cmdBuffer.DisableShaderKeyword("LIGHT_QUALITY_ACCURATE");
+            }
+            else
+            {
+                cmdBuffer.DisableShaderKeyword("LIGHT_QUALITY_FAST");
+                cmdBuffer.EnableShaderKeyword("LIGHT_QUALITY_ACCURATE");
+            }
+
             //=====================================================================================
             //                          New stuff
             //=====================================================================================

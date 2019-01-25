@@ -200,12 +200,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             SerializedProperty pointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             SerializedProperty pointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
             SerializedProperty pointZDistance = serializedObject.FindProperty("m_PointLightZDistance");
-            SerializedProperty castsShadows = serializedObject.FindProperty("m_CastsShadows");
-            SerializedProperty shadowColor = serializedObject.FindProperty("m_ShadowColor");
             SerializedProperty pointLightCookie = serializedObject.FindProperty("m_LightCookieSprite");
+            SerializedProperty lightQuality = serializedObject.FindProperty("m_LightQuality");
 
             EditorGUI.indentLevel++;
-
+            EditorGUILayout.PropertyField(lightQuality, EditorGUIUtility.TrTextContent("Quality", "Use accurate if there are noticable visual issues"));
             EditorGUILayout.PropertyField(pointInnerAngle, EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light"));
             EditorGUILayout.PropertyField(pointOuterAngle, EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light"));
             EditorGUILayout.PropertyField(pointInnerRadius, EditorGUIUtility.TrTextContent("Inner Radius", "Specify the inner radius of the light"));
@@ -216,15 +215,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (pointOuterRadius.floatValue < 0) pointOuterRadius.floatValue = 0;
             if (pointZDistance.floatValue < 0) pointZDistance.floatValue = 0;
 
-            EditorGUILayout.PropertyField(castsShadows, EditorGUIUtility.TrTextContent("Casts Shadows", "Specify if this light should casts shadows"));
-
-
-            if (castsShadows.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(shadowColor, EditorGUIUtility.TrTextContent("Shadow Color", "Specify the shadow color of the light"));
-                EditorGUI.indentLevel--;
-            }
             EditorGUI.indentLevel--;
         }
 

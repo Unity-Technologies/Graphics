@@ -6,8 +6,11 @@
 		_Color("Color", Color) = (1,1,1,1)
     }
 
+	
+
 	HLSLINCLUDE
 	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+	#pragma multi_compile LIGHT_QUALITY_FAST __
 
 	struct Attributes
 	{
@@ -22,7 +25,12 @@
 		float2	screenUV		: TEXCOORD1;
 		float2	lookupUV		: TEXCOORD2;  // This is used for light relative direction
 		float2	lookupNoRotUV	: TEXCOORD3;  // This is used for screen relative direction of a light
-		float4	lightDirection	: TEXCOORD4;
+
+		#if LIGHT_QUALITY_FAST
+			float4	lightDirection	: TEXCOORD4;
+		#else
+			float4	positionWS : TEXCOORD4;
+		#endif
 	};
 	ENDHLSL
 
@@ -42,6 +50,8 @@
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma enable_d3d11_debug_symbols
+
+			#pragma multi_compile LIGHT_QUALITY_FAST __
 
 			TEXTURE2D(_MainTex);
 			SAMPLER(sampler_MainTex);
@@ -76,10 +86,15 @@
 				float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
 				output.lookupUV = 0.5 * (lightSpacePos.xy + 1);
 				output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
-				output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
-				output.lightDirection.z   = _LightZDistance;
-				output.lightDirection.w   = 0;
-				output.lightDirection.xyz = normalize(output.lightDirection.xyz);
+
+				#if LIGHT_QUALITY_FAST
+					output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
+					output.lightDirection.z   = _LightZDistance;
+					output.lightDirection.w   = 0;
+					output.lightDirection.xyz = normalize(output.lightDirection.xyz);
+				#else
+					output.positionWS = worldSpacePos;
+				#endif
 
 				float4 clipVertex = output.positionCS / output.positionCS.w;
 				output.screenUV = ComputeScreenPos(clipVertex).xy;
@@ -101,21 +116,22 @@
 				// Inner Radius
 				half attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
 
-																					  // Spotlight
+				// Spotlight
 				half  spotAttenuation = saturate((_OuterAngle - lookupValue.g)*_InnerAngleMult);
 				attenuation = attenuation * spotAttenuation;
 				//attenuation = attenuation * attenuation;
 
 				// Calculate final color
 
-				// This is the code for fast point lights
-				float3 dirToLight = input.lightDirection.xyz;  
-
-				// This will be the code later for accurate point lights
-				//float3 dirToLight;
-				//dirToLight.xy = _LightPosition.xy - input.PositionWS.xy; // Calculate this in the vertex shader so we have less precision issues...
-				//dirToLight.z = _LightZDistance;
-				//dirToLight = normalize(dirToLight);
+				#if LIGHT_QUALITY_FAST
+					float3 dirToLight = input.lightDirection.xyz;  
+				#else
+					// This will be the code later for accurate point lights
+					float3 dirToLight;
+					dirToLight.xy = _LightPosition.xy - input.positionWS.xy; // Calculate this in the vertex shader so we have less precision issues...
+					dirToLight.z  = _LightZDistance;
+					dirToLight	  = normalize(dirToLight);
+				#endif
 
 
 				float cosAngle = (1 - usingDefaultNormalMap) * saturate(dot(dirToLight, normalUnpacked)) + usingDefaultNormalMap;
