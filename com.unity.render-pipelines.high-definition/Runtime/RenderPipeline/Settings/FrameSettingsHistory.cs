@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct FrameSettingsHistory : IDebugData
     {
         static readonly string[] foldoutNames = { "Rendering", "Lighting", "Async Compute", "Light Loop" };
-        static readonly string[] columnNames = { "", "Sanitazed", "Overrided", "Default" };
+        static readonly string[] columnNames = { "", "Sanitazed", "Overridden", "Default" };
         static readonly Dictionary<FrameSettingsField, FrameSettingsFieldAttribute> attributes;
         static Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>> attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
 
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal static Dictionary<Camera, FrameSettingsHistory> frameSettingsHistory = new Dictionary<Camera, FrameSettingsHistory>();
 
         public FrameSettingsRenderType defaultType;
-        public FrameSettings custom;
+        public FrameSettings overridden;
         public FrameSettingsOverrideMask customMask;
         public FrameSettings sanitazed;
         public FrameSettings debug;
@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 FrameSettings.Override(ref aggregatedFrameSettings, additionalData.renderingPathCustomFrameSettings, additionalData.renderingPathCustomFrameSettingsOverrideMask);
                 history.customMask = additionalData.renderingPathCustomFrameSettingsOverrideMask;
             }
-            history.custom = aggregatedFrameSettings;
+            history.overridden = aggregatedFrameSettings;
             FrameSettings.Sanitize(ref aggregatedFrameSettings, camera, supportedFeatures);
 
             bool noHistory = !frameSettingsHistory.ContainsKey(camera);                   
@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 historyGetter = new Func<bool>[]
                 {
                     () => frameSettingsHistory[camera].sanitazed.IsEnabled(field),
-                    () => frameSettingsHistory[camera].custom.IsEnabled(field),
+                    () => frameSettingsHistory[camera].overridden.IsEnabled(field),
                     () => hdrpAsset.GetDefaultFrameSettings(renderType).IsEnabled(field)
                 }
             };
@@ -171,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 historyIndexGetter = new Func<int>[]
                 {
                     () => frameSettingsHistory[camera].sanitazed.IsEnabled(field) ? 1 : 0,
-                    () => frameSettingsHistory[camera].custom.IsEnabled(field) ? 1 : 0,
+                    () => frameSettingsHistory[camera].overridden.IsEnabled(field) ? 1 : 0,
                     () => hdrpAsset.GetDefaultFrameSettings(renderType).IsEnabled(field) ? 1 : 0
                 }
             };

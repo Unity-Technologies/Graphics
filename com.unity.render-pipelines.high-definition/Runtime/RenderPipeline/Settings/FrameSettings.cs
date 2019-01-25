@@ -98,20 +98,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         FPTLForForwardOpaque = 120,
         [FrameSettingsField(3, autoName: BigTilePrepass)]
         BigTilePrepass = 121,
-        [FrameSettingsField(3, autoName: DeferredTileAndCluster)]
-        DeferredTileAndCluster = 122,
-        [FrameSettingsField(3, autoName: ComputeLightEvaluation, positiveDependencies: new[] { DeferredTileAndCluster })]
+        [FrameSettingsField(3, autoName: DeferredTile)]
+        DeferredTile = 122,
+        [FrameSettingsField(3, autoName: ComputeLightEvaluation, positiveDependencies: new[] { DeferredTile })]
         ComputeLightEvaluation = 123,
-        [FrameSettingsField(3, autoName: ComputeLightVariants, positiveDependencies: new[] { ComputeLightEvaluation, DeferredTileAndCluster })]
+        [FrameSettingsField(3, autoName: ComputeLightVariants, positiveDependencies: new[] { ComputeLightEvaluation, DeferredTile })]
         ComputeLightVariants = 124,
-        [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { ComputeLightEvaluation, DeferredTileAndCluster })]
+        [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { ComputeLightEvaluation, DeferredTile })]
         ComputeMaterialVariants = 125,
         Reflection = 126, //set by engine, not for DebugMenu/Inspector
 
         //only 128 booleans saved. For more, change the BitArray used
     }
 
-    /// <summary>BitField that state which element is overrided.</summary>
+    /// <summary>BitField that state which element is overridden.</summary>
     [Serializable]
     [System.Diagnostics.DebuggerDisplay("{mask.humanizedData}")]
     public struct FrameSettingsOverrideMask
@@ -159,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
-                (uint)FrameSettingsField.DeferredTileAndCluster,
+                (uint)FrameSettingsField.DeferredTile,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
@@ -201,7 +201,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
-                (uint)FrameSettingsField.DeferredTileAndCluster,
+                (uint)FrameSettingsField.DeferredTile,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
@@ -242,13 +242,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal bool VolumeVoxelizationRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
 
         /// <summary>Override a frameSettings according to a mask.</summary>
-        /// <param name="overridedFrameSettings">Overrided FrameSettings. Must contains default data before attempting the override.</param>
+        /// <param name="overriddenFrameSettings">Overrided FrameSettings. Must contains default data before attempting the override.</param>
         /// <param name="overridingFrameSettings">The FrameSettings data we will use for overriding.</param>
         /// <param name="frameSettingsOverideMask">The mask to use for overriding (1 means override this field).</param>
-        public static void Override(ref FrameSettings overridedFrameSettings, FrameSettings overridingFrameSettings, FrameSettingsOverrideMask frameSettingsOverideMask)
+        public static void Override(ref FrameSettings overriddenFrameSettings, FrameSettings overridingFrameSettings, FrameSettingsOverrideMask frameSettingsOverideMask)
         {
             //quick override of all booleans
-            overridedFrameSettings.bitDatas = (overridingFrameSettings.bitDatas & frameSettingsOverideMask.mask) | (~frameSettingsOverideMask.mask & overridedFrameSettings.bitDatas);
+            overriddenFrameSettings.bitDatas = (overridingFrameSettings.bitDatas & frameSettingsOverideMask.mask) | (~frameSettingsOverideMask.mask & overriddenFrameSettings.bitDatas);
 
             //override remaining values here if needed
         }
