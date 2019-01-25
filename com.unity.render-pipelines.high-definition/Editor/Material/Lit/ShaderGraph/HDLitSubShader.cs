@@ -63,6 +63,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.RefractionIndexSlotId,
                 HDLitMasterNode.RefractionColorSlotId,
                 HDLitMasterNode.RefractionDistanceSlotId,
+                HDLitMasterNode.LightingSlotId,
+                HDLitMasterNode.BackLightingSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -534,6 +536,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDLitMasterNode.RefractionIndexSlotId,
                 HDLitMasterNode.RefractionColorSlotId,
                 HDLitMasterNode.RefractionDistanceSlotId,
+                HDLitMasterNode.LightingSlotId,
+                HDLitMasterNode.BackLightingSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -915,6 +919,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     activeFields.Add("CoatMask");
                 }
+            }
+
+            if (masterNode.IsSlotConnected(HDLitMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.LightingSlotId))
+            {
+                activeFields.Add("LightingGI");
+            }
+            if (masterNode.IsSlotConnected(HDLitMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(HDLitMasterNode.LightingSlotId))
+            {
+                activeFields.Add("BackLightingGI");
             }
 
             return activeFields;

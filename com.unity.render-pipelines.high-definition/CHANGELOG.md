@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support of multiviewport
 - Added stereo instancing macros to a few shaders
 - Added HDRenderPipeline.RequestSkyEnvironmentUpdate function to force an update from script when sky is set to OnDemand
+- Added a Lighting and BackLighting slots in Lit, StackLit, Fabric and Hair master nodes
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
