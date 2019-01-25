@@ -187,10 +187,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     alphaCutoff = _AlphaCutoffPrepass;
     #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
     alphaCutoff = _AlphaCutoffPostpass;
-    #elif defined(CUTOFF_TRANSPARENT_DEPTH_SHADOWS)
-    alphaCutoff = _AlphaCutoffShadow;
     #endif
+
+#if SHADERPASS == SHADERPASS_SHADOWS 
+    DoAlphaTest(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
+#else
     DoAlphaTest(alpha, alphaCutoff);
+#endif
 #endif
 
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
