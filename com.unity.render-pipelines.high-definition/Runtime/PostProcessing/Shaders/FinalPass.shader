@@ -5,8 +5,8 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-        #pragma multi_compile _ FXAA
-        #pragma multi_compile _ GRAIN
+        #pragma multi_compile_local _ FXAA
+        #pragma multi_compile_local _ GRAIN
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -149,7 +149,7 @@ Shader "Hidden/HDRP/FinalPass"
             #if GRAIN
             {
                 // Grain in range [0;1] with neutral at 0.5
-                int2 icoords = (positionSS + int2(_GrainTextureParams.zw)) % int2(_GrainTextureParams.xy);
+                uint2 icoords = fmod(positionSS + _GrainTextureParams.zw, _GrainTextureParams.xy);
                 float grain = LOAD_TEXTURE2D(_GrainTexture, icoords).w;
 
                 // Remap [-1;1]
