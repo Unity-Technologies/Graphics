@@ -21,6 +21,13 @@ MonoBehaviour:
     type: 2}
   defaultDiffusionProfileSettings: {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0,
     type: 2}
+  shaders:
+    terrainDetailLitShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
+      type: 0}
+    terrainDetailGrassShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
+      type: 0}
+    terrainDetailGrassBillboardShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
+      type: 0}
   materials:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}

@@ -15,6 +15,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable]
         public sealed class ShaderResources
         {
+            public Shader terrainDetailLitShader;
+            public Shader terrainDetailGrassShader;
+            public Shader terrainDetailGrassBillboardShader;
         }
 
         [Serializable]

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LWRP now includes version defines for both C# and Shaders in the format of `LWRP_X_Y_Z_OR_NEWER`. For example, `LWRP_5_3_0_OR_NEWER` defines version 5.3.0.
 - The Terrain Lit Shader now samples Spherical Harmonics if you haven't baked any lightmaps for terrain.
 - Added a __Priority__ option, which you can use to tweak the rendering order. This is similar to render queue in the built-in render pipeline. These Shaders now have this option: Lit, Simple Lit, Baked Lit, Unlit, and all three Particle Shaders.
+- Added support for overriding terrain detail rendering shaders, via the render pipeline editor resources asset.
 
 ### Changed
 - You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Care.
@@ -54,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Post-processing in mobile VR is now forced to be disabled. It was causing many rendering issues.
 - Fixed Editor Previews breaking in Play Mode when VR is enabled. [Case 1109009](https://issuetracker.unity3d.com/issues/lwrp-editor-previews-break-in-play-mode-if-vr-is-enabled)
 - A camera's HDR enable flag is now respected when rendering in XR.
+- Terrain detail rendering now works correctly when LWRP is installed but inactive.
 
 ## [5.2.0] - 2018-11-27
 ### Added
