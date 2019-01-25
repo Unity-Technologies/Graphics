@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RebuildTextures(int resolution)
         {
-            bool updateNeeded = m_SkyboxCubemapRT == null || (m_SkyboxCubemapRT.rt.width != resolution); 
+            bool updateNeeded = m_SkyboxCubemapRT == null || (m_SkyboxCubemapRT.rt.width != resolution);
 
             // Cleanup first if needed
             if (updateNeeded)
@@ -290,7 +290,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             CoreUtils.ClearCubemap(cmd, m_SkyboxBSDFCubemapIntermediate, Color.black, true);
                             for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
                             {
-                                cmd.CopyTexture(m_SkyboxBSDFCubemapIntermediate, 0, m_SkyboxBSDFCubemapArray, bsdfIdx);
+                                for (int face = 0; face < 6; ++face)
+                                    cmd.CopyTexture(m_SkyboxBSDFCubemapIntermediate, face, m_SkyboxBSDFCubemapArray, 6 * bsdfIdx + face);
                             }
                         }
                     }
