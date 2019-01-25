@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Material validator in Render Pipeline Debug
 - Added code to future support of DXR (not enabled)
 - Added support of multiviewport
+- Added stereo instancing macros to a few shaders
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
