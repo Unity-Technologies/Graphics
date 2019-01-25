@@ -374,6 +374,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     toggle.OnToggleChanged(ChangeDebug);
                 });
             });
+            
+            ps.Add(new PropertyRow(CreateLabel("Override Baked GI", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.overrideBakedGI.isOn;
+                    toggle.OnToggleChanged(ChangeoverrideBakedGI);
+                });
+            });
 
             --indentLevel; //...Advanced options
 
@@ -598,6 +607,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.anisotropyForAreaLights;
             td.isOn = evt.newValue;
             m_Node.anisotropyForAreaLights = td;
+        }
+
+        void ChangeoverrideBakedGI(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("overrideBakedGI Change");
+            ToggleData td = m_Node.overrideBakedGI;
+            td.isOn = evt.newValue;
+            m_Node.overrideBakedGI = td;
         }
 
         void ChangeRecomputeStackPerLight(ChangeEvent<bool> evt)
