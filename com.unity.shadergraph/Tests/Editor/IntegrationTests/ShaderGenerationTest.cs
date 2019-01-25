@@ -80,9 +80,9 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
             var filePath = file.FullName;
 
             var textGraph = File.ReadAllText(filePath, Encoding.UTF8);
-            var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
+            var graph = JsonUtility.FromJson<GraphData>(textGraph);
 
-            Assert.IsNotNull(graph.masterNode, "No master node in graph.");
+            Assert.IsNotNull(graph.outputNode, "No master node in graph.");
 
             var rootPath = Path.Combine(Path.Combine("" /*DefaultShaderIncludes.GetRepositoryPath()*/, "Testing"), "IntegrationTests");
             var shaderTemplatePath = Path.Combine(rootPath, ".ShaderTemplates");

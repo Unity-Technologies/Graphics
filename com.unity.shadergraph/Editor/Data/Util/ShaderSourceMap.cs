@@ -8,13 +8,13 @@ namespace UnityEditor.ShaderGraph
     {
         // Indicates where a new node begins
         List<int> m_LineStarts;
-        List<INode> m_Nodes;
+        List<AbstractMaterialNode> m_Nodes;
         int m_LineCount;
 
         internal ShaderSourceMap(string source, List<ShaderStringMapping> mappings)
         {
             m_LineStarts = new List<int>();
-            m_Nodes = new List<INode>();
+            m_Nodes = new List<AbstractMaterialNode>();
 
             // File line numbers are 1-based
             var line = 1;
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Binary search that behaves like C++'s std::lower_bound()
-        public INode FindNode(int line)
+        public AbstractMaterialNode FindNode(int line)
         {
             // line is 1-based throughout this function
             if (line > m_LineCount || line <= 0)

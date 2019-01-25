@@ -73,12 +73,12 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new CubemapAssetNode { cubemap = value.cubemap };
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new CubemapShaderProperty();
             copied.displayName = displayName;

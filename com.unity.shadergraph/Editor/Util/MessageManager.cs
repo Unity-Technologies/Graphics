@@ -90,7 +90,7 @@ namespace UnityEditor.Graphing.Util
             }
         }
 
-        public void ClearNodesFromProvider(object messageProvider, IEnumerable<INode> nodes)
+        public void ClearNodesFromProvider(object messageProvider, IEnumerable<AbstractMaterialNode> nodes)
         {
             Dictionary<Identifier,List<ShaderMessage>> messageMap;
             if (m_Messages.TryGetValue(messageProvider, out messageMap))

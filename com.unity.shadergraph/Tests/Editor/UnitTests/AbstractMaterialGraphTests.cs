@@ -8,9 +8,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
     [TestFixture]
     class AbstractMaterialGraphTests
     {
-        private class TestableMGraph : AbstractMaterialGraph
-        {}
-
         private class TestableMNode : AbstractMaterialNode
         {}
 
@@ -23,7 +20,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void TestCanCreateMaterialGraph()
         {
-            TestableMGraph graph = new TestableMGraph();
+            GraphData graph = new GraphData();
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
         }
@@ -31,7 +28,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void TestCanAddMaterialNodeToMaterialGraph()
         {
-            TestableMGraph graph = new TestableMGraph();
+            GraphData graph = new GraphData();
 
             var node = new TestableMNode();
             graph.AddNode(node);
@@ -42,7 +39,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void TestCanGetMaterialNodeFromMaterialGraph()
         {
-            TestableMGraph graph = new TestableMGraph();
+            GraphData graph = new GraphData();
 
             var node = new TestableMNode();
             graph.AddNode(node);
@@ -65,7 +62,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                  Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
                  Assert.IsInstanceOf(typeof(MetallicMasterNode), graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
                  Assert.IsNotNull(graph.masterNode);
-                 Assert.AreEqual(1, graph.GetNodes<INode>().Count());
+                 Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
              }
 
              [Test]

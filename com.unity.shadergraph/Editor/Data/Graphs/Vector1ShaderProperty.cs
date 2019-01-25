@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)
             {
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new Vector1ShaderProperty();
             copied.displayName = displayName;

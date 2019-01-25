@@ -8,7 +8,7 @@ using UnityEditor.Experimental.AssetImporters;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(21, Extension)]
+    [ScriptedImporter(22, Extension, 1)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -98,12 +98,13 @@ Shader ""Hidden/GraphErrorShader2""
             try
             {
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
-                graph.LoadedFromDisk();
+                var graph = JsonUtility.FromJson<GraphData>(textGraph);
+                graph.OnEnable();
+                graph.ValidateGraph();
 
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures, sourceAssetDependencyPaths);
+                shaderString = ((IMasterNode)graph.outputNode).GetShader(GenerationMode.ForReals, shaderName, out configuredTextures, sourceAssetDependencyPaths);
 
                 if (sourceAssetDependencyPaths != null)
                 {

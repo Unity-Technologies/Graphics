@@ -14,9 +14,9 @@ namespace UnityEditor.ShaderGraph.Drawing
     class BlackboardFieldPropertyView : VisualElement
     {
         readonly BlackboardField m_BlackboardField;
-        readonly AbstractMaterialGraph m_Graph;
+        readonly GraphData m_Graph;
 
-        IShaderProperty m_Property;
+        AbstractShaderProperty m_Property;
         Toggle m_ExposedToogle;
         TextField m_ReferenceNameField;
 
@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public delegate void OnExposedToggle();
         private OnExposedToggle m_OnExposedToggle;
         
-        public BlackboardFieldPropertyView(BlackboardField blackboardField, AbstractMaterialGraph graph, IShaderProperty property)
+        public BlackboardFieldPropertyView(BlackboardField blackboardField, GraphData graph, AbstractShaderProperty property)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_BlackboardField = blackboardField;

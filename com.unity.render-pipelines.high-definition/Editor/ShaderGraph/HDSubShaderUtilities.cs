@@ -513,10 +513,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool debugOutput = false;
 
             // grab all of the active nodes (for pixel and vertex graphs)
-            var vertexNodes = ListPool<INode>.Get();
+            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
-            var pixelNodes = ListPool<INode>.Get();
+            var pixelNodes = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // graph requirements describe what the graph itself requires
@@ -555,7 +555,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GraphUtil.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 masterNode,
-                masterNode.owner as AbstractMaterialGraph,
+                masterNode.owner as GraphData,
                 pixelGraphEvalFunction,
                 functionRegistry,
                 sharedProperties,
@@ -587,7 +587,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // -------------------------------------
                 // Generate Vertex Description function
                 GraphUtil.GenerateVertexDescriptionFunction(
-                    masterNode.owner as AbstractMaterialGraph,
+                    masterNode.owner as GraphData,
                     vertexGraphEvalFunction,
                     functionRegistry,
                     sharedProperties,

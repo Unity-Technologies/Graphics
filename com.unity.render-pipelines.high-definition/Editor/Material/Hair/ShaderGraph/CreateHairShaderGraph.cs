@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            var graph = new MaterialGraph();
+            var graph = new GraphData();
             graph.AddNode(new HairMasterNode());
             graph.path = "Shader Graphs";
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
