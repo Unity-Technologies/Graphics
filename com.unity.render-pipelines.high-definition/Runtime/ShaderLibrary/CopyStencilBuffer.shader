@@ -31,16 +31,20 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
     struct Attributes
     {
         uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     struct Varyings
     {
         float4 positionCS : SV_Position;
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     Varyings Vert(Attributes input)
     {
         Varyings output;
+        UNITY_SETUP_INSTANCE_ID(input);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
         return output;
     }
@@ -138,6 +142,7 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
             [earlydepthstencil]
             void Frag(Varyings input) // use SV_StencilRef in D3D 11.3+
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 uint2 positionNDC = (uint2)input.positionCS.xy;
                 // There's no need for atomics as we are always writing the same value.
                 // Note: the GCN tile size is 8x8 pixels.
@@ -173,6 +178,7 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
                 [earlydepthstencil]
                 void Frag(Varyings input)// use SV_StencilRef in D3D 11.3+
                 {
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                     _StencilBufferCopy[(uint2)input.positionCS.xy] = PackByte(1);
                 }
 
@@ -203,6 +209,7 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
                 [earlydepthstencil]
                 void Frag(Varyings input) // use SV_StencilRef in D3D 11.3+
                 {
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                     uint2 dstPixCoord = (uint2)input.positionCS.xy;
                     uint oldStencilVal = UnpackByte(_StencilBufferCopy[dstPixCoord]);
                     _StencilBufferCopy[dstPixCoord] = PackByte(oldStencilVal | _StencilRef);
